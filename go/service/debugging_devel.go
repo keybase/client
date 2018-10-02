@@ -9,12 +9,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/net/context"
 )
 
@@ -120,6 +122,49 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			return "", err
 		}
 		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "buildpayment":
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 args: <recipient>")
+		}
+		recipient := args[0]
+		wh := t.G().TheService.(*Service).walletHandler
+		count := 30
+		var wg sync.WaitGroup
+		for i := 0; i < count; i++ {
+			i := i
+			wg.Add(1)
+			if i%5 == 0 {
+				time.Sleep(100 * time.Millisecond)
+			}
+			if i == 10 {
+				time.Sleep(2 * time.Second)
+			}
+			start := time.Now()
+			log("build[%v] starting", i)
+			go func() {
+				defer wg.Done()
+				ctx := libkb.WithLogTagWithValue(ctx, "DGI", fmt.Sprintf("%vx", i))
+				res, err := wh.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+					SessionID:          500 + i,
+					FromPrimaryAccount: true,
+					To:                 recipient,
+					Amount:             "0.01",
+					SecretNote:         "xx",
+					PublicMemo:         "yy",
+				})
+				took := time.Now().Sub(start)
+				if err != nil {
+					log("build[%v] [%v] error: %v", i, took, err)
+					return
+				}
+				log("build[%v] [%v] ok", i, took)
+				if i == count-1 || err == nil {
+					log("build[%v] res: %v", i, spew.Sdump(res))
+				}
+			}()
+		}
+		wg.Wait()
+		return "", nil
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

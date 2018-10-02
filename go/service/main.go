@@ -65,6 +65,8 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
+
+	walletHandler *walletHandler // xxx
 }
 
 type Shutdowner interface {
@@ -74,7 +76,7 @@ type Shutdowner interface {
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	chatG := globals.NewChatContextified(&globals.ChatContext{})
 	allG := globals.NewContext(g, chatG.ChatG())
-	return &Service{
+	service := &Service{
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: chatG,
 		isDaemon:         isDaemon,
@@ -89,6 +91,8 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
+	g.TheService = service
+	return service
 }
 
 func (d *Service) GetStartChannel() <-chan struct{} {
@@ -147,8 +151,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
-		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
+	d.walletHandler = newWalletHandler(xp, g)
+	protocols = append(protocols, stellar1.LocalProtocol(d.walletHandler))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return

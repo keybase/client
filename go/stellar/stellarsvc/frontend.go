@@ -741,6 +741,12 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	tracer := s.G().CTimeTracer(ctx, "BuildPaymentLocal", true)
 	defer tracer.Finish()
 
+	ctx = s.buildPaymentSlot.Use(ctx, arg.SessionID)
+
+	if err := ctx.Err(); err != nil {
+		return res, err
+	}
+
 	readyChecklist := struct {
 		from       bool
 		to         bool
@@ -969,7 +975,11 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	if readyChecklist.from && readyChecklist.to && readyChecklist.amount && readyChecklist.secretNote && readyChecklist.publicMemo {
 		res.ReadyToSend = true
 	}
-	return res, nil
+	// Return the context's error.
+	// If just `nil` were returned then in the event of a cancellation
+	// resilient parts of this function could hide it, causing
+	// a bogus return value.
+	return res, ctx.Err()
 }
 
 type buildPaymentAmountArg struct {
