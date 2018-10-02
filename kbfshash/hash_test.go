@@ -115,7 +115,12 @@ func TestHashVerify(t *testing.T) {
 	err = invalidH.Verify(data)
 	require.Equal(t, InvalidHashError{invalidH}, errors.Cause(err))
 
-	unknownType := validH.hashType() + 1
+	// v2 should verify the same way as v1.
+	v2ValidH := hashFromRawNoCheck(SHA256HashV2, validH.hashData())
+	err = v2ValidH.Verify(data)
+	require.NoError(t, err)
+
+	unknownType := validH.hashType() + 2
 	unknownH := hashFromRawNoCheck(unknownType, validH.hashData())
 	err = unknownH.Verify(data)
 	require.Equal(t, UnknownHashTypeError{unknownType}, errors.Cause(err))

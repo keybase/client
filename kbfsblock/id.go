@@ -94,6 +94,12 @@ func (id *ID) UnmarshalText(buf []byte) error {
 	return id.h.UnmarshalText(buf)
 }
 
+// UseV2 returns true if the caller should employ v2
+// encryption/decryption on the block represented by this ID.
+func (id *ID) UseV2() bool {
+	return id.h.GetHashType() == kbfshash.SHA256HashV2
+}
+
 // MakeTemporaryID generates a temporary block ID using a CSPRNG. This
 // is used for indirect blocks before they're committed to the server.
 func MakeTemporaryID() (ID, error) {

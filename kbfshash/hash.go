@@ -53,6 +53,8 @@ const (
 	InvalidHash HashType = 0
 	// SHA256Hash is the type of a SHA256 hash.
 	SHA256Hash HashType = 1
+	// SHA256HashV2 is the type of a SHA256 hash over V2-encrypted data.
+	SHA256HashV2 HashType = 2
 )
 
 // MaxDefaultHash is the maximum value of RawDefaultHash
@@ -146,8 +148,19 @@ func DefaultHash(buf []byte) (Hash, error) {
 	return HashFromRaw(hashType, rawHash[:])
 }
 
+// HashV2 computes the hash of the given data with the v2 hash type.
+func HashV2(buf []byte) (Hash, error) {
+	_, rawHash := DoRawDefaultHash(buf)
+	return HashFromRaw(SHA256HashV2, rawHash[:])
+}
+
 func (h Hash) hashType() HashType {
 	return HashType(h.h[0])
+}
+
+// GetHashType returns the type of this hash.
+func (h Hash) GetHashType() HashType {
+	return h.hashType()
 }
 
 func (h Hash) hashData() []byte {
@@ -222,15 +235,21 @@ func (h Hash) Verify(buf []byte) error {
 	}
 
 	// Once we have multiple hash types we'll need to expand this.
-	t := h.hashType()
-	if t != DefaultHashType {
-		return errors.WithStack(UnknownHashTypeError{t})
+	var expectedH Hash
+	var err error
+	switch h.hashType() {
+	case SHA256Hash:
+		expectedH, err = DefaultHash(buf)
+	case SHA256HashV2:
+		// Use the same hashing algorithm, but prefixed with the v2 type.
+		expectedH, err = HashV2(buf)
+	default:
+		return errors.WithStack(UnknownHashTypeError{h.hashType()})
 	}
-
-	expectedH, err := DefaultHash(buf)
 	if err != nil {
 		return err
 	}
+
 	if h != expectedH {
 		return errors.WithStack(HashMismatchError{expectedH, h})
 	}
