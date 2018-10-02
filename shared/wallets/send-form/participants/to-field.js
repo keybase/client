@@ -8,10 +8,10 @@ import type {Account} from '.'
 
 type ToKeybaseUserProps = {|
   recipientUsername: string,
-  onChangeRecipient: string => void,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
+  onChangeRecipient: string => void,
 |}
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
@@ -31,7 +31,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
           boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
           fontSize={16}
           color={Styles.globalColors.black_20}
-          onClick={() => props.onChangeRecipient('')}
+          onClick={props.onRemoveProfile}
         />
       </React.Fragment>
     )
@@ -201,5 +201,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
+
+export type {ToKeybaseUserProps, ToStellarPublicKeyProps}
 
 export {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount}

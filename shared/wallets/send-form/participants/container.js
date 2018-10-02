@@ -13,20 +13,21 @@ const mapStateToPropsKeybaseUser = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
+  // If build.to is set, assume it's a valid username.
   return {
     recipientUsername: built.toUsername || build.to,
   }
 }
 
 const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
-  onChangeRecipient: (to: string) => {
-    dispatch(WalletsGen.createSetBuildingTo({to}))
-  },
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
+  onChangeRecipient: (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+  },
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
@@ -39,8 +40,8 @@ const mapStateToPropsStellarPublicKey = (state: TypedState) => {
   const built = state.wallets.builtPayment
 
   return {
-    incorrect: built.toErrMsg,
-    toFieldInput: build.to,
+    recipientPublicKey: build.to,
+    errorMessage: built.toErrMsg,
   }
 }
 
@@ -98,11 +99,11 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
 }
 
 const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
-  onChangeRecipient: (to: string) => {
-    dispatch(WalletsGen.createSetBuildingTo({to}))
-  },
   onChangeFromAccount: (from: string) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
+  },
+  onChangeRecipient: (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onLinkAccount: () =>
     dispatch(

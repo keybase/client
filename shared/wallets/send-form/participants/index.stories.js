@@ -99,10 +99,15 @@ const accounts = [
 
 const keybaseUserProps = {
   recipientUsername: '',
-  onChangeRecipient: Sb.action('onChangeRecipient'),
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+}
+
+const stellarPublicKeyProps = {
+  recipientPublicKey: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
 }
 
 const otherAccountProps = {
@@ -115,12 +120,6 @@ const otherAccountProps = {
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
 }
 
-const stellarPublicKeyProps = {
-  incorrect: '',
-  toFieldInput: '',
-  onChangeRecipient: Sb.action('onChangeRecipient'),
-}
-
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
@@ -128,7 +127,7 @@ const load = () => {
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
-      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} incorrect="Stellar address incorrect" />
+      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
     ))
     .add('To other account (multiple accounts)', () => <ParticipantsOtherAccount {...otherAccountProps} />)
     .add('To other account (one account)', () => (

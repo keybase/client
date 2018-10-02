@@ -2,42 +2,24 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
-import {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount} from './to-field'
+import {
+  type ToKeybaseUserProps,
+  ToKeybaseUser,
+  type ToStellarPublicKeyProps,
+  ToStellarPublicKey,
+  ToOtherAccount,
+} from './to-field'
 import type {AccountID} from '../../../constants/types/wallets'
 
-type ParticipantsKeybaseUserProps = {|
-  recipientUsername: string,
-  onChangeRecipient: string => void,
-  onShowProfile: string => void,
-  onShowSuggestions: () => void,
-  onRemoveProfile: () => void,
-|}
-
-const ParticipantsKeybaseUser = (props: ParticipantsKeybaseUserProps) => (
+const ParticipantsKeybaseUser = (props: ToKeybaseUserProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <ToKeybaseUser
-      recipientUsername={props.recipientUsername}
-      onChangeRecipient={props.onChangeRecipient}
-      onShowProfile={props.onShowProfile}
-      onShowSuggestions={props.onShowSuggestions}
-      onRemoveProfile={props.onRemoveProfile}
-    />
+    <ToKeybaseUser {...props} />
   </Kb.Box2>
 )
 
-type ParticipantsStellarPublicKeyProps = {|
-  incorrect?: string,
-  toFieldInput: string,
-  onChangeRecipient: string => void,
-|}
-
-const ParticipantsStellarPublicKey = (props: ParticipantsStellarPublicKeyProps) => (
+const ParticipantsStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <ToStellarPublicKey
-      recipientPublicKey={props.toFieldInput}
-      errorMessage={props.incorrect}
-      onChangeRecipient={props.onChangeRecipient}
-    />
+    <ToStellarPublicKey {...props} />
   </Kb.Box2>
 )
 
@@ -52,22 +34,20 @@ type ParticipantsOtherAccountProps = {|
   fromAccount: Account,
   toAccount?: Account,
   allAccounts: Account[],
-  onChangeRecipient: string => void,
   onChangeFromAccount: string => void,
+  onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
 |}
 
 const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.fromAccount && (
-      <FromField
-        initialAccount={props.fromAccount}
-        accounts={props.allAccounts}
-        onChangeSelectedAccount={props.onChangeFromAccount}
-        user={props.user}
-      />
-    )}
+    <FromField
+      initialAccount={props.fromAccount}
+      accounts={props.allAccounts}
+      onChangeSelectedAccount={props.onChangeFromAccount}
+      user={props.user}
+    />
     <ToOtherAccount
       user={props.user}
       toAccount={props.toAccount}
