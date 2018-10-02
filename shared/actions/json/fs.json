@@ -21,7 +21,8 @@
       "team": "I.Map<string, Types.Tlf>"
     },
     "filePreviewLoad": {
-      "path": "Types.Path"
+      "path": "Types.Path",
+      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior"
     },
     "filePreviewLoaded": {
       "path": "Types.Path",
@@ -164,7 +165,8 @@
       "routePath?": "I.List<string>"
     },
     "openFilesFromWidget": {
-      "path?": "Types.Path"
+      "path": "Types.Path",
+      "type": "Types.PathType"
     },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",

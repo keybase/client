@@ -67,7 +67,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt

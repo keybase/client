@@ -157,7 +157,7 @@ export type MessageTypes = {|
   |},
   'chat.1.local.DownloadFileAttachmentLocal': {|
     inParam: $ReadOnly<{|conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
-    outParam: DownloadAttachmentLocalRes,
+    outParam: DownloadFileAttachmentLocalRes,
   |},
   'chat.1.local.RetryPost': {|
     inParam: $ReadOnly<{|outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior|}>,
@@ -682,6 +682,7 @@ export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type EphemeralPurgeInfo = $ReadOnly<{c /* convID */: ConversationID, a /* isActive */: Boolean, n /* nextPurgeTime */: Gregor1.Time, e /* minUnexplodedID */: MessageID}>
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>

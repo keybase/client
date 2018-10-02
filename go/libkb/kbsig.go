@@ -206,16 +206,6 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	return err
 }
 
-func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
-	ret := s.BaseToTrackingStatement(state)
-	err := remoteProofToTrackingStatement(s, ret)
-	if err != nil {
-		ret = nil
-	}
-
-	return ret, err
-}
-
 func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	ret.SetKey("curr", jsonw.NewString(g.id.String()))
@@ -240,13 +230,9 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 }
 
 func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
-	typS := s.TableKey()
-	i, found := RemoteServiceTypes[typS]
-	if !found {
-		return fmt.Errorf("No service type found for %q in proof %d", typS, s.GetSeqno())
-	}
+	proofType := s.GetProofType()
 
-	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(i)))
+	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(proofType)))
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
 	base.SetKey("sig_type", jsonw.NewInt(SigTypeRemoteProof))
 	return nil

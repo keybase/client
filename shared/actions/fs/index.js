@@ -14,7 +14,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {switchTo, putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -66,6 +66,9 @@ const filePreview = (state: TypedState, action) =>
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
+    ...(action.payload.identifyBehavior
+      ? {identifyBehavior: action.payload.identifyBehavior}
+      : {}),
   })
     .then(dirent =>
       FsGen.createFilePreviewLoaded({
@@ -659,27 +662,6 @@ const openPathItem = (
     yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
   })
 
-const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
-  const pathItem = path ? state.fs.pathItems.get(path) : undefined
-  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
-  return Saga.sequentially([
-    Saga.put(ConfigGen.createShowMain()),
-    Saga.put(switchTo([Tabs.fsTab])),
-    ...(path
-      ? [
-          Saga.put(
-            navigateAppend([
-              {
-                props: {path},
-                selected,
-              },
-            ])
-          ),
-        ]
-      : []),
-  ])
-}
-
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
 
@@ -700,7 +682,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
-  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)

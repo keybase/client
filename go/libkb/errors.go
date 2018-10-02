@@ -1379,6 +1379,10 @@ func (e ChainLinkWrongSeqnoError) Error() string {
 	return fmt.Sprintf("Chain link wrong seqno error: %s", e.Msg)
 }
 
+func NewChainLinkWrongSeqnoError(s string) error {
+	return ChainLinkWrongSeqnoError{s}
+}
+
 //=============================================================================
 
 type CtimeMismatchError struct {

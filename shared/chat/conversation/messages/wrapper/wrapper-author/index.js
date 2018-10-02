@@ -130,13 +130,20 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
 
 const LeftSide = props => (
   <Box style={styles.leftSide}>
-    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+    {props.includeHeader && (
+      <Box style={styles.hasHeader}>
+        <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />
+      </Box>
+    )}
   </Box>
 )
 
 const RightSide = props => (
   <Box style={styles.rightSideContainer}>
-    <Box style={styles.rightSide} className="message-wrapper">
+    <Box
+      style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+      className="message-wrapper"
+    >
       {props.includeHeader && (
         <Username
           username={props.author}
@@ -204,7 +211,7 @@ class WrapperAuthor extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
-      <Box style={styles.flexOneRow}>
+      <Box style={collapseStyles([styles.flexOneRow, props.includeHeader && styles.hasHeader])}>
         <LeftSide {...props} />
         <RightSide {...props} />
       </Box>
@@ -218,6 +225,7 @@ const styles = styleSheetCreate({
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
+  hasHeader: {paddingTop: globalMargins.xtiny},
   leftSide: platformStyles({
     common: {
       flexShrink: 0,
@@ -235,11 +243,13 @@ const styles = styleSheetCreate({
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,
+    paddingRight: globalMargins.tiny,
     position: 'relative',
   },
   rightSideContainer: {
     ...globalStyles.flexBoxRow,
     flex: 1,
+    paddingBottom: 2,
     paddingRight: globalMargins.tiny,
   },
   sendIndicator: platformStyles({
@@ -263,6 +273,7 @@ const styles = styleSheetCreate({
   }),
   textContainer: {
     ...globalStyles.flexBoxRow,
+    borderRadius: 4,
     flex: 1,
   },
   userAvatar: {
@@ -272,7 +283,7 @@ const styles = styleSheetCreate({
   },
   username: {
     alignSelf: 'flex-start',
-    marginBottom: 3,
+    marginBottom: 0,
   },
 })
 

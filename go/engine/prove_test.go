@@ -4,11 +4,9 @@
 package engine
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,91 +59,12 @@ func TestProveRooterCachedKeys(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestProveGenericSocialPromptPosted(t *testing.T) {
-	testProveGenericSocial(t, true /* promptPosted */)
-}
+func TestProveGenericSocial(t *testing.T) {
+	tc := SetupEngineTest(t, "prove")
+	defer tc.Cleanup()
+	sigVersion := libkb.KeybaseSignatureV2
 
-func TestProveGenericSocialNoPromptPosted(t *testing.T) {
-	testProveGenericSocial(t, false /* promptPosted */)
-}
-
-func testProveGenericSocial(t *testing.T, promptPosted bool) {
-	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
-		tc := SetupEngineTest(t, "prove")
-		defer tc.Cleanup()
-
-		fu := CreateAndSignupFakeUser(tc, "prove")
-		_proveGubbleSocial(tc, fu, sigVersion, promptPosted)
-	})
-}
-
-func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion, promptPosted bool) {
-	g := tc.G
-	sv := keybase1.SigVersion(sigVersion)
-	serviceType := g.GetProofServices().GetServiceType("gubble.social")
-	require.NotNil(tc.T, serviceType)
-
-	// Post a proof to the testing generic social service, gubble.social
-	arg := keybase1.StartProofArg{
-		Service:      serviceType.GetTypeName(),
-		Username:     fu.Username,
-		Force:        false,
-		PromptPosted: promptPosted,
-		SigVersion:   &sv,
-	}
-	eng := NewProve(g, &arg)
-
-	// Post the proof the gubble network and verify the sig hash
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
-		sigID := eng.sigID
-		require.False(tc.T, sigID.IsNil())
-
-		apiArg := libkb.APIArg{
-			Endpoint:    "gubble_universe/gubble_social",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args: libkb.HTTPArgs{
-				"sig_hash":    libkb.S{Val: sigID.String()},
-				"kb_username": libkb.S{Val: fu.Username},
-			},
-		}
-		_, err := g.API.Post(apiArg)
-		require.NoError(tc.T, err)
-
-		// TODO in CORE-8658 can we check this directly from GenericSocialProofChecker?
-		apiArg = libkb.APIArg{
-			Endpoint:    fmt.Sprintf("gubble_universe/gubble_social/%s/proofs", fu.Username),
-			SessionType: libkb.APISessionTypeNONE,
-		}
-
-		res, err := g.GetAPI().Get(apiArg)
-		require.NoError(tc.T, err)
-		type resJSON struct {
-			Res struct {
-				KeybaseProofs []struct {
-					SigHash    string `json:"sig_hash"`
-					KBUsername string `json:"kb_username"`
-				} `json:"keybase_proofs"`
-			} `json:"res"`
-		}
-		var proofs resJSON
-		err = res.Body.UnmarshalAgain(&proofs)
-		require.NoError(tc.T, err)
-		require.True(tc.T, len(proofs.Res.KeybaseProofs) >= 1)
-		for _, proof := range proofs.Res.KeybaseProofs {
-			if proof.KBUsername == fu.Username {
-				return true, proof.SigHash, nil
-			}
-		}
-		return false, "", fmt.Errorf("proof not found")
-	}
-
-	proveUI := &ProveUIMock{hook: hook}
-	uis := libkb.UIs{
-		LogUI:    g.UI.GetLogUI(),
-		SecretUI: fu.NewSecretUI(),
-		ProveUI:  proveUI,
-	}
-	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
-	err := RunEngine2(m, eng)
-	require.NoError(tc.T, err)
+	fu := CreateAndSignupFakeUser(tc, "prove")
+	proveGubbleSocial(tc, fu, sigVersion)
+	proveGubbleCloud(tc, fu, sigVersion)
 }

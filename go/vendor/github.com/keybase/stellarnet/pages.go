@@ -80,3 +80,14 @@ type Operation struct {
 	To        string `json:"to"`
 	Amount    string `json:"amount"`
 }
+
+type EffectsPage struct {
+	Embedded struct {
+		Records []Effect
+	} `json:"_embedded"`
+}
+
+type Effect struct {
+	Type   string `json:"type"`
+	Amount string `json:"amount"`
+}

@@ -124,9 +124,20 @@ const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP key
 const badDens = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
 const badAjar = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
 
+const akalin = keybase1.UID("ebbe1d99410ab70123262cf8dfc87900")
+const jamGregory = keybase1.UID("e8767e19a3ed9c7350847b7b040de319")
+const dens = keybase1.UID("ca9e948f6f7a4a19e02058ad626f6c19")
+const ajar = keybase1.UID("d1d94b3131e493dfee738802843f7719")
+
+type SpecialChainLink struct {
+	UID    keybase1.UID
+	Seqno  keybase1.Seqno
+	Reason string
+}
+
 // A map from SigIDs of bad chain links that should be ignored to the
 // reasons why they're ignored.
-var badChainLinks = map[keybase1.SigID]string{
+var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 	// Links 22-25 of akalin's sigchain, which was accidentally
 	// added by an old client in development on 3/23/2015, 9:02am.
 	// Links 17-19 of jamGregory's sigchain, which referred to a corrupted
@@ -137,15 +148,15 @@ var badChainLinks = map[keybase1.SigID]string{
 	// Link 98 of ajar's sigchain is a PGP update with a broken PGP key,
 	// that doesn't have a valid cross-sig on a signing key. It was a server
 	// bug to allow it be uploaded.
-	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": fmt.Sprintf(badAkalin, 22),
-	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": fmt.Sprintf(badAkalin, 23),
-	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": fmt.Sprintf(badAkalin, 24),
-	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": fmt.Sprintf(badAkalin, 25),
-	"1171fb8def065ecd8e053b042d7f162520de4b0bef853da7580e0668707770250f": fmt.Sprintf(badJamGregory, 17),
-	"e66998426a3bdba3b75aaec84d1fa75494061114abe9983da4e4495821a7ecf40f": fmt.Sprintf(badJamGregory, 18),
-	"bb92cc0c57bf99764b56ab54dbf489527c2744154706c07acd03007dcd7001480f": fmt.Sprintf(badJamGregory, 19),
-	"355e098e9e686dfa4758e25d56c7da58558fae2b281a2c8bcca9ed895f23767a0f": badDens,
-	"b175aaafbab6faf5740334039bb547a626c3b47b3ef4e55032b6aeaf6ce690520f": badAjar,
+	"694ed7166cee72449964e97bcd4be58243877718425c4dc655d2d80832bd5cdf": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(22), Reason: fmt.Sprintf(badAkalin, 22)},
+	"27bc88059a768a82b1a21dcc1c46f7fc61c2d2b80c445eb2d18fed3a5bb42e49": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(23), Reason: fmt.Sprintf(badAkalin, 23)},
+	"12b594e44d9289349283f8b14a6f83ad144a17a3025a758e17d4eca70fbdc923": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(24), Reason: fmt.Sprintf(badAkalin, 24)},
+	"ce162011e380c954de15f30db28f8b7b358866d2721143d9d0d4424166ce5ed8": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(25), Reason: fmt.Sprintf(badAkalin, 25)},
+	"bf914e6d4cf9b4eb7c88c2a8a6f5650e969ade9a97cf1605c1eb8cae97d5d278": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(17), Reason: fmt.Sprintf(badJamGregory, 17)},
+	"e56f492c1b519905d04ce51368e87794963906dd6dacb63fbeab7ad23596af29": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(18), Reason: fmt.Sprintf(badJamGregory, 18)},
+	"51e46dad8b71a1a7204368f9cb4931257a32eed92cf3b97a08190c12912739dd": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(19), Reason: fmt.Sprintf(badJamGregory, 19)},
+	"6d527d776cb28ea980c6e0474286fe745377e116fd5d07b44928d165ae4b7c97": SpecialChainLink{UID: dens, Seqno: keybase1.Seqno(8), Reason: badDens},
+	"9b3b3a3d973449ca3238bf59b7407186dc80242b917c158cba5e374595257dd0": SpecialChainLink{UID: ajar, Seqno: keybase1.Seqno(98), Reason: badAjar},
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
@@ -223,11 +234,25 @@ type ChainLink struct {
 	isOwnNewLinkFromServer bool
 }
 
-// Returns whether or not this chain link is bad, and if so, what the
-// reason is.
-func (c *ChainLink) IsBad() (isBad bool, reason string) {
-	reason, isBad = badChainLinks[c.GetSigID()]
-	return isBad, reason
+// See NCC-KB2018-006
+func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
+	var scl SpecialChainLink
+
+	scl, found = tab[c.LinkID().Export()]
+	if !found {
+		return false, "", nil
+	}
+	if !c.GetSeqno().Eq(scl.Seqno) {
+		return false, "", NewChainLinkWrongSeqnoError(fmt.Sprintf("malicious bad link in from server has wrong seqno in %q check: %d != %d", why, c.GetSeqno(), scl.Seqno))
+	}
+	if !scl.UID.Equal(uid) {
+		return false, "", NewUIDMismatchError(fmt.Sprintf("malicious bad link from server in %q check; UID %s != %s", why, scl.UID, uid))
+	}
+	return true, scl.Reason, nil
+}
+
+func (c *ChainLink) IsBad() (isBad bool, reason string, err error) {
+	return c.checkSpecialLinksTable(badChainLinks, c.parent.uid, "bad chain links")
 }
 
 func (c *ChainLink) Parent() *SigChain {
@@ -343,6 +368,8 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 			p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 		}
 		p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
+		p.SetKey("chain_verified", jsonw.NewBool(c.chainVerified))
+		p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
 		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
 		p.SetKey("sig_version", jsonw.NewInt(c.unpacked.sigVersion))
 		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
@@ -592,6 +619,8 @@ type chainLinkPacked struct {
 	PayloadJSON   string         `json:"payload_json"`
 	ProofTextFull string         `json:"proof_text_full"`
 	SigVerified   bool           `json:"sig_verified"`
+	HashVerified  bool           `json:"hash_verified"`
+	ChainVerified bool           `json:"chain_verified"`
 }
 
 func (c *ChainLink) unpackStubbed(raw string) error {
@@ -621,7 +650,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
-func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) error {
+func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, packed []byte) error {
 	if s, err := jsonparser.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
 	}
@@ -690,7 +719,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 
 	// unpack the payload
 	if err := tmp.unpackPayloadJSON(c.G(), payload); err != nil {
-		c.G().Log.Debug("unpack payload json err: %s", err)
+		m.CDebugf("unpack payload json err: %s", err)
 		return err
 	}
 
@@ -761,12 +790,18 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	if trusted {
 		if b, err := jsonparser.GetBoolean(packed, "sig_verified"); err == nil && b {
 			c.sigVerified = true
-			c.G().VDL.Log(VLog1, "| Link is marked as 'sig_verified'")
+			m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
 			if ckidata, _, _, err := jsonparser.Get(packed, "computed_key_infos"); err == nil {
 				if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
-					c.G().Log.Warning("Problem unpacking computed key infos: %s", uerr)
+					m.CWarningf("Problem unpacking computed key infos: %s", uerr)
 				}
 			}
+		}
+		if b, err := jsonparser.GetBoolean(packed, "hash_verified"); err == nil && b {
+			c.hashVerified = true
+		}
+		if b, err := jsonparser.GetBoolean(packed, "chain_verified"); err == nil && b {
+			c.chainVerified = true
 		}
 	}
 
@@ -856,6 +891,11 @@ func (c *ChainLink) verifyHashV1() error {
 	c.hashVerified = true
 	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
 	return nil
+}
+
+func (c *ChainLink) markChainVerified() {
+	c.chainVerified = true
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.chainVerified = true })
 }
 
 // getFixedPayload usually just returns c.unpacked.Payload(), but sometimes
@@ -1039,7 +1079,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 	return nil
 }
 
-func ImportLinkFromServer(g *GlobalContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkID
 
 	if ph, err := jsonparser.GetString(data, "payload_hash"); err == nil {
@@ -1048,15 +1088,17 @@ func ImportLinkFromServer(g *GlobalContext, parent *SigChain, data []byte, selfU
 			return nil, err
 		}
 	}
-	ret = NewChainLink(g, parent, id)
-	if err = ret.Unpack(false, selfUID, data); err != nil {
-		g.Log.Debug("Unpack error: %s", err)
+	ret = NewChainLink(m.G(), parent, id)
+	if err = ret.Unpack(m, false, selfUID, data); err != nil {
+		m.CDebugf("Unpack error: %s", err)
 		return nil, err
 	}
 
-	g.LinkCache().Put(id, ret.Copy())
-
 	return ret, nil
+}
+
+func putLinkToCache(m MetaContext, link *ChainLink) {
+	m.G().LinkCache().Put(m, link.id, link.Copy())
 }
 
 func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
@@ -1079,12 +1121,12 @@ func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*Cha
 	if err == nil && data != nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(m.G(), nil, id)
-		if err = ret.Unpack(true, selfUID, data); err != nil {
+		if err = ret.Unpack(m, true, selfUID, data); err != nil {
 			return nil, err
 		}
 		ret.storedLocally = true
 
-		m.G().LinkCache().Put(id, ret.Copy())
+		m.G().LinkCache().Put(m, id, ret.Copy())
 	}
 	return ret, err
 }
@@ -1192,11 +1234,11 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret key
 	return verifyKID, nil
 }
 
-func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
+func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 
-	g.VDL.Log(VLog1, "| Storing Link %s...", c.id)
+	m.VLogf(VLog1, "| Storing Link %s...", c.id)
 	if c.storedLocally && !c.dirty {
-		g.VDL.Log(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
+		m.VLogf(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
 		return didStore, nil
 	}
 
@@ -1204,8 +1246,9 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 		return false, err
 	}
 
-	if !c.IsStubbed() && (!c.hashVerified || !c.payloadVerified) {
-		err = fmt.Errorf("Internal error; should have been verified in Store()")
+	if !c.hashVerified || (!c.IsStubbed() && !c.payloadVerified) || !c.chainVerified {
+		err = fmt.Errorf("Internal error; should have been verified in Store(); hashVerified=%v, isStubbed=%v, payloadVerified=%v, chainVerified=%v",
+			c.hashVerified, c.IsStubbed(), c.payloadVerified, c.chainVerified)
 		return false, err
 	}
 
@@ -1217,10 +1260,10 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = g.LocalDb.Put(key, nil, packed); err != nil {
+	if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
 		return false, err
 	}
-	g.VDL.Log(VLog1, "| Store Link %s", c.id)
+	m.VLogf(VLog1, "| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false

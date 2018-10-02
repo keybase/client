@@ -41,8 +41,8 @@ export type Props = {|
 const HoverBox = Styles.isMobile
   ? LongPressable
   : Styles.glamorous(Box2)(props => ({
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      paddingTop: 2,
+      paddingBottom: 2,
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
