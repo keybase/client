@@ -3,7 +3,9 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 
-const services: Array<Types.ServiceIdWithContact> = Object.keys(Types._services)
+const allServices: Array<Types.ServiceIdWithContact> = Object.keys(Types._services)
+// We don't search pgp explicitly, and contact isn't implemented yet
+const services = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
 function isKeybaseUserId(userId) {
   // Only keybase user id's do not have
@@ -88,4 +90,4 @@ const parseRawResultToUser = (
   }
 }
 
-export {followStateHelperWithId, makeSubState, services, parseRawResultToUser}
+export {followStateHelperWithId, makeSubState, allServices, services, parseRawResultToUser}

@@ -23,8 +23,8 @@ type OwnProps = {
   highlightedIndex: ?number,
   onChangeText: (newText: string) => void,
   onChangeService: (newService: ServiceIdWithContact) => void,
-  onDownArrowKeyDown: () => void,
-  onUpArrowKeyDown: () => void,
+  incHighlightIndex: (maxIndex: number) => void,
+  decHighlightIndex: () => void,
 }
 
 type LocalState = {
@@ -136,13 +136,15 @@ const deriveOnEnterKeyDown = memoizeOne(
     teamSoFar: Array<{+userId: string} & Y>,
     highlightedIndex: ?number,
     onAdd: (userId: string) => void,
-    onRemove: (userId: string) => void
+    onRemove: (userId: string) => void,
+    changeText: (newText: string) => void
   ) => () => {
     if (searchResults.length) {
       const selectedResult = searchResults[highlightedIndex || 0]
       if (selectedResult) {
         if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
           onRemove(selectedResult.userId)
+          changeText('')
         } else {
           onAdd(selectedResult.userId)
         }
@@ -152,16 +154,18 @@ const deriveOnEnterKeyDown = memoizeOne(
 )
 
 const deriveOnAdd = memoizeOne(
-  (userFromUserId: (userId: string) => ?User, dispatchOnAdd: (user: User) => void, clearText: () => void) => (
-    userId: string
-  ) => {
+  (
+    userFromUserId: (userId: string) => ?User,
+    dispatchOnAdd: (user: User) => void,
+    changeText: string => void
+  ) => (userId: string) => {
     const user = userFromUserId(userId)
     if (!user) {
       logger.error(`Couldn't find User to add for ${userId}`)
-      clearText()
+      changeText('')
       return
     }
-    clearText()
+    changeText('')
     dispatchOnAdd(user)
   }
 )
@@ -177,6 +181,10 @@ const deriveOnChangeText = memoizeOne(
   }
 )
 
+const deriveOnDownArrowKeyDown = memoizeOne(
+  (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
+)
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {teamSoFar, searchResults, userFromUserId, serviceResultCount, showServiceResultCount} = stateProps
 
@@ -186,14 +194,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ownProps.selectedService
   )
 
-  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, () => ownProps.onChangeText(''))
+  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
 
   const onEnterKeyDown = deriveOnEnterKeyDown(
     searchResults,
     teamSoFar,
     ownProps.highlightedIndex,
     onAdd,
-    dispatchProps.onRemove
+    dispatchProps.onRemove,
+    ownProps.onChangeText
   )
 
   return {
@@ -204,11 +213,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: ownProps.onDownArrowKeyDown,
+    onDownArrowKeyDown: deriveOnDownArrowKeyDown(searchResults.length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onRemove: dispatchProps.onRemove,
-    onUpArrowKeyDown: ownProps.onUpArrowKeyDown,
+    onUpArrowKeyDown: ownProps.decHighlightIndex,
     searchResults,
     selectedService: ownProps.selectedService,
     serviceResultCount,
@@ -230,12 +239,12 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   onChangeText = (newText: string) => this.setState({searchString: newText})
 
-  onDownArrowKeyDown = () =>
+  incHighlightIndex = (maxIndex: number) =>
     this.setState((state: LocalState) => ({
-      highlightedIndex: state.highlightedIndex === null ? 0 : state.highlightedIndex + 1,
+      highlightedIndex: Math.min(state.highlightedIndex === null ? 0 : state.highlightedIndex + 1, maxIndex),
     }))
 
-  onUpArrowKeyDown = () =>
+  decHighlightIndex = () =>
     this.setState((state: LocalState) => ({
       highlightedIndex: !state.highlightedIndex ? 0 : state.highlightedIndex - 1,
     }))
@@ -245,8 +254,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       <Connected
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
-        onDownArrowKeyDown={this.onDownArrowKeyDown}
-        onUpArrowKeyDown={this.onUpArrowKeyDown}
+        incHighlightIndex={this.incHighlightIndex}
+        decHighlightIndex={this.decHighlightIndex}
         searchString={this.state.searchString}
         selectedService={this.state.selectedService}
         highlightedIndex={this.state.highlightedIndex}

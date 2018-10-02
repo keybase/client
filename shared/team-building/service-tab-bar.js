@@ -40,7 +40,7 @@ const ServiceIcon = (props: IconProps) => (
       {!!props.showCount &&
         (props.count ? (
           <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-            {props.count}
+            {props.count > 10 ? '10+' : props.count}
           </Kb.Text>
         ) : (
           <Kb.Icon
