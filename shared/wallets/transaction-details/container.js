@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   const paymentID = ownProps.routeProps.get('paymentID')
   const status = ownProps.routeProps.get('status')
   const _transaction =
-    status === 'complete'
+    status === 'completed'
       ? Constants.getPayment(state, accountID, paymentID)
       : Constants.getPendingPayment(state, accountID, paymentID)
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(_transaction)

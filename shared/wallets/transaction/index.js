@@ -268,6 +268,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
+      {props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
     </Text>
   )
 }
@@ -316,7 +317,7 @@ export const Transaction = (props: Props) => {
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
-              error={props.statusDetail}
+              error={props.status === 'error' ? props.statusDetail : ''}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
