@@ -191,15 +191,15 @@
     "uuid": "3.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "7.1.0",
-    "@babel/core": "7.1.0",
+    "@babel/cli": "7.1.2",
+    "@babel/core": "7.1.2",
     "@babel/node": "7.0.0",
     "@babel/plugin-proposal-class-properties": "7.1.0",
     "@babel/plugin-proposal-object-rest-spread": "7.0.0",
     "@babel/plugin-transform-flow-strip-types": "7.0.0",
     "@babel/preset-env": "7.1.0",
     "@babel/preset-react": "7.0.0",
-    "@babel/types": "7.0.0",
+    "@babel/types": "7.1.2",
     "@storybook/addon-actions": "4.0.0-alpha.21",
     "@storybook/addon-storyshots": "4.0.0-alpha.21",
     "@storybook/addons": "4.0.0-alpha.21",
