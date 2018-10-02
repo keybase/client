@@ -15,7 +15,10 @@ export type OwnProps = {|
 |}
 
 const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
+  if (
+    (message.type === 'text' || message.type === 'attachment') &&
+    (message.exploded || message.errorReason)
+  ) {
     return false
   }
   if (message.type === 'systemJoined') {
