@@ -108,14 +108,14 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const metaOne = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaOne}
+        val={this.props.metaOne || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
     const metaTwo = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaTwo}
+        val={this.props.metaTwo || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
