@@ -16,6 +16,8 @@ export const typePrefix = 'chat2:'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
+export const attachmentMobileSave = 'chat2:attachmentMobileSave'
+export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -112,6 +114,14 @@ type _AttachmentLoadingPayload = $ReadOnly<{|
   ordinal: Types.Ordinal,
   ratio: number,
   isPreview: boolean,
+|}>
+type _AttachmentMobileSavePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
+type _AttachmentMobileSavedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
 |}>
 type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
@@ -468,6 +478,8 @@ export const createSetPendingConversationExistingConversationIDKey = (payload: _
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
+export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({error: false, payload, type: attachmentMobileSave})
+export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({error: false, payload, type: attachmentMobileSaved})
 export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({error: false, payload, type: attachmentPreviewSelect})
 export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
@@ -528,6 +540,8 @@ export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: fa
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
+export type AttachmentMobileSavePayload = $Call<typeof createAttachmentMobileSave, _AttachmentMobileSavePayload>
+export type AttachmentMobileSavedPayload = $Call<typeof createAttachmentMobileSaved, _AttachmentMobileSavedPayload>
 export type AttachmentPreviewSelectPayload = $Call<typeof createAttachmentPreviewSelect, _AttachmentPreviewSelectPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
@@ -613,6 +627,8 @@ export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
+  | AttachmentMobileSavePayload
+  | AttachmentMobileSavedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
