@@ -92,8 +92,24 @@ const accounts = [
   },
 ]
 
-const defaultProps = {
-  // Account -> Account transactions
+const keybaseUserProps = {
+  recipientType: 'keybaseUser',
+  recipientUsername: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+  onShowProfile: Sb.action('onShowProfile'),
+  onShowSuggestions: Sb.action('onShowSuggestions'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
+}
+
+const stellarPublicKeyProps = {
+  recipientType: 'stellarPublicKey',
+  incorrect: '',
+  toFieldInput: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+}
+
+const otherAccountProps = {
+  recipientType: 'otherAccount',
   user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
@@ -101,30 +117,20 @@ const defaultProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
-  onRemoveProfile: Sb.action('onRemoveProfile'),
-  onShowProfile: Sb.action('onShowProfile'),
-  onShowSuggestions: Sb.action('onShowSuggestions'),
-  toFieldInput: '',
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
-    .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
-    .add('To other account (multiple accounts)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} />
-    ))
+    .add('To Keybase user', () => <Participants {...keybaseUserProps} />)
+    .add('To other account (multiple accounts)', () => <Participants {...otherAccountProps} />)
     .add('To other account (one account)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} allAccounts={accounts.slice(0, 1)} />
+      <Participants {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
     ))
-    .add('To stellar address', () => <Participants {...defaultProps} recipientType="stellarPublicKey" />)
+    .add('To stellar address', () => <Participants {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
-      <Participants
-        {...defaultProps}
-        incorrect="Stellar address incorrect"
-        recipientType="stellarPublicKey"
-      />
+      <Participants {...stellarPublicKeyProps} incorrect="Stellar address incorrect" />
     ))
 }
 
