@@ -52,10 +52,10 @@ const HoverBox = Styles.isMobile
 
 type State = {
   showingPicker: boolean,
-  showingMenuButton: boolean,
+  showMenuButton: boolean,
 }
 class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
-  state = {showingPicker: false, showingMenuButton: false}
+  state = {showingPicker: false, showMenuButton: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -66,11 +66,8 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
       }
     }
   }
-  _onMouseLeave = () => {
-    this.setState(o => (o.showingMenuButton ? {showingMenuButton: false} : null))
-  }
   _onMouseOver = () => {
-    this.setState(o => (o.showingMenuButton ? null : {showingMenuButton: true}))
+    this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   }
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -82,7 +79,12 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
+          className={[
+            'WrapperTimestamp-hoverBox',
+            props.showingMenu || this.state.showingPicker ? 'active' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           {...(Styles.isMobile && props.decorate
             ? {
                 onPress: () => dismissKeyboard(),
@@ -93,7 +95,6 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
           {...(Styles.isMobile
             ? {}
             : {
-                onMouseLeave: this._onMouseLeave,
                 onMouseOver: this._onMouseOver,
               })}
           direction="vertical"
@@ -119,7 +120,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   />
                 )}
               {props.decorate &&
-                this.state.showingMenuButton && (
+                this.state.showMenuButton && (
                   <MenuButtons
                     conversationIDKey={props.conversationIDKey}
                     exploded={props.exploded}
@@ -131,8 +132,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                     toggleShowingMenu={props.toggleShowingMenu}
                   />
                 )}
-              {props.decorate &&
-                !this.state.showingMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
+              {props.decorate && !this.state.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
             </Box2>
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>
