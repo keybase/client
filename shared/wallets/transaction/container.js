@@ -4,6 +4,7 @@ import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
@@ -22,6 +23,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onCancelPayment: (paymentID: any) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([
@@ -43,8 +45,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     amountXLM: tx.amountDescription,
     large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
     memo: tx.note.stringValue(),
-    // TODO -- waiting on CORE integration for these two
-    onCancelPayment: undefined,
+    onCancelPayment: tx.statusSimplified === 'claimable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    // TODO -- waiting on CORE integration for this
     onRetryPayment: undefined,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),

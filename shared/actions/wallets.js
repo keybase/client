@@ -325,7 +325,7 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
   )
     .then(_ => {
       logger.info(`cancelPayment: successfully cancelled payment with ID ${paymentID.txID}`)
-      return WalletsGen.createLoadPayments({accountID: Constants.getSelectedAccount(state)})
+      return WalletsGen.createRefreshPayments({accountID: Constants.getSelectedAccount(state)})
     })
     .catch(err => {
       logger.error(`cancelPayment: failed to cancel payment with ID ${paymentID.txID}. Error: ${err.message}`)

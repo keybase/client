@@ -175,6 +175,7 @@ class TransactionDetails extends React.Component<Props> {
           counterpartyType={this.props.counterpartyType}
           large={true}
           memo={this.props.memo}
+          onCancelPayment={null}
           onShowProfile={this.props.onShowProfile}
           selectableText={true}
           status={this.props.status}
