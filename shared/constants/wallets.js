@@ -337,6 +337,7 @@ const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 const deleteAccountWaitingKey = 'wallets:deleteAccount'
 const searchKey = 'walletSearch'
 const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
+const cancelPaymentWaitingKey = (id: RPCTypes.PaymentID) => `wallets:cancelPayment: ${id.txID}`
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -399,6 +400,7 @@ const isFederatedAddress = (address: ?string) => (address ? address.includes('*'
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   changeAccountNameWaitingKey,

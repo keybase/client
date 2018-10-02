@@ -153,6 +153,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:

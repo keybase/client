@@ -316,6 +316,22 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
     .then(request => WalletsGen.createRequestDetailReceived({request}))
     .catch(err => logger.error(`Error loading request detail: ${err.message}`))
 
+const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayload) => {
+  const {paymentID} = action.payload
+  logger.info(`cancelPayment: cancelling payment with ID ${paymentID.txID}`)
+  return RPCTypes.localCancelPaymentLocalRpcPromise(
+    {paymentID: action.payload.paymentID},
+    Constants.cancelPaymentWaitingKey(action.payload.paymentID)
+  )
+    .then(_ => {
+      logger.info(`cancelPayment: successfully cancelled payment with ID ${paymentID.txID}`)
+      return WalletsGen.createLoadPayments({accountID: Constants.getSelectedAccount(state)})
+    })
+    .catch(err => {
+      logger.error(`cancelPayment: failed to cancel payment with ID ${paymentID.txID}. Error: ${err.message}`)
+    })
+}
+
 const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
   const {conversationIDKey, ordinal, requestID} = action.payload
   return RPCTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
@@ -439,6 +455,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
   yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
+  yield Saga.actionToPromise(WalletsGen.cancelPayment, cancelPayment)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }

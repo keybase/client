@@ -38,6 +38,10 @@
       "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "cancelPayment": {
+      "_description": "Cancel a payment. Valid for payments of status 'claimable'.",
+      "paymentID": "StellarRPCTypes.PaymentID",
+    },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
