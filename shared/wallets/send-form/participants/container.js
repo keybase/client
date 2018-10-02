@@ -14,7 +14,6 @@ const mapStateToPropsKeybaseUser = (state: TypedState) => {
   const built = state.wallets.builtPayment
 
   return {
-    recipientType: 'keybaseUser',
     recipientUsername: built.toUsername || build.to,
   }
 }
@@ -40,7 +39,6 @@ const mapStateToPropsStellarPublicKey = (state: TypedState) => {
   const built = state.wallets.builtPayment
 
   return {
-    recipientType: 'stellarPublicKey',
     incorrect: built.toErrMsg,
     toFieldInput: build.to,
   }
@@ -92,7 +90,6 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
     .toArray()
 
   return {
-    recipientType: 'otherAccount',
     user: state.config.username,
     fromAccount,
     toAccount,

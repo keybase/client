@@ -5,38 +5,12 @@ import FromField from './from-field'
 import {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount} from './to-field'
 import type {AccountID} from '../../../constants/types/wallets'
 
-export type Account = {|
-  contents: string,
-  name: string,
-  id: AccountID,
-|}
-
 type ParticipantsKeybaseUserProps = {|
-  recipientType: 'keybaseUser',
   recipientUsername: string,
   onChangeRecipient: string => void,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
-|}
-
-type ParticipantsStellarPublicKeyProps = {|
-  recipientType: 'stellarPublicKey',
-  incorrect?: string,
-  toFieldInput: string,
-  onChangeRecipient: string => void,
-|}
-
-type ParticipantsOtherAccountProps = {|
-  recipientType: 'otherAccount',
-  user: string,
-  fromAccount?: Account,
-  toAccount?: Account,
-  allAccounts: Account[],
-  onChangeRecipient: string => void,
-  onChangeFromAccount: string => void,
-  onLinkAccount: () => void,
-  onCreateNewAccount: () => void,
 |}
 
 const ParticipantsKeybaseUser = (props: ParticipantsKeybaseUserProps) => (
@@ -51,6 +25,12 @@ const ParticipantsKeybaseUser = (props: ParticipantsKeybaseUserProps) => (
   </Kb.Box2>
 )
 
+type ParticipantsStellarPublicKeyProps = {|
+  incorrect?: string,
+  toFieldInput: string,
+  onChangeRecipient: string => void,
+|}
+
 const ParticipantsStellarPublicKey = (props: ParticipantsStellarPublicKeyProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <ToStellarPublicKey
@@ -60,6 +40,23 @@ const ParticipantsStellarPublicKey = (props: ParticipantsStellarPublicKeyProps) 
     />
   </Kb.Box2>
 )
+
+export type Account = {|
+  contents: string,
+  name: string,
+  id: AccountID,
+|}
+
+type ParticipantsOtherAccountProps = {|
+  user: string,
+  fromAccount: Account,
+  toAccount?: Account,
+  allAccounts: Account[],
+  onChangeRecipient: string => void,
+  onChangeFromAccount: string => void,
+  onLinkAccount: () => void,
+  onCreateNewAccount: () => void,
+|}
 
 const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>

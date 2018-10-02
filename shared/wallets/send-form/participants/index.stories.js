@@ -98,7 +98,6 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
-  recipientType: 'keybaseUser',
   recipientUsername: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onShowProfile: Sb.action('onShowProfile'),
@@ -107,7 +106,6 @@ const keybaseUserProps = {
 }
 
 const otherAccountProps = {
-  recipientType: 'otherAccount',
   user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
@@ -118,7 +116,6 @@ const otherAccountProps = {
 }
 
 const stellarPublicKeyProps = {
-  recipientType: 'stellarPublicKey',
   incorrect: '',
   toFieldInput: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
