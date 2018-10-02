@@ -289,20 +289,30 @@ func getNeedUpdate() (bool, error) {
 }
 
 func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
-	if len(h.G().GetOutOfDateInfo().UpgradeTo) != 0 {
+	outOfDateInfo := h.G().GetOutOfDateInfo()
+	if len(outOfDateInfo.UpgradeTo) != 0 {
 		// This is from the API server. Consider client critically out of date
 		// if we are asked to upgrade by the API server.
-		return keybase1.UpdateInfo_CRITICALLY_OUT_OF_DATE, nil
+		return keybase1.UpdateInfo{
+			Status:  keybase1.UpdateInfoStatus_CRITICALLY_OUT_OF_DATE,
+			Message: outOfDateInfo.CustomMessage,
+		}, nil
 	}
 	needUpdate, err := getNeedUpdate() // This is from the updater.
 	if err != nil {
 		h.G().Log.Errorf("Error calling updater: %s", err)
-		return keybase1.UpdateInfo_UP_TO_DATE, err
+		return keybase1.UpdateInfo{
+			Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
+		}, err
 	}
 	if needUpdate {
-		return keybase1.UpdateInfo_NEED_UPDATE, nil
+		return keybase1.UpdateInfo{
+			Status: keybase1.UpdateInfoStatus_NEED_UPDATE,
+		}, nil
 	}
-	return keybase1.UpdateInfo_UP_TO_DATE, nil
+	return keybase1.UpdateInfo{
+		Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
+	}, nil
 }
 
 func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {

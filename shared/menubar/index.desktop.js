@@ -70,11 +70,7 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
-        <OutOfDate
-          outOfDate={!!this.props.outOfDate}
-          critical={this.props.outOfDate === 'critically-out-of-date'}
-          updateNow={this.props.updateNow}
-        />
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
@@ -186,11 +182,7 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
-        <OutOfDate
-          outOfDate={!!this.props.outOfDate}
-          critical={this.props.outOfDate === 'critically-out-of-date'}
-          updateNow={this.props.updateNow}
-        />
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={styles.topRow}>

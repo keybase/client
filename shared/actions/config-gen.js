@@ -97,7 +97,10 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
-type _OutOfDatePayload = $ReadOnly<{|critical: boolean|}>
+type _OutOfDatePayload = $ReadOnly<{|
+  critical: boolean,
+  message?: string,
+|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|

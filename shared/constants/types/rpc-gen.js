@@ -94,7 +94,7 @@ export const configForkType = {
   systemd: 4,
 }
 
-export const configUpdateInfo = {
+export const configUpdateInfoStatus = {
   upToDate: 0,
   needUpdate: 1,
   criticallyOutOfDate: 2,

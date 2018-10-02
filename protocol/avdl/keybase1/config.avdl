@@ -147,10 +147,14 @@ protocol config {
     */
   OutOfDateInfo checkAPIServerOutOfDateWarning();
 
-  enum UpdateInfo {
+  enum UpdateInfoStatus {
     UP_TO_DATE_0,
     NEED_UPDATE_1,
     CRITICALLY_OUT_OF_DATE_2
+  }
+  record UpdateInfo {
+    UpdateInfoStatus status;
+    string message;
   }
   UpdateInfo getUpdateInfo();
 

@@ -184,7 +184,13 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
     case ConfigGen.outOfDate:
-      return state.set('outOfDate', action.payload.critical ? 'critically-out-of-date' : 'out-of-date')
+      return state.set(
+        'outOfDate',
+        Constants.makeOutOfDate({
+          critical: action.payload.critical,
+          message: action.payload.message,
+        })
+      )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:

@@ -1005,7 +1005,7 @@ export const configForkType = {
   systemd: 4,
 }
 
-export const configUpdateInfo = {
+export const configUpdateInfoStatus = {
   upToDate: 0,
   needUpdate: 1,
   criticallyOutOfDate: 2,
@@ -2738,7 +2738,8 @@ export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
 export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
-export type UpdateInfo =
+export type UpdateInfo = $ReadOnly<{status: UpdateInfoStatus, message: String}>
+export type UpdateInfoStatus =
   | 0 // UP_TO_DATE_0
   | 1 // NEED_UPDATE_1
   | 2 // CRITICALLY_OUT_OF_DATE_2

@@ -2,30 +2,34 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as ConfigTypes from '../constants/types/config'
 
 type Props = {
-  outOfDate: boolean,
-  critical: boolean,
+  outOfDate?: ConfigTypes.OutOfDate,
   updateNow?: () => void,
 }
 
-const OutOfDate = ({outOfDate, critical, updateNow}: Props) =>
-  outOfDate && (
+const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
+  `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
+  (outOfDate.message ? `: ${outOfDate.message}` : '.')
+
+const OutOfDate = ({outOfDate, updateNow}: Props) =>
+  !!outOfDate && (
     <Kb.Box2
-      style={critical ? styles.boxCritical : styles.boxNonCritical}
+      style={outOfDate.critical ? styles.boxCritical : styles.boxNonCritical}
       fullWidth={true}
       centerChildren={true}
       direction="vertical"
     >
-      <Kb.Text type="BodySemibold" style={critical ? styles.textCritical : styles.textNonCritical}>
-        Your Keybase app is {critical && 'critically'} out of date.
+      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
+        {getOutOfDateText(outOfDate)}
       </Kb.Text>
-      <Kb.Text type="BodySemibold" style={critical ? styles.textCritical : styles.textNonCritical}>
+      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
         Please{' '}
         <Kb.Text
           type="BodySemibold"
           underline={!!updateNow}
-          style={critical ? styles.textCritical : styles.textNonCritical}
+          style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
           onClick={updateNow}
         >
           update now

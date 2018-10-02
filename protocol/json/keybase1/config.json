@@ -393,11 +393,25 @@
     },
     {
       "type": "enum",
-      "name": "UpdateInfo",
+      "name": "UpdateInfoStatus",
       "symbols": [
         "UP_TO_DATE_0",
         "NEED_UPDATE_1",
         "CRITICALLY_OUT_OF_DATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateInfo",
+      "fields": [
+        {
+          "type": "UpdateInfoStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        }
       ]
     },
     {

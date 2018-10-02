@@ -6,7 +6,11 @@ import {type Tab} from '../tabs'
 import {type DeviceID} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
-export type OutOfDate = 'out-of-date' | 'critically-out-of-date'
+export type _OutOfDate = {
+  critical: boolean,
+  message?: string,
+}
+export type OutOfDate = I.RecordOf<_OutOfDate>
 
 export type _State = {
   appFocused: boolean,
