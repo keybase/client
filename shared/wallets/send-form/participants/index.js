@@ -28,7 +28,7 @@ type ParticipantsProps = {|
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
-  onShowProfile?: string => void,
+  onShowProfile: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
 |}
