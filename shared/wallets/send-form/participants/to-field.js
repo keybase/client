@@ -30,19 +30,19 @@ type ToFieldProps = {|
 |}
 
 class ToField extends React.Component<ToFieldProps> {
-  onSelectRecipient = (recipient: Account | string) => {
-    if (typeof recipient === 'string') {
-      this.props.onChangeRecipient(recipient)
-    } else {
-      this.props.onChangeRecipient(recipient.id)
-    }
+  onSelectAccount = (recipient: Account) => {
+    this.props.onChangeRecipient(recipient.id)
+  }
+
+  onSelectKeybaseUser = (keybaseUser: string) => {
+    this.props.onChangeRecipient(keybaseUser)
   }
 
   onRemoveRecipient = () => {
     this.props.onChangeRecipient('')
   }
 
-  onDropdownChange = (node: React.Node) => {
+  onAccountDropdownChange = (node: React.Node) => {
     if (React.isValidElement(node)) {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
@@ -51,7 +51,7 @@ class ToField extends React.Component<ToFieldProps> {
       } else if (element.key === 'link-existing') {
         this.props.onLinkAccount()
       } else {
-        this.onSelectRecipient(element.props.account)
+        this.onSelectAccount(element.props.account)
       }
     }
   }
@@ -90,7 +90,7 @@ class ToField extends React.Component<ToFieldProps> {
         // Case #1b: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
         return (
           <Search
-            onClickResult={this.onSelectRecipient}
+            onClickResult={this.onSelectKeybaseUser}
             onClose={() => {}}
             onShowSuggestions={this.props.onShowSuggestions}
             onShowTracker={this.props.onShowProfile}
@@ -161,7 +161,7 @@ class ToField extends React.Component<ToFieldProps> {
 
         return (
           <Kb.Dropdown
-            onChanged={this.onDropdownChange}
+            onChanged={this.onAccountDropdownChange}
             items={items}
             selected={
               this.props.toAccount ? (
