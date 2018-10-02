@@ -25,7 +25,7 @@ const startReduxSaga = Testing.makeStartReduxSaga(teamBuildingSaga, initialStore
 // note the keybase service is a special case where the service is empty string
 const userSearchMock = {
   marcopolo: {
-    '10': {
+    '11': {
       '': {
         '1': {
           body: `{"status":{"code":0,"name":"OK"},"list":[{"score":0.5,"keybase":{"username":"marcopolo","uid":"4c230ae8d2f922dc2ccc1d2f94890700","picture_url":"https://s3.amazonaws.com/keybase_processed_uploads/67a551a80db42fc190462c28e5785a05_200_200_square_200.jpeg","full_name":"Marco Munizaga","raw_score":3.0076923076923077,"stellar":null},"service":{"service_name":"github","username":"marcopolo","picture_url":null,"bio":null,"location":null,"full_name":null},"services_summary":{"twitter":{"username":"open_sourcery","service_name":"twitter"},"facebook":{"username":"mmunizaga1337","service_name":"facebook"},"github":{"username":"marcopolo","service_name":"github"}}},{"score":0.3333333333333333,"keybase":{"username":"rustybot","uid":"7da8ce717861fe1d98bbbbe617a49719","picture_url":"https://s3.amazonaws.com/keybase_processed_uploads/f5bf95bd2d0388e8d0171de9caab6405_200_200.jpeg","full_name":null,"raw_score":0.005263157894736842,"stellar":null},"services_summary":{}}]}`,
@@ -111,6 +111,8 @@ describe('Search Actions', () => {
     const service = 'keybase'
     expect(rpc).not.toHaveBeenCalled()
     dispatch(TeamBuildingGen.createSearch({query: 'marcopolo', service: 'keybase'}))
+    expect(getState().chat2.teamBuildingSearchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuildingSelectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
       expect(getState().chat2.teamBuildingSearchResults).toEqual(parsedSearchResults[query][service])
     })
