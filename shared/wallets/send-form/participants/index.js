@@ -39,11 +39,6 @@ type ParticipantsOtherAccountProps = {|
   onCreateNewAccount: () => void,
 |}
 
-type ParticipantsProps =
-  | ParticipantsKeybaseUserProps
-  | ParticipantsStellarPublicKeyProps
-  | ParticipantsOtherAccountProps
-
 const ParticipantsKeybaseUser = (props: ParticipantsKeybaseUserProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <ToKeybaseUser
@@ -87,23 +82,4 @@ const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
   </Kb.Box2>
 )
 
-const Participants = (props: ParticipantsProps) => {
-  switch (props.recipientType) {
-    case 'keybaseUser':
-      return <ParticipantsKeybaseUser {...props} />
-    case 'stellarPublicKey':
-      return <ParticipantsStellarPublicKey {...props} />
-    case 'otherAccount':
-      return <ParticipantsOtherAccount {...props} />
-    default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
-    */
-      return null
-  }
-}
-
 export {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount}
-
-export default Participants
