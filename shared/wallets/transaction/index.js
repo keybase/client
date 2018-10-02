@@ -352,25 +352,28 @@ export const Transaction = (props: Props) => {
                 <Markdown allowFontScaling={true}>{props.memo}</Markdown>
               </Box2>
             )}
-            <AmountXLM
-              selectableText={props.selectableText}
-              pending={pending}
-              yourRole={props.yourRole}
-              amountXLM={props.amountXLM}
-            />
-            {props.onCancelPayment && (
-              <WaitingButton
-                type="Danger"
-                label="Cancel"
-                small={true}
-                style={styles.cancelButton}
-                onClick={evt => {
-                  evt.stopPropagation()
-                  props.onCancelPayment && props.onCancelPayment()
-                }}
-                waitingKey={null}
+            <Box2 direction="horizontal" fullWidth={true}>
+              {props.onCancelPayment && (
+                <WaitingButton
+                  type="Danger"
+                  label="Cancel"
+                  small={true}
+                  style={styles.cancelButton}
+                  onClick={evt => {
+                    evt.stopPropagation()
+                    props.onCancelPayment && props.onCancelPayment()
+                  }}
+                  waitingKey={null}
+                />
+              )}
+              <Box2 direction="horizontal" style={{flex: 1}} />
+              <AmountXLM
+                selectableText={props.selectableText}
+                pending={pending}
+                yourRole={props.yourRole}
+                amountXLM={props.amountXLM}
               />
-            )}
+            </Box2>
           </Box2>
         </Box2>
       </ClickableBox>
@@ -381,7 +384,7 @@ export const Transaction = (props: Props) => {
 const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
-    marginBottom: globalMargins.tiny,
+    marginTop: globalMargins.tiny,
   },
   container: {
     padding: globalMargins.tiny,
