@@ -191,21 +191,21 @@
     "uuid": "3.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "7.1.2",
-    "@babel/core": "7.1.2",
+    "@babel/cli": "7.1.0",
+    "@babel/core": "7.1.0",
     "@babel/node": "7.0.0",
     "@babel/plugin-proposal-class-properties": "7.1.0",
     "@babel/plugin-proposal-object-rest-spread": "7.0.0",
     "@babel/plugin-transform-flow-strip-types": "7.0.0",
     "@babel/preset-env": "7.1.0",
     "@babel/preset-react": "7.0.0",
-    "@babel/types": "7.1.2",
-    "@storybook/addon-actions": "4.0.0-alpha.21",
-    "@storybook/addon-storyshots": "4.0.0-alpha.21",
-    "@storybook/addons": "4.0.0-alpha.21",
-    "@storybook/channels": "4.0.0-alpha.21",
-    "@storybook/react": "4.0.0-alpha.21",
-    "@storybook/react-native": "4.0.0-alpha.21",
+    "@babel/types": "7.0.0",
+    "@storybook/addon-actions": "4.0.0-alpha.23",
+    "@storybook/addon-storyshots": "4.0.0-alpha.23",
+    "@storybook/addons": "4.0.0-alpha.23",
+    "@storybook/channels": "4.0.0-alpha.23",
+    "@storybook/react": "4.0.0-alpha.23",
+    "@storybook/react-native": "4.0.0-alpha.23",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.0.1",
     "babel-jest": "23.6.0",
@@ -260,7 +260,7 @@
     "regedit": "2.2.7"
   },
   "resolutions": {
-    "**/@babel/parser": "7.1.0",
+    "**/react-docgen/**/@babel/parser": "7.1.0",
     "babel-core": "7.0.0-bridge.0"
   }
 }
