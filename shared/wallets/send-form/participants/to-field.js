@@ -19,7 +19,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
     // A username has been set, so display their name and avatar.
     return (
-      <ParticipantsRow heading="To" headingAlignment="Right">
+      <ParticipantsRow heading="To" headingAlignment="Left">
         <Kb.ConnectedNameWithIcon
           colorFollowing={true}
           horizontal={true}
@@ -58,7 +58,7 @@ type ToStellarPublicKeyProps = {|
 const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <ParticipantsRow
     heading="To"
-    headingAlignment="Right"
+    headingAlignment="Left"
     headingStyle={styles.heading}
     dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
   >
@@ -150,7 +150,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     }
 
     return (
-      <ParticipantsRow heading="To" headingAlignment="Left">
+      <ParticipantsRow heading="To" headingAlignment="Right">
         <Kb.Dropdown
           onChanged={this.onAccountDropdownChange}
           items={items}
