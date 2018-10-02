@@ -44,8 +44,12 @@ const mapStateToProps = (state: TypedState) => {
   // Building section
   const recipientType = build.recipientType
   const toFieldInput = build.to
+
   // Built section
   const incorrect = built.toErrMsg
+
+  // If the recipientType is 'keybaseUser' and toFieldInput is
+  // non-empty, then assume that it's a valid Keybase username.
   const recipientUsername = built.toUsername || (recipientType === 'keybaseUser' ? toFieldInput : '')
 
   return {
