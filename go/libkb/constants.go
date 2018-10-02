@@ -158,6 +158,9 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
+// SigVersion describes how the signature is computed. In signatures v1, the payload is a JSON
+// blob. In Signature V2, it's a Msgpack wrapper that points via SHA256 to the V1 blob.
+// V2 sigs allow for bandwidth-saving eliding of signature bodies that aren't relevant to clients.
 type SigVersion int
 
 const (

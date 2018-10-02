@@ -22,6 +22,7 @@ import {
 } from 'react-native'
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'rn-fetch-blob'
+import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
@@ -49,16 +50,10 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return CameraRoll.saveToCameraRoll(goodPath)
 }
 
-async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
-  const logPrefix = '[saveAttachmentToCameraRoll] '
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
-  if (isIOS && saveType !== 'video') {
-    // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
-    // method for videos.
-    logger.info(logPrefix + 'Saving iOS picture to camera roll')
-    await CameraRoll.saveToCameraRoll(fileURL)
-    return
-  }
+  const logPrefix = '[saveAttachmentToCameraRoll] '
   if (!isIOS) {
     const permissionStatus = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
@@ -72,25 +67,20 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
       throw new Error('Unable to acquire storage permissions')
     }
   }
-  const fetchURL = `${fileURL}&nostream=true`
-  logger.info(logPrefix + `Fetching from URL: ${fetchURL}`)
-  const download = await RNFetchBlob.config({
-    appendExt: mime.extension(mimeType),
-    fileCache: true,
-  }).fetch('GET', fetchURL)
-  logger.info(logPrefix + 'Fetching success, getting local file path')
-  const path = download.path()
-  logger.info(logPrefix + `Saving to ${path}`)
   try {
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
+    await CameraRoll.saveToCameraRoll(fileURL, saveType)
     logger.info(logPrefix + 'Success')
-  } catch (err) {
-    logger.error(logPrefix + 'Failed:', err)
-    throw err
+  } catch (e) {
+    // This can fail if the user backgrounds too quickly, so throw up a local notification
+    // just in case to get their attention.
+    PushNotifications.localNotification({
+      message: `Failed to save ${saveType} to camera roll`,
+    })
+    logger.debug(logPrefix + 'failed to save: ' + e)
+    throw e
   } finally {
-    logger.info(logPrefix + 'Deleting tmp file')
-    await RNFetchBlob.fs.unlink(path)
+    RNFetchBlob.fs.unlink(filePath)
   }
 }
 

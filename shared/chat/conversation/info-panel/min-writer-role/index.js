@@ -71,15 +71,20 @@ class MinWriterRole extends React.Component<Props, State> {
   }
 }
 
+type DropdownProps = Kb.OverlayParentProps & {
+  minWriterRole: TeamTypes.TeamRoleType,
+  items: Kb.MenuItems,
+  saving: boolean,
+}
 const _Dropdown = ({
-  attachmentRef,
+  getAttachmentRef,
   items,
   minWriterRole,
   saving,
   setAttachmentRef,
   showingMenu,
   toggleShowingMenu,
-}) => (
+}: DropdownProps) => (
   <React.Fragment>
     <Kb.ClickableBox
       style={styles.dropdown}
@@ -93,7 +98,7 @@ const _Dropdown = ({
       <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
     </Kb.ClickableBox>
     <Kb.FloatingMenu
-      attachTo={attachmentRef}
+      attachTo={getAttachmentRef}
       closeOnSelect={true}
       visible={showingMenu}
       items={items}

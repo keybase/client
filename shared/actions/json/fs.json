@@ -21,7 +21,8 @@
       "team": "I.Map<string, Types.Tlf>"
     },
     "filePreviewLoad": {
-      "path": "Types.Path"
+      "path": "Types.Path",
+      "identifyBehavior?": "?RPCTypes.TLFIdentifyBehavior"
     },
     "filePreviewLoaded": {
       "path": "Types.Path",

@@ -109,7 +109,6 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	sig, _, _, err := libkb.MakeSig(
-		m,
 		sigKey,
 		libkb.LinkTypeCryptocurrency,
 		sigInner,

@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -15,19 +16,14 @@ type SigHint struct {
 	apiURL    string
 	humanURL  string
 	checkText string
+	// `isVerified` indicates if the client generated the values or they were
+	// received from the server and are trusted but not verified.
+	isVerified bool
 }
 
 func (sh SigHint) GetHumanURL() string  { return sh.humanURL }
 func (sh SigHint) GetAPIURL() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
-
-type SigHints struct {
-	Contextified
-	uid     keybase1.UID
-	version int
-	hints   map[keybase1.SigID]*SigHint
-	dirty   bool
-}
 
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh = &SigHint{}
@@ -36,12 +32,38 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh.apiURL, _ = jw.AtKey("api_url").GetString()
 	sh.humanURL, _ = jw.AtKey("human_url").GetString()
 	sh.checkText, _ = jw.AtKey("proof_text_check").GetString()
-	return
+	sh.isVerified, _ = jw.AtKey("isVerified").GetBool()
+	return sh, err
 }
 
-func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
-	obj := sh.hints[i]
-	return obj
+func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkText string) *SigHint {
+	return &SigHint{
+		sigID:      sigID,
+		remoteID:   remoteID,
+		apiURL:     apiURL,
+		humanURL:   humanURL,
+		checkText:  checkText,
+		isVerified: true,
+	}
+}
+
+func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
+	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
+	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
+	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
+	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
+	ret.SetKey("is_verified", jsonw.NewBool(sh.isVerified))
+	return ret
+}
+
+type SigHints struct {
+	Contextified
+	uid     keybase1.UID
+	version int
+	hints   map[keybase1.SigID]*SigHint
+	dirty   bool
 }
 
 func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalContext) (sh *SigHints, err error) {
@@ -56,6 +78,11 @@ func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalConte
 		sh = nil
 	}
 	return
+}
+
+func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
+	obj := sh.hints[i]
+	return obj
 }
 
 func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
@@ -85,16 +112,6 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		}
 	}
 	return
-}
-
-func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
-	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
-	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
-	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
-	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
-	return ret
 }
 
 func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {
@@ -173,10 +190,13 @@ func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
 	return nil
 }
 
-func LoadAndRefreshSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
-	sh, err = LoadSigHints(m, uid)
-	if err == nil {
-		err = sh.Refresh(m)
+func LoadAndRefreshSigHints(m MetaContext, uid keybase1.UID) (*SigHints, error) {
+	sh, err := LoadSigHints(m, uid)
+	if err != nil {
+		return nil, err
 	}
-	return
+	if err = sh.Refresh(m); err != nil {
+		return nil, err
+	}
+	return sh, nil
 }

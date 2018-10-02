@@ -344,7 +344,10 @@ const loadUserFileEdits = (state: TypedState, action) =>
         // TODO (songgao): make a new action that accepts an array of updates,
         // so that we only need to trigger one update through store/rpc/widget
         // for all these each time.
-        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
+        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({
+          path,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        }))),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
     } catch (ex) {

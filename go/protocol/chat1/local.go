@@ -3880,6 +3880,42 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 	}
 }
 
+type DownloadFileAttachmentLocalRes struct {
+	Filename         string                        `codec:"filename" json:"filename"`
+	Offline          bool                          `codec:"offline" json:"offline"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o DownloadFileAttachmentLocalRes) DeepCopy() DownloadFileAttachmentLocalRes {
+	return DownloadFileAttachmentLocalRes{
+		Filename: o.Filename,
+		Offline:  o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type PreviewLocationTyp int
 
 const (
@@ -4711,7 +4747,7 @@ type LocalInterface interface {
 	PostFileAttachmentMessageLocalNonblock(context.Context, PostFileAttachmentMessageLocalNonblockArg) (PostLocalNonblockRes, error)
 	PostFileAttachmentUploadLocalNonblock(context.Context, PostFileAttachmentUploadLocalNonblockArg) error
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
-	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
+	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, RetryPostArg) error
@@ -5746,7 +5782,7 @@ func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg Download
 	return
 }
 
-func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
+func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadFileAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadFileAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }

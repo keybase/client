@@ -2,27 +2,60 @@ package stellarnet
 
 import (
 	"fmt"
-	"math"
 	"math/big"
 	"regexp"
 
 	"github.com/pkg/errors"
-	samount "github.com/stellar/go/amount"
+	stellaramount "github.com/stellar/go/amount"
+	"github.com/stellar/go/xdr"
 )
 
-// Alow "-1", "1.", ".1", "1.1".
-// But not "." or "".
-var decimalStrictRE = regexp.MustCompile(`^-?((\d+\.?\d*)|(\d*\.?\d+))$`)
+const (
+	StroopsPerLumen = 10000000
+)
 
-// parseDecimalStrict parses a decimal number into a big rational.
-// Used instead of big.Rat.SetString because the latter accepts
-// additional formats like "1/2" and "1e10".
-func ParseDecimalStrict(s string) (*big.Rat, error) {
+var (
+	// Alow "-1", "1.", ".1", "1.1".
+	// But not "." or "" or fractions or exponents
+	decimalStrictRE = regexp.MustCompile(`^-?((\d+\.?\d*)|(\d*\.?\d+))$`)
+)
+
+func validateNumericalString(s string) (ok bool, err error) {
 	if s == "" {
-		return nil, fmt.Errorf("expected decimal number but found empty string")
+		return false, fmt.Errorf("expected decimal number but found empty string")
 	}
 	if !decimalStrictRE.MatchString(s) {
-		return nil, fmt.Errorf("expected decimal number: %s", s)
+		return false, fmt.Errorf("expected decimal number: %s", s)
+	}
+	return true, nil
+}
+
+// ParseStellarAmount parses a decimal number into an int64 suitable
+// for the stellar protocol (7 significant digits).
+// See also stellar/go/amount#ParseInt64
+func ParseStellarAmount(s string) (int64, error) {
+	if _, err := validateNumericalString(s); err != nil {
+		return 0, err
+	}
+	return stellaramount.ParseInt64(s)
+}
+
+// StringFromStellarAmount returns an "amount string" from the provided raw int64 value `v`.
+func StringFromStellarAmount(v int64) string {
+	return stellaramount.StringFromInt64(v)
+}
+
+// StringFromStellarXdrAmount returns StringFromStellarAmount with casting to int64.
+func StringFromStellarXdrAmount(v xdr.Int64) string {
+	return stellaramount.String(v)
+}
+
+// ParseAmount parses a decimal number into a big rational.
+// Used instead of big.Rat.SetString because the latter accepts
+// additional formats like "1/2" and "1e10".
+func ParseAmount(s string) (*big.Rat, error) {
+	if _, err := validateNumericalString(s); err != nil {
+		return nil, err
 	}
 	v, ok := new(big.Rat).SetString(s)
 	if !ok {
@@ -40,11 +73,11 @@ func ConvertXLMToOutside(XLMAmount, rate string) (outsideAmount string, err erro
 	if err != nil {
 		return "", err
 	}
-	amountInt64, err := samount.ParseInt64(XLMAmount)
+	amountInt64, err := ParseStellarAmount(XLMAmount)
 	if err != nil {
 		return "", fmt.Errorf("parsing amount to convert: %q", err)
 	}
-	acc := big.NewRat(amountInt64, samount.One)
+	acc := big.NewRat(amountInt64, StroopsPerLumen)
 	acc.Mul(acc, rateRat)
 	return acc.FloatString(7), nil
 }
@@ -58,7 +91,7 @@ func ConvertOutsideToXLM(outsideAmount, rate string) (XLMAmount string, err erro
 	if err != nil {
 		return "", err
 	}
-	acc, err := ParseDecimalStrict(outsideAmount)
+	acc, err := ParseAmount(outsideAmount)
 	if err != nil {
 		return "", fmt.Errorf("parsing amount to convert: %q", outsideAmount)
 	}
@@ -74,11 +107,11 @@ func ConvertOutsideToXLM(outsideAmount, rate string) (XLMAmount string, err erro
 //   +1 if x >  y
 //
 func CompareStellarAmounts(amount1, amount2 string) (int, error) {
-	amountx, err := samount.ParseInt64(amount1)
+	amountx, err := ParseStellarAmount(amount1)
 	if err != nil {
 		return 0, err
 	}
-	amounty, err := samount.ParseInt64(amount2)
+	amounty, err := ParseStellarAmount(amount2)
 	if err != nil {
 		return 0, err
 	}
@@ -92,19 +125,20 @@ func CompareStellarAmounts(amount1, amount2 string) (int, error) {
 	}
 }
 
-// Return whether two amounts are within a factor of `maxFactor` of each other.
+// WithinFactorStellarAmounts returns whether two amounts are within a factor of
+// `maxFactor` of each other.
 // For example maxFactor="0.01" returns whether they are within 1% of each other.
 // <- (abs((a - b) / a) < fac) || (abs((a - b) / b < fac)
 func WithinFactorStellarAmounts(amount1, amount2, maxFactor string) (bool, error) {
-	a, err := samount.ParseInt64(amount1)
+	a, err := ParseStellarAmount(amount1)
 	if err != nil {
 		return false, err
 	}
-	b, err := samount.ParseInt64(amount2)
+	b, err := ParseStellarAmount(amount2)
 	if err != nil {
 		return false, err
 	}
-	fac, err := ParseDecimalStrict(maxFactor)
+	fac, err := ParseAmount(maxFactor)
 	if err != nil {
 		return false, fmt.Errorf("error parsing factor: %q %v", maxFactor, err)
 	}
@@ -118,27 +152,19 @@ func WithinFactorStellarAmounts(amount1, amount2, maxFactor string) (bool, error
 		return false, nil
 	}
 	// BigRat method signatures are bizarre. This does not do what it looks like.
-	left := big.NewRat(a, samount.One)
-	left.Sub(left, big.NewRat(b, samount.One))
+	left := big.NewRat(a, StroopsPerLumen)
+	left.Sub(left, big.NewRat(b, StroopsPerLumen))
 	right := big.NewRat(1, 1)
 	right.Set(left)
-	left.Quo(left, big.NewRat(a, samount.One))
-	right.Quo(right, big.NewRat(b, samount.One))
+	left.Quo(left, big.NewRat(a, StroopsPerLumen))
+	right.Quo(right, big.NewRat(b, StroopsPerLumen))
 	left.Abs(left)
 	right.Abs(right)
 	return (left.Cmp(fac) < 1) || (right.Cmp(fac) < 1), nil
 }
 
-func percentageAmountChange(a, b int64) float64 {
-	if a == 0 && b == 0 {
-		return 0.0
-	}
-	mid := 0.5 * float64(a+b)
-	return math.Abs(100.0 * float64(a-b) / mid)
-}
-
 func parseExchangeRate(rate string) (*big.Rat, error) {
-	rateRat, err := ParseDecimalStrict(rate)
+	rateRat, err := ParseAmount(rate)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing exchange rate: %q", rate)
 	}

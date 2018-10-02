@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
-	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -657,7 +656,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	}
 	for _, b := range balances {
 		if b.Asset.IsNativeXLM() {
-			a, err := amount.ParseInt64(b.Amount)
+			a, err := stellarnet.ParseStellarAmount(b.Amount)
 			if err != nil {
 				return false, err
 			}
@@ -955,7 +954,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := stellarnet.ParseDecimalStrict(amount)
+	x, err := stellarnet.ParseAmount(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
@@ -1210,7 +1209,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	if arg.Asset != nil {
-		a, err := amount.ParseInt64(arg.Amount)
+		a, err := stellarnet.ParseStellarAmount(arg.Amount)
 		if err != nil {
 			return ret, err
 		}
