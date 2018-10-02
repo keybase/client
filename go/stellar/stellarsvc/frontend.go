@@ -447,6 +447,33 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	return payment, nil
 }
 
+func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "CancelPaymentLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	details, err := s.remoter.PaymentDetails(ctx, arg.PaymentID.TxID.String())
+	if err != nil {
+		return res, err
+	}
+	typ, err := details.Summary.Typ()
+	if err != nil {
+		return res, err
+	}
+	if typ != stellar1.PaymentSummaryType_RELAY {
+		return res, errors.New("tried to cancel a non-relay payment")
+	}
+	relay := details.Summary.Relay()
+	// TODO make sure relay.FromStellar is our account
+	return stellar.Claim(ctx, s.G(), s.remoter, relay.KbTxID.String(), relay.FromStellar, nil, nil)
+}
+
 type balanceList []stellar1.Balance
 
 // Example: "56.0227002 XLM + more"

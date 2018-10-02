@@ -841,6 +841,11 @@ type IsAccountMobileOnlyLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type CancelPaymentLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -953,6 +958,7 @@ type LocalInterface interface {
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
 	SetAccountMobileOnlyLocal(context.Context, SetAccountMobileOnlyLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
+	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1456,6 +1462,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"cancelPaymentLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelPaymentLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelPaymentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelPaymentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.CancelPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -1867,6 +1889,11 @@ func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAcc
 
 func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccountMobileOnlyLocalArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
 	return
 }
 
