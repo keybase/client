@@ -25,6 +25,7 @@ const props = {
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
   openApp: Storybook.action('openApp'),
+  showInFinder: Storybook.action('showInFinder'),
   quit: Storybook.action('quit'),
   refresh: Storybook.action('refresh'),
   showBug: Storybook.action('showBug'),

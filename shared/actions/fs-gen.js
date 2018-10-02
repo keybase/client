@@ -106,7 +106,10 @@ type _FavoritesLoadedPayload = $ReadOnly<{|
   public: I.Map<string, Types.Tlf>,
   team: I.Map<string, Types.Tlf>,
 |}>
-type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _FilePreviewLoadPayload = $ReadOnly<{|
+  path: Types.Path,
+  identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior,
+|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   meta: Types.PathItem,

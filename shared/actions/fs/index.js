@@ -66,6 +66,9 @@ const filePreview = (state: TypedState, action) =>
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
+    ...(action.payload.identifyBehavior
+      ? {identifyBehavior: action.payload.identifyBehavior}
+      : {}),
   })
     .then(dirent =>
       FsGen.createFilePreviewLoaded({

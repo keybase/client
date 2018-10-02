@@ -28,8 +28,10 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GithubChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
-	return CheckProofPvl(m, keybase1.ProofType_GITHUB, rc.proof, h, pvlU)
+func (rc *GithubChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode,
+	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
+	return nil, CheckProofPvl(mctx, keybase1.ProofType_GITHUB, rc.proof, h, pvlU)
 }
 
 //
@@ -48,7 +50,7 @@ func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
+func (t GithubServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

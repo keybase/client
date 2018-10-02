@@ -30,7 +30,7 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func TestIndexAdd(t *testing.T) {
+func TestIndexer(t *testing.T) {
 	world := kbtest.NewChatMockWorld(t, "indexer", 1)
 	defer world.Cleanup()
 
@@ -51,6 +51,7 @@ func TestIndexAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, convIndex{}, convIdx)
 
+	// add first message
 	msg1 := makeText(5, "The quick brown fox jumps over the lazy dog.")
 	err = indexer.Add(ctx, convID1, uid, msg1)
 	require.NoError(t, err)
@@ -70,6 +71,7 @@ func TestIndexAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx, convIdx)
 
+	// add second message with overlapping keys
 	msg2 := makeText(6, "> The quick brown fox jumps over the lazy dog.\n cool.")
 	err = indexer.Add(ctx, convID1, uid, msg2)
 	require.NoError(t, err)
@@ -90,12 +92,46 @@ func TestIndexAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx2, convIdx)
 
+	// add first message to conv2
 	convID2 := chat1.ConversationID("conv2")
 	dbKey2 := indexer.dbKey(convID2, uid)
 	err = indexer.Add(ctx, convID2, uid, msg1)
 	require.NoError(t, err)
-
 	convIdx, err = indexer.getConvIndex(ctx, dbKey2)
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx, convIdx)
+
+	// remove from conv2
+	err = indexer.Remove(ctx, convID2, uid, msg1)
+	require.NoError(t, err)
+	convIdx, err = indexer.getConvIndex(ctx, dbKey2)
+	require.NoError(t, err)
+	require.Equal(t, convIndex{}, convIdx)
+
+	// remove msg1 from conv1
+	err = indexer.Remove(ctx, convID1, uid, msg1)
+	require.NoError(t, err)
+
+	expectedConvIdx3 := convIndex{
+		"the":   msgMetadataIndex{6: testMsgMetadata},
+		"quick": msgMetadataIndex{6: testMsgMetadata},
+		"brown": msgMetadataIndex{6: testMsgMetadata},
+		"fox":   msgMetadataIndex{6: testMsgMetadata},
+		"jumps": msgMetadataIndex{6: testMsgMetadata},
+		"over":  msgMetadataIndex{6: testMsgMetadata},
+		"lazy":  msgMetadataIndex{6: testMsgMetadata},
+		"dog":   msgMetadataIndex{6: testMsgMetadata},
+		"cool":  msgMetadataIndex{6: testMsgMetadata},
+	}
+	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
+	require.NoError(t, err)
+	require.Equal(t, expectedConvIdx3, convIdx)
+
+	// remove msg2 from conv2
+	err = indexer.Remove(ctx, convID1, uid, msg2)
+	require.NoError(t, err)
+
+	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
+	require.NoError(t, err)
+	require.Equal(t, convIndex{}, convIdx)
 }

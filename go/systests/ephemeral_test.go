@@ -220,18 +220,12 @@ func runRotate(t *testing.T, createTeamEK bool) {
 
 	storage := annG.GetTeamEKBoxStorage()
 	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
-	var expectedMaxGeneration keybase1.EkGeneration
 	if createTeamEK {
 		require.NoError(t, err)
-		expectedMaxGeneration = teamEK.Metadata.Generation
 	} else {
 		require.Error(t, err)
 		require.Equal(t, teamEK, keybase1.TeamEk{})
-		expectedMaxGeneration = -1
 	}
-	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
-	require.NoError(t, err)
-	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
 func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
