@@ -134,6 +134,18 @@ func (s *Stellar) SetFederationClientForTest(cli federation.ClientInterface) {
 	s.federationClient = cli
 }
 
+// UpdateUnreadCount will take the unread count for an account id and
+// update the badger.
+func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error {
+	if s.badger == nil {
+		s.G().Log.CDebugf(ctx, "Stellar Global has no badger")
+		return nil
+	}
+
+	s.badger.SetWalletAccountUnreadCount(ctx, accountID, unread)
+	return nil
+}
+
 // getFederationClient is a helper function used during
 // initialization.
 func getFederationClient(g *libkb.GlobalContext) federation.ClientInterface {
