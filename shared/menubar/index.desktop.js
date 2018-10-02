@@ -276,13 +276,11 @@ const BadgeIcon = ({
   }
 
   return (
-    <Kb.Box
-      style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
-      onClick={() => openApp(tab)}
-    >
+    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
-        hoverColor={Styles.globalColors.black_75}
+        hoverColor={Styles.globalColors.white}
+        onClick={() => openApp(tab)}
         fontSize={22}
         type={iconType}
       />
