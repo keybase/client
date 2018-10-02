@@ -184,7 +184,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
 	_struct  bool           `codec:",toarray"`
-	Version  int            `codec:"version"`
+	Version  SigVersion     `codec:"version"`
 	Seqno    keybase1.Seqno `codec:"seqno"`
 	Prev     LinkID         `codec:"prev"`
 	Curr     LinkID         `codec:"curr"`
@@ -279,6 +279,9 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
+	if !IsEncodedMsgpackArray(payload) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
 	var ol OuterLinkV2
 	if err = MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
@@ -319,6 +322,10 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !IsEncodedMsgpackArray(payload) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
+
 	var ol OuterLinkV2
 	if err := MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
@@ -427,7 +434,7 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 }
 
 func (o OuterLinkV2) AssertFields(
-	version int,
+	version SigVersion,
 	seqno keybase1.Seqno,
 	prev LinkID,
 	curr LinkID,
@@ -463,7 +470,7 @@ func (o OuterLinkV2) AssertFields(
 }
 
 func (o OuterLinkV2) AssertSomeFields(
-	version int,
+	version SigVersion,
 	seqno keybase1.Seqno,
 ) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {

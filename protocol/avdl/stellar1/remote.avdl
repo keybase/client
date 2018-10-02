@@ -56,7 +56,6 @@ protocol remote {
     AccountID to;
     string amount; // amount of asset
     Asset asset;
-    uint64 operationID;
     TimeMs ctime; // time on the network
     string cursorToken;
     boolean unread;

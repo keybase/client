@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
-	samount "github.com/stellar/go/amount"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	snetwork "github.com/stellar/go/network"
@@ -35,10 +34,7 @@ func SetClientAndNetwork(c *horizon.Client, n build.Network) {
 func SetClientURLAndNetwork(url string, n build.Network) {
 	configLock.Lock()
 	defer configLock.Unlock()
-	gclient = &horizon.Client{
-		URL:  url,
-		HTTP: http.DefaultClient,
-	}
+	gclient = MakeClient(url)
 	gnetwork = n
 }
 
@@ -49,15 +45,26 @@ func SetClient(c *horizon.Client) {
 	gclient = c
 }
 
+// MakeClient makes a horizon client.
+// It is used internally for gclient but can be used when the default
+// one in gclient isn't sufficient.
+// For example, stellard uses this func to make clients to check the state
+// of the primary and backup horizon servers.
+// But in general, the gclient one should be used.
+func MakeClient(url string) *horizon.Client {
+	hc := &http.Client{Timeout: 15 * time.Second}
+	return &horizon.Client{
+		URL:  url,
+		HTTP: hc,
+	}
+}
+
 // SetClientURL sets the url for the horizon server this client
 // connects to.
 func SetClientURL(url string) {
 	configLock.Lock()
 	defer configLock.Unlock()
-	gclient = &horizon.Client{
-		URL:  url,
-		HTTP: http.DefaultClient,
-	}
+	gclient = MakeClient(url)
 }
 
 // SetNetwork sets the horizon network.
@@ -152,7 +159,7 @@ func (a *Account) availableBalanceXLMLoaded() (string, error) {
 // be sent to another account (leaving enough XLM in the sender's
 // account to maintain the minimum balance).
 func AvailableBalance(balance string, subentryCount int) (string, error) {
-	balanceInt, err := samount.ParseInt64(balance)
+	balanceInt, err := ParseStellarAmount(balance)
 	if err != nil {
 		return "", err
 	}
@@ -164,7 +171,7 @@ func AvailableBalance(balance string, subentryCount int) (string, error) {
 		available = 0
 	}
 
-	return samount.StringFromInt64(available), nil
+	return StringFromStellarAmount(available), nil
 }
 
 // AccountDetails contains basic details about a stellar account.
@@ -246,7 +253,7 @@ func AccountSeqno(address AddressStr) (uint64, error) {
 
 // RecentPayments returns the account's recent payments.
 // This is a summary of any recent payment transactions (payment, create_account, or account_merge).
-// It does not contain as much information as RecentTransactions.
+// It does not contain as much information as RecentTransactionsAndOps.
 // It is faster as it is only one request to horizon.
 // cursor is optional.  if specified, it is used for pagination.
 // limit is optional.  if not specified, default is 10.  max limit is 100.
@@ -257,30 +264,50 @@ func (a *Account) RecentPayments(cursor string, limit int) ([]horizon.Payment, e
 		limit = 100
 	}
 
-	link, err := a.paymentsLink(cursor, limit)
-	if err != nil {
-		return nil, err
-	}
+	link := a.paymentsLink(cursor, limit)
 
 	var page PaymentsPage
-	err = getDecodeJSONStrict(link, Client().HTTP.Get, &page)
+	err := getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
-		return nil, err
+		return nil, errMap(err)
 	}
 	return page.Embedded.Records, nil
 }
 
-// RecentTransactions returns the account's recent transactions, for
-// all types of transactions.
-func (a *Account) RecentTransactions() ([]Transaction, error) {
-	link, err := a.transactionsLink()
-	if err != nil {
-		return nil, err
+// Transactions returns some of the account's transactions.
+// cursor is optional. if specified, it is used for pagination.
+// limit is optional. if not specified, default is 10.  max limit is 100.
+func (a *Account) Transactions(cursor string, limit int) (res []horizon.Transaction, finalPage bool, err error) {
+	if limit <= 0 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
 	}
+
+	link := a.transactionsLink(cursor, limit)
+
 	var page TransactionsPage
-	err = getDecodeJSONStrict(link+"?order=desc&limit=10", Client().HTTP.Get, &page)
+	err = getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
-		return nil, err
+		return nil, false, errMap(err)
+	}
+
+	finalPage = len(page.Embedded.Records) < limit
+	res = make([]horizon.Transaction, len(page.Embedded.Records))
+	for i, record := range page.Embedded.Records {
+		res[i] = record.Transaction
+	}
+	return res, finalPage, nil
+}
+
+// RecentTransactionsAndOps returns the account's recent transactions, for
+// all types of transactions.
+func (a *Account) RecentTransactionsAndOps() ([]Transaction, error) {
+	link := Client().URL + "/accounts/" + a.address.String() + "/transactions"
+	var page TransactionsPage
+	err := getDecodeJSONStrict(link+"?order=desc&limit=10", Client().HTTP.Get, &page)
+	if err != nil {
+		return nil, errMap(err)
 	}
 
 	transactions := make([]Transaction, len(page.Embedded.Records))
@@ -300,11 +327,11 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 }
 
 func (a *Account) loadOperations(tx Transaction) ([]Operation, error) {
-	link := a.linkHref(tx.Internal.Links.Operations)
+	link := Client().URL + "/transactions/" + tx.Internal.ID + "/operations"
 	var page OperationsPage
 	err := getDecodeJSONStrict(link, Client().HTTP.Get, &page)
 	if err != nil {
-		return nil, err
+		return nil, errMap(err)
 	}
 	return page.Embedded.Records, nil
 }
@@ -331,6 +358,40 @@ func TxDetails(txID string) (horizon.Transaction, error) {
 		return horizon.Transaction{}, err
 	}
 	return embed.Transaction, nil
+}
+
+// AccountMergeAmount returns the amount involved in a merge operation.
+// If operationID does not point to a merge operation, the results are undefined.
+func AccountMergeAmount(operationID string) (amount string, err error) {
+	var page EffectsPage
+	if err := getDecodeJSONStrict(Client().URL+"/operations/"+operationID+"/effects", Client().HTTP.Get, &page); err != nil {
+		return "", err
+	}
+	var creditAmount, debitAmount string
+	for _, effect := range page.Embedded.Records {
+		switch effect.Type {
+		case "account_credited":
+			if creditAmount != "" {
+				return "", fmt.Errorf("unexpected multitude of credit effects")
+			}
+			creditAmount = effect.Amount
+		case "account_debited":
+			if debitAmount != "" {
+				return "", fmt.Errorf("unexpected multitude of debit effects")
+			}
+			debitAmount = effect.Amount
+		}
+	}
+	if creditAmount == "" {
+		return "", fmt.Errorf("credit effect not found")
+	}
+	if debitAmount == "" {
+		return "", fmt.Errorf("debit effect not found")
+	}
+	if creditAmount != debitAmount {
+		return "", fmt.Errorf("inequal debit and credit amounts: %v != %v", debitAmount, creditAmount)
+	}
+	return creditAmount, nil
 }
 
 // HashTx returns the hex transaction ID using the active network passphrase.
@@ -382,7 +443,7 @@ func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32
 		return 0, "", errors.New("public memo is too long")
 	}
 	// this is checked in build.Transaction, but can't hurt to break out early
-	if _, err = samount.Parse(amount); err != nil {
+	if _, err = ParseStellarAmount(amount); err != nil {
 		return 0, "", err
 	}
 
@@ -546,43 +607,23 @@ func Submit(signed string) (ledger int32, txid string, err error) {
 }
 
 // paymentsLink returns the horizon endpoint to get payment information.
-func (a *Account) paymentsLink(cursor string, limit int) (string, error) {
-	if a.internal == nil {
-		if err := a.load(); err != nil {
-			return "", err
-		}
-	}
-
-	link := a.linkHref(a.internal.Links.Payments)
-
-	var url string
+func (a *Account) paymentsLink(cursor string, limit int) string {
+	link := Client().URL + "/accounts/" + a.address.String() + "/payments"
 	if cursor != "" {
-		url = fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
+		return fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
 	} else {
-		url = fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
+		return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
 	}
-
-	return url, nil
 }
 
-// transactionsLink returns the horizon endpoint to get transaction information.
-func (a *Account) transactionsLink() (string, error) {
-	if a.internal == nil {
-		if err := a.load(); err != nil {
-			return "", err
-		}
+// transactionsLink returns the horizon endpoint to get payment information.
+func (a *Account) transactionsLink(cursor string, limit int) string {
+	link := Client().URL + "/accounts/" + a.address.String() + "/transactions"
+	if cursor != "" {
+		return fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
+	} else {
+		return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
 	}
-
-	return a.linkHref(a.internal.Links.Transactions), nil
-}
-
-// linkHref gets a usable href out of a horizon.Link.
-func (a *Account) linkHref(link horizon.Link) string {
-	if link.Templated {
-		return strings.Split(link.Href, "{")[0]
-	}
-	return link.Href
-
 }
 
 // errMap maps some horizon errors to stellarnet errors.

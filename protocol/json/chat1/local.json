@@ -2343,6 +2343,34 @@
       ]
     },
     {
+      "type": "record",
+      "name": "DownloadFileAttachmentLocalRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "PreviewLocationTyp",
       "symbols": [
@@ -3444,7 +3472,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes",
+      "response": "DownloadFileAttachmentLocalRes",
       "lint": "ignore"
     },
     "makePreview": {

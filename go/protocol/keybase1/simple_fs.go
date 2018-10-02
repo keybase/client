@@ -1151,7 +1151,8 @@ type SimpleFSRemoveArg struct {
 }
 
 type SimpleFSStatArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path             Path                 `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSGetRevisionsArg struct {
@@ -1251,7 +1252,7 @@ type SimpleFSInterface interface {
 	// Remove file or directory from filesystem
 	SimpleFSRemove(context.Context, SimpleFSRemoveArg) error
 	// Get info about file
-	SimpleFSStat(context.Context, Path) (Dirent, error)
+	SimpleFSStat(context.Context, SimpleFSStatArg) (Dirent, error)
 	// Get revision info for a directory entry
 	SimpleFSGetRevisions(context.Context, SimpleFSGetRevisionsArg) error
 	// Get list of revisions in progress. Can indicate status of pending
@@ -1524,7 +1525,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSStatArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSStat(ctx, typedArgs[0].Path)
+					ret, err = i.SimpleFSStat(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1828,8 +1829,7 @@ func (c SimpleFSClient) SimpleFSRemove(ctx context.Context, __arg SimpleFSRemove
 }
 
 // Get info about file
-func (c SimpleFSClient) SimpleFSStat(ctx context.Context, path Path) (res Dirent, err error) {
-	__arg := SimpleFSStatArg{Path: path}
+func (c SimpleFSClient) SimpleFSStat(ctx context.Context, __arg SimpleFSStatArg) (res Dirent, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStat", []interface{}{__arg}, &res)
 	return
 }

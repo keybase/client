@@ -21,6 +21,7 @@ export type Props = {
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
   outOfDate?: ConfigTypes.OutOfDate,
+  showInFinder: (tab: ?string) => void,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
@@ -156,7 +157,7 @@ class MenubarRender extends React.Component<Props, State> {
       },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open files', onClick: () => this.props.openApp(Tabs.fsTab)},
+      {title: `Open folders in ${Styles.fileUIName}`, onClick: () => this.props.showInFinder('/')},
       'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
@@ -281,13 +282,11 @@ const BadgeIcon = ({
   }
 
   return (
-    <Kb.Box
-      style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
-      onClick={() => openApp(tab)}
-    >
+    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
-        hoverColor={Styles.globalColors.black_75}
+        hoverColor={Styles.globalColors.white}
+        onClick={() => openApp(tab)}
         fontSize={22}
         type={iconType}
       />

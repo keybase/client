@@ -30,6 +30,7 @@ const buildPayment = (state: TypedState, action: any) =>
   }).then(build =>
     WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
+      forBuildingPayment: state.wallets.buildingPayment,
     })
   )
 

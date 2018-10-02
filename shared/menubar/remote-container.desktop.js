@@ -36,6 +36,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
+  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
   quit: () => {
     closeWindow()
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))

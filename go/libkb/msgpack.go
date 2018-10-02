@@ -35,3 +35,15 @@ func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{})
 	}
 	return nil
 }
+
+func IsEncodedMsgpackArray(data []byte) bool {
+	if len(data) == 0 {
+		return false
+	}
+	b := data[0]
+	return (b >= 0x90 && b <= 0x9f) || b == 0xdc || b == 0xdd
+}
+
+func IsJSONObject(data []byte) bool {
+	return len(data) > 0 && data[0] == '{'
+}

@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/amount"
 )
 
 type UISource interface {
@@ -442,12 +441,12 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	currentAmt, err := amount.ParseInt64(xlmAmount)
+	currentAmt, err := stellarnet.ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return err
 	}
 
-	argAmt, err := amount.ParseInt64(arg.Amount)
+	argAmt, err := stellarnet.ParseStellarAmount(arg.Amount)
 	if err != nil {
 		return err
 	}
