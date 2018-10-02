@@ -133,7 +133,11 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
               {props.decorate &&
                 !this.state.showingMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
             </Box2>
-            <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+            {// $FlowIssue doesn't like us not reducing the type here, but its faster
+            props.message.reactions &&
+              !props.message.reactions.isEmpty() && (
+                <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+              )}
           </Box>
         </HoverBox>
         {(props.message.type === 'text' ||
