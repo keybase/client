@@ -421,18 +421,18 @@ const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 're
 
 class Markdown extends PureComponent<Props> {
   render() {
-    if (this.props.simple) {
+    if (true) {
       const parseTree = parser(this.props.children || '', {inline: false})
-      console.log(parseTree)
+      // <div>
+      // console.log(parseTree)
+      // <pre>{'\n\n\n--------'}</pre>
+      // <pre>{this.props.children}</pre>
+      // <pre>{JSON.stringify(parseTree, null, 2)}</pre>
+      // </div>
       return (
-        <div>
-          <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
-            {reactOutput(parseTree)}
-          </Text>
-          <pre>{'\n\n\n--------'}</pre>
-          <pre>{this.props.children}</pre>
-          <pre>{JSON.stringify(parseTree, null, 2)}</pre>
-        </div>
+        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
+          {reactOutput(parseTree)}
+        </Text>
       )
     } else {
       const content = parseMarkdown(
