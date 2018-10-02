@@ -55,7 +55,7 @@ const (
 	AutogitBranchPrefix = ".kbfs_autogit_branch_"
 	// branchSlash can substitute for slashes in branch names,
 	// following `AutogitBranchPrefix`.
-	branchSlash = ":"
+	branchSlash = "^"
 )
 
 type repoFileNode struct {

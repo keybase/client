@@ -151,7 +151,7 @@ func TestAutogitRepoNode(t *testing.T) {
 
 	t.Logf("Use colons instead of slashes in the branch name")
 	f4, err := rootFS.Open(
-		".kbfs_autogit/test/.kbfs_autogit_branch_dir:test-branch/foo3")
+		".kbfs_autogit/test/.kbfs_autogit_branch_dir^test-branch/foo3")
 	require.NoError(t, err)
 	defer f4.Close()
 	data4, err := ioutil.ReadAll(f4)
