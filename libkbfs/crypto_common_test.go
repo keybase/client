@@ -18,10 +18,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type simpleBlockCryptVersioner struct {
+	t kbfscrypto.EncryptionVer
+}
+
+func (sbcv simpleBlockCryptVersioner) BlockCryptVersion() kbfscrypto.EncryptionVer {
+	return sbcv.t
+}
+
+func makeBlockCryptV1() simpleBlockCryptVersioner {
+	return simpleBlockCryptVersioner{kbfscrypto.EncryptionSecretbox}
+}
+
+func makeBlockCryptV2() simpleBlockCryptVersioner {
+	return simpleBlockCryptVersioner{kbfscrypto.EncryptionSecretboxWithKeyNonce}
+}
+
 // Test (very superficially) that MakeRandomTLFEphemeralKeys() returns
 // non-zero values that aren't equal.
 func TestCryptoCommonRandomTLFEphemeralKeys(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
 	a1, a2, err := c.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
@@ -40,7 +56,7 @@ func TestCryptoCommonRandomTLFEphemeralKeys(t *testing.T) {
 // Test (very superficially) that MakeRandomTLFKeys() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomTLFKeys(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
 	a1, a2, a3, err := c.MakeRandomTLFKeys()
 	require.NoError(t, err)
@@ -100,16 +116,19 @@ func (tb TestBlock) BytesCanBeDirtied() int64 {
 }
 
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
 	block := TestBlock{42}
-	key := kbfscrypto.BlockCryptKey{}
+	tlfCryptKey := kbfscrypto.TLFCryptKey{}
+	blockServerHalf := kbfscrypto.BlockCryptKeyServerHalf{}
 
-	_, encryptedBlock, err := c.EncryptBlock(&block, key)
+	_, encryptedBlock, err := c.EncryptBlock(
+		&block, tlfCryptKey, blockServerHalf)
 	require.NoError(t, err)
 
 	var decryptedBlock TestBlock
-	err = c.DecryptBlock(encryptedBlock, key, &decryptedBlock)
+	err = c.DecryptBlock(
+		encryptedBlock, tlfCryptKey, blockServerHalf, &decryptedBlock)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
 }
@@ -132,7 +151,7 @@ func checkSecretboxOpenPrivateMetadata(t *testing.T, encryptedPrivateMetadata kb
 // Test that crypto.EncryptPrivateMetadata() encrypts its passed-in
 // PrivateMetadata object properly.
 func TestEncryptPrivateMetadata(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	require.NoError(t, err)
@@ -155,7 +174,7 @@ func TestEncryptPrivateMetadata(t *testing.T) {
 // PrivateMetadata object.
 func TestDecryptPrivateMetadata(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	c := MakeCryptoCommon(codec)
+	c := MakeCryptoCommon(codec, makeBlockCryptV1())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	require.NoError(t, err)
@@ -177,12 +196,15 @@ func TestDecryptPrivateMetadata(t *testing.T) {
 	require.Equal(t, privateMetadata, decryptedPrivateMetadata)
 }
 
-func makeFakeBlockCryptKey(t *testing.T) kbfscrypto.BlockCryptKey {
-	var blockCryptKeyData [32]byte
-	err := kbfscrypto.RandRead(blockCryptKeyData[:])
-	blockCryptKey := kbfscrypto.MakeBlockCryptKey(blockCryptKeyData)
+func makeFakeBlockCryptKey(t *testing.T) (
+	kbfscrypto.TLFCryptKey, kbfscrypto.BlockCryptKeyServerHalf,
+	kbfscrypto.BlockCryptKey) {
+	tlfCryptKey, err := kbfscrypto.MakeRandomTLFCryptKey()
 	require.NoError(t, err)
-	return blockCryptKey
+	blockServerHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	key := kbfscrypto.UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
+	return tlfCryptKey, blockServerHalf, key
 }
 
 func checkSecretboxOpenBlock(t *testing.T, encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey) (encodedData []byte) {
@@ -203,15 +225,16 @@ func checkSecretboxOpenBlock(t *testing.T, encryptedBlock kbfscrypto.EncryptedBl
 // Test that crypto.EncryptBlock() encrypts its passed-in Block object
 // properly.
 func TestEncryptBlock(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
-	cryptKey := makeFakeBlockCryptKey(t)
+	tlfCryptKey, blockServerHalf, cryptKey := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 	expectedEncodedBlock, err := c.codec.Encode(block)
 	require.NoError(t, err)
 
-	plainSize, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
+	plainSize, encryptedBlock, err := c.EncryptBlock(
+		&block, tlfCryptKey, blockServerHalf)
 	require.NoError(t, err)
 	require.Equal(t, len(expectedEncodedBlock), plainSize)
 
@@ -221,21 +244,36 @@ func TestEncryptBlock(t *testing.T) {
 	require.Equal(t, expectedEncodedBlock, encodedBlock)
 }
 
-// Test that crypto.DecryptBlock() decrypts a encrypted Block object.
-func TestDecryptEncryptedBlock(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
-
-	cryptKey := makeFakeBlockCryptKey(t)
+func testDecryptEncryptedBlock(t *testing.T, c CryptoCommon) {
+	tlfCryptKey, blockServerHalf, _ := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 
-	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
+	_, encryptedBlock, err := c.EncryptBlock(
+		&block, tlfCryptKey, blockServerHalf)
 	require.NoError(t, err)
 
+	v2 := c.blockCryptVersioner.BlockCryptVersion() ==
+		kbfscrypto.EncryptionSecretboxWithKeyNonce
+	require.Equal(t, v2, encryptedBlock.UsesV2())
+
 	var decryptedBlock TestBlock
-	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
+	err = c.DecryptBlock(
+		encryptedBlock, tlfCryptKey, blockServerHalf, &decryptedBlock)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
+}
+
+// Test that crypto.DecryptBlock() decrypts a encrypted Block object.
+func TestDecryptEncryptedBlock(t *testing.T) {
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
+	testDecryptEncryptedBlock(t, c)
+}
+
+// Test that crypto.DecryptBlock() decrypts a V2-encrypted Block object.
+func TestDecryptV2EncryptedBlock(t *testing.T) {
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV2())
+	testDecryptEncryptedBlock(t, c)
 }
 
 // Test padding of blocks results in a larger block, with length
@@ -319,7 +357,7 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 
 	cryptKeys := make([]kbfscrypto.BlockCryptKey, iterations)
 	for j := 0; j < iterations; j++ {
-		cryptKeys[j] = makeFakeBlockCryptKey(t)
+		_, _, cryptKeys[j] = makeFakeBlockCryptKey(t)
 	}
 
 	for i := startSize; i < endSize; i += 1000 {
@@ -376,8 +414,8 @@ func (tba testBlockArray) BytesCanBeDirtied() int64 {
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
-	cryptKey := makeFakeBlockCryptKey(t)
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
+	tlfCryptKey, blockServerHalf, _ := makeFakeBlockCryptKey(t)
 
 	const startSize = 1025
 	const endSize = 2000
@@ -392,7 +430,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 	var expectedLen int
 	for i := 1025; i < 2000; i++ {
 		data := randomData[:i]
-		_, encBlock, err := c.EncryptBlock(&data, cryptKey)
+		_, encBlock, err := c.EncryptBlock(&data, tlfCryptKey, blockServerHalf)
 		require.NoError(t, err)
 
 		if expectedLen == 0 {
@@ -404,7 +442,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 }
 
 func benchmarkEncryptBlock(b *testing.B, blockSize int) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 
 	// Fill in the block with varying data to make sure not to
 	// trigger any encoding optimizations.
@@ -415,11 +453,12 @@ func benchmarkEncryptBlock(b *testing.B, blockSize int) {
 	block := FileBlock{
 		Contents: data,
 	}
-	key := kbfscrypto.BlockCryptKey{}
+	tlfCryptKey := kbfscrypto.TLFCryptKey{}
+	blockServerHalf := kbfscrypto.BlockCryptKeyServerHalf{}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		c.EncryptBlock(&block, key)
+		c.EncryptBlock(&block, tlfCryptKey, blockServerHalf)
 	}
 }
 

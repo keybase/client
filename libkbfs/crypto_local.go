@@ -35,9 +35,10 @@ var _ Crypto = (*CryptoLocal)(nil)
 // signing key.
 func NewCryptoLocal(codec kbfscodec.Codec,
 	signingKey kbfscrypto.SigningKey,
-	cryptPrivateKey kbfscrypto.CryptPrivateKey) *CryptoLocal {
+	cryptPrivateKey kbfscrypto.CryptPrivateKey,
+	blockCryptVersioner blockCryptVersioner) *CryptoLocal {
 	return &CryptoLocal{
-		MakeCryptoCommon(codec),
+		MakeCryptoCommon(codec, blockCryptVersioner),
 		kbfscrypto.SigningKeySigner{Key: signingKey},
 		cryptPrivateKey,
 		make(map[keybase1.TeamID]perTeamKeyPairs),

@@ -49,7 +49,7 @@ func injectShimCrypto(config Config) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("test key")
 	crypto := shimCrypto{
 		config.Crypto(),
-		MakeCryptoCommon(kbfscodec.NewMsgpack()),
+		MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1()),
 		signingKey,
 	}
 	config.SetCrypto(crypto)

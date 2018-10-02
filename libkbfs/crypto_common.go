@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/keybase/kbfs/kbfsblock"
@@ -21,14 +22,17 @@ import (
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
 type CryptoCommon struct {
-	codec kbfscodec.Codec
+	codec               kbfscodec.Codec
+	blockCryptVersioner blockCryptVersioner
 }
 
 var _ cryptoPure = (*CryptoCommon)(nil)
 
 // MakeCryptoCommon returns a default CryptoCommon object.
-func MakeCryptoCommon(codec kbfscodec.Codec) CryptoCommon {
-	return CryptoCommon{codec}
+func MakeCryptoCommon(
+	codec kbfscodec.Codec,
+	blockCryptVersioner blockCryptVersioner) CryptoCommon {
+	return CryptoCommon{codec, blockCryptVersioner}
 }
 
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
@@ -178,7 +182,9 @@ func (c CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
 }
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
+func (c CryptoCommon) EncryptBlock(
+	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
@@ -190,10 +196,24 @@ func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
-	encryptedBlock, err =
-		kbfscrypto.EncryptPaddedEncodedBlock(paddedBlock, key)
-	if err != nil {
-		return -1, kbfscrypto.EncryptedBlock{}, err
+	switch c.blockCryptVersioner.BlockCryptVersion() {
+	case kbfscrypto.EncryptionSecretbox:
+		key := kbfscrypto.UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
+		encryptedBlock, err =
+			kbfscrypto.EncryptPaddedEncodedBlock(paddedBlock, key)
+		if err != nil {
+			return -1, kbfscrypto.EncryptedBlock{}, err
+		}
+	case kbfscrypto.EncryptionSecretboxWithKeyNonce:
+		key := kbfscrypto.MakeBlockHashKey(blockServerHalf, tlfCryptKey)
+		encryptedBlock, err =
+			kbfscrypto.EncryptPaddedEncodedBlockV2(paddedBlock, key)
+		if err != nil {
+			return -1, kbfscrypto.EncryptedBlock{}, err
+		}
+	default:
+		panic(fmt.Sprintf("Unknown block crypt version: %s",
+			c.blockCryptVersioner.BlockCryptVersion()))
 	}
 
 	plainSize = len(encodedBlock)
@@ -202,9 +222,18 @@ func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptBlock(
-	encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey,
-	block Block) error {
-	paddedBlock, err := kbfscrypto.DecryptBlock(encryptedBlock, key)
+	encryptedBlock kbfscrypto.EncryptedBlock,
+	tlfCryptKey kbfscrypto.TLFCryptKey,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
+	var paddedBlock []byte
+	var err error
+	if encryptedBlock.UsesV2() {
+		key := kbfscrypto.MakeBlockHashKey(blockServerHalf, tlfCryptKey)
+		paddedBlock, err = kbfscrypto.DecryptBlockV2(encryptedBlock, key)
+	} else {
+		key := kbfscrypto.UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
+		paddedBlock, err = kbfscrypto.DecryptBlock(encryptedBlock, key)
+	}
 	if err != nil {
 		return err
 	}

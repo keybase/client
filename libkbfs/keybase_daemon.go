@@ -124,7 +124,7 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
 		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
 		crypto = NewCryptoLocal(
-			config.Codec(), signingKey, cryptPrivateKey)
+			config.Codec(), signingKey, cryptPrivateKey, config)
 	}
 	return crypto, nil
 }

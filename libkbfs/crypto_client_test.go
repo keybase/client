@@ -33,7 +33,8 @@ func NewFakeCryptoClient(
 	cryptPrivateKey kbfscrypto.CryptPrivateKey, readyChan chan<- struct{},
 	goChan <-chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
-		Local:     NewCryptoLocal(codec, signingKey, cryptPrivateKey),
+		Local: NewCryptoLocal(
+			codec, signingKey, cryptPrivateKey, makeBlockCryptV1()),
 		readyChan: readyChan,
 		goChan:    goChan,
 	}

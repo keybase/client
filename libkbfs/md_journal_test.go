@@ -44,7 +44,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
 	bsplit BlockSplitter, tempdir string, j *mdJournal) {
 	codec = kbfscodec.NewMsgpack()
-	crypto = MakeCryptoCommon(codec)
+	crypto = MakeCryptoCommon(codec, makeBlockCryptV1())
 
 	uid := keybase1.MakeTestUID(1)
 	tlfID = tlf.FakeID(1, tlf.Private)
@@ -731,7 +731,7 @@ func testMDJournalResolveAndClear(t *testing.T, ver kbfsmd.MetadataVer, bid kbfs
 
 func testMDJournalResolveAndClearRemoteBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
+	crypto := MakeCryptoCommon(codec, makeBlockCryptV1())
 	bid, err := crypto.MakeRandomBranchID()
 	require.NoError(t, err)
 	testMDJournalResolveAndClear(t, ver, bid)

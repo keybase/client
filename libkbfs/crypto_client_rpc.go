@@ -29,7 +29,7 @@ func NewCryptoClientRPC(config Config, kbCtx Context) *CryptoClientRPC {
 	deferLog := log.CloneWithAddedDepth(1)
 	c := &CryptoClientRPC{
 		CryptoClient: CryptoClient{
-			CryptoCommon: MakeCryptoCommon(config.Codec()),
+			CryptoCommon: MakeCryptoCommon(config.Codec(), config),
 			log:          log,
 			deferLog:     deferLog,
 		},
@@ -47,7 +47,7 @@ func newCryptoClientWithClient(codec kbfscodec.Codec, log logger.Logger, client 
 	deferLog := log.CloneWithAddedDepth(1)
 	return &CryptoClientRPC{
 		CryptoClient: CryptoClient{
-			CryptoCommon: MakeCryptoCommon(codec),
+			CryptoCommon: MakeCryptoCommon(codec, nil),
 			log:          log,
 			deferLog:     deferLog,
 			client:       keybase1.CryptoClient{Cli: client},

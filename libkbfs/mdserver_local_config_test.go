@@ -35,7 +35,7 @@ func newTestMDServerLocalConfig(
 		codecGetter: cg,
 		logMaker:    newTestLogMaker(t),
 		clock:       newTestClockNow(),
-		crypto:      MakeCryptoCommon(cg.Codec()),
+		crypto:      MakeCryptoCommon(cg.Codec(), makeBlockCryptV1()),
 		csg:         csg,
 	}
 }

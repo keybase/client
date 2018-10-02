@@ -53,7 +53,7 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 	ctx = context.Background()
 	codec := kbfscodec.NewMsgpack()
 	config.SetCodec(codec)
-	cryptoPure := MakeCryptoCommon(codec)
+	cryptoPure := MakeCryptoCommon(codec, makeBlockCryptV1())
 	config.SetCrypto(shimKMCrypto{config.Crypto(), cryptoPure})
 	config.SetMetadataVersion(ver)
 

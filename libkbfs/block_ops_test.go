@@ -115,7 +115,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()
 	bserver := NewBlockServerMemory(lm.MakeLogger(""))
-	crypto := MakeCryptoCommon(codecGetter.Codec())
+	crypto := MakeCryptoCommon(codecGetter.Codec(), makeBlockCryptV1())
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
@@ -155,13 +155,10 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	err = config.Codec().Decode(readyBlockData.buf, &encryptedBlock)
 	require.NoError(t, err)
 
-	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
-		readyBlockData.serverHalf,
-		kmd.keys[latestKeyGen-kbfsmd.FirstValidKeyGen])
-
 	decryptedBlock := &FileBlock{}
 	err = config.cryptoPure().DecryptBlock(
-		encryptedBlock, blockCryptKey, decryptedBlock)
+		encryptedBlock, kmd.keys[latestKeyGen-kbfsmd.FirstValidKeyGen],
+		readyBlockData.serverHalf, decryptedBlock)
 	require.NoError(t, err)
 	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
 	require.Equal(t, block, decryptedBlock)
@@ -215,7 +212,8 @@ type badBlockEncryptor struct {
 }
 
 func (c badBlockEncryptor) EncryptBlock(
-	block Block, key kbfscrypto.BlockCryptKey) (
+	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	return 0, kbfscrypto.EncryptedBlock{}, errors.New("could not encrypt block")
 }
@@ -242,9 +240,11 @@ type tooSmallBlockEncryptor struct {
 }
 
 func (c tooSmallBlockEncryptor) EncryptBlock(
-	block Block, key kbfscrypto.BlockCryptKey) (
+	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
-	plainSize, encryptedBlock, err = c.CryptoCommon.EncryptBlock(block, key)
+	plainSize, encryptedBlock, err = c.CryptoCommon.EncryptBlock(
+		block, tlfCryptKey, blockServerHalf)
 	if err != nil {
 		return 0, kbfscrypto.EncryptedBlock{}, err
 	}
@@ -518,8 +518,9 @@ type badBlockDecryptor struct {
 	cryptoPure
 }
 
-func (c badBlockDecryptor) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock,
-	key kbfscrypto.BlockCryptKey, block Block) error {
+func (c badBlockDecryptor) DecryptBlock(
+	_ kbfscrypto.EncryptedBlock, _ kbfscrypto.TLFCryptKey,
+	_ kbfscrypto.BlockCryptKeyServerHalf, _ Block) error {
 	return errors.New("could not decrypt block")
 }
 

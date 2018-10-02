@@ -207,6 +207,11 @@ type EncryptedBlock struct {
 	encryptedData
 }
 
+// UsesV2 returns true if this block uses V2 encryption.
+func (eb EncryptedBlock) UsesV2() bool {
+	return eb.encryptedData.Version == EncryptionSecretboxWithKeyNonce
+}
+
 // EncryptPaddedEncodedBlock encrypts a padded, encoded block.
 func EncryptPaddedEncodedBlock(paddedEncodedBlock []byte, key BlockCryptKey) (
 	encryptedBlock EncryptedBlock, err error) {

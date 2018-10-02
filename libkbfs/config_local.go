@@ -862,6 +862,11 @@ func (c *ConfigLocal) DataVersion() DataVer {
 	return IndirectDirsDataVer
 }
 
+// BlockCryptVersion implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) BlockCryptVersion() kbfscrypto.EncryptionVer {
+	return kbfscrypto.EncryptionSecretbox
+}
+
 // DefaultBlockType implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DefaultBlockType() keybase1.BlockType {
 	c.lock.RLock()

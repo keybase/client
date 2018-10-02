@@ -178,18 +178,22 @@ func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
 		return err
 	}
 
-	// construct the block crypt key
-	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
-		blockServerHalf, tlfCryptKey)
-
 	var encryptedBlock kbfscrypto.EncryptedBlock
 	err = codec.Decode(buf, &encryptedBlock)
 	if err != nil {
 		return err
 	}
 
+	if blockPtr.ID.UseV2() != encryptedBlock.UsesV2() {
+		// V2 block IDs MUST point to V2-encrypted blocks.
+		return errors.Errorf(
+			"Block ID %s and encrypted block disagree on encryption method",
+			blockPtr.ID)
+	}
+
 	// decrypt the block
-	err = cryptoPure.DecryptBlock(encryptedBlock, blockCryptKey, block)
+	err = cryptoPure.DecryptBlock(
+		encryptedBlock, tlfCryptKey, blockServerHalf, block)
 	if err != nil {
 		return err
 	}

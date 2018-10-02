@@ -30,7 +30,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	id := tlf.FakeID(1, tlf.Private)
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
 	kmd := emptyKeyMetadata{id, 1}
 
@@ -368,7 +368,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 
 	// Now fill in any parents.
 	numLevels := 1
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	for len(prevChildren) != 1 {
 		prevChildIndex := 0
 		var level []*FileBlock

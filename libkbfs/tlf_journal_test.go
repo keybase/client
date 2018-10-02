@@ -219,7 +219,8 @@ func setupTLFJournalTest(
 	codec := kbfscodec.NewMsgpack()
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	crypto := NewCryptoLocal(codec, signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(
+		codec, signingKey, cryptPrivateKey, makeBlockCryptV1())
 	uid := keybase1.MakeTestUID(1)
 	verifyingKey := signingKey.GetVerifyingKey()
 	ekg := singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}

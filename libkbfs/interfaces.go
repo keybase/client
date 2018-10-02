@@ -1274,14 +1274,18 @@ type cryptoPure interface {
 	// EncryptBlocks encrypts a block. plainSize is the size of the encoded
 	// block; EncryptBlock() must guarantee that plainSize <=
 	// len(encryptedBlock).
-	EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
+	EncryptBlock(
+		block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+		blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 		plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error)
 
 	// DecryptBlock decrypts a block. Similar to EncryptBlock(),
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
-	DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock,
-		key kbfscrypto.BlockCryptKey, block Block) error
+	DecryptBlock(
+		encryptedBlock kbfscrypto.EncryptedBlock,
+		tlfCryptKey kbfscrypto.TLFCryptKey,
+		blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error
 }
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
@@ -2045,11 +2049,18 @@ type initModeGetter interface {
 	IsTestMode() bool
 }
 
+type blockCryptVersioner interface {
+	// BlockCryptVersion returns the block encryption version to be used for
+	// new blocks.
+	BlockCryptVersion() kbfscrypto.EncryptionVer
+}
+
 // Config collects all the singleton instance instantiations needed to
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
 type Config interface {
 	dataVersioner
+	blockCryptVersioner
 	logMaker
 	blockCacher
 	blockServerGetter

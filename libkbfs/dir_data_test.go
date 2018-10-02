@@ -29,7 +29,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	id := tlf.FakeID(1, tlf.Private)
 	dir := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "dir"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{10, maxPtrsPerBlock, 10, numDirEntries}
 	kmd := emptyKeyMetadata{id, 1}
 

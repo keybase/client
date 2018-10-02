@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -128,8 +127,8 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	blockKey := kbfscrypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
-	plainSize, encryptedBlock, err := crypto.EncryptBlock(block, blockKey)
+	plainSize, encryptedBlock, err := crypto.EncryptBlock(
+		block, tlfCryptKey, serverHalf)
 	if err != nil {
 		return
 	}

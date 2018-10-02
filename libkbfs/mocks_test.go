@@ -4383,8 +4383,8 @@ func (mr *MockcryptoPureMockRecorder) DecryptPrivateMetadata(encryptedPMD, key i
 }
 
 // EncryptBlock mocks base method
-func (m *MockcryptoPure) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, kbfscrypto.EncryptedBlock, error) {
-	ret := m.ctrl.Call(m, "EncryptBlock", block, key)
+func (m *MockcryptoPure) EncryptBlock(block Block, tlfCryptKey kbfscrypto.TLFCryptKey, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (int, kbfscrypto.EncryptedBlock, error) {
+	ret := m.ctrl.Call(m, "EncryptBlock", block, tlfCryptKey, blockServerHalf)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(kbfscrypto.EncryptedBlock)
 	ret2, _ := ret[2].(error)
@@ -4392,20 +4392,20 @@ func (m *MockcryptoPure) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey)
 }
 
 // EncryptBlock indicates an expected call of EncryptBlock
-func (mr *MockcryptoPureMockRecorder) EncryptBlock(block, key interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptBlock", reflect.TypeOf((*MockcryptoPure)(nil).EncryptBlock), block, key)
+func (mr *MockcryptoPureMockRecorder) EncryptBlock(block, tlfCryptKey, blockServerHalf interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptBlock", reflect.TypeOf((*MockcryptoPure)(nil).EncryptBlock), block, tlfCryptKey, blockServerHalf)
 }
 
 // DecryptBlock mocks base method
-func (m *MockcryptoPure) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
-	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, key, block)
+func (m *MockcryptoPure) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, tlfCryptKey kbfscrypto.TLFCryptKey, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
+	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, tlfCryptKey, blockServerHalf, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DecryptBlock indicates an expected call of DecryptBlock
-func (mr *MockcryptoPureMockRecorder) DecryptBlock(encryptedBlock, key, block interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockcryptoPure)(nil).DecryptBlock), encryptedBlock, key, block)
+func (mr *MockcryptoPureMockRecorder) DecryptBlock(encryptedBlock, tlfCryptKey, blockServerHalf, block interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockcryptoPure)(nil).DecryptBlock), encryptedBlock, tlfCryptKey, blockServerHalf, block)
 }
 
 // MockCrypto is a mock of Crypto interface
@@ -4552,8 +4552,8 @@ func (mr *MockCryptoMockRecorder) DecryptPrivateMetadata(encryptedPMD, key inter
 }
 
 // EncryptBlock mocks base method
-func (m *MockCrypto) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (int, kbfscrypto.EncryptedBlock, error) {
-	ret := m.ctrl.Call(m, "EncryptBlock", block, key)
+func (m *MockCrypto) EncryptBlock(block Block, tlfCryptKey kbfscrypto.TLFCryptKey, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (int, kbfscrypto.EncryptedBlock, error) {
+	ret := m.ctrl.Call(m, "EncryptBlock", block, tlfCryptKey, blockServerHalf)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(kbfscrypto.EncryptedBlock)
 	ret2, _ := ret[2].(error)
@@ -4561,20 +4561,20 @@ func (m *MockCrypto) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (in
 }
 
 // EncryptBlock indicates an expected call of EncryptBlock
-func (mr *MockCryptoMockRecorder) EncryptBlock(block, key interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptBlock", reflect.TypeOf((*MockCrypto)(nil).EncryptBlock), block, key)
+func (mr *MockCryptoMockRecorder) EncryptBlock(block, tlfCryptKey, blockServerHalf interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptBlock", reflect.TypeOf((*MockCrypto)(nil).EncryptBlock), block, tlfCryptKey, blockServerHalf)
 }
 
 // DecryptBlock mocks base method
-func (m *MockCrypto) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, key kbfscrypto.BlockCryptKey, block Block) error {
-	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, key, block)
+func (m *MockCrypto) DecryptBlock(encryptedBlock kbfscrypto.EncryptedBlock, tlfCryptKey kbfscrypto.TLFCryptKey, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
+	ret := m.ctrl.Call(m, "DecryptBlock", encryptedBlock, tlfCryptKey, blockServerHalf, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DecryptBlock indicates an expected call of DecryptBlock
-func (mr *MockCryptoMockRecorder) DecryptBlock(encryptedBlock, key, block interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockCrypto)(nil).DecryptBlock), encryptedBlock, key, block)
+func (mr *MockCryptoMockRecorder) DecryptBlock(encryptedBlock, tlfCryptKey, blockServerHalf, block interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockCrypto)(nil).DecryptBlock), encryptedBlock, tlfCryptKey, blockServerHalf, block)
 }
 
 // Sign mocks base method
@@ -6982,6 +6982,41 @@ func (mr *MockinitModeGetterMockRecorder) IsTestMode() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockinitModeGetter)(nil).IsTestMode))
 }
 
+// MockblockCryptVersioner is a mock of blockCryptVersioner interface
+type MockblockCryptVersioner struct {
+	ctrl     *gomock.Controller
+	recorder *MockblockCryptVersionerMockRecorder
+}
+
+// MockblockCryptVersionerMockRecorder is the mock recorder for MockblockCryptVersioner
+type MockblockCryptVersionerMockRecorder struct {
+	mock *MockblockCryptVersioner
+}
+
+// NewMockblockCryptVersioner creates a new mock instance
+func NewMockblockCryptVersioner(ctrl *gomock.Controller) *MockblockCryptVersioner {
+	mock := &MockblockCryptVersioner{ctrl: ctrl}
+	mock.recorder = &MockblockCryptVersionerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockblockCryptVersioner) EXPECT() *MockblockCryptVersionerMockRecorder {
+	return m.recorder
+}
+
+// BlockCryptVersion mocks base method
+func (m *MockblockCryptVersioner) BlockCryptVersion() kbfscrypto.EncryptionVer {
+	ret := m.ctrl.Call(m, "BlockCryptVersion")
+	ret0, _ := ret[0].(kbfscrypto.EncryptionVer)
+	return ret0
+}
+
+// BlockCryptVersion indicates an expected call of BlockCryptVersion
+func (mr *MockblockCryptVersionerMockRecorder) BlockCryptVersion() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockCryptVersion", reflect.TypeOf((*MockblockCryptVersioner)(nil).BlockCryptVersion))
+}
+
 // MockConfig is a mock of Config interface
 type MockConfig struct {
 	ctrl     *gomock.Controller
@@ -7015,6 +7050,18 @@ func (m *MockConfig) DataVersion() DataVer {
 // DataVersion indicates an expected call of DataVersion
 func (mr *MockConfigMockRecorder) DataVersion() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DataVersion", reflect.TypeOf((*MockConfig)(nil).DataVersion))
+}
+
+// BlockCryptVersion mocks base method
+func (m *MockConfig) BlockCryptVersion() kbfscrypto.EncryptionVer {
+	ret := m.ctrl.Call(m, "BlockCryptVersion")
+	ret0, _ := ret[0].(kbfscrypto.EncryptionVer)
+	return ret0
+}
+
+// BlockCryptVersion indicates an expected call of BlockCryptVersion
+func (mr *MockConfigMockRecorder) BlockCryptVersion() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockCryptVersion", reflect.TypeOf((*MockConfig)(nil).BlockCryptVersion))
 }
 
 // MakeLogger mocks base method

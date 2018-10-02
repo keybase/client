@@ -118,7 +118,7 @@ func TestCRInput(t *testing.T) {
 	unmergedHead := kbfsmd.Revision(5)
 	mergedHead := kbfsmd.Revision(15)
 
-	crypto := MakeCryptoCommon(config.Codec())
+	crypto := MakeCryptoCommon(config.Codec(), makeBlockCryptV1())
 	bid, err := crypto.MakeRandomBranchID()
 	if err != nil {
 		t.Fatalf("Branch id err: %+v", bid)
@@ -180,7 +180,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	unmergedHead := kbfsmd.Revision(5)
 	mergedHead := kbfsmd.Revision(15)
 
-	crypto := MakeCryptoCommon(config.Codec())
+	crypto := MakeCryptoCommon(config.Codec(), makeBlockCryptV1())
 	bid, err := crypto.MakeRandomBranchID()
 	if err != nil {
 		t.Fatalf("Branch id err: %+v", bid)
