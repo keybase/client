@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 
   // Building section
-  const recipientType = build.recipientType || 'keybaseUser'
+  const recipientType = build.recipientType
   const toFieldInput = build.to
   // Built section
   const incorrect = built.toErrMsg
