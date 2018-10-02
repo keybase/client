@@ -5,6 +5,8 @@
 package kbfscrypto
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
 	"encoding"
 	"encoding/hex"
 	"encoding/json"
@@ -176,6 +178,29 @@ func (c *privateByte32Container) UnmarshalText(data []byte) error {
 
 func (c privateByte32Container) String() string {
 	return "{private 32 bytes}"
+}
+
+type privateByte64Container struct {
+	data [64]byte
+}
+
+func (c privateByte64Container) Data() [64]byte {
+	return c.data
+}
+
+var _ encoding.TextMarshaler = privateByte64Container{}
+var _ encoding.TextUnmarshaler = (*privateByte64Container)(nil)
+
+func (c privateByte64Container) MarshalText() ([]byte, error) {
+	return nil, errors.New("Cannot marshal private 64 bytes to text")
+}
+
+func (c *privateByte64Container) UnmarshalText(data []byte) error {
+	return errors.New("Cannot unmarshal private 64 bytes from text")
+}
+
+func (c privateByte64Container) String() string {
+	return "{private 64 bytes}"
 }
 
 // A TLFPrivateKey (m_f) is the private half of the permanent
@@ -643,4 +668,34 @@ func UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf,
 func UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf,
 	tlfCryptKey TLFCryptKey) BlockCryptKey {
 	return MakeBlockCryptKey(xorKeys(serverHalf.data, tlfCryptKey.data))
+}
+
+// BlockHashKey is used as input to encrypt/decrypt block data (v2).
+type BlockHashKey struct {
+	// Should only be used by implementations of Crypto.
+	privateByte64Container
+}
+
+// MakeBlockHashKey makes a key used for encryption and decryption for
+// the v2 block encryption scheme.
+func MakeBlockHashKey(
+	serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
+	keyData := key.Data()
+	mac := hmac.New(sha512.New, keyData[:])
+	serverHalfData := serverHalf.Data()
+	mac.Write(serverHalfData[:])
+	hash := mac.Sum(nil)
+	var hash64 [64]byte
+	copy(hash64[:], hash)
+	return BlockHashKey{privateByte64Container{hash64}}
+}
+
+func (bhk BlockHashKey) cryptKey() (key [32]byte) {
+	copy(key[:], bhk.data[:32])
+	return key
+}
+
+func (bhk BlockHashKey) nonce() (n [24]byte) {
+	copy(n[:], bhk.data[32:56])
+	return n
 }

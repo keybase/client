@@ -27,15 +27,16 @@ func TestEncryptDecryptDataSuccess(t *testing.T) {
 
 func TestEncryptDecryptDataV2Success(t *testing.T) {
 	data := []byte{0x20, 0x30}
-	key := [32]byte{0x40, 0x45}
-	blockKey := BlockCryptKey{privateByte32Container{key}}
+	key := [64]byte{0x40, 0x45}
+	key[40] = 0x50
+	blockKey := BlockHashKey{privateByte64Container{key}}
 	encryptedBlock, err := EncryptPaddedEncodedBlockV2(data, blockKey)
 	require.NoError(t, err)
 	require.Equal(
 		t, EncryptionSecretboxWithKeyNonce,
 		encryptedBlock.encryptedData.Version)
 
-	decryptedData, err := DecryptBlock(encryptedBlock, blockKey)
+	decryptedData, err := DecryptBlockV2(encryptedBlock, blockKey)
 	require.NoError(t, err)
 	require.Equal(t, data, decryptedData)
 }
@@ -51,9 +52,11 @@ func TestDecryptDataFailure(t *testing.T) {
 
 	encryptedDataWrongNonce := encryptedData
 	encryptedDataWrongNonce.Version++
-	_, err = DecryptBlock(
+	var key64 [64]byte
+	copy(key64[:], key[:])
+	_, err = DecryptBlockV2(
 		EncryptedBlock{encryptedDataWrongNonce},
-		BlockCryptKey{privateByte32Container{key}})
+		BlockHashKey{privateByte64Container{key64}})
 	assert.Equal(t,
 		InvalidNonceError{encryptedDataWrongNonce.Nonce},
 		errors.Cause(err))

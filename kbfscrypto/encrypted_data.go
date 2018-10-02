@@ -6,7 +6,6 @@ package kbfscrypto
 
 import (
 	"bytes"
-	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"reflect"
@@ -215,24 +214,13 @@ func EncryptPaddedEncodedBlock(paddedEncodedBlock []byte, key BlockCryptKey) (
 	return EncryptedBlock{encryptedData}, nil
 }
 
-func keyAndNonceFromBlockCryptKey(key BlockCryptKey) (
-	encKey [32]byte, nonce [24]byte) {
-	// Hash the full key with SHA-512 to get 64 bytes.
-	keyData := key.Data()
-	h := sha512.Sum512(keyData[:])
-	copy(encKey[:], h[:32])
-	copy(nonce[:], h[32:56])
-	return encKey, nonce
-}
-
 // EncryptPaddedEncodedBlockV2 encrypts a padded, encoded block, using
 // the v2 block encryption scheme.
-func EncryptPaddedEncodedBlockV2(paddedEncodedBlock []byte, key BlockCryptKey) (
+func EncryptPaddedEncodedBlockV2(paddedEncodedBlock []byte, key BlockHashKey) (
 	encryptedBlock EncryptedBlock, err error) {
-	encKey, nonce := keyAndNonceFromBlockCryptKey(key)
-
 	encryptedData, err := encryptDataWithNonce(
-		paddedEncodedBlock, encKey, nonce, EncryptionSecretboxWithKeyNonce)
+		paddedEncodedBlock, key.cryptKey(), key.nonce(),
+		EncryptionSecretboxWithKeyNonce)
 	if err != nil {
 		return EncryptedBlock{}, err
 	}
@@ -243,20 +231,31 @@ func EncryptPaddedEncodedBlockV2(paddedEncodedBlock []byte, key BlockCryptKey) (
 // DecryptBlock decrypts a block, but does not unpad or decode it.
 func DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey) (
 	[]byte, error) {
-	keyData := key.Data()
 	if encryptedBlock.encryptedData.Version == EncryptionSecretboxWithKeyNonce {
-		var nonce [24]byte
-		keyData, nonce = keyAndNonceFromBlockCryptKey(key)
-
-		// Make sure the nonce in the encrypted data matches the
-		// computed nonce.
-		if !bytes.Equal(nonce[:], encryptedBlock.encryptedData.Nonce) {
-			return nil, errors.WithStack(
-				InvalidNonceError{encryptedBlock.encryptedData.Nonce})
-		}
+		return nil, errors.WithStack(
+			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
 	}
 
-	return decryptData(encryptedBlock.encryptedData, keyData)
+	return decryptData(encryptedBlock.encryptedData, key.Data())
+}
+
+// DecryptBlockV2 decrypts a block, but does not unpad or decode it.
+func DecryptBlockV2(encryptedBlock EncryptedBlock, key BlockHashKey) (
+	[]byte, error) {
+	if encryptedBlock.encryptedData.Version != EncryptionSecretboxWithKeyNonce {
+		return nil, errors.WithStack(
+			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
+	}
+
+	// Make sure the nonce in the encrypted data matches the computed
+	// nonce.
+	nonce := key.nonce()
+	if !bytes.Equal(nonce[:], encryptedBlock.encryptedData.Nonce) {
+		return nil, errors.WithStack(
+			InvalidNonceError{encryptedBlock.encryptedData.Nonce})
+	}
+
+	return decryptData(encryptedBlock.encryptedData, key.cryptKey())
 }
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
