@@ -284,7 +284,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 	}
 	// Add the keybase owners
 	for _, member := range members.Owners {
-		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		name, err := t.G().GetUPAKLoader().LookupUsernameUPAKLite(ctx, member.Uid)
 		if err != nil {
 			return res, err
 		}
@@ -292,7 +292,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 	}
 	// Add the keybase readers
 	for _, member := range members.Readers {
-		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		name, err := t.G().GetUPAKLoader().LookupUsernameUPAKLite(ctx, member.Uid)
 		if err != nil {
 			return res, err
 		}

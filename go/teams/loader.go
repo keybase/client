@@ -824,7 +824,7 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 			for uid := range uidSet {
 				wg.Add(1)
 				go func(uid keybase1.UID) {
-					_, _, err := l.G().GetUPAKLoader().LoadV2(
+					_, err := l.G().GetUPAKLoader().LoadLite(
 						libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx))
 					if err != nil {
 						l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)
@@ -837,7 +837,7 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 			}
 		} else {
 			for uid := range uidSet {
-				_, _, err := l.G().GetUPAKLoader().LoadV2(
+				_, err := l.G().GetUPAKLoader().LoadLite(
 					libkb.NewLoadUserArg(l.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx))
 				if err != nil {
 					l.G().Log.CDebugf(ctx, "error preloading uid %v", uid)

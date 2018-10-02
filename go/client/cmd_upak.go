@@ -82,7 +82,7 @@ func (c *cmdUPAK) Run() error {
 		if v != keybase1.UPAKVersion_V2 {
 			return fmt.Errorf("didn't get UPAK v2")
 		}
-		upk2, _ := res.V2().FindKID(c.kid)
+		upk2, _ := libkb.FindKID(res.V2(), c.kid)
 		if upk2 == nil {
 			return fmt.Errorf("key %s wasn't found", c.kid)
 		}

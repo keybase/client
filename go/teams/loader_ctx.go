@@ -172,7 +172,7 @@ func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, e
 func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {
 	// Lookup the latest eldest seqno for that uid.
 	// This value may come from a cache.
-	upak, err := loadUPAK2(ctx, l.G(), uid, false /*forcePoll */)
+	upak, err := loadUPAKLite(ctx, l.G(), uid, false /*forcePoll */)
 	if err != nil {
 		return keybase1.Seqno(1), err
 	}
@@ -232,7 +232,7 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPub
 
 func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
 	arg := libkb.NewLoadUserArg(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll(true)
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(arg)
+	upak, err := l.G().GetUPAKLoader().LoadLite(arg)
 	if err != nil {
 		return nil, err
 	}

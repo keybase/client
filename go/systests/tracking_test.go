@@ -272,7 +272,7 @@ func TestV2Compressed(t *testing.T) {
 	bob := tt.users[2]
 	bobG := bob.tc.G
 	for _, dk := range upk.DeviceKeys {
-		user, upak, _, err := bobG.GetUPAKLoader().LoadKeyV2(ctx, wong.uid, dk.KID)
+		user, upak, _, err := bobG.GetUPAKLoader().LoadKey(ctx, wong.uid, dk.KID, true)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 		require.NotNil(t, upak)

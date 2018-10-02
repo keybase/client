@@ -134,6 +134,17 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 	return upak, err
 }
 
+func loadUPAKLite(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, forcePoll bool) (ret *keybase1.UPKLiteV1AllIncarnations, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("loadUPAKLite(%s)", uid), func() error { return err })()
+
+	arg := libkb.NewLoadUserArg(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
+	if forcePoll {
+		arg = arg.WithForcePoll(true)
+	}
+	upak, err := g.GetUPAKLoader().LoadLite(arg)
+	return upak, err
+}
+
 func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, name string, err error) {
 	assertion, err := libkb.ParseAssertionURL(m.G().MakeAssertionContext(), username, false)
 	if err != nil {

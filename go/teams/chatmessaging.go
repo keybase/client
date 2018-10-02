@@ -58,12 +58,12 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 		return false
 	}
 
-	inviterName, err := g.GetUPAKLoader().LookupUsername(ctx, inviter)
+	inviterName, err := g.GetUPAKLoader().LookupUsernameUPAKLite(ctx, inviter)
 	if err != nil {
 		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to lookup inviter username: %s", err)
 		return false
 	}
-	inviteeName, err := g.GetUPAKLoader().LookupUsername(ctx, invitee)
+	inviteeName, err := g.GetUPAKLoader().LookupUsernameUPAKLite(ctx, invitee)
 	if err != nil {
 		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to lookup invitee username: %s", err)
 		return false
