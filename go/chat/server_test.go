@@ -5455,6 +5455,7 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 				Opts:  opts,
 			})
 			require.NoError(t, err)
+			t.Logf("searchQuery: %v, searchRes: %+v", query, res)
 			return res
 		}
 
@@ -5467,15 +5468,23 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		}
 
 		// Test basic equality match
-		query := "hi"
-		msgBody := "hi"
+		msgBody := "hi, bye"
 		messageID1 := sendMessage(msgBody, u1)
+		queries := []string{"hi", "hi, bye", "hi? bye"}
+		matchText := []string{"hi", "hi, bye", "hi, bye"}
+		for i, query := range queries {
+			res := search(query, opts)
+			require.Equal(t, 1, len(res.Hits))
+			convHit := res.Hits[0]
+			require.Equal(t, convID, convHit.ConvID)
+			require.Equal(t, 1, len(convHit.Hits))
+			verifyHit(convID, []chat1.MessageID{1}, messageID1, nil, []string{matchText[i]}, convHit.Hits[0])
+		}
+
+		// No match since highlighting fails
+		query := "hi bye"
 		res := search(query, opts)
-		require.Equal(t, 1, len(res.Hits))
-		convHit := res.Hits[0]
-		require.Equal(t, convID, convHit.ConvID)
-		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{1}, messageID1, nil, []string{msgBody}, convHit.Hits[0])
+		require.Equal(t, 0, len(res.Hits))
 
 		// Test basic no results
 		query = "hey"
@@ -5488,10 +5497,10 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		messageID2 := sendMessage(msgBody, u1)
 		res = search(query, opts)
 		require.Equal(t, 1, len(res.Hits))
-		convHit = res.Hits[0]
+		convHit := res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{msgBody}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{query}, convHit.Hits[0])
 
 		opts.MaxHits = 5
 		res = search(query, opts)
@@ -5499,8 +5508,8 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 2, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{msgBody}, convHit.Hits[0])
-		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, convHit.Hits[1])
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{query}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2}, []string{query}, convHit.Hits[1])
 
 		messageID3 := sendMessage(msgBody, u1)
 		res = search(query, opts)
@@ -5508,9 +5517,9 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 3, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, convHit.Hits[0])
-		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, convHit.Hits[1])
-		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, convHit.Hits[2])
+		verifyHit(convID, []chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{query}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{query}, convHit.Hits[1])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{query}, convHit.Hits[2])
 
 		// test sentBy
 		// invalid username
@@ -5528,7 +5537,7 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{query}, convHit.Hits[0])
 		opts.SentBy = ""
 
 		// Test utf8
@@ -5540,7 +5549,7 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
 		require.Equal(t, 1, len(convHit.Hits))
-		verifyHit(convID, []chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{msgBody}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{query}, convHit.Hits[0])
 	})
 }
 

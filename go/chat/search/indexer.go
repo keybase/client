@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"strings"
 	"sync"
 
 	mapset "github.com/deckarep/golang-set"
@@ -43,6 +42,17 @@ func (m msgMetadata) matches(opts chat1.SearchOpts) bool {
 type msgMetadataIndex map[chat1.MessageID]msgMetadata
 type convIndex map[string]msgMetadataIndex
 
+func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
+	msgIDSlice := []chat1.MessageID{}
+	for _, el := range set.ToSlice() {
+		msgID, ok := el.(chat1.MessageID)
+		if ok {
+			msgIDSlice = append(msgIDSlice, msgID)
+		}
+	}
+	return msgIDSlice
+}
+
 // Indexer keeps an encrypted index of chat messages for all conversations to enable full inbox search locally.
 // Data is stored in leveldb in the form:
 // (convID) -> {
@@ -76,7 +86,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 	}
 }
 
-func (i *Indexer) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
+func (idx *Indexer) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
 		Key: fmt.Sprintf("idx:%s:%s", convID, uid),
@@ -219,22 +229,14 @@ func (idx *Indexer) searchConvLocked(ctx context.Context, convID chat1.Conversat
 			}
 		}
 	}
-	if allMsgIDs == nil {
-		return nil, nil
-	}
-	msgIDSlice := []chat1.MessageID{}
-	for _, el := range allMsgIDs.ToSlice() {
-		msgID, ok := el.(chat1.MessageID)
-		if ok {
-			msgIDSlice = append(msgIDSlice, msgID)
-		}
-	}
+	msgIDSlice := msgIDsFromSet(allMsgIDs)
+
 	// Sort so we can truncate if necessary, returning the newest results first.
 	sort.Sort(utils.ByMsgID(msgIDSlice))
 	return msgIDSlice, nil
 }
 
-func (idx *Indexer) getMsgsAndIdSet(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, opts chat1.SearchOpts) (mapset.Set, []chat1.MessageUnboxed, error) {
 	idSet := mapset.NewThreadUnsafeSet()
 	idSetWithContext := mapset.NewThreadUnsafeSet()
@@ -256,14 +258,6 @@ func (idx *Indexer) getMsgsAndIdSet(ctx context.Context, uid gregor1.UID, convID
 			idSetWithContext.Add(afterID)
 		}
 	}
-	msgIDSlice := []chat1.MessageID{}
-	for _, el := range idSetWithContext.ToSlice() {
-		msgID, ok := el.(chat1.MessageID)
-		if ok {
-			msgIDSlice = append(msgIDSlice, msgID)
-		}
-	}
-
 	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData */, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
@@ -275,6 +269,7 @@ func (idx *Indexer) getMsgsAndIdSet(ctx context.Context, uid gregor1.UID, convID
 	}
 	conv := inbox.ConvsUnverified[0].Conv
 
+	msgIDSlice := msgIDsFromSet(idSetWithContext)
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, msgIDSlice, &reason)
 	if err != nil {
@@ -287,7 +282,7 @@ func (idx *Indexer) getMsgsAndIdSet(ctx context.Context, uid gregor1.UID, convID
 		}
 	}
 	sort.Sort(utils.ByMsgUnboxedMsgID(res))
-	return idSet, msgs, nil
+	return idSet, res, nil
 }
 
 // searchHitsFromMsgIDs packages the search hit with context (nearby search
@@ -309,7 +304,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, convID chat1.Conve
 		return uiMsgs
 	}
 
-	idSet, msgs, err := idx.getMsgsAndIdSet(ctx, uid, convID, msgIDs, opts)
+	idSet, msgs, err := idx.getMsgsAndIDSet(ctx, uid, convID, msgIDs, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -377,8 +372,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 	if tokens == nil {
 		return nil, nil
 	}
-	// used to highlight the matching text.
-	queryRe, err := regexp.Compile(strings.Join(tokens, ".*"))
+	queryRe, err := getQueryRe(query)
 	if err != nil {
 		return nil, err
 	}

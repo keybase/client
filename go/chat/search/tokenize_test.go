@@ -1,6 +1,7 @@
 package search
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -29,4 +30,15 @@ func TestTokenize(t *testing.T) {
 
 	_, err := kbtest.CreateAndSignupFakeUser("ib", tc.G)
 	require.NoError(t, err)
+}
+
+func TestGetQueryRe(t *testing.T) {
+	queries := []string{"foo", "foo bar", "foo bar, baz?"}
+	expectedRe := []string{"foo", "foo.bar", "foo.bar..baz."}
+	for i, query := range queries {
+		re, err := getQueryRe(query)
+		require.NoError(t, err)
+		expected := regexp.MustCompile(expectedRe[i])
+		require.Equal(t, expected, re)
+	}
 }
