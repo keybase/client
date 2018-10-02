@@ -1,0 +1,12 @@
+.WrapperTimestamp-hoverBox {
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+.WrapperTimestamp-decorated {
+}
+.WrapperTimestamp-decorated:active {
+  background-color: #f7f9fc;
+}
+.WrapperTimestamp-decorated:hover {
+  background-color: #f7f9fc;
+}

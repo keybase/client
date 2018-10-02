@@ -38,17 +38,7 @@ export type Props = {|
   orangeLineAbove: boolean,
 |}
 
-const HoverBox = Styles.isMobile
-  ? LongPressable
-  : Styles.glamorous(Box2)(props => ({
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-      '&.active, &:hover': props.decorate
-        ? {
-            backgroundColor: Styles.globalColors.blue5,
-          }
-        : {},
-    }))
+const HoverBox = Styles.isMobile ? LongPressable : Box2
 
 type State = {
   showingPicker: boolean,
@@ -75,6 +65,8 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
 
+  _dismissKeyboard = () => dismissKeyboard()
+
   render() {
     const props = this.props
     return (
@@ -82,10 +74,16 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
+          className={[
+            'WrapperTimestamp-hoverBox',
+            props.showingMenu || this.state.showingPicker ? 'active' : '',
+            props.decorate && 'WrapperTimestamp-decorated',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           {...(Styles.isMobile && props.decorate
             ? {
-                onPress: () => dismissKeyboard(),
+                onPress: this._dismissKeyboard,
                 onLongPress: props.toggleShowingMenu,
                 underlayColor: Styles.globalColors.blue5,
               }
