@@ -6,7 +6,7 @@ import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import {getAccount, getAccountIDs, searchKey} from '../../../constants/wallets'
-import {stringToAccountID} from '../../../constants/types/wallets'
+import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = (state: TypedState) => {
@@ -60,34 +60,20 @@ const ConnectedParticipantsStellarPublicKey = compose(
   setDisplayName('ParticipantsStellarPublicKey')
 )(ParticipantsStellarPublicKey)
 
+const makeAccount = (stateAccount: StateAccount) => ({
+  contents: stateAccount.balanceDescription,
+  id: stateAccount.accountID,
+  name: stateAccount.name || stateAccount.accountID,
+})
+
 const mapStateToPropsOtherAccount = (state: TypedState) => {
   const build = state.wallets.buildingPayment
 
-  const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
-  const fromAccount = {
-    contents: fromAccountFromState.balanceDescription,
-    id: fromAccountFromState.accountID,
-    name: fromAccountFromState.name || fromAccountFromState.accountID,
-  }
-  let toAccount
-  if (build.to) {
-    const toAccountFromState = getAccount(state, stringToAccountID(build.to))
-    toAccount = {
-      contents: toAccountFromState.balanceDescription,
-      id: toAccountFromState.accountID,
-      name: toAccountFromState.name || toAccountFromState.accountID,
-    }
-  }
+  const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
+  const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
 
   const allAccounts = getAccountIDs(state)
-    .map(accountID => {
-      const account = getAccount(state, accountID)
-      return {
-        contents: account.balanceDescription,
-        id: account.accountID,
-        name: account.name || account.accountID,
-      }
-    })
+    .map(accountID => makeAccount(getAccount(state, accountID)))
     .toArray()
 
   return {
