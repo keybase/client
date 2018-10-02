@@ -16,7 +16,7 @@ type ToFieldProps = {|
   recipientFullName?: string,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
-  onRemoveProfile?: () => void,
+  onRemoveProfile: () => void,
   // Used for sending to a stellar address.
   incorrect?: string,
   toFieldInput: string,
@@ -25,8 +25,8 @@ type ToFieldProps = {|
   user: string,
   accounts: Account[],
   toAccount?: Account,
-  onLinkAccount?: () => void,
-  onCreateNewAccount?: () => void,
+  onLinkAccount: () => void,
+  onCreateNewAccount: () => void,
 |}
 
 class ToField extends React.Component<ToFieldProps> {
@@ -46,9 +46,9 @@ class ToField extends React.Component<ToFieldProps> {
     if (React.isValidElement(node)) {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
-      if (element.key === 'create-new' && this.props.onCreateNewAccount) {
+      if (element.key === 'create-new') {
         this.props.onCreateNewAccount()
-      } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
+      } else if (element.key === 'link-existing') {
         this.props.onLinkAccount()
       } else {
         this.onSelectRecipient(element.props.account)
@@ -84,7 +84,7 @@ class ToField extends React.Component<ToFieldProps> {
         </React.Fragment>
       )
     } else if (this.props.recipientType === 'otherAccount') {
-      if (this.props.accounts.length <= 1 && this.props.onCreateNewAccount) {
+      if (this.props.accounts.length <= 1) {
         // Case #2: A user is sending to another account, but has no other accounts. Show a "create new account" button
         return (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>

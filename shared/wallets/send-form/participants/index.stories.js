@@ -101,6 +101,7 @@ const defaultProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
   toFieldInput: '',

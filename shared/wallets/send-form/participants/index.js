@@ -30,7 +30,7 @@ type ParticipantsProps = {|
   recipientFullName?: string,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
-  onRemoveProfile?: () => void,
+  onRemoveProfile: () => void,
 |}
 
 const Participants = (props: ParticipantsProps) => (
