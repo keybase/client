@@ -95,7 +95,6 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
             : {
                 onMouseLeave: this._onMouseLeave,
                 onMouseOver: this._onMouseOver,
-                onMouseOut: this._onMouseLeave,
               })}
           direction="vertical"
           decorate={props.decorate}
