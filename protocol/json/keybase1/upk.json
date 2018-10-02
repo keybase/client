@@ -386,6 +386,13 @@
             "keys": "KID"
           },
           "name": "deviceKeys"
+        },
+        {
+          "type": [
+            null,
+            "ResetSummary"
+          ],
+          "name": "reset"
         }
       ]
     },

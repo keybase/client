@@ -553,6 +553,7 @@ type UpkLiteV1 struct {
 	EldestSeqno Seqno                   `codec:"eldestSeqno" json:"eldestSeqno"`
 	Status      StatusCode              `codec:"status" json:"status"`
 	DeviceKeys  map[KID]PublicKeyV2NaCl `codec:"deviceKeys" json:"deviceKeys"`
+	Reset       *ResetSummary           `codec:"reset,omitempty" json:"reset,omitempty"`
 }
 
 func (o UpkLiteV1) DeepCopy() UpkLiteV1 {
@@ -573,6 +574,13 @@ func (o UpkLiteV1) DeepCopy() UpkLiteV1 {
 			}
 			return ret
 		})(o.DeviceKeys),
+		Reset: (func(x *ResetSummary) *ResetSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reset),
 	}
 }
 

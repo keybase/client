@@ -291,7 +291,6 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 	numEntries := 0
 
-	// TODO: some of this logic can be extracted to a pure function and reused
 	jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
@@ -893,7 +892,8 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 			numLinksConsumed, len(historicalLinks))
 		// ignore error here, since it shouldn't kill the overall load if historical subchains don't run
 		// correctly.
-		cached, _ = sc.verifySigsAndComputeKeysHistorical(m, historicalLinks, *ckf.kf)
+		cached, prevSubchains, _ := verifySigsAndComputeKeysHistorical(m, sc.uid, sc.username, historicalLinks, *ckf.kf)
+		sc.prevSubchains = prevSubchains
 		if !cached {
 			allCached = false
 		}
@@ -902,12 +902,10 @@ func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID,
 	return allCached, nil
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks ChainLinks, kf KeyFamily) (allCached bool, err error) {
+func verifySigsAndComputeKeysHistorical(m MetaContext, uid keybase1.UID, username NormalizedUsername, allLinks ChainLinks, kf KeyFamily) (allCached bool, prevSubchains []ChainLinks, err error) {
 
 	defer m.CTrace("verifySigsAndComputeKeysHistorical", func() error { return err })()
 	var cached bool
-
-	var prevSubchains []ChainLinks
 
 	for {
 		if len(allLinks) == 0 {
@@ -927,13 +925,13 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		m.CDebugf("Examining subchain that ends at %d with eldest %s", seqno, eldest)
 
 		var links ChainLinks
-		links, err = cropToRightmostSubchain(m, allLinks, eldest, sc.uid)
+		links, err = cropToRightmostSubchain(m, allLinks, eldest, uid)
 		if err != nil {
 			m.CInfof("Error backtracking all links from %d: %s", seqno, err)
 			break
 		}
 
-		cached, _, err = verifySubchain(m, sc.username, kf, links)
+		cached, _, err = verifySubchain(m, username, kf, links)
 		if err != nil {
 			m.CInfof("Error verifying subchain from %d: %s", seqno, err)
 			break
@@ -946,8 +944,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 	}
 	reverseListOfChainLinks(prevSubchains)
 	m.CDebugf("Loaded %d additional historical subchains", len(prevSubchains))
-	sc.prevSubchains = prevSubchains
-	return allCached, nil
+	return allCached, prevSubchains, nil
 }
 
 func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {

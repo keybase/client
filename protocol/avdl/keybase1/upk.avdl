@@ -124,6 +124,7 @@ protocol UPK {
       StatusCode status;
       // Sorted by generation ascending
       map<KID, PublicKeyV2NaCl> deviceKeys;
+      union { null, ResetSummary } reset;
   }
 
   record UpkLiteV1AllIncarnations {

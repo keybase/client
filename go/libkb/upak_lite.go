@@ -13,11 +13,11 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err 
 	uid := arg.uid
 	m := arg.m
 
-	leaf, err := lookupMerkleLeaf(m, uid, false, nil)
+	user, err := LoadUserFromServer(m, uid, nil)
 	if err != nil {
 		return nil, err
 	}
-	user, err := LoadUserFromServer(m, uid, nil)
+	leaf, err := lookupMerkleLeaf(m, uid, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err 
 	if err != nil {
 		return nil, err
 	}
-	return highChain.ToUPAKLite(user)
+	return buildUpkLiteAllIncarnations(m, user, leaf, highChain)
 }
 
 type HighSigChainLoader struct {
@@ -45,7 +45,12 @@ type HighSigChain struct {
 	uid        keybase1.UID
 	username   NormalizedUsername
 	chainLinks ChainLinks
+	// For a user who has never done a reset, this is 1.
+	currentSubchainStart keybase1.Seqno
+	prevSubchains        []ChainLinks
 }
+
+const UpkLiteMinorVersionCurrent = keybase1.UpkLiteMinorVersion_V0
 
 func NewHighSigChainLoader(m MetaContext, user *User, leaf *MerkleUserLeaf) *HighSigChainLoader {
 	hsc := HighSigChain{
@@ -204,10 +209,28 @@ func (l *HighSigChainLoader) VerifySigsAndComputeKeys() (err error) {
 }
 
 func (hsc *HighSigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
-	un := hsc.username
-	_, ckf.cki, err = verifySubchain(m, un, *ckf.kf, hsc.chainLinks)
+	username := hsc.username
+	uid := hsc.uid
+
+	// current
+	currentChainLinks, err := cropToRightmostSubchain(m, hsc.chainLinks, eldest, uid)
 	if err != nil {
 		return false, err
+	}
+	_, ckf.cki, err = verifySubchain(m, username, *ckf.kf, currentChainLinks)
+	if err != nil {
+		return false, err
+	}
+
+	//historical
+	historicalLinks := hsc.chainLinks.omittingNRightmostLinks(len(currentChainLinks))
+	if len(historicalLinks) > 0 {
+		m.VLogf(VLog1, "After consuming %d links, there are %d historical links left",
+			len(currentChainLinks), len(historicalLinks))
+		// errors are ignored from this method in full sigchain loads also, because we'd rather
+		// not block current behavior from a failure in here.
+		_, prevSubchains, _ := verifySigsAndComputeKeysHistorical(m, uid, username, historicalLinks, *ckf.kf)
+		hsc.prevSubchains = prevSubchains
 	}
 	return false, nil
 }
@@ -220,39 +243,73 @@ func (l *HighSigChainLoader) GetMerkleTriple() (ret *MerkleTriple) {
 	return ret
 }
 
-func (hsc HighSigChain) ToUPAKLite(user *User) (ret *keybase1.UpkLiteV1AllIncarnations, err error) {
-	// this method probably shouldn't be on the Highsigchain, but should instead be
-	// a top level thing that takes one. this is easier for now.
-	kf := user.GetKeyFamily()
-	uid := user.GetUID()
-	name := user.GetName()
-	status := user.GetStatus()
-
-	eldestSeqno := hsc.chainLinks[0].GetSeqno()
-	cki := hsc.GetComputedKeyInfos()
-
+func extractDeviceKeys(cki *ComputedKeyInfos) *map[keybase1.KID]keybase1.PublicKeyV2NaCl {
 	deviceKeys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
-	pgpSummaries := make(map[keybase1.KID]keybase1.PublicKeyV2PGPSummary)
 	if cki != nil {
 		for kid := range cki.Infos {
-			if KIDIsPGP(kid) {
-				pgpSummaries[kid] = cki.exportPGPKeyV2(kid, kf)
-			} else {
+			if !KIDIsPGP(kid) {
 				deviceKeys[kid] = cki.exportDeviceKeyV2(kid)
 			}
 		}
 	}
+	return &deviceKeys
+}
 
-	current := keybase1.UpkLiteV1{
+func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf, hsc *HighSigChain) (ret *keybase1.UpkLiteV1AllIncarnations, err error) {
+	// build the current UPKLiteV1
+	uid := user.GetUID()
+	name := user.GetName()
+	status := user.GetStatus()
+	eldestSeqno := hsc.chainLinks[0].GetSeqno()
+	deviceKeys := extractDeviceKeys(hsc.GetComputedKeyInfos())
+	currentUpk := keybase1.UpkLiteV1{
 		Uid:         uid,
 		Username:    name,
 		EldestSeqno: eldestSeqno,
 		Status:      status,
-		DeviceKeys:  deviceKeys,
+		DeviceKeys:  *deviceKeys,
+		Reset:       nil,
+	}
+
+	// build the historical (aka PastIncarnations) UPKLiteV1s
+	var previousUpks []keybase1.UpkLiteV1
+	resetMap := make(map[int](*keybase1.ResetSummary))
+	if resets := leaf.resets; resets != nil {
+		for _, l := range resets.chain {
+			tmp := l.Summarize()
+			resetMap[int(l.ResetSeqno)] = &tmp
+		}
+	}
+	for idx, subchain := range hsc.prevSubchains {
+		latestLink := subchain[len(subchain)-1]
+		eldestSeqno = subchain[0].GetSeqno()
+		reset := resetMap[idx+1]
+		if reset != nil {
+			reset.EldestSeqno = eldestSeqno
+		}
+		prevDeviceKeys := extractDeviceKeys(latestLink.cki)
+		prevUpk := keybase1.UpkLiteV1{
+			Uid:         uid,
+			Username:    name,
+			EldestSeqno: eldestSeqno,
+			Status:      status,
+			DeviceKeys:  *prevDeviceKeys,
+			Reset:       reset,
+		}
+		previousUpks = append(previousUpks, prevUpk)
+	}
+
+	// Collect the link IDs (that is, the hashes of the signature inputs) from all chainlinks.
+	linkIDs := map[keybase1.Seqno]keybase1.LinkID{}
+	for _, link := range hsc.chainLinks {
+		linkIDs[link.GetSeqno()] = link.LinkID().Export()
 	}
 
 	final := keybase1.UpkLiteV1AllIncarnations{
-		Current: current,
+		Current:          currentUpk,
+		PastIncarnations: previousUpks,
+		SeqnoLinkIDs:     linkIDs,
+		MinorVersion:     UpkLiteMinorVersionCurrent,
 	}
 	ret = &final
 	return ret, err

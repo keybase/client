@@ -2755,7 +2755,7 @@ export type UpdateInfoStatus =
 
 export type UpkLiteMinorVersion = 0 // V0_0
 
-export type UpkLiteV1 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys: {[key: string]: PublicKeyV2NaCl}}>
+export type UpkLiteV1 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys: {[key: string]: PublicKeyV2NaCl}, reset?: ?ResetSummary}>
 export type UpkLiteV1AllIncarnations = $ReadOnly<{current: UpkLiteV1, pastIncarnations?: ?Array<UpkLiteV1>, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UpkLiteMinorVersion}>
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
