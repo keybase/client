@@ -26,7 +26,9 @@ const buildPayment = (state: TypedState, action: any) =>
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
     to: state.wallets.buildingPayment.to,
-    toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
+    toIsAccountID:
+      state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
+      !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
   }).then(build =>
     WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
