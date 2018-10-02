@@ -14,25 +14,9 @@ type ToKeybaseUserProps = {|
   onRemoveProfile: () => void,
 |}
 
-type ToStellarPublicKeyProps = {|
-  incorrect?: string,
-  toFieldInput: string,
-  onChangeRecipient: string => void,
-|}
-
-type ToOtherAccountProps = {|
-  user: string,
-  toAccount?: Account,
-  allAccounts: Account[],
-  onChangeRecipient: string => void,
-  onLinkAccount: () => void,
-  onCreateNewAccount: () => void,
-|}
-
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
-    // Case #1a: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a searched user, not another account.
+    // A username has been set, so display their name and avatar.
     return (
       <React.Fragment>
         <Kb.ConnectedNameWithIcon
@@ -53,7 +37,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
     )
   }
 
-  // Case #1b: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
+  // No username, so show search box.
   return (
     <Search
       onClickResult={props.onChangeRecipient}
@@ -63,6 +47,12 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
     />
   )
 }
+
+type ToStellarPublicKeyProps = {|
+  incorrect?: string,
+  toFieldInput: string,
+  onChangeRecipient: string => void,
+|}
 
 const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
@@ -95,6 +85,15 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
     )}
   </Kb.Box2>
 )
+
+type ToOtherAccountProps = {|
+  user: string,
+  toAccount?: Account,
+  allAccounts: Account[],
+  onChangeRecipient: string => void,
+  onLinkAccount: () => void,
+  onCreateNewAccount: () => void,
+|}
 
 class ToOtherAccount extends React.Component<ToOtherAccountProps> {
   onAccountDropdownChange = (node: React.Node) => {
@@ -160,14 +159,28 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
 }
 
 const styles = Styles.styleSheetCreate({
+  // ToKeybaseUser
   avatar: {
     marginRight: 8,
   },
-  createNewAccountButton: Styles.platformStyles({
-    isElectron: {
-      width: 194,
-    },
-  }),
+  keybaseUserRemoveButton: {
+    flex: 1,
+    textAlign: 'right',
+    marginRight: Styles.globalMargins.tiny, // consistent with UserInput
+  },
+
+  // ToStellarPublicKey
+  inputBox: {flexGrow: 1},
+  inputInner: {
+    alignItems: 'flex-start',
+  },
+  stellarIcon: {
+    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.xxtiny,
+  },
+  input: {
+    padding: 0,
+  },
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -177,22 +190,13 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
-  input: {
-    padding: 0,
-  },
-  inputBox: {flexGrow: 1},
-  inputInner: {
-    alignItems: 'flex-start',
-  },
-  keybaseUserRemoveButton: {
-    flex: 1,
-    textAlign: 'right',
-    marginRight: Styles.globalMargins.tiny, // consistent with UserInput
-  },
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    marginRight: Styles.globalMargins.xxtiny,
-  },
+
+  // ToOtherAccount
+  createNewAccountButton: Styles.platformStyles({
+    isElectron: {
+      width: 194,
+    },
+  }),
 })
 
 export {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount}
