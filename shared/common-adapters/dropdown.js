@@ -3,7 +3,6 @@ import * as React from 'react'
 import Box from './box'
 import Overlay from './overlay'
 import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
-
 import type {Position} from './relative-popup-hoc'
 import Icon from './icon'
 import * as Styles from '../styles'
@@ -46,15 +45,7 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
           disabled={this.props.disabled}
           ref={this.props.setAttachmentRef}
         >
-          <Box
-            style={{
-              ...Styles.globalStyles.flexBoxCenter,
-              minHeight: Styles.isMobile ? 48 : 32,
-              width: '100%',
-            }}
-          >
-            {this.props.selected}
-          </Box>
+          <Box style={styles.selectedBox}>{this.props.selected}</Box>
           <Icon
             type="iconfont-caret-down"
             inheritColor={true}
@@ -67,7 +58,7 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
           attachTo={this.props.getAttachmentRef}
           visible={this.state.expanded}
           onHidden={this._toggleOpen}
-          position={this.props.position || 'bottom center'}
+          position={this.props.position || 'center center'}
         >
           {this.props.items.map((i, idx) => (
             <ItemBox key={idx} onClick={() => this._onSelect(i)}>
@@ -81,6 +72,14 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  selectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 48},
+    isElectron: {minHeight: 32},
+    common: {
+      ...Styles.globalStyles.flexBoxCenter,
+      width: '100%',
+    },
+  }),
   overlay: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.scrollable,
