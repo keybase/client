@@ -62,112 +62,124 @@ class ToField extends React.Component<ToFieldProps> {
 
   render() {
     // There are a few different ways the participants form can look:
-    // Case 1: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a searched user, not another account.
-    if (this.props.recipientUsername && this.props.recipientType === 'keybaseUser') {
-      return (
-        <React.Fragment>
-          <Kb.ConnectedNameWithIcon
-            colorFollowing={true}
-            horizontal={true}
-            username={this.props.recipientUsername}
-            avatarStyle={styles.avatar}
-            onClick="tracker"
-          />
-          <Kb.Icon
-            type="iconfont-remove"
-            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-            fontSize={16}
-            color={Styles.globalColors.black_20}
-            onClick={this.onRemoveRecipient}
-          />
-        </React.Fragment>
-      )
-    } else if (this.props.recipientType === 'otherAccount') {
-      if (this.props.accounts.length <= 1) {
-        // Case #2: A user is sending to another account, but has no other accounts. Show a "create new account" button
+    switch (this.props.recipientType) {
+      case 'keybaseUser':
+        if (this.props.recipientUsername) {
+          // Case #1a: A user has been set, so we display their name and avatar
+          // We can only get this case when the recipient is a searched user, not another account.
+          return (
+            <React.Fragment>
+              <Kb.ConnectedNameWithIcon
+                colorFollowing={true}
+                horizontal={true}
+                username={this.props.recipientUsername}
+                avatarStyle={styles.avatar}
+                onClick="tracker"
+              />
+              <Kb.Icon
+                type="iconfont-remove"
+                boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+                fontSize={16}
+                color={Styles.globalColors.black_20}
+                onClick={this.onRemoveRecipient}
+              />
+            </React.Fragment>
+          )
+        }
+
+        // Case #1b: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
         return (
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
-            <Kb.Button
-              type="Wallet"
-              style={styles.createNewAccountButton}
-              label="Create a new account"
-              onClick={this.props.onCreateNewAccount}
-            />
+          <Search
+            onClickResult={this.onSelectRecipient}
+            onClose={() => {}}
+            onShowSuggestions={this.props.onShowSuggestions}
+            onShowTracker={this.props.onShowProfile}
+          />
+        )
+
+      case 'stellarPublicKey':
+        // Case #2: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar address.
+        return (
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+              <Kb.Icon
+                type={
+                  this.props.incorrect || this.props.toFieldInput.length === 0
+                    ? 'icon-stellar-logo-grey-16'
+                    : 'icon-stellar-logo-16'
+                }
+                style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+              />
+              <Kb.NewInput
+                type="text"
+                onChangeText={this.props.onChangeRecipient}
+                textType="BodySemibold"
+                placeholder={'Stellar address'}
+                placeholderColor={Styles.globalColors.black_20}
+                hideBorder={true}
+                containerStyle={styles.input}
+                multiline={true}
+                rowsMin={2}
+                rowsMax={3}
+              />
+            </Kb.Box2>
+            {!!this.props.incorrect && (
+              <Kb.Text type="BodySmall" style={styles.errorText}>
+                {this.props.incorrect}
+              </Kb.Text>
+            )}
           </Kb.Box2>
         )
-      }
 
-      // Case #3: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
-      let items = [
-        <DropdownText key="link-existing" text="Link an existing Stellar account" />,
-        <DropdownText key="create-new" text="Create a new account" />,
-      ]
+      case 'otherAccount':
+        if (this.props.accounts.length <= 1) {
+          // Case #3a: A user is sending to another account, but has no other accounts. Show a "create new account" button
+          return (
+            <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
+              <Kb.Button
+                type="Wallet"
+                style={styles.createNewAccountButton}
+                label="Create a new account"
+                onClick={this.props.onCreateNewAccount}
+              />
+            </Kb.Box2>
+          )
+        }
 
-      if (this.props.accounts.length > 0) {
-        const walletItems = this.props.accounts.map(account => (
-          <DropdownEntry key={account.id} account={account} user={this.props.user} />
-        ))
-        items = walletItems.concat(items)
-      }
+        // Case #3b: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
+        let items = [
+          <DropdownText key="link-existing" text="Link an existing Stellar account" />,
+          <DropdownText key="create-new" text="Create a new account" />,
+        ]
 
-      return (
-        <Kb.Dropdown
-          onChanged={this.onDropdownChange}
-          items={items}
-          selected={
-            this.props.toAccount ? (
-              <SelectedEntry account={this.props.toAccount} user={this.props.user} />
-            ) : (
-              <DropdownText key="placeholder-select" text="Pick another account" />
-            )
-          }
-        />
-      )
-    } else if (this.props.recipientType === 'stellarPublicKey') {
-      // Case #4: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar address.
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-            <Kb.Icon
-              type={
-                this.props.incorrect || this.props.toFieldInput.length === 0
-                  ? 'icon-stellar-logo-grey-16'
-                  : 'icon-stellar-logo-16'
-              }
-              style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-            />
-            <Kb.NewInput
-              type="text"
-              onChangeText={this._onChangeStellarRecipient}
-              textType="BodySemibold"
-              placeholder={'Stellar address'}
-              placeholderColor={Styles.globalColors.black_20}
-              hideBorder={true}
-              containerStyle={styles.input}
-              multiline={true}
-              rowsMin={2}
-              rowsMax={3}
-            />
-          </Kb.Box2>
-          {!!this.props.incorrect && (
-            <Kb.Text type="BodySmall" style={styles.errorText}>
-              {this.props.incorrect}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-      )
+        if (this.props.accounts.length > 0) {
+          const walletItems = this.props.accounts.map(account => (
+            <DropdownEntry key={account.id} account={account} user={this.props.user} />
+          ))
+          items = walletItems.concat(items)
+        }
+
+        return (
+          <Kb.Dropdown
+            onChanged={this.onDropdownChange}
+            items={items}
+            selected={
+              this.props.toAccount ? (
+                <SelectedEntry account={this.props.toAccount} user={this.props.user} />
+              ) : (
+                <DropdownText key="placeholder-select" text="Pick another account" />
+              )
+            }
+          />
+        )
+
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(this.props.recipientType);
+      */
+        return null
     }
-
-    // Case #5: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
-    return (
-      <Search
-        onClickResult={this.onSelectRecipient}
-        onClose={() => {}}
-        onShowSuggestions={this.props.onShowSuggestions}
-        onShowTracker={this.props.onShowProfile}
-      />
-    )
   }
 }
 
