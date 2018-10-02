@@ -18,19 +18,19 @@ import (
 const AuditCurrentVersion = keybase1.AuditVersion_V2
 
 var desktopParams = libkb.TeamAuditParams{
-	RootFreshness:         time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(1000),
-	NumPreProbes:          25,
-	NumPostProbes:         25,
+	RootFreshness:         60 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(100000),
+	NumPreProbes:          1,
+	NumPostProbes:         1,
 	Parallelism:           5,
 	LRUSize:               1000,
 }
 
 var mobileParams = libkb.TeamAuditParams{
-	RootFreshness:         10 * time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(10000),
-	NumPreProbes:          10,
-	NumPostProbes:         10,
+	RootFreshness:         60 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(100000),
+	NumPreProbes:          1,
+	NumPostProbes:         1,
 	Parallelism:           3,
 	LRUSize:               500,
 }
@@ -98,11 +98,6 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 
 	m = m.WithLogTag("AUDIT")
 	defer m.CTraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
-
-	// Hotfix for performance problem
-	if true {
-		return nil
-	}
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)
