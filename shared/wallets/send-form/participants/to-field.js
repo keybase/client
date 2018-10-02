@@ -49,8 +49,8 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
 }
 
 type ToStellarPublicKeyProps = {|
-  incorrect?: string,
-  toFieldInput: string,
+  recipientPublicKey: string,
+  errorMessage?: string,
   onChangeRecipient: string => void,
 |}
 
@@ -59,7 +59,7 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
       <Kb.Icon
         type={
-          props.incorrect || props.toFieldInput.length === 0
+          props.recipientPublicKey.length === 0 || props.errorMessage
             ? 'icon-stellar-logo-grey-16'
             : 'icon-stellar-logo-16'
         }
@@ -78,9 +78,9 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
         rowsMax={3}
       />
     </Kb.Box2>
-    {!!props.incorrect && (
+    {!!props.errorMessage && (
       <Kb.Text type="BodySmall" style={styles.errorText}>
-        {props.incorrect}
+        {props.errorMessage}
       </Kb.Text>
     )}
   </Kb.Box2>

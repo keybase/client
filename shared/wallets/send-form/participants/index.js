@@ -56,8 +56,8 @@ const Participants = (props: ParticipantsProps) => {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <ToStellarPublicKey
-            incorrect={props.incorrect}
-            toFieldInput={props.toFieldInput}
+            recipientPublicKey={props.toFieldInput}
+            errorMessage={props.incorrect}
             onChangeRecipient={props.onChangeRecipient}
           />
         </Kb.Box2>
