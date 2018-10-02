@@ -34,7 +34,7 @@ func (b *backgroundTLFPinner) pinTLF(m libkb.MetaContext, tlf unpinnedTLF) (err 
 	}
 	ids := team.KBFSTLFIDs()
 	if len(ids) > 0 {
-		m.CDebugf("Team %+v already has a TLF ID in chain; ignoring")
+		m.CDebugf("Team %+v already has a TLF IDs in chain (%+v); ignoring", tlf.TeamID, ids)
 		return nil
 	}
 	role, err := team.myRole(m.Ctx())

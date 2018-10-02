@@ -242,6 +242,20 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', 0).set('transferState', null)
       })
+    case Chat2Gen.attachmentMobileSave:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', 'mobileSaving')
+      })
+    case Chat2Gen.attachmentMobileSaved:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', null)
+      })
     case Chat2Gen.attachmentDownload:
       if (!action.payload.forShare) {
         return messageMap
@@ -804,6 +818,8 @@ const rootReducer = (
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
+    case Chat2Gen.attachmentMobileSave:
+    case Chat2Gen.attachmentMobileSaved:
     case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
@@ -862,6 +878,7 @@ const rootReducer = (
     case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:
+    case Chat2Gen.prepareFulfillRequestForm:
       return state
     default:
       /*::

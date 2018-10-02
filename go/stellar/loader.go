@@ -211,7 +211,7 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 
 	m := libkb.NewMetaContext(ctx, p.G())
 	oc := NewOwnAccountLookupCache(ctx, m.G())
-	summary, err := TransformPaymentSummary(m, "", details.Summary, oc)
+	summary, err := TransformPaymentSummaryGeneric(m, details.Summary, oc)
 	if err != nil {
 		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id.TxID, err)
 		return

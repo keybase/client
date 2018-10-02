@@ -61,8 +61,7 @@ func (c *LinkCache) Get(id LinkID) (link ChainLink, ok bool) {
 	return link, false
 }
 
-// Put inserts a ChainLink into the cache.
-func (c *LinkCache) Put(id LinkID, link ChainLink) {
+func (c *LinkCache) Put(m MetaContext, id LinkID, link ChainLink) {
 	c.Lock()
 	defer c.Unlock()
 	var linkID linkIDFixed

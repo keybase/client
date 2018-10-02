@@ -93,6 +93,23 @@ protocol proveCommon {
     string id;
   }
 
+  record SelectorEntry {
+    // Exactly one of Is* is true
+    boolean isIndex;
+    int index;
+    boolean isKey;
+    string key;
+    boolean isAll;
+    boolean isContents;
+  }
+
+  record ParamProofJSON {
+    @jsonkey("sig_hash")
+    SigID sigHash;
+    @jsonkey("kb_username")
+    string kbUsername;
+  }
+
   record ParamProofUsernameConfig {
     string re;
     int min;
@@ -105,13 +122,18 @@ protocol proveCommon {
     @jsonkey("display_name")
     string displayName;
     union { null, ProofServiceGroup } group;
-    ParamProofUsernameConfig username;
+    @jsonkey("username")
+    ParamProofUsernameConfig usernameConfig;
+    @jsonkey("brand_color")
+    string brandColor;
     @jsonkey("prefill_url")
     string prefillUrl;
+    @jsonkey("profile_url")
+    string profileUrl;
     @jsonkey("check_url")
     string checkUrl;
     @jsonkey("check_path")
-    array<string> checkPath;
+    array<SelectorEntry> checkPath;
   }
 
 }

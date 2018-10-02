@@ -684,6 +684,9 @@ protocol teams {
     // Load the reader key mask for the given applications and the given
     // generations. Returns an error if any of the RKMs are not loaded.
     map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
+    // Load the reader key masks for the given applications at the key generation
+    // that includes KBFS keys.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerationsWithKBFS;
     // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
@@ -1002,7 +1005,7 @@ protocol teams {
    * If refreshers are non-empty, then force a refresh of the cache if the requirements
    * of the refreshers aren't met.
    */
-  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers, boolean includeKBFSKeys);
   TeamID getTeamRootID(TeamID id);
 
   TeamShowcase getTeamShowcase(string name);

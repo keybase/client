@@ -148,7 +148,7 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null,
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null,
   type: 'attachment',
   videoDuration: ?string,
 }
@@ -171,7 +171,7 @@ export type _MessageRequestPayment = {
   deviceType: DeviceType,
   errorReason: ?string,
   id: MessageID,
-  note: string,
+  note: HiddenString,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
