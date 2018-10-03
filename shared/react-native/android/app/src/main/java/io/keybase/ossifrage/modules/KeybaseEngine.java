@@ -127,8 +127,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                 inputStream.close();
                 ret = stringBuilder.toString();
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             // ignore
         } catch (IOException e) {
             // ignore
