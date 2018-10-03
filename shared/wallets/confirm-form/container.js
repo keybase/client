@@ -7,7 +7,7 @@ import {connect, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
-  let banners = state.wallets.sentPaymentError
+  const banners = (state.wallets.sentPaymentError
     ? [
         {
           bannerBackground: 'HighRisk',
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => {
         },
       ]
     : []
-  banners = banners.concat(
+  ).concat(
     (built.banners || []).map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
