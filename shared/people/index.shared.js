@@ -15,6 +15,7 @@ export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (
     case 'notification':
       return <FollowNotification {...item} key={item.notificationTime} onClickUser={props.onClickUser} />
   }
+  return null
 }
 
 export const PeoplePageSearchBar = (
