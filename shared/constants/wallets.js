@@ -193,14 +193,13 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   return makePayment(rpcPaymentToPaymentCommon(w.payment))
 }
 
-const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) => {
-  return makePayment({
+const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
+  makePayment({
     ...rpcPaymentToPaymentCommon(p),
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
   })
-}
 
 const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
   const sourceType = partyTypeToString[p.fromType]
@@ -340,8 +339,11 @@ const paymentToYourRoleAndCounterparty = (
 
 // Update payment, take all new fields except any that contain the default value
 const emptyPayment = makePayment()
-// $FlowIssue thinks we don't have toJS()
-const keys = Object.keys(emptyPayment.toJS())
+// $FlowIssue thinks toSeq() has something to do with the `payment.delta` type
+const keys = emptyPayment
+  .toSeq()
+  .keySeq()
+  .toArray()
 const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
   const res = oldPayment.withMutations(paymentMutable => {
     keys.forEach(
@@ -385,15 +387,11 @@ const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) => {
-  const map = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
-  return map
-}
+const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
 
-const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) => {
-  const map = state.wallets.pendingMap.get(accountID || getSelectedAccount(state), null)
-  return map
-}
+const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), null)
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
