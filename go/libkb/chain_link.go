@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
+	"github.com/keybase/client/go/kbun"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -875,8 +876,8 @@ func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
 	}
 
 	if c.unpacked.uid.NotEqual(i) {
-		return UIDMismatchError{
-			fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
+		return kbun.UIDMismatchError{
+			Msg: fmt.Sprintf("UID mismatch %s != %s in Link %s", c.unpacked.uid, i, c.id),
 		}
 	}
 	if !s.Eq(NewNormalizedUsername(c.unpacked.username)) {

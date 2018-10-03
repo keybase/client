@@ -1,11 +1,17 @@
-package auth
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package kbuserkey
 
 import (
+	"time"
+
+	"github.com/keybase/client/go/auth"
+	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -36,7 +42,7 @@ func (p *pubsubResponse) GetAppStatus() *libkb.AppStatus {
 	return &p.Status
 }
 
-var _ UserKeyAPIer = (*userKeyAPI)(nil)
+var _ auth.UserKeyAPIer = (*userKeyAPI)(nil)
 
 type userKeysResPublicKeys struct {
 	Sibkeys []keybase1.KID `json:"sibkeys"`
@@ -62,7 +68,7 @@ type userKeyAPI struct {
 }
 
 func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)
@@ -125,6 +131,6 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 }
 
 // NewUserKeyAPIer returns a UserKeyAPIer implementation.
-func NewUserKeyAPIer(log logger.Logger, api libkb.API) UserKeyAPIer {
+func NewUserKeyAPIer(log logger.Logger, api libkb.API) auth.UserKeyAPIer {
 	return &userKeyAPI{log: log, api: api}
 }

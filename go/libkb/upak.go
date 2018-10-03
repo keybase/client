@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/kbun"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -79,10 +80,10 @@ func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIn
 		return nil, nil
 	}
 	if !NewNormalizedUsername(rtl.Username).Eq(followeeUsername) {
-		return nil, UIDMismatchError{Msg: fmt.Sprintf("Usernames didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
+		return nil, kbun.UIDMismatchError{Msg: fmt.Sprintf("Usernames didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
 	}
 	if !rtl.Uid.Equal(followeeUID) {
-		return nil, UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
+		return nil, kbun.UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
 	}
 	var lid LinkID
 	m.VLogf(VLog0, "| remote track found with linkID=%s", rtl.LinkID)

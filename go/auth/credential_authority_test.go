@@ -1,21 +1,21 @@
 package auth
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	libkb "github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type testUser struct {
 	uid      keybase1.UID
-	username libkb.NormalizedUsername
+	username kbun.NormalizedUsername
 	sibkeys  []keybase1.KID
 	subkeys  []keybase1.KID
 }
@@ -44,18 +44,19 @@ func genKID() keybase1.KID {
 	return keybase1.KIDFromSlice(kid[:])
 }
 
+var userID int
+
 func genUsername() string {
-	w, _ := libkb.SecWordList(1)
-	var buf [4]byte
-	rand.Read(buf[:])
-	return fmt.Sprintf("%s%x", w[0], buf)
+	name := fmt.Sprintf("user%d", userID)
+	userID++
+	return name
 }
 
 func newTestUser(nKeys int) *testUser {
 	un := genUsername()
 	ret := testUser{
-		username: libkb.NewNormalizedUsername(un),
-		uid:      libkb.UsernameToUID(un),
+		username: kbun.NewNormalizedUsername(un),
+		uid:      kbun.UsernameToUID(un),
 		sibkeys:  make([]keybase1.KID, nKeys),
 		subkeys:  make([]keybase1.KID, nKeys),
 	}
@@ -103,12 +104,12 @@ func (e userNotFoundError) Error() string {
 }
 
 func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
 	ts.Lock()
 	defer ts.Unlock()
 	u := ts.users[uid]
 	if u == nil {
-		return libkb.NormalizedUsername(""), nil, nil, false, userNotFoundError{}
+		return kbun.NormalizedUsername(""), nil, nil, false, userNotFoundError{}
 	}
 	ts.numGets++
 	return u.username, u.sibkeys, u.subkeys, false, nil
@@ -151,6 +152,10 @@ func newTestSetup() (*testState, *CredentialAuthority) {
 	c := newCredentialAuthorityWithEngine(logger.New("test"), s, s)
 	return s, c
 }
+
+const (
+	pollWait = 5 * time.Second
+)
 
 func TestSimple(t *testing.T) {
 	state, credentialAuthority := newTestSetup()
@@ -284,7 +289,7 @@ func TestCheckUsers(t *testing.T) {
 		users = append(users, u.uid)
 		usersWithDud = append(usersWithDud, u.uid)
 	}
-	usersWithDud = append(usersWithDud, libkb.UsernameToUID(genUsername()))
+	usersWithDud = append(usersWithDud, kbun.UsernameToUID(genUsername()))
 
 	if state.numGets != 0 {
 		t.Fatal("expected 0 gets")

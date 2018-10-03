@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	testvectors "github.com/keybase/keybase-test-vectors/go"
@@ -57,7 +58,7 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 			reflect.TypeOf(BadSigError{}): true,
 		},
 		"WRONG_UID": {
-			reflect.TypeOf(UIDMismatchError{}): true,
+			reflect.TypeOf(kbun.UIDMismatchError{}): true,
 		},
 		"WRONG_USERNAME": {
 			reflect.TypeOf(BadUsernameError{}): true,

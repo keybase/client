@@ -1006,20 +1006,6 @@ func (e NotProvisionedError) Error() string {
 
 //=============================================================================
 
-type UIDMismatchError struct {
-	Msg string
-}
-
-func (u UIDMismatchError) Error() string {
-	return fmt.Sprintf("UID mismatch error: %s", u.Msg)
-}
-
-func NewUIDMismatchError(m string) UIDMismatchError {
-	return UIDMismatchError{Msg: m}
-}
-
-//=============================================================================
-
 type KeyRevokedError struct {
 	msg string
 }
