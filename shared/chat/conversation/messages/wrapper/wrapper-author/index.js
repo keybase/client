@@ -173,7 +173,7 @@ const RightSide = props => {
               {content}
             </ExplodingHeightRetainer>
           ) : (
-            content
+            <Box style={styles.flexOneColumn}>{content}</Box>
           )}
         </Box>
         {!!props.failureDescription &&

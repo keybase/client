@@ -113,19 +113,17 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   />
                 )}
               {props.decorate &&
-                this.state.showMenuButton && (
-                  <MenuButtons
-                    conversationIDKey={props.conversationIDKey}
-                    exploded={props.exploded}
-                    isRevoked={props.isRevoked}
-                    message={props.message}
-                    ordinal={props.ordinal}
-                    setAttachmentRef={props.setAttachmentRef}
-                    setShowingPicker={this._setShowingPicker}
-                    toggleShowingMenu={props.toggleShowingMenu}
-                  />
-                )}
-              {props.decorate && !this.state.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
+                menuButtons({
+                  conversationIDKey: props.conversationIDKey,
+                  exploded: props.exploded,
+                  isRevoked: props.isRevoked,
+                  message: props.message,
+                  ordinal: props.ordinal,
+                  setAttachmentRef: props.setAttachmentRef,
+                  setShowingPicker: this._setShowingPicker,
+                  toggleShowingMenu: props.toggleShowingMenu,
+                  showMenuButton: this.state.showMenuButton,
+                })}
             </Box2>
             {// $FlowIssue doesn't like us not reducing the type here, but its faster
             props.message.reactions &&
@@ -161,8 +159,9 @@ type MenuButtonsProps = {
   setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
   toggleShowingMenu: () => void,
+  showMenuButton: boolean,
 }
-const MenuButtons = (props: MenuButtonsProps) => (
+const menuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
     {!props.exploded && (
       <Box2 direction="horizontal" centerChildren={true}>
@@ -171,29 +170,34 @@ const MenuButtons = (props: MenuButtonsProps) => (
             <Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
           </Box>
         )}
-        {!Styles.isMobile && (
-          <Box className="menu-button" style={styles.menuButtons}>
-            <ReactButton
-              conversationIDKey={props.conversationIDKey}
-              ordinal={props.ordinal}
-              onShowPicker={props.setShowingPicker}
-              showBorder={false}
-              style={styles.reactButton}
-            />
-            <Box ref={props.setAttachmentRef}>
-              {popupableMessageTypes.includes(props.message.type) && (
-                <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
-              )}
+        {!Styles.isMobile &&
+          props.showMenuButton && (
+            <Box className="menu-button" style={styles.menuButtons}>
+              <ReactButton
+                conversationIDKey={props.conversationIDKey}
+                ordinal={props.ordinal}
+                onShowPicker={props.setShowingPicker}
+                showBorder={false}
+                style={styles.reactButton}
+              />
+              <Box ref={props.setAttachmentRef}>
+                {popupableMessageTypes.includes(props.message.type) && (
+                  <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
+                )}
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
+        {!Styles.isMobile && !props.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
       </Box2>
     )}
-    <ExplodingMeta
-      conversationIDKey={props.conversationIDKey}
-      onClick={props.toggleShowingMenu}
-      ordinal={props.ordinal}
-    />
+    {// $FlowIssue exploding isn't on all types
+    props.message.exploding && (
+      <ExplodingMeta
+        conversationIDKey={props.conversationIDKey}
+        onClick={props.toggleShowingMenu}
+        ordinal={props.ordinal}
+      />
+    )}
   </Box2>
 )
 
@@ -212,7 +216,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
     },
   }),
-  menuButtonsPlaceholder: {flexShrink: 0, minHeight: 19, minWidth: 69},
+  menuButtonsPlaceholder: {flexShrink: 0, minHeight: 17, minWidth: 53},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   reactButton: {
     marginTop: -3,
