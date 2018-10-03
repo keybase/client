@@ -28,6 +28,7 @@ const codeSnippetStyle = {
   paddingLeft: globalMargins.xtiny,
   paddingRight: globalMargins.xtiny,
   paddingTop: globalMargins.xxxtiny,
+  paddingBottom: globalMargins.xxxtiny,
 }
 
 const codeSnippetBlockStyle = platformStyles({
