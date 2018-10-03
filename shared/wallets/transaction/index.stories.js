@@ -44,6 +44,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
               ...s,
               ...t,
               onSelectTransaction: Sb.action('onSelectTransaction'),
+              onShowProfile: Sb.action('onShowProfile'),
+              selectableText: false,
             })
           )
         })

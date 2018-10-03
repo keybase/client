@@ -141,17 +141,17 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (
-      !policyEquals(nextProps.policy, this.props.policy) ||
-      !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
+  componentDidUpdate(prevProps, prevState) {
+  if (
+      !policyEquals(this.props.policy, prevProps.policy) ||
+      !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)
     ) {
-      if (policyEquals(nextProps.policy, this.state.selected)) {
+      if (policyEquals(this.props.policy, this.state.selected)) {
         // we just got updated retention policy matching the selected one
         this._setSaving(false)
       } // we could show a notice that we received a new value in an else block
       this._makeItems()
-      this._setInitialSelected(nextProps.policy)
+      this._setInitialSelected(this.props.policy)
     }
   }
 

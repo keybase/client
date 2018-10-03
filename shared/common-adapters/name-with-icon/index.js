@@ -31,6 +31,7 @@ export type NameWithIconProps = {|
   // for non-users
   title?: string,
   titleStyle?: Styles.StylesCrossPlatform,
+  underline?: boolean,
   username?: string,
 |}
 
@@ -91,6 +92,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
         }
         inline={!this.props.horizontal}
+        underline={this.props.underline}
         usernames={[this.props.username]}
         colorFollowing={this.props.colorFollowing}
       />
@@ -106,14 +108,14 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const metaOne = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaOne}
+        val={this.props.metaOne || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
     const metaTwo = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaTwo}
+        val={this.props.metaTwo || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )

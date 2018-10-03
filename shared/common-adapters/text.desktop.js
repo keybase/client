@@ -161,3 +161,4 @@ export {externalGetStyle as getStyle}
 
 export default Text
 export {Text as TextMixed}
+export {allTextTypes} from './text.shared'

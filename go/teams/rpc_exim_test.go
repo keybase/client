@@ -27,7 +27,8 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exported, err := team.ExportToTeamPlusApplicationKeys(context.TODO(), keybase1.Time(0), keybase1.TeamApplication_KBFS)
+	exported, err := team.ExportToTeamPlusApplicationKeys(context.TODO(), keybase1.Time(0),
+		keybase1.TeamApplication_KBFS, true)
 	if err != nil {
 		t.Fatalf("Error during export: %s", err)
 	}
@@ -74,7 +75,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 			}
 
 			ret, err := LoadTeamPlusApplicationKeys(context.Background(), tc.G, createdTeam.ID,
-				keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{})
+				keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{}, true)
 			if !public && (u == nil || u == u0) {
 				require.Error(t, err)
 				continue

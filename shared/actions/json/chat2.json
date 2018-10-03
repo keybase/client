@@ -295,6 +295,16 @@
       "ordinal": "Types.Ordinal",
       "forShare?": "boolean"
     },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
     // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -463,6 +473,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "requestInfo": "Types.ChatRequestInfo"
+    },
+    "prepareFulfillRequestForm": {
+      "_description": "Prime data to fulfill this message's request and navigate to the send form.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     }
   }
 }

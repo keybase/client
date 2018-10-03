@@ -11,7 +11,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 

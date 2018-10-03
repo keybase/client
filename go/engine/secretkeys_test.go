@@ -4,8 +4,10 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/libkb"
 )
 
 func TestSecretKeys(t *testing.T) {
@@ -34,7 +36,7 @@ func TestSecretKeys(t *testing.T) {
 
 	// Build the signing keypair. To do this, we exploit the fact that a NaCl
 	// public signing key is the last 32 bytes of the private signing key.
-	var public libkb.NaclSigningKeyPublic
+	var public kbcrypto.NaclSigningKeyPublic
 	copy(public[:], signing[32:])
 	pair := libkb.NaclSigningKeyPair{
 		Public: public,

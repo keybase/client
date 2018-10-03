@@ -1888,8 +1888,8 @@ type Decoder struct {
 
 	// Whether we're in a Decode or MustDecode call.
 	decoding bool
-	// The remaining number of nested decode() calls before giving
-	// up.
+	// The remaining number of nested decode() or swallow() calls
+	// before giving up.
 	remainingDepth int
 
 	// ---- cpu cache line boundary?
@@ -2082,8 +2082,9 @@ const defaultMaxDepth = 100
 // This provides insight to the code location that triggered the error.
 func (d *Decoder) MustDecode(v interface{}) {
 	// If we're in a top-level MustDecode call, set remainingDepth
-	// (checked by decode() below). Without this, we run the risk
-	// of overflowing the stack, which is a fatal error.
+	// (checked by decode() and swallow() below). Without this, we
+	// run the risk of overflowing the stack, which is a fatal
+	// error.
 	if !d.decoding {
 		d.decoding = true
 		d.remainingDepth = d.h.MaxDepth
@@ -2135,6 +2136,14 @@ func (d *Decoder) alwaysAtEnd() {
 // }
 
 func (d *Decoder) swallow() {
+	d.remainingDepth--
+	if d.remainingDepth < 0 {
+		panic("max depth exceeded")
+	}
+	defer func() {
+		d.remainingDepth++
+	}()
+
 	// smarter decode that just swallows the content
 	dd := d.d
 	if dd.TryDecodeAsNil() {

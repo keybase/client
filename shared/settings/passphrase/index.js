@@ -50,7 +50,7 @@ class UpdatePassphrase extends Component<Props, State> {
 
   _canSave(passphrase: string, passphraseConfirm: string): boolean {
     const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
-    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 6
+    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 8
   }
 
   render() {
@@ -77,7 +77,7 @@ class UpdatePassphrase extends Component<Props, State> {
         />
         {!this.props.newPassphraseError && (
           <Text type="BodySmall" style={stylePasswordNote}>
-            (Minimum 6 characters)
+            (Minimum 8 characters)
           </Text>
         )}
         <Input

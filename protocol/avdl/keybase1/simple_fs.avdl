@@ -132,7 +132,8 @@ protocol SimpleFS {
 
   enum ListFilter {
     NO_FILTER_0,
-    FILTER_ALL_HIDDEN_1
+    FILTER_ALL_HIDDEN_1,
+    FILTER_SYSTEM_HIDDEN_2
   }
 
   record ListArgs {
@@ -298,7 +299,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get revision info for a directory entry
