@@ -23,63 +23,60 @@ type ConfirmSendProps = {|
   waitingKey?: string,
 |}
 
-const ConfirmSend = (props: ConfirmSendProps) => {
-  console.warn('confirmsend banners', props.banners)
-  return (
-    <Kb.MaybePopup onClose={props.onClose}>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <Header
-          amount={props.amount}
-          assetType={props.assetType}
-          assetConversion={props.assetConversion}
-          onBack={props.onBack}
-        />
-        <Kb.ScrollView style={styles.scrollView}>
-          {props.banners.map(banner => (
-            <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-          ))}
-          <Participants />
-          {(!!props.encryptedNote || !!props.publicMemo) && (
-            <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
-          )}
-        </Kb.ScrollView>
-        <Kb.Box2
-          direction="horizontal"
+const ConfirmSend = (props: ConfirmSendProps) => (
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Header
+        amount={props.amount}
+        assetType={props.assetType}
+        assetConversion={props.assetConversion}
+        onBack={props.onBack}
+      />
+      <Kb.ScrollView style={styles.scrollView}>
+        {props.banners.map(banner => (
+          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        ))}
+        <Participants />
+        {(!!props.encryptedNote || !!props.publicMemo) && (
+          <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
+        )}
+      </Kb.ScrollView>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        gap="small"
+        gapStart={true}
+        gapEnd={true}
+        style={styles.buttonContainer}
+      >
+        <Kb.WaitingButton
+          type="PrimaryGreen"
+          disabled={props.sendFailed}
+          onClick={props.onSendClick}
+          waitingKey={props.waitingKey}
           fullWidth={true}
-          centerChildren={true}
-          gap="small"
-          gapStart={true}
-          gapEnd={true}
-          style={styles.buttonContainer}
-        >
-          <Kb.WaitingButton
-            type="PrimaryGreen"
-            disabled={props.sendFailed}
-            onClick={props.onSendClick}
-            waitingKey={props.waitingKey}
-            fullWidth={true}
-            style={styles.button}
-            children={
-              <React.Fragment>
-                <Kb.Icon
-                  type="iconfont-stellar-send"
-                  style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                  color={Styles.globalColors.white}
-                />
-                <Kb.Text type="BodyBig" style={styles.buttonText}>
-                  Send{' '}
-                  <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                    {props.amount} {props.assetType}
-                  </Kb.Text>
+          style={styles.button}
+          children={
+            <React.Fragment>
+              <Kb.Icon
+                type="iconfont-stellar-send"
+                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
+                color={Styles.globalColors.white}
+              />
+              <Kb.Text type="BodyBig" style={styles.buttonText}>
+                Send{' '}
+                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
+                  {props.amount} {props.assetType}
                 </Kb.Text>
-              </React.Fragment>
-            }
-          />
-        </Kb.Box2>
+              </Kb.Text>
+            </React.Fragment>
+          }
+        />
       </Kb.Box2>
-    </Kb.MaybePopup>
-  )
-}
+    </Kb.Box2>
+  </Kb.MaybePopup>
+)
 
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.white},
