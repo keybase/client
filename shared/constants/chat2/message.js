@@ -976,6 +976,22 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
+export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
+  if (!old) {
+    return m
+  }
+
+  // $FlowIssue doens't understand mergeWith
+  return old.mergeWith((oldVal, newVal, key) => {
+    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+      return oldVal.equals(newVal) ? oldVal : newVal
+    } else if (key === 'text') {
+      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+    }
+    return newVal === oldVal ? oldVal : newVal
+  }, m)
+}
+
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
     return m.withMutations((ret: Types.MessageText) => {

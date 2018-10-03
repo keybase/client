@@ -266,6 +266,7 @@ export {
   uiPaymentInfoToChatPaymentInfo,
   uiRequestInfoToChatRequestInfo,
   upgradeMessage,
+  mergeMessage,
 } from './message'
 
 export {
