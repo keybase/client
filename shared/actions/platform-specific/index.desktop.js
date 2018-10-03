@@ -212,6 +212,9 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
+      // This is from the API server. Consider notifications from API server
+      // always critical.
+      return Saga.put(ConfigGen.createOutOfDate({critical: true, message: upgradeMsg}))
     },
   })
 }
@@ -242,6 +245,29 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
+const startOutOfDateCheckLoop = () =>
+  Saga.call(function*() {
+    while (1) {
+      try {
+        const {status, message} = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
+        if (status !== RPCTypes.configUpdateInfoStatus.upToDate) {
+          yield Saga.put(
+            ConfigGen.createOutOfDate({
+              critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+              message,
+            })
+          )
+        }
+        yield Saga.delay(3600 * 1000) // 1 hr
+      } catch (err) {
+        logger.warn('error getting update info: ', err)
+        yield Saga.delay(60 * 1000) // 1 min
+      }
+    }
+  })
+
+const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -249,7 +275,9 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, startOutOfDateCheckLoop)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 

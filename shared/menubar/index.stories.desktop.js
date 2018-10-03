@@ -2,7 +2,9 @@
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
+import * as ConfigConstants from '../constants/config'
 import Menubar from './index.desktop'
+import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
 
 const props = {
@@ -22,6 +24,7 @@ const props = {
   folderProps: null,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
+  updateNow: Storybook.action('updateNow'),
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
   openApp: Storybook.action('openApp'),
@@ -85,6 +88,22 @@ const load = () => {
           'tabs:chatTab': 6,
         }}
       />
+    ))
+    .add('Out of date banner', () => (
+      <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: false})}
+          updateNow={Storybook.action('updateNow')}
+        />
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: true})}
+          updateNow={Storybook.action('updateNow')}
+        />
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: true, message: 'This is a critical message.'})}
+          updateNow={Storybook.action('updateNow')}
+        />
+      </Kb.Box2>
     ))
     .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
     .add('FileUpdate', () => (

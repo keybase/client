@@ -94,6 +94,12 @@ export const configForkType = {
   systemd: 4,
 }
 
+export const configUpdateInfoStatus = {
+  upToDate: 0,
+  needUpdate: 1,
+  criticallyOutOfDate: 2,
+}
+
 export const constantsStatusCode = {
   scok: 0,
   scinputerror: 100,
@@ -792,8 +798,10 @@ export const configGetAllProvisionedUsernamesRpcPromise = (params, waitingKey) =
 export const configGetBootstrapStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getBootstrapStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetConfigRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetRememberPassphraseRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configGetUpdateInfoRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configHelloIAmRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.helloIAm', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetRememberPassphraseRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configStartUpdateIfNeededRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configWaitForClientRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.waitForClient', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const cryptocurrencyRegisterAddressRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbNukeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbNuke', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
