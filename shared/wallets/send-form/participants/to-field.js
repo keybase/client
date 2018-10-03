@@ -6,6 +6,7 @@ import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import type {Account} from '.'
+import {debounce} from 'lodash-es'
 
 type ToKeybaseUserProps = {|
   recipientUsername: string,
@@ -55,44 +56,48 @@ type ToStellarPublicKeyProps = {|
   onChangeRecipient: string => void,
 |}
 
-const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
-  <ParticipantsRow
-    heading="To"
-    headingAlignment="Left"
-    headingStyle={styles.heading}
-    dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
-  >
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-        <Kb.Icon
-          type={
-            props.recipientPublicKey.length === 0 || props.errorMessage
-              ? 'icon-stellar-logo-grey-16'
-              : 'icon-stellar-logo-16'
-          }
-          style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-        />
-        <Kb.NewInput
-          type="text"
-          onChangeText={props.onChangeRecipient}
-          textType="BodySemibold"
-          placeholder={'Stellar address'}
-          placeholderColor={Styles.globalColors.black_20}
-          hideBorder={true}
-          containerStyle={styles.input}
-          multiline={true}
-          rowsMin={2}
-          rowsMax={3}
-        />
+class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
+  _onChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
+
+  render = () => (
+    <ParticipantsRow
+      heading="To"
+      headingAlignment="Left"
+      headingStyle={styles.heading}
+      dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+          <Kb.Icon
+            type={
+              this.props.recipientPublicKey.length === 0 || this.props.errorMessage
+                ? 'icon-stellar-logo-grey-16'
+                : 'icon-stellar-logo-16'
+            }
+            style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+          />
+          <Kb.NewInput
+            type="text"
+            onChangeText={this._onChangeRecipient}
+            textType="BodySemibold"
+            placeholder={'Stellar address'}
+            placeholderColor={Styles.globalColors.black_20}
+            hideBorder={true}
+            containerStyle={styles.input}
+            multiline={true}
+            rowsMin={2}
+            rowsMax={3}
+          />
+        </Kb.Box2>
+        {!!this.props.errorMessage && (
+          <Kb.Text type="BodySmall" style={styles.errorText}>
+            {this.props.errorMessage}
+          </Kb.Text>
+        )}
       </Kb.Box2>
-      {!!props.errorMessage && (
-        <Kb.Text type="BodySmall" style={styles.errorText}>
-          {props.errorMessage}
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  </ParticipantsRow>
-)
+    </ParticipantsRow>
+  )
+}
 
 type ToOtherAccountProps = {|
   user: string,
