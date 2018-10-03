@@ -379,8 +379,7 @@ const updateServerConfig = (state: TypedState) =>
         walletsEnabled: !!features.stellar,
       }
 
-      console.log('updateServerConfig', serverConfig)
-
+      logger.info('updateServerConfig', serverConfig)
       updateServerConfigLastLoggedIn(state.config.username, serverConfig)
     } catch (e) {
       logger.info('updateServerConfig fail', e)
