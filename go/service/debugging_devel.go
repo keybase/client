@@ -123,6 +123,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		return fmt.Sprintf("%v\n", string(bs)), nil
 	case "buildpayment":
+		// Run build a bunch of times with a tight spread.
 		if len(args) != 1 {
 			return "", fmt.Errorf("require 1 args: <recipient>")
 		}

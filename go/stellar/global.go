@@ -36,6 +36,9 @@ type Stellar struct {
 	hasWalletCache     map[keybase1.UserVersion]bool
 
 	federationClient federation.ClientInterface
+
+	bpcLock sync.Mutex
+	bpc     BuildPaymentCache
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
@@ -63,14 +66,24 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 }
 
 func (s *Stellar) OnLogout() {
+	s.shutdownAutoClaimRunner()
+	s.deleteBpc()
+}
+
+func (s *Stellar) shutdownAutoClaimRunner() {
 	s.autoClaimRunnerLock.Lock()
 	defer s.autoClaimRunnerLock.Unlock()
-
 	// Shutdown and delete the ACR.
 	if acr := s.autoClaimRunner; acr != nil {
 		acr.Shutdown(libkb.NewMetaContextBackground(s.G()))
 	}
 	s.autoClaimRunner = nil
+}
+
+func (s *Stellar) deleteBpc() {
+	s.bpcLock.Lock()
+	defer s.bpcLock.Unlock()
+	s.bpc = nil
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
@@ -128,6 +141,15 @@ func (s *Stellar) CachedHasWallet(ctx context.Context, uv keybase1.UserVersion) 
 
 func (s *Stellar) SetFederationClientForTest(cli federation.ClientInterface) {
 	s.federationClient = cli
+}
+
+func (s *Stellar) getBuildPaymentCache() BuildPaymentCache {
+	s.bpcLock.Lock()
+	defer s.bpcLock.Unlock()
+	if s.bpc == nil {
+		s.bpc = newBuildPaymentCache(s.remoter)
+	}
+	return s.bpc
 }
 
 // getFederationClient is a helper function used during

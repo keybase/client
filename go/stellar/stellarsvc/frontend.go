@@ -758,7 +758,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		s.G().Log.CDebugf(ctx, "bpl: "+format, args...)
 	}
 
-	bpc := stellar.GetBuildPaymentCache(s.mctx(ctx), s.remoter)
+	bpc := stellar.GetBuildPaymentCache(s.mctx(ctx))
 	if bpc == nil {
 		return res, fmt.Errorf("missing build payment cache")
 	}
