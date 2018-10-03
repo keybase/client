@@ -86,6 +86,10 @@ const walletChildren = {
     component: AccountSettings,
   },
   transactionDetails: {
+    children: {
+      createNewAccount,
+      linkExisting,
+    },
     component: TransactionDetails,
   },
 }
