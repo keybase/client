@@ -226,6 +226,10 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	m.CDebugf("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { m.CDebugf("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
+	// Signal if you want to read deleted sig chains for debugging, requires
+	// admin permissions to be honored on the server.
+	readDeleted := m.G().Env.GetReadDeletedSigChain()
+
 	resp, finisher, err := sc.G().API.GetResp(APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeOPTIONAL,
@@ -233,6 +237,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 			"uid":           UIDArg(sc.uid),
 			"low":           I{int(low)},
 			"v2_compressed": B{true},
+			"read_deleted":  B{readDeleted},
 		},
 		MetaContext: m,
 	})
