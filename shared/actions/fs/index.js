@@ -464,6 +464,12 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+// Return a header till first semicolon in lower case.
+const headerTillSemiLower = (header: string): string => {
+  const idx = header.indexOf(';')
+  return (idx > -1 ? header.slice(0, idx) : header).toLowerCase()
+}
+
 // Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
 //   text/html;charset=utf-8
 //   text/html;charset=UTF-8
@@ -471,9 +477,9 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
 //   text/html; charset="utf-8"
 // The last part is optional, so if `;` is missing, it'd be just the mimetype.
 const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
-  const ind = contentType.indexOf(';')
-  const mimeType = (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
-  return Constants.makeMime({mimeType, displayPreview: disposition !== 'attachment'})
+  const mimeType = headerTillSemiLower(contentType)
+  const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
+  return Constants.makeMime({mimeType, displayPreview})
 }
 
 const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: Types.Path) =>
