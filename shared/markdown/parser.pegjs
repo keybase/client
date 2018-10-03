@@ -171,7 +171,7 @@ Link
     // All words basically go into this function so lets not make it slow
     const maybeQuote = url[0] || []
     const maybeProtocol = url[1] || []
-    const maybeLink = [] = url[2] || []
+    const maybeLink = url[2] || []
     if (maybeLink.length < 4) { // 4 chars is the shortest a URL can be (i.e. t.co)
       return null
     }
