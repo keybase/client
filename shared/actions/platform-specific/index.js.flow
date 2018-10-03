@@ -19,7 +19,7 @@ declare export function displayNewMessageNotification(
 declare export function clearAllNotifications(): void
 declare export function getContentTypeFromURL(
   url: string,
-  cb: {error?: any, statusCode?: number, contentType?: string}
+  cb: {error?: any, statusCode?: number, contentType?: string, disposition?: string}
 ): Promise<string>
 
 declare export function platformConfigSaga(): Saga.SagaGenerator<any, any>

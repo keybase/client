@@ -111,7 +111,7 @@ const openAppSettings = () => {
 
 const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) =>
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
@@ -119,6 +119,7 @@ const getContentTypeFromURL = (
     ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           let statusCode = response.status
           if (
             statusCode === 200 ||
@@ -127,9 +128,10 @@ const getContentTypeFromURL = (
             statusCode === 416
           ) {
             contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, contentType})
+          cb({statusCode, contentType, disposition})
         })
         .catch(error => {
           console.log(error)
@@ -138,10 +140,12 @@ const getContentTypeFromURL = (
     : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           if (response.status === 200) {
             contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
           }
-          cb({statusCode: response.status, contentType})
+          cb({statusCode: response.status, contentType, disposition})
         })
         .catch(error => {
           console.log(error)
