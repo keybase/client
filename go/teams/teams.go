@@ -385,31 +385,8 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 }
 
 func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	teamKeys, err := t.AllApplicationKeys(ctx, application)
-	if err != nil {
-		return res, err
-	}
-	kbfsKeys := t.KBFSCryptKeys(ctx, application)
-	if len(kbfsKeys) > 0 {
-		latestKBFSGen := kbfsKeys[len(kbfsKeys)-1].Generation()
-		for _, k := range kbfsKeys {
-			res = append(res, keybase1.TeamApplicationKey{
-				Application:   application,
-				KeyGeneration: keybase1.PerTeamKeyGeneration(k.KeyGeneration),
-				Key:           k.Key,
-			})
-		}
-		for _, tk := range teamKeys {
-			res = append(res, keybase1.TeamApplicationKey{
-				Application:   application,
-				KeyGeneration: keybase1.PerTeamKeyGeneration(tk.Generation() + latestKBFSGen),
-				Key:           tk.Key,
-			})
-		}
-	} else {
-		res = teamKeys
-	}
-	return res, nil
+	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t.Data, application,
+		t.chain().GetLatestGeneration())
 }
 
 // ApplicationKey returns the most recent key for an application.
@@ -421,6 +398,11 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
+}
+
+func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
 }
 
 func (t *Team) Rotate(ctx context.Context) (err error) {
@@ -1323,6 +1305,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 	v2Sig, _, newLinkID, err := libkb.MakeSigchainV2OuterSig(
+		t.MetaContext(ctx),
 		deviceSigningKey,
 		linkType,
 		nextSeqno,
@@ -1331,6 +1314,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err

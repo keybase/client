@@ -25,11 +25,9 @@ type Props = {
 }
 
 const mapStateToProps = (state: TypedState, {path}: Props) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeFile())
   return {
     _serverInfo: state.fs.localHTTPServerInfo,
-    mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : '',
-    isSymlink: _pathItem.type === 'symlink',
+    _pathItem: state.fs.pathItems.get(path, Constants.makeFile()),
   }
 }
 
@@ -38,13 +36,13 @@ const mapDispatchToProps = (dispatch, {path}: Props) => ({
 })
 
 const mergeProps = (
-  {_serverInfo, mimeType, isSymlink},
+  {_serverInfo, _pathItem},
   {loadMimeType},
   {path, routePath, onLoadingStateChange}
 ) => ({
   url: Constants.generateFileURL(path, _serverInfo),
-  mimeType,
-  isSymlink,
+  mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
+  isSymlink: _pathItem.type === 'symlink',
   path,
   loadMimeType,
   routePath,
@@ -57,7 +55,7 @@ const Renderer = props => {
     return <DefaultView path={path} routePath={routePath} />
   }
 
-  if (mimeType === '') {
+  if (!mimeType) {
     // We are still loading mimeType which is needed to determine which
     // component to use.
     return (
@@ -103,7 +101,7 @@ export default compose(
   setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {
-      if (!this.props.isSymlink && this.props.mimeType === '') {
+      if (!this.props.isSymlink && !this.props.mimeType) {
         this.props.loadMimeType()
       }
     },
@@ -111,9 +109,9 @@ export default compose(
       if (
         !this.props.isSymlink &&
         // Trigger loadMimeType if we don't have it yet,
-        this.props.mimeType === '' &&
+        !this.props.mimeType &&
         // but only if we haven't triggered it before.
-        prevProps.mimeType !== ''
+        prevProps.mimeType
       ) {
         this.props.loadMimeType()
       }

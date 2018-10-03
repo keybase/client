@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
+  _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) => dispatch(FsGen.createOpenFilesFromWidget({path, type})),
   loadTlfUpdates: () => dispatch(FsGen.createUserFileEditsLoad()),
 })
 
@@ -27,7 +27,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
-      onSelectPath: () => dispatchProps._onSelectPath(c.tlf),
+      onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
       tlf,
       // Default to private visibility--this should never happen though.
       tlfType: FsTypes.getPathVisibility(c.tlf) || 'private',
@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
       updates: c.updates.map(({path, uploading}) => ({
         name: FsTypes.getPathName(path),
         uploading,
-        onClick: () => dispatchProps._onSelectPath(path),
+        onClick: () => dispatchProps._onSelectPath(path, 'file'),
       })),
     }
   }),

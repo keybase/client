@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 
@@ -215,6 +216,57 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	requireGen(team.Data, 2)
+}
+
+func TestLoaderKBFSKeyGenOffset(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	displayName := fus[0].Username + "," + fus[1].Username
+	team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
+	require.NoError(t, err)
+
+	tlfID := newImplicitTLFID(false)
+	key1 := [32]byte{0, 1}
+	key2 := [32]byte{0, 2}
+	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+		KeyGeneration: 1,
+		Key:           key1,
+	}, keybase1.CryptKey{
+		KeyGeneration: 2,
+		Key:           key2,
+	}}
+	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
+		keybase1.TeamApplication_KBFS))
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+	})
+	require.NoError(t, err)
+	keys, err := team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keys))
+	require.Equal(t, 1, keys[0].Generation())
+	key3 := keys[0].Key
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				3: []keybase1.TeamApplication{keybase1.TeamApplication_KBFS},
+			},
+		},
+	})
+	require.NoError(t, err)
+	keys, err = team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(keys))
+	key, err := team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, key.Generation())
+	require.True(t, bytes.Equal(key1[:], key.Key[:]))
+	key, err = team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 3)
+	require.NoError(t, err)
+	require.Equal(t, 3, key.Generation())
+	require.True(t, bytes.Equal(key3[:], key.Key[:]))
 }
 
 // Test loading a team with WantMembers set.

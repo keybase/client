@@ -16,6 +16,8 @@ export const typePrefix = 'chat2:'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
+export const attachmentMobileSave = 'chat2:attachmentMobileSave'
+export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -63,6 +65,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
+export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -111,6 +114,14 @@ type _AttachmentLoadingPayload = $ReadOnly<{|
   ordinal: Types.Ordinal,
   ratio: number,
   isPreview: boolean,
+|}>
+type _AttachmentMobileSavePayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
+type _AttachmentMobileSavedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
 |}>
 type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
@@ -273,6 +284,10 @@ type _PaymentInfoReceivedPayload = $ReadOnly<{|
   messageID: RPCChatTypes.MessageID,
   paymentInfo: Types.ChatPaymentInfo,
 |}>
+type _PrepareFulfillRequestFormPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
@@ -389,6 +404,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
 /**
+ * Prime data to fulfill this message's request and navigate to the send form.
+ */
+export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({error: false, payload, type: prepareFulfillRequestForm})
+/**
  * Sent whenever the mobile file picker encounters an error.
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({error: false, payload, type: filePickerError})
@@ -459,6 +478,8 @@ export const createSetPendingConversationExistingConversationIDKey = (payload: _
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
+export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({error: false, payload, type: attachmentMobileSave})
+export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({error: false, payload, type: attachmentMobileSaved})
 export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({error: false, payload, type: attachmentPreviewSelect})
 export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
@@ -519,6 +540,8 @@ export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: fa
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
+export type AttachmentMobileSavePayload = $Call<typeof createAttachmentMobileSave, _AttachmentMobileSavePayload>
+export type AttachmentMobileSavedPayload = $Call<typeof createAttachmentMobileSaved, _AttachmentMobileSavedPayload>
 export type AttachmentPreviewSelectPayload = $Call<typeof createAttachmentPreviewSelect, _AttachmentPreviewSelectPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
@@ -566,6 +589,7 @@ export type NotificationSettingsUpdatedPayload = $Call<typeof createNotification
 export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
+export type PrepareFulfillRequestFormPayload = $Call<typeof createPrepareFulfillRequestForm, _PrepareFulfillRequestFormPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
@@ -603,6 +627,8 @@ export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload
+  | AttachmentMobileSavePayload
+  | AttachmentMobileSavedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
@@ -650,6 +676,7 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
+  | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload

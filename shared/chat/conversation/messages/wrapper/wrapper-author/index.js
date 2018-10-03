@@ -1,16 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
+import * as Styles from '../../../../../styles'
 import {Avatar, Text, Box} from '../../../../../common-adapters'
-import {
-  desktopStyles,
-  globalStyles,
-  globalMargins,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-  collapseStyles,
-} from '../../../../../styles'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
 import PaymentMessage from '../../account-payment/container'
@@ -53,13 +45,13 @@ export type Props = {|
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
-    return globalColors.black_75
+    return Styles.globalColors.black_75
   }
 
   if (isBroken) {
-    return globalColors.red
+    return Styles.globalColors.red
   }
-  return isFollowing ? globalColors.green2 : globalColors.blue
+  return isFollowing ? Styles.globalColors.green2 : Styles.globalColors.blue
 }
 
 const UserAvatar = ({author, onAuthorClick}) => (
@@ -69,8 +61,8 @@ const UserAvatar = ({author, onAuthorClick}) => (
 )
 
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
-  const style = collapseStyles([
-    desktopStyles.clickable,
+  const style = Styles.collapseStyles([
+    Styles.desktopStyles.clickable,
     styles.username,
     isYou && styles.usernameYou,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
@@ -130,7 +122,11 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
 
 const LeftSide = props => (
   <Box style={styles.leftSide}>
-    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+    {props.includeHeader && (
+      <Box style={styles.hasHeader}>
+        <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />
+      </Box>
+    )}
   </Box>
 )
 
@@ -149,7 +145,10 @@ const RightSide = props => {
   )
   return (
     <Box style={styles.rightSideContainer}>
-      <Box style={styles.rightSide} className="message-wrapper">
+      <Box
+        style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+        className="message-wrapper"
+      >
         {props.includeHeader && (
           <Username
             username={props.author}
@@ -212,7 +211,7 @@ class WrapperAuthor extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Box style={styles.flexOneRow}>
+      <Box style={Styles.collapseStyles([styles.flexOneRow, this.props.includeHeader && styles.hasHeader])}>
         {LeftSide(this.props)}
         {RightSide(this.props)}
       </Box>
@@ -220,39 +219,42 @@ class WrapperAuthor extends React.PureComponent<Props> {
   }
 }
 
-const styles = styleSheetCreate({
-  edited: {color: globalColors.black_20},
-  fail: {color: globalColors.red},
-  failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
-  flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
-  flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
-  leftSide: platformStyles({
+const styles = Styles.styleSheetCreate({
+  edited: {color: Styles.globalColors.black_20},
+  fail: {color: Styles.globalColors.red},
+  failStyleUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  flexOneColumn: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+  flexOneRow: {...Styles.globalStyles.flexBoxRow, flex: 1},
+  hasHeader: {paddingTop: Styles.globalMargins.xtiny},
+  leftSide: Styles.platformStyles({
     common: {
       flexShrink: 0,
-      marginRight: globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
       position: 'relative',
       width: 32,
     },
     isElectron: {
-      marginLeft: globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
     },
     isMobile: {
-      marginLeft: globalMargins.tiny,
+      marginLeft: Styles.globalMargins.tiny,
     },
   }),
   rightSide: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
+    paddingRight: Styles.globalMargins.tiny,
     position: 'relative',
   },
   rightSideContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     flex: 1,
-    paddingRight: globalMargins.tiny,
+    paddingBottom: 2,
+    paddingRight: Styles.globalMargins.tiny,
   },
-  sendIndicator: platformStyles({
+  sendIndicator: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: 21,
       justifyContent: 'center',
@@ -270,7 +272,8 @@ const styles = styleSheetCreate({
     },
   }),
   textContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
+    borderRadius: 4,
     flex: 1,
   },
   userAvatar: {
@@ -280,7 +283,7 @@ const styles = styleSheetCreate({
   },
   username: {
     alignSelf: 'flex-start',
-    marginBottom: 3,
+    marginBottom: 0,
   },
 })
 

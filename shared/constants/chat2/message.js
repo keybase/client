@@ -214,7 +214,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
 
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
-  note: '',
+  note: new HiddenString(''),
   reactions: I.Map(),
   requestID: '',
   requestInfo: null,
@@ -699,7 +699,7 @@ const validUIMessagetoMessage = (
       return m.messageBody.requestpayment
         ? makeMessageRequestPayment({
             ...common,
-            note: m.messageBody.requestpayment.note,
+            note: new HiddenString(m.messageBody.requestpayment.note),
             requestID: m.messageBody.requestpayment.requestID,
             requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
           })

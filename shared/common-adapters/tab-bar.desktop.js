@@ -21,7 +21,7 @@ import {
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 
@@ -103,7 +103,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderAvatar(color: string, badgeNumber: number) {
-    if (this.props.source.type !== 'avatar') return // needed to make flow happy
+    if (this.props.source.type !== 'avatar') return null // needed to make flow happy
     return (
       <Box
         className={'nav-item-avatar' + (this.props.selected ? ' selected' : '')}
@@ -154,7 +154,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderNav(badgeNumber: number) {
-    if (this.props.source.type !== 'nav') return // needed to make flow happy
+    if (this.props.source.type !== 'nav') return null // needed to make flow happy
     return (
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
@@ -187,7 +187,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderIcon(color: string, badgeNumber: number) {
-    if (this.props.source.type !== 'icon') return // needed to make flow happy
+    if (this.props.source.type !== 'icon') return null // needed to make flow happy
     const backgroundColor = globalColors.darkBlue3
     return (
       <Box

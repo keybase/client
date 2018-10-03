@@ -9,7 +9,7 @@ const singleFollowProps1: Props = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
-  notificationTime: new Date(),
+  notificationTime: moment().toDate(),
   onClickUser: Sb.action('onClickUser'),
 }
 

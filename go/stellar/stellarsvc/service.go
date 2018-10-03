@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/amount"
 )
 
 type UISource interface {
@@ -300,26 +299,19 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 
 type exchangeRateMap map[string]stellar1.OutsideExchangeRate
 
-const defaultOutsideCurrency = "USD"
-
 // getLocalCurrencyAndExchangeRate gets display currency setting
 // for accountID and fetches exchange rate is set.
 //
 // Arguments `account` and `exchangeRates` may end up mutated.
-func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
-	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
+func getLocalCurrencyAndExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
+	displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, account.AccountID)
 	if err != nil {
 		return err
-	}
-	if displayCurrency == "" {
-		displayCurrency = defaultOutsideCurrency
-		g.Log.CDebugf(ctx, "Using default display currency %s for account %s",
-			displayCurrency, account.AccountID)
 	}
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
-		rate, err = remoter.ExchangeRate(ctx, displayCurrency)
+		rate, err = remoter.ExchangeRate(mctx.Ctx(), displayCurrency)
 		if err != nil {
 			return err
 		}
@@ -339,6 +331,8 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 	if err != nil {
 		return ret, err
 	}
+
+	mctx := libkb.NewMetaContext(ctx, s.G())
 
 	currentBundle, _, err := remote.Fetch(ctx, s.G())
 	if err != nil {
@@ -364,7 +358,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 		acc.Balance = balances
 
-		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), s.remoter, &acc, exchangeRates); err != nil {
+		if err := getLocalCurrencyAndExchangeRate(mctx, s.remoter, &acc, exchangeRates); err != nil {
 			s.G().Log.Warning("Could not load local currency exchange rate for %q", accID)
 		}
 
@@ -447,12 +441,12 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	currentAmt, err := amount.ParseInt64(xlmAmount)
+	currentAmt, err := stellarnet.ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return err
 	}
 
-	argAmt, err := amount.ParseInt64(arg.Amount)
+	argAmt, err := stellarnet.ParseStellarAmount(arg.Amount)
 	if err != nil {
 		return err
 	}

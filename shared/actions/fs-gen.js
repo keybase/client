@@ -106,7 +106,10 @@ type _FavoritesLoadedPayload = $ReadOnly<{|
   public: I.Map<string, Types.Tlf>,
   team: I.Map<string, Types.Tlf>,
 |}>
-type _FilePreviewLoadPayload = $ReadOnly<{|path: Types.Path|}>
+type _FilePreviewLoadPayload = $ReadOnly<{|
+  path: Types.Path,
+  identifyBehavior?: ?RPCTypes.TLFIdentifyBehavior,
+|}>
 type _FilePreviewLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   meta: Types.PathItem,
@@ -152,7 +155,7 @@ type _MimeTypeLoadPayload = $ReadOnly<{|
 |}>
 type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
-  mimeType: string,
+  mimeType: Types.Mime,
 |}>
 type _NewFolderNamePayload = $ReadOnly<{|
   editID: Types.EditID,
@@ -165,7 +168,10 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
-type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|
+  path: Types.Path,
+  type: Types.PathType,
+|}>
 type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
 type _OpenPathInFilesTabPayload = $ReadOnly<{|
   path: Types.Path,

@@ -181,6 +181,28 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 	return false
 }
 
+func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
+	team *teams.Team) error {
+	impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+	if err != nil {
+		return err
+	}
+	if impTeamName != tlfName {
+		// Try resolving given name, maybe there has been a resolution
+		resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
+		if err != nil {
+			return err
+		}
+		if impTeamName != resName.String() {
+			return ImpteamBadteamError{
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
+					tlfName),
+			}
+		}
+	}
+	return nil
+}
+
 func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	tlfName string, membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
@@ -198,12 +220,24 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	}
 
 	switch membersType {
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_TEAM:
 		teamID, err := keybase1.TeamIDFromString(tlfID.String())
 		if err != nil {
 			return team, err
 		}
 		return teams.Load(ctx, t.G(), ltarg(teamID))
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		teamID, err := keybase1.TeamIDFromString(tlfID.String())
+		if err != nil {
+			return team, err
+		}
+		if team, err = teams.Load(ctx, t.G(), ltarg(teamID)); err != nil {
+			return team, err
+		}
+		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
+			return team, err
+		}
+		return team, nil
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, t.G().API)
 		if err != nil {
@@ -217,7 +251,7 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 				return err
 			}
 			if !t.validKBFSTLFID(tlfID, team) {
-				return ImpteamUpgradeBadteamError{
+				return ImpteamBadteamError{
 					Msg: fmt.Sprintf("TLF ID not found in team: %s", tlfID),
 				}
 			}
@@ -236,23 +270,8 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 				return team, err
 			}
 		}
-
-		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
-		if err != nil {
+		if err = t.validateImpTeamname(ctx, tlfName, public, team); err != nil {
 			return team, err
-		}
-		if impTeamName != tlfName {
-			// Try resolving given name, maybe there has been a resolution
-			resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
-			if err != nil {
-				return team, err
-			}
-			if impTeamName != resName.String() {
-				return team, ImpteamUpgradeBadteamError{
-					Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-						tlfName),
-				}
-			}
 		}
 		return team, nil
 	}
@@ -381,7 +400,8 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM && m.G().FeatureFlags.Enabled(m, libkb.FeatureFTL) {
+	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM &&
+		m.G().FeatureFlags.Enabled(m, libkb.FeatureFTL) {
 		res, err = decryptionKeyViaFTL(m, teamID, keyGeneration)
 		if shouldFallbackToSlowLoadAfterFTLError(m, err) {
 			// See comment above in EncryptionKey()
@@ -437,7 +457,7 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 		if i >= len(uvs) {
 			return nil
 		}
-		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid)
+		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid).WithPublicKeyOptional()
 		return &tmp
 	}
 

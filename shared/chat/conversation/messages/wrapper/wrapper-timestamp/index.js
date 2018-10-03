@@ -38,7 +38,8 @@ export type Props = {|
   orangeLineAbove: boolean,
 |}
 
-const HoverBox = Styles.isMobile ? LongPressable : Box2
+// TODO flow gets confused since the props are ambiguous
+const HoverBox: any = Styles.isMobile ? LongPressable : Box2
 
 type State = {
   showingPicker: boolean,
@@ -91,7 +92,6 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 onMouseOver: this._onMouseOver,
               })}
           direction="vertical"
-          decorate={props.decorate}
           fullWidth={true}
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
