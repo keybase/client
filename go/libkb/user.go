@@ -489,6 +489,24 @@ func (u *User) MakeIDTable(m MetaContext) error {
 	return nil
 }
 
+// GetHighLinkSeqnos gets the list of all high links in the user's sigchain ascending.
+func (u *User) GetHighLinkSeqnos(mctx MetaContext) (res []keybase1.Seqno, err error) {
+	sigChain := u.sigChain()
+	if sigChain == nil {
+		return nil, fmt.Errorf("no user sigchain")
+	}
+	for _, c := range sigChain.chainLinks {
+		high, err := c.IsHighUserLink(mctx, u.GetUID())
+		if err != nil {
+			return nil, fmt.Errorf("error determining link %v", c.GetSeqno())
+		}
+		if high {
+			res = append(res, c.GetSeqno())
+		}
+	}
+	return res, nil
+}
+
 func (u *User) VerifySelfSig() error {
 
 	u.G().Log.Debug("+ VerifySelfSig for user %s", u.name)
