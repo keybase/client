@@ -7,8 +7,6 @@ import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import {RPCError} from './errors'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -45,13 +43,10 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
   return results
 }
 
-type ActionToPromiseOptions = $ReadOnly<{|ignoreCancel?: boolean|}>
-
 // Helper that expects a function which returns a promise that resolves to a put
 function actionToPromise<A>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>,
-  opts?: ActionToPromiseOptions
+  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
 ) {
   return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
     try {
@@ -61,20 +56,12 @@ function actionToPromise<A>(
         yield Effects.put(toPut)
       }
     } catch (error) {
-      if (
-        opts &&
-        opts.ignoreCancel &&
-        error instanceof RPCError &&
-        error.code === RPCTypes.constantsStatusCode.sccanceled
-      ) {
-        yield Effects.cancel()
-      } else {
-        yield Effects.put(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(error),
-          })
-        )
-      }
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
     } finally {
       if (yield Effects.cancelled()) {
         logger.info('actionToPromise cancelled')

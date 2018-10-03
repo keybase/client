@@ -2,6 +2,7 @@
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
+import * as RPCTypesKb from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Chat2Gen from './chat2-gen'
@@ -15,6 +16,7 @@ import {walletsTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 import {anyWaiting} from '../constants/waiting'
+import {RPCError} from '../util/errors'
 
 const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -29,12 +31,20 @@ const buildPayment = (state: TypedState, action: any) =>
     toIsAccountID:
       state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
       !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
-  }).then(build =>
-    WalletsGen.createBuiltPaymentReceived({
-      build: Constants.buildPaymentResultToBuiltPayment(build),
-      forBuildingPayment: state.wallets.buildingPayment,
+  })
+    .then(build =>
+      WalletsGen.createBuiltPaymentReceived({
+        build: Constants.buildPaymentResultToBuiltPayment(build),
+        forBuildingPayment: state.wallets.buildingPayment,
+      })
+    )
+    .catch(error => {
+      if (error instanceof RPCError && error.code === RPCTypesKb.constantsStatusCode.sccanceled) {
+        // ignore cancellation
+      } else {
+        throw error
+      }
     })
-  )
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
@@ -417,8 +427,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
     ],
-    buildPayment,
-    {ignoreCancel: true}
+    buildPayment
   )
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
