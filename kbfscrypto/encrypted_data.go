@@ -64,6 +64,14 @@ func (ed encryptedData) String() string {
 		hex.EncodeToString(ed.Nonce))
 }
 
+func (ed encryptedData) Nonce24() (nonce [24]byte, err error) {
+	if len(ed.Nonce) != len(nonce) {
+		return nonce, errors.WithStack(InvalidNonceError{ed.Nonce})
+	}
+	copy(nonce[:], ed.Nonce)
+	return nonce, nil
+}
+
 // encryptDataWithNonce encrypts the given data with the given
 // symmetric key and nonce.
 func encryptDataWithNonce(
@@ -89,10 +97,22 @@ func encryptData(data []byte, key [32]byte) (encryptedData, error) {
 	return encryptDataWithNonce(data, key, nonce, EncryptionSecretbox)
 }
 
-// decryptDataWithNonce decrypts the given encrypted data with the
-// given symmetric key and nonce.
-func decryptDataWithNonce(
+// decryptData decrypts the given encrypted data with the given
+// symmetric key and nonce.
+func decryptData(
 	encryptedData encryptedData, key [32]byte, nonce [24]byte) ([]byte, error) {
+	switch encryptedData.Version {
+	case EncryptionSecretbox:
+		// We're good, no nonce check needed.
+	case EncryptionSecretboxWithKeyNonce:
+		if !bytes.Equal(nonce[:], encryptedData.Nonce) {
+			return nil, errors.WithStack(InvalidNonceError{encryptedData.Nonce})
+		}
+	default:
+		return nil, errors.WithStack(
+			UnknownEncryptionVer{encryptedData.Version})
+	}
+
 	decryptedData, ok := secretbox.Open(
 		nil, encryptedData.EncryptedData, &nonce, &key)
 	if !ok {
@@ -100,28 +120,6 @@ func decryptDataWithNonce(
 	}
 
 	return decryptedData, nil
-}
-
-// decryptData decrypts the given encrypted data with the given
-// symmetric key.
-func decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
-	switch encryptedData.Version {
-	case EncryptionSecretbox, EncryptionSecretboxWithKeyNonce:
-	// We're good.
-	default:
-		return nil, errors.WithStack(
-			UnknownEncryptionVer{encryptedData.Version})
-	}
-
-	// For v2, the caller must have already checked the nonce.
-	var nonce [24]byte
-	if len(encryptedData.Nonce) != len(nonce) {
-		return nil, errors.WithStack(
-			InvalidNonceError{encryptedData.Nonce})
-	}
-	copy(nonce[:], encryptedData.Nonce)
-
-	return decryptDataWithNonce(encryptedData, key, nonce)
 }
 
 // EncryptedTLFCryptKeyClientHalf is an encrypted
@@ -195,7 +193,13 @@ func DecryptPrivateMetadata(
 			encryptedPrivateMetadata.encryptedData.Version})
 	}
 
-	return decryptData(encryptedPrivateMetadata.encryptedData, key.Data())
+	nonce, err := encryptedPrivateMetadata.encryptedData.Nonce24()
+	if err != nil {
+		return nil, err
+	}
+
+	return decryptData(
+		encryptedPrivateMetadata.encryptedData, key.Data(), nonce)
 }
 
 // EncryptedBlock is an encrypted Block object.
@@ -236,7 +240,12 @@ func DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey) (
 			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
 	}
 
-	return decryptData(encryptedBlock.encryptedData, key.Data())
+	nonce, err := encryptedBlock.encryptedData.Nonce24()
+	if err != nil {
+		return nil, err
+	}
+
+	return decryptData(encryptedBlock.encryptedData, key.Data(), nonce)
 }
 
 // DecryptBlockV2 decrypts a block, but does not unpad or decode it.
@@ -247,15 +256,8 @@ func DecryptBlockV2(encryptedBlock EncryptedBlock, key BlockHashKey) (
 			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
 	}
 
-	// Make sure the nonce in the encrypted data matches the computed
-	// nonce.
-	nonce := key.nonce()
-	if !bytes.Equal(nonce[:], encryptedBlock.encryptedData.Nonce) {
-		return nil, errors.WithStack(
-			InvalidNonceError{encryptedBlock.encryptedData.Nonce})
-	}
-
-	return decryptData(encryptedBlock.encryptedData, key.cryptKey())
+	return decryptData(
+		encryptedBlock.encryptedData, key.cryptKey(), key.nonce())
 }
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
@@ -291,7 +293,13 @@ func DecryptTLFCryptKeys(
 			InvalidEncryptionVer{encryptedTLFCryptKeys.encryptedData.Version})
 	}
 
-	encodedKeys, err := decryptData(encryptedTLFCryptKeys.encryptedData, key.Data())
+	nonce, err := encryptedTLFCryptKeys.encryptedData.Nonce24()
+	if err != nil {
+		return nil, err
+	}
+
+	encodedKeys, err := decryptData(
+		encryptedTLFCryptKeys.encryptedData, key.Data(), nonce)
 	if err != nil {
 		return nil, err
 	}

@@ -20,7 +20,10 @@ func TestEncryptDecryptDataSuccess(t *testing.T) {
 	encryptedData, err := encryptData(data, key)
 	require.NoError(t, err)
 
-	decryptedData, err := decryptData(encryptedData, key)
+	nonce, err := encryptedData.Nonce24()
+	require.NoError(t, err)
+
+	decryptedData, err := decryptData(encryptedData, key, nonce)
 	require.NoError(t, err)
 	require.Equal(t, data, decryptedData)
 }
@@ -65,7 +68,9 @@ func TestDecryptDataFailure(t *testing.T) {
 
 	encryptedDataWrongVersion := encryptedData
 	encryptedDataWrongVersion.Version += 2
-	_, err = decryptData(encryptedDataWrongVersion, key)
+	nonce, err := encryptedDataWrongVersion.Nonce24()
+	require.NoError(t, err)
+	_, err = decryptData(encryptedDataWrongVersion, key, nonce)
 	assert.Equal(t,
 		UnknownEncryptionVer{encryptedDataWrongVersion.Version},
 		errors.Cause(err))
@@ -74,7 +79,7 @@ func TestDecryptDataFailure(t *testing.T) {
 
 	encryptedDataWrongNonceSize := encryptedData
 	encryptedDataWrongNonceSize.Nonce = encryptedDataWrongNonceSize.Nonce[:len(encryptedDataWrongNonceSize.Nonce)-1]
-	_, err = decryptData(encryptedDataWrongNonceSize, key)
+	_, err = encryptedDataWrongNonceSize.Nonce24()
 	assert.Equal(t,
 		InvalidNonceError{encryptedDataWrongNonceSize.Nonce},
 		errors.Cause(err))
@@ -83,14 +88,14 @@ func TestDecryptDataFailure(t *testing.T) {
 
 	keyCorrupt := key
 	keyCorrupt[0] = ^keyCorrupt[0]
-	_, err = decryptData(encryptedData, keyCorrupt)
+	_, err = decryptData(encryptedData, keyCorrupt, nonce)
 	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
 
 	// Corrupt data.
 
 	encryptedDataCorruptData := encryptedData
 	encryptedDataCorruptData.EncryptedData[0] = ^encryptedDataCorruptData.EncryptedData[0]
-	_, err = decryptData(encryptedDataCorruptData, key)
+	_, err = decryptData(encryptedDataCorruptData, key, nonce)
 	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
 }
 
