@@ -134,63 +134,72 @@ const LeftSide = props => (
   </Box>
 )
 
-const RightSide = props => (
-  <Box style={styles.rightSideContainer}>
-    <Box style={styles.rightSide} className="message-wrapper">
-      {props.includeHeader && (
-        <Username
-          username={props.author}
-          isYou={props.isYou}
-          isFollowing={props.isFollowing}
-          isBroken={props.isBroken}
-          onClick={props.onAuthorClick}
-        />
+const RightSide = props => {
+  const content = (
+    <>
+      {props.message.type === 'text' && <TextMessage message={props.message} isEditing={props.isEditing} />}
+      {props.message.type === 'attachment' && (
+        <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
       )}
-      <Box style={styles.textContainer} className="message">
-        {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+      {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+        <PaymentMessage message={props.message} />
+      )}
+      {props.isEdited && <EditedMark />}
+    </>
+  )
+  return (
+    <Box style={styles.rightSideContainer}>
+      <Box style={styles.rightSide} className="message-wrapper">
+        {props.includeHeader && (
+          <Username
+            username={props.author}
+            isYou={props.isYou}
+            isFollowing={props.isFollowing}
+            isBroken={props.isBroken}
+            onClick={props.onAuthorClick}
+          />
+        )}
+        <Box style={styles.textContainer} className="message">
+          {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-        <ExplodingHeightRetainer
-          explodedBy={props.explodedBy}
-          exploding={props.exploding}
-          measure={props.measure}
-          messageKey={props.messageKey}
-          style={styles.flexOneColumn}
-          retainHeight={props.exploded || props.isExplodingUnreadable}
-        >
-          {props.message.type === 'text' && (
-            <TextMessage message={props.message} isEditing={props.isEditing} />
+          {props.exploding ? (
+            <ExplodingHeightRetainer
+              explodedBy={props.explodedBy}
+              exploding={props.exploding}
+              measure={props.measure}
+              messageKey={props.messageKey}
+              style={styles.flexOneColumn}
+              retainHeight={props.exploded || props.isExplodingUnreadable}
+            >
+              {content}
+            </ExplodingHeightRetainer>
+          ) : (
+            content
           )}
-          {props.message.type === 'attachment' && (
-            <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
+        </Box>
+        {!!props.failureDescription &&
+          !props.exploded && (
+            <Failure
+              failureDescription={props.failureDescription}
+              isExplodingUnreadable={props.isExplodingUnreadable}
+              onRetry={props.onRetry}
+              onEdit={props.onEdit}
+              onCancel={props.onCancel}
+            />
           )}
-          {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
-            <PaymentMessage message={props.message} />
+        <Box style={styles.sendIndicator}>
+          {props.isYou && (
+            <SendIndicator
+              sent={props.messageSent || props.exploded}
+              failed={props.messageFailed}
+              id={props.timestamp}
+            />
           )}
-          {props.isEdited && <EditedMark />}
-        </ExplodingHeightRetainer>
-      </Box>
-      {!!props.failureDescription &&
-        !props.exploded && (
-          <Failure
-            failureDescription={props.failureDescription}
-            isExplodingUnreadable={props.isExplodingUnreadable}
-            onRetry={props.onRetry}
-            onEdit={props.onEdit}
-            onCancel={props.onCancel}
-          />
-        )}
-      <Box style={styles.sendIndicator}>
-        {props.isYou && (
-          <SendIndicator
-            sent={props.messageSent || props.exploded}
-            failed={props.messageFailed}
-            id={props.timestamp}
-          />
-        )}
+        </Box>
       </Box>
     </Box>
-  </Box>
-)
+  )
+}
 
 class WrapperAuthor extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
@@ -202,11 +211,10 @@ class WrapperAuthor extends React.PureComponent<Props> {
   }
 
   render() {
-    const props = this.props
     return (
       <Box style={styles.flexOneRow}>
-        <LeftSide {...props} />
-        <RightSide {...props} />
+        {LeftSide(this.props)}
+        {RightSide(this.props)}
       </Box>
     )
   }
