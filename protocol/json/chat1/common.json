@@ -1375,6 +1375,14 @@
           "name": "sentBy"
         },
         {
+          "type": "gregor1.Time",
+          "name": "sentBefore"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentAfter"
+        },
+        {
           "type": "int",
           "name": "maxHits"
         },

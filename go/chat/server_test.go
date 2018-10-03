@@ -5164,7 +5164,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 	})
 }
 
-func TestChatSrvGetSearchRegexp(t *testing.T) {
+func TestChatSearchConvRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -5183,6 +5183,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
 			mt, ctc.as(t, u2).user())
+		convID := conv.Id
 
 		tc1 := ctc.as(t, u1)
 		tc2 := ctc.as(t, u2)
@@ -5212,6 +5213,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 					require.Equal(t, len(beforeMsgIDs), len(searchHit.BeforeMessages))
 					for i, msgID := range beforeMsgIDs {
 						msg := searchHit.BeforeMessages[i]
+						t.Logf("msg: %v", msg.Valid())
 						require.True(t, msg.IsValid())
 						require.Equal(t, msgID, msg.GetMessageID())
 					}
@@ -5233,8 +5235,8 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 			_verifyHit(searchHit)
 			select {
-			case searchHitArg := <-searchHitCb:
-				_verifyHit(searchHitArg.SearchHit)
+			case searchHitRes := <-searchHitCb:
+				_verifyHit(searchHitRes.SearchHit)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
 			}
@@ -5250,18 +5252,18 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		search := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.GetSearchRegexpRes {
 			res, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-				ConvID:  conv.Id,
+				ConvID:  convID,
 				Query:   query,
 				IsRegex: isRegex,
 				Opts:    opts,
 			})
 			require.NoError(t, err)
+			t.Logf("searchQuery: %v, searchRes: %+v", query, res)
 			return res
 		}
 
 		isRegex := false
 		opts := chat1.SearchOpts{
-			SentBy:        "",
 			MaxHits:       5,
 			BeforeContext: 2,
 			AfterContext:  2,
@@ -5270,11 +5272,11 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		// Test basic equality match
 		query := "hi"
-		msgBody := "hi"
+		msgBody := "hi there"
 		messageID1 := sendMessage(msgBody, u1)
 		res := search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit(nil, messageID1, nil, []string{msgBody}, res.Hits[0])
+		verifyHit(nil, messageID1, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
@@ -5289,22 +5291,22 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		messageID2 := sendMessage(msgBody, u1)
 		res = search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		opts.MaxHits = 5
 		res = search(query, isRegex, opts)
 		require.Equal(t, 2, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
-		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, res.Hits[1])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{query}, res.Hits[0])
+		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{query}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID3 := sendMessage(msgBody, u1)
 		res = search(query, isRegex, opts)
 		require.Equal(t, 3, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, res.Hits[0])
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, res.Hits[1])
-		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, res.Hits[2])
+		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{query}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{query}, res.Hits[1])
+		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{query}, res.Hits[2])
 		verifySearchDone(3)
 
 		// test sentBy
@@ -5321,9 +5323,47 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		messageID4 := sendMessage(msgBody, u2)
 		res = search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 		opts.SentBy = ""
+
+		// test sentBefore/sentAfter
+		msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+			ConversationID: convID,
+			MessageIDs:     []chat1.MessageID{messageID1, messageID4},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(msgRes.Messages))
+		msg1 := msgRes.Messages[0]
+		msg4 := msgRes.Messages[1]
+
+		// nothing sent after msg4
+		opts.SentAfter = msg4.GetCtime() + 500
+		res = search(query, isRegex, opts)
+		require.Zero(t, len(res.Hits))
+		opts.SentAfter = msg1.GetCtime()
+		res = search(query, isRegex, opts)
+		require.Equal(t, 4, len(res.Hits))
+
+		// nothing sent before msg1
+		opts.SentAfter = 0
+		opts.SentBefore = msg1.GetCtime() - 500
+		res = search(query, isRegex, opts)
+		require.Zero(t, len(res.Hits))
+		opts.SentBefore = msg4.GetCtime()
+		res = search(query, isRegex, opts)
+		require.Equal(t, 4, len(res.Hits))
+		opts.SentBefore = 0
+		timeout := 20 * time.Second
+		// drain the cbs, 8 hits and 4 dones
+		for i := 0; i < 8+4; i++ {
+			select {
+			case <-searchHitCb:
+			case <-searchDoneCb:
+			case <-time.After(timeout):
+				require.Fail(t, "no search result received")
+			}
+		}
 
 		// Test regex functionality
 		isRegex = true
@@ -5359,8 +5399,8 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		verifySearchDone(opts.MaxMessages)
 
 		// Test invalid regex
-		_, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-			ConvID:  conv.Id,
+		_, err = tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
+			ConvID:  convID,
 			Query:   "(",
 			IsRegex: true,
 		})
@@ -5368,7 +5408,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 	})
 }
 
-func TestChatSrvFullInboxSearch(t *testing.T) {
+func TestChatSearchFullInbox(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -5460,7 +5500,6 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		}
 
 		opts := chat1.SearchOpts{
-			SentBy:        "",
 			MaxHits:       5,
 			BeforeContext: 2,
 			AfterContext:  2,
@@ -5539,6 +5578,38 @@ func TestChatSrvFullInboxSearch(t *testing.T) {
 		require.Equal(t, 1, len(convHit.Hits))
 		verifyHit(convID, []chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{query}, convHit.Hits[0])
 		opts.SentBy = ""
+
+		// test sentBefore/sentAfter
+		msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+			ConversationID: convID,
+			MessageIDs:     []chat1.MessageID{messageID1, messageID4},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(msgRes.Messages))
+		msg1 := msgRes.Messages[0]
+		msg4 := msgRes.Messages[1]
+
+		// nothing sent after msg4
+		opts.SentAfter = msg4.GetCtime() + 500
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		opts.SentAfter = msg1.GetCtime()
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		require.Equal(t, 4, len(res.Hits[0].Hits))
+
+		// nothing sent before msg1
+		opts.SentAfter = 0
+		opts.SentBefore = msg1.GetCtime() - 500
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		opts.SentBefore = msg4.GetCtime()
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		require.Equal(t, 4, len(res.Hits[0].Hits))
+		opts.SentBefore = 0
 
 		// Test utf8
 		msgBody = `约书亚和约翰屌爆了`
