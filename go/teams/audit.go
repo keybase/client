@@ -15,20 +15,20 @@ import (
 
 // AuditCurrentVersion is the version that works with this code. Older stored
 // versions will be discarded on load from level DB.
-const AuditCurrentVersion = keybase1.AuditVersion_V2
+const AuditCurrentVersion = keybase1.AuditVersion_V3
 
 var desktopParams = libkb.TeamAuditParams{
-	RootFreshness:         time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(1000),
-	NumPreProbes:          25,
-	NumPostProbes:         25,
-	Parallelism:           5,
+	RootFreshness:         5 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(10000),
+	NumPreProbes:          20,
+	NumPostProbes:         20,
+	Parallelism:           4,
 	LRUSize:               1000,
 }
 
 var mobileParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(10000),
+	MerkleMovementTrigger: keybase1.Seqno(100000),
 	NumPreProbes:          10,
 	NumPostProbes:         10,
 	Parallelism:           3,
