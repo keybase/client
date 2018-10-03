@@ -7,7 +7,7 @@ import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
-import {EmojiIfExists} from './markdown.shared'
+import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
 
@@ -369,15 +369,63 @@ const rules = {
 
 const parser = SimpleMarkdown.parserFor(rules)
 const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 'react'))
+const bigEmojiOutput = SimpleMarkdown.reactFor(
+  SimpleMarkdown.ruleOutput(
+    {
+      ...rules,
+      emoji: {
+        react: (node, output, state) => {
+          return <EmojiIfExists emojiName={String(node.content)} size={32} key={state.key} />
+        },
+      },
+    },
+    'react'
+  )
+)
 
-class Markdown extends PureComponent<Props> {
+const isAllEmoji = ast => {
+  const trimmed = ast.filter(n => n.type !== 'newline')
+  // Only 1 paragraph
+  if (trimmed.length === 1) {
+    // Is something in the content not an emoji?
+    return !trimmed[0].content.some(n => n.type !== 'emoji')
+  }
+  return false
+}
+
+class SimpleMarkdownComponent extends PureComponent<Props> {
   render() {
     const parseTree = parser(this.props.children || '', {inline: false})
     return (
       <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
-        {reactOutput(parseTree)}
+        {isAllEmoji(parseTree) ? bigEmojiOutput(parseTree) : reactOutput(parseTree)}
       </Text>
     )
+  }
+}
+
+class OriginalMarkdown extends PureComponent<Props> {
+  render() {
+    const content = parseMarkdown(
+      this.props.children,
+      this.props.preview ? previewCreateComponent : messageCreateComponent,
+      this.props.meta
+    )
+    return (
+      <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
+        {content}
+      </Text>
+    )
+  }
+}
+
+class Markdown extends PureComponent<Props> {
+  render() {
+    if (this.props.simple) {
+      return <SimpleMarkdownComponent {...this.props} />
+    } else {
+      return <OriginalMarkdown {...this.props} />
+    }
   }
 }
 

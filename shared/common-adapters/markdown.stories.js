@@ -99,6 +99,7 @@ this is a code block with two newline above\`\`\`
 
 
       `,
+  bigemoji: ':thumbsup::100:',
 }
 
 const load = () => {
