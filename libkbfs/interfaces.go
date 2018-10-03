@@ -2124,6 +2124,7 @@ type Config interface {
 	SetUserHistory(*kbfsedits.UserHistory)
 	MetadataVersion() kbfsmd.MetadataVer
 	SetMetadataVersion(kbfsmd.MetadataVer)
+	SetBlockCryptVersion(kbfscrypto.EncryptionVer)
 	DefaultBlockType() keybase1.BlockType
 	SetDefaultBlockType(blockType keybase1.BlockType)
 	RekeyQueue() RekeyQueue

@@ -7800,6 +7800,16 @@ func (mr *MockConfigMockRecorder) SetMetadataVersion(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMetadataVersion", reflect.TypeOf((*MockConfig)(nil).SetMetadataVersion), arg0)
 }
 
+// SetBlockCryptVersion mocks base method
+func (m *MockConfig) SetBlockCryptVersion(arg0 kbfscrypto.EncryptionVer) {
+	m.ctrl.Call(m, "SetBlockCryptVersion", arg0)
+}
+
+// SetBlockCryptVersion indicates an expected call of SetBlockCryptVersion
+func (mr *MockConfigMockRecorder) SetBlockCryptVersion(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBlockCryptVersion", reflect.TypeOf((*MockConfig)(nil).SetBlockCryptVersion), arg0)
+}
+
 // DefaultBlockType mocks base method
 func (m *MockConfig) DefaultBlockType() keybase1.BlockType {
 	ret := m.ctrl.Call(m, "DefaultBlockType")

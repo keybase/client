@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 )
 
@@ -78,6 +79,10 @@ type InitParams struct {
 	// MetadataVersion is the default version of metadata to use
 	// when creating new metadata.
 	MetadataVersion kbfsmd.MetadataVer
+
+	// BlockCryptVersion is the encryption version to use when
+	// encrypting new blocks.
+	BlockCryptVersion kbfscrypto.EncryptionVer
 
 	// LogToFile if true, logs to a default file location.
 	LogToFile bool
@@ -184,11 +189,12 @@ func DefaultInitParams(ctx Context) InitParams {
 		journalEnv = "true"
 	}
 	return InitParams{
-		Debug:            BoolForString(os.Getenv("KBFS_DEBUG")),
-		BServerAddr:      defaultBServer(ctx),
-		MDServerAddr:     defaultMDServer(ctx),
-		TLFValidDuration: tlfValidDurationDefault,
-		MetadataVersion:  defaultMetadataVersion(ctx),
+		Debug:             BoolForString(os.Getenv("KBFS_DEBUG")),
+		BServerAddr:       defaultBServer(ctx),
+		MDServerAddr:      defaultMDServer(ctx),
+		TLFValidDuration:  tlfValidDurationDefault,
+		MetadataVersion:   defaultMetadataVersion(ctx),
+		BlockCryptVersion: kbfscrypto.EncryptionSecretbox,
 		LogFileConfig: logger.LogFileConfig{
 			MaxAge:       30 * 24 * time.Hour,
 			MaxSize:      128 * 1024 * 1024,
@@ -277,6 +283,9 @@ func AddFlagsWithDefaults(
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
+	flags.IntVar((*int)(&params.BlockCryptVersion), "block-crypt-version",
+		int(defaultParams.BlockCryptVersion),
+		"Encryption version to use when encrypting new blocks")
 	flags.StringVar(&params.Mode, "mode", defaultParams.Mode,
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
 			"heavy-weight it can be (%s, %s, %s or %s)", InitDefaultString,
@@ -641,6 +650,8 @@ func doInit(
 	}
 
 	config.SetMetadataVersion(kbfsmd.MetadataVer(params.MetadataVersion))
+	config.SetBlockCryptVersion(
+		kbfscrypto.EncryptionVer(params.BlockCryptVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
 	config.SetBGFlushPeriod(params.BGFlushPeriod)
 
