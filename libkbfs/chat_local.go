@@ -75,7 +75,7 @@ func newChatLocal(config Config) *chatLocal {
 		convs:     make(convLocalByTypeMap),
 		convsByID: make(convLocalByIDMap),
 		newChannelCBs: map[Config]newConvCB{
-			config: config.KBFSOps().NewNotificationChannel,
+			config: nil,
 		},
 	})
 }
@@ -142,6 +142,10 @@ func (c *chatLocal) GetConversationID(
 		}
 		if !isReader {
 			continue
+		}
+
+		if cb == nil && config.KBFSOps() != nil {
+			cb = config.KBFSOps().NewNotificationChannel
 		}
 
 		cb(ctx, h, id, channelName)
