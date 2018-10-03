@@ -93,6 +93,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	highSkip                           *HighSkip
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
@@ -108,7 +109,7 @@ type ChainLinkUnpacked struct {
 	typ                                string
 	proofText                          string
 	outerLinkV2                        *OuterLinkV2WithMetadata
-	sigVersion                         int
+	sigVersion                         SigVersion // what the server hints is the sig version (must be verified)
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 	payloadHash                        []byte
@@ -226,6 +227,7 @@ type ChainLink struct {
 	unsigned         bool
 	dirty            bool
 	revocationsCache *[]keybase1.SigID
+	computedHighSkip *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -280,6 +282,10 @@ func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() SigIgnoreIfUnsupported {
 
 func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
 	return c.getIgnoreIfUnsupportedFromPayload()
+}
+
+func (c *ChainLink) getHighSkipFromPayload() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -354,7 +360,7 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
 		// store the payload for v2 links and local tracks
-		if c.unpacked.sigVersion == 2 {
+		if c.unpacked.sigVersion == KeybaseSignatureV2 {
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
 		} else if len(c.unpacked.payloadLocal) > 0 {
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadLocal)))
@@ -371,7 +377,7 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 		p.SetKey("chain_verified", jsonw.NewBool(c.chainVerified))
 		p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
 		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
-		p.SetKey("sig_version", jsonw.NewInt(c.unpacked.sigVersion))
+		p.SetKey("sig_version", jsonw.NewInt(int(c.unpacked.sigVersion)))
 		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
 	}
 
@@ -490,13 +496,72 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
+func getSigVersionFromPayload(payload []byte) (SigVersion, error) {
+	var err error
+	var i int64
+	if i, err = jsonparser.GetInt(payload, "body", "version"); err != nil {
+		return KeybaseNullSigVersion, ChainLinkError{"link is missing a version field"}
+	}
+	return SigVersion(int(i)), nil
+}
+
+func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSkip, error) {
+	hs, dataType, _, err := jsonparser.Get(payload, "high_skip")
+	// high_skip is optional, but must be an object if it exists
+	if err != nil {
+		if err == jsonparser.KeyPathNotFoundError {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if dataType != jsonparser.Object {
+		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
+	}
+
+	highSkipSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
+	if err != nil {
+		return nil, err
+	}
+
+	// highSkipHash can either be null (zero-value of a LinkID) or a hexstring.
+	// We call GetString first instead of Get so we only parse the value
+	// twice for the first link.
+	highSkipHashStr, err := jsonparser.GetString(hs, "hash")
+	var highSkipHash LinkID
+	if err != nil {
+		// If there was an error parsing as a string, make sure the value is null.
+		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
+		if getErr != nil {
+			return nil, getErr
+		}
+		if dataType != jsonparser.Null {
+			return nil, ChainLinkError{
+				fmt.Sprintf("high_skip.hash was neither a valid string (%v) nor null.", err.Error()),
+			}
+		}
+	} else {
+		highSkipHash, err = LinkIDFromHex(highSkipHashStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	highSkip := NewHighSkip(keybase1.Seqno(highSkipSeqnoInt), highSkipHash)
+	return &highSkip, nil
+}
+
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
+
+	if !IsJSONObject(payload) {
+		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
+	}
+
 	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
 			return err
 		}
 	}
-
 	if s, err := jsonparser.GetString(payload, "body", "key", "kid"); err == nil {
 		tmp.kid = keybase1.KIDFromString(s)
 	}
@@ -523,6 +588,12 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 			return err
 		}
 	}
+
+	highSkip, err := tmp.parseHighSkipFromPayload(payload)
+	if err != nil {
+		return err
+	}
+	tmp.highSkip = highSkip
 
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
 	if err != nil {
@@ -581,7 +652,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 	tmp.payloadHash = fixAndHashPayload(g, payload, tmp.sigID)
 
-	if tmp.sigVersion == 2 {
+	if tmp.sigVersion == KeybaseSignatureV2 {
 		tmp.payloadV2 = payload
 	}
 
@@ -638,11 +709,22 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	}
 
 	c.id = ol.LinkID()
+
+	// Because the outer link does not have a highSkip parent object, we check
+	// for the nullity of highSkipSeqno to see if highSkip should be set, since
+	// a null highSkipHash is valid when specifying highSkip=0.
+	var highSkipPtr *HighSkip
+	if ol.HighSkipSeqno != nil {
+		highSkip := NewHighSkip(*ol.HighSkipSeqno, *ol.HighSkipHash)
+		highSkipPtr = &highSkip
+	}
+
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,
 		seqno:               ol.Seqno,
 		seqType:             ol.SeqType,
 		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
+		highSkip:            highSkipPtr,
 		sigVersion:          ol.Version,
 		outerLinkV2:         ol,
 		stubbed:             true,
@@ -669,9 +751,14 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		return err
 	}
 
-	tmp.sigVersion = 1
+	// Beware that this is server-untrusted data at this point. We'll have to check it
+	// before we can exit without error (see below).
+	tmp.sigVersion = KeybaseSignatureV1
 	if sv, err := jsonparser.GetInt(packed, "sig_version"); err == nil {
-		tmp.sigVersion = int(sv)
+		tmp.sigVersion = SigVersion(int(sv))
+		if tmp.sigVersion != KeybaseSignatureV1 && tmp.sigVersion != KeybaseSignatureV2 {
+			return ChainLinkError{fmt.Sprintf("Bad sig_version: expected 1 or 2 but got %d", tmp.sigVersion)}
+		}
 	}
 
 	if i, err := jsonparser.GetInt(packed, "merkle_seqno"); err == nil {
@@ -679,7 +766,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	}
 
 	var payload []byte
-	if trusted && tmp.sigVersion == 1 {
+	if trusted && tmp.sigVersion == KeybaseSignatureV1 {
 		// use payload from sig
 		payload, err = tmp.Payload()
 		if err != nil {
@@ -699,7 +786,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		}
 		payload = []byte(sdata)
 
-		if tmp.sigVersion == 1 {
+		if tmp.sigVersion == KeybaseSignatureV1 {
 			// check that payload_json matches payload in sig
 			sigPayload, err := tmp.Payload()
 			if err != nil {
@@ -723,9 +810,16 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		return err
 	}
 
+	// We previously took the server's word on what version we wanted, but now
+	// we're going to check that it matches what we actually sign over -- what's
+	// in the JSON payload. If it doesn't match, the we error out right here.
+	if err := tmp.assertPayloadSigVersionMatchesHint(payload); err != nil {
+		return err
+	}
+
 	var sigKID, serverKID, payloadKID keybase1.KID
 
-	if tmp.sigVersion == 2 {
+	if tmp.sigVersion == KeybaseSignatureV2 {
 		var ol2 *OuterLinkV2WithMetadata
 		ol2, err = DecodeOuterLinkV2(tmp.sig)
 		if err != nil {
@@ -818,16 +912,27 @@ func (tmp *ChainLinkUnpacked) Payload() ([]byte, error) {
 	}
 
 	switch tmp.sigVersion {
-	case 1:
+	case KeybaseSignatureV1:
 		// v1 links have the payload inside the sig
 		sigPayload, _, _, err := SigExtractPayloadAndKID(tmp.sig)
 		return sigPayload, err
-	case 2:
+	case KeybaseSignatureV2:
 		// v2 links have the payload in ChainLinkUnpacked
 		return tmp.payloadV2, nil
 	default:
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", tmp.sigVersion)}
 	}
+}
+
+func (tmp *ChainLinkUnpacked) assertPayloadSigVersionMatchesHint(payload []byte) error {
+	payloadVersion, err := getSigVersionFromPayload(payload)
+	if err != nil {
+		return err
+	}
+	if tmp.sigVersion != payloadVersion {
+		return ChainLinkError{msg: fmt.Sprintf("Big sigchain version hint from server: %d != %d", tmp.sigVersion, payloadVersion)}
+	}
+	return nil
 }
 
 func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
@@ -941,19 +1046,53 @@ func fixAndHashPayload(g *GlobalContext, payload []byte, sigID keybase1.SigID) [
 	return ret[:]
 }
 
+func inferSigVersion(payload []byte) SigVersion {
+
+	// Version 1 payloads are JSON and must start with an opening '{'
+	if IsJSONObject(payload) {
+		return KeybaseSignatureV1
+	}
+
+	// Version 2 payloads are Msgpack and must arrays, so they must
+	// fit the following requirements. The case where b == 0xdc or
+	// b = 0xdd are far-fetched, since that would mean a large or very
+	// large packing. But still, allow any valid array up front.
+	if IsEncodedMsgpackArray(payload) {
+		return KeybaseSignatureV2
+	}
+
+	// We didn't find anything useful, so mark it a "none"
+	return KeybaseNullSigVersion
+}
+
+func assertCorrectSigVersion(expected SigVersion, payload []byte) error {
+	vInferred := inferSigVersion(payload)
+	if vInferred != expected {
+		return ChainLinkError{msg: fmt.Sprintf("chainlink in wrong format; expected version=%d but payload was %d", expected, vInferred)}
+	}
+	return nil
+}
+
 func (c *ChainLink) getSigPayload() ([]byte, error) {
 	if c.IsStubbed() {
 		return nil, ChainLinkError{"Cannot verify sig with nil outer link v2"}
 	}
 	v := c.unpacked.sigVersion
+	var ret []byte
 	switch v {
-	case 1:
-		return c.getFixedPayload(), nil
-	case 2:
-		return c.unpacked.outerLinkV2.raw, nil
+	case KeybaseSignatureV1:
+		ret = c.getFixedPayload()
+	case KeybaseSignatureV2:
+		ret = c.unpacked.outerLinkV2.raw
 	default:
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", c.unpacked.sigVersion)}
 	}
+
+	err := assertCorrectSigVersion(v, ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (c *ChainLink) verifyPayloadV2() error {
@@ -968,18 +1107,23 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return ChainLinkError{"no outer V2 structure available"}
 	}
 
-	version := 2
+	version := KeybaseSignatureV2
 	seqno := c.getSeqnoFromPayload()
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
+	innerVersion := c.unpacked.sigVersion
+	if innerVersion != version {
+		return ChainLinkError{fmt.Sprintf("In chainlink v2, expected inner link to match; got %d", innerVersion)}
+	}
 	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
-	linkType, err := c.GetSigchainV2Type(SigIgnoreIfUnsupported(ignoreIfUnsupported))
+	linkType, err := c.GetSigchainV2TypeFromInner(SigIgnoreIfUnsupported(ignoreIfUnsupported))
 	if err != nil {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
+	highSkip := c.getHighSkipFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, highSkip); err != nil {
 		return err
 	}
 
@@ -1016,6 +1160,10 @@ func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 
 func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
+}
+
+func (c *ChainLink) GetHighSkip() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) GetSigID() keybase1.SigID {
@@ -1164,7 +1312,7 @@ func (c *ChainLink) verifyLinkV2() error {
 	return c.verifyPayloadV2()
 }
 
-func (c *ChainLink) GetSigchainV2Type(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
+func (c *ChainLink) GetSigchainV2TypeFromInner(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
@@ -1179,6 +1327,22 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link has no v2 shell")
 	}
 	return c.unpacked.outerLinkV2.LinkType, nil
+}
+
+// GetSigchainV2Type is a helper function for getting a ChainLink's type. If it
+// is a v2 link (that may or may not be stubbed), return the type from the
+// outer link, otherwise from the inner link.
+func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
+	if c.unpacked == nil {
+		return SigchainV2TypeNone, errors.New("chain link is not unpacked")
+	}
+	if c.unpacked.outerLinkV2 == nil && c.unpacked.typ == "" {
+		return SigchainV2TypeNone, errors.New("chain inner link type is not unpacked, and has no v2 shell")
+	}
+	if c.unpacked.outerLinkV2 != nil {
+		return c.GetSigchainV2TypeFromV2Shell()
+	}
+	return c.GetSigchainV2TypeFromInner(c.GetIgnoreIfSupported())
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
@@ -1350,4 +1514,53 @@ func (c ChainLink) AllowStubbing() bool {
 		return false
 	}
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
+}
+
+// IsHighUserLink determines whether a chainlink counts as "high" in a user's chain,
+// which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
+// PGPUpdate, Revoke, or any link that is revoking.
+func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, error) {
+	v2Type, err := c.GetSigchainV2Type()
+	if err != nil {
+		return false, err
+	}
+
+	hardcodedEldest := false
+	if c.GetSeqno() > 1 {
+		prevLink := c.parent.GetLinkFromSeqno(c.GetSeqno() - 1)
+		if prevLink == nil {
+			return false, ChainLinkWrongSeqnoError{}
+		}
+		hardcodedEldest, err = isSubchainStart(mctx, &c, prevLink, uid)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == 1 || hardcodedEldest
+	isNewHighLink := isFirstLink ||
+		v2Type == SigchainV2TypeRevoke ||
+		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
+		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
+		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypePGPUpdate
+	return isNewHighLink, nil
+}
+
+// ExpectedNextHighSkip returns the expected highSkip of the immediately
+// subsequent link in the chain (which may not exist yet). This function can
+// only be called after VerifyChain has processed the chainLink, and set
+// c.computedHighSkip.
+func (c ChainLink) ExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
+	isHigh, err := c.IsHighUserLink(mctx, uid)
+	if err != nil {
+		return HighSkip{}, err
+	}
+	if isHigh {
+		return NewHighSkip(c.GetSeqno(), c.id), nil
+	}
+	if c.computedHighSkip == nil {
+		return HighSkip{}, NewUserReverifyNeededError("Expected to have already computed this link's HighSkip, but it was not computed.")
+	}
+	return *c.computedHighSkip, nil
 }

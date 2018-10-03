@@ -35,6 +35,7 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
