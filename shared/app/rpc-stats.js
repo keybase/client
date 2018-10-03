@@ -42,7 +42,7 @@ class RpcStats extends React.Component<Props, State> {
     }
   }
 
-  _maybeStart = (userChanged: boolean) => {
+  _start = () => {
     this._cleanup()
     this._intervalID = setInterval(() => {
       this._mounted &&
@@ -74,6 +74,7 @@ class RpcStats extends React.Component<Props, State> {
   }
   componentDidMount() {
     this._mounted = true
+    this._start()
   }
 
   _iterateStats = (keys, f) => {

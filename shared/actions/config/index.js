@@ -418,7 +418,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
-  // Store per use server config info
+  // Store per user server config info
   yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
 
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
