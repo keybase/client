@@ -860,6 +860,7 @@ const (
 	AuditVersion_V0 AuditVersion = 0
 	AuditVersion_V1 AuditVersion = 1
 	AuditVersion_V2 AuditVersion = 2
+	AuditVersion_V3 AuditVersion = 3
 )
 
 func (o AuditVersion) DeepCopy() AuditVersion { return o }
@@ -868,12 +869,14 @@ var AuditVersionMap = map[string]AuditVersion{
 	"V0": 0,
 	"V1": 1,
 	"V2": 2,
+	"V3": 3,
 }
 
 var AuditVersionRevMap = map[AuditVersion]string{
 	0: "V0",
 	1: "V1",
 	2: "V2",
+	3: "V3",
 }
 
 func (e AuditVersion) String() string {

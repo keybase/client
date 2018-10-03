@@ -300,7 +300,8 @@ protocol teams {
   enum AuditVersion {
     V0_0,
     V1_1,
-    V2_2
+    V2_2,
+    V3_3
   }
 
   record AuditHistory {
