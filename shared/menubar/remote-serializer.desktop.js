@@ -36,6 +36,7 @@ export const serialize = {
   files: v => v,
   loggedIn: v => v,
   totalSyncingBytes: v => v,
+  outOfDate: v => v,
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,
