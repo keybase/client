@@ -170,7 +170,7 @@ type _SelectAccountPayload = $ReadOnly<{|
   show?: boolean,
 |}>
 type _SendPaymentPayload = void
-type _SentPaymentErrorPayload = $ReadOnly<{|error: stsring|}>
+type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
 type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>

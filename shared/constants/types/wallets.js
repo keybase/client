@@ -145,6 +145,11 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type Banner = {|
+  bannerBackground: string,
+  bannerText: string,
+|}
+
 export type BuildingPayment = I.RecordOf<_BuildingPayment>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>

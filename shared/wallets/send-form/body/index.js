@@ -7,10 +7,11 @@ import Banner from '../../banner/container'
 import Footer from '../footer/container'
 import NoteAndMemo from '../note-and-memo/container'
 import Participants from '../participants/container'
+import type {Banner as BannerType} from '../../../constants/types/wallets'
 
 type Props = {
   isRequest: boolean,
-  bannerInfo?: string,
+  banners: Array<BannerType>,
   isProcessing?: boolean,
 }
 
@@ -20,10 +21,12 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({bannerInfo, isProcessing, isRequest}: Props) => (
+const Body = ({banners, isProcessing, isRequest}: Props) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {isProcessing && <Spinner />}
-    {bannerInfo && <Banner />}
+    {(banners || []).map(banner => (
+      <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+    ))}
     <Participants />
     <AssetInput />
     <Divider />
