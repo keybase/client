@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {
+  borderRadius,
   globalColors,
   globalMargins,
   globalStyles,
@@ -35,7 +36,7 @@ export type Props = {
 }
 
 type State = {
-  saving: boolean,
+  sraving: boolean,
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
@@ -142,7 +143,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps, prevState) {
-  if (
+    if (
       !policyEquals(this.props.policy, prevProps.policy) ||
       !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)
     ) {
@@ -253,7 +254,7 @@ const dropdownStyle = platformStyles({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     borderColor: globalColors.lightGrey2,
-    borderRadius: 100,
+    borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
     minWidth: 220,
