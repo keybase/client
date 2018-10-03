@@ -417,7 +417,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
     ],
-    buildPayment
+    buildPayment,
+    {ignoreCancel: true}
   )
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
