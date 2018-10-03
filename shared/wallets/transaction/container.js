@@ -2,7 +2,6 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
@@ -10,7 +9,7 @@ import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
+  paymentID: Types.PaymentID,
   status: Types.StatusSimplified,
 }
 
@@ -23,8 +22,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onCancelPayment: (paymentID: StellarRPCTypes.PaymentID) =>
-    dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([

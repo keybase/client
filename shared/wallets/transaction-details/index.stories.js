@@ -27,6 +27,7 @@ const load = () => {
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"
+        loading={false}
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
@@ -55,6 +56,7 @@ const load = () => {
         counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
         amountUser="$15.65"
+        loading={false}
         amountXLM="42.535091 XLM"
         yourRole="senderOnly"
         memo={memo}
@@ -81,6 +83,7 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         amountUser="$12.50"
+        loading={false}
         amountXLM="53.1688643 XLM"
         yourRole="senderOnly"
         memo={memo}
@@ -107,6 +110,7 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         amountUser="$12.50"
+        loading={false}
         amountXLM="53.1688643 XLM"
         yourRole="receiverOnly"
         memo={memo}
@@ -132,6 +136,7 @@ const load = () => {
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"
+        loading={false}
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
@@ -156,6 +161,7 @@ const load = () => {
         counterpartyType="otherAccount"
         counterpartyMeta={null}
         amountUser="$100"
+        loading={false}
         amountXLM="545.2562704 XLM"
         yourRole="receiverOnly"
         memo={memo}
@@ -174,6 +180,14 @@ const load = () => {
         status="completed"
         statusDetail=""
         selectableText={false}
+      />
+    ))
+    .add('Loading', () => (
+      <TransactionDetails
+        loading={true}
+        onBack={Sb.action('onBack')}
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        title="Transaction Details"
       />
     ))
 }

@@ -3,7 +3,6 @@ import {connect, compose, type TypedState} from '../../util/container'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
@@ -34,9 +33,8 @@ const mapStateToProps = (state: TypedState, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onCancelPayment: (paymentID: StellarRPCTypes.PaymentID) =>
-    dispatch(WalletsGen.createCancelPayment({paymentID})),
-  _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: Types.PaymentID) =>
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
   navigateUp: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -44,18 +42,34 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
+  if (!tx.txID || !tx.sourceAccountID) {
+    return {
+      loading: true,
+      onBack: dispatchProps.navigateUp,
+      onLoadPaymentDetail: () =>
+        dispatchProps._onLoadPaymentDetail(
+          ownProps.routeProps.get('accountID'),
+          ownProps.routeProps.get('paymentID')
+        ),
+      title: 'Transaction details',
+    }
+  }
   return {
     ...stateProps.yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
+    loading: false,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onLoadPaymentDetail: () =>
-      dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
+      dispatchProps._onLoadPaymentDetail(
+        ownProps.routeProps.get('accountID'),
+        ownProps.routeProps.get('paymentID')
+      ),
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,

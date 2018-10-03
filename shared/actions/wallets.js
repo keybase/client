@@ -204,14 +204,11 @@ const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsD
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
-    id: action.payload.paymentID,
+    id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
   }).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
-      paymentID: action.payload.paymentID,
-      publicMemo: new HiddenString(res.publicNote),
-      publicMemoType: res.publicNoteType,
-      txID: res.txID,
+      payment: Constants.paymentDetailResultToPayment(res),
     })
   )
 
@@ -318,17 +315,18 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
 
 const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayload) => {
   const {paymentID} = action.payload
-  logger.info(`cancelPayment: cancelling payment with ID ${paymentID.txID}`)
+  const pid = Types.paymentIDToString(paymentID)
+  logger.info(`cancelPayment: cancelling payment with ID ${pid}`)
   return RPCTypes.localCancelPaymentLocalRpcPromise(
-    {paymentID: action.payload.paymentID},
+    {paymentID: Types.paymentIDToRPCPaymentID(action.payload.paymentID)},
     Constants.cancelPaymentWaitingKey(action.payload.paymentID)
   )
     .then(_ => {
-      logger.info(`cancelPayment: successfully cancelled payment with ID ${paymentID.txID}`)
+      logger.info(`cancelPayment: successfully cancelled payment with ID ${pid}`)
       return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
     })
     .catch(err => {
-      logger.error(`cancelPayment: failed to cancel payment with ID ${paymentID.txID}. Error: ${err.message}`)
+      logger.error(`cancelPayment: failed to cancel payment with ID ${pid}. Error: ${err.message}`)
     })
 }
 
