@@ -38,17 +38,7 @@ export type Props = {|
   orangeLineAbove: boolean,
 |}
 
-const HoverBox = Styles.isMobile
-  ? LongPressable
-  : Styles.glamorous(Box2)(props => ({
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-      '&.active, &:hover': props.decorate
-        ? {
-            backgroundColor: Styles.globalColors.blue5,
-          }
-        : {},
-    }))
+const HoverBox = Styles.isMobile ? LongPressable : Box2
 
 type State = {
   showingPicker: boolean,
@@ -72,6 +62,8 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
 
+  _dismissKeyboard = () => dismissKeyboard()
+
   render() {
     const props = this.props
     return (
@@ -82,12 +74,13 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
           className={[
             'WrapperTimestamp-hoverBox',
             props.showingMenu || this.state.showingPicker ? 'active' : '',
+            props.decorate && 'WrapperTimestamp-decorated',
           ]
             .filter(Boolean)
             .join(' ')}
           {...(Styles.isMobile && props.decorate
             ? {
-                onPress: () => dismissKeyboard(),
+                onPress: this._dismissKeyboard,
                 onLongPress: props.toggleShowingMenu,
                 underlayColor: Styles.globalColors.blue5,
               }
@@ -134,7 +127,11 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 )}
               {props.decorate && !this.state.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
             </Box2>
-            <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+            {// $FlowIssue doesn't like us not reducing the type here, but its faster
+            props.message.reactions &&
+              !props.message.reactions.isEmpty() && (
+                <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+              )}
           </Box>
         </HoverBox>
         {(props.message.type === 'text' ||
