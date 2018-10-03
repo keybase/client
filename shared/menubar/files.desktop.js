@@ -115,46 +115,43 @@ const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
 
 const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
-const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => {
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-      <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
-          <ConnectedUsernames
-            usernames={[props.writer]}
-            type="BodySemibold"
-            underline={true}
-            colorFollowing={true}
-            colorBroken={true}
-          />
-          <Kb.Text type="BodySmall" style={styles.tlfTime}>
-            {props.timestamp + ''}
-          </Kb.Text>
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
-            in&nbsp;
-          </Kb.Text>
-          <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
-            {props.tlfType === 'team' ? (
-              props.teamname
-            ) : props.tlfType === 'public' ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true}>
-                {props.participants.join(',')}&nbsp;&nbsp;
-                <Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
-                {/* </Kb.Box> */}
-              </Kb.Box2>
-            ) : (
-              `${props.participants.join(',')}`
-            )}
-          </Kb.Text>
-        </Kb.Box2>
-        <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />
+const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
+    <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
+        <ConnectedUsernames
+          usernames={[props.writer]}
+          type="BodySemibold"
+          underline={true}
+          colorFollowing={true}
+          colorBroken={true}
+        />
+        <Kb.Text type="BodySmall" style={styles.tlfTime}>
+          {props.timestamp}
+        </Kb.Text>
       </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
+          in&nbsp;
+        </Kb.Text>
+        <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+          {props.tlfType === 'team' ? (
+            props.teamname
+          ) : props.tlfType === 'public' ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              {props.participants.join(',')}&nbsp;&nbsp;
+              <Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
+            </Kb.Box2>
+          ) : (
+            `${props.participants.join(',')}`
+          )}
+        </Kb.Text>
+      </Kb.Box2>
+      <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />
     </Kb.Box2>
-  )
-}
+  </Kb.Box2>
+)
 
 export const FilesPreview = (props: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
