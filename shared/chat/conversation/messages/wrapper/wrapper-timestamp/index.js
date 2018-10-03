@@ -42,10 +42,10 @@ const HoverBox = Styles.isMobile ? LongPressable : Box2
 
 type State = {
   showingPicker: boolean,
-  showingMenuButton: boolean,
+  showMenuButton: boolean,
 }
 class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
-  state = {showingPicker: false, showingMenuButton: false}
+  state = {showingPicker: false, showMenuButton: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -56,11 +56,8 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
       }
     }
   }
-  _onMouseLeave = () => {
-    this.setState(o => (o.showingMenuButton ? {showingMenuButton: false} : null))
-  }
   _onMouseOver = () => {
-    this.setState(o => (o.showingMenuButton ? null : {showingMenuButton: true}))
+    this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   }
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -91,9 +88,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
           {...(Styles.isMobile
             ? {}
             : {
-                onMouseLeave: this._onMouseLeave,
                 onMouseOver: this._onMouseOver,
-                onMouseOut: this._onMouseLeave,
               })}
           direction="vertical"
           decorate={props.decorate}
@@ -118,7 +113,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   />
                 )}
               {props.decorate &&
-                this.state.showingMenuButton && (
+                this.state.showMenuButton && (
                   <MenuButtons
                     conversationIDKey={props.conversationIDKey}
                     exploded={props.exploded}
@@ -130,8 +125,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                     toggleShowingMenu={props.toggleShowingMenu}
                   />
                 )}
-              {props.decorate &&
-                !this.state.showingMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
+              {props.decorate && !this.state.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
             </Box2>
             {// $FlowIssue doesn't like us not reducing the type here, but its faster
             props.message.reactions &&
