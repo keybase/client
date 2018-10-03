@@ -99,11 +99,6 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	m = m.WithLogTag("AUDIT")
 	defer m.CTraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
 
-	// Hotfix for performance problem
-	if true {
-		return nil
-	}
-
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)
 	}
