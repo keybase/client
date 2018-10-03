@@ -31,6 +31,7 @@ type ParticipantsProps = {|
   onShowProfile?: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
+  showSpinner: boolean,
 |}
 
 const Participants = (props: ParticipantsProps) => (
@@ -59,6 +60,7 @@ const Participants = (props: ParticipantsProps) => (
       recipientUsername={props.recipientUsername}
       toFieldInput={props.toFieldInput}
       user={props.user}
+      showSpinner={props.showSpinner}
     />
   </Kb.Box2>
 )

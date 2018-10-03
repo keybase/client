@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
-import {stringToAccountID} from '../../../constants/types/wallets'
+import {Box, Box2, Text} from '../../../common-adapters'
+import {stringToAccountID, noAccountID} from '../../../constants/types/wallets'
 import Participants, {type Account} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
@@ -104,6 +104,7 @@ const defaultProps = {
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
   toFieldInput: '',
+  showSpinner: false,
 }
 
 const load = () => {
@@ -112,7 +113,19 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
     .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
     .add('To other account (multiple accounts)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} />
+      <Box2 direction="vertical" gap="small">
+        <Text type="Header">Initial State:</Text>
+        <Participants recipientType="otherAccount" {...defaultProps} />
+        <Text type="Header">Before setting toAccount:</Text>
+        <Participants recipientType="otherAccount" {...defaultProps} showSpinner={true} />
+        <Text type="Header">After setting toAccount, but before toAccount is loaded:</Text>
+        <Participants
+          recipientType="otherAccount"
+          {...defaultProps}
+          showSpinner={true}
+          toAccount={{contents: '', id: noAccountID, name: ''}}
+        />
+      </Box2>
     ))
     .add('To other account (one account)', () => (
       <Participants recipientType="otherAccount" {...defaultProps} allAccounts={accounts.slice(0, 1)} />

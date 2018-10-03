@@ -66,6 +66,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedAccount: Types.noAccountID,
   currencies: I.List(),
   currencyMap: I.Map(),
+  waitingForSetBuildingTo: false,
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -88,6 +89,8 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   isDefault: false,
   name: '',
 })
+
+const unknownAccount = makeAccount()
 
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
@@ -365,7 +368,7 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
 
 const getAccountName = (account: Types.Account) =>
   account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
@@ -379,7 +382,7 @@ const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
 const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
@@ -445,4 +448,5 @@ export {
   searchKey,
   shortenAccountID,
   statusSimplifiedToString,
+  unknownAccount,
 }

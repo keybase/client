@@ -3,7 +3,7 @@ import Participants from '.'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import {getAccount, getAccountIDs, searchKey} from '../../../constants/wallets'
+import {getAccount, getAccountIDs, searchKey, unknownAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
@@ -23,6 +23,7 @@ const mapStateToProps = (state: TypedState) => {
     .toArray()
   let fromAccount
   let toAccount
+  let showSpinner = state.wallets.waitingForSetBuildingTo
   if (build.recipientType === 'otherAccount') {
     const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
     fromAccount = {
@@ -37,6 +38,7 @@ const mapStateToProps = (state: TypedState) => {
         id: toAccountFromState.accountID,
         name: toAccountFromState.name || toAccountFromState.accountID,
       }
+      showSpinner = toAccountFromState === unknownAccount
     }
   }
 
@@ -56,6 +58,7 @@ const mapStateToProps = (state: TypedState) => {
     toAccount,
     toFieldInput,
     user: state.config.username,
+    showSpinner,
   }
 }
 

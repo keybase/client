@@ -6,24 +6,32 @@ import {AccountEntry} from '../../common'
 import type {Account} from '.'
 
 type DropdownTextProps = {
+  spinner?: boolean,
   text: string,
 }
 
 // A text selection, e.g., "Create a new account".
-export const DropdownText = ({text, ...props}: DropdownTextProps) => (
+export const DropdownText = ({text, spinner, ...props}: DropdownTextProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} fullWidth={true}>
+    {spinner && (
+      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
+    )}
     <Kb.Text type="BodySemibold">{text}</Kb.Text>
   </Kb.Box2>
 )
 
 type SelectedEntryProps = {
   account: Account,
+  spinner?: boolean,
   user: string,
 }
 
 // The display of the selected account in the dropdown.
-export const SelectedEntry = ({account, user, ...props}: SelectedEntryProps) => (
+export const SelectedEntry = ({account, spinner, user, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
+    {spinner && (
+      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
+    )}
     <Kb.Avatar size={16} username={user} />
     <Kb.Text type="BodySemibold" style={styles.text}>
       {account.name}
@@ -56,6 +64,17 @@ const styles = Styles.styleSheetCreate({
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
+    },
+  }),
+  spinner: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      height: 20,
+    },
+    isMobile: {
+      height: 28,
     },
   }),
   dropdownEntry: {

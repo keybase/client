@@ -179,6 +179,7 @@ export type _State = {
   selectedAccount: AccountID,
   currencies: I.List<Currency>,
   currencyMap: I.Map<AccountID, Currency>,
+  waitingForSetBuildingTo: boolean,
 }
 
 export type State = I.RecordOf<_State>
