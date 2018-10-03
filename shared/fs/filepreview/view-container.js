@@ -25,11 +25,9 @@ type Props = {
 }
 
 const mapStateToProps = (state: TypedState, {path}: Props) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeFile())
   return {
     _serverInfo: state.fs.localHTTPServerInfo,
-    mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
-    isSymlink: _pathItem.type === 'symlink',
+    _pathItem: state.fs.pathItems.get(path, Constants.makeFile()),
   }
 }
 
@@ -38,13 +36,13 @@ const mapDispatchToProps = (dispatch, {path}: Props) => ({
 })
 
 const mergeProps = (
-  {_serverInfo, mimeType, isSymlink},
+  {_serverInfo, _pathItem},
   {loadMimeType},
   {path, routePath, onLoadingStateChange}
 ) => ({
   url: Constants.generateFileURL(path, _serverInfo),
-  mimeType,
-  isSymlink,
+  mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
+  isSymlink: _pathItem.type === 'symlink',
   path,
   loadMimeType,
   routePath,
