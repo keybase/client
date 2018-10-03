@@ -12,7 +12,7 @@ const ff: FeatureFlags = {
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
   plansEnabled: false,
-  walletsEnabled: __DEV__,
+  walletsEnabled: false,
 }
 
 // load overrides
