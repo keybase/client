@@ -671,6 +671,7 @@ export const teamsAuditVersion = {
   v0: 0,
   v1: 1,
   v2: 2,
+  v3: 3,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {
