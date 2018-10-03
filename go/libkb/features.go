@@ -9,6 +9,10 @@ import (
 type Feature string
 type FeatureFlags []Feature
 
+const (
+	EnvironmentFeatureAllowHighSkips = Feature("env_allow_high_skips")
+)
+
 // StringToFeatureFlags returns a set of feature flags
 func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	s = strings.TrimSpace(s)
@@ -26,6 +30,15 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 func (set FeatureFlags) Admin() bool {
 	for _, f := range set {
 		if f == Feature("admin") {
+			return true
+		}
+	}
+	return false
+}
+
+func (set FeatureFlags) HasFeature(feature Feature) bool {
+	for _, f := range set {
+		if f == feature {
 			return true
 		}
 	}

@@ -141,6 +141,24 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	} else {
 		checkPerUserKeyring(t, tc.G, 0)
 	}
+
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
+	user, err := libkb.LoadUser(arg)
+	require.NoError(t, err)
+
+	var nextSeqno int
+	var postedSeqno int
+	if upgradePerUserKey {
+		nextSeqno = 7
+		postedSeqno = 4
+	} else {
+		nextSeqno = 5
+		postedSeqno = 3
+	}
+	nextExpected, err := user.GetExpectedNextHighSkip(libkb.NewMetaContextForTest(tc))
+	require.NoError(t, err)
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(nextSeqno))
+	assertPostedHighSkipSeqno(t, tc, user.GetName(), postedSeqno)
 }
 
 func TestRevokerPaperDeviceTwice(t *testing.T) {
