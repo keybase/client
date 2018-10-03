@@ -248,16 +248,21 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
 const startOutOfDateCheckLoop = () =>
   Saga.call(function*() {
     while (1) {
-      const {status, message} = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
-      if (status !== RPCTypes.configUpdateInfoStatus.upToDate) {
-        yield Saga.put(
-          ConfigGen.createOutOfDate({
-            critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
-            message,
-          })
-        )
+      try {
+        const {status, message} = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
+        if (status !== RPCTypes.configUpdateInfoStatus.upToDate) {
+          yield Saga.put(
+            ConfigGen.createOutOfDate({
+              critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+              message,
+            })
+          )
+        }
+        yield Saga.delay(3600 * 1000) // 1 hr
+      } catch (err) {
+        logger.warn('error getting update info: ', err)
+        yield Saga.delay(60 * 1000) // 1 min
       }
-      yield Saga.delay(3600 * 1000) // 1 hr
     }
   })
 
