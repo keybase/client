@@ -23,7 +23,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onCancelPayment: (paymentID: any) => dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onCancelPayment: (paymentID: StellarRPCTypes.PaymentID) =>
+    dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([

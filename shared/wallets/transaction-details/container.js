@@ -34,6 +34,8 @@ const mapStateToProps = (state: TypedState, ownProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+  _onCancelPayment: (paymentID: StellarRPCTypes.PaymentID) =>
+    dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
   navigateUp: () => dispatch(navigateUp()),
@@ -49,6 +51,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyMeta: stateProps.counterpartyMeta,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
+    onCancelPayment: tx.statusSimplified === 'claimable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
     onShowProfile: dispatchProps.onShowProfile,

@@ -1,9 +1,16 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
+import {Box2, Divider, Icon, NameWithIcon, Text, WaitingButton, WithTooltip} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
@@ -17,6 +24,7 @@ export type Props = {|
   // stellarPublicKey.
   memo: string,
   onBack: () => void,
+  onCancelPayment: ?() => void,
   title: string,
   onLoadPaymentDetail: () => void,
   onShowProfile: string => void,
@@ -197,7 +205,18 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Status:</Text>
-          <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
+          <WithTooltip
+            containerStyle={styles.statusBox}
+            text={
+              this.props.status === 'claimable'
+                ? `${
+                    this.props.counterparty
+                  } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
+                : ''
+            }
+            textStyle={styles.tooltipText}
+            multiline={true}
+          >
             <Icon
               color={colorForStatus(this.props.status)}
               fontSize={16}
@@ -218,13 +237,23 @@ class TransactionDetails extends React.Component<Props> {
             >
               {descriptionForStatus(this.props.status, this.props.yourRole)}
             </Text>
-          </Box2>
+          </WithTooltip>
           {this.props.status !== 'error' && (
             <TimestampLine
               status={this.props.status}
-              error={this.props.statusDetail}
+              error={this.props.status === 'error' ? this.props.statusDetail : ''}
               selectableText={true}
               timestamp={this.props.timestamp}
+            />
+          )}
+          {this.props.onCancelPayment && (
+            <WaitingButton
+              waitingKey={null}
+              type="Danger"
+              label="Cancel"
+              onClick={this.props.onCancelPayment}
+              small={true}
+              style={{alignSelf: 'flex-start'}}
             />
           )}
         </Box2>
@@ -267,9 +296,16 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.tiny,
   },
   statusBox: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'flex-start',
   },
   statusText: {
     marginLeft: globalMargins.xtiny,
   },
+  tooltipText: platformStyles({
+    isElectron: {
+      wordBreak: 'break-work',
+    },
+  }),
 })
