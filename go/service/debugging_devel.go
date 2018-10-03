@@ -128,7 +128,6 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			return "", fmt.Errorf("require 1 args: <recipient>")
 		}
 		recipient := args[0]
-		wh := t.G().TheService.(*Service).walletHandler
 		count := 30
 		var wg sync.WaitGroup
 		for i := 0; i < count; i++ {
@@ -145,7 +144,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			go func() {
 				defer wg.Done()
 				ctx := libkb.WithLogTagWithValue(ctx, "DGI", fmt.Sprintf("%vx", i))
-				res, err := wh.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+				res, err := t.walletHandler.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
 					SessionID:          500 + i,
 					FromPrimaryAccount: true,
 					To:                 recipient,

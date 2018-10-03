@@ -65,8 +65,6 @@ type Service struct {
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
-
-	walletHandler *walletHandler // xxx
 }
 
 type Shutdowner interface {
@@ -76,7 +74,7 @@ type Shutdowner interface {
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	chatG := globals.NewChatContextified(&globals.ChatContext{})
 	allG := globals.NewContext(g, chatG.ChatG())
-	service := &Service{
+	return &Service{
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: chatG,
 		isDaemon:         isDaemon,
@@ -91,8 +89,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
-	g.TheService = service
-	return service
 }
 
 func (d *Service) GetStartChannel() <-chan struct{} {
@@ -109,7 +105,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
-		keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
@@ -152,8 +147,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 	}
-	d.walletHandler = newWalletHandler(xp, g)
-	protocols = append(protocols, stellar1.LocalProtocol(d.walletHandler))
+	walletHandler := newWalletHandler(xp, g)
+	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return

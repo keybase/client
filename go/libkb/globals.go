@@ -97,7 +97,6 @@ type GlobalContext struct {
 	UI               UI                // Interact with the UI
 	Service          bool              // whether we're in server mode
 	Standalone       bool              // whether we're launched as standalone command
-	TheService       interface{}       // service.Service
 
 	shutdownOnce      *sync.Once         // whether we've shut down or not
 	ConnectionManager *ConnectionManager // keep tabs on all active client connections
