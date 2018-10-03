@@ -48,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     memo: tx.note.stringValue(),
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     // TODO -- waiting on CORE integration for this
     onRetryPayment: undefined,
     onSelectTransaction: () =>

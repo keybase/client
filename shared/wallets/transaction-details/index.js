@@ -184,6 +184,7 @@ class TransactionDetails extends React.Component<Props> {
           large={true}
           memo={this.props.memo}
           onCancelPayment={null}
+          onCancelPaymentWaitingKey=""
           onShowProfile={this.props.onShowProfile}
           selectableText={true}
           status={this.props.status}

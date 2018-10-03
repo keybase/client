@@ -44,6 +44,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
               ...s,
               ...t,
               onCancelPayment: null,
+              onCancelPaymentWaitingKey: '',
               onSelectTransaction: Sb.action('onSelectTransaction'),
               onShowProfile: Sb.action('onShowProfile'),
               selectableText: false,
@@ -65,61 +66,62 @@ const load = () => {
 
   addConfigs(stories, 'Keybase User', config => (
     <Transaction
+      {...config}
       counterparty="paul"
       counterpartyType="keybaseUser"
       amountUser="$12.50"
       amountXLM="53.1688643 XLM"
       status="completed"
       statusDetail=""
-      {...config}
     />
   ))
   addConfigs(stories, 'Stellar Public Key', config => (
     <Transaction
+      {...config}
       counterparty="G43289XXXXX34OPL"
       counterpartyType="stellarPublicKey"
       amountUser="$15.65"
       amountXLM="42.535091 XLM"
       status="completed"
       statusDetail=""
-      {...config}
     />
   ))
   addConfigs(stories, 'Account', config => (
     <Transaction
+      {...config}
       counterparty="Second account"
       counterpartyType="otherAccount"
       amountUser="$100"
       amountXLM="545.2562704 XLM"
       status="completed"
       statusDetail=""
-      {...config}
     />
   ))
   addConfigs(stories, 'No display currency', config => (
     <Transaction
+      {...config}
       counterparty="peter"
       counterpartyType="keybaseUser"
       amountUser=""
       amountXLM="19.4567588 XLM"
       status="completed"
       statusDetail=""
-      {...config}
     />
   ))
   addConfigs(stories, 'Keybase User - error', config => (
     <Transaction
+      {...config}
       counterparty="paul"
       counterpartyType="keybaseUser"
       amountUser="$12.50"
       amountXLM="53.1688643 XLM"
       status="error"
       statusDetail="Horizon error"
-      {...config}
     />
   ))
   addConfigs(stories, 'Keybase User - error with retry and cancel', config => (
     <Transaction
+      {...config}
       counterparty="paul"
       counterpartyType="keybaseUser"
       amountUser="$12.50"
@@ -128,7 +130,18 @@ const load = () => {
       statusDetail="Horizon error"
       onCancelPayment={Sb.action('onCancelPayment')}
       onRetryPayment={Sb.action('onRetryPayment')}
+    />
+  ))
+  addConfigs(stories, 'Keybase user - cancelable', config => (
+    <Transaction
       {...config}
+      counterparty="paul"
+      counterpartyType="keybaseUser"
+      amountUser="$12.50"
+      amountXLM="53.1688643 XLM"
+      status="cancelable"
+      statusDetail="Waiting for someone to claim"
+      onCancelPayment={Sb.action('onCancelPayment')}
     />
   ))
 }

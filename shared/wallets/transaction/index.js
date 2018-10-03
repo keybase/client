@@ -292,6 +292,7 @@ export type Props = {|
   // stellarPublicKey.
   memo: string,
   onCancelPayment: ?() => void,
+  onCancelPaymentWaitingKey: string,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
@@ -363,7 +364,7 @@ export const Transaction = (props: Props) => {
                     evt.stopPropagation()
                     props.onCancelPayment && props.onCancelPayment()
                   }}
-                  waitingKey={null}
+                  waitingKey={props.onCancelPaymentWaitingKey}
                 />
               )}
               <Box2 direction="horizontal" style={{flex: 1}} />
