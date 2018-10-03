@@ -432,6 +432,8 @@ const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + i
 const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
+const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -459,6 +461,7 @@ export {
   getSecretKey,
   getSelectedAccount,
   isAccountLoaded,
+  isFederatedAddress,
   linkExistingWaitingKey,
   loadAccountWaitingKey,
   loadEverythingWaitingKey,

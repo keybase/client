@@ -17,10 +17,12 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.builtPaymentReceived:
-      return state.set(
-        'builtPayment',
-        state.get('builtPayment').merge(Constants.makeBuiltPayment(action.payload.build))
-      )
+      return action.payload.forBuildingPayment === state.buildingPayment
+        ? state.set(
+            'builtPayment',
+            state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build))
+          )
+        : state
     case WalletsGen.clearBuildingPayment:
       return state.set('buildingPayment', Constants.makeBuildingPayment())
     case WalletsGen.clearBuiltPayment:

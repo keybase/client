@@ -1463,6 +1463,14 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+func (h *Server) getDownloadTempDir(basename string) (string, error) {
+	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(p, basename), nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1500,7 +1508,11 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		}
 		basepath := body.Attachment().Object.Filename
 		basename := path.Base(basepath)
-		f, err := os.OpenFile(filepath.Join(os.TempDir(), basename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		fullpath, err := h.getDownloadTempDir(basename)
+		if err != nil {
+			return res, err
+		}
+		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 		if err != nil {
 			return res, err
 		}
@@ -2105,10 +2117,10 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
@@ -2134,7 +2146,8 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 
@@ -2162,7 +2175,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.Opts)
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
 	if err != nil {
 		return res, err
 	}
@@ -2173,6 +2186,27 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		NumHits:   len(hits),
 	})
 	return chat1.GetSearchRegexpRes{
+		Hits:             hits,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) FullInboxSearch(ctx context.Context, arg chat1.FullInboxSearchArg) (res chat1.FullInboxSearchRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "FullInboxSearch")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	// TODO hook up uiCh/chatUI CORE-8901
+	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts)
+	if err != nil {
+		return res, err
+	}
+	return chat1.FullInboxSearchRes{
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
 	}, nil

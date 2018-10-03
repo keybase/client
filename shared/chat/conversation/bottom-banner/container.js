@@ -23,6 +23,7 @@ class BannerContainer extends React.PureComponent<Props> {
       case 'none':
         return null
     }
+    return null
   }
 }
 

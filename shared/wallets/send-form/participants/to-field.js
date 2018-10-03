@@ -7,6 +7,7 @@ import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import type {Account} from '.'
 import type {CounterpartyType} from '../../../constants/types/wallets'
+import {debounce} from 'lodash-es'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
@@ -55,6 +56,10 @@ class ToField extends React.Component<ToFieldProps> {
       }
     }
   }
+
+  _onChangeStellarRecipient = debounce((to: string) => {
+    this.props.onChangeRecipient(to)
+  }, 1e3)
 
   render() {
     let component
@@ -137,7 +142,7 @@ class ToField extends React.Component<ToFieldProps> {
             />
             <Kb.NewInput
               type="text"
-              onChangeText={this.props.onChangeRecipient}
+              onChangeText={this._onChangeStellarRecipient}
               textType="BodySemibold"
               placeholder={'Stellar address'}
               placeholderColor={Styles.globalColors.black_20}
@@ -216,6 +221,7 @@ const styles = Styles.styleSheetCreate({
   keybaseUserRemoveButton: {
     flex: 1,
     textAlign: 'right',
+    marginRight: Styles.globalMargins.tiny, // consistent with UserInput
   },
   stellarIcon: {
     alignSelf: 'flex-start',

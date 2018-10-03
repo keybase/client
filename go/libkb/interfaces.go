@@ -35,6 +35,7 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
@@ -536,7 +537,10 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
+	// `h` is the server provided sigHint. If the client can provide validated
+	// information it returns this. The verifiedSigHint is preferred over the
+	// server-trust one when displaying to users.
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 

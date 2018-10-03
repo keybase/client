@@ -83,8 +83,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
   let failureDescription = ''
+  let isErrorFixable = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
-    failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+    failureDescription = message.errorReason
+    if (stateProps.isYou && message.submitState === 'pending') {
+      // This is a message still in the outbox, we can retry/edit to fix
+      failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+      isErrorFixable = true
+    }
   }
 
   // Properties that are different between request/payment and text/attachment
@@ -125,11 +131,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
-    onCancel: stateProps.isYou
+    onCancel: isErrorFixable
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
-    onRetry: stateProps.isYou
+    onRetry: isErrorFixable
       ? () => {
           message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
         }
