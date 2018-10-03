@@ -179,7 +179,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       }
       return messageMap.updateIn(
         [conversationIDKey, ordinal],
-        old => (old ? Constants.upgradeMessage(old, message, false) : message)
+        old => (old ? Constants.upgradeMessage(old, message) : message)
       )
     }
     case Chat2Gen.messageWasEdited: {
@@ -562,13 +562,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             messages.forEach(message => {
               const m = canSendType(message)
               const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
-              const toSet = oldSentOrPending
-                ? Constants.upgradeMessage(oldSentOrPending, message, false)
-                : Constants.upgradeMessage(
-                    m ? previousMessageMap.getIn([conversationIDKey, m.ordinal]) : null,
-                    message,
-                    true
-                  )
+              let toSet
+              if (oldSentOrPending) {
+                toSet = Constants.upgradeMessage(oldSentOrPending, message)
+              } else {
+                toSet = Constants.mergeMessage(
+                  m ? previousMessageMap.getIn([conversationIDKey, m.ordinal]) : null,
+                  message
+                )
+              }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
           })

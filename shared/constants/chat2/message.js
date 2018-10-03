@@ -972,25 +972,23 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
-export const upgradeMessage = (_old: ?Types.Message, m: Types.Message, merge: boolean) => {
-  if (merge) {
-    if (_old) {
-      // $FlowIssue doens't understand mergeWith
-      return _old.mergeWith((oldVal, newVal, key) => {
-        if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
-          return oldVal.equals(newVal) ? oldVal : newVal
-        } else if (key === 'text') {
-          return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
-        }
-        return newVal === oldVal ? oldVal : newVal
-      }, m)
-    }
+export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
+  if (!old) {
     return m
   }
-  if (!_old) {
-    throw new Error('Upgrademessage no merge w/ null')
-  }
-  const old = _old
+
+  // $FlowIssue doens't understand mergeWith
+  return old.mergeWith((oldVal, newVal, key) => {
+    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+      return oldVal.equals(newVal) ? oldVal : newVal
+    } else if (key === 'text') {
+      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+    }
+    return newVal === oldVal ? oldVal : newVal
+  }, m)
+}
+
+export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
