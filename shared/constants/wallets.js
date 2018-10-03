@@ -45,7 +45,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
-  accountMap: I.Map(),
+  accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
