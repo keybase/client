@@ -580,7 +580,7 @@ export const userTlfHistoryRPCToState = (
 }
 
 export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
-  if (mime != null && mime.displayPreview) {
+  if (mime && mime.displayPreview) {
     const mimeType = mime.mimeType
     if (mimeType === 'text/plain') {
       return 'text'
