@@ -470,7 +470,7 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
 //   Text/HTML;Charset="utf-8"
 //   text/html; charset="utf-8"
 // The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeTypeFromContentType = (contentType, disposition: string): Types.Mime => {
+const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
   const ind = contentType.indexOf(';')
   const mimeType = (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
   return Constants.makeMime({mimeType, displayPreview: disposition !== 'attachment'})
@@ -487,7 +487,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: T
         }
         switch (statusCode) {
           case 200:
-            resolve(extractMimeTypeFromContentType(contentType || '', disposition || ''))
+            resolve(extractMimeFromContentType(contentType || '', disposition || ''))
             return
           case 403:
             reject(Constants.invalidTokenError)
