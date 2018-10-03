@@ -184,11 +184,13 @@ func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
 		return err
 	}
 
-	if blockPtr.ID.UseV2() != encryptedBlock.UsesV2() {
+	if idV2, blockV2 :=
+		blockPtr.ID.UseV2(), encryptedBlock.UsesV2(); idV2 != blockV2 {
 		// V2 block IDs MUST point to V2-encrypted blocks.
 		return errors.Errorf(
-			"Block ID %s and encrypted block disagree on encryption method",
-			blockPtr.ID)
+			"Block ID %s and encrypted block disagree on encryption method "+
+				"(block ID v2: %t, encrypted block v2: %t)",
+			blockPtr.ID, idV2, blockV2)
 	}
 
 	// decrypt the block
