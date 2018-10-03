@@ -18,7 +18,7 @@ type ConfirmSendProps = {|
   waiting?: boolean,
   encryptedNote?: string,
   publicMemo?: string,
-  banners: Array<BannerType>,
+  banners?: Array<BannerType>,
   sendFailed: boolean,
   waitingKey?: string,
 |}
@@ -33,7 +33,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         onBack={props.onBack}
       />
       <Kb.ScrollView style={styles.scrollView}>
-        {props.banners.map(banner => (
+        {(props.banners || []).map(banner => (
           <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
         ))}
         <Participants />

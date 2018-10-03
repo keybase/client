@@ -145,8 +145,10 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
+
 export type Banner = {|
-  bannerBackground: string,
+  bannerBackground: BannerBackground,
   bannerText: string,
 |}
 
