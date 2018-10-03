@@ -111,6 +111,10 @@ func (config testBlockOpsConfig) DataVersion() DataVer {
 	return ChildHolesDataVer
 }
 
+func (config testBlockOpsConfig) BlockCryptVersion() kbfscrypto.EncryptionVer {
+	return kbfscrypto.EncryptionSecretbox
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -22,6 +23,7 @@ type blockOpsConfig interface {
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	blockCryptVersioner
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying
@@ -152,7 +154,12 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	id, err = kbfsblock.MakePermanentID(buf)
+	switch b.config.BlockCryptVersion() {
+	case kbfscrypto.EncryptionSecretboxWithKeyNonce:
+		id, err = kbfsblock.MakePermanentIDV2(buf)
+	default:
+		id, err = kbfsblock.MakePermanentID(buf)
+	}
 	if err != nil {
 		return
 	}

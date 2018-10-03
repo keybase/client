@@ -158,6 +158,16 @@ func MakePermanentID(encodedEncryptedData []byte) (ID, error) {
 	return ID{h}, nil
 }
 
+// MakePermanentIDV2 computes the permanent ID of a block given its
+// encoded and encrypted contents using v2 encryption.
+func MakePermanentIDV2(encodedEncryptedData []byte) (ID, error) {
+	h, err := kbfshash.HashV2(encodedEncryptedData)
+	if err != nil {
+		return ID{}, err
+	}
+	return ID{h}, nil
+}
+
 // VerifyID verifies that the given block ID is the permanent block ID
 // for the given encoded and encrypted data.
 func VerifyID(encodedEncryptedData []byte, id ID) error {
