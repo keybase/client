@@ -181,6 +181,21 @@ const BOOL isDebug = NO;
       completionHandler(UIBackgroundFetchResultNewData);
       NSLog(@"Remote notification handle finished...");
     });
+  } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSError* err = nil;
+      NSString* convID = notification[@"convID"];
+      NSString* body = notification[@"m"];
+      int membersType = [notification[@"t"] intValue];
+      int messageID = [notification[@"msgID"] intValue];
+      KeybaseHandleBackgroundNotification(convID, body, membersType, false,
+                                          messageID, @"", 0, 0, @"", nil, &err);
+      if (err != nil) {
+        NSLog(@"Failed to handle in engine: %@", err);
+      }
+    });
+    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    completionHandler(UIBackgroundFetchResultNewData);
   } else {
     [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
