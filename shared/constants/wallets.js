@@ -201,6 +201,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     p.toAccountName,
     p.toAccountID || ''
   )
+  const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return makePayment({
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
@@ -213,7 +214,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
-    statusSimplified: statusSimplifiedToString[p.statusSimplified],
+    statusSimplified: serviceStatusSimplfied === 'claimable' ? 'cancelable' : serviceStatusSimplfied,
     target,
     targetAccountID: p.toAccountID,
     targetType,

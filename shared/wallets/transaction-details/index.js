@@ -208,7 +208,7 @@ class TransactionDetails extends React.Component<Props> {
           <WithTooltip
             containerStyle={styles.statusBox}
             text={
-              this.props.status === 'claimable'
+              this.props.status === 'cancelable'
                 ? `${
                     this.props.counterparty
                   } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
@@ -240,7 +240,6 @@ class TransactionDetails extends React.Component<Props> {
           </WithTooltip>
           {this.props.status !== 'error' && (
             <TimestampLine
-              status={this.props.status}
               error={this.props.status === 'error' ? this.props.statusDetail : ''}
               selectableText={true}
               timestamp={this.props.timestamp}

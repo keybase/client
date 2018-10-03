@@ -256,7 +256,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampLineProps = {|
   error: string,
-  status: Types.StatusSimplified,
+  status?: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
@@ -277,7 +277,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
+      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
     </Text>
   )
 }

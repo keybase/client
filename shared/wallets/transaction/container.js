@@ -46,7 +46,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     amountXLM: tx.amountDescription,
     large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
     memo: tx.note.stringValue(),
-    onCancelPayment: tx.statusSimplified === 'claimable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment:
+      tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     // TODO -- waiting on CORE integration for this
     onRetryPayment: undefined,
     onSelectTransaction: () =>
