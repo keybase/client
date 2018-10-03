@@ -31,7 +31,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
       return {
-        action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
+        action: paymentInfo.worth ? 'sent Lumens worth' : 'sent',
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
         balanceChangeColor:
@@ -54,14 +54,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         message.author === state.config.username
           ? {}
           : {
-              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' lumens worth ' : ' '}${
+              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
                 requestInfo.amountDescription
               }`,
             }
 
       return {
         ...sendProps,
-        action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
+        action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',

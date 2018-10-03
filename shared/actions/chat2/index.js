@@ -1670,22 +1670,26 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
       }
     }
 
-    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-        'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-        'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-      },
-      params: {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        filename: fileName,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        messageID: message.id,
-        preview: false,
-      },
-    })
+    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
+          'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
+          'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
+        },
+        params: {
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          filename: fileName,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          messageID: message.id,
+          preview: false,
+        },
+      }
+    )
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    return rpcRes.filename
   } catch (e) {}
+  return fileName
 }
 
 // Download an attachment to your device
@@ -2076,21 +2080,26 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.fileURLCached) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  }
+  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSave({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
+    yield Saga.call(saveAttachmentToCameraRoll, fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
   }
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSaved({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>

@@ -422,20 +422,30 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 }
 
 type UIPaymentInfo struct {
+	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
+	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
 	Status            stellar1.PaymentStatus `codec:"status" json:"status"`
 	StatusDescription string                 `codec:"statusDescription" json:"statusDescription"`
 }
 
 func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 	return UIPaymentInfo{
+		AccountID: (func(x *stellar1.AccountID) *stellar1.AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
+		PaymentID:         o.PaymentID.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		StatusDescription: o.StatusDescription,
 	}

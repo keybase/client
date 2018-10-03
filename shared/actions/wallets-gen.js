@@ -75,7 +75,10 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   assets: Array<Types.Assets>,
 |}>
 type _BuildPaymentPayload = void
-type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|
+  build: Types.BuiltPayment,
+  forBuildingPayment: Types.BuildingPayment,
+|}>
 type _CancelRequestPayload = $ReadOnly<{|
   conversationIDKey?: ChatTypes.ConversationIDKey,
   ordinal?: ChatTypes.Ordinal,
@@ -138,7 +141,7 @@ type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
+  paymentID: Types.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
@@ -148,10 +151,7 @@ type _LoadSendAssetChoicesPayload = $ReadOnly<{|
 |}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
-  publicMemo: HiddenString,
-  publicMemoType: string,
-  txID: string,
+  payment: Types.Payment,
 |}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,

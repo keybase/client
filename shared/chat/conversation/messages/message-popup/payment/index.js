@@ -33,6 +33,7 @@ type Props = {|
   attachTo?: () => ?React.Component<any>,
   onCancel: ?() => void, // if falsy tx is not cancelable
   onHidden: () => void,
+  onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
   visible: boolean,
 |}
@@ -91,19 +92,30 @@ const Header = (props: HeaderProps) =>
   )
 
 const PaymentPopup = (props: Props) => {
-  const items =
-    !props.loading && props.onCancel
-      ? [
-          {
-            danger: true,
-            onClick: props.onCancel,
-            title: 'Cancel request',
-          },
-        ]
-      : []
+  const items = !props.loading
+    ? [
+        ...(props.onCancel
+          ? [
+              {
+                danger: true,
+                onClick: props.onCancel,
+                title: 'Cancel request',
+              },
+            ]
+          : []),
+        ...(props.onSeeDetails
+          ? [
+              {
+                onClick: props.onSeeDetails,
+                title: 'See transaction details',
+              },
+            ]
+          : []),
+      ]
+    : []
 
   // separate out header props
-  const {attachTo, onCancel, onHidden, position, visible, ...headerProps} = props
+  const {attachTo, onCancel, onHidden, onSeeDetails, position, visible, ...headerProps} = props
   const header = {
     title: 'header',
     view: (

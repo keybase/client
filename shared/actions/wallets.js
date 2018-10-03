@@ -26,10 +26,13 @@ const buildPayment = (state: TypedState, action: any) =>
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
     to: state.wallets.buildingPayment.to,
-    toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
+    toIsAccountID:
+      state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
+      !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
   }).then(build =>
     WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
+      forBuildingPayment: state.wallets.buildingPayment,
     })
   )
 
@@ -209,14 +212,11 @@ const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsD
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
-    id: action.payload.paymentID,
+    id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
   }).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
-      paymentID: action.payload.paymentID,
-      publicMemo: new HiddenString(res.publicNote),
-      publicMemoType: res.publicNoteType,
-      txID: res.txID,
+      payment: Constants.paymentDetailResultToPayment(res),
     })
   )
 

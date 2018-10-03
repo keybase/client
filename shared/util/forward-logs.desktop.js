@@ -76,11 +76,11 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
     }
     const encoding = 'utf8'
     const logFd = setupFileWritable()
-    console.log('Using logFd = ', logFd)
     const writer = logFd ? fs.createWriteStream('', {fd: logFd}) : null
     if (!writer) {
-      console.warn('Error writing log lines to file')
-      reject(new Error('Error writing log lines to file'))
+      const err = 'Error writing log lines to file'
+      console.warn(err)
+      reject(new Error(err))
       return
     }
     let i = 0
@@ -89,13 +89,14 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
     function write() {
       let ok = true
       while (i < lines.length && ok) {
+        const line = JSON.stringify(lines[i]) + '\n'
         // last time!
         if (i === lines.length - 1) {
-          writer.write(JSON.stringify(lines[i]) + '\n', encoding, resolve)
+          writer.write(line, encoding, resolve)
         } else {
           // see if we should continue, or wait
           // don't pass the callback, because we're not done yet.
-          ok = writer.write(JSON.stringify(lines[i]) + '\n', encoding)
+          ok = writer.write(line, encoding)
         }
         i++
       }

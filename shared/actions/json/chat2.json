@@ -295,6 +295,16 @@
       "ordinal": "Types.Ordinal",
       "forShare?": "boolean"
     },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
     // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",

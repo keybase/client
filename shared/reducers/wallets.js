@@ -17,28 +17,28 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.builtPaymentReceived:
-      return state.set(
-        'builtPayment',
-        state.get('builtPayment').merge(Constants.makeBuiltPayment(action.payload.build))
-      )
+      return action.payload.forBuildingPayment === state.buildingPayment
+        ? state.set(
+            'builtPayment',
+            state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build))
+          )
+        : state
     case WalletsGen.clearBuildingPayment:
       return state.set('buildingPayment', Constants.makeBuildingPayment())
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
-        payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
-          payment.merge({
-            publicMemo: action.payload.publicMemo,
-            publicMemoType: action.payload.publicMemoType,
-            txID: action.payload.txID,
-          })
-        )
+      return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
+        Constants.updatePaymentMap(payments, [action.payload.payment])
       )
     case WalletsGen.paymentsReceived:
       return state
-        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
-        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+        .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+          Constants.updatePaymentMap(paymentsMap, action.payload.payments)
+        )
+        .updateIn(['pendingMap', action.payload.accountID], (pendingMap = I.Map()) =>
+          Constants.updatePaymentMap(pendingMap, action.payload.pending, true)
+        )
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:

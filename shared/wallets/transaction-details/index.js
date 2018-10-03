@@ -1,18 +1,19 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
+import {Box2, Divider, Icon, NameWithIcon, ProgressIndicator, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
-export type Props = {|
+export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  loading: false,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -33,6 +34,9 @@ export type Props = {|
   you: string,
   yourRole: Types.Role,
 |}
+export type Props =
+  | NotLoadingProps
+  | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
@@ -115,7 +119,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
   }
 }
 
-const propsToParties = (props: Props) => {
+const propsToParties = (props: NotLoadingProps) => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
@@ -158,100 +162,110 @@ const propsToParties = (props: Props) => {
   }
 }
 
-class TransactionDetails extends React.Component<Props> {
+const TransactionDetails = (props: NotLoadingProps) => {
+  const {sender, receiver} = propsToParties(props)
+  return (
+    <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+      <Transaction
+        amountUser={props.amountUser}
+        amountXLM={props.amountXLM}
+        counterparty={props.counterparty}
+        counterpartyType={props.counterpartyType}
+        large={true}
+        memo={props.memo}
+        onShowProfile={props.onShowProfile}
+        selectableText={true}
+        status={props.status}
+        statusDetail={props.statusDetail}
+        timestamp={props.timestamp}
+        yourRole={props.yourRole}
+      />
+      <Divider />
+
+      <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+        <Text type="BodySmallSemibold">Sender:</Text>
+        {sender}
+      </Box2>
+
+      <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+        <Text type="BodySmallSemibold">Recipient:</Text>
+        {receiver}
+      </Box2>
+
+      <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+        <Text type="BodySmallSemibold">Status:</Text>
+        <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
+          <Icon
+            color={colorForStatus(props.status)}
+            fontSize={16}
+            type={
+              props.status === 'error'
+                ? 'iconfont-close'
+                : props.status === 'completed'
+                  ? 'iconfont-success'
+                  : 'icon-transaction-pending-16'
+            }
+          />
+          <Text
+            style={collapseStyles([
+              styles.statusText,
+              {color: colorForStatus(props.status), marginLeft: globalMargins.xtiny},
+            ])}
+            type="Body"
+          >
+            {descriptionForStatus(props.status, props.yourRole)}
+          </Text>
+        </Box2>
+        {props.status !== 'error' && (
+          <TimestampLine
+            status={props.status}
+            error={props.statusDetail}
+            selectableText={true}
+            timestamp={props.timestamp}
+          />
+        )}
+      </Box2>
+
+      <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+        <Text type="BodySmallSemibold">Public memo:</Text>
+        <Text selectable={true} type="Body">
+          {props.publicMemo}
+        </Text>
+      </Box2>
+
+      <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+        <Text type="BodySmallSemibold">Transaction ID:</Text>
+        <Text selectable={true} type="Body">
+          {props.transactionID}
+        </Text>
+        {props.onViewTransaction && (
+          <Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
+            View transaction
+          </Text>
+        )}
+      </Box2>
+    </Box2>
+  )
+}
+
+class LoadTransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
-
   render() {
-    const {sender, receiver} = propsToParties(this.props)
-
-    return (
-      <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        <Transaction
-          amountUser={this.props.amountUser}
-          amountXLM={this.props.amountXLM}
-          counterparty={this.props.counterparty}
-          counterpartyType={this.props.counterpartyType}
-          large={true}
-          memo={this.props.memo}
-          onShowProfile={this.props.onShowProfile}
-          selectableText={true}
-          status={this.props.status}
-          statusDetail={this.props.statusDetail}
-          timestamp={this.props.timestamp}
-          yourRole={this.props.yourRole}
-        />
-        <Divider />
-
-        <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-          <Text type="BodySmallSemibold">Sender:</Text>
-          {sender}
+    if (this.props.loading) {
+      return (
+        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <ProgressIndicator style={styles.progressIndicator} />
         </Box2>
-
-        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Text type="BodySmallSemibold">Recipient:</Text>
-          {receiver}
-        </Box2>
-
-        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Text type="BodySmallSemibold">Status:</Text>
-          <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
-            <Icon
-              color={colorForStatus(this.props.status)}
-              fontSize={16}
-              type={
-                this.props.status === 'error'
-                  ? 'iconfont-close'
-                  : this.props.status === 'completed'
-                    ? 'iconfont-success'
-                    : 'icon-transaction-pending-16'
-              }
-            />
-            <Text
-              style={collapseStyles([
-                styles.statusText,
-                {color: colorForStatus(this.props.status), marginLeft: globalMargins.xtiny},
-              ])}
-              type="Body"
-            >
-              {descriptionForStatus(this.props.status, this.props.yourRole)}
-            </Text>
-          </Box2>
-          {this.props.status !== 'error' && (
-            <TimestampLine
-              status={this.props.status}
-              error={this.props.statusDetail}
-              selectableText={true}
-              timestamp={this.props.timestamp}
-            />
-          )}
-        </Box2>
-
-        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Text type="BodySmallSemibold">Public memo:</Text>
-          <Text selectable={true} type="Body">
-            {this.props.publicMemo}
-          </Text>
-        </Box2>
-
-        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Text type="BodySmallSemibold">Transaction ID:</Text>
-          <Text selectable={true} type="Body">
-            {this.props.transactionID}
-          </Text>
-          {this.props.onViewTransaction && (
-            <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
-              View transaction
-            </Text>
-          )}
-        </Box2>
-      </Box2>
-    )
+      )
+    }
+    const props: NotLoadingProps = this.props
+    return <TransactionDetails {...props} />
   }
 }
 
-export default TransactionDetails
+export default LoadTransactionDetails
 
 const styles = styleSheetCreate({
   container: {
@@ -261,6 +275,7 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     marginLeft: globalMargins.tiny,
   },
+  progressIndicator: {height: 50, width: 50},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

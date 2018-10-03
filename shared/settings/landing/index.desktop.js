@@ -129,6 +129,7 @@ function PlanActionVariants({variants, onClick}: {variants: PlanActionVariantsPr
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
+  return null
 }
 
 function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {

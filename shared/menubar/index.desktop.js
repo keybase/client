@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as ConfigTypes from '../constants/types/config'
 import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
@@ -9,14 +10,17 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
+import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 
 export type Props = {
   logIn: () => void,
   loggedIn: boolean,
+  updateNow: () => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
+  outOfDate?: ConfigTypes.OutOfDate,
   showInFinder: (tab: ?string) => void,
   quit: () => void,
   refresh: () => void,
@@ -67,6 +71,7 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
@@ -178,6 +183,7 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={styles.topRow}>
@@ -276,13 +282,11 @@ const BadgeIcon = ({
   }
 
   return (
-    <Kb.Box
-      style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
-      onClick={() => openApp(tab)}
-    >
+    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
-        hoverColor={Styles.globalColors.black_75}
+        hoverColor={Styles.globalColors.white}
+        onClick={() => openApp(tab)}
         fontSize={22}
         type={iconType}
       />

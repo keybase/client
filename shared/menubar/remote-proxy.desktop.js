@@ -63,6 +63,7 @@ const mapStateToProps = (state: TypedState) => ({
   broken: state.tracker.userTrackers,
   conversationsToSend: conversationsToSend(state),
   loggedIn: state.config.loggedIn,
+  outOfDate: state.config.outOfDate,
   username: state.config.username,
 })
 
@@ -96,6 +97,7 @@ const mergeProps = stateProps => {
     fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
+    outOfDate: stateProps.outOfDate,
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
