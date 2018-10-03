@@ -18,6 +18,7 @@ const Search = (props: Props) => (
           onExitSearch={props.onClose}
           autoFocus={true}
           placeholder={placeholder}
+          showServiceFilter={true}
         />
       </Box>
       <Box style={{...styleSearchRow, ...desktopStyles.scrollable, justifyContent: 'center'}}>

@@ -14,6 +14,7 @@ const Search = (props: Props) => (
       onExitSearch={props.onClose}
       autoFocus={true}
       placeholder={placeholder}
+      showServiceFilter={true}
     />
     <ResultsList searchKey={searchKey} onClick={props.onClick} disableListBuilding={true} />
   </StandardScreen>

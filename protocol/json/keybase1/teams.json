@@ -693,7 +693,8 @@
       "symbols": [
         "V0_0",
         "V1_1",
-        "V2_2"
+        "V2_2",
+        "V3_3"
       ]
     },
     {
@@ -1077,8 +1078,11 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          },
+          "name": "tlfIDs"
         },
         {
           "type": {
@@ -1609,6 +1613,17 @@
             "keys": "PerTeamKeyGeneration"
           },
           "name": "needApplicationsAtGenerations"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerationsWithKBFS"
         },
         {
           "type": {
@@ -2859,6 +2874,10 @@
         {
           "name": "refreshers",
           "type": "TeamRefreshers"
+        },
+        {
+          "name": "includeKBFSKeys",
+          "type": "boolean"
         }
       ],
       "response": "TeamPlusApplicationKeys",

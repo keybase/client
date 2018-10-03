@@ -644,6 +644,7 @@ export const simpleFSKBFSArchivedType = {
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
+  filterSystemHidden: 2,
 }
 
 export const simpleFSOpenFlags = {
@@ -670,6 +671,7 @@ export const teamsAuditVersion = {
   v0: 0,
   v1: 1,
   v2: 2,
+  v3: 3,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {

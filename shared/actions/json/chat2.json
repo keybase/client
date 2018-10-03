@@ -7,6 +7,7 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
+    "toggleSmallTeamsExpanded": {},
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -294,6 +295,16 @@
       "ordinal": "Types.Ordinal",
       "forShare?": "boolean"
     },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
     // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -423,6 +434,12 @@
       "_description":
         "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     },
+    "setWalletsOld": {
+      "_description": "Set that wallets in chat is not new."
+    },
+    "handleSeeingWallets": {
+      "_description": "The user has interacted with wallets in chat."
+    },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
@@ -456,6 +473,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "requestInfo": "Types.ChatRequestInfo"
+    },
+    "prepareFulfillRequestForm": {
+      "_description": "Prime data to fulfill this message's request and navigate to the send form.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     }
   }
 }

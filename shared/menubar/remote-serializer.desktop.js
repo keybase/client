@@ -29,7 +29,10 @@ export const serialize = {
   endEstimate: v => v,
   externalRemoteWindow: v => v,
   fileName: v => v,
-  fileRows: v => v.map(t => GetRowsFromTlfUpdate(t)).toArray(),
+  fileRows: (v, o) =>
+    o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
+      ? null
+      : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
   files: v => v,
   loggedIn: v => v,
   totalSyncingBytes: v => v,
@@ -47,6 +50,7 @@ const initialState = {
   config: {},
   conversationIDs: [],
   conversationMap: {},
+  fileRows: [],
 }
 export const deserialize = (state: any = initialState, props: any) => {
   if (!props) return state
@@ -73,6 +77,7 @@ export const deserialize = (state: any = initialState, props: any) => {
     badgeMap,
     conversationMap,
     conversations: (props.conversationIDs || state.conversationIDs).map(id => conversationMap[id]),
+    fileRows: props.fileRows || state.fileRows,
   }
   return Avatar.deserialize(newState, props)
 }

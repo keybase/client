@@ -2090,7 +2090,7 @@ func (t *teamSigchainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 
 func (t *teamSigchainPlayer) parseKBFSTLFUpgrade(upgrade *SCTeamKBFS, newState *TeamSigChainState) error {
 	if upgrade.TLF != nil {
-		newState.inner.TlfID = upgrade.TLF.ID
+		newState.inner.TlfIDs = append(newState.inner.TlfIDs, upgrade.TLF.ID)
 	}
 	if upgrade.Keyset != nil {
 		if newState.inner.TlfLegacyUpgrade == nil {

@@ -194,5 +194,6 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		l.innerLinkID,
 		linkType,
 		useSeqType,
-		l.inner.IgnoreIfUnsupported)
+		l.inner.IgnoreIfUnsupported,
+		nil)
 }

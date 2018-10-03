@@ -10,13 +10,13 @@ import {remoteConnect, compose} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash'
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   _username: state.username,
   _userTlfUpdates: state.fileRows,
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
+  _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) => dispatch(FsGen.createOpenFilesFromWidget({path, type})),
   loadTlfUpdates: () => dispatch(FsGen.createUserFileEditsLoad()),
 })
 
@@ -27,7 +27,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
-      onSelectPath: () => dispatchProps._onSelectPath(c.tlf),
+      onSelectPath: () => dispatchProps._onSelectPath(c.tlf, 'folder'),
       tlf,
       // Default to private visibility--this should never happen though.
       tlfType: FsTypes.getPathVisibility(c.tlf) || 'private',
@@ -36,9 +36,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
       teamname: teamname || '',
       iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
-      updates: c.updates.map(u => ({
-        name: FsTypes.getPathName(u),
-        onClick: () => dispatchProps._onSelectPath(u),
+      updates: c.updates.map(({path, uploading}) => ({
+        name: FsTypes.getPathName(path),
+        uploading,
+        onClick: () => dispatchProps._onSelectPath(path, 'file'),
       })),
     }
   }),
@@ -62,7 +63,6 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  TlfUpdateHoc,
-)(FilesPreview)
+export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps), TlfUpdateHoc)(
+  FilesPreview
+)

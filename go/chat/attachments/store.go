@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-crypto/ed25519"
@@ -379,7 +380,7 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 	// a bunch of these calls for a given playback session.
 	source := newS3Seeker(ctx, a.GetLog(), asset, b)
 	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
-		libkb.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
+		kbcrypto.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
 }
 
 func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {

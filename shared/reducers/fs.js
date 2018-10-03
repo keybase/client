@@ -7,6 +7,19 @@ import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
+const coalesceFolderUpdate = (
+  original: Types.FolderPathItem,
+  updated: Types.FolderPathItem
+): Types.FolderPathItem =>
+  // We don't want to override a loaded folder into pending, because otherwise
+  // next time user goes into that folder we'd show placeholders. We also don't
+  // want to simply use the original PathItem, since it's possible some
+  // metadata has updated. So use the new item, but reuse children and
+  // progress.
+  original.progress === 'loaded' && updated.progress === 'pending'
+    ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
+    : updated
+
 export default function(state: Types.State = initialState, action: FsGen.Actions) {
   switch (action.type) {
     case FsGen.resetStore:
@@ -14,7 +27,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
-        if (!original || original.type !== 'file' || meta.type !== 'file') {
+
+        // Since updateIn passes `original` in as `any`, it may not be an
+        // actual PathItem.
+        if (!original) {
+          return meta
+        }
+
+        if (original.type === 'folder' && meta.type === 'folder') {
+          return coalesceFolderUpdate(original, meta)
+        } else if (original.type !== 'file' || meta.type !== 'file') {
           return meta
         }
 
@@ -39,17 +61,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         const originalFolder: Types.FolderPathItem = original
         let newItem: Types.FolderPathItem = item
 
-        if (originalFolder.progress === 'loaded' && item.progress === 'pending') {
-          // We don't want to override a loaded folder into pending, because
-          // otherwise next time user goes into that folder we'd show
-          // placeholders. We also don't want to simply use the original
-          // PathItem, since it's possible some metadata has updated. So use
-          // the new item, but reuse children and progress.
-          if (originalFolder.type === 'folder' && item.type === 'folder') {
-            // make flow happy
-            newItem = item.set('children', originalFolder.children).set('progress', 'loaded')
-          }
-        }
+        newItem = coalesceFolderUpdate(originalFolder, newItem)
 
         originalFolder.children.forEach(
           name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
@@ -57,15 +69,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         return newItem
       })
-      return state
-        .set(
-          'pathItems',
-          state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
-        )
-        .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+      return state.set(
+        'pathItems',
+        state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
+      )
     }
-    case FsGen.folderListLoad:
-      return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
+    case FsGen.loadingPath:
+      return state.updateIn(
+        ['loadingPaths', action.payload.path],
+        set =>
+          action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
+      )
     case FsGen.favoritesLoaded:
       return state.set(
         'tlfs',
@@ -161,7 +175,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(
         ['pathItems', action.payload.path],
         pathItem =>
-          pathItem && pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
+          pathItem
+            ? pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
+            : Constants.makeFile({mimeType: action.payload.mimeType, name: Types.getPathName(action.payload.path)}),
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
@@ -244,6 +260,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:

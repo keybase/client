@@ -35,6 +35,7 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
@@ -536,7 +537,10 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
+	// `h` is the server provided sigHint. If the client can provide validated
+	// information it returns this. The verifiedSigHint is preferred over the
+	// server-trust one when displaying to users.
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 
@@ -752,19 +756,25 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
-	// a username and a fullname, and when the mapping was loaded from the server. It blocks
-	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
-	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
-	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
-	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
-	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
-	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
-	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username
+	// packages, which include a username and a fullname, and when the mapping
+	// was loaded from the server. It blocks on the network until all usernames
+	// are known. If the `forceNetworkForFullNames` flag is specified, it will
+	// block on the network too. If the flag is not specified, then stale
+	// values (or unknown values) are OK, we won't go to network if we lack
+	// them. All network calls are limited by the given timeBudget, or if 0 is
+	// specified, there is indefinite budget. In the response, a nil
+	// FullNamePackage means that the lookup failed. A non-nil FullNamePackage
+	// means that some previous lookup worked, but might be arbitrarily out of
+	// date (depending on the cachedAt time). A non-nil FullNamePackage with an
+	// empty fullName field means that the user just hasn't supplied a
+	// fullName.
 	//
-	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
-	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
-	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+	// *NOTE* that this function can return useful data and an error. In this
+	// regard, the error is more like a warning. But if, for instance, the
+	// mapper runs out of time budget, it will return the data
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+		networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*

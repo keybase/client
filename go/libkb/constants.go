@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -159,6 +158,9 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
+// SigVersion describes how the signature is computed. In signatures v1, the payload is a JSON
+// blob. In Signature V2, it's a Msgpack wrapper that points via SHA256 to the V1 blob.
+// V2 sigs allow for bandwidth-saving eliding of signature bodies that aren't relevant to clients.
 type SigVersion int
 
 const (
@@ -168,7 +170,6 @@ const (
 )
 
 const (
-	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
 	SigExpireIn            = OneYearInSeconds * 16 // 16 years
@@ -309,10 +310,6 @@ const (
 )
 
 const (
-	IDSuffixKID = 0x0a
-)
-
-const (
 	MerkleTreeNode = 1
 	MerkleTreeLeaf = 2
 )
@@ -448,63 +445,6 @@ const (
 	HTTPRetryCount          = 6
 )
 
-type PacketVersion int
-
-const (
-	KeybasePacketV1 PacketVersion = 1
-)
-
-// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
-// be backwards compatible with older versions of codec that encoded
-// positive ints as uints.
-type PacketTag uint
-
-const (
-	TagP3skb      PacketTag = 513
-	TagSignature  PacketTag = 514
-	TagEncryption PacketTag = 515
-)
-
-func (t PacketTag) String() string {
-	switch t {
-	case TagP3skb:
-		return "PacketTag(P3skb)"
-	case TagSignature:
-		return "PacketTag(Signature)"
-	case TagEncryption:
-		return "PacketTag(Encryption)"
-	default:
-		return fmt.Sprintf("PacketTag(%d)", uint(t))
-	}
-}
-
-const (
-	KIDPGPBase    AlgoType = 0x00
-	KIDPGPRsa     AlgoType = 0x1
-	KIDPGPElgamal AlgoType = 0x10
-	KIDPGPDsa     AlgoType = 0x11
-	KIDPGPEcdh    AlgoType = 0x12
-	KIDPGPEcdsa   AlgoType = 0x13
-	KIDPGPEddsa   AlgoType = 0x16
-	KIDNaclEddsa  AlgoType = 0x20
-	KIDNaclDH     AlgoType = 0x21
-)
-
-// OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
-const (
-	HashPGPMd5       = 1
-	HashPGPSha1      = 2
-	HashPGPRipemd160 = 3
-	HashPGPSha256    = 8
-	HashPGPSha384    = 9
-	HashPGPSha512    = 10
-	HashPGPSha224    = 11
-)
-
-const (
-	SigKbEddsa = KIDNaclEddsa
-)
-
 const (
 	ServerUpdateLag = time.Minute
 )
@@ -568,7 +508,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 6
+const MinPassphraseLength = 8
 
 const TrackingRateLimitSeconds = 50
 
@@ -600,17 +540,6 @@ const (
 
 const (
 	PGPAssertionKey = "pgp"
-)
-
-const (
-	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
-	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
-	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
-	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
-	// Chat prefixes for each MessageBoxedVersion.
-	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
-	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
 )
 
 const (

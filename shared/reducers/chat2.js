@@ -240,6 +240,20 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', 0).set('transferState', null)
       })
+    case Chat2Gen.attachmentMobileSave:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', 'mobileSaving')
+      })
+    case Chat2Gen.attachmentMobileSaved:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', null)
+      })
     case Chat2Gen.attachmentDownload:
       if (!action.payload.forShare) {
         return messageMap
@@ -328,7 +342,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    // fallthrough actually select it
+    case Chat2Gen.toggleSmallTeamsExpanded:
+      return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {
@@ -785,6 +800,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const {conversationIDKey, messageID, requestInfo} = action.payload
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
+    case Chat2Gen.handleSeeingWallets: // fallthrough
+    case Chat2Gen.setWalletsOld:
+      return state.isWalletsNew ? state.set('isWalletsNew', false) : state
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -795,6 +813,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
+    case Chat2Gen.attachmentMobileSave:
+    case Chat2Gen.attachmentMobileSaved:
     case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
@@ -844,6 +864,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:
+    case Chat2Gen.prepareFulfillRequestForm:
       return state
     default:
       /*::

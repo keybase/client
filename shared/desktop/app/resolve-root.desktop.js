@@ -14,13 +14,16 @@ if (__STORYBOOK__) {
   root = !__DEV__ ? path.join(SafeElectron.getApp().getAppPath(), './desktop') : path.join(__dirname, '..')
 }
 
-function fix(str) {
-  return encodeURI(str && str.replace(new RegExp('\\' + path.sep, 'g'), '/'))
-}
+const fixRegExp = new RegExp('\\' + path.sep, 'g')
+
+const fixPath = path.sep === '/' ? s => s : s => (s ? s.replace(fixRegExp, '/') : s)
+const fix = s => encodeURI(fixPath(s))
+
+const imageRoot = path.resolve(root, '..', 'images')
 
 export const resolveRoot = (...to: any) => path.resolve(root, ...to)
 export const resolveRootAsURL = (...to: any) => `${prefix}${fix(resolveRoot(resolveRoot(...to)))}`
-export const resolveImage = (...to: any) => path.resolve(root, '..', 'images', ...to)
+export const resolveImage = (...to: any) => path.join(imageRoot, ...to)
 export const resolveImageAsURL = (...to: any) => `${prefix}${fix(resolveImage(...to))}`
 
 export default resolveRoot

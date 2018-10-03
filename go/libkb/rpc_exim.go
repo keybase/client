@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -66,7 +67,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt
@@ -422,7 +423,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := VerificationError{}
+		ret := kbcrypto.VerificationError{}
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
@@ -1914,16 +1915,6 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
-		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
-		},
-	}
-}
-
-func (e VerificationError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCSigCannotVerify,
-		Name: "SC_SIG_CANNOT_VERIFY",
 		Fields: []keybase1.StringKVPair{
 			{Key: "Cause", Value: e.Cause.Error()},
 		},

@@ -5,12 +5,13 @@ import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
+import {SmallAccountID} from '../common'
 
 export type Props = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
@@ -18,8 +19,12 @@ export type Props = {|
   onBack: () => void,
   title: string,
   onLoadPaymentDetail: () => void,
+  onShowProfile: string => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  recipientAccountID: ?Types.AccountID,
+  selectableText: boolean,
+  senderAccountID: Types.AccountID,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -30,9 +35,11 @@ export type Props = {|
 |}
 
 type CounterpartyProps = {|
+  accountID: ?Types.AccountID,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -41,8 +48,11 @@ const Counterparty = (props: CounterpartyProps) => {
       <NameWithIcon
         colorFollowing={true}
         horizontal={true}
+        onClick={() => props.onShowProfile(props.counterparty)}
         username={props.counterparty}
         metaOne={props.counterpartyMeta}
+        underline={true}
+        metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
       />
     )
   }
@@ -53,15 +63,19 @@ const Counterparty = (props: CounterpartyProps) => {
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
         large={false}
+        onShowProfile={props.onShowProfile}
       />
       <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           large={false}
+          onShowProfile={props.onShowProfile}
           showFullKey={true}
           textType="BodySemibold"
         />
+        {props.counterpartyType !== 'stellarPublicKey' &&
+          props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Box2>
     </Box2>
   )
@@ -102,12 +116,27 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: Props) => {
-  const you = <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
+  const counterpartyAccountID =
+    props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
+  const you = (
+    <NameWithIcon
+      colorFollowing={true}
+      horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
+      username={props.you}
+      metaOne="You"
+      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+    />
+  )
   const counterparty = (
     <Counterparty
+      accountID={counterpartyAccountID}
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}
+      onShowProfile={props.onShowProfile}
     />
   )
 
@@ -146,6 +175,8 @@ class TransactionDetails extends React.Component<Props> {
           counterpartyType={this.props.counterpartyType}
           large={true}
           memo={this.props.memo}
+          onShowProfile={this.props.onShowProfile}
+          selectableText={true}
           status={this.props.status}
           statusDetail={this.props.statusDetail}
           timestamp={this.props.timestamp}
@@ -191,7 +222,7 @@ class TransactionDetails extends React.Component<Props> {
             <TimestampLine
               status={this.props.status}
               error={this.props.statusDetail}
-              relative={false}
+              selectableText={true}
               timestamp={this.props.timestamp}
             />
           )}
@@ -199,12 +230,16 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Public memo:</Text>
-          <Text type="Body">{this.props.publicMemo}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.publicMemo}
+          </Text>
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Transaction ID:</Text>
-          <Text type="Body">{this.props.transactionID}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.transactionID}
+          </Text>
           {this.props.onViewTransaction && (
             <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction

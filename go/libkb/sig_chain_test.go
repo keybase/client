@@ -198,6 +198,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Run the actual sigchain parsing and verification. This is most of the
 	// code that's actually being tested.
 	var sigchainErr error
+	m := NewMetaContextForTest(tc)
 	ckf := ComputedKeyFamily{Contextified: NewContextified(tc.G), kf: keyFamily}
 	sigchain := SigChain{
 		username:          NewNormalizedUsername(input.Username),
@@ -212,7 +213,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 			sigchainErr = err
 			break
 		}
-		link, err := ImportLinkFromServer(tc.G, &sigchain, rawLinkBlob, uid)
+		link, err := ImportLinkFromServer(m, &sigchain, rawLinkBlob, uid)
 		if err != nil {
 			sigchainErr = err
 			break
@@ -224,7 +225,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf, uid)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -264,7 +265,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
 
-	idtable, err := NewIdentityTable(tc.G, eldestKID, &sigchain, nil)
+	idtable, err := NewIdentityTable(NewMetaContextForTest(tc), eldestKID, &sigchain, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

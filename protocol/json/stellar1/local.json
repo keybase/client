@@ -159,6 +159,14 @@
           "name": "worthCurrency"
         },
         {
+          "type": "string",
+          "name": "currentWorth"
+        },
+        {
+          "type": "string",
+          "name": "currentWorthCurrency"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -305,6 +313,14 @@
         {
           "type": "string",
           "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "currentWorth"
+        },
+        {
+          "type": "string",
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",

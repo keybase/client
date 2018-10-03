@@ -6,6 +6,7 @@ package engine
 import (
 	"sync"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
@@ -50,7 +51,7 @@ func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func()
 		return
 	}
 
-	sig := *kp.Private.Sign(arg.Msg)
+	sig := kp.Private.Sign(arg.Msg)
 	publicKey := kp.Public
 	ret = keybase1.ED25519SignatureInfo{
 		Sig:       keybase1.ED25519Signature(sig),
@@ -74,8 +75,8 @@ func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI
 		return
 	}
 
-	var sigInfo *libkb.NaclSigInfo
-	sigInfo, err = kp.SignV2(arg.Msg, libkb.SignaturePrefixKBFS)
+	var sigInfo kbcrypto.NaclSigInfo
+	sigInfo, err = kp.SignV2(arg.Msg, kbcrypto.SignaturePrefixKBFS)
 	if err != nil {
 		return
 	}

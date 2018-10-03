@@ -64,6 +64,10 @@ const AccountSettings = (props: SettingsProps) => {
           <HoverText type="BodySemibold">{props.name}</HoverText>
           <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="iconfont-edit" />
         </Kb.ClickableBox>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="BodySmallSemibold">Stellar address</Kb.Text>
+          <Kb.CopyText text={props.accountID} containerStyle={styles.accountIDContainer} />
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
         </Kb.Box2>
@@ -140,6 +144,11 @@ const AccountSettings = (props: SettingsProps) => {
 const styles = Styles.styleSheetCreate({
   accountBox: {
     marginBottom: Styles.globalMargins.medium,
+  },
+  accountIDContainer: {
+    alignSelf: 'flex-start',
+    marginBottom: Styles.globalMargins.medium,
+    maxWidth: '100%',
   },
   deleteOpacity: {
     opacity: 0.3,

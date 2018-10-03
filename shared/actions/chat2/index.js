@@ -10,12 +10,15 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as WalletsGen from '../wallets-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
+import * as WalletTypes from '../../constants/types/wallets'
+import * as WalletConstants from '../../constants/wallets'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
@@ -1667,22 +1670,26 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
       }
     }
 
-    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-        'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-        'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-      },
-      params: {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        filename: fileName,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        messageID: message.id,
-        preview: false,
-      },
-    })
+    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
+          'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
+          'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
+        },
+        params: {
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          filename: fileName,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          messageID: message.id,
+          preview: false,
+        },
+      }
+    )
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    return rpcRes.filename
   } catch (e) {}
+  return fileName
 }
 
 // Download an attachment to your device
@@ -2073,21 +2080,26 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.fileURLCached) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  }
+  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSave({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
+    yield Saga.call(saveAttachmentToCameraRoll, fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
   }
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSaved({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
@@ -2344,6 +2356,30 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
+function* handleSeeingWallets(action: Chat2Gen.HandleSeeingWalletsPayload) {
+  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenWallets = gregorState.items.some(i => i.item.category === Constants.seenWalletsGregorKey)
+  if (seenWallets) {
+    logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
+    return
+  }
+  try {
+    logger.info('handleSeeingWallets: setting seenWalletsGregorKey')
+    yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      body: 'true',
+      category: Constants.seenWalletsGregorKey,
+      dtime: {time: 0, offset: 0},
+    })
+    logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey')
+  } catch (err) {
+    logger.error(
+      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${
+        err.message
+      }`
+    )
+  }
+}
+
 const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   !state.chat2.staticConfig &&
   Saga.sequentially([
@@ -2461,7 +2497,7 @@ const openChatFromWidget = (
       : []),
   ])
 
-const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
+const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) => {
   const actions = []
   const items = action.payload.state
 
@@ -2497,7 +2533,57 @@ const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
     }
   }
   actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew})))
+
+  const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
+  if (seenWallets && state.chat2.isWalletsNew) {
+    logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
+    actions.push(Saga.put(Chat2Gen.createSetWalletsOld()))
+  }
+
   return Saga.sequentially(actions)
+}
+
+const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFulfillRequestFormPayload) => {
+  const {conversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  if (!message) {
+    logger.error(
+      `prepareFulfillRequestForm: couldn't find message. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
+        ordinal
+      )}`
+    )
+    return
+  }
+  if (message.type !== 'requestPayment') {
+    logger.error(
+      `prepareFulfillRequestForm: got message with incorrect type '${
+        message.type
+      }', expected 'requestPayment'. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(ordinal)}`
+    )
+    return
+  }
+  const requestInfo = Constants.getRequestMessageInfo(state, message)
+  if (!requestInfo) {
+    // This message shouldn't even be rendered; we shouldn't be here, throw error
+    throw new Error(
+      `Couldn't find request info for message in convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
+        ordinal
+      )}`
+    )
+  }
+  return Saga.sequentially(
+    [
+      ...(requestInfo.currencyCode
+        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
+        : []),
+      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
+      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
+      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
+      WalletsGen.createSetBuildingTo({to: message.author}),
+      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
+      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
+    ].map(action => Saga.put(action))
+  )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2638,6 +2724,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
+  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingWallets, handleSeeingWallets)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
@@ -2645,6 +2732,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
+  yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 
 export default chat2Saga

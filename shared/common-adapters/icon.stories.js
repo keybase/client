@@ -41,25 +41,45 @@ const load = () => {
 
   Sb.storiesOf('Common', module)
     .addDecorator(Sb.scrollViewDecorator)
-    .add('Icon', () =>
-      Object.keys(sizes).map(size => (
-        <Box key={size}>
-          <Text type="Body">{size}</Text>
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              justifyContent: 'flex-start',
-            }}
-          >
-            {sizes[size].map(type => (
-              <Icon key={type} type={type} {...commonProps} onClick={() => commonProps.onClick(type)} />
-            ))}
-          </Box>
+    .add('Icon', () => (
+      <Box>
+        <Text type="Body">Red on hover</Text>
+        <Icon
+          key="hoverColor"
+          type="iconfont-add"
+          {...commonProps}
+          onClick={() => commonProps.onClick('iconfont-add')}
+          hoverColor={globalColors.red}
+        />
+        <Text type="Body">Red due to inherit </Text>
+        <Box style={isMobile ? {} : {color: 'red'}}>
+          <Icon
+            key="inherit"
+            type="iconfont-add"
+            {...commonProps}
+            onClick={() => commonProps.onClick('iconfont-add')}
+            inheritColor={true}
+          />
         </Box>
-      ))
-    )
+        {Object.keys(sizes).map(size => (
+          <Box key={size}>
+            <Text type="Body">{size}</Text>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'flex-start',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-start',
+              }}
+            >
+              {sizes[size].map(type => (
+                <Icon key={type} type={type} {...commonProps} onClick={() => commonProps.onClick(type)} />
+              ))}
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    ))
 }
 
 export default load

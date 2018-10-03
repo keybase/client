@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
+import * as Kb from '../common-adapters'
 import Menubar from './index.desktop'
+import {FileUpdate} from './files.desktop'
 
 const props = {
   badgeInfo: {
@@ -23,6 +25,7 @@ const props = {
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
   openApp: Storybook.action('openApp'),
+  showInFinder: Storybook.action('showInFinder'),
   quit: Storybook.action('quit'),
   refresh: Storybook.action('refresh'),
   showBug: Storybook.action('showBug'),
@@ -84,6 +87,14 @@ const load = () => {
       />
     ))
     .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
+    .add('FileUpdate', () => (
+      <Kb.Box2 direction="vertical">
+        <FileUpdate name="foo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
+        <FileUpdate name="bar" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
+        <FileUpdate name="cow" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
+        <FileUpdate name="poo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
+      </Kb.Box2>
+    ))
 }
 
 export default load
