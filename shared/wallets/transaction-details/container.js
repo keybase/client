@@ -53,6 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onBack: dispatchProps.navigateUp,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
     onShowProfile: dispatchProps.onShowProfile,

@@ -25,6 +25,7 @@ export type Props = {|
   memo: string,
   onBack: () => void,
   onCancelPayment: ?() => void,
+  onCancelPaymentWaitingKey: string,
   title: string,
   onLoadPaymentDetail: () => void,
   onShowProfile: string => void,
@@ -248,7 +249,7 @@ class TransactionDetails extends React.Component<Props> {
           )}
           {this.props.onCancelPayment && (
             <WaitingButton
-              waitingKey={null}
+              waitingKey={this.props.onCancelPaymentWaitingKey}
               type="Danger"
               label="Cancel"
               onClick={this.props.onCancelPayment}
