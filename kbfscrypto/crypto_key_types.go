@@ -693,11 +693,11 @@ func MakeBlockHashKey(
 }
 
 func (bhk BlockHashKey) cryptKey() (key [32]byte) {
-	copy(key[:], bhk.data[:32])
+	copy(key[:], bhk.data[:len(key)])
 	return key
 }
 
 func (bhk BlockHashKey) nonce() (n [24]byte) {
-	copy(n[:], bhk.data[32:56])
+	copy(n[:], bhk.data[32:32+len(n)])
 	return n
 }
