@@ -62,7 +62,8 @@ const sendPayment = (state: TypedState) =>
       secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
       to: state.wallets.buildingPayment.to,
       toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
-      worthAmount: '5000',
+      // FIXME: use chosen currency info here
+      worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
   )
