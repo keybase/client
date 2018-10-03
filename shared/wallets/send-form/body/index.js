@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box2, Divider, ProgressIndicator} from '../../../common-adapters'
 import {globalStyles, styleSheetCreate} from '../../../styles'
 import AssetInput from '../asset-input/container'
-import Banner from '../../banner/container'
+import Banner from '../../banner'
 import Footer from '../footer/container'
 import NoteAndMemo from '../note-and-memo/container'
 import Participants from '../participants/container'
@@ -24,7 +24,7 @@ const Spinner = () => (
 const Body = ({banners, isProcessing, isRequest}: Props) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {isProcessing && <Spinner />}
-    {(banners || []).map(banner => (
+    {banners.map(banner => (
       <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
     ))}
     <Participants />

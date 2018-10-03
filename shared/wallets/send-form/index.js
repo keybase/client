@@ -7,7 +7,6 @@ import Header from './header'
 
 type Props = {|
   isRequest: boolean,
-  bannerInfo?: string,
   isProcessing?: boolean,
   onClose: () => void,
 |}
@@ -16,7 +15,7 @@ const SendForm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header />
-      <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} isRequest={props.isRequest} />
+      <Body isProcessing={props.isProcessing} isRequest={props.isRequest} />
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.textContainer}>
       <Kb.Text type="BodySmallSemibold" style={styles.textColor}>

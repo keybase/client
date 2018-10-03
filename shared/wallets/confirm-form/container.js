@@ -7,13 +7,25 @@ import {connect, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
-
+  let banners = state.wallets.sentPaymentError
+    ? [
+        {
+          bannerBackground: 'HighRisk',
+          bannerText: state.wallets.sentPaymentError,
+        },
+      ]
+    : []
+  banners = banners.concat(
+    (built.banners || []).map(banner => ({
+      bannerBackground: Constants.bannerLevelToBackground(banner.level),
+      bannerText: banner.message,
+    }))
+  )
   return {
     amount: build.amount,
     assetConversion: built.worthDescription,
     assetType: build.currency,
-    bannerBackground: state.wallets.sentPaymentError ? 'HighRisk' : 'Announcements',
-    bannerText: state.wallets.sentPaymentError,
+    banners,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
