@@ -55,7 +55,7 @@ const Renderer = props => {
     return <DefaultView path={path} routePath={routePath} />
   }
 
-  if (mimeType === null) {
+  if (!mimeType) {
     // We are still loading mimeType which is needed to determine which
     // component to use.
     return (
@@ -101,7 +101,7 @@ export default compose(
   setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {
-      if (!this.props.isSymlink && this.props.mimeType === null) {
+      if (!this.props.isSymlink && !this.props.mimeType) {
         this.props.loadMimeType()
       }
     },
@@ -109,9 +109,9 @@ export default compose(
       if (
         !this.props.isSymlink &&
         // Trigger loadMimeType if we don't have it yet,
-        this.props.mimeType === null &&
+        !this.props.mimeType &&
         // but only if we haven't triggered it before.
-        prevProps.mimeType !== null
+        prevProps.mimeType
       ) {
         this.props.loadMimeType()
       }

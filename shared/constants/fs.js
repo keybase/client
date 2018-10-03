@@ -660,7 +660,7 @@ export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect 
 // shouldUseOldMimeType determines if mimeType from newItem should reuse
 // what's in oldItem.
 export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (oldItem.mimeType === null || newItem.mimeType !== null) {
+  if (!oldItem.mimeType || newItem.mimeType) {
     return false
   }
 
