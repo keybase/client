@@ -1,0 +1,18 @@
+.WrapperTimestamp-hoverBox {
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+.WrapperTimestamp-hoverBox .menu-button {
+  visibility: hidden;
+}
+.WrapperTimestamp-hoverBox:hover .menu-button {
+  visibility: visible;
+}
+.WrapperTimestamp-decorated {
+}
+.WrapperTimestamp-decorated:active {
+  background-color: #f7f9fc;
+}
+.WrapperTimestamp-decorated:hover {
+  background-color: #f7f9fc;
+}
