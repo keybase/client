@@ -694,7 +694,7 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 	}
 
 	arg := chat1.GetSearchRegexpArg{
-		ConversationID:   convID,
+		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
 		IsRegex:          opts.IsRegex,
