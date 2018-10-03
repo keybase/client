@@ -51,7 +51,8 @@ type FeatureFlagSet struct {
 }
 
 const (
-	FeatureFTL = Feature("ftl")
+	FeatureFTL   = Feature("ftl")
+	FeatureAudit = Feature("audit")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
