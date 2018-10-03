@@ -2,14 +2,13 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
+  paymentID: Types.PaymentID,
   status: Types.StatusSimplified,
 }
 

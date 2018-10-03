@@ -12,6 +12,7 @@ const commonProps = {
   loading: false,
   onCancel: null,
   onHidden: Sb.action('onHidden'),
+  onSeeDetails: null,
   position: 'bottom left',
   senderDeviceName: 'iPhone 6',
   timestamp: 'Yesterday 8:11 PM',
@@ -19,6 +20,7 @@ const commonProps = {
 }
 
 const onCancel = Sb.action('onCancel')
+const onSeeDetails = Sb.action('onSeeDetails')
 
 const theyRequestProps = {
   ...commonProps,
@@ -39,6 +41,7 @@ const youReceiveProps = {
   balanceChangeColor: S.globalColors.green2,
   bottomLine: '',
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
   topLine: 'you received lumens worth',
   txVerb: 'sent',
@@ -64,6 +67,7 @@ const youSendProps = {
   balanceChangeColor: S.globalColors.red,
   bottomLine: '',
   icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
   topLine: 'you sent lumens worth',
   txVerb: 'sent',
@@ -89,6 +93,7 @@ const youReceiveBTCProps = {
   balanceChangeColor: S.globalColors.green2,
   bottomLine: 'stronghold.com',
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
   topLine: 'you received',
   txVerb: 'sent',
@@ -101,6 +106,7 @@ const youSendBTCProps = {
   balanceChangeColor: S.globalColors.red,
   bottomLine: 'stronghold.com',
   icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
   topLine: 'you sent',
   txVerb: 'sent',
