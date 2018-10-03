@@ -153,6 +153,10 @@ func (c privateByte32Container) Data() [32]byte {
 	return c.data
 }
 
+func (c privateByte32Container) Bytes() []byte {
+	return c.data[:]
+}
+
 func (c privateByte32Container) MarshalBinary() (data []byte, err error) {
 	return c.data[:], nil
 }
@@ -680,10 +684,8 @@ type BlockHashKey struct {
 // the v2 block encryption scheme.
 func MakeBlockHashKey(
 	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
-	keyData := key.Data()
-	mac := hmac.New(sha512.New, keyData[:])
-	serverHalfData := serverHalf.Data()
-	mac.Write(serverHalfData[:])
+	mac := hmac.New(sha512.New, key.Bytes())
+	mac.Write(serverHalf.Bytes())
 	hash := mac.Sum(nil)
 	var hash64 [64]byte
 	copy(hash64[:], hash)
