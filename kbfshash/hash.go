@@ -234,7 +234,6 @@ func (h Hash) Verify(buf []byte) error {
 		return errors.WithStack(InvalidHashError{h})
 	}
 
-	// Once we have multiple hash types we'll need to expand this.
 	var expectedH Hash
 	var err error
 	switch h.hashType() {
