@@ -1,10 +1,10 @@
 // @flow
 import * as Saga from '../../util/saga'
-declare export function showShareActionSheet(options: {url?: ?any, message?: ?any}): Promise<{
+declare export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): Promise<{
   completed: boolean,
   method: string,
 }>
-declare export function downloadAndShowShareActionSheet(fileURL: string): Promise<void>
+declare export function showShareActionSheetFromFile(fileURL: string): Promise<void>
 
 type NextURI = string
 declare export function saveAttachmentDialog(filePath: string): Promise<NextURI>
