@@ -26,7 +26,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   publicMemo: new HiddenString(''),
-  recipientType: null,
+  recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
   to: '',
 })
@@ -380,6 +380,8 @@ const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
+const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
+
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
@@ -446,6 +448,7 @@ export {
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
   getAccountIDs,
+  getAccounts,
   getAccountName,
   getAccount,
   getAssets,

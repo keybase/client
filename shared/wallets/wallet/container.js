@@ -14,8 +14,9 @@ const mapStateToProps = (state: TypedState) => ({
   pending: Constants.getPendingPayments(state),
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
+  navigateUp,
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -47,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     accountID: stateProps.accountID,
     navigateAppend: dispatchProps.navigateAppend,
+    navigateUp: dispatchProps.navigateUp,
     sections,
   }
 }
