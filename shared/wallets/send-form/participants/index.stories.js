@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import Participants, {type Account} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
