@@ -88,7 +88,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 
 func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
-	details, err := s.remoter.Details(ctx, entry.AccountID)
+	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", entry.AccountID, err)
 		return empty, err
@@ -122,7 +122,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 	mctx := libkb.NewMetaContext(ctx, s.G())
 
-	details, err := s.remoter.Details(ctx, arg.AccountID)
+	details, err := s.accountDetails(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
 		return nil, err
