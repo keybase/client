@@ -682,7 +682,7 @@ type quotaUsageGetter func(
 
 func makeDefaultBackpressureDiskLimiterParams(
 	storageRoot string,
-	quotaUsage quotaUsageGetter) backpressureDiskLimiterParams {
+	quotaUsage quotaUsageGetter, diskCacheFrac float64) backpressureDiskLimiterParams {
 	return backpressureDiskLimiterParams{
 		// Start backpressure when 50% of free bytes or files
 		// are used...
@@ -696,10 +696,9 @@ func makeDefaultBackpressureDiskLimiterParams(
 		quotaMaxThreshold: 1.2,
 		// Cap journal usage to 85% of free bytes and files...
 		journalFrac: 0.85,
-		// ...and cap disk cache usage to 10% of free
-		// bytes. The disk cache doesn't store individual
-		// files.
-		diskCacheFrac: 0.10,
+		// ...and cap disk cache usage as specified. The
+		// disk cache doesn't store individual files.
+		diskCacheFrac: diskCacheFrac,
 		// Set the byte limit to 200 GiB, which translates to
 		// having the journal take up at most 170 GiB, and the
 		// disk cache to take up at most 20 GiB.
@@ -755,11 +754,21 @@ func newBackpressureDiskLimiter(
 		(float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
 	overallByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, 1.0, params.byteLimit, freeBytes)
+	if err != nil {
+		return nil, err
+	}
+
 	diskCacheByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
+	if err != nil {
+		return nil, err
+	}
 	// For now, treat the sync cache the same as the disk cache.
 	syncCacheByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
+	if err != nil {
+		return nil, err
+	}
 
 	bdl := &backpressureDiskLimiter{
 		log:                  log,

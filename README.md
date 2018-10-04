@@ -165,12 +165,13 @@ git add --all vendor
 From kbfs/:
 
 ```bash
-go test -i ./...
-go test ./...
+go test -i ./...  # install dependencies
+go test ./...     # run tests
 ```
 
 If you change anything in interfaces.go, you will have to regenerate
-the mock interfaces used by the tests:
+the mock interfaces used by the tests (make sure you have [mockgen](https://github.com/golang/mock)
+installed):
 
 ```bash
 cd libkbfs

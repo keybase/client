@@ -115,6 +115,10 @@ type InitParams struct {
 
 	// Mode describes how KBFS should initialize itself.
 	Mode string
+
+	// DiskBlockCacheFraction indicates what fraction of free space on the disk
+	// is allowed to be occupied by the KBFS disk block cache.
+	DiskBlockCacheFraction float64
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -192,6 +196,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		BGFlushDirOpBatchSize:          bgFlushDirOpBatchSizeDefault,
 		EnableJournal:                  BoolForString(journalEnv),
 		DiskCacheMode:                  DiskCacheModeLocal,
+		DiskBlockCacheFraction:         0.10,
 		Mode:                           InitDefaultString,
 	}
 }
@@ -271,6 +276,10 @@ func AddFlagsWithDefaults(
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
 			"heavy-weight it can be (%s, %s, %s or %s)", InitDefaultString,
 			InitMinimalString, InitSingleOpString, InitConstrainedString))
+
+	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
+		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
+		"The portion of the free disk space that KBFS will use for caching ")
 
 	return &params
 }
@@ -698,6 +707,8 @@ func doInit(
 		bserv = NewBlockServerMeasured(bserv, registry)
 	}
 	config.SetBlockServer(bserv)
+
+	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
 
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
