@@ -38,6 +38,13 @@ class Inbox extends PureComponent<Props, State> {
       listRowsResized = true
     }
 
+    // list changed, see if the divider changed
+    if (!listRowsResized && this.props.rows.length !== prevProps.rows.length) {
+      const idx = prevProps.rows.findIndex(r => r.type === 'divider')
+      const row = this.props.rows[idx]
+      listRowsResized = !row || row.type !== 'divider'
+    }
+
     if (listRowsResized) {
       this._list && this._list.resetAfterIndex(0)
     }
