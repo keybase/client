@@ -97,9 +97,10 @@ export type _BuiltPayment = {
 
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
+export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type _Payment = {
   amountDescription: string,
-  delta: 'none' | 'increase' | 'decrease',
+  delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,

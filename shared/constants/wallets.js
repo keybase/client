@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
+import * as Styles from '../styles'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
@@ -432,6 +433,17 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
+const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+  let balanceChangeColor = Styles.globalColors.black
+  if (delta !== 'none') {
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red
+  }
+  if (status !== 'completed') {
+    balanceChangeColor = Styles.globalColors.black_20
+  }
+  return balanceChangeColor
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -449,6 +461,7 @@ export {
   getAccountName,
   getAccount,
   getAssets,
+  getBalanceChangeColor,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,

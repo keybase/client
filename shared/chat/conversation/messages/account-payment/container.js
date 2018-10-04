@@ -1,9 +1,9 @@
 // @flow
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as WalletConstants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Styles from '../../../../styles'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -36,16 +36,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       if (paymentInfo.delta !== 'none') {
         sign = paymentInfo.delta === 'increase' ? '+' : '-'
       }
-      let balanceChangeColor = Styles.globalColors.black
-      if (paymentInfo.delta !== 'none') {
-        balanceChangeColor =
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red
-      }
-      if (pending) {
-        balanceChangeColor = Styles.globalColors.black_20
-      }
+      const balanceChangeColor = WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status)
       return {
-        action: paymentInfo.worth ? `${verb} lumens worth` : verb,
+        action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${sign}${paymentInfo.amountDescription}`,
         balanceChangeColor,
