@@ -45,6 +45,8 @@ type HighSigChain struct {
 	uid        keybase1.UID
 	username   NormalizedUsername
 	chainLinks ChainLinks
+	// for a locally delegated key
+	localCki *ComputedKeyInfos
 	// For a user who has never done a reset, this is 1.
 	currentSubchainStart keybase1.Seqno
 	prevSubchains        []ChainLinks
@@ -83,7 +85,9 @@ func (l *HighSigChainLoader) Load() (ret *HighSigChain, err error) {
 	}
 	// compute keys
 	err = l.VerifySigsAndComputeKeys()
-
+	if err != nil {
+		return nil, err
+	}
 	return l.chain, nil
 }
 
@@ -209,30 +213,56 @@ func (l *HighSigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	return err
 }
 
+func (hsc *HighSigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (linksConsumed int, err error) {
+	// this is the case immediately after a reset
+	if ckf.kf == nil || eldest.IsNil() {
+		m.VLogf(VLog1, "UPAKLite short-circuit verifySigsAndComputeKeysCurrent, since no Key available")
+		hsc.localCki = NewComputedKeyInfos(hsc.G())
+		ckf.cki = hsc.localCki
+		return 0, err
+	}
+
+	var links ChainLinks
+	links, err = cropToRightmostSubchain(m, hsc.chainLinks, eldest, hsc.uid)
+	if err != nil {
+		return 0, err
+	}
+	if len(links) == 0 {
+		// actually, not sure how this can happen without eldest being nil
+		m.VLogf(VLog1, "Empty chain after we limited to eldest %s", eldest)
+		hsc.localCki = NewComputedKeyInfos(hsc.G())
+		ckf.cki = hsc.localCki
+		return 0, nil
+	}
+
+	hsc.currentSubchainStart = links[0].GetSeqno()
+	m.VLogf(VLog1, "UPAKLite verifying current chain starting at %d", int(hsc.currentSubchainStart))
+	_, ckf.cki, err = verifySubchain(m, hsc.username, *ckf.kf, links)
+	return len(links), err
+}
+
 func (hsc *HighSigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
 	username := hsc.username
 	uid := hsc.uid
+	hsc.currentSubchainStart = 0
 
 	// current
-	currentChainLinks, err := cropToRightmostSubchain(m, hsc.chainLinks, eldest, uid)
-	if err != nil {
-		return false, err
-	}
-	_, ckf.cki, err = verifySubchain(m, username, *ckf.kf, currentChainLinks)
-	if err != nil {
+	linksConsumed, err := hsc.verifySigsAndComputeKeysCurrent(m, eldest, ckf)
+	if err != nil || ckf.kf == nil {
 		return false, err
 	}
 
 	//historical
-	historicalLinks := hsc.chainLinks.omittingNRightmostLinks(len(currentChainLinks))
+	historicalLinks := hsc.chainLinks.omittingNRightmostLinks(linksConsumed)
 	if len(historicalLinks) > 0 {
 		m.VLogf(VLog1, "After consuming %d links, there are %d historical links left",
-			len(currentChainLinks), len(historicalLinks))
+			linksConsumed, len(historicalLinks))
 		// errors are ignored from this method in full sigchain loads also, because we'd rather
 		// not block current behavior from a failure in here.
 		_, prevSubchains, _ := verifySigsAndComputeKeysHistorical(m, uid, username, historicalLinks, *ckf.kf)
 		hsc.prevSubchains = prevSubchains
 	}
+
 	return false, nil
 }
 
@@ -317,6 +347,7 @@ func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf
 }
 
 func (hsc HighSigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
+	cki = hsc.localCki
 	if cki == nil {
 		if l := last(hsc.chainLinks); l != nil {
 			if l.cki == nil {

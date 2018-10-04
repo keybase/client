@@ -47,7 +47,7 @@ func assertUPAKLiteMatchesUPAK(t *testing.T, tc libkb.TestContext, uid keybase1.
 	loadArgLite := libkb.NewLoadUserByUIDArg(ctx, tc.G, uid).ForUPAKLite().WithForceReload()
 	upakLite, err := tc.G.GetUPAKLoader().LoadLite(loadArgLite)
 	require.NoError(t, err)
-	loadArg := libkb.NewLoadUserByUIDArg(ctx, tc.G, uid).WithForceReload()
+	loadArg := libkb.NewLoadUserByUIDArg(ctx, tc.G, uid).WithForceReload().WithPublicKeyOptional()
 	upak, _, err := tc.G.GetUPAKLoader().LoadV2(loadArg)
 	require.NoError(t, err)
 	assertUpkInstanceMatch(t, upakLite.Current, upak.Current)
@@ -90,14 +90,16 @@ func TestLoadLiteBasicUser(t *testing.T) {
 	t.Logf("with a new PGP key")
 	assertUPAKLiteMatchesUPAK(t, tc, uid)
 
-	// reset the user
+	// reset the user and test immediately
 	ResetAccountNoLogout(tc, fu)
+	t.Logf("reset the account with no new links")
+	assertUPAKLiteMatchesUPAK(t, tc, uid)
+	// add a couple low links and test
 	fu.LoginOrBust(tc)
 	trackAlice(tc, fu, sigVersion)
 	untrackAlice(tc, fu, sigVersion)
 	t.Logf("reset the account and add a couple more low links")
 	assertUPAKLiteMatchesUPAK(t, tc, uid)
-
 	// reset again!
 	ResetAccountNoLogout(tc, fu)
 	fu.LoginOrBust(tc)
