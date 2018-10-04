@@ -355,16 +355,19 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 	err := kbfscrypto.RandRead(randomData)
 	require.NoError(t, err)
 
-	cryptKeys := make([]kbfscrypto.BlockCryptKey, iterations)
+	cryptKeys := make([]kbfscrypto.TLFCryptKey, iterations)
+	serverHalfs := make([]kbfscrypto.BlockCryptKeyServerHalf, iterations)
 	for j := 0; j < iterations; j++ {
-		_, _, cryptKeys[j] = makeFakeBlockCryptKey(t)
+		cryptKeys[j], serverHalfs[j], _ = makeFakeBlockCryptKey(t)
 	}
 
 	for i := startSize; i < endSize; i += 1000 {
 		var enclen int
 		for j := 0; j < iterations; j++ {
 			data := randomData[j : j+i]
-			enc, err := kbfscrypto.EncryptPaddedEncodedBlock(data, cryptKeys[j])
+			enc, err := kbfscrypto.EncryptPaddedEncodedBlock(
+				data, cryptKeys[j], serverHalfs[j],
+				kbfscrypto.EncryptionSecretbox)
 			require.NoError(t, err)
 			if j == 0 {
 				enclen = len(enc.EncryptedData)

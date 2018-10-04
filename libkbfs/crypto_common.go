@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"fmt"
 	"io"
 
 	"github.com/keybase/kbfs/kbfsblock"
@@ -196,24 +195,12 @@ func (c CryptoCommon) EncryptBlock(
 		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
-	switch c.blockCryptVersioner.BlockCryptVersion() {
-	case kbfscrypto.EncryptionSecretbox:
-		key := kbfscrypto.UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
-		encryptedBlock, err =
-			kbfscrypto.EncryptPaddedEncodedBlock(paddedBlock, key)
-		if err != nil {
-			return -1, kbfscrypto.EncryptedBlock{}, err
-		}
-	case kbfscrypto.EncryptionSecretboxWithKeyNonce:
-		key := kbfscrypto.MakeBlockHashKey(blockServerHalf, tlfCryptKey)
-		encryptedBlock, err =
-			kbfscrypto.EncryptPaddedEncodedBlockV2(paddedBlock, key)
-		if err != nil {
-			return -1, kbfscrypto.EncryptedBlock{}, err
-		}
-	default:
-		panic(fmt.Sprintf("Unknown block crypt version: %s",
-			c.blockCryptVersioner.BlockCryptVersion()))
+	encryptedBlock, err =
+		kbfscrypto.EncryptPaddedEncodedBlock(
+			paddedBlock, tlfCryptKey, blockServerHalf,
+			c.blockCryptVersioner.BlockCryptVersion())
+	if err != nil {
+		return -1, kbfscrypto.EncryptedBlock{}, err
 	}
 
 	plainSize = len(encodedBlock)
@@ -226,14 +213,8 @@ func (c CryptoCommon) DecryptBlock(
 	tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
 	var paddedBlock []byte
-	var err error
-	if encryptedBlock.UsesV2() {
-		key := kbfscrypto.MakeBlockHashKey(blockServerHalf, tlfCryptKey)
-		paddedBlock, err = kbfscrypto.DecryptBlockV2(encryptedBlock, key)
-	} else {
-		key := kbfscrypto.UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
-		paddedBlock, err = kbfscrypto.DecryptBlock(encryptedBlock, key)
-	}
+	paddedBlock, err := kbfscrypto.DecryptBlock(
+		encryptedBlock, tlfCryptKey, blockServerHalf)
 	if err != nil {
 		return err
 	}

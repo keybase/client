@@ -30,16 +30,19 @@ func TestEncryptDecryptDataSuccess(t *testing.T) {
 
 func TestEncryptDecryptDataV2Success(t *testing.T) {
 	data := []byte{0x20, 0x30}
-	key := [64]byte{0x40, 0x45}
-	key[40] = 0x50
-	blockKey := BlockHashKey{privateByte64Container{key}}
-	encryptedBlock, err := EncryptPaddedEncodedBlockV2(data, blockKey)
+	key := [32]byte{0x40, 0x45}
+	tlfCryptKey := TLFCryptKey{privateByte32Container{key}}
+	half := [32]byte{0x50, 0x51}
+	blockServerHalf := BlockCryptKeyServerHalf{publicByte32Container{half}}
+	encryptedBlock, err := EncryptPaddedEncodedBlock(
+		data, tlfCryptKey, blockServerHalf, EncryptionSecretboxWithKeyNonce)
 	require.NoError(t, err)
 	require.Equal(
 		t, EncryptionSecretboxWithKeyNonce,
 		encryptedBlock.encryptedData.Version)
 
-	decryptedData, err := DecryptBlockV2(encryptedBlock, blockKey)
+	decryptedData, err := DecryptBlock(
+		encryptedBlock, tlfCryptKey, blockServerHalf)
 	require.NoError(t, err)
 	require.Equal(t, data, decryptedData)
 }
@@ -55,11 +58,12 @@ func TestDecryptDataFailure(t *testing.T) {
 
 	encryptedDataWrongNonce := encryptedData
 	encryptedDataWrongNonce.Version++
-	var key64 [64]byte
-	copy(key64[:], key[:])
-	_, err = DecryptBlockV2(
+	tlfCryptKey := TLFCryptKey{privateByte32Container{key}}
+	half := [32]byte{0x50, 0x51}
+	blockServerHalf := BlockCryptKeyServerHalf{publicByte32Container{half}}
+	_, err = DecryptBlock(
 		EncryptedBlock{encryptedDataWrongNonce},
-		BlockHashKey{privateByte64Container{key64}})
+		tlfCryptKey, blockServerHalf)
 	assert.Equal(t,
 		InvalidNonceError{encryptedDataWrongNonce.Nonce},
 		errors.Cause(err))

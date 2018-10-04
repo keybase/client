@@ -213,56 +213,54 @@ func (eb EncryptedBlock) UsesV2() bool {
 }
 
 // EncryptPaddedEncodedBlock encrypts a padded, encoded block.
-func EncryptPaddedEncodedBlock(paddedEncodedBlock []byte, key BlockCryptKey) (
+func EncryptPaddedEncodedBlock(
+	paddedEncodedBlock []byte, tlfCryptKey TLFCryptKey,
+	blockServerHalf BlockCryptKeyServerHalf, ver EncryptionVer) (
 	encryptedBlock EncryptedBlock, err error) {
-	encryptedData, err := encryptData(paddedEncodedBlock, key.Data())
-	if err != nil {
-		return EncryptedBlock{}, err
+	var ed encryptedData
+	switch ver {
+	case EncryptionSecretbox:
+		key := UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
+		ed, err = encryptData(paddedEncodedBlock, key.Data())
+		if err != nil {
+			return EncryptedBlock{}, err
+		}
+	case EncryptionSecretboxWithKeyNonce:
+		key := MakeBlockHashKey(blockServerHalf, tlfCryptKey)
+		ed, err = encryptDataWithNonce(
+			paddedEncodedBlock, key.cryptKey(), key.nonce(),
+			EncryptionSecretboxWithKeyNonce)
+		if err != nil {
+			return EncryptedBlock{}, err
+		}
+	default:
+		return EncryptedBlock{}, errors.WithStack(UnknownEncryptionVer{ver})
 	}
 
-	return EncryptedBlock{encryptedData}, nil
-}
-
-// EncryptPaddedEncodedBlockV2 encrypts a padded, encoded block, using
-// the v2 block encryption scheme.
-func EncryptPaddedEncodedBlockV2(paddedEncodedBlock []byte, key BlockHashKey) (
-	encryptedBlock EncryptedBlock, err error) {
-	encryptedData, err := encryptDataWithNonce(
-		paddedEncodedBlock, key.cryptKey(), key.nonce(),
-		EncryptionSecretboxWithKeyNonce)
-	if err != nil {
-		return EncryptedBlock{}, err
-	}
-
-	return EncryptedBlock{encryptedData}, nil
+	return EncryptedBlock{ed}, nil
 }
 
 // DecryptBlock decrypts a block, but does not unpad or decode it.
-func DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey) (
-	[]byte, error) {
-	if encryptedBlock.encryptedData.Version == EncryptionSecretboxWithKeyNonce {
+func DecryptBlock(
+	encryptedBlock EncryptedBlock, tlfCryptKey TLFCryptKey,
+	blockServerHalf BlockCryptKeyServerHalf) ([]byte, error) {
+	switch encryptedBlock.encryptedData.Version {
+	case EncryptionSecretbox:
+		nonce, err := encryptedBlock.encryptedData.Nonce24()
+		if err != nil {
+			return nil, err
+		}
+
+		key := UnmaskBlockCryptKey(blockServerHalf, tlfCryptKey)
+		return decryptData(encryptedBlock.encryptedData, key.Data(), nonce)
+	case EncryptionSecretboxWithKeyNonce:
+		key := MakeBlockHashKey(blockServerHalf, tlfCryptKey)
+		return decryptData(
+			encryptedBlock.encryptedData, key.cryptKey(), key.nonce())
+	default:
 		return nil, errors.WithStack(
 			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
 	}
-
-	nonce, err := encryptedBlock.encryptedData.Nonce24()
-	if err != nil {
-		return nil, err
-	}
-
-	return decryptData(encryptedBlock.encryptedData, key.Data(), nonce)
-}
-
-// DecryptBlockV2 decrypts a block, but does not unpad or decode it.
-func DecryptBlockV2(encryptedBlock EncryptedBlock, key BlockHashKey) (
-	[]byte, error) {
-	if encryptedBlock.encryptedData.Version != EncryptionSecretboxWithKeyNonce {
-		return nil, errors.WithStack(
-			InvalidEncryptionVer{encryptedBlock.encryptedData.Version})
-	}
-
-	return decryptData(
-		encryptedBlock.encryptedData, key.cryptKey(), key.nonce())
 }
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
