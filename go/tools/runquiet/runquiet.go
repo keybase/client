@@ -219,6 +219,7 @@ func doRun(elevated bool) error {
 		p, err := os.FindProcess(pid)
 		if err != nil {
 			fmt.Printf("Launcher can't find %d\n", pid)
+			return err
 		}
 
 		timeout := make(chan time.Time, 1)
@@ -247,7 +248,6 @@ func doRun(elevated bool) error {
 }
 
 func main() {
-
 	// RunWithPrivilege enables a single privilege for a function call.
 	// SeIncreaseQuotaPrivilege will only work when elevated
 	err := winio.RunWithPrivilege("SeIncreaseQuotaPrivilege", func() error {
