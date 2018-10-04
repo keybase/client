@@ -121,6 +121,24 @@ func (idx *Indexer) getConvIndex(ctx context.Context, dbKey libkb.DbKey) (convIn
 	return convIdx, nil
 }
 
+func (idx *Indexer) BatchAdd(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
+	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.BatchAdd convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	idx.Lock()
+	defer idx.Unlock()
+
+	dbKey := idx.dbKey(convID, uid)
+	convIdx, err := idx.getConvIndex(ctx, dbKey)
+	if err != nil {
+		return err
+	}
+	for _, msg := range msgs {
+		idx.addMsg(convIdx, msg)
+	}
+	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
+	return err
+}
+
 // Add tokenizes the message content and creates/updates index keys for each token.
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msg chat1.MessageUnboxed) (err error) {
@@ -128,16 +146,21 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	idx.Lock()
 	defer idx.Unlock()
 
-	msgText := idx.getMsgText(msg)
-	tokens := tokenize(msgText)
-	if tokens == nil {
-		return nil
-	}
-
 	dbKey := idx.dbKey(convID, uid)
 	convIdx, err := idx.getConvIndex(ctx, dbKey)
 	if err != nil {
 		return err
+	}
+	idx.addMsg(convIdx, msg)
+	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
+	return err
+}
+
+func (idx *Indexer) addMsg(convIdx convIndex, msg chat1.MessageUnboxed) {
+	msgText := idx.getMsgText(msg)
+	tokens := tokenize(msgText)
+	if tokens == nil {
+		return
 	}
 
 	mvalid := msg.Valid()
@@ -153,8 +176,6 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 		metadata[msg.GetMessageID()] = idxMetadata
 		convIdx[token] = metadata
 	}
-	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
-	return err
 }
 
 // Remove tokenizes the message content and updates/removes index keys for each token.

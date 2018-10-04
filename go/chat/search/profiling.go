@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const defaultPageSize = 300
+const defaultPageSize = 500
 
 func (idx *Indexer) IndexFullInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.IndexSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexFullInbox")()
@@ -58,14 +58,9 @@ func (idx *Indexer) indexConv(ctx context.Context, uid gregor1.UID, convID chat1
 		pagination.Num = defaultPageSize
 		pagination.Previous = nil
 
-		for _, msg := range thread.Messages {
-			if !msg.IsValid() || msg.GetMessageType() != chat1.MessageType_TEXT || msg.Valid().MessageBody.IsNil() {
-				continue
-			}
-			res.NumMessages++
-			if err = idx.Add(ctx, convID, uid, msg); err != nil {
-				return res, err
-			}
+		res.NumMessages += len(thread.Messages)
+		if err = idx.BatchAdd(ctx, convID, uid, thread.Messages); err != nil {
+			return res, err
 		}
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
