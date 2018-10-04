@@ -2052,7 +2052,11 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
     throw new Error('Invalid share message')
   }
   const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
-  yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
+  try {
+    yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
+  } catch (e) {
+    logger.error('Failed to share attachment: ' + JSON.stringify(e))
+  }
 }
 
 // Native save to camera roll
