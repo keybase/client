@@ -42,7 +42,6 @@ class Inbox extends PureComponent<Props, State> {
     if (!listRowsResized && this.props.rows.length !== prevProps.rows.length) {
       const idx = prevProps.rows.findIndex(r => r.type === 'divider')
       const row = this.props.rows[idx]
-      console.log('aaa resizer or changed', this.props.rows.length, prevProps.rows.length, row)
       listRowsResized = !row || row.type !== 'divider'
     }
 
