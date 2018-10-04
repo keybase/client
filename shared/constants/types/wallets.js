@@ -76,7 +76,7 @@ export type _BuildingPayment = {
   currency: string,
   from: string,
   publicMemo: HiddenString,
-  recipientType: ?CounterpartyType,
+  recipientType: CounterpartyType,
   secretNote: HiddenString,
   to: string,
 }
