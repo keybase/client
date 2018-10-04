@@ -169,4 +169,20 @@ protocol user {
    the reset. Usually, we'll just turn up the next Merkle root, but not always.
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
+
+  /**
+   Phone number support 
+  */
+  record PhoneNumber {
+    @jsonkey("phone_number")
+    string phoneNumber;
+    @jsonkey("verified")
+    boolean verified;
+    @jsonkey("ctime")
+    UnixTime ctime;
+  }
+
+  void addPhoneNumber(int sessionID, string phoneNumber);
+  void verifyPhoneNumber(int sessionID, string phoneNumber, string verificationCode);
+  array<PhoneNumber> getPhoneNumbers(int sessionID);
 }

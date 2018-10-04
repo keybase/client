@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -359,4 +360,18 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	m = m.WithLogTag("FNMR")
 	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
+}
+
+func (h *UserHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
+}
+func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.VerificationCode)
+}
+
+func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) ([]keybase1.PhoneNumber, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return phonenumbers.GetPhoneNumbers(mctx)
 }
