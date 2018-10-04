@@ -10,6 +10,7 @@ import Transaction from '../transaction/container'
 type Props = {
   accountID: Types.AccountID,
   navigateAppend: (...Array<any>) => any,
+  navigateUp: () => any,
   sections: any[],
 }
 
@@ -68,7 +69,7 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
-        <Header navigateAppend={this.props.navigateAppend} />
+        <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}
