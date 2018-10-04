@@ -36,7 +36,7 @@ func teardownBlockDiskStoreTest(t *testing.T, tempdir string) {
 func putBlockDisk(
 	t *testing.T, s *blockDiskStore, data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
@@ -107,7 +107,7 @@ func TestBlockDiskStoreAddReference(t *testing.T) {
 	defer teardownBlockDiskStoreTest(t, tempdir)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 
 	// Add a reference, which should succeed.
@@ -148,7 +148,7 @@ func TestBlockDiskStoreArchiveNonExistentReference(t *testing.T) {
 		uid1.AsUserOrTeam(), keybase1.BlockType_DATA)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 
 	// Archive references.

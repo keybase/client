@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/cache"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -35,8 +36,23 @@ func (v EncryptionVer) String() string {
 	switch v {
 	case EncryptionSecretbox:
 		return "EncryptionSecretbox"
+	case EncryptionSecretboxWithKeyNonce:
+		return "EncryptionSecretboxWithKeyNonce"
 	default:
 		return fmt.Sprintf("EncryptionVer(%d)", v)
+	}
+}
+
+// ToHashType returns the type of the hash that should be used for the
+// given encryption version.
+func (v EncryptionVer) ToHashType() kbfshash.HashType {
+	switch v {
+	case EncryptionSecretbox:
+		return kbfshash.SHA256Hash
+	case EncryptionSecretboxWithKeyNonce:
+		return kbfshash.SHA256HashV2
+	default:
+		return kbfshash.InvalidHash
 	}
 }
 
@@ -205,11 +221,6 @@ func DecryptPrivateMetadata(
 // EncryptedBlock is an encrypted Block object.
 type EncryptedBlock struct {
 	encryptedData
-}
-
-// UsesV2 returns true if this block uses V2 encryption.
-func (eb EncryptedBlock) UsesV2() bool {
-	return eb.encryptedData.Version == EncryptionSecretboxWithKeyNonce
 }
 
 // EncryptPaddedEncodedBlock encrypts a padded, encoded block.

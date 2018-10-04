@@ -162,7 +162,7 @@ func (c testTLFJournalConfig) BGFlushDirOpBatchSize() int {
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
-	id, err := kbfsblock.MakePermanentID(data)
+	id, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(c.t, err)
 	bCtx := kbfsblock.MakeFirstContext(
 		c.uid.AsUserOrTeam(), keybase1.BlockType_DATA)

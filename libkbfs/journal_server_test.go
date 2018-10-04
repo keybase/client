@@ -201,7 +201,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -312,7 +312,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -378,7 +378,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -451,7 +451,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -561,7 +561,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	bCtx1 := kbfsblock.MakeFirstContext(id1, keybase1.BlockType_DATA)
 	data1 := []byte{1, 2, 3, 4}
-	bID1, err := kbfsblock.MakePermanentID(data1)
+	bID1, err := kbfsblock.MakePermanentID(
+		data1, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf1, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -614,7 +615,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	bCtx2 := kbfsblock.MakeFirstContext(id2, keybase1.BlockType_DATA)
 	data2 := []byte{1, 2, 3, 4, 5}
-	bID2, err := kbfsblock.MakePermanentID(data2)
+	bID2, err := kbfsblock.MakePermanentID(
+		data2, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf2, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -726,7 +728,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -845,7 +847,7 @@ func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
 	// Access a TLF, which should create a journal automatically.
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
@@ -914,7 +916,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	bCtx := kbfsblock.MakeFirstContext(
 		id.AsUserOrTeam(), keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
-	bID, err := kbfsblock.MakePermanentID(data)
+	bID, err := kbfsblock.MakePermanentID(data, kbfscrypto.EncryptionSecretbox)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)

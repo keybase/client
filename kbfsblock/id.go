@@ -94,10 +94,9 @@ func (id *ID) UnmarshalText(buf []byte) error {
 	return id.h.UnmarshalText(buf)
 }
 
-// UseV2 returns true if the caller should employ v2
-// encryption/decryption on the block represented by this ID.
-func (id *ID) UseV2() bool {
-	return id.h.GetHashType() == kbfshash.SHA256HashV2
+// HashType returns the type used for this ID.
+func (id *ID) HashType() kbfshash.HashType {
+	return id.h.GetHashType()
 }
 
 // MakeTemporaryID generates a temporary block ID using a CSPRNG. This
@@ -150,18 +149,11 @@ func MakeRandomIDInRange(start, end float64) (ID, error) {
 
 // MakePermanentID computes the permanent ID of a block given its
 // encoded and encrypted contents.
-func MakePermanentID(encodedEncryptedData []byte) (ID, error) {
-	h, err := kbfshash.DefaultHash(encodedEncryptedData)
-	if err != nil {
-		return ID{}, err
-	}
-	return ID{h}, nil
-}
-
-// MakePermanentIDV2 computes the permanent ID of a block given its
-// encoded and encrypted contents using v2 encryption.
-func MakePermanentIDV2(encodedEncryptedData []byte) (ID, error) {
-	h, err := kbfshash.HashV2(encodedEncryptedData)
+func MakePermanentID(
+	encodedEncryptedData []byte, encryptionVer kbfscrypto.EncryptionVer) (
+	ID, error) {
+	h, err := kbfshash.DoHash(
+		encodedEncryptedData, encryptionVer.ToHashType())
 	if err != nil {
 		return ID{}, err
 	}

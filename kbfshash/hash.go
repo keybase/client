@@ -71,6 +71,8 @@ func (t HashType) String() string {
 		return "InvalidHash"
 	case SHA256Hash:
 		return "SHA256Hash"
+	case SHA256HashV2:
+		return "SHA256HashV2"
 	default:
 		return fmt.Sprintf("HashType(%d)", t)
 	}
@@ -148,10 +150,16 @@ func DefaultHash(buf []byte) (Hash, error) {
 	return HashFromRaw(hashType, rawHash[:])
 }
 
-// HashV2 computes the hash of the given data with the v2 hash type.
-func HashV2(buf []byte) (Hash, error) {
+// DoHash computes the hash of the given data with the given hash
+// type.
+func DoHash(buf []byte, ht HashType) (Hash, error) {
+	switch ht {
+	case SHA256Hash, SHA256HashV2:
+	default:
+		return Hash{}, errors.WithStack(UnknownHashTypeError{ht})
+	}
 	_, rawHash := DoRawDefaultHash(buf)
-	return HashFromRaw(SHA256HashV2, rawHash[:])
+	return HashFromRaw(ht, rawHash[:])
 }
 
 func (h Hash) hashType() HashType {
@@ -234,17 +242,7 @@ func (h Hash) Verify(buf []byte) error {
 		return errors.WithStack(InvalidHashError{h})
 	}
 
-	var expectedH Hash
-	var err error
-	switch h.hashType() {
-	case SHA256Hash:
-		expectedH, err = DefaultHash(buf)
-	case SHA256HashV2:
-		// Use the same hashing algorithm, but prefixed with the v2 type.
-		expectedH, err = HashV2(buf)
-	default:
-		return errors.WithStack(UnknownHashTypeError{h.hashType()})
-	}
+	expectedH, err := DoHash(buf, h.hashType())
 	if err != nil {
 		return err
 	}

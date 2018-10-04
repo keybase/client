@@ -253,9 +253,8 @@ func testDecryptEncryptedBlock(t *testing.T, c CryptoCommon) {
 		&block, tlfCryptKey, blockServerHalf)
 	require.NoError(t, err)
 
-	v2 := c.blockCryptVersioner.BlockCryptVersion() ==
-		kbfscrypto.EncryptionSecretboxWithKeyNonce
-	require.Equal(t, v2, encryptedBlock.UsesV2())
+	require.Equal(
+		t, c.blockCryptVersioner.BlockCryptVersion(), encryptedBlock.Version)
 
 	var decryptedBlock TestBlock
 	err = c.DecryptBlock(

@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -154,12 +153,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	switch b.config.BlockCryptVersion() {
-	case kbfscrypto.EncryptionSecretboxWithKeyNonce:
-		id, err = kbfsblock.MakePermanentIDV2(buf)
-	default:
-		id, err = kbfsblock.MakePermanentID(buf)
-	}
+	id, err = kbfsblock.MakePermanentID(buf, encryptedBlock.Version)
 	if err != nil {
 		return
 	}

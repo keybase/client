@@ -1992,7 +1992,8 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
 	dirPath := fbo.nodeCache.PathFromNode(dir)
 	id, err := kbfsblock.MakePermanentID(
-		[]byte(dirPath.ChildPathNoPtr(name).String()))
+		[]byte(dirPath.ChildPathNoPtr(name).String()),
+		fbo.config.BlockCryptVersion())
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2092,7 +2093,8 @@ func (fbo *folderBranchOps) statUsingFS(
 	// within `fbo.nodeCache`.
 	nodePath := fbo.nodeCache.PathFromNode(node)
 	id, err := kbfsblock.MakePermanentID(
-		[]byte(nodePath.ChildPathNoPtr(name).String()))
+		[]byte(nodePath.ChildPathNoPtr(name).String()),
+		fbo.config.BlockCryptVersion())
 	if err != nil {
 		return DirEntry{}, false, err
 	}
