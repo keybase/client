@@ -119,6 +119,10 @@ type InitParams struct {
 	// DiskBlockCacheFraction indicates what fraction of free space on the disk
 	// is allowed to be occupied by the KBFS disk block cache.
 	DiskBlockCacheFraction float64
+
+	// SyncBlockCacheFraction indicates what fraction of free space on the disk
+	// is allowed to be occupied by the KBFS sync block cache for offline use.
+	SyncBlockCacheFraction float64
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -197,7 +201,8 @@ func DefaultInitParams(ctx Context) InitParams {
 		EnableJournal:                  BoolForString(journalEnv),
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
-		Mode:                           InitDefaultString,
+		SyncBlockCacheFraction:         0.10,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -280,6 +285,10 @@ func AddFlagsWithDefaults(
 	flags.Float64Var((*float64)(&params.DiskBlockCacheFraction),
 		"disk-block-cache-fraction", defaultParams.DiskBlockCacheFraction,
 		"The portion of the free disk space that KBFS will use for caching ")
+
+	flags.Float64Var((*float64)(&params.SyncBlockCacheFraction),
+		"sync-block-cache-fraction", defaultParams.SyncBlockCacheFraction,
+		"The portion of the free disk space that KBFS will use for offline storage")
 
 	return &params
 }
@@ -709,6 +718,7 @@ func doInit(
 	config.SetBlockServer(bserv)
 
 	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
+	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
 
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
