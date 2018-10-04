@@ -2,19 +2,11 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {
-  Avatar,
-  Box2,
-  ClickableBox,
-  Divider,
-  Icon,
-  ConnectedUsernames,
-  Markdown,
-  WaitingButton,
-} from '../../common-adapters'
+import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
+import {MarkdownMemo} from '../common'
 
 type CounterpartyIconProps = {|
   large: boolean,
@@ -340,19 +332,7 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {// TODO: Consolidate memo display code below with
-            // chat/conversation/messages/wallet-payment/index.js.
-            showMemo && (
-              <Box2
-                direction="horizontal"
-                gap="small"
-                fullWidth={true}
-                style={{marginTop: globalMargins.xtiny}}
-              >
-                <Divider vertical={true} style={styles.quoteMarker} />
-                <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-              </Box2>
-            )}
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
               {props.onCancelPayment && (
                 <WaitingButton
@@ -391,8 +371,10 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  marginTopXTiny: {
+    marginTop: globalMargins.xtiny,
+  },
   pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
-  quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
