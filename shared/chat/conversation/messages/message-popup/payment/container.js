@@ -3,8 +3,11 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
+import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
+import {walletsTab} from '../../../../../constants/tabs'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -38,6 +41,7 @@ const commonLoadingProps = {
   icon: 'sending',
   loading: true,
   onCancel: null,
+  onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
   timestamp: '',
@@ -51,7 +55,18 @@ const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps
   _you: state.config.username,
 })
 
-const sendMergeProps = (stateProps, _, ownProps: SendOwnProps) => {
+const sendMapDispatchToProps = dispatch => ({
+  onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
+    dispatch(WalletGen.createSelectAccount({accountID}))
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        path: [walletsTab, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
+      })
+    )
+  },
+})
+
+const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   if (ownProps.message.type !== 'sendPayment') {
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
@@ -77,19 +92,22 @@ const sendMergeProps = (stateProps, _, ownProps: SendOwnProps) => {
     loading: false,
     onCancel: null,
     onHidden: ownProps.onHidden,
+    onSeeDetails: () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID),
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
-      paymentInfo.worth ? ' lumens worth' : ''
+      paymentInfo.worth ? ' Lumens worth' : ''
     }`,
     txVerb: 'sent',
     visible: ownProps.visible,
   }
 }
 
-const SendPaymentPopup = Container.connect(sendMapStateToProps, () => ({}), sendMergeProps)(PaymentPopup)
+const SendPaymentPopup = Container.connect(sendMapStateToProps, sendMapDispatchToProps, sendMergeProps)(
+  PaymentPopup
+)
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
@@ -135,7 +153,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${
-    requestInfo.asset === 'currency' ? ' lumens worth' : ''
+    requestInfo.asset === 'currency' ? ' Lumens worth' : ''
   }`
 
   return {
@@ -148,6 +166,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     loading: false,
     onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
     onHidden: ownProps.onHidden,
+    onSeeDetails: null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,

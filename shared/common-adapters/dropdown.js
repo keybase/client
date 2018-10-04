@@ -124,7 +124,7 @@ const ButtonBox = Styles.glamorous(Box)(props => ({
   ...(props.disabled ? {opacity: 0.3} : {}),
   alignItems: 'center',
   borderColor: Styles.globalColors.black_10,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   borderStyle: 'solid',
   borderWidth: 1,
   color: Styles.globalColors.black_40,

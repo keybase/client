@@ -209,7 +209,7 @@ const styles = Styles.styleSheetCreate({
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,
-      borderRadius: 19,
+      borderRadius: Styles.borderRadius,
       marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.xtiny,
       paddingBottom: Styles.globalMargins.xtiny,

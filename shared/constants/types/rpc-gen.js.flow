@@ -243,12 +243,20 @@ export type MessageTypes = {|
     inParam: void,
     outParam: Boolean,
   |},
+  'keybase.1.config.getUpdateInfo': {|
+    inParam: void,
+    outParam: UpdateInfo,
+  |},
   'keybase.1.config.helloIAm': {|
     inParam: $ReadOnly<{|details: ClientDetails|}>,
     outParam: void,
   |},
   'keybase.1.config.setRememberPassphrase': {|
     inParam: $ReadOnly<{|remember: Boolean|}>,
+    outParam: void,
+  |},
+  'keybase.1.config.startUpdateIfNeeded': {|
+    inParam: void,
     outParam: void,
   |},
   'keybase.1.config.waitForClient': {|
@@ -995,6 +1003,12 @@ export const configForkType = {
   watchdog: 2,
   launchd: 3,
   systemd: 4,
+}
+
+export const configUpdateInfoStatus = {
+  upToDate: 0,
+  needUpdate: 1,
+  criticallyOutOfDate: 2,
 }
 
 export const constantsStatusCode = {
@@ -2728,6 +2742,12 @@ export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
 export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
+export type UpdateInfo = $ReadOnly<{status: UpdateInfoStatus, message: String}>
+export type UpdateInfoStatus =
+  | 0 // UP_TO_DATE_0
+  | 1 // NEED_UPDATE_1
+  | 2 // CRITICALLY_OUT_OF_DATE_2
+
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
@@ -2791,8 +2811,10 @@ declare export function configGetAllProvisionedUsernamesRpcPromise(params: $Prop
 declare export function configGetBootstrapStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getBootstrapStatus'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getBootstrapStatus'>, 'outParam'>>
 declare export function configGetConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getConfig'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getConfig'>, 'outParam'>>
 declare export function configGetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getRememberPassphrase'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getRememberPassphrase'>, 'outParam'>>
+declare export function configGetUpdateInfoRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'outParam'>>
 declare export function configHelloIAmRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'outParam'>>
 declare export function configSetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'outParam'>>
+declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'outParam'>>
 declare export function configWaitForClientRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'outParam'>>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'outParam'>>
 declare export function ctlDbNukeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'outParam'>>

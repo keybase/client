@@ -644,5 +644,10 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 }
 
 func HandleForceRepollNotification(ctx context.Context, g *libkb.GlobalContext, dtime gregor.TimeOrOffset) error {
-	return g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
+	e1 := g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
+	e2 := g.GetFastTeamLoader().ForceRepollUntil(libkb.NewMetaContext(ctx, g), dtime)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }

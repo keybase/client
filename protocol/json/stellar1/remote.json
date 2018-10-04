@@ -467,6 +467,10 @@
             "TransactionID"
           ],
           "name": "readTransactionID"
+        },
+        {
+          "type": "int",
+          "name": "unreadPayments"
         }
       ]
     },

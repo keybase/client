@@ -110,7 +110,7 @@ class StorybookErrorBoundary extends React.Component<
             style={{
               ...Styles.globalStyles.flexBoxColumn,
               backgroundColor: Styles.globalColors.darkBlue3,
-              borderRadius: 4,
+              borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',
             }}

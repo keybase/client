@@ -18,6 +18,7 @@ import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
+import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -360,6 +361,31 @@ const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
     ),
   ])
 
+const updateServerConfig = (state: TypedState) =>
+  Saga.call(function*() {
+    try {
+      const str = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'user/features',
+      })
+
+      const obj = JSON.parse(str.body)
+      const features = Object.keys(obj.features).reduce((map, key) => {
+        map[key] = obj.features[key].value
+        return map
+      }, {})
+
+      const serverConfig = {
+        printRPCStats: !!features.admin,
+        walletsEnabled: !!features.stellar,
+      }
+
+      logger.info('updateServerConfig', serverConfig)
+      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+    } catch (e) {
+      logger.info('updateServerConfig fail', e)
+    }
+  })
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -392,6 +418,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+  // Store per user server config info
+  yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
 
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 

@@ -184,7 +184,7 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
@@ -238,7 +238,7 @@ export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, stat
 export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String}>
 export type PaymentDetailsLocal = $ReadOnly<{id: PaymentID, txID: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, currentWorth: String, currentWorthCurrency: String, fromType: ParticipantType, toType: ParticipantType, fromAccountID: AccountID, fromAccountName: String, fromUsername: String, toAccountID?: ?AccountID, toAccountName: String, toUsername: String, toAssertion: String, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
-export type PaymentID = $ReadOnly<{txID: TransactionID}>
+export type PaymentID = String
 export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, currentWorth: String, currentWorthCurrency: String, fromType: ParticipantType, toType: ParticipantType, fromAccountID: AccountID, fromAccountName: String, fromUsername: String, toAccountID?: ?AccountID, toAccountName: String, toUsername: String, toAssertion: String, note: String, noteErr: String, unread: Boolean}>
 export type PaymentNotificationMsg = $ReadOnly<{accountID: AccountID, paymentID: PaymentID}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>

@@ -156,6 +156,18 @@ function logFileName(): string {
   throw new Error(`Unknown platform ${process.platform}`)
 }
 
+const serverConfigFileName = (function() {
+  switch (process.platform) {
+    case 'darwin':
+      return `${logDir()}/${envedPathOSX[runMode]}.app.serverConfig`
+    case 'linux':
+      return `${logDir()}/keybase.app.serverConfig`
+    case 'win32':
+      return `${logDir()}\\keybase.app.serverConfig`
+  }
+  throw new Error(`Unknown platform ${process.platform}`)
+})()
+
 const jsonDebugFileName = (function() {
   switch (process.platform) {
     case 'darwin':
@@ -201,6 +213,7 @@ export {
   isSimulator,
   isWindows,
   jsonDebugFileName,
+  serverConfigFileName,
   logFileName,
   mobileOsVersion,
   runMode,
