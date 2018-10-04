@@ -40,6 +40,7 @@ declare export var desktopStyles: {
 declare export var mobileStyles: {}
 declare export var fileUIName: string
 declare export var statusBarHeight: number
+declare export var borderRadius: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
 declare export function styleSheetCreate(map: {[styleName: string]: CSS.StylesCrossPlatform}): {

@@ -98,7 +98,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     senderDeviceName: ownProps.message.deviceName,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
-      paymentInfo.worth ? ' lumens worth' : ''
+      paymentInfo.worth ? ' Lumens worth' : ''
     }`,
     txVerb: 'sent',
     visible: ownProps.visible,
@@ -153,7 +153,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${
-    requestInfo.asset === 'currency' ? ' lumens worth' : ''
+    requestInfo.asset === 'currency' ? ' Lumens worth' : ''
   }`
 
   return {
