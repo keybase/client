@@ -163,6 +163,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   componentWillUnmount() {
     this._stopCycle()
+    this.props.onShowPicker && this.props.onShowPicker(false)
   }
 
   _getAttachmentRef = () => this._attachmentRef

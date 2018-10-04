@@ -450,6 +450,13 @@
       "name": "UIPaymentInfo",
       "fields": [
         {
+          "type": [
+            null,
+            "stellar1.AccountID"
+          ],
+          "name": "accountID"
+        },
+        {
           "type": "string",
           "name": "amountDescription"
         },
@@ -464,6 +471,10 @@
         {
           "type": "string",
           "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
         },
         {
           "type": "stellar1.PaymentStatus",

@@ -10,6 +10,7 @@ import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from './index.types'
+import '../conversation.css'
 
 type State = {|
   showDropOverlay: boolean,

@@ -4,10 +4,6 @@ import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
-// We treat PaymentIDs from the service as opaque
-export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTypes.PaymentID) =>
-  p1.txID === p2.txID
-
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
@@ -39,6 +35,13 @@ export const accountIDToString = (accountID: AccountID): string => accountID
 export const noAccountID = stringToAccountID('NOACCOUNTID')
 
 export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
+
+// We treat PaymentIDs from the service as opaque
+export opaque type PaymentID = StellarRPCTypes.PaymentID
+export const noPaymentID: PaymentID = 'NOPAYMENTID'
+export const rpcPaymentIDToPaymentID = (id: StellarRPCTypes.PaymentID): PaymentID => id
+export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentID => id
+export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Account = {
   accountID: AccountID,
@@ -97,7 +100,7 @@ export type _Payment = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
-  id: StellarRPCTypes.PaymentID,
+  id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
   publicMemo: HiddenString,
@@ -173,8 +176,8 @@ export type _State = {
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
-  paymentsMap: I.Map<AccountID, I.List<Payment>>,
-  pendingMap: I.Map<AccountID, I.List<Payment>>,
+  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
+  pendingMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,
