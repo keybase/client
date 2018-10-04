@@ -99,7 +99,7 @@ const routeTree = isMobile
   ? makeRouteDefNode({
       children: {
         wallet: {
-          chidlren: walletChildren,
+          children: walletChildren,
           component: Wallet,
         },
       },
