@@ -436,7 +436,7 @@ const isFederatedAddress = (address: ?string) => (address ? address.includes('*'
 const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20

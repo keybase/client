@@ -138,7 +138,7 @@ const stylesLink = platformStyles({
   isElectron: {
     ...desktopStyles.windowDraggingClickable,
     marginLeft: 7,
-    color: globalColors.green2,
+    color: globalColors.green,
   },
 })
 

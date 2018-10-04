@@ -7,7 +7,6 @@ import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
@@ -25,23 +24,6 @@ import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-
-function showShareActionSheet(options: {
-  url?: ?any,
-  message?: ?any,
-  mimeType?: ?string,
-}): Promise<{completed: boolean, method: string}> {
-  if (isIOS) {
-    return new Promise((resolve, reject) =>
-      ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
-    )
-  } else {
-    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
-      () => ({completed: true, method: ''}),
-      () => ({completed: false, method: ''})
-    )
-  }
-}
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
@@ -84,14 +66,26 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-// Downloads a file, shows the shareactionsheet, and deletes the file afterwards
-function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
-  const extension = mime.extension(mimeType)
-  return RNFetchBlob.config({appendExt: extension, fileCache: true})
-    .fetch('GET', fileURL)
-    .then(res => res.path())
-    .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
-    .then(([_, path]) => RNFetchBlob.fs.unlink(path))
+function showShareActionSheetFromURL(options: {
+  url?: ?any,
+  message?: ?any,
+  mimeType?: ?string,
+}): Promise<{completed: boolean, method: string}> {
+  if (isIOS) {
+    return new Promise((resolve, reject) =>
+      ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
+    )
+  } else {
+    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
+      () => ({completed: true, method: ''}),
+      () => ({completed: false, method: ''})
+    )
+  }
+}
+
+// Shows the shareactionsheet for a file, and deletes the file afterwards
+function showShareActionSheetFromFile(filePath: string): Promise<void> {
+  return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
 const openAppSettings = () => {
@@ -306,10 +300,10 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export {
-  downloadAndShowShareActionSheet,
+  showShareActionSheetFromFile,
+  showShareActionSheetFromURL,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
-  showShareActionSheet,
   getContentTypeFromURL,
   platformConfigSaga,
 }

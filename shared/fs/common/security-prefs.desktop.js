@@ -135,7 +135,7 @@ const stylesTitle = {
 
 const stylesTitleSuccess = {
   ...stylesTitle,
-  color: globalColors.green2,
+  color: globalColors.green,
 }
 
 export default InstallSecurityPrefs
