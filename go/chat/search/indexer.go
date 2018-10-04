@@ -94,11 +94,11 @@ func (idx *Indexer) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.Db
 }
 
 func (idx *Indexer) getMsgText(msg chat1.MessageUnboxed) string {
-	if !msg.IsValid() {
+	if !msg.IsValidFull() {
 		return ""
 	}
-	mbody := msg.Valid().MessageBody
 
+	mbody := msg.Valid().MessageBody
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return mbody.Text().Body
