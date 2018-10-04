@@ -108,8 +108,7 @@ func (c *CmdChatSearch) Run() (err error) {
 	}
 
 	if c.resolvingRequest.TlfName != "" {
-		err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
-		if err != nil {
+		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
 			return err
 		}
 	}
@@ -153,10 +152,7 @@ func (c *CmdChatSearch) Run() (err error) {
 	}
 
 	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {

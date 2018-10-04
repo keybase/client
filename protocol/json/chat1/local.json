@@ -2645,6 +2645,24 @@
     },
     {
       "type": "record",
+      "name": "IndexSearchConvStats",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numMessages"
+        },
+        {
+          "type": "int",
+          "name": "indexSize"
+        },
+        {
+          "type": "gregor1.DurationMsec",
+          "name": "durationMsec"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "StaticConfig",
       "fields": [
         {
@@ -3885,6 +3903,26 @@
         }
       ],
       "response": "FullInboxSearchRes"
+    },
+    "indexSearch": {
+      "request": [
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "IndexSearchConvStats",
+        "keys": "string"
+      }
     },
     "getStaticConfig": {
       "request": [],

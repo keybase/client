@@ -25,8 +25,8 @@ const MaxContext = 15
 // stored for each token from the message contents. contains fields to find or
 // filter the message.
 type msgMetadata struct {
-	SenderUsername string
-	Ctime          gregor1.Time
+	SenderUsername string       `codec:"s" json:"s"`
+	Ctime          gregor1.Time `codec:"t" json:"t"`
 }
 
 // For the chat1.MsgMetadata inferface
@@ -124,7 +124,7 @@ func (idx *Indexer) getConvIndex(ctx context.Context, dbKey libkb.DbKey) (convIn
 // Add tokenizes the message content and creates/updates index keys for each token.
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msg chat1.MessageUnboxed) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.Add")()
+	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.Add convID: %v", convID.String()))()
 	idx.Lock()
 	defer idx.Unlock()
 
@@ -160,7 +160,7 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msg chat1.MessageUnboxed) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.Remove")()
+	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.Remove convID: %v", convID.String()))()
 	idx.Lock()
 	defer idx.Unlock()
 
@@ -194,7 +194,7 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 // opts, results are ordered desc by msg id.
 func (idx *Indexer) searchConvLocked(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, tokens []string, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.searchConvLocked")()
+	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConvLocked convID: %v", convID.String()))()
 
 	dbKey := idx.dbKey(convID, uid)
 	convIdx, err := idx.getConvIndex(ctx, dbKey)
@@ -290,7 +290,6 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 // msg id.
 func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts) (convHits *chat1.ChatConvSearchHit, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.searchHitsFromMsgIDs")()
 
 	getUIMsgs := func(msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
 		for i := len(msgs) - 1; i >= 0; i-- {
