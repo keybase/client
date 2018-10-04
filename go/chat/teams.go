@@ -338,9 +338,8 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
-		ID:           teamID,
-		Public:       teamID.IsPublic(),
-		ForceRefresh: true,
+		ID:     teamID,
+		Public: teamID.IsPublic(),
 	})
 	if err != nil {
 		return nil, err
