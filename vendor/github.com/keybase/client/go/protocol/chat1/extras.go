@@ -1108,6 +1108,10 @@ func (r *DownloadAttachmentLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *DownloadFileAttachmentLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1334,6 +1338,14 @@ func (r *DownloadAttachmentLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *DownloadFileAttachmentLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *DownloadFileAttachmentLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *FindConversationsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -1379,6 +1391,14 @@ func (r *GetSearchRegexpRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *FullInboxSearchRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *FullInboxSearchRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

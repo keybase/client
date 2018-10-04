@@ -304,10 +304,10 @@
 			"revisionTime": "2018-09-29T23:42:17Z"
 		},
 		{
-			"checksumSHA1": "5CoH8uMGVGf0WQH4GzEvLkb+X0s=",
+			"checksumSHA1": "Cr01JLpafAABQB59wgf9J4CXxjc=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "5652205fac3bae80c62bb976f13fbccd280e4089",
-			"revisionTime": "2018-09-29T23:42:17Z"
+			"revision": "c05545fda87aa2706a70949f17dcb5244f90b961",
+			"revisionTime": "2018-10-04T14:19:59Z"
 		},
 		{
 			"checksumSHA1": "4E1elcDjvoBWsIqrg2O3yPXziZw=",
