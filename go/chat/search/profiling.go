@@ -23,7 +23,6 @@ func (idx *Indexer) IndexFullInbox(ctx context.Context, uid gregor1.UID) (res ma
 	res = map[string]chat1.IndexSearchConvStats{}
 	for _, conv := range convs {
 		convID := conv.GetConvID()
-		// TODO should we do a batch add?
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", conv.GetName())
 		convStats, err := idx.indexConv(ctx, uid, convID)
 		if err != nil {

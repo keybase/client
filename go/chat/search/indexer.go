@@ -127,16 +127,7 @@ func (idx *Indexer) BatchAdd(ctx context.Context, convID chat1.ConversationID, u
 	idx.Lock()
 	defer idx.Unlock()
 
-	dbKey := idx.dbKey(convID, uid)
-	convIdx, err := idx.getConvIndex(ctx, dbKey)
-	if err != nil {
-		return err
-	}
-	for _, msg := range msgs {
-		idx.addMsg(convIdx, msg)
-	}
-	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
-	return err
+	return idx.batchAddLocked(ctx, convID, uid, msgs)
 }
 
 // Add tokenizes the message content and creates/updates index keys for each token.
@@ -146,36 +137,40 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 	idx.Lock()
 	defer idx.Unlock()
 
+	return idx.batchAddLocked(ctx, convID, uid, []chat1.MessageUnboxed{msg})
+}
+
+func (idx *Indexer) batchAddLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
 	dbKey := idx.dbKey(convID, uid)
 	convIdx, err := idx.getConvIndex(ctx, dbKey)
 	if err != nil {
 		return err
 	}
-	idx.addMsg(convIdx, msg)
+
+	for _, msg := range msgs {
+		msgText := idx.getMsgText(msg)
+		tokens := tokenize(msgText)
+		if tokens == nil {
+			continue
+		}
+
+		mvalid := msg.Valid()
+		idxMetadata := msgMetadata{
+			SenderUsername: mvalid.SenderUsername,
+			Ctime:          mvalid.ServerHeader.Ctime,
+		}
+		for _, token := range tokens {
+			metadata, ok := convIdx[token]
+			if !ok {
+				metadata = msgMetadataIndex{}
+			}
+			metadata[msg.GetMessageID()] = idxMetadata
+			convIdx[token] = metadata
+		}
+	}
 	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
 	return err
-}
-
-func (idx *Indexer) addMsg(convIdx convIndex, msg chat1.MessageUnboxed) {
-	msgText := idx.getMsgText(msg)
-	tokens := tokenize(msgText)
-	if tokens == nil {
-		return
-	}
-
-	mvalid := msg.Valid()
-	idxMetadata := msgMetadata{
-		SenderUsername: mvalid.SenderUsername,
-		Ctime:          mvalid.ServerHeader.Ctime,
-	}
-	for _, token := range tokens {
-		metadata, ok := convIdx[token]
-		if !ok {
-			metadata = msgMetadataIndex{}
-		}
-		metadata[msg.GetMessageID()] = idxMetadata
-		convIdx[token] = metadata
-	}
 }
 
 // Remove tokenizes the message content and updates/removes index keys for each token.
