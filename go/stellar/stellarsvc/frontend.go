@@ -88,7 +88,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 
 func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
-	details, err := s.remoter.Details(ctx, entry.AccountID)
+	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", entry.AccountID, err)
 		return empty, err
@@ -122,7 +122,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 	mctx := libkb.NewMetaContext(ctx, s.G())
 
-	details, err := s.remoter.Details(ctx, arg.AccountID)
+	details, err := s.accountDetails(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
 		return nil, err
@@ -336,6 +336,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	for i, p := range srvPayments.Payments {
 		page.Payments[i].Payment, err = stellar.TransformPaymentSummaryAccount(mctx, p, oc, arg.AccountID, exchRate)
 		if err != nil {
+			s.G().Log.CDebugf(ctx, "GetPaymentsLocal error transforming payment %v: %v", i, err)
 			s := err.Error()
 			page.Payments[i].Err = &s
 			page.Payments[i].Payment = nil // just to make sure
@@ -455,7 +456,7 @@ func (a balanceList) balanceDescription() (res string, err error) {
 	var more bool
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
-			res, err = stellar.FormatAmountXLM(b.Amount)
+			res, err = stellar.FormatAmountDescriptionXLM(b.Amount)
 			if err != nil {
 				return "", err
 			}
@@ -1029,7 +1030,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.amountOfAsset = xlmAmount
-		xlmAmountFormatted, err := stellar.FormatAmountXLM(xlmAmount)
+		xlmAmountFormatted, err := stellar.FormatAmountDescriptionXLM(xlmAmount)
 		if err != nil {
 			log("error formatting converted XLM amount: %v", err)
 			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
@@ -1113,7 +1114,7 @@ func (s *Server) buildPaymentWorthInfo(ctx context.Context, rate stellar1.Outsid
 	if err != nil {
 		return "", err
 	}
-	amountXLMFormatted, err := stellar.FormatAmountXLM(amountXLM)
+	amountXLMFormatted, err := stellar.FormatAmountDescriptionXLM(amountXLM)
 	if err != nil {
 		return "", err
 	}

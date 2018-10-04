@@ -9,11 +9,13 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/araddon/dateparse"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
@@ -33,10 +35,6 @@ func NewCmdChatSearchRunner(g *libkb.GlobalContext) *CmdChatSearch {
 	return &CmdChatSearch{
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (c *CmdChatSearch) SetQuery(q string) {
-	c.query = q
 }
 
 func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -62,6 +60,16 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "sent-by",
 				Value: "",
 				Usage: "Filter search results by the username of the sender.",
+			},
+			cli.StringFlag{
+				Name:  "sent-before",
+				Value: "",
+				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-after.",
+			},
+			cli.StringFlag{
+				Name:  "sent-after",
+				Value: "",
+				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-before.",
 			},
 			cli.IntFlag{
 				Name:  "max-messages",
@@ -162,6 +170,26 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(1)
 	c.opts.SentBy = ctx.String("sent-by")
+	sentBeforeStr := ctx.String("sent-before")
+	sentAfterStr := ctx.String("sent-after")
+	if sentBeforeStr != "" && sentAfterStr != "" {
+		return fmt.Errorf("Only one of sent-before and sent-after can be specified")
+	}
+	if sentBeforeStr != "" {
+		sentBefore, err := dateparse.ParseAny(sentBeforeStr)
+		if err != nil {
+			return err
+		}
+		c.opts.SentBefore = gregor1.ToTime(sentBefore)
+	}
+	if sentAfterStr != "" {
+		sentAfter, err := dateparse.ParseAny(sentAfterStr)
+		if err != nil {
+			return err
+		}
+		c.opts.SentAfter = gregor1.ToTime(sentAfter)
+	}
+
 	c.opts.MaxHits = ctx.Int("max-hits")
 	if c.opts.MaxHits > search.MaxAllowedSearchHits {
 		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
