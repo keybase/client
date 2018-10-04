@@ -36,7 +36,7 @@ export type Props = {
 }
 
 type State = {
-  sraving: boolean,
+  saving: boolean,
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
