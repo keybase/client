@@ -491,6 +491,8 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 			"Ignoring error (%s) for user %s with no sigchain; "+
 				"error type=%T", err, res.Ul.Name, err)
 	default:
+		// If the caller is waiting for breaks, let them know we got an error.
+		ei.onError()
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
 	}

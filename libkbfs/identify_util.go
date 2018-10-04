@@ -40,6 +40,20 @@ func (ei *extendedIdentify) userBreak(username kbname.NormalizedUsername, uid ke
 	}
 }
 
+func (ei *extendedIdentify) onError() {
+	if ei.userBreaks == nil {
+		return
+	}
+
+	// The identify got an error, so just send a nil breaks list so
+	// that the goroutine waiting on the breaks can finish and the
+	// error can be returned.
+	ei.userBreaks <- keybase1.TLFIdentifyFailure{
+		Breaks: nil,
+		User:   keybase1.User{},
+	}
+}
+
 func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
 	ctx context.Context, numUserInTlf int) error {
 	if ei.userBreaks == nil {
