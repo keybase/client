@@ -155,10 +155,12 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     }
 
     return (
-      <ParticipantsRow heading="To" headingAlignment="Right">
+      <ParticipantsRow heading="To" headingAlignment="Right" style={styles.toAccountRow}>
         <Kb.Dropdown
           onChanged={this.onAccountDropdownChange}
           items={items}
+          style={styles.dropdown}
+          selectedBoxStyle={styles.dropdownSelectedBox}
           selected={
             this.props.toAccount ? (
               <SelectedEntry account={this.props.toAccount} user={this.props.user} />
@@ -212,6 +214,19 @@ const styles = Styles.styleSheetCreate({
   createNewAccountButton: Styles.platformStyles({
     isElectron: {
       width: 194,
+    },
+  }),
+  dropdownSelectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 32},
+  }),
+  dropdown: Styles.platformStyles({
+    isMobile: {height: 32},
+  }),
+  toAccountRow: Styles.platformStyles({
+    isMobile: {
+      height: 40,
+      paddingBottom: 4,
+      paddingTop: 4,
     },
   }),
 })

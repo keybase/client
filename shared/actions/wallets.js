@@ -11,10 +11,12 @@ import * as Route from './route-tree'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
-import {walletsTab} from '../constants/tabs'
+import * as Tabs from '../constants/tabs'
+import * as SettingsConstants from '../constants/settings'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 import {anyWaiting} from '../constants/waiting'
+import {isMobile} from '../constants/platform'
 
 const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -289,7 +291,11 @@ const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPa
     // we don't want to show, don't nav
     return
   }
-  return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+  const wallet = isMobile
+    ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'wallet']
+    : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
+
+  return Saga.put(Route.navigateTo(wallet))
 }
 
 const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
@@ -345,9 +351,9 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
   const path = getPath(routeState)
   const lastNode = path.last()
   if (Constants.sendReceiveFormRoutes.includes(lastNode)) {
-    if (path.first() === walletsTab) {
+    if (path.first() === Tabs.walletsTab) {
       // User is on send form in wallets tab, navigate back to root of tab
-      return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+      return Saga.put(Route.navigateTo([{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]))
     }
     // User is somewhere else, send them to most recent parent that isn't a form route
     const firstFormIndex = path.findIndex(node => Constants.sendReceiveFormRoutes.includes(node))
