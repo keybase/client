@@ -144,7 +144,7 @@ class ToField extends React.Component<ToFieldProps> {
               type="text"
               onChangeText={this._onChangeStellarRecipient}
               textType="BodySemibold"
-              placeholder={'Stellar address'}
+              placeholder={'Stellar address\nG12345... or you*example.com'}
               placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
               containerStyle={styles.input}
