@@ -105,7 +105,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
 func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.From, p.To, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, p.From, p.To, acctID, exchRate)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.FromStellar, p.ToStellar, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, p.FromStellar, p.ToStellar, acctID, exchRate)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	if p.Claim != nil {
 		toStellar = p.Claim.ToStellar
 	}
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.FromStellar, toStellar, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative(), p.FromStellar, toStellar, acctID, exchRate)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,13 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 	return decrypted.Note, ""
 }
 
-func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, from, to, requester stellar1.AccountID, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
+func newPaymentLocal(mctx libkb.MetaContext,
+	txID stellar1.TransactionID,
+	ctime stellar1.TimeMs,
+	amount string,
+	asset stellar1.Asset,
+	from, to, requester stellar1.AccountID,
+	exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
 	isSender := from == requester
@@ -331,13 +337,13 @@ func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	formatted, err := FormatAmountXLM(amount)
+	formatted, err := FormatAmountDescriptionAsset(amount, asset)
 	if err != nil {
 		return nil, err
 	}
 	loc.AmountDescription = formatted
 
-	if exchRate != nil {
+	if asset.IsNativeXLM() && exchRate != nil {
 		outsideAmount, err := stellarnet.ConvertXLMToOutside(amount, exchRate.Rate)
 		if err != nil {
 			return nil, err

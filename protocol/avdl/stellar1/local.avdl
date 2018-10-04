@@ -77,7 +77,7 @@ protocol local {
                                     // currentWorth is how much the amount of XLM in
                                     // amountDescription is currently worth in the
                                     // display currency preference of the user looking
-                                    // at this payment.
+                                    // at this payment. Both can be "".
     string currentWorth;            // "$379.12" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
@@ -137,7 +137,7 @@ protocol local {
                                     // currentWorth is how much the amount of XLM in
                                     // amountDescription is currently worth in the
                                     // display currency preference of the user looking
-                                    // at this payment.
+                                    // at this payment. Both can be "".
     string currentWorth;            // "$379.12" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
