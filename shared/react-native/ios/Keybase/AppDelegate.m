@@ -62,23 +62,17 @@ const BOOL isDebug = NO;
                                                    } error:&err];
 }
 
-#ifdef SYSTRACING
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=true"];
-}
-
-- (BOOL)shouldBridgeUseCxxBridge:(RCTBridge *)bridge {
-  return NO;
-}
-#endif
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (void) setupLogger
 {
   self.fileLogger = [[DDFileLogger alloc] init];
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
   self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
   [DDLog addLogger:self.fileLogger];
+}
 
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
 

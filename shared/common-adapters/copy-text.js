@@ -143,9 +143,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.blue4,
-      borderRadius: 100,
+      borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: 16,
+      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {
