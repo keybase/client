@@ -178,7 +178,6 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
-  pendingMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,

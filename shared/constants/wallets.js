@@ -57,7 +57,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
-  pendingMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
@@ -390,17 +389,24 @@ const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+const getPayments = (state: TypedState, accountID?: Types.AccountID) => {
+  const payments = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+  if (!payments) {
+    return payments
+  }
+  return payments.filter(p => p.statusSimplified === 'completed')
+}
 
-const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), null)
+const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) => {
+  const payments = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+  if (!payments) {
+    return payments
+  }
+  return payments.filter(p => p.statusSimplified !== 'completed')
+}
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
-
-const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  state.wallets.pendingMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
@@ -459,7 +465,6 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
-  getPendingPayment,
   getPendingPayments,
   getRequest,
   getSecretKey,

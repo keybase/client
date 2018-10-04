@@ -14,10 +14,7 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  _transaction:
-    ownProps.status === 'completed'
-      ? Constants.getPayment(state, ownProps.accountID, ownProps.paymentID)
-      : Constants.getPendingPayment(state, ownProps.accountID, ownProps.paymentID),
+  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 

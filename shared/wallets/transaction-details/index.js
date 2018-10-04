@@ -214,40 +214,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
 
       <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
         <Text type="BodySmallSemibold">Status:</Text>
-        <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
-          <Icon
-            color={colorForStatus(props.status)}
-            fontSize={16}
-            type={
-              props.status === 'error'
-                ? 'iconfont-close'
-                : props.status === 'completed'
-                  ? 'iconfont-success'
-                  : 'icon-transaction-pending-16'
-            }
-          />
-          <Text
-            style={collapseStyles([
-              styles.statusText,
-              {color: colorForStatus(props.status), marginLeft: globalMargins.xtiny},
-            ])}
-            type="Body"
-          >
-            {descriptionForStatus(props.status, props.yourRole)}
-          </Text>
-        </Box2>
-        {props.status !== 'error' && (
-          <TimestampLine
-            status={props.status}
-            error={props.statusDetail}
-            selectableText={true}
-            timestamp={props.timestamp}
-          />
-        )}
-      </Box2>
-
-      <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-        <Text type="BodySmallSemibold">Status:</Text>
         <WithTooltip
           containerStyle={styles.statusBox}
           text={

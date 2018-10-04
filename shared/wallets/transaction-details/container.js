@@ -12,11 +12,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   const you = state.config.username || ''
   const accountID = ownProps.routeProps.get('accountID')
   const paymentID = ownProps.routeProps.get('paymentID')
-  const status = ownProps.routeProps.get('status')
-  const _transaction =
-    status === 'completed'
-      ? Constants.getPayment(state, accountID, paymentID)
-      : Constants.getPendingPayment(state, accountID, paymentID)
+  const _transaction = Constants.getPayment(state, accountID, paymentID)
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(_transaction)
   return {
     _transaction,
@@ -32,11 +28,16 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
-  _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-    dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
+  onCancelPayment: () => dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID')})),
+  onLoadPaymentDetail: () =>
+    dispatch(
+      WalletsGen.createLoadPaymentDetail({
+        accountID: routeProps.get('accountID'),
+        paymentID: routeProps.get('paymentID'),
+      })
+    ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -46,11 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     return {
       loading: true,
       onBack: dispatchProps.navigateUp,
-      onLoadPaymentDetail: () =>
-        dispatchProps._onLoadPaymentDetail(
-          ownProps.routeProps.get('accountID'),
-          ownProps.routeProps.get('paymentID')
-        ),
+      onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
       title: 'Transaction details',
     }
   }
@@ -62,14 +59,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     loading: false,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
-    onCancelPayment:
-      tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment: tx.statusSimplified === 'cancelable' ? dispatchProps.onCancelPayment : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-    onLoadPaymentDetail: () =>
-      dispatchProps._onLoadPaymentDetail(
-        ownProps.routeProps.get('accountID'),
-        ownProps.routeProps.get('paymentID')
-      ),
+    onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
