@@ -63,6 +63,7 @@ class ToField extends React.Component<ToFieldProps> {
 
   render() {
     let component
+    let rowStyle = null
 
     // There are a few different ways the participants form can look:
     // Case 1: A user has been set, so we display their name and avatar
@@ -100,6 +101,7 @@ class ToField extends React.Component<ToFieldProps> {
           </Kb.Box2>
         )
       } else {
+        rowStyle = styles.toAccountRow
         // Case #3: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
         let items = [
           <DropdownText key="link-existing" text="Link an existing Stellar account" />,
@@ -117,6 +119,8 @@ class ToField extends React.Component<ToFieldProps> {
           <Kb.Dropdown
             onChanged={this.onDropdownChange}
             items={items}
+            style={styles.dropdown}
+            selectedBoxStyle={styles.dropdownSelectedBox}
             selected={
               this.props.toAccount ? (
                 <SelectedEntry account={this.props.toAccount} user={this.props.user} />
@@ -186,6 +190,7 @@ class ToField extends React.Component<ToFieldProps> {
             ? Styles.globalColors.red
             : ''
         }
+        style={rowStyle}
       >
         {component}
       </ParticipantsRow>
@@ -201,6 +206,12 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       width: 194,
     },
+  }),
+  dropdownSelectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 32},
+  }),
+  dropdown: Styles.platformStyles({
+    isMobile: {height: 32},
   }),
   errorText: Styles.platformStyles({
     common: {
@@ -223,6 +234,13 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'right',
     marginRight: Styles.globalMargins.tiny, // consistent with UserInput
   },
+  toAccountRow: Styles.platformStyles({
+    isMobile: {
+      height: 40,
+      paddingBottom: 4,
+      paddingTop: 4,
+    },
+  }),
   stellarIcon: {
     alignSelf: 'flex-start',
     marginRight: Styles.globalMargins.xxtiny,

@@ -12,6 +12,7 @@ type Props = {
   selected?: React.Node,
   items: Array<React.Node>,
   style?: Styles.StylesCrossPlatform,
+  selectedBoxStyle?: Styles.StylesCrossPlatform,
   position?: Position,
   disabled?: boolean,
 }
@@ -45,7 +46,9 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
           disabled={this.props.disabled}
           ref={this.props.setAttachmentRef}
         >
-          <Box style={styles.selectedBox}>{this.props.selected}</Box>
+          <Box style={Styles.collapseStyles([styles.selectedBox, this.props.selectedBoxStyle])}>
+            {this.props.selected}
+          </Box>
           <Icon
             type="iconfont-caret-down"
             inheritColor={true}
