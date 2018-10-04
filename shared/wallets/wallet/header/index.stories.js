@@ -20,6 +20,7 @@ const secondWalletMock = {
 const common = {
   accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
   navigateAppend: Sb.action('navigateAppend'),
+  onBack: Sb.action('onBack'),
   onDeposit: Sb.action('onDeposit'),
   onReceive: Sb.action('onReceive'),
   onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),

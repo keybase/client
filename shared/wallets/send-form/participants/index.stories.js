@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import {
   type Account,
@@ -123,7 +122,6 @@ const otherAccountProps = {
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (

@@ -25,6 +25,7 @@ const provider = Sb.createPropProviderWithCommon({
 const props = {
   accountID: stringToAccountID('fakeAccountID'),
   navigateAppend: Sb.action('navigateAppend'),
+  navigateUp: Sb.action('navigateUp'),
   sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['noPayments']}],
 }
 
