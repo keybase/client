@@ -595,7 +595,7 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
-      const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
+      const rawText: string = m.messageBody.text?.body ?? ''
       return makeMessageText({
         ...common,
         ...explodable,

@@ -66,8 +66,8 @@ const loadDaemonBootstrapStatus = (
         ConfigGen.createBootstrapStatusLoaded({
           deviceID: s.deviceID,
           deviceName: s.deviceName,
-          followers: s.followers || [],
-          following: s.following || [],
+          followers: s.followers ?? [],
+          following: s.following ?? [],
           loggedIn: s.loggedIn,
           registered: s.registered,
           uid: s.uid,
@@ -311,7 +311,7 @@ const routeToInitialScreen = (state: TypedState) => {
             Saga.put(ProfileGen.createShowUserProfile({username})),
           ])
         }
-      } catch (e) {
+      } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
     }
