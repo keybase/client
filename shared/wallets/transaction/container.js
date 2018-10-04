@@ -10,7 +10,6 @@ import {navigateAppend} from '../../actions/route-tree'
 export type OwnProps = {
   accountID: Types.AccountID,
   paymentID: Types.PaymentID,
-  status: Types.StatusSimplified,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({

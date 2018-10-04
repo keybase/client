@@ -30,17 +30,24 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
-      const pending = paymentInfo.status !== 'complete'
+      const pending = paymentInfo.status !== 'completed'
       const verb = pending ? 'sending' : 'sent'
-      let balanceChangeColor =
-        paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red
+      let sign = ''
+      if (paymentInfo.delta !== 'none') {
+        sign = paymentInfo.delta === 'increase' ? '+' : '-'
+      }
+      let balanceChangeColor = Styles.globalColors.black
+      if (paymentInfo.delta !== 'none') {
+        balanceChangeColor =
+          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red
+      }
       if (pending) {
         balanceChangeColor = Styles.globalColors.black_20
       }
       return {
         action: paymentInfo.worth ? `${verb} lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
+        balanceChange: `${sign}${paymentInfo.amountDescription}`,
         balanceChangeColor,
         icon: 'iconfont-stellar-send',
         loading: false,

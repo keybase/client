@@ -389,21 +389,8 @@ const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) => {
-  const payments = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
-  if (!payments) {
-    return payments
-  }
-  return payments.filter(p => p.statusSimplified === 'completed')
-}
-
-const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) => {
-  const payments = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
-  if (!payments) {
-    return payments
-  }
-  return payments.filter(p => p.statusSimplified !== 'completed')
-}
+const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
@@ -465,7 +452,6 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
-  getPendingPayments,
   getRequest,
   getSecretKey,
   getSelectedAccount,
