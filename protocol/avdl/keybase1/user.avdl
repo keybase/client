@@ -183,6 +183,6 @@ protocol user {
   }
 
   void addPhoneNumber(int sessionID, string phoneNumber);
-  void verifyPhoneNumber(int sessionID, string phoneNumber, string verificationCode);
+  void verifyPhoneNumber(int sessionID, string phoneNumber, string code);
   array<PhoneNumber> getPhoneNumbers(int sessionID);
 }

@@ -414,9 +414,9 @@ type AddPhoneNumberArg struct {
 }
 
 type VerifyPhoneNumberArg struct {
-	SessionID        int    `codec:"sessionID" json:"sessionID"`
-	PhoneNumber      string `codec:"phoneNumber" json:"phoneNumber"`
-	VerificationCode string `codec:"verificationCode" json:"verificationCode"`
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
+	Code        string `codec:"code" json:"code"`
 }
 
 type GetPhoneNumbersArg struct {

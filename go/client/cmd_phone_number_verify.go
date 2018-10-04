@@ -48,8 +48,8 @@ func (c *CmdVerifyPhoneNumber) Run() error {
 		return err
 	}
 	arg := keybase1.VerifyPhoneNumberArg{
-		PhoneNumber:      c.PhoneNumber,
-		VerificationCode: c.Code,
+		PhoneNumber: c.PhoneNumber,
+		Code:        c.Code,
 	}
 	return cli.VerifyPhoneNumber(context.Background(), arg)
 }

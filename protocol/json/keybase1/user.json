@@ -697,7 +697,7 @@
           "type": "string"
         },
         {
-          "name": "verificationCode",
+          "name": "code",
           "type": "string"
         }
       ],

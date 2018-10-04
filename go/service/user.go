@@ -366,9 +366,10 @@ func (h *UserHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneN
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
 }
+
 func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.VerificationCode)
+	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
 func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) ([]keybase1.PhoneNumber, error) {
