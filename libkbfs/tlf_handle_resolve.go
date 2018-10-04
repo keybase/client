@@ -694,22 +694,8 @@ func (rit resolvableImplicitTeam) resolve(ctx context.Context) (
 	}, keybase1.SocialAssertion{}, iteamInfo.TlfID, nil
 }
 
-func doResolveImplicit(ctx context.Context, t tlf.Type) bool {
-	if t == tlf.SingleTeam {
-		return false
-	}
-
-	// Chat calls will never need us to resolve implicit teams for
-	// them.
-	switch getExtendedIdentify(ctx).behavior {
-	case keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		keybase1.TLFIdentifyBehavior_CHAT_SKIP:
-		return false
-	default:
-		return true
-	}
+func doResolveImplicit(_ context.Context, t tlf.Type) bool {
+	return t != tlf.SingleTeam
 }
 
 // parseTlfHandleLoose parses a TLF handle but leaves some of the canonicality
