@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
 import {
+  borderRadius,
   desktopStyles,
   globalStyles,
   globalColors,
@@ -171,7 +172,7 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: globalColors.black_10,
-      borderRadius: 19,
+      borderRadius,
       flexGrow: 1,
       height: 24,
       justifyContent: 'center',

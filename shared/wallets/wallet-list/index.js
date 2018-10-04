@@ -5,6 +5,7 @@ import {
   ClickableBox,
   Icon,
   List,
+  ProgressIndicator,
   Text,
   FloatingMenu,
   OverlayParentHOC,
@@ -23,6 +24,7 @@ const rowHeight = isMobile ? 56 : 48
 
 const styles = styleSheetCreate({
   addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
+  progressIndicator: {height: 30, width: 30},
 })
 
 const _AddWallet = (props: AddProps & OverlayParentProps) => {
@@ -97,6 +99,14 @@ class WalletList extends React.Component<Props> {
   }
 
   render = () => {
+    if (this.props.accountIDs.length === 0) {
+      // loading
+      return (
+        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <ProgressIndicator style={styles.progressIndicator} />
+        </Box2>
+      )
+    }
     const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID}))
     rows.push({type: 'add wallet'})
 

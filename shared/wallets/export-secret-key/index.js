@@ -2,13 +2,16 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WalletPopup} from '../common'
+import {SmallAccountID, WalletPopup} from '../common'
+import * as Types from '../../constants/types/wallets'
 
 type Props = {
+  accountID: Types.AccountID,
   secretKey: ?string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
+  walletName: ?string,
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
@@ -19,7 +22,11 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
   render() {
     const header = (
       <React.Fragment>
-        <Text type="BodySmallSemibold">{this.props.username}’s account</Text>
+        {this.props.walletName ? (
+          <Text type="BodySmallSemibold">{this.props.walletName}</Text>
+        ) : (
+          <SmallAccountID accountID={this.props.accountID} />
+        )}
         <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key
         </Text>
