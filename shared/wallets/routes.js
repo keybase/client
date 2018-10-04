@@ -4,7 +4,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
-import Container from './container'
+import WalletsAndDetails from './wallets-and-details'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
@@ -18,6 +18,7 @@ import {
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
+import WalletsList from './wallet-list/container'
 
 const createNewAccount = {
   children: {},
@@ -94,15 +95,26 @@ const walletChildren = {
   },
 }
 
-const routeTree = makeRouteDefNode({
-  containerComponent: Container,
-  defaultSelected: 'wallet',
-  children: {
-    wallet: {
-      component: Wallet,
-      children: walletChildren,
-    },
-  },
-})
+const routeTree = isMobile
+  ? makeRouteDefNode({
+      children: {
+        wallet: {
+          chidlren: walletChildren,
+          component: Wallet,
+        },
+      },
+      component: WalletsList,
+      tags: makeLeafTags({title: 'Wallets'}),
+    })
+  : makeRouteDefNode({
+      children: {
+        wallet: {
+          children: walletChildren,
+          component: Wallet,
+        },
+      },
+      containerComponent: WalletsAndDetails,
+      defaultSelected: 'wallet',
+    })
 
 export default routeTree

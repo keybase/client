@@ -1,16 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  ClickableBox,
-  Icon,
-  List,
-  ProgressIndicator,
-  Text,
-  FloatingMenu,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
@@ -27,7 +17,7 @@ const styles = styleSheetCreate({
   progressIndicator: {height: 30, width: 30},
 })
 
-const _AddWallet = (props: AddProps & OverlayParentProps) => {
+const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
     {
       onClick: () => props.onAddNew(),
@@ -41,8 +31,8 @@ const _AddWallet = (props: AddProps & OverlayParentProps) => {
   ]
 
   return (
-    <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Box2
+    <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+      <Kb.Box2
         style={styles.addContainerBox}
         direction="horizontal"
         fullWidth={true}
@@ -50,10 +40,10 @@ const _AddWallet = (props: AddProps & OverlayParentProps) => {
         gapStart={true}
         gapEnd={true}
       >
-        <Icon type="iconfont-new" color={globalColors.blue} />
-        <Text type="BodyBigLink">Add an account</Text>
-      </Box2>
-      <FloatingMenu
+        <Kb.Icon type="iconfont-new" color={globalColors.blue} />
+        <Kb.Text type="BodyBigLink">Add an account</Kb.Text>
+      </Kb.Box2>
+      <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         closeOnSelect={true}
         items={menuItems}
@@ -61,22 +51,28 @@ const _AddWallet = (props: AddProps & OverlayParentProps) => {
         visible={props.showingMenu}
         position="bottom center"
       />
-    </ClickableBox>
+    </Kb.ClickableBox>
   )
 }
 
-const AddWallet = OverlayParentHOC(_AddWallet)
+const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
 type Props = {
   accountIDs: Array<AccountID>,
   style?: StylesCrossPlatform,
   onAddNew: () => void,
   onLinkExisting: () => void,
+  refresh: () => void,
+  title: string,
 }
 
 type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
-class WalletList extends React.Component<Props> {
+class _WalletList extends React.Component<Props> {
+  componentDidMount() {
+    this.props.refresh()
+  }
+
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'wallet':
@@ -102,17 +98,19 @@ class WalletList extends React.Component<Props> {
     if (this.props.accountIDs.length === 0) {
       // loading
       return (
-        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-          <ProgressIndicator style={styles.progressIndicator} />
-        </Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <Kb.ProgressIndicator style={styles.progressIndicator} />
+        </Kb.Box2>
       )
     }
-    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID}))
-    rows.push({type: 'add wallet'})
+    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
+    rows.push({type: 'add wallet', key: 'add wallet'})
 
-    return <List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
+    return <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
   }
 }
+
+const WalletList = Kb.HeaderOnMobile(_WalletList)
 
 export type {Props}
 export {WalletList}
