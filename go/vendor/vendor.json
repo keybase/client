@@ -82,6 +82,12 @@
 			"revisionTime": "2015-07-30T17:44:59Z"
 		},
 		{
+			"checksumSHA1": "bxtrVQB+698clLEGq7PppnWfXJk=",
+			"path": "github.com/araddon/dateparse",
+			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
+			"revisionTime": "2018-07-29T17:48:19Z"
+		},
+		{
 			"checksumSHA1": "5gnBrB9ISzgkQe5rLOlFp2MqA/8=",
 			"path": "github.com/asaskevich/govalidator",
 			"revision": "f9ffefc3facfbe0caee3fea233cbb6e8208f4541",
