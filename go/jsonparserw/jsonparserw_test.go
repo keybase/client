@@ -31,4 +31,7 @@ func TestDescriptiveErrorMessage(t *testing.T) {
 
 	// Should include keys
 	require.Contains(t, err.Error(), "with keys [agilulf bertrandin guildivern corbentraz]")
+
+	// Should include original error message
+	require.Contains(t, err.Error(), "Key path not found")
 }

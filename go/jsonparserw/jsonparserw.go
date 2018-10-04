@@ -4,16 +4,11 @@ import (
 	"fmt"
 
 	"github.com/buger/jsonparser"
+	"github.com/pkg/errors"
 )
 
 func wrapError(data []byte, keys []string, err error) error {
-	if err == nil {
-		return nil
-	}
-
-	// For now, redact data.
-	dataString := "[redacted]"
-	return fmt.Errorf("jsonparserw error in data %s with keys %v: %s", dataString, keys, err.Error())
+	return errors.Wrap(err, fmt.Sprintf("jsonparserw error in data %s with keys %v", "[redacted]", keys))
 }
 
 func ArrayEach(data []byte, cb func(value []byte, dataType jsonparser.ValueType, offset int, err error), keys ...string) (offset int, err error) {

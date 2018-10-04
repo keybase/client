@@ -15,6 +15,8 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/jsonparserw"
+	pkgerrors "github.com/pkg/errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -510,10 +512,12 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 	hs, dataType, _, err := jsonparserw.Get(payload, "high_skip")
 	// high_skip is optional, but must be an object if it exists
 	if err != nil {
-		if err == jsonparser.KeyPathNotFoundError {
+		switch pkgerrors.Cause(err) {
+		case jsonparser.KeyPathNotFoundError:
 			return nil, nil
+		default:
+			return nil, err
 		}
-		return nil, err
 	}
 
 	if dataType != jsonparser.Object {
