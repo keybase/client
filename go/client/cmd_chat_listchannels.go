@@ -65,19 +65,20 @@ func (c *CmdChatListChannels) Run() error {
 			return err
 		}
 		ui.Printf("%s\n", string(b))
-	} else {
-		ui.Printf("Listing channels on %s:\n\n", c.tlfName)
-		for _, c := range listRes.Convs {
-			convLine := fmt.Sprintf("#%s", c.Channel)
-			if c.Headline != "" {
-				convLine += fmt.Sprintf(" [%s]", c.Headline)
-			}
-			if c.CreatorInfo != nil {
-				convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
-					c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
-			}
-			ui.Printf(convLine + "\n")
+		return nil
+	}
+
+	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
+	for _, c := range listRes.Convs {
+		convLine := fmt.Sprintf("#%s", c.Channel)
+		if c.Headline != "" {
+			convLine += fmt.Sprintf(" [%s]", c.Headline)
 		}
+		if c.CreatorInfo != nil {
+			convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
+				c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
+		}
+		ui.Printf(convLine + "\n")
 	}
 	return nil
 }
