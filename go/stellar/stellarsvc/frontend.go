@@ -323,7 +323,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
-	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
+	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 10, true)
 	if err != nil {
 		return page, err
 	}

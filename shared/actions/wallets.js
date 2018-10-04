@@ -146,10 +146,28 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
+      paymentCursor: payments.cursor,
       payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
       pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
+
+const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
+  const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
+  return (
+    cursor &&
+    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(payments =>
+      WalletsGen.createPaymentsReceived({
+        accountID: action.payload.accountID,
+        paymentCursor: payments.cursor,
+        payments: (payments.payments || [])
+          .map(elem => Constants.paymentResultToPayment(elem))
+          .filter(Boolean),
+        pending: [],
+      })
+    )
+  )
+}
 
 const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
   RPCTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
@@ -393,6 +411,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
