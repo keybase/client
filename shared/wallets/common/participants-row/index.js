@@ -44,6 +44,9 @@ ParticipantsRow.defaultProps = {
 
 const styles = Styles.styleSheetCreate({
   childContainer: Styles.platformStyles({
+    isElectron: {
+      width: '100%',
+    },
     isMobile: {
       flexGrow: 1,
       height: '100%',
