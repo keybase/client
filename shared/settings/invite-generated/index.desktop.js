@@ -1,6 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalMargins, globalColors, collapseStyles, desktopStyles} from '../../styles'
+import {
+  borderRadius,
+  globalStyles,
+  globalMargins,
+  globalColors,
+  collapseStyles,
+  desktopStyles,
+} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 
 import type {Props} from './index'
@@ -69,11 +76,11 @@ const linkContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.green3,
-  borderRadius: 48,
+  borderRadius,
   height: 32,
   marginTop: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
+  paddingLeft: globalMargins.xsmall,
+  paddingRight: globalMargins.xsmall,
 }
 
 export default InviteGeneratedRender
