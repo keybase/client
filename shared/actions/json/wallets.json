@@ -39,7 +39,7 @@
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
     "cancelPayment": {
-      "_description": "Cancel a payment. Valid for payments of status 'claimable'.",
+      "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
       "paymentID": "Types.PaymentID",
     },
     "createNewAccount": {

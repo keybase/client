@@ -327,6 +327,7 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
     })
     .catch(err => {
       logger.error(`cancelPayment: failed to cancel payment with ID ${pid}. Error: ${err.message}`)
+      throw err
     })
 }
 
