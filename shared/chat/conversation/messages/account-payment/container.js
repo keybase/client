@@ -35,7 +35,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
         balanceChangeColor:
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+          paymentInfo.delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
