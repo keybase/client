@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -15,11 +16,11 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
-func ServiceInit(g *libkb.GlobalContext, remoter remote.Remoter) {
+func ServiceInit(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) {
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
 		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
 	}
-	g.SetStellar(NewStellar(g, remoter))
+	g.SetStellar(NewStellar(g, remoter, badger))
 }
 
 type Stellar struct {
@@ -39,16 +40,19 @@ type Stellar struct {
 
 	bpcLock sync.Mutex
 	bpc     BuildPaymentCache
+
+	badger *badges.Badger
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
 
-func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter) *Stellar {
+func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.Badger) *Stellar {
 	return &Stellar{
 		Contextified:     libkb.NewContextified(g),
 		remoter:          remoter,
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
+		badger:           badger,
 	}
 }
 
@@ -150,6 +154,18 @@ func (s *Stellar) getBuildPaymentCache() BuildPaymentCache {
 		s.bpc = newBuildPaymentCache(s.remoter)
 	}
 	return s.bpc
+}
+
+// UpdateUnreadCount will take the unread count for an account id and
+// update the badger.
+func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error {
+	if s.badger == nil {
+		s.G().Log.CDebugf(ctx, "Stellar Global has no badger")
+		return nil
+	}
+
+	s.badger.SetWalletAccountUnreadCount(ctx, accountID, unread)
+	return nil
 }
 
 // getFederationClient is a helper function used during

@@ -19,7 +19,8 @@ const mapDispatchToProps = dispatch => ({
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
-    dispatch(WalletsGen.createAbandonPayment())
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(

@@ -33,7 +33,6 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uid gregor1.UID, convID cha
 	re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
-	sentBy := opts.SentBy
 	maxHits := opts.MaxHits
 	maxMessages := opts.MaxMessages
 	beforeContext := opts.BeforeContext
@@ -76,9 +75,6 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uid gregor1.UID, convID cha
 			}
 		}
 		thread.Messages = filteredMsgs
-		pagination = thread.Pagination
-		pagination.Num = s.pageSize
-		pagination.Previous = nil
 		return &thread, nil
 	}
 
@@ -150,10 +146,14 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uid gregor1.UID, convID cha
 			curPage = nextPage
 			nextPage = nil
 		}
+		// update our global pagination so we can correctly fetch the next page.
+		pagination = curPage.Pagination
+		pagination.Num = s.pageSize
+		pagination.Previous = nil
 
 		for i, msg := range curPage.Messages {
 			numMessages++
-			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
+			if !opts.Matches(msg) {
 				continue
 			}
 			msgText := msg.Valid().MessageBody.Text().Body

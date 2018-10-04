@@ -345,7 +345,7 @@ const styles = styleSheetCreate({
       ...globalStyles.fontTerminalSemibold,
       backgroundColor: globalColors.white,
       borderRadius: 4,
-      color: globalColors.green2,
+      color: globalColors.green,
       fontSize: 16,
       paddingBottom: 15,
       paddingLeft: 20,
@@ -457,7 +457,7 @@ const styles = styleSheetCreate({
   }),
   viewTextContainer: platformStyles({
     common: {
-      backgroundColor: globalColors.green2,
+      backgroundColor: globalColors.green,
       borderRadius: 4,
     },
     isElectron: {

@@ -1,23 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Text,
-  ClickableBox,
-  Icon,
-  ProgressBar,
-  ProgressIndicator,
-  iconCastPlatformStyles,
-} from '../../../../../common-adapters'
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  fileUIName,
-  platformStyles,
-  styleSheetCreate,
-  collapseStyles,
-} from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
 
@@ -86,7 +70,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   render() {
     return (
       <React.Fragment>
-        <ClickableBox
+        <Kb.ClickableBox
           style={styles.imageContainer}
           onClick={this._onClick}
           onDoubleClick={this._onDoubleClick}
@@ -94,18 +78,20 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           onMouseEnter={this._onMouseEnter}
           onMouseLeave={this._onMouseLeave}
         >
-          <Text type="BodySemibold" style={styles.title}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
             {this.props.title}
-          </Text>
-          <Box
-            style={collapseStyles([
-              styles.loading,
-              !this.state.loaded && styles.spinner,
-              {
-                height: this.props.height,
-                width: this.props.width,
-              },
-            ])}
+          </Kb.Text>
+          <Kb.Box
+            style={Kb.iconCastPlatformStyles(
+              Styles.collapseStyles([
+                styles.loading,
+                !this.state.loaded && styles.spinner,
+                {
+                  height: this.props.height,
+                  width: this.props.width,
+                },
+              ])
+            )}
           >
             {!!this.props.path && (
               <ImageRender
@@ -118,7 +104,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 onLoadedVideo={this._setVideoLoaded}
                 loaded={this.state.loaded}
                 inlineVideoPlayable={this.props.inlineVideoPlayable}
-                style={collapseStyles([
+                style={Styles.collapseStyles([
                   styles.image,
                   {
                     height: this.props.height,
@@ -129,99 +115,105 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               />
             )}
             {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-              <ProgressIndicator style={styles.progress} />
+              <Kb.ProgressIndicator style={styles.progress} />
             )}
             {!!this.props.showButton &&
               !this.state.playingVideo && (
-                <Icon
+                <Kb.Icon
                   type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                  style={iconCastPlatformStyles(styles.playButton)}
+                  style={Kb.iconCastPlatformStyles(styles.playButton)}
                 />
               )}
             {this.props.videoDuration.length > 0 &&
               !this.state.playingVideo &&
               this.state.loaded && (
-                <Box style={styles.durationContainer}>
-                  <Text type={'BodyTinyBold'} style={styles.durationText}>
+                <Kb.Box style={styles.durationContainer}>
+                  <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
                     {this.props.videoDuration}
-                  </Text>
-                </Box>
+                  </Kb.Text>
+                </Kb.Box>
               )}
             {!!this.props.arrowColor && (
-              <Box style={styles.downloadedIconWrapper}>
-                <Icon
+              <Kb.Box style={styles.downloadedIconWrapper}>
+                <Kb.Icon
                   type="iconfont-download"
-                  style={iconCastPlatformStyles(styles.downloadIcon)}
+                  style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
                   color={this.props.arrowColor}
                 />
-              </Box>
+              </Kb.Box>
             )}
-          </Box>
-          <Box style={styles.progressContainer}>
+          </Kb.Box>
+          <Kb.Box style={styles.progressContainer}>
             {!this.props.onShowInFinder && (
-              <Text type={'BodySmall'} style={styles.progressLabel}>
+              <Kb.Text type={'BodySmall'} style={styles.progressLabel}>
                 {this.props.progressLabel ||
                   '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
-              </Text>
+              </Kb.Text>
             )}
-            {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
-          </Box>
-        </ClickableBox>
+            {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+          </Kb.Box>
+        </Kb.ClickableBox>
         {this.props.onShowInFinder && (
-          <Text
+          <Kb.Text
             type="BodySmallPrimaryLink"
             onClick={this.props.onShowInFinder}
             style={styles.link}
             className={!isMobile ? 'hover-underline' : undefined}
           >
-            Show in {fileUIName}
-          </Text>
+            Show in {Styles.fileUIName}
+          </Kb.Text>
         )}
       </React.Fragment>
     )
   }
 }
 
-const styles = styleSheetCreate({
-  spinner: platformStyles({
-    isElectron: {
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isMobile: {
-      ...globalStyles.flexBoxCenter,
-      alignItems: 'center',
-      margin: 'auto',
-      flex: 1,
-    },
-  }),
-  downloadIcon: {maxHeight: 14},
+const styles = Styles.styleSheetCreate({
+  downloadIcon: {
+    maxHeight: 14,
+    position: 'relative',
+    top: 1,
+  },
   downloadedIconWrapper: {
-    ...globalStyles.flexBoxCenter,
-    backgroundColor: globalColors.fastBlank,
+    ...Styles.globalStyles.flexBoxCenter,
+    backgroundColor: Styles.globalColors.fastBlank,
     borderRadius: 20,
     bottom: 0,
     padding: 3,
     position: 'absolute',
     right: 0,
   },
+  durationContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: Styles.globalColors.black_60,
+    borderRadius: 2,
+    bottom: Styles.globalMargins.tiny,
+    padding: 1,
+    position: 'absolute',
+    right: Styles.globalMargins.tiny,
+  },
+  durationText: {
+    color: Styles.globalColors.white,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
   image: {
-    backgroundColor: globalColors.fastBlank,
+    backgroundColor: Styles.globalColors.fastBlank,
     maxWidth: 320,
     position: 'relative',
   },
   imageContainer: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
     width: '100%',
   },
   link: {
-    color: globalColors.black_60,
+    color: Styles.globalColors.black_60,
   },
   loading: {
-    backgroundColor: globalColors.black_05,
-    borderRadius: globalMargins.xtiny,
+    backgroundColor: Styles.globalColors.black_05,
+    borderRadius: Styles.globalMargins.xtiny,
     maxWidth: 320,
     position: 'relative',
   },
@@ -236,34 +228,7 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: {
-    backgroundColor: globalColors.black_60,
-    bottom: globalMargins.tiny,
-    position: 'absolute',
-    right: globalMargins.tiny,
-    borderRadius: 2,
-    alignSelf: 'flex-start',
-    padding: 1,
-  },
-  durationText: {
-    color: globalColors.white,
-    paddingLeft: 3,
-    paddingRight: 3,
-  },
-  progressContainer: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  progressLabel: {
-    color: globalColors.black_40,
-    marginRight: globalMargins.tiny,
-  },
-  title: platformStyles({
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-  progress: platformStyles({
+  progress: Styles.platformStyles({
     isElectron: {
       bottom: '50%',
       left: '50%',
@@ -277,9 +242,34 @@ const styles = styleSheetCreate({
       width: 48,
     },
     isMobile: {
-      width: 48,
-      position: 'absolute',
       margin: 'auto',
+      position: 'absolute',
+      width: 48,
+    },
+  }),
+  progressContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
+  progressLabel: {
+    color: Styles.globalColors.black_40,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  spinner: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isMobile: {
+      ...Styles.globalStyles.flexBoxCenter,
+      alignItems: 'center',
+      flex: 1,
+      margin: 'auto',
+    },
+  }),
+  title: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-word',
     },
   }),
 })

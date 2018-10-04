@@ -530,6 +530,8 @@
 
   record SearchOpts {
     string sentBy;
+    gregor1.Time sentBefore;
+    gregor1.Time sentAfter;
     int maxHits;
     int maxMessages;
     int beforeContext;

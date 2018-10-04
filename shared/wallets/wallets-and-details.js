@@ -6,9 +6,6 @@ import {globalColors, styleSheetCreate} from '../styles'
 
 type Props = {
   children: React.Node,
-  navigateAppend: () => void,
-  refresh: () => void,
-  waitingKey: string,
 }
 
 const Wallets = (props: Props) => (
