@@ -25,7 +25,7 @@ export function stateColors(
     } else {
       return {
         header: {background: globalColors.green, text: globalColors.white},
-        username: globalColors.green2,
+        username: globalColors.green,
       }
     }
   } else {
