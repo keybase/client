@@ -17,19 +17,19 @@ import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
 
 const load = () => {
-  // asset()
-  // banner()
-  // common()
-  // createAccount()
-  // exportSecretKey()
-  // linkExisting()
-  // receiveModal()
+  asset()
+  banner()
+  common()
+  createAccount()
+  exportSecretKey()
+  linkExisting()
+  receiveModal()
   sendForm()
-  // confirmForm()
-  // walletList()
-  // wallet()
-  // transaction()
-  // transactionDetails()
+  confirmForm()
+  walletList()
+  wallet()
+  transaction()
+  transactionDetails()
 
   /* Still TODO */
   storiesOf('Wallets', module).add('Wallet Onboarding', () => (

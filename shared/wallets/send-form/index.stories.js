@@ -39,10 +39,10 @@ const provider = Sb.createPropProviderWithCommon({
 
 const load = () => {
   // dumb component stories
-  // assetInput()
-  // chooseAsset()
-  // footers()
-  // noteAndMemo()
+  assetInput()
+  chooseAsset()
+  footers()
+  noteAndMemo()
   participants()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)

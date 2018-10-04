@@ -19,7 +19,6 @@ const ParticipantsRow = (props: Props) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={Styles.collapseStyles([styles.row, props.style])}>
       <Kb.Text
         type="BodyTinySemibold"
-        lineClamp={1}
         style={Styles.collapseStyles([
           styles.headingText,
           props.headingAlignment === 'Right' && {textAlign: 'right', width: 38},
