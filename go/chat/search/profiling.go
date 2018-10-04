@@ -26,7 +26,8 @@ func (idx *Indexer) IndexFullInbox(ctx context.Context, uid gregor1.UID) (res ma
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", conv.GetName())
 		convStats, err := idx.indexConv(ctx, uid, convID)
 		if err != nil {
-			return nil, err
+			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v", conv.GetName(), err)
+			continue
 		}
 		idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v", conv.GetName(), convStats)
 		res[convID.String()] = convStats
