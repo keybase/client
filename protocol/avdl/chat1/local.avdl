@@ -905,7 +905,16 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex,
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record FullInboxSearchRes {
+    array<ChatConvSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  FullInboxSearchRes fullInboxSearch(int sessionID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.

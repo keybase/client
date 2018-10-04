@@ -1,5 +1,5 @@
 // @flow
-import {jsonDebugFileName} from './constants/platform.desktop'
+import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
@@ -9,7 +9,7 @@ let config = {
   allowMultipleInstances: false, // Multiple instances of the app
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: null, // Override feature flags
+  featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
@@ -46,12 +46,30 @@ if (__DEV__) {
   config.userTimings = true
 }
 
-// Load overrides from a local json file
 if (!__STORYBOOK__) {
   const fs = require('fs')
+  // Load overrides from server config
+  if (fs.existsSync(serverConfigFileName)) {
+    try {
+      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
+      if (serverConfig.lastLoggedInUser) {
+        const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
+        if (userConfig.walletsEnabled) {
+          config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
+        }
+        if (userConfig.printRPCStats) {
+          config.printRPCStats = true
+        }
+      }
+    } catch (e) {
+      console.warn('Invalid server config')
+    }
+  }
+
+  // Load overrides from a local json file
   if (fs.existsSync(jsonDebugFileName)) {
     try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
+      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
       if (pathJson.hasOwnProperty('PERF')) {

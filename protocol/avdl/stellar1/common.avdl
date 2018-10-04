@@ -5,14 +5,11 @@ protocol common {
   @typedef("string") record AccountID {}
   @typedef("string") record SecretKey {}
   @typedef("string") record TransactionID {}
+  @typedef("string") record PaymentID {}
   @typedef("string") record KeybaseTransactionID {}
   @typedef("long")   record TimeMs {} // ms since epoch
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
-
-  record PaymentID {
-    TransactionID txID;
-  }
 
   record Asset {
     string type; // 'native' | 'alphanum4' | 'alphanum12'

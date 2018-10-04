@@ -10,7 +10,7 @@ import (
 	"regexp"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -56,7 +56,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
-				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", chat.MaxAllowedSearchHits),
+				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
 			},
 			cli.StringFlag{
 				Name:  "sent-by",
@@ -66,7 +66,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", chat.MaxAllowedSearchMessages),
+				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", search.MaxAllowedSearchMessages),
 			},
 			cli.IntFlag{
 				Name:  "B, before-context",
@@ -137,7 +137,7 @@ func (c *CmdChatSearch) Run() (err error) {
 	conversationInfo := conversation.Info
 
 	arg := chat1.GetSearchRegexpArg{
-		ConversationID:   conversationInfo.Id,
+		ConvID:           conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		IsRegex:          c.isRegex,
@@ -163,12 +163,12 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	c.query = ctx.Args().Get(1)
 	c.opts.SentBy = ctx.String("sent-by")
 	c.opts.MaxHits = ctx.Int("max-hits")
-	if c.opts.MaxHits > chat.MaxAllowedSearchHits {
-		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
+	if c.opts.MaxHits > search.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
 	}
 	c.opts.MaxMessages = ctx.Int("max-messages")
-	if c.opts.MaxMessages > chat.MaxAllowedSearchMessages {
-		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
+	if c.opts.MaxMessages > search.MaxAllowedSearchMessages {
+		return fmt.Errorf("max-messages cannot exceed %d.", search.MaxAllowedSearchMessages)
 	}
 
 	c.opts.AfterContext = ctx.Int("after-context")

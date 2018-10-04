@@ -4324,6 +4324,50 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 	}
 }
 
+type FullInboxSearchRes struct {
+	Hits             []ChatConvSearchHit           `codec:"hits" json:"hits"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o FullInboxSearchRes) DeepCopy() FullInboxSearchRes {
+	return FullInboxSearchRes{
+		Hits: (func(x []ChatConvSearchHit) []ChatConvSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatConvSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type StaticConfig struct {
 	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
 }
@@ -4707,9 +4751,16 @@ type UpgradeKBFSConversationToImpteamArg struct {
 
 type GetSearchRegexpArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	Query            string                       `codec:"query" json:"query"`
 	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
+	Opts             SearchOpts                   `codec:"opts" json:"opts"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type FullInboxSearchArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	Query            string                       `codec:"query" json:"query"`
 	Opts             SearchOpts                   `codec:"opts" json:"opts"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
@@ -4771,6 +4822,7 @@ type LocalInterface interface {
 	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
+	FullInboxSearch(context.Context, FullInboxSearchArg) (FullInboxSearchRes, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
@@ -5616,6 +5668,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"fullInboxSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]FullInboxSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FullInboxSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FullInboxSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.FullInboxSearch(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getStaticConfig": {
 				MakeArg: func() interface{} {
 					var ret [1]GetStaticConfigArg
@@ -5906,6 +5974,11 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 
 func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) FullInboxSearch(ctx context.Context, __arg FullInboxSearchArg) (res FullInboxSearchRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.fullInboxSearch", []interface{}{__arg}, &res)
 	return
 }
 

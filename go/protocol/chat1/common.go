@@ -1821,6 +1821,7 @@ const (
 	GetThreadReason_PREPARE            GetThreadReason = 5
 	GetThreadReason_SEARCHER           GetThreadReason = 6
 	GetThreadReason_INDEXED_SEARCH     GetThreadReason = 7
+	GetThreadReason_KBFSFILEACTIVITY   GetThreadReason = 8
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -1834,6 +1835,7 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"PREPARE":            5,
 	"SEARCHER":           6,
 	"INDEXED_SEARCH":     7,
+	"KBFSFILEACTIVITY":   8,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -1845,6 +1847,7 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	5: "PREPARE",
 	6: "SEARCHER",
 	7: "INDEXED_SEARCH",
+	8: "KBFSFILEACTIVITY",
 }
 
 func (e GetThreadReason) String() string {

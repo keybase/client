@@ -74,7 +74,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		return err
 	}
 
-	paymentID := stellar1.PaymentID{TxID: msg.TxID}
+	paymentID := stellar1.NewPaymentID(msg.TxID)
 	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
 	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), paymentID)
 

@@ -141,7 +141,7 @@ const handleLoudMessage = notification => {
   return Saga.call(function*() {
     yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
     yield Saga.put(Chat2Gen.createNavigateToThread())
-    if (unboxPayload && membersType) {
+    if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
         yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {

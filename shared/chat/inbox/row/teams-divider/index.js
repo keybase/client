@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Badge, Box2, ClickableBox, Text} from '../../../../common-adapters'
 import {
+  borderRadius,
   styleSheetCreate,
   platformStyles,
   collapseStyles,
@@ -94,7 +95,7 @@ const styles = styleSheetCreate({
   toggleButton: platformStyles({
     common: {
       backgroundColor: globalColors.black_10,
-      borderRadius: 19,
+      borderRadius,
       marginBottom: globalMargins.xtiny,
       marginTop: globalMargins.xtiny,
       paddingBottom: globalMargins.xtiny,

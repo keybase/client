@@ -34,7 +34,7 @@
     },
     "mimeTypeLoaded": {
       "path": "Types.Path",
-      "mimeType": "string"
+      "mimeType": "Types.Mime"
     },
     "sortSetting": {
       "path": "Types.Path",

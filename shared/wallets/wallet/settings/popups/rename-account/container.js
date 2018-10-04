@@ -7,13 +7,18 @@ import * as WalletsGen from '../../../../../actions/wallets-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  accountID: routeProps.get('accountID'),
-  error: state.wallets.accountNameError,
-  nameValidationState: state.wallets.accountNameValidationState,
-  renameAccountError: state.wallets.createNewAccountError,
-  waiting: anyWaiting(state, Constants.changeAccountNameWaitingKey),
-})
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  const accountID = routeProps.get('accountID')
+  const selectedAccount = Constants.getAccount(state, accountID)
+  return {
+    accountID,
+    error: state.wallets.accountNameError,
+    nameValidationState: state.wallets.accountNameValidationState,
+    renameAccountError: state.wallets.createNewAccountError,
+    waiting: anyWaiting(state, Constants.changeAccountNameWaitingKey),
+    initialName: Constants.getAccountName(selectedAccount),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
@@ -37,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   withStateHandlers(
-    {name: ''},
+    {name: null},
     {
       onNameChange: () => name => ({name}),
     }
