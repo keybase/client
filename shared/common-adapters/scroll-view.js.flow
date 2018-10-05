@@ -6,6 +6,7 @@ export type Props = {|
   children?: React.Node,
   contentContainerStyle?: StylesCrossPlatform,
   style?: StylesCrossPlatform,
+  onScroll?: ?Function,
 
   // mobile only
   bounces?: boolean,
@@ -13,7 +14,6 @@ export type Props = {|
   minimumZoomScale?: number,
   maximumZoomScale?: number,
   onLayout?: Function,
-  onScroll?: ?Function,
   scrollEventThrottle?: number,
   scrollsToTop?: boolean,
   indicatorStyle?: string,
