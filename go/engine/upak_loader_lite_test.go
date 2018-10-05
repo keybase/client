@@ -30,10 +30,10 @@ func deviceKeysMatch(dk1, dk2 _deviceKeys) bool {
 }
 
 func assertUpkInstanceMatch(t *testing.T, upkLite keybase1.UpkLiteV1, upkFull keybase1.UserPlusKeysV2) {
-	// uid and name
 	require.Equal(t, upkLite.Uid, upkFull.Uid)
 	require.Equal(t, upkLite.Username, upkFull.Username)
 	require.Equal(t, upkLite.Status, upkFull.Status)
+	require.Equal(t, upkLite.EldestSeqno, upkFull.EldestSeqno)
 	// device keys (not subkeys, just sibkeys and eldest)
 	msg := fmt.Sprintf("device keys match. lite: %v || full: %v", upkLite.DeviceKeys, upkFull.DeviceKeys)
 	require.True(t, deviceKeysMatch(upkLite.DeviceKeys, upkFull.DeviceKeys), msg)

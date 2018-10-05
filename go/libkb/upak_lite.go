@@ -291,7 +291,7 @@ func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf
 	uid := user.GetUID()
 	name := user.GetName()
 	status := user.GetStatus()
-	eldestSeqno := hsc.chainLinks[0].GetSeqno()
+	eldestSeqno := hsc.currentSubchainStart
 	deviceKeys := extractDeviceKeys(hsc.GetComputedKeyInfos())
 	currentUpk := keybase1.UpkLiteV1{
 		Uid:         uid,
