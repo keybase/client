@@ -341,6 +341,23 @@ function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
 }
 
 const _dbNukeSaga = () => Saga.call(RPCTypes.ctlDbNukeRpcPromise)
+const _buildInboxChatSearchIndexSaga = () => {
+  return Saga.sequentially([
+    Saga.put(
+      WaitingGen.createIncrementWaiting({
+        key: Constants.inboxSearchIndexInProgressKey,
+      })
+    ),
+    Saga.call(ChatTypes.localIndexChatSearchRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    }),
+    Saga.put(
+      WaitingGen.createDecrementWaiting({
+        key: Constants.inboxSearchIndexInProgressKey,
+      })
+    ),
+  ])
+}
 
 function _deleteAccountForeverSaga(action: SettingsGen.DeleteAccountForeverPayload, state: TypedState) {
   const username = state.config.username
@@ -428,6 +445,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(SettingsGen.notificationsRefresh, _refreshNotificationsSaga)
   yield Saga.safeTakeLatest(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
   yield Saga.safeTakeLatestPure(SettingsGen.dbNuke, _dbNukeSaga)
+  yield Saga.safeTakeLatestPure(SettingsGen.buildInboxSearchIndex, _buildInboxChatSearchIndexSaga)
   yield Saga.safeTakeLatestPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
   yield Saga.safeTakeEveryPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)

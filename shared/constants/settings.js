@@ -38,6 +38,11 @@ const initialState: Types.State = {
   waitingForResponse: false,
 }
 
+const inboxSearchIndexInProgressKey = 'inboxSearchIndexInProgress'
+
+const inboxSearchIndexInProgress = (state: TypedState) =>
+  WaitingConstants.anyWaiting(state, inboxSearchIndexInProgressKey)
+
 const traceInProgressKey = 'traceInProgress'
 
 const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
@@ -67,6 +72,8 @@ export const walletsTab = 'settingsTabs:walletsTab'
 export const waitingKey = 'settings:settingsPage'
 export {
   initialState,
+  inboxSearchIndexInProgressKey,
+  inboxSearchIndexInProgress,
   traceInProgressKey,
   traceInProgress,
   processorProfileInProgressKey,

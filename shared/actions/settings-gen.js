@@ -10,6 +10,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const buildInboxSearchIndex = 'settings:buildInboxSearchIndex'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const invitesClearError = 'settings:invitesClearError'
@@ -47,6 +48,7 @@ export const trace = 'settings:trace'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _BuildInboxSearchIndexPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _InvitesClearErrorPayload = void
@@ -92,6 +94,7 @@ type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
+export const createBuildInboxSearchIndex = (payload: _BuildInboxSearchIndexPayload) => ({error: false, payload, type: buildInboxSearchIndex})
 export const createDbNuke = (payload: _DbNukePayload) => ({error: false, payload, type: dbNuke})
 export const createDeleteAccountForever = (payload: _DeleteAccountForeverPayload) => ({error: false, payload, type: deleteAccountForever})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload) => ({error: false, payload, type: invitesClearError})
@@ -131,6 +134,7 @@ export const createTrace = (payload: _TracePayload) => ({error: false, payload, 
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
+export type BuildInboxSearchIndexPayload = $Call<typeof createBuildInboxSearchIndex, _BuildInboxSearchIndexPayload>
 export type DbNukePayload = $Call<typeof createDbNuke, _DbNukePayload>
 export type DeleteAccountForeverPayload = $Call<typeof createDeleteAccountForever, _DeleteAccountForeverPayload>
 export type InvitesClearErrorPayload = $Call<typeof createInvitesClearError, _InvitesClearErrorPayload>
@@ -172,6 +176,7 @@ export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _
 // All Actions
 // prettier-ignore
 export type Actions =
+  | BuildInboxSearchIndexPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | InvitesClearErrorPayload

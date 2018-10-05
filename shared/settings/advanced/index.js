@@ -10,9 +10,11 @@ type Props = {
   onChangeLockdownMode: boolean => void,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
+  onBuildInboxSearchIndex: () => void,
   onTrace: (durationSeconds: number) => void,
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
+  inboxSearchIndexInProgress: boolean,
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
 }
@@ -106,6 +108,13 @@ class Developer extends React.Component<Props, DeveloperState> {
           type="Danger"
           label="DB Nuke"
           onClick={props.onDBNuke}
+        />
+        <Button
+          style={{marginTop: globalMargins.small}}
+          type="Danger"
+          label="Build Inbox Search Index"
+          onClick={props.onBuildInboxSearchIndex}
+          waiting={props.inboxSearchIndexInProgress}
         />
         {this._showPprofControls() && (
           <React.Fragment>

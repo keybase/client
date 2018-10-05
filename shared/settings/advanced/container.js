@@ -5,6 +5,7 @@ import {
   createProcessorProfile,
   createLoadLockdownMode,
   createOnChangeLockdownMode,
+  createBuildInboxSearchIndex,
 } from '../../actions/settings-gen'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {HeaderHoc} from '../../common-adapters'
@@ -16,6 +17,7 @@ import {connect, lifecycle, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState) => ({
   openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
+  inboxSearchIndexInProgress: Constants.inboxSearchIndexInProgress(state),
   processorProfileInProgress: Constants.processorProfileInProgress(state),
   traceInProgress: Constants.traceInProgress(state),
 })
@@ -25,6 +27,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
   onDBNuke: () => dispatch(navigateAppend(['dbNukeConfirm'])),
+  onBuildInboxSearchIndex: () => dispatch(createBuildInboxSearchIndex()),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
