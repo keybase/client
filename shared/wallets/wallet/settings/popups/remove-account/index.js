@@ -42,7 +42,14 @@ const RemoveAccountPopup = (props: Props) => {
         style={Kb.iconCastPlatformStyles(styles.icon)}
       />
       <Kb.Text style={styles.warningText} type="Header">
-        Are you sure you want to remove <Kb.Text type="HeaderItalic">{props.name}</Kb.Text> from Keybase?
+        Are you sure you want to remove{' '}
+      </Kb.Text>
+      <Kb.Text type="HeaderItalic" style={styles.warningText}>
+        {props.name}
+      </Kb.Text>
+      <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])} type="Header">
+        {' '}
+        from Keybase?
       </Kb.Text>
       <Kb.Text type="BodySmall">Balance:</Kb.Text>
       <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
@@ -65,9 +72,11 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
     },
   }),
+  marginBottomTiny: {
+    marginBottom: Styles.globalMargins.tiny,
+  },
   warningText: Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.tiny,
       textAlign: 'center',
     },
     isElectron: {

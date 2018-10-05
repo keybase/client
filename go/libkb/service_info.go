@@ -102,7 +102,7 @@ func WaitForServiceInfoFile(path string, label string, pid string, timeout time.
 	}
 
 	log.Debug("Looking for service info file (timeout=%s)", timeout)
-	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*400, lookForServiceInfo)
+	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*100, lookForServiceInfo)
 
 	// If no service info was found, let's return an error
 	if serviceInfo == nil {
