@@ -908,13 +908,13 @@ protocol local {
   GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record FullInboxSearchRes {
-    array<ChatConvSearchHit> hits;
+  record InboxSearchRes {
+    array<ChatInboxSearchHit> hits;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  FullInboxSearchRes fullInboxSearch(int sessionID, string query,
+  InboxSearchRes inboxSearch(int sessionID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record IndexSearchConvStats {
@@ -927,7 +927,7 @@ protocol local {
   }
 
   // ConversationID -> IndexSearchConvStats
-  map<string, IndexSearchConvStats> indexSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  map<string, IndexSearchConvStats> indexChatSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();

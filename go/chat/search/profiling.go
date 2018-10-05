@@ -11,8 +11,8 @@ import (
 
 const defaultPageSize = 500
 
-func (idx *Indexer) IndexFullInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.IndexSearchConvStats, err error) {
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexFullInbox")()
+func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.IndexSearchConvStats, err error) {
+	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
 	ib := storage.NewInbox(idx.G())
 	_, convs, err := ib.ReadAll(ctx, uid)
