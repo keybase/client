@@ -119,4 +119,8 @@ func TestLoadLiteBasicUser(t *testing.T) {
 	untrackAlice(tc, fu, sigVersion)
 	t.Logf("reset the account again and add a low link, a new paper key, and another low link")
 	assertUPAKLiteMatchesUPAK(t, tc, uid)
+
+	// with a logged out user
+	Logout(tc)
+	assertUPAKLiteMatchesUPAK(t, tc, uid)
 }

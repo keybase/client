@@ -110,7 +110,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 
 	apiArg := APIArg{
 		Endpoint:    "sig/get_high",
-		SessionType: APISessionTypeREQUIRED,
+		SessionType: APISessionTypeOPTIONAL,
 		Args:        HTTPArgs{"uid": S{Val: hsc.uid.String()}},
 		MetaContext: m,
 	}
