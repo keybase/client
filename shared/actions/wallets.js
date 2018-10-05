@@ -6,6 +6,7 @@ import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -377,6 +378,14 @@ const setupEngineListeners = () => {
 const refreshPayments = ({accountID}) =>
   Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)}))
 
+const maybeClearErrors = (state: TypedState) => {
+  const routePath = getPath(state.routeTree.routeState)
+  const selectedTab = routePath.first()
+  if (selectedTab === Tabs.walletsTab) {
+    return Saga.put(WalletsGen.createClearErrors())
+  }
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -471,6 +480,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.cancelPayment, cancelPayment)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+
+  // Clear some errors on navigateUp.
+  yield Saga.actionToAction(RouteTreeGen.navigateUp, maybeClearErrors)
 }
 
 export default walletsSaga

@@ -35,14 +35,8 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => {
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(navigateUp())
-  },
-  onClose: () => {
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(navigateUp())
-  },
+  onBack: () => dispatch(navigateUp()),
+  onClose: () => dispatch(navigateUp()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
