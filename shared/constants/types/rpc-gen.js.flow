@@ -24,47 +24,47 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.NotifyBadges.badgeState': {|
-    inParam: $ReadOnly<{badgeState: BadgeState}>,
+    inParam: $ReadOnly<{|badgeState: BadgeState|}>,
     outParam: void,
   |},
   'keybase.1.NotifyCanUserPerform.canUserPerformChanged': {|
-    inParam: $ReadOnly<{teamName: String}>,
+    inParam: $ReadOnly<{|teamName: String|}>,
     outParam: void,
   |},
   'keybase.1.NotifyDeviceClone.deviceCloneCountChanged': {|
-    inParam: $ReadOnly<{newClones: Int}>,
+    inParam: $ReadOnly<{|newClones: Int|}>,
     outParam: void,
   |},
   'keybase.1.NotifyEphemeral.newTeamEk': {|
-    inParam: $ReadOnly<{id: TeamID, generation: EkGeneration}>,
+    inParam: $ReadOnly<{|id: TeamID, generation: EkGeneration|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSActivity': {|
-    inParam: $ReadOnly<{notification: FSNotification}>,
+    inParam: $ReadOnly<{|notification: FSNotification|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSEditListResponse': {|
-    inParam: $ReadOnly<{edits: FSFolderEditHistory, requestID: Int}>,
+    inParam: $ReadOnly<{|edits: FSFolderEditHistory, requestID: Int|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSPathUpdated': {|
-    inParam: $ReadOnly<{path: String}>,
+    inParam: $ReadOnly<{|path: String|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSSyncActivity': {|
-    inParam: $ReadOnly<{status: FSPathSyncStatus}>,
+    inParam: $ReadOnly<{|status: FSPathSyncStatus|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFS.FSSyncStatusResponse': {|
-    inParam: $ReadOnly<{status: FSSyncStatus, requestID: Int}>,
+    inParam: $ReadOnly<{|status: FSSyncStatus, requestID: Int|}>,
     outParam: void,
   |},
   'keybase.1.NotifyFavorites.favoritesChanged': {|
-    inParam: $ReadOnly<{uid: UID}>,
+    inParam: $ReadOnly<{|uid: UID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyKeyfamily.keyfamilyChanged': {|
-    inParam: $ReadOnly<{uid: UID}>,
+    inParam: $ReadOnly<{|uid: UID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': {|
@@ -72,19 +72,19 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.NotifyPaperKey.paperKeyCached': {|
-    inParam: $ReadOnly<{uid: UID, encKID: KID, sigKID: KID}>,
+    inParam: $ReadOnly<{|uid: UID, encKID: KID, sigKID: KID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyService.shutdown': {|
-    inParam: $ReadOnly<{code: Int}>,
+    inParam: $ReadOnly<{|code: Int|}>,
     outParam: void,
   |},
   'keybase.1.NotifySession.clientOutOfDate': {|
-    inParam: $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>,
+    inParam: $ReadOnly<{|upgradeTo: String, upgradeURI: String, upgradeMsg: String|}>,
     outParam: void,
   |},
   'keybase.1.NotifySession.loggedIn': {|
-    inParam: $ReadOnly<{username: String}>,
+    inParam: $ReadOnly<{|username: String|}>,
     outParam: void,
   |},
   'keybase.1.NotifySession.loggedOut': {|
@@ -92,43 +92,43 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.NotifyTeam.avatarUpdated': {|
-    inParam: $ReadOnly<{name: String, formats?: ?Array<AvatarFormat>}>,
+    inParam: $ReadOnly<{|name: String, formats?: ?Array<AvatarFormat>|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.newlyAddedToTeam': {|
-    inParam: $ReadOnly<{teamID: TeamID}>,
+    inParam: $ReadOnly<{|teamID: TeamID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.teamAbandoned': {|
-    inParam: $ReadOnly<{teamID: TeamID}>,
+    inParam: $ReadOnly<{|teamID: TeamID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.teamChangedByID': {|
-    inParam: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>,
+    inParam: $ReadOnly<{|teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.teamChangedByName': {|
-    inParam: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>,
+    inParam: $ReadOnly<{|teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.teamDeleted': {|
-    inParam: $ReadOnly<{teamID: TeamID}>,
+    inParam: $ReadOnly<{|teamID: TeamID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTeam.teamExit': {|
-    inParam: $ReadOnly<{teamID: TeamID}>,
+    inParam: $ReadOnly<{|teamID: TeamID|}>,
     outParam: void,
   |},
   'keybase.1.NotifyTracking.trackingChanged': {|
-    inParam: $ReadOnly<{uid: UID, username: String, isTracking: Boolean}>,
+    inParam: $ReadOnly<{|uid: UID, username: String, isTracking: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged': {|
-    inParam: $ReadOnly<{teamName: String}>,
+    inParam: $ReadOnly<{|teamName: String|}>,
     outParam: void,
   |},
   'keybase.1.NotifyUsers.userChanged': {|
-    inParam: $ReadOnly<{uid: UID}>,
+    inParam: $ReadOnly<{|uid: UID|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken': {|
@@ -136,47 +136,51 @@ export type MessageTypes = {|
     outParam: SimpleFSGetHTTPAddressAndTokenResponse,
   |},
   'keybase.1.SimpleFS.simpleFSCancel': {|
-    inParam: $ReadOnly<{opID: OpID}>,
+    inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSCheck': {|
-    inParam: $ReadOnly<{opID: OpID}>,
+    inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: OpProgress,
   |},
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {|
-    inParam: $ReadOnly<{opID: OpID, src: Path, dest: Path}>,
+    inParam: $ReadOnly<{|opID: OpID, src: Path, dest: Path|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSList': {|
-    inParam: $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean}>,
+    inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {|
-    inParam: $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean, depth: Int}>,
+    inParam: $ReadOnly<{|opID: OpID, path: Path, filter: ListFilter, refreshSubscription: Boolean, depth: Int|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSOpen': {|
-    inParam: $ReadOnly<{opID: OpID, dest: Path, flags: OpenFlags}>,
+    inParam: $ReadOnly<{|opID: OpID, dest: Path, flags: OpenFlags|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSReadList': {|
-    inParam: $ReadOnly<{opID: OpID}>,
+    inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: SimpleFSListResult,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
-    inParam: $ReadOnly<{path: Path}>,
+    inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior|}>,
     outParam: Dirent,
   |},
   'keybase.1.SimpleFS.simpleFSSyncStatus': {|
-    inParam: $ReadOnly<{filter: ListFilter}>,
+    inParam: $ReadOnly<{|filter: ListFilter|}>,
     outParam: FSSyncStatus,
   |},
+  'keybase.1.SimpleFS.simpleFSUserEditHistory': {|
+    inParam: void,
+    outParam: ?Array<FSFolderEditHistory>,
+  |},
   'keybase.1.SimpleFS.simpleFSWait': {|
-    inParam: $ReadOnly<{opID: OpID}>,
+    inParam: $ReadOnly<{|opID: OpID|}>,
     outParam: void,
   |},
   'keybase.1.account.emailChange': {|
-    inParam: $ReadOnly<{newEmail: String}>,
+    inParam: $ReadOnly<{|newEmail: String|}>,
     outParam: void,
   |},
   'keybase.1.account.getLockdownMode': {|
@@ -188,39 +192,39 @@ export type MessageTypes = {|
     outParam: HasServerKeysRes,
   |},
   'keybase.1.account.passphraseChange': {|
-    inParam: $ReadOnly<{oldPassphrase: String, passphrase: String, force: Boolean}>,
+    inParam: $ReadOnly<{|oldPassphrase: String, passphrase: String, force: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.account.setLockdownMode': {|
-    inParam: $ReadOnly<{enabled: Boolean}>,
+    inParam: $ReadOnly<{|enabled: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.apiserver.Delete': {|
-    inParam: $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>,
+    inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
   'keybase.1.apiserver.Get': {|
-    inParam: $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>,
+    inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
   'keybase.1.apiserver.GetWithSession': {|
-    inParam: $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>,
+    inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
   'keybase.1.apiserver.Post': {|
-    inParam: $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>,
+    inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
   'keybase.1.apiserver.PostJSON': {|
-    inParam: $ReadOnly<{endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>}>,
+    inParam: $ReadOnly<{|endpoint: String, args?: ?Array<StringKVPair>, JSONPayload?: ?Array<StringKVPair>, httpStatus?: ?Array<Int>, appStatusCode?: ?Array<Int>|}>,
     outParam: APIRes,
   |},
   'keybase.1.avatars.loadTeamAvatars': {|
-    inParam: $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>,
+    inParam: $ReadOnly<{|names?: ?Array<String>, formats?: ?Array<AvatarFormat>|}>,
     outParam: LoadAvatarsRes,
   |},
   'keybase.1.avatars.loadUserAvatars': {|
-    inParam: $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>}>,
+    inParam: $ReadOnly<{|names?: ?Array<String>, formats?: ?Array<AvatarFormat>|}>,
     outParam: LoadAvatarsRes,
   |},
   'keybase.1.config.getAllProvisionedUsernames': {|
@@ -239,20 +243,28 @@ export type MessageTypes = {|
     inParam: void,
     outParam: Boolean,
   |},
+  'keybase.1.config.getUpdateInfo': {|
+    inParam: void,
+    outParam: UpdateInfo,
+  |},
   'keybase.1.config.helloIAm': {|
-    inParam: $ReadOnly<{details: ClientDetails}>,
+    inParam: $ReadOnly<{|details: ClientDetails|}>,
     outParam: void,
   |},
   'keybase.1.config.setRememberPassphrase': {|
-    inParam: $ReadOnly<{remember: Boolean}>,
+    inParam: $ReadOnly<{|remember: Boolean|}>,
+    outParam: void,
+  |},
+  'keybase.1.config.startUpdateIfNeeded': {|
+    inParam: void,
     outParam: void,
   |},
   'keybase.1.config.waitForClient': {|
-    inParam: $ReadOnly<{clientType: ClientType, timeout: DurationSec}>,
+    inParam: $ReadOnly<{|clientType: ClientType, timeout: DurationSec|}>,
     outParam: Boolean,
   |},
   'keybase.1.cryptocurrency.registerAddress': {|
-    inParam: $ReadOnly<{address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion}>,
+    inParam: $ReadOnly<{|address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion|}>,
     outParam: RegisterAddressRes,
   |},
   'keybase.1.ctl.dbNuke': {|
@@ -260,7 +272,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered': {|
-    inParam: $ReadOnly<{systems?: ?Array<String>}>,
+    inParam: $ReadOnly<{|systems?: ?Array<String>|}>,
     outParam: void,
   |},
   'keybase.1.delegateUiCtl.registerHomeUI': {|
@@ -280,7 +292,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.device.checkDeviceNameFormat': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: Boolean,
   |},
   'keybase.1.device.deviceAdd': {|
@@ -292,27 +304,27 @@ export type MessageTypes = {|
     outParam: ?Array<DeviceDetail>,
   |},
   'keybase.1.favorite.favoriteAdd': {|
-    inParam: $ReadOnly<{folder: Folder}>,
+    inParam: $ReadOnly<{|folder: Folder|}>,
     outParam: void,
   |},
   'keybase.1.favorite.favoriteIgnore': {|
-    inParam: $ReadOnly<{folder: Folder}>,
+    inParam: $ReadOnly<{|folder: Folder|}>,
     outParam: void,
   |},
   'keybase.1.git.createPersonalRepo': {|
-    inParam: $ReadOnly<{repoName: GitRepoName}>,
+    inParam: $ReadOnly<{|repoName: GitRepoName|}>,
     outParam: RepoID,
   |},
   'keybase.1.git.createTeamRepo': {|
-    inParam: $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>,
+    inParam: $ReadOnly<{|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean|}>,
     outParam: RepoID,
   |},
   'keybase.1.git.deletePersonalRepo': {|
-    inParam: $ReadOnly<{repoName: GitRepoName}>,
+    inParam: $ReadOnly<{|repoName: GitRepoName|}>,
     outParam: void,
   |},
   'keybase.1.git.deleteTeamRepo': {|
-    inParam: $ReadOnly<{repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean}>,
+    inParam: $ReadOnly<{|repoName: GitRepoName, teamName: TeamName, notifyTeam: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.git.getAllGitMetadata': {|
@@ -320,11 +332,11 @@ export type MessageTypes = {|
     outParam: ?Array<GitRepoResult>,
   |},
   'keybase.1.git.getGitMetadata': {|
-    inParam: $ReadOnly<{folder: Folder}>,
+    inParam: $ReadOnly<{|folder: Folder|}>,
     outParam: ?Array<GitRepoResult>,
   |},
   'keybase.1.git.setTeamRepoSettings': {|
-    inParam: $ReadOnly<{folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean}>,
+    inParam: $ReadOnly<{|folder: Folder, repoID: RepoID, channelName?: ?String, chatDisabled: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.gpgUi.confirmDuplicateKeyChosen': {|
@@ -340,15 +352,15 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'keybase.1.gpgUi.selectKey': {|
-    inParam: $ReadOnly<{keys?: ?Array<GPGKey>}>,
+    inParam: $ReadOnly<{|keys?: ?Array<GPGKey>|}>,
     outParam: String,
   |},
   'keybase.1.gpgUi.selectKeyAndPushOption': {|
-    inParam: $ReadOnly<{keys?: ?Array<GPGKey>}>,
+    inParam: $ReadOnly<{|keys?: ?Array<GPGKey>|}>,
     outParam: SelectKeyRes,
   |},
   'keybase.1.gpgUi.sign': {|
-    inParam: $ReadOnly<{msg: Bytes, fingerprint: Bytes}>,
+    inParam: $ReadOnly<{|msg: Bytes, fingerprint: Bytes|}>,
     outParam: String,
   |},
   'keybase.1.gpgUi.wantToAddGPGKey': {|
@@ -356,11 +368,11 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'keybase.1.gregor.dismissCategory': {|
-    inParam: $ReadOnly<{category: Gregor1.Category}>,
+    inParam: $ReadOnly<{|category: Gregor1.Category|}>,
     outParam: void,
   |},
   'keybase.1.gregor.dismissItem': {|
-    inParam: $ReadOnly<{id: Gregor1.MsgID}>,
+    inParam: $ReadOnly<{|id: Gregor1.MsgID|}>,
     outParam: void,
   |},
   'keybase.1.gregor.getState': {|
@@ -368,27 +380,27 @@ export type MessageTypes = {|
     outParam: Gregor1.State,
   |},
   'keybase.1.gregor.injectItem': {|
-    inParam: $ReadOnly<{cat: String, body: String, dtime: Gregor1.TimeOrOffset}>,
+    inParam: $ReadOnly<{|cat: String, body: String, dtime: Gregor1.TimeOrOffset|}>,
     outParam: Gregor1.MsgID,
   |},
   'keybase.1.gregor.updateCategory': {|
-    inParam: $ReadOnly<{category: String, body: String, dtime: Gregor1.TimeOrOffset}>,
+    inParam: $ReadOnly<{|category: String, body: String, dtime: Gregor1.TimeOrOffset|}>,
     outParam: Gregor1.MsgID,
   |},
   'keybase.1.gregor.updateItem': {|
-    inParam: $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset}>,
+    inParam: $ReadOnly<{|msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset|}>,
     outParam: Gregor1.MsgID,
   |},
   'keybase.1.gregorUI.pushOutOfBandMessages': {|
-    inParam: $ReadOnly<{oobm?: ?Array<Gregor1.OutOfBandMessage>}>,
+    inParam: $ReadOnly<{|oobm?: ?Array<Gregor1.OutOfBandMessage>|}>,
     outParam: void,
   |},
   'keybase.1.gregorUI.pushState': {|
-    inParam: $ReadOnly<{state: Gregor1.State, reason: PushReason}>,
+    inParam: $ReadOnly<{|state: Gregor1.State, reason: PushReason|}>,
     outParam: void,
   |},
   'keybase.1.home.homeGetScreen': {|
-    inParam: $ReadOnly<{markViewed: Boolean, numFollowSuggestionsWanted: Int}>,
+    inParam: $ReadOnly<{|markViewed: Boolean, numFollowSuggestionsWanted: Int|}>,
     outParam: HomeScreen,
   |},
   'keybase.1.home.homeMarkViewed': {|
@@ -396,7 +408,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.home.homeSkipTodoType': {|
-    inParam: $ReadOnly<{t: HomeScreenTodoType}>,
+    inParam: $ReadOnly<{|t: HomeScreenTodoType|}>,
     outParam: void,
   |},
   'keybase.1.homeUI.homeUIRefresh': {|
@@ -404,7 +416,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify.identify2': {|
-    inParam: $ReadOnly<{uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean}>,
+    inParam: $ReadOnly<{|uid: UID, userAssertion: String, reason: IdentifyReason, useDelegateUI?: Boolean, alwaysBlock?: Boolean, noErrorOnTrackFailure?: Boolean, forceRemoteCheck?: Boolean, needProofSet?: Boolean, allowEmptySelfID?: Boolean, noSkipSelf?: Boolean, canSuppressUI?: Boolean, identifyBehavior?: TLFIdentifyBehavior, forceDisplay?: Boolean, actLoggedOut?: Boolean|}>,
     outParam: Identify2Res,
   |},
   'keybase.1.identifyUi.cancel': {|
@@ -412,7 +424,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identifyUi.confirm': {|
-    inParam: $ReadOnly<{outcome: IdentifyOutcome}>,
+    inParam: $ReadOnly<{|outcome: IdentifyOutcome|}>,
     outParam: ConfirmResult,
   |},
   'keybase.1.identifyUi.delegateIdentifyUI': {|
@@ -420,27 +432,27 @@ export type MessageTypes = {|
     outParam: Int,
   |},
   'keybase.1.identifyUi.dismiss': {|
-    inParam: $ReadOnly<{username: String, reason: DismissReason}>,
+    inParam: $ReadOnly<{|username: String, reason: DismissReason|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.displayCryptocurrency': {|
-    inParam: $ReadOnly<{c: Cryptocurrency}>,
+    inParam: $ReadOnly<{|c: Cryptocurrency|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.displayKey': {|
-    inParam: $ReadOnly<{key: IdentifyKey}>,
+    inParam: $ReadOnly<{|key: IdentifyKey|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.displayTLFCreateWithInvite': {|
-    inParam: $ReadOnly<{folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean}>,
+    inParam: $ReadOnly<{|folderName: String, isPrivate: Boolean, assertion: String, socialAssertion: SocialAssertion, inviteLink: String, throttled: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.displayTrackStatement': {|
-    inParam: $ReadOnly<{stmt: String}>,
+    inParam: $ReadOnly<{|stmt: String|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.displayUserCard': {|
-    inParam: $ReadOnly<{card: UserCard}>,
+    inParam: $ReadOnly<{|card: UserCard|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.finish': {|
@@ -448,31 +460,31 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identifyUi.finishSocialProofCheck': {|
-    inParam: $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>,
+    inParam: $ReadOnly<{|rp: RemoteProof, lcr: LinkCheckResult|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.finishWebProofCheck': {|
-    inParam: $ReadOnly<{rp: RemoteProof, lcr: LinkCheckResult}>,
+    inParam: $ReadOnly<{|rp: RemoteProof, lcr: LinkCheckResult|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.launchNetworkChecks': {|
-    inParam: $ReadOnly<{identity: Identity, user: User}>,
+    inParam: $ReadOnly<{|identity: Identity, user: User|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.reportLastTrack': {|
-    inParam: $ReadOnly<{track?: ?TrackSummary}>,
+    inParam: $ReadOnly<{|track?: ?TrackSummary|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.reportTrackToken': {|
-    inParam: $ReadOnly<{trackToken: TrackToken}>,
+    inParam: $ReadOnly<{|trackToken: TrackToken|}>,
     outParam: void,
   |},
   'keybase.1.identifyUi.start': {|
-    inParam: $ReadOnly<{username: String, reason: IdentifyReason, forceDisplay?: Boolean}>,
+    inParam: $ReadOnly<{|username: String, reason: IdentifyReason, forceDisplay?: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.install.fuseStatus': {|
-    inParam: $ReadOnly<{bundleVersion: String}>,
+    inParam: $ReadOnly<{|bundleVersion: String|}>,
     outParam: FuseStatus,
   |},
   'keybase.1.install.installFuse': {|
@@ -492,7 +504,7 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'keybase.1.logUi.log': {|
-    inParam: $ReadOnly<{level: LogLevel, text: Text}>,
+    inParam: $ReadOnly<{|level: LogLevel, text: Text|}>,
     outParam: void,
   |},
   'keybase.1.login.accountDelete': {|
@@ -500,7 +512,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.login.deprovision': {|
-    inParam: $ReadOnly<{username: String, doRevoke: Boolean}>,
+    inParam: $ReadOnly<{|username: String, doRevoke: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.login.getConfiguredAccounts': {|
@@ -508,7 +520,7 @@ export type MessageTypes = {|
     outParam: ?Array<ConfiguredAccount>,
   |},
   'keybase.1.login.login': {|
-    inParam: $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType}>,
+    inParam: $ReadOnly<{|deviceType: String, usernameOrEmail: String, clientType: ClientType|}>,
     outParam: void,
   |},
   'keybase.1.login.logout': {|
@@ -520,15 +532,15 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.login.paperKeySubmit': {|
-    inParam: $ReadOnly<{paperPhrase: String}>,
+    inParam: $ReadOnly<{|paperPhrase: String|}>,
     outParam: void,
   |},
   'keybase.1.loginUi.displayPaperKeyPhrase': {|
-    inParam: $ReadOnly<{phrase: String}>,
+    inParam: $ReadOnly<{|phrase: String|}>,
     outParam: void,
   |},
   'keybase.1.loginUi.displayPrimaryPaperKey': {|
-    inParam: $ReadOnly<{phrase: String}>,
+    inParam: $ReadOnly<{|phrase: String|}>,
     outParam: void,
   |},
   'keybase.1.loginUi.getEmailOrUsername': {|
@@ -536,7 +548,7 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'keybase.1.loginUi.promptRevokePaperKeys': {|
-    inParam: $ReadOnly<{device: Device, index: Int}>,
+    inParam: $ReadOnly<{|device: Device, index: Int|}>,
     outParam: Boolean,
   |},
   'keybase.1.logsend.prepareLogsend': {|
@@ -544,11 +556,11 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.notifyCtl.setNotifications': {|
-    inParam: $ReadOnly<{channels: NotificationChannels}>,
+    inParam: $ReadOnly<{|channels: NotificationChannels|}>,
     outParam: void,
   |},
   'keybase.1.pgp.pgpKeyGenDefault': {|
-    inParam: $ReadOnly<{createUids: PGPCreateUids}>,
+    inParam: $ReadOnly<{|createUids: PGPCreateUids|}>,
     outParam: void,
   |},
   'keybase.1.pgp.pgpStorageDismiss': {|
@@ -560,15 +572,15 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.pgpUi.keyGenerated': {|
-    inParam: $ReadOnly<{kid: KID, key: KeyInfo}>,
+    inParam: $ReadOnly<{|kid: KID, key: KeyInfo|}>,
     outParam: void,
   |},
   'keybase.1.pgpUi.outputSignatureSuccess': {|
-    inParam: $ReadOnly<{fingerprint: String, username: String, signedAt: Time}>,
+    inParam: $ReadOnly<{|fingerprint: String, username: String, signedAt: Time|}>,
     outParam: void,
   |},
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase': {|
-    inParam: $ReadOnly<{keyID: String, signedAt: Time}>,
+    inParam: $ReadOnly<{|keyID: String, signedAt: Time|}>,
     outParam: void,
   |},
   'keybase.1.pgpUi.shouldPushPrivate': {|
@@ -576,51 +588,51 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'keybase.1.pprof.logProcessorProfile': {|
-    inParam: $ReadOnly<{logDirForMobile: String, profileDurationSeconds: DurationSec}>,
+    inParam: $ReadOnly<{|logDirForMobile: String, profileDurationSeconds: DurationSec|}>,
     outParam: void,
   |},
   'keybase.1.pprof.logTrace': {|
-    inParam: $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec}>,
+    inParam: $ReadOnly<{|logDirForMobile: String, traceDurationSeconds: DurationSec|}>,
     outParam: void,
   |},
   'keybase.1.prove.checkProof': {|
-    inParam: $ReadOnly<{sigID: SigID}>,
+    inParam: $ReadOnly<{|sigID: SigID|}>,
     outParam: CheckProofStatus,
   |},
   'keybase.1.prove.startProof': {|
-    inParam: $ReadOnly<{service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion}>,
+    inParam: $ReadOnly<{|service: String, username: String, force: Boolean, promptPosted: Boolean, auto: Boolean, sigVersion?: ?SigVersion|}>,
     outParam: StartProofResult,
   |},
   'keybase.1.proveUi.displayRecheckWarning': {|
-    inParam: $ReadOnly<{text: Text}>,
+    inParam: $ReadOnly<{|text: Text|}>,
     outParam: void,
   |},
   'keybase.1.proveUi.okToCheck': {|
-    inParam: $ReadOnly<{name: String, attempt: Int}>,
+    inParam: $ReadOnly<{|name: String, attempt: Int|}>,
     outParam: Boolean,
   |},
   'keybase.1.proveUi.outputInstructions': {|
-    inParam: $ReadOnly<{instructions: Text, proof: String}>,
+    inParam: $ReadOnly<{|instructions: Text, proof: String|}>,
     outParam: void,
   |},
   'keybase.1.proveUi.outputPrechecks': {|
-    inParam: $ReadOnly<{text: Text}>,
+    inParam: $ReadOnly<{|text: Text|}>,
     outParam: void,
   |},
   'keybase.1.proveUi.preProofWarning': {|
-    inParam: $ReadOnly<{text: Text}>,
+    inParam: $ReadOnly<{|text: Text|}>,
     outParam: Boolean,
   |},
   'keybase.1.proveUi.promptOverwrite': {|
-    inParam: $ReadOnly<{account: String, typ: PromptOverwriteType}>,
+    inParam: $ReadOnly<{|account: String, typ: PromptOverwriteType|}>,
     outParam: Boolean,
   |},
   'keybase.1.proveUi.promptUsername': {|
-    inParam: $ReadOnly<{prompt: String, prevError?: ?Status}>,
+    inParam: $ReadOnly<{|prompt: String, prevError?: ?Status|}>,
     outParam: String,
   |},
   'keybase.1.provisionUi.DisplayAndPromptSecret': {|
-    inParam: $ReadOnly<{secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String}>,
+    inParam: $ReadOnly<{|secret: Bytes, phrase: String, otherDeviceType: DeviceType, previousErr: String|}>,
     outParam: SecretResponse,
   |},
   'keybase.1.provisionUi.DisplaySecretExchanged': {|
@@ -628,35 +640,35 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.provisionUi.PromptNewDeviceName': {|
-    inParam: $ReadOnly<{existingDevices?: ?Array<String>, errorMessage: String}>,
+    inParam: $ReadOnly<{|existingDevices?: ?Array<String>, errorMessage: String|}>,
     outParam: String,
   |},
   'keybase.1.provisionUi.ProvisioneeSuccess': {|
-    inParam: $ReadOnly<{username: String, deviceName: String}>,
+    inParam: $ReadOnly<{|username: String, deviceName: String|}>,
     outParam: void,
   |},
   'keybase.1.provisionUi.ProvisionerSuccess': {|
-    inParam: $ReadOnly<{deviceName: String, deviceType: String}>,
+    inParam: $ReadOnly<{|deviceName: String, deviceType: String|}>,
     outParam: void,
   |},
   'keybase.1.provisionUi.chooseDevice': {|
-    inParam: $ReadOnly<{devices?: ?Array<Device>, canSelectNoDevice: Boolean}>,
+    inParam: $ReadOnly<{|devices?: ?Array<Device>, canSelectNoDevice: Boolean|}>,
     outParam: DeviceID,
   |},
   'keybase.1.provisionUi.chooseDeviceType': {|
-    inParam: $ReadOnly<{kind: ChooseType}>,
+    inParam: $ReadOnly<{|kind: ChooseType|}>,
     outParam: DeviceType,
   |},
   'keybase.1.provisionUi.chooseGPGMethod': {|
-    inParam: $ReadOnly<{keys?: ?Array<GPGKey>}>,
+    inParam: $ReadOnly<{|keys?: ?Array<GPGKey>|}>,
     outParam: GPGMethod,
   |},
   'keybase.1.provisionUi.chooseProvisioningMethod': {|
-    inParam: $ReadOnly<{gpgOption: Boolean}>,
+    inParam: $ReadOnly<{|gpgOption: Boolean|}>,
     outParam: ProvisionMethod,
   |},
   'keybase.1.provisionUi.switchToGPGSignOK': {|
-    inParam: $ReadOnly<{key: GPGKey, importError: String}>,
+    inParam: $ReadOnly<{|key: GPGKey, importError: String|}>,
     outParam: Boolean,
   |},
   'keybase.1.reachability.checkReachability': {|
@@ -664,7 +676,7 @@ export type MessageTypes = {|
     outParam: Reachability,
   |},
   'keybase.1.reachability.reachabilityChanged': {|
-    inParam: $ReadOnly<{reachability: Reachability}>,
+    inParam: $ReadOnly<{|reachability: Reachability|}>,
     outParam: void,
   |},
   'keybase.1.reachability.startReachability': {|
@@ -672,7 +684,7 @@ export type MessageTypes = {|
     outParam: Reachability,
   |},
   'keybase.1.rekey.getRevokeWarning': {|
-    inParam: $ReadOnly<{actingDevice: DeviceID, targetDevice: DeviceID}>,
+    inParam: $ReadOnly<{|actingDevice: DeviceID, targetDevice: DeviceID|}>,
     outParam: RevokeWarning,
   |},
   'keybase.1.rekey.rekeyStatusFinish': {|
@@ -688,47 +700,47 @@ export type MessageTypes = {|
     outParam: Int,
   |},
   'keybase.1.rekeyUI.refresh': {|
-    inParam: $ReadOnly<{problemSetDevices: ProblemSetDevices}>,
+    inParam: $ReadOnly<{|problemSetDevices: ProblemSetDevices|}>,
     outParam: void,
   |},
   'keybase.1.rekeyUI.rekeySendEvent': {|
-    inParam: $ReadOnly<{event: RekeyEvent}>,
+    inParam: $ReadOnly<{|event: RekeyEvent|}>,
     outParam: void,
   |},
   'keybase.1.revoke.revokeDevice': {|
-    inParam: $ReadOnly<{deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean}>,
+    inParam: $ReadOnly<{|deviceID: DeviceID, forceSelf: Boolean, forceLast: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.revoke.revokeKey': {|
-    inParam: $ReadOnly<{keyID: KID}>,
+    inParam: $ReadOnly<{|keyID: KID|}>,
     outParam: void,
   |},
   'keybase.1.revoke.revokeSigs': {|
-    inParam: $ReadOnly<{sigIDQueries?: ?Array<String>}>,
+    inParam: $ReadOnly<{|sigIDQueries?: ?Array<String>|}>,
     outParam: void,
   |},
   'keybase.1.saltpackUi.saltpackPromptForDecrypt': {|
-    inParam: $ReadOnly<{signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean}>,
+    inParam: $ReadOnly<{|signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.saltpackUi.saltpackVerifyBadSender': {|
-    inParam: $ReadOnly<{signingKID: KID, sender: SaltpackSender}>,
+    inParam: $ReadOnly<{|signingKID: KID, sender: SaltpackSender|}>,
     outParam: void,
   |},
   'keybase.1.saltpackUi.saltpackVerifySuccess': {|
-    inParam: $ReadOnly<{signingKID: KID, sender: SaltpackSender}>,
+    inParam: $ReadOnly<{|signingKID: KID, sender: SaltpackSender|}>,
     outParam: void,
   |},
   'keybase.1.secretUi.getPassphrase': {|
-    inParam: $ReadOnly<{pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>,
+    inParam: $ReadOnly<{|pinentry: GUIEntryArg, terminal?: ?SecretEntryArg|}>,
     outParam: GetPassphraseRes,
   |},
   'keybase.1.signup.checkInvitationCode': {|
-    inParam: $ReadOnly<{invitationCode: String}>,
+    inParam: $ReadOnly<{|invitationCode: String|}>,
     outParam: void,
   |},
   'keybase.1.signup.checkUsernameAvailable': {|
-    inParam: $ReadOnly<{username: String}>,
+    inParam: $ReadOnly<{|username: String|}>,
     outParam: void,
   |},
   'keybase.1.signup.getInvitationCode': {|
@@ -736,131 +748,131 @@ export type MessageTypes = {|
     outParam: String,
   |},
   'keybase.1.signup.inviteRequest': {|
-    inParam: $ReadOnly<{email: String, fullname: String, notes: String}>,
+    inParam: $ReadOnly<{|email: String, fullname: String, notes: String|}>,
     outParam: void,
   |},
   'keybase.1.signup.signup': {|
-    inParam: $ReadOnly<{email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean}>,
+    inParam: $ReadOnly<{|email: String, inviteCode: String, passphrase: String, username: String, deviceName: String, deviceType: DeviceType, storeSecret: Boolean, skipMail: Boolean, genPGPBatch: Boolean, genPaper: Boolean|}>,
     outParam: SignupRes,
   |},
   'keybase.1.streamUi.close': {|
-    inParam: $ReadOnly<{s: Stream}>,
+    inParam: $ReadOnly<{|s: Stream|}>,
     outParam: void,
   |},
   'keybase.1.streamUi.read': {|
-    inParam: $ReadOnly<{s: Stream, sz: Int}>,
+    inParam: $ReadOnly<{|s: Stream, sz: Int|}>,
     outParam: Bytes,
   |},
   'keybase.1.streamUi.reset': {|
-    inParam: $ReadOnly<{s: Stream}>,
+    inParam: $ReadOnly<{|s: Stream|}>,
     outParam: void,
   |},
   'keybase.1.streamUi.write': {|
-    inParam: $ReadOnly<{s: Stream, buf: Bytes}>,
+    inParam: $ReadOnly<{|s: Stream, buf: Bytes|}>,
     outParam: Int,
   |},
   'keybase.1.teams.canUserPerform': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: TeamOperation,
   |},
   'keybase.1.teams.getTarsDisabled': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: Boolean,
   |},
   'keybase.1.teams.getTeamAndMemberShowcase': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: TeamAndMemberShowcase,
   |},
   'keybase.1.teams.setTarsDisabled': {|
-    inParam: $ReadOnly<{name: String, disabled: Boolean}>,
+    inParam: $ReadOnly<{|name: String, disabled: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teams.setTeamMemberShowcase': {|
-    inParam: $ReadOnly<{name: String, isShowcased: Boolean}>,
+    inParam: $ReadOnly<{|name: String, isShowcased: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teams.setTeamShowcase': {|
-    inParam: $ReadOnly<{name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean}>,
+    inParam: $ReadOnly<{|name: String, isShowcased?: ?Boolean, description?: ?String, anyMemberShowcase?: ?Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamAcceptInviteOrRequestAccess': {|
-    inParam: $ReadOnly<{tokenOrName: String}>,
+    inParam: $ReadOnly<{|tokenOrName: String|}>,
     outParam: TeamAcceptOrRequestResult,
   |},
   'keybase.1.teams.teamAddEmailsBulk': {|
-    inParam: $ReadOnly<{name: String, emails: String, role: TeamRole}>,
+    inParam: $ReadOnly<{|name: String, emails: String, role: TeamRole|}>,
     outParam: BulkRes,
   |},
   'keybase.1.teams.teamAddMember': {|
-    inParam: $ReadOnly<{name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean}>,
+    inParam: $ReadOnly<{|name: String, email: String, username: String, role: TeamRole, sendChatNotification: Boolean|}>,
     outParam: TeamAddMemberResult,
   |},
   'keybase.1.teams.teamAddMembers': {|
-    inParam: $ReadOnly<{name: String, assertions?: ?Array<String>, role: TeamRole, sendChatNotification: Boolean}>,
+    inParam: $ReadOnly<{|name: String, assertions?: ?Array<String>, role: TeamRole, sendChatNotification: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamCreate': {|
-    inParam: $ReadOnly<{name: String, joinSubteam: Boolean}>,
+    inParam: $ReadOnly<{|name: String, joinSubteam: Boolean|}>,
     outParam: TeamCreateResult,
   |},
   'keybase.1.teams.teamCreateSeitanTokenV2': {|
-    inParam: $ReadOnly<{name: String, role: TeamRole, label: SeitanKeyLabel}>,
+    inParam: $ReadOnly<{|name: String, role: TeamRole, label: SeitanKeyLabel|}>,
     outParam: SeitanIKeyV2,
   |},
   'keybase.1.teams.teamEditMember': {|
-    inParam: $ReadOnly<{name: String, username: String, role: TeamRole}>,
+    inParam: $ReadOnly<{|name: String, username: String, role: TeamRole|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamGet': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: TeamDetails,
   |},
   'keybase.1.teams.teamIgnoreRequest': {|
-    inParam: $ReadOnly<{name: String, username: String}>,
+    inParam: $ReadOnly<{|name: String, username: String|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamLeave': {|
-    inParam: $ReadOnly<{name: String, permanent: Boolean}>,
+    inParam: $ReadOnly<{|name: String, permanent: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamListMyAccessRequests': {|
-    inParam: $ReadOnly<{teamName?: ?String}>,
+    inParam: $ReadOnly<{|teamName?: ?String|}>,
     outParam: ?Array<TeamName>,
   |},
   'keybase.1.teams.teamListRequests': {|
-    inParam: $ReadOnly<{teamName?: ?String}>,
+    inParam: $ReadOnly<{|teamName?: ?String|}>,
     outParam: ?Array<TeamJoinRequest>,
   |},
   'keybase.1.teams.teamListUnverified': {|
-    inParam: $ReadOnly<{userAssertion: String, includeImplicitTeams: Boolean}>,
+    inParam: $ReadOnly<{|userAssertion: String, includeImplicitTeams: Boolean|}>,
     outParam: AnnotatedTeamList,
   |},
   'keybase.1.teams.teamReAddMemberAfterReset': {|
-    inParam: $ReadOnly<{id: TeamID, username: String}>,
+    inParam: $ReadOnly<{|id: TeamID, username: String|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamRemoveMember': {|
-    inParam: $ReadOnly<{name: String, username: String, email: String, inviteID: TeamInviteID}>,
+    inParam: $ReadOnly<{|name: String, username: String, email: String, inviteID: TeamInviteID|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamSetSettings': {|
-    inParam: $ReadOnly<{name: String, settings: TeamSettings}>,
+    inParam: $ReadOnly<{|name: String, settings: TeamSettings|}>,
     outParam: void,
   |},
   'keybase.1.teams.teamTree': {|
-    inParam: $ReadOnly<{name: TeamName}>,
+    inParam: $ReadOnly<{|name: TeamName|}>,
     outParam: TeamTreeResult,
   |},
   'keybase.1.teams.uploadTeamAvatar': {|
-    inParam: $ReadOnly<{teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean}>,
+    inParam: $ReadOnly<{|teamname: String, filename: String, crop?: ?ImageCropRect, sendChatNotification: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.teamsUi.confirmRootTeamDelete': {|
-    inParam: $ReadOnly<{teamName: String}>,
+    inParam: $ReadOnly<{|teamName: String|}>,
     outParam: Boolean,
   |},
   'keybase.1.teamsUi.confirmSubteamDelete': {|
-    inParam: $ReadOnly<{teamName: String}>,
+    inParam: $ReadOnly<{|teamName: String|}>,
     outParam: Boolean,
   |},
   'keybase.1.track.checkTracking': {|
@@ -868,27 +880,27 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.track.dismissWithToken': {|
-    inParam: $ReadOnly<{trackToken: TrackToken}>,
+    inParam: $ReadOnly<{|trackToken: TrackToken|}>,
     outParam: void,
   |},
   'keybase.1.track.trackWithToken': {|
-    inParam: $ReadOnly<{trackToken: TrackToken, options: TrackOptions}>,
+    inParam: $ReadOnly<{|trackToken: TrackToken, options: TrackOptions|}>,
     outParam: void,
   |},
   'keybase.1.track.untrack': {|
-    inParam: $ReadOnly<{username: String}>,
+    inParam: $ReadOnly<{|username: String|}>,
     outParam: void,
   |},
   'keybase.1.ui.promptYesNo': {|
-    inParam: $ReadOnly<{text: Text, promptDefault: PromptDefault}>,
+    inParam: $ReadOnly<{|text: Text, promptDefault: PromptDefault|}>,
     outParam: Boolean,
   |},
   'keybase.1.user.interestingPeople': {|
-    inParam: $ReadOnly<{maxUsers: Int}>,
+    inParam: $ReadOnly<{|maxUsers: Int|}>,
     outParam: ?Array<InterestingPerson>,
   |},
   'keybase.1.user.listTrackers2': {|
-    inParam: $ReadOnly<{assertion: String, reverse: Boolean}>,
+    inParam: $ReadOnly<{|assertion: String, reverse: Boolean|}>,
     outParam: UserSummary2Set,
   |},
   'keybase.1.user.loadMySettings': {|
@@ -896,11 +908,11 @@ export type MessageTypes = {|
     outParam: UserSettings,
   |},
   'keybase.1.user.profileEdit': {|
-    inParam: $ReadOnly<{fullName: String, location: String, bio: String}>,
+    inParam: $ReadOnly<{|fullName: String, location: String, bio: String|}>,
     outParam: void,
   |},
   'keybase.1.user.uploadUserAvatar': {|
-    inParam: $ReadOnly<{filename: String, crop?: ?ImageCropRect}>,
+    inParam: $ReadOnly<{|filename: String, crop?: ?ImageCropRect|}>,
     outParam: void,
   |},
 |}
@@ -991,6 +1003,12 @@ export const configForkType = {
   watchdog: 2,
   launchd: 3,
   systemd: 4,
+}
+
+export const configUpdateInfoStatus = {
+  upToDate: 0,
+  needUpdate: 1,
+  criticallyOutOfDate: 2,
 }
 
 export const constantsStatusCode = {
@@ -1436,6 +1454,7 @@ export const proveCommonProofType = {
   coinbase: 5,
   hackernews: 6,
   facebook: 8,
+  genericSocial: 9,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
@@ -1542,6 +1561,7 @@ export const simpleFSKBFSArchivedType = {
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
+  filterSystemHidden: 2,
 }
 
 export const simpleFSOpenFlags = {
@@ -1562,6 +1582,13 @@ export const simpleFSPathType = {
 export const simpleFSRevisionSpanType = {
   default: 0,
   lastFive: 1,
+}
+
+export const teamsAuditVersion = {
+  v0: 0,
+  v1: 1,
+  v2: 2,
+  v3: 3,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {
@@ -1676,8 +1703,14 @@ export type AsyncOps =
   | 7 // LIST_RECURSIVE_TO_DEPTH_7
   | 8 // GET_REVISIONS_8
 
-export type Audit = $ReadOnly<{time: Time, maxMerkleSeqno: Seqno, maxChainSeqno: Seqno, maxMerkleProbe: Seqno}>
-export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
+export type Audit = $ReadOnly<{time: Time, mms /* maxMerkleSeqno */: Seqno, mcs /* maxChainSeqno */: Seqno, mmp /* maxMerkleProbe */: Seqno}>
+export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}, tails: {[key: string]: LinkID}}>
+export type AuditVersion =
+  | 0 // V0_0
+  | 1 // V1_1
+  | 2 // V2_2
+  | 3 // V3_3
+
 export type AuthenticityType =
   | 0 // SIGNED_0
   | 1 // REPUDIABLE_1
@@ -1881,7 +1914,7 @@ export type GPGMethod =
 
 export type GUIEntryArg = $ReadOnly<{windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures}>
 export type GUIEntryFeatures = $ReadOnly<{showTyping: Feature}>
-export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time}>
+export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time, maxObjectPacks: Int}>
 export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes, size: Int, status: BlockStatus}>
 export type GetCurrentStatusRes = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
 export type GetLockdownResponse = $ReadOnly<{history?: ?Array<LockdownHistory>, status: Boolean}>
@@ -2017,6 +2050,7 @@ export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
   | 1 // FILTER_ALL_HIDDEN_1
+  | 2 // FILTER_SYSTEM_HIDDEN_2
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 export type ListToDepthArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, depth: Int}>
@@ -2044,6 +2078,11 @@ export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String,
 export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
 export type MerkleRootAndTime = $ReadOnly<{root: MerkleRootV2, updateTime: Time, fetchTime: Time}>
 export type MerkleRootV2 = $ReadOnly<{seqno: Seqno, hashMeta: HashMeta}>
+export type MerkleStoreEntry = $ReadOnly<{hash: MerkleStoreKitHash, entry: MerkleStoreEntryString}>
+export type MerkleStoreEntryString = String
+export type MerkleStoreKit = String
+export type MerkleStoreKitHash = String
+export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeID =
   | 0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
@@ -2086,6 +2125,9 @@ export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Bo
 export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
 export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
+export type ParamProofJSON = $ReadOnly<{sigHash: SigID, kbUsername: String}>
+export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, group?: ?ProofServiceGroup, usernameConfig: ParamProofUsernameConfig, brandColor: String, prefillUrl: String, profileUrl: String, checkUrl: String, checkPath?: ?Array<SelectorEntry>}>
+export type ParamProofUsernameConfig = $ReadOnly<{re: String, min: Int, max: Int}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
   | 0 // NONE_0
@@ -2126,6 +2168,7 @@ export type PromptOverwriteType =
   | 1 // SITE_1
 
 export type ProofResult = $ReadOnly<{state: ProofState, status: ProofStatus, desc: String}>
+export type ProofServiceGroup = $ReadOnly<{id: String}>
 export type ProofState =
   | 0 // NONE_0
   | 1 // OK_1
@@ -2191,6 +2234,7 @@ export type ProofType =
   | 5 // COINBASE_5
   | 6 // HACKERNEWS_6
   | 8 // FACEBOOK_8
+  | 9 // GENERIC_SOCIAL_9
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
   | 1002 // PGP_1002
@@ -2296,6 +2340,7 @@ export type SeitanKeyLabelType = 1 // SMS_1
 
 export type SeitanPubKey = KID
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
+export type SelectorEntry = $ReadOnly<{isIndex: Boolean, index: Int, isKey: Boolean, key: String, isAll: Boolean, isContents: Boolean}>
 export type SeqType =
   | 0 // NONE_0
   | 1 // PUBLIC_1
@@ -2618,7 +2663,7 @@ export type TeamNewlyAddedRow = $ReadOnly<{id: TeamID, name: String}>
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, needApplicationsAtGenerationsWithKBFS: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
 export type TeamRole =
@@ -2633,7 +2678,7 @@ export type TeamSeitanMsg = $ReadOnly<{teamID: TeamID, seitans?: ?Array<TeamSeit
 export type TeamSeitanRequest = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64}>
 export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, lastHighSeqno: Seqno, lastHighLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}, headMerkle?: ?MerkleRootV2}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, lastHighSeqno: Seqno, lastHighLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfIDs?: ?Array<TLFID>, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}, headMerkle?: ?MerkleRootV2}>
 export type TeamStatus =
   | 0 // NONE_0
   | 1 // LIVE_1
@@ -2697,6 +2742,12 @@ export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
 export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
+export type UpdateInfo = $ReadOnly<{status: UpdateInfoStatus, message: String}>
+export type UpdateInfoStatus =
+  | 0 // UP_TO_DATE_0
+  | 1 // NEED_UPDATE_1
+  | 2 // CRITICALLY_OUT_OF_DATE_2
+
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
@@ -2729,105 +2780,9 @@ export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int,
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
 
-export type IncomingCallMapType<TypedState> = {|
-  'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.confirmImportSecretToExistingKey'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.selectKey'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.sign'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.sign'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gpgUi.getTTY'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gregorUI.pushState'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushState'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.homeUI.homeUIRefresh'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.start'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.start'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.displayKey'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.reportLastTrack'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.launchNetworkChecks'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.displayTrackStatement'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.finishWebProofCheck'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.finishSocialProofCheck'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.displayCryptocurrency'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.reportTrackToken'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.displayUserCard'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.confirm'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.confirm'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.cancel'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.cancel'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.finish'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finish'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.identifyUi.dismiss'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.logUi.log'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.logUi.log'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.logUi.log'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.loginUi.getEmailOrUsername'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.loginUi.promptRevokePaperKeys'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.logsend.prepareLogsend'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyApp.exit'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyBadges.badgeState'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyCanUserPerform.canUserPerformChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFS.FSActivity'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFS.FSPathUpdated'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFS.FSSyncActivity'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFS.FSEditListResponse'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyService.shutdown'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifySession.loggedOut'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifySession.loggedIn'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifySession.clientOutOfDate'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.teamChangedByID'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.teamChangedByName'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.teamDeleted'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.teamAbandoned'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.teamExit'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.newlyAddedToTeam'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTeam.avatarUpdated'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyTracking.trackingChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.NotifyUsers.userChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.pgpUi.outputSignatureSuccess'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.pgpUi.keyGenerated'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.pgpUi.shouldPushPrivate'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.pgpUi.finished'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.finished'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.promptOverwrite'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.promptUsername'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.outputPrechecks'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.preProofWarning'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.outputInstructions'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.okToCheck'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.proveUi.displayRecheckWarning'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.chooseGPGMethod'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.switchToGPGSignOK'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.chooseDevice'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.chooseDeviceType'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.PromptNewDeviceName'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.provisionUi.ProvisionerSuccess'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.reachability.reachabilityChanged'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.reachability.reachabilityChanged'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn,
-  'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.rekeyUI.refresh'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.rekeyUI.rekeySendEvent'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.secretUi.getPassphrase'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.streamUi.close'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.close'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.streamUi.read'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.read'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.streamUi.reset'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.reset'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.streamUi.write'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.write'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-  'keybase.1.ui.promptYesNo'?: (params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.ui.promptYesNo'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn,
-|}
+export type IncomingCallMapType = {|'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.selectKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.sign'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gpgUi.getTTY'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gregorUI.pushState'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.homeUI.homeUIRefresh'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.start'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.displayKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.reportLastTrack'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.launchNetworkChecks'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.displayTrackStatement'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.finishWebProofCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.finishSocialProofCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.displayCryptocurrency'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.reportTrackToken'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.displayUserCard'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.confirm'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.cancel'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.finish'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.identifyUi.dismiss'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.logUi.log'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.loginUi.getEmailOrUsername'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.loginUi.promptRevokePaperKeys'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.logsend.prepareLogsend'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyApp.exit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyBadges.badgeState'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFS.FSActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFS.FSPathUpdated'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFS.FSSyncActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyService.shutdown'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifySession.loggedOut'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifySession.loggedIn'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifySession.clientOutOfDate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.teamChangedByID'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.teamChangedByName'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.teamDeleted'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.teamAbandoned'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.teamExit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.newlyAddedToTeam'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTeam.avatarUpdated'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyTracking.trackingChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.NotifyUsers.userChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.pgpUi.outputSignatureSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.pgpUi.keyGenerated'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.pgpUi.shouldPushPrivate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.pgpUi.finished'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.promptOverwrite'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.promptUsername'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.outputPrechecks'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.preProofWarning'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.outputInstructions'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.okToCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.proveUi.displayRecheckWarning'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.chooseGPGMethod'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.switchToGPGSignOK'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.chooseDevice'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.chooseDeviceType'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.PromptNewDeviceName'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.provisionUi.ProvisionerSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.reachability.reachabilityChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.reachability.reachabilityChanged'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.rekeyUI.refresh'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.rekeyUI.rekeySendEvent'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.secretUi.getPassphrase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.streamUi.close'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.streamUi.read'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.streamUi.reset'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.streamUi.write'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'keybase.1.ui.promptYesNo'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn|}
+
+export type CustomResponseIncomingCallMap = {|'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.selectKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.sign'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.sign'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gpgUi.getTTY'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gregorUI.pushState'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushState'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.gregorUI.pushOutOfBandMessages'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.homeUI.homeUIRefresh'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.delegateIdentifyUI'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.start'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.start'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.displayKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.reportLastTrack'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.launchNetworkChecks'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.displayTrackStatement'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.finishWebProofCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.finishSocialProofCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.displayCryptocurrency'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.reportTrackToken'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.displayUserCard'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.confirm'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.confirm'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.cancel'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.cancel'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.finish'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.finish'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.identifyUi.dismiss'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.logUi.log'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.logUi.log'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.loginUi.getEmailOrUsername'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.loginUi.promptRevokePaperKeys'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.loginUi.displayPaperKeyPhrase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.loginUi.displayPrimaryPaperKey'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.logsend.prepareLogsend'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyApp.exit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyFS.FSSyncActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyFS.FSEditListResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyService.shutdown'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifySession.loggedIn'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifySession.clientOutOfDate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.teamChangedByID'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.teamChangedByName'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.teamDeleted'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.teamAbandoned'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.teamExit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.newlyAddedToTeam'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.NotifyTeam.avatarUpdated'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.pgpUi.outputSignatureSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.pgpUi.keyGenerated'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.pgpUi.shouldPushPrivate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.pgpUi.finished'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgpUi.finished'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.promptOverwrite'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.promptUsername'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.outputPrechecks'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.preProofWarning'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.outputInstructions'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.okToCheck'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.proveUi.displayRecheckWarning'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.chooseProvisioningMethod'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.chooseGPGMethod'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.switchToGPGSignOK'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.chooseDevice'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.chooseDeviceType'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.DisplayAndPromptSecret'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.DisplaySecretExchanged'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.PromptNewDeviceName'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.ProvisioneeSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.provisionUi.ProvisionerSuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.rekeyUI.refresh'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.rekeyUI.rekeySendEvent'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.secretUi.getPassphrase'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.streamUi.close'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.close'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.streamUi.read'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.read'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.streamUi.reset'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.reset'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.streamUi.write'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.streamUi.write'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'outParam'>) => void}) => IncomingReturn, 'keybase.1.ui.promptYesNo'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'keybase.1.ui.promptYesNo'>, 'outParam'>) => void}) => IncomingReturn|}
 declare export function SimpleFSSimpleFSCancelRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCancel'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCheckRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCheck'>, 'outParam'>>
 declare export function SimpleFSSimpleFSCopyRecursiveRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSCopyRecursive'>, 'outParam'>>
@@ -2838,6 +2793,7 @@ declare export function SimpleFSSimpleFSOpenRpcPromise(params: $PropertyType<$Pr
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSReadList'>, 'outParam'>>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSStat'>, 'outParam'>>
 declare export function SimpleFSSimpleFSSyncStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSSyncStatus'>, 'outParam'>>
+declare export function SimpleFSSimpleFSUserEditHistoryRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSUserEditHistory'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSUserEditHistory'>, 'outParam'>>
 declare export function SimpleFSSimpleFSWaitRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSWait'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.SimpleFS.simpleFSWait'>, 'outParam'>>
 declare export function accountEmailChangeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.account.emailChange'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.account.emailChange'>, 'outParam'>>
 declare export function accountGetLockdownModeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.account.getLockdownMode'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.account.getLockdownMode'>, 'outParam'>>
@@ -2855,8 +2811,10 @@ declare export function configGetAllProvisionedUsernamesRpcPromise(params: $Prop
 declare export function configGetBootstrapStatusRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getBootstrapStatus'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getBootstrapStatus'>, 'outParam'>>
 declare export function configGetConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getConfig'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getConfig'>, 'outParam'>>
 declare export function configGetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getRememberPassphrase'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getRememberPassphrase'>, 'outParam'>>
+declare export function configGetUpdateInfoRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.getUpdateInfo'>, 'outParam'>>
 declare export function configHelloIAmRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.helloIAm'>, 'outParam'>>
 declare export function configSetRememberPassphraseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.setRememberPassphrase'>, 'outParam'>>
+declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'outParam'>>
 declare export function configWaitForClientRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'outParam'>>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'outParam'>>
 declare export function ctlDbNukeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'outParam'>>
@@ -2866,7 +2824,7 @@ declare export function delegateUiCtlRegisterIdentifyUIRpcPromise(params: $Prope
 declare export function delegateUiCtlRegisterRekeyUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerRekeyUI'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerRekeyUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterSecretUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerSecretUI'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerSecretUI'>, 'outParam'>>
 declare export function deviceCheckDeviceNameFormatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.checkDeviceNameFormat'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.checkDeviceNameFormat'>, 'outParam'>>
-declare export function deviceDeviceAddRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceAdd'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function deviceDeviceAddRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceAdd'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function deviceDeviceHistoryListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceHistoryList'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceHistoryList'>, 'outParam'>>
 declare export function favoriteFavoriteAddRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteAdd'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteAdd'>, 'outParam'>>
 declare export function favoriteFavoriteIgnoreRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteIgnore'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteIgnore'>, 'outParam'>>
@@ -2895,9 +2853,9 @@ declare export function kbfsMountGetCurrentMountDirRpcPromise(params: $PropertyT
 declare export function loginAccountDeleteRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.accountDelete'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.accountDelete'>, 'outParam'>>
 declare export function loginDeprovisionRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.deprovision'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.deprovision'>, 'outParam'>>
 declare export function loginGetConfiguredAccountsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.getConfiguredAccounts'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.getConfiguredAccounts'>, 'outParam'>>
-declare export function loginLoginRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.login'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function loginLoginRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.login'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function loginLogoutRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.logout'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.logout'>, 'outParam'>>
-declare export function loginPaperKeyRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKey'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function loginPaperKeyRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKey'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function loginPaperKeySubmitRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKeySubmit'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.login.paperKeySubmit'>, 'outParam'>>
 declare export function notifyCtlSetNotificationsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.notifyCtl.setNotifications'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.notifyCtl.setNotifications'>, 'outParam'>>
 declare export function pgpPgpKeyGenDefaultRpcChannelMap(configKeys: Array<string>, request: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.pgp.pgpKeyGenDefault'>, 'inParam'>): void /* not void but this is deprecated */
@@ -2918,7 +2876,7 @@ declare export function signupCheckInvitationCodeRpcPromise(params: $PropertyTyp
 declare export function signupCheckUsernameAvailableRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.checkUsernameAvailable'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.checkUsernameAvailable'>, 'outParam'>>
 declare export function signupGetInvitationCodeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.getInvitationCode'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.getInvitationCode'>, 'outParam'>>
 declare export function signupInviteRequestRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.inviteRequest'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.inviteRequest'>, 'outParam'>>
-declare export function signupSignupRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.signup'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function signupSignupRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.signup.signup'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function teamsCanUserPerformRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.canUserPerform'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.canUserPerform'>, 'outParam'>>
 declare export function teamsGetTarsDisabledRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.getTarsDisabled'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.getTarsDisabled'>, 'outParam'>>
 declare export function teamsGetTeamAndMemberShowcaseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.getTeamAndMemberShowcase'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.teams.getTeamAndMemberShowcase'>, 'outParam'>>
@@ -2952,4 +2910,4 @@ declare export function userListTrackers2RpcPromise(params: $PropertyType<$Prope
 declare export function userLoadMySettingsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.loadMySettings'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.loadMySettings'>, 'outParam'>>
 declare export function userProfileEditRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.profileEdit'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.profileEdit'>, 'outParam'>>
 declare export function userUploadUserAvatarRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.uploadUserAvatar'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.user.uploadUserAvatar'>, 'outParam'>>
-// Not enabled calls. To enable add to enabled-calls.json: 'keybase.1.account.passphrasePrompt' 'keybase.1.account.resetAccount' 'keybase.1.appState.updateAppState' 'keybase.1.badger.getBadgeState' 'keybase.1.block.getSessionChallenge' 'keybase.1.block.authenticateSession' 'keybase.1.block.putBlock' 'keybase.1.block.putBlockAgain' 'keybase.1.block.getBlock' 'keybase.1.block.addReference' 'keybase.1.block.delReference' 'keybase.1.block.archiveReference' 'keybase.1.block.delReferenceWithCount' 'keybase.1.block.archiveReferenceWithCount' 'keybase.1.block.getUserQuotaInfo' 'keybase.1.block.getTeamQuotaInfo' 'keybase.1.block.blockPing' 'keybase.1.BTC.registerBTC' 'keybase.1.config.getCurrentStatus' 'keybase.1.config.getExtendedStatus' 'keybase.1.config.setUserConfig' 'keybase.1.config.setPath' 'keybase.1.config.setValue' 'keybase.1.config.clearValue' 'keybase.1.config.getValue' 'keybase.1.config.checkAPIServerOutOfDateWarning' 'keybase.1.crypto.signED25519' 'keybase.1.crypto.signED25519ForKBFS' 'keybase.1.crypto.signToString' 'keybase.1.crypto.unboxBytes32' 'keybase.1.crypto.unboxBytes32Any' 'keybase.1.ctl.stop' 'keybase.1.ctl.logRotate' 'keybase.1.ctl.reload' 'keybase.1.ctl.appExit' 'keybase.1.ctl.dbDelete' 'keybase.1.ctl.dbPut' 'keybase.1.ctl.dbGet' 'keybase.1.debugging.firstStep' 'keybase.1.debugging.secondStep' 'keybase.1.debugging.increment' 'keybase.1.debugging.script' 'keybase.1.delegateUiCtl.registerUpdateUI' 'keybase.1.delegateUiCtl.registerGregorFirehose' 'keybase.1.device.deviceList' 'keybase.1.device.checkDeviceNameForUser' 'keybase.1.favorite.getFavorites' 'keybase.1.fs.List' 'keybase.1.git.putGitMetadata' 'keybase.1.git.deleteGitMetadata' 'keybase.1.git.gcPersonalRepo' 'keybase.1.git.gcTeamRepo' 'keybase.1.git.getTeamRepoSettings' 'keybase.1.gpgUi.wantToAddGPGKey' 'keybase.1.gpgUi.confirmDuplicateKeyChosen' 'keybase.1.gpgUi.confirmImportSecretToExistingKey' 'keybase.1.gpgUi.selectKeyAndPushOption' 'keybase.1.gpgUi.selectKey' 'keybase.1.gpgUi.sign' 'keybase.1.gpgUi.getTTY' 'keybase.1.gregorUI.pushState' 'keybase.1.gregorUI.pushOutOfBandMessages' 'keybase.1.home.homeActionTaken' 'keybase.1.homeUI.homeUIRefresh' 'keybase.1.identify.Resolve3' 'keybase.1.identify.identifyLite' 'keybase.1.identify.resolveIdentifyImplicitTeam' 'keybase.1.identify.resolveImplicitTeam' 'keybase.1.identifyUi.displayTLFCreateWithInvite' 'keybase.1.identifyUi.delegateIdentifyUI' 'keybase.1.identifyUi.start' 'keybase.1.identifyUi.displayKey' 'keybase.1.identifyUi.reportLastTrack' 'keybase.1.identifyUi.launchNetworkChecks' 'keybase.1.identifyUi.displayTrackStatement' 'keybase.1.identifyUi.finishWebProofCheck' 'keybase.1.identifyUi.finishSocialProofCheck' 'keybase.1.identifyUi.displayCryptocurrency' 'keybase.1.identifyUi.reportTrackToken' 'keybase.1.identifyUi.displayUserCard' 'keybase.1.identifyUi.confirm' 'keybase.1.identifyUi.cancel' 'keybase.1.identifyUi.finish' 'keybase.1.identifyUi.dismiss' 'keybase.1.implicitTeamMigration.startMigration' 'keybase.1.implicitTeamMigration.finalizeMigration' 'keybase.1.install.installCommandLinePrivileged' 'keybase.1.kbfs.FSEvent' 'keybase.1.kbfs.FSPathUpdate' 'keybase.1.kbfs.FSEditList' 'keybase.1.kbfs.FSSyncStatus' 'keybase.1.kbfs.FSSyncEvent' 'keybase.1.kbfs.createTLF' 'keybase.1.kbfs.getKBFSTeamSettings' 'keybase.1.KBFSGit.createRepo' 'keybase.1.KBFSGit.deleteRepo' 'keybase.1.KBFSGit.gc' 'keybase.1.kbfsMount.GetAllAvailableMountDirs' 'keybase.1.kbfsMount.SetCurrentMountDir' 'keybase.1.Kex2Provisionee.hello' 'keybase.1.Kex2Provisionee.didCounterSign' 'keybase.1.Kex2Provisionee2.hello2' 'keybase.1.Kex2Provisionee2.didCounterSign2' 'keybase.1.Kex2Provisioner.kexStart' 'keybase.1.log.registerLogger' 'keybase.1.logUi.log' 'keybase.1.login.loginProvisionedDevice' 'keybase.1.login.loginWithPaperKey' 'keybase.1.login.clearStoredSecret' 'keybase.1.login.recoverAccountFromEmailAddress' 'keybase.1.login.unlock' 'keybase.1.login.unlockWithPassphrase' 'keybase.1.login.loginOneshot' 'keybase.1.loginUi.getEmailOrUsername' 'keybase.1.loginUi.promptRevokePaperKeys' 'keybase.1.loginUi.displayPaperKeyPhrase' 'keybase.1.loginUi.displayPrimaryPaperKey' 'keybase.1.logsend.prepareLogsend' 'keybase.1.merkle.getCurrentMerkleRoot' 'keybase.1.merkle.verifyMerkleRootAndKBFS' 'keybase.1.metadata.getChallenge' 'keybase.1.metadata.authenticate' 'keybase.1.metadata.putMetadata' 'keybase.1.metadata.getMetadata' 'keybase.1.metadata.getMetadataByTimestamp' 'keybase.1.metadata.registerForUpdates' 'keybase.1.metadata.pruneBranch' 'keybase.1.metadata.putKeys' 'keybase.1.metadata.getKey' 'keybase.1.metadata.deleteKey' 'keybase.1.metadata.truncateLock' 'keybase.1.metadata.truncateUnlock' 'keybase.1.metadata.getFolderHandle' 'keybase.1.metadata.getFoldersForRekey' 'keybase.1.metadata.ping' 'keybase.1.metadata.ping2' 'keybase.1.metadata.getLatestFolderHandle' 'keybase.1.metadata.getKeyBundles' 'keybase.1.metadata.lock' 'keybase.1.metadata.releaseLock' 'keybase.1.metadata.startImplicitTeamMigration' 'keybase.1.metadata.getMerkleRoot' 'keybase.1.metadata.getMerkleRootLatest' 'keybase.1.metadata.getMerkleRootSince' 'keybase.1.metadata.getMerkleNode' 'keybase.1.metadata.findNextMD' 'keybase.1.metadata.setImplicitTeamModeForTest' 'keybase.1.metadata.forceMerkleBuildForTest' 'keybase.1.metadataUpdate.metadataUpdate' 'keybase.1.metadataUpdate.folderNeedsRekey' 'keybase.1.metadataUpdate.foldersNeedRekey' 'keybase.1.NotifyApp.exit' 'keybase.1.NotifyBadges.badgeState' 'keybase.1.NotifyCanUserPerform.canUserPerformChanged' 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged' 'keybase.1.NotifyEphemeral.newTeamEk' 'keybase.1.NotifyFavorites.favoritesChanged' 'keybase.1.NotifyFS.FSActivity' 'keybase.1.NotifyFS.FSPathUpdated' 'keybase.1.NotifyFS.FSSyncActivity' 'keybase.1.NotifyFS.FSEditListResponse' 'keybase.1.NotifyFS.FSSyncStatusResponse' 'keybase.1.NotifyFSRequest.FSEditListRequest' 'keybase.1.NotifyFSRequest.FSSyncStatusRequest' 'keybase.1.NotifyKeyfamily.keyfamilyChanged' 'keybase.1.NotifyPaperKey.paperKeyCached' 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' 'keybase.1.NotifyService.shutdown' 'keybase.1.NotifySession.loggedOut' 'keybase.1.NotifySession.loggedIn' 'keybase.1.NotifySession.clientOutOfDate' 'keybase.1.NotifyTeam.teamChangedByID' 'keybase.1.NotifyTeam.teamChangedByName' 'keybase.1.NotifyTeam.teamDeleted' 'keybase.1.NotifyTeam.teamAbandoned' 'keybase.1.NotifyTeam.teamExit' 'keybase.1.NotifyTeam.newlyAddedToTeam' 'keybase.1.NotifyTeam.avatarUpdated' 'keybase.1.NotifyTracking.trackingChanged' 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged' 'keybase.1.NotifyUsers.userChanged' 'keybase.1.paperprovision.paperProvision' 'keybase.1.pgp.pgpSign' 'keybase.1.pgp.pgpPull' 'keybase.1.pgp.pgpEncrypt' 'keybase.1.pgp.pgpDecrypt' 'keybase.1.pgp.pgpVerify' 'keybase.1.pgp.pgpImport' 'keybase.1.pgp.pgpExport' 'keybase.1.pgp.pgpExportByFingerprint' 'keybase.1.pgp.pgpExportByKID' 'keybase.1.pgp.pgpKeyGen' 'keybase.1.pgp.pgpDeletePrimary' 'keybase.1.pgp.pgpSelect' 'keybase.1.pgp.pgpUpdate' 'keybase.1.pgp.pgpPurge' 'keybase.1.pgpUi.outputSignatureSuccess' 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase' 'keybase.1.pgpUi.keyGenerated' 'keybase.1.pgpUi.shouldPushPrivate' 'keybase.1.pgpUi.finished' 'keybase.1.pprof.processorProfile' 'keybase.1.pprof.trace' 'keybase.1.proveUi.promptOverwrite' 'keybase.1.proveUi.promptUsername' 'keybase.1.proveUi.outputPrechecks' 'keybase.1.proveUi.preProofWarning' 'keybase.1.proveUi.outputInstructions' 'keybase.1.proveUi.okToCheck' 'keybase.1.proveUi.displayRecheckWarning' 'keybase.1.provisionUi.chooseProvisioningMethod' 'keybase.1.provisionUi.chooseGPGMethod' 'keybase.1.provisionUi.switchToGPGSignOK' 'keybase.1.provisionUi.chooseDevice' 'keybase.1.provisionUi.chooseDeviceType' 'keybase.1.provisionUi.DisplayAndPromptSecret' 'keybase.1.provisionUi.DisplaySecretExchanged' 'keybase.1.provisionUi.PromptNewDeviceName' 'keybase.1.provisionUi.ProvisioneeSuccess' 'keybase.1.provisionUi.ProvisionerSuccess' 'keybase.1.quota.verifySession' 'keybase.1.rekey.getPendingRekeyStatus' 'keybase.1.rekey.debugShowRekeyStatus' 'keybase.1.rekey.rekeySync' 'keybase.1.rekeyUI.delegateRekeyUI' 'keybase.1.rekeyUI.refresh' 'keybase.1.rekeyUI.rekeySendEvent' 'keybase.1.saltpack.saltpackEncrypt' 'keybase.1.saltpack.saltpackDecrypt' 'keybase.1.saltpack.saltpackSign' 'keybase.1.saltpack.saltpackVerify' 'keybase.1.saltpackUi.saltpackPromptForDecrypt' 'keybase.1.saltpackUi.saltpackVerifySuccess' 'keybase.1.saltpackUi.saltpackVerifyBadSender' 'keybase.1.ScanProofs.scanProofs' 'keybase.1.secretUi.getPassphrase' 'keybase.1.SecretKeys.getSecretKeys' 'keybase.1.selfprovision.selfProvision' 'keybase.1.session.currentSession' 'keybase.1.session.sessionPing' 'keybase.1.sigs.sigList' 'keybase.1.sigs.sigListJSON' 'keybase.1.SimpleFS.simpleFSListRecursive' 'keybase.1.SimpleFS.simpleFSCopy' 'keybase.1.SimpleFS.simpleFSMove' 'keybase.1.SimpleFS.simpleFSRename' 'keybase.1.SimpleFS.simpleFSSetStat' 'keybase.1.SimpleFS.simpleFSRead' 'keybase.1.SimpleFS.simpleFSWrite' 'keybase.1.SimpleFS.simpleFSRemove' 'keybase.1.SimpleFS.simpleFSGetRevisions' 'keybase.1.SimpleFS.simpleFSReadRevisions' 'keybase.1.SimpleFS.simpleFSMakeOpid' 'keybase.1.SimpleFS.simpleFSClose' 'keybase.1.SimpleFS.simpleFSGetOps' 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo' 'keybase.1.SimpleFS.simpleFSUserEditHistory' 'keybase.1.SimpleFS.simpleFSFolderEditHistory' 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage' 'keybase.1.streamUi.close' 'keybase.1.streamUi.read' 'keybase.1.streamUi.reset' 'keybase.1.streamUi.write' 'keybase.1.teams.teamCreateWithSettings' 'keybase.1.teams.teamImplicitAdmins' 'keybase.1.teams.teamListTeammates' 'keybase.1.teams.teamListVerified' 'keybase.1.teams.teamListSubteamsRecursive' 'keybase.1.teams.teamChangeMembership' 'keybase.1.teams.teamRename' 'keybase.1.teams.teamAcceptInvite' 'keybase.1.teams.teamRequestAccess' 'keybase.1.teams.teamDelete' 'keybase.1.teams.teamCreateSeitanToken' 'keybase.1.teams.lookupImplicitTeam' 'keybase.1.teams.lookupOrCreateImplicitTeam' 'keybase.1.teams.loadTeamPlusApplicationKeys' 'keybase.1.teams.getTeamRootID' 'keybase.1.teams.getTeamShowcase' 'keybase.1.teams.teamRotateKey' 'keybase.1.teams.teamDebug' 'keybase.1.teams.tryDecryptWithTeamKey' 'keybase.1.teams.findNextMerkleRootAfterTeamRemoval' 'keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey' 'keybase.1.teams.profileTeamLoad' 'keybase.1.teams.getTeamID' 'keybase.1.teams.ftl' 'keybase.1.teamsUi.confirmRootTeamDelete' 'keybase.1.teamsUi.confirmSubteamDelete' 'keybase.1.test.test' 'keybase.1.test.testCallback' 'keybase.1.test.panic' 'keybase.1.tlf.CryptKeys' 'keybase.1.tlf.publicCanonicalTLFNameAndID' 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName' 'keybase.1.tlfKeys.getTLFCryptKeys' 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID' 'keybase.1.track.track' 'keybase.1.track.fakeTrackingChanged' 'keybase.1.ui.promptYesNo' 'keybase.1.user.listTrackers' 'keybase.1.user.listTrackersByName' 'keybase.1.user.listTrackersSelf' 'keybase.1.user.loadUncheckedUserSummaries' 'keybase.1.user.loadUser' 'keybase.1.user.loadUserByName' 'keybase.1.user.loadUserPlusKeys' 'keybase.1.user.loadUserPlusKeysV2' 'keybase.1.user.loadPublicKeys' 'keybase.1.user.loadMyPublicKeys' 'keybase.1.user.listTracking' 'keybase.1.user.listTrackingJSON' 'keybase.1.user.search' 'keybase.1.user.loadAllPublicKeysUnverified' 'keybase.1.user.meUserVersion' 'keybase.1.user.getUPAK' 'keybase.1.user.findNextMerkleRootAfterRevoke' 'keybase.1.user.findNextMerkleRootAfterReset'
+// Not enabled calls. To enable add to enabled-calls.json: 'keybase.1.account.passphrasePrompt' 'keybase.1.account.resetAccount' 'keybase.1.appState.updateAppState' 'keybase.1.badger.getBadgeState' 'keybase.1.block.getSessionChallenge' 'keybase.1.block.authenticateSession' 'keybase.1.block.putBlock' 'keybase.1.block.putBlockAgain' 'keybase.1.block.getBlock' 'keybase.1.block.addReference' 'keybase.1.block.delReference' 'keybase.1.block.archiveReference' 'keybase.1.block.delReferenceWithCount' 'keybase.1.block.archiveReferenceWithCount' 'keybase.1.block.getUserQuotaInfo' 'keybase.1.block.getTeamQuotaInfo' 'keybase.1.block.blockPing' 'keybase.1.BTC.registerBTC' 'keybase.1.config.getCurrentStatus' 'keybase.1.config.getExtendedStatus' 'keybase.1.config.setUserConfig' 'keybase.1.config.setPath' 'keybase.1.config.setValue' 'keybase.1.config.clearValue' 'keybase.1.config.getValue' 'keybase.1.config.checkAPIServerOutOfDateWarning' 'keybase.1.crypto.signED25519' 'keybase.1.crypto.signED25519ForKBFS' 'keybase.1.crypto.signToString' 'keybase.1.crypto.unboxBytes32' 'keybase.1.crypto.unboxBytes32Any' 'keybase.1.ctl.stop' 'keybase.1.ctl.logRotate' 'keybase.1.ctl.reload' 'keybase.1.ctl.appExit' 'keybase.1.ctl.dbDelete' 'keybase.1.ctl.dbPut' 'keybase.1.ctl.dbGet' 'keybase.1.debugging.firstStep' 'keybase.1.debugging.secondStep' 'keybase.1.debugging.increment' 'keybase.1.debugging.script' 'keybase.1.delegateUiCtl.registerUpdateUI' 'keybase.1.delegateUiCtl.registerGregorFirehose' 'keybase.1.device.deviceList' 'keybase.1.device.checkDeviceNameForUser' 'keybase.1.favorite.getFavorites' 'keybase.1.fs.List' 'keybase.1.git.putGitMetadata' 'keybase.1.git.deleteGitMetadata' 'keybase.1.git.gcPersonalRepo' 'keybase.1.git.gcTeamRepo' 'keybase.1.git.getTeamRepoSettings' 'keybase.1.gpgUi.wantToAddGPGKey' 'keybase.1.gpgUi.confirmDuplicateKeyChosen' 'keybase.1.gpgUi.confirmImportSecretToExistingKey' 'keybase.1.gpgUi.selectKeyAndPushOption' 'keybase.1.gpgUi.selectKey' 'keybase.1.gpgUi.sign' 'keybase.1.gpgUi.getTTY' 'keybase.1.gregorUI.pushState' 'keybase.1.gregorUI.pushOutOfBandMessages' 'keybase.1.home.homeActionTaken' 'keybase.1.homeUI.homeUIRefresh' 'keybase.1.identify.Resolve3' 'keybase.1.identify.identifyLite' 'keybase.1.identify.resolveIdentifyImplicitTeam' 'keybase.1.identify.resolveImplicitTeam' 'keybase.1.identify.normalizeSocialAssertion' 'keybase.1.identifyUi.displayTLFCreateWithInvite' 'keybase.1.identifyUi.delegateIdentifyUI' 'keybase.1.identifyUi.start' 'keybase.1.identifyUi.displayKey' 'keybase.1.identifyUi.reportLastTrack' 'keybase.1.identifyUi.launchNetworkChecks' 'keybase.1.identifyUi.displayTrackStatement' 'keybase.1.identifyUi.finishWebProofCheck' 'keybase.1.identifyUi.finishSocialProofCheck' 'keybase.1.identifyUi.displayCryptocurrency' 'keybase.1.identifyUi.reportTrackToken' 'keybase.1.identifyUi.displayUserCard' 'keybase.1.identifyUi.confirm' 'keybase.1.identifyUi.cancel' 'keybase.1.identifyUi.finish' 'keybase.1.identifyUi.dismiss' 'keybase.1.implicitTeamMigration.startMigration' 'keybase.1.implicitTeamMigration.finalizeMigration' 'keybase.1.install.installCommandLinePrivileged' 'keybase.1.kbfs.FSEvent' 'keybase.1.kbfs.FSPathUpdate' 'keybase.1.kbfs.FSEditList' 'keybase.1.kbfs.FSSyncStatus' 'keybase.1.kbfs.FSSyncEvent' 'keybase.1.kbfs.createTLF' 'keybase.1.kbfs.getKBFSTeamSettings' 'keybase.1.kbfs.upgradeTLF' 'keybase.1.KBFSGit.createRepo' 'keybase.1.KBFSGit.deleteRepo' 'keybase.1.KBFSGit.gc' 'keybase.1.kbfsMount.GetAllAvailableMountDirs' 'keybase.1.kbfsMount.SetCurrentMountDir' 'keybase.1.Kex2Provisionee.hello' 'keybase.1.Kex2Provisionee.didCounterSign' 'keybase.1.Kex2Provisionee2.hello2' 'keybase.1.Kex2Provisionee2.didCounterSign2' 'keybase.1.Kex2Provisioner.kexStart' 'keybase.1.log.registerLogger' 'keybase.1.logUi.log' 'keybase.1.login.loginProvisionedDevice' 'keybase.1.login.loginWithPaperKey' 'keybase.1.login.clearStoredSecret' 'keybase.1.login.recoverAccountFromEmailAddress' 'keybase.1.login.unlock' 'keybase.1.login.unlockWithPassphrase' 'keybase.1.login.loginOneshot' 'keybase.1.loginUi.getEmailOrUsername' 'keybase.1.loginUi.promptRevokePaperKeys' 'keybase.1.loginUi.displayPaperKeyPhrase' 'keybase.1.loginUi.displayPrimaryPaperKey' 'keybase.1.logsend.prepareLogsend' 'keybase.1.merkle.getCurrentMerkleRoot' 'keybase.1.merkle.verifyMerkleRootAndKBFS' 'keybase.1.metadata.getChallenge' 'keybase.1.metadata.authenticate' 'keybase.1.metadata.putMetadata' 'keybase.1.metadata.getMetadata' 'keybase.1.metadata.getMetadataByTimestamp' 'keybase.1.metadata.registerForUpdates' 'keybase.1.metadata.pruneBranch' 'keybase.1.metadata.putKeys' 'keybase.1.metadata.getKey' 'keybase.1.metadata.deleteKey' 'keybase.1.metadata.truncateLock' 'keybase.1.metadata.truncateUnlock' 'keybase.1.metadata.getFolderHandle' 'keybase.1.metadata.getFoldersForRekey' 'keybase.1.metadata.ping' 'keybase.1.metadata.ping2' 'keybase.1.metadata.getLatestFolderHandle' 'keybase.1.metadata.getKeyBundles' 'keybase.1.metadata.lock' 'keybase.1.metadata.releaseLock' 'keybase.1.metadata.startImplicitTeamMigration' 'keybase.1.metadata.getMerkleRoot' 'keybase.1.metadata.getMerkleRootLatest' 'keybase.1.metadata.getMerkleRootSince' 'keybase.1.metadata.getMerkleNode' 'keybase.1.metadata.findNextMD' 'keybase.1.metadata.setImplicitTeamModeForTest' 'keybase.1.metadata.forceMerkleBuildForTest' 'keybase.1.metadataUpdate.metadataUpdate' 'keybase.1.metadataUpdate.folderNeedsRekey' 'keybase.1.metadataUpdate.foldersNeedRekey' 'keybase.1.NotifyApp.exit' 'keybase.1.NotifyBadges.badgeState' 'keybase.1.NotifyCanUserPerform.canUserPerformChanged' 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged' 'keybase.1.NotifyEphemeral.newTeamEk' 'keybase.1.NotifyFavorites.favoritesChanged' 'keybase.1.NotifyFS.FSActivity' 'keybase.1.NotifyFS.FSPathUpdated' 'keybase.1.NotifyFS.FSSyncActivity' 'keybase.1.NotifyFS.FSEditListResponse' 'keybase.1.NotifyFS.FSSyncStatusResponse' 'keybase.1.NotifyFSRequest.FSEditListRequest' 'keybase.1.NotifyFSRequest.FSSyncStatusRequest' 'keybase.1.NotifyKeyfamily.keyfamilyChanged' 'keybase.1.NotifyPaperKey.paperKeyCached' 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile' 'keybase.1.NotifyService.shutdown' 'keybase.1.NotifySession.loggedOut' 'keybase.1.NotifySession.loggedIn' 'keybase.1.NotifySession.clientOutOfDate' 'keybase.1.NotifyTeam.teamChangedByID' 'keybase.1.NotifyTeam.teamChangedByName' 'keybase.1.NotifyTeam.teamDeleted' 'keybase.1.NotifyTeam.teamAbandoned' 'keybase.1.NotifyTeam.teamExit' 'keybase.1.NotifyTeam.newlyAddedToTeam' 'keybase.1.NotifyTeam.avatarUpdated' 'keybase.1.NotifyTracking.trackingChanged' 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged' 'keybase.1.NotifyUsers.userChanged' 'keybase.1.paperprovision.paperProvision' 'keybase.1.pgp.pgpSign' 'keybase.1.pgp.pgpPull' 'keybase.1.pgp.pgpEncrypt' 'keybase.1.pgp.pgpDecrypt' 'keybase.1.pgp.pgpVerify' 'keybase.1.pgp.pgpImport' 'keybase.1.pgp.pgpExport' 'keybase.1.pgp.pgpExportByFingerprint' 'keybase.1.pgp.pgpExportByKID' 'keybase.1.pgp.pgpKeyGen' 'keybase.1.pgp.pgpDeletePrimary' 'keybase.1.pgp.pgpSelect' 'keybase.1.pgp.pgpUpdate' 'keybase.1.pgp.pgpPurge' 'keybase.1.pgpUi.outputSignatureSuccess' 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase' 'keybase.1.pgpUi.keyGenerated' 'keybase.1.pgpUi.shouldPushPrivate' 'keybase.1.pgpUi.finished' 'keybase.1.pprof.processorProfile' 'keybase.1.pprof.trace' 'keybase.1.prove.listProofServices' 'keybase.1.proveUi.promptOverwrite' 'keybase.1.proveUi.promptUsername' 'keybase.1.proveUi.outputPrechecks' 'keybase.1.proveUi.preProofWarning' 'keybase.1.proveUi.outputInstructions' 'keybase.1.proveUi.okToCheck' 'keybase.1.proveUi.displayRecheckWarning' 'keybase.1.provisionUi.chooseProvisioningMethod' 'keybase.1.provisionUi.chooseGPGMethod' 'keybase.1.provisionUi.switchToGPGSignOK' 'keybase.1.provisionUi.chooseDevice' 'keybase.1.provisionUi.chooseDeviceType' 'keybase.1.provisionUi.DisplayAndPromptSecret' 'keybase.1.provisionUi.DisplaySecretExchanged' 'keybase.1.provisionUi.PromptNewDeviceName' 'keybase.1.provisionUi.ProvisioneeSuccess' 'keybase.1.provisionUi.ProvisionerSuccess' 'keybase.1.quota.verifySession' 'keybase.1.rekey.getPendingRekeyStatus' 'keybase.1.rekey.debugShowRekeyStatus' 'keybase.1.rekey.rekeySync' 'keybase.1.rekeyUI.delegateRekeyUI' 'keybase.1.rekeyUI.refresh' 'keybase.1.rekeyUI.rekeySendEvent' 'keybase.1.saltpack.saltpackEncrypt' 'keybase.1.saltpack.saltpackDecrypt' 'keybase.1.saltpack.saltpackSign' 'keybase.1.saltpack.saltpackVerify' 'keybase.1.saltpackUi.saltpackPromptForDecrypt' 'keybase.1.saltpackUi.saltpackVerifySuccess' 'keybase.1.saltpackUi.saltpackVerifyBadSender' 'keybase.1.ScanProofs.scanProofs' 'keybase.1.secretUi.getPassphrase' 'keybase.1.SecretKeys.getSecretKeys' 'keybase.1.selfprovision.selfProvision' 'keybase.1.session.currentSession' 'keybase.1.session.sessionPing' 'keybase.1.sigs.sigList' 'keybase.1.sigs.sigListJSON' 'keybase.1.SimpleFS.simpleFSListRecursive' 'keybase.1.SimpleFS.simpleFSCopy' 'keybase.1.SimpleFS.simpleFSMove' 'keybase.1.SimpleFS.simpleFSRename' 'keybase.1.SimpleFS.simpleFSSetStat' 'keybase.1.SimpleFS.simpleFSRead' 'keybase.1.SimpleFS.simpleFSWrite' 'keybase.1.SimpleFS.simpleFSRemove' 'keybase.1.SimpleFS.simpleFSGetRevisions' 'keybase.1.SimpleFS.simpleFSReadRevisions' 'keybase.1.SimpleFS.simpleFSMakeOpid' 'keybase.1.SimpleFS.simpleFSClose' 'keybase.1.SimpleFS.simpleFSGetOps' 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo' 'keybase.1.SimpleFS.simpleFSFolderEditHistory' 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage' 'keybase.1.streamUi.close' 'keybase.1.streamUi.read' 'keybase.1.streamUi.reset' 'keybase.1.streamUi.write' 'keybase.1.teams.teamCreateWithSettings' 'keybase.1.teams.teamImplicitAdmins' 'keybase.1.teams.teamListTeammates' 'keybase.1.teams.teamListVerified' 'keybase.1.teams.teamListSubteamsRecursive' 'keybase.1.teams.teamChangeMembership' 'keybase.1.teams.teamRename' 'keybase.1.teams.teamAcceptInvite' 'keybase.1.teams.teamRequestAccess' 'keybase.1.teams.teamDelete' 'keybase.1.teams.teamCreateSeitanToken' 'keybase.1.teams.lookupImplicitTeam' 'keybase.1.teams.lookupOrCreateImplicitTeam' 'keybase.1.teams.loadTeamPlusApplicationKeys' 'keybase.1.teams.getTeamRootID' 'keybase.1.teams.getTeamShowcase' 'keybase.1.teams.teamRotateKey' 'keybase.1.teams.teamDebug' 'keybase.1.teams.tryDecryptWithTeamKey' 'keybase.1.teams.findNextMerkleRootAfterTeamRemoval' 'keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey' 'keybase.1.teams.profileTeamLoad' 'keybase.1.teams.getTeamID' 'keybase.1.teams.ftl' 'keybase.1.teamsUi.confirmRootTeamDelete' 'keybase.1.teamsUi.confirmSubteamDelete' 'keybase.1.test.test' 'keybase.1.test.testCallback' 'keybase.1.test.panic' 'keybase.1.tlf.CryptKeys' 'keybase.1.tlf.publicCanonicalTLFNameAndID' 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName' 'keybase.1.tlfKeys.getTLFCryptKeys' 'keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID' 'keybase.1.track.track' 'keybase.1.track.fakeTrackingChanged' 'keybase.1.ui.promptYesNo' 'keybase.1.user.listTrackers' 'keybase.1.user.listTrackersByName' 'keybase.1.user.listTrackersSelf' 'keybase.1.user.loadUncheckedUserSummaries' 'keybase.1.user.loadUser' 'keybase.1.user.loadUserByName' 'keybase.1.user.loadUserPlusKeys' 'keybase.1.user.loadUserPlusKeysV2' 'keybase.1.user.loadPublicKeys' 'keybase.1.user.loadMyPublicKeys' 'keybase.1.user.listTracking' 'keybase.1.user.listTrackingJSON' 'keybase.1.user.search' 'keybase.1.user.loadAllPublicKeysUnverified' 'keybase.1.user.meUserVersion' 'keybase.1.user.getUPAK' 'keybase.1.user.findNextMerkleRootAfterRevoke' 'keybase.1.user.findNextMerkleRootAfterReset'

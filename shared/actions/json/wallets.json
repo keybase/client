@@ -24,6 +24,7 @@
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
+      "forBuildingPayment": "Types.BuildingPayment"
     },
     "clearBuildingPayment": {
       "_description": "Clear a payment that was being prepared",
@@ -37,14 +38,20 @@
       "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "cancelPayment": {
+      "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
+      "paymentID": "Types.PaymentID",
+    },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
+      "showOnCreation?": "boolean",
     },
     "createdNewAccount": {
       "_description":
         "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
       "canError": {
         "name": "string",
         "error": "string",
@@ -61,6 +68,10 @@
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
     },
+    "loadMorePayments": {
+      "_description": "Scrolled down the list of payments for a given account",
+      "accountID": "Types.AccountID",
+    },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
       "accountID": "Types.AccountID",
@@ -68,7 +79,7 @@
     "loadPaymentDetail": {
       "_description": "Load extra detail for one given payment",
       "accountID": "Types.AccountID",
-      "paymentID": "StellarRPCTypes.PaymentID",
+      "paymentID": "Types.PaymentID",
     },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from",
@@ -81,6 +92,14 @@
       "_description": "Change the name of an account",
       "accountID": "Types.AccountID",
       "name": "string",
+    },
+    "changedAccountName": {
+      "_description": "A response from the service after an account's name is changed",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
     },
     "setAccountAsDefault": {
       "_description": "Change the default account",
@@ -125,14 +144,12 @@
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "paymentID": "StellarRPCTypes.PaymentID",
-      "publicMemo": "HiddenString",
-      "publicMemoType": "string",
-      "txID": "string",
+      "payment": "Types.Payment",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
+      "paymentCursor": "?StellarRPCTypes.PageCursor",
       "payments": "Array<Types.Payment>",
       "pending": "Array<Types.Payment>",
     },
@@ -197,11 +214,13 @@
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString",
+      "showOnCreation?": "boolean",
     },
     "linkedExistingAccount": {
       "_description":
         "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",

@@ -688,6 +688,9 @@ func (e *Identify2WithUID) checkLocalAssertions() error {
 
 func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState) error {
 	if e.them.isDeleted {
+		if e.G().Env.GetReadDeletedSigChain() {
+			return nil
+		}
 		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: true}
 	}
 	ps := libkb.NewProofSet(nil)
@@ -736,7 +739,9 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan error {
-	if e.arg.IdentifyBehavior.SkipUserCard() {
+	// Skip showing the userCard if we are allowing deleted users since this
+	// will error out.
+	if e.arg.IdentifyBehavior.SkipUserCard() || e.G().Env.GetReadDeletedSigChain() {
 		return nil
 	}
 	return displayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
@@ -942,7 +947,7 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 		return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 	}
 	err = libkb.UserErrorFromStatus(e.them.GetStatus())
-	if _, ok := err.(libkb.UserDeletedError); ok && e.arg.IdentifyBehavior.AllowDeletedUsers() {
+	if _, ok := err.(libkb.UserDeletedError); ok && e.arg.IdentifyBehavior.AllowDeletedUsers() || e.G().Env.GetReadDeletedSigChain() {
 		e.them.isDeleted = true
 		return nil
 	}

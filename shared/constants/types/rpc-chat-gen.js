@@ -52,6 +52,8 @@ export const commonGetThreadReason = {
   fixretry: 4,
   prepare: 5,
   searcher: 6,
+  indexedSearch: 7,
+  kbfsfileactivity: 8,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -212,6 +214,7 @@ export const localOutboxStateType = {
 export const localPreviewLocationTyp = {
   url: 0,
   file: 1,
+  bytes: 2,
 }
 
 export const notifyChatChatActivitySource = {
@@ -265,15 +268,15 @@ export const remoteSyncAllProtVers = {
 export const localAddTeamMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localDownloadFileAttachmentLocalRpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
+export const localDownloadFileAttachmentLocalRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localFindConversationsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localGetInboxNonblockLocalRpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
+export const localGetInboxNonblockLocalRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localGetStaticConfigRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTLFConversationsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTLFConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRetentionLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localGetThreadNonblockRpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
+export const localGetThreadNonblockRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localJoinConversationByIDLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.joinConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localLeaveConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.leaveConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMakePreviewRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makePreview', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

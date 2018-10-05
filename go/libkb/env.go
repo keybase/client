@@ -30,6 +30,7 @@ func (n NullConfiguration) GetSessionFilename() string                          
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
+func (n NullConfiguration) GetParamProofKitFilename() string                               { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
@@ -101,9 +102,12 @@ func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { re
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
 func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetReadDeletedSigChain() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
+func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
+func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -177,6 +181,7 @@ type TestParameters struct {
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
 	DisableAutoWallet        bool
+	EnvironmentFeatureFlags  FeatureFlags
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -201,6 +206,10 @@ type TestParameters struct {
 	// might point off of the merkle sequence in the database. So it's just
 	// easiest to skip the audit in those cases.
 	TeamSkipAudit bool
+
+	// TeamAuditParams can be customized if we want to control the behavior
+	// of audits deep in a test
+	TeamAuditParams *TeamAuditParams
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -557,6 +566,16 @@ func (e *Env) GetPvlKitFilename() string {
 	)
 }
 
+// GetParamProofKitFilename gets the path to param proof kit file.  Its value
+// is usually "" which means to use the server.
+func (e *Env) GetParamProofKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetParamProofKitFilename() },
+		func() string { return os.Getenv("KEYBASE_PARAM_PROOF_KIT_FILE") },
+		func() string { return e.GetConfig().GetParamProofKitFilename() },
+	)
+}
+
 func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },
@@ -743,6 +762,22 @@ func (e *Env) GetChatDelivererInterval() time.Duration {
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_CHAT_DELIVERER_INTERVAL") },
 		func() (time.Duration, bool) { return e.GetConfig().GetChatDelivererInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetChatDelivererInterval() },
+	)
+}
+
+func (e *Env) GetAttachmentHTTPStartPort() int {
+	return e.GetInt(16423,
+		e.cmd.GetAttachmentHTTPStartPort,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_ATTACHMENT_HTTP_START") },
+		e.GetConfig().GetAttachmentHTTPStartPort,
+	)
+}
+
+func (e *Env) GetAttachmentDisableMulti() bool {
+	return e.GetBool(false,
+		e.cmd.GetAttachmentDisableMulti,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ATTACHMENT_DISABLE_MULTI") },
+		e.GetConfig().GetAttachmentDisableMulti,
 	)
 }
 
@@ -1009,12 +1044,23 @@ func (e *Env) GetSlowGregorConn() bool {
 	)
 }
 
+func (e *Env) GetReadDeletedSigChain() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetReadDeletedSigChain() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_READ_DELETED_SIGCHAIN") },
+		func() (bool, bool) { return e.GetConfig().GetReadDeletedSigChain() },
+	)
+}
+
 func (e *Env) GetFeatureFlags() FeatureFlags {
 	var ret FeatureFlags
 	pick := func(f FeatureFlags, err error) {
 		if ret.Empty() && err == nil {
 			ret = f
 		}
+	}
+	if e.Test.EnvironmentFeatureFlags != nil {
+		pick(e.Test.EnvironmentFeatureFlags, nil)
 	}
 	pick(e.cmd.GetFeatureFlags())
 	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
@@ -1286,6 +1332,12 @@ type AppConfig struct {
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
 	MobileExtension                bool
+	AttachmentHTTPStartPort        int
+	AttachmentDisableMulti         bool
+	LinkCacheSize                  int
+	UPAKCacheSize                  int
+	PayloadCacheSize               int
+	ProofCacheSize                 int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1334,6 +1386,10 @@ func (c AppConfig) GetSlowGregorConn() (bool, bool) {
 	return false, false
 }
 
+func (c AppConfig) GetReadDeletedSigChain() (bool, bool) {
+	return false, false
+}
+
 func (c AppConfig) GetVDebugSetting() string {
 	return c.VDebugSetting
 }
@@ -1348,9 +1404,43 @@ func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
 }
 
-// Default is 4000. Turning down on mobile to reduce memory usage.
+func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
+	if c.AttachmentHTTPStartPort != 0 {
+		return c.AttachmentHTTPStartPort, true
+	}
+	return 0, false
+}
+
 func (c AppConfig) GetLinkCacheSize() (int, bool) {
-	return 1000, true
+	if c.LinkCacheSize != 0 {
+		return c.LinkCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetUPAKCacheSize() (int, bool) {
+	if c.UPAKCacheSize != 0 {
+		return c.UPAKCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetPayloadCacheSize() (int, bool) {
+	if c.PayloadCacheSize != 0 {
+		return c.PayloadCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetProofCacheSize() (int, bool) {
+	if c.ProofCacheSize != 0 {
+		return c.ProofCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
+	return c.AttachmentDisableMulti, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

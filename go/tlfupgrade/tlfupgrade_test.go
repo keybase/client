@@ -39,6 +39,7 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 
 	api := &testAPIServer{}
 	u := NewBackgroundTLFUpdater(tc.G)
+	u.testingDisableKBFS = true
 	u.testingAPIServer = api
 	u.testingChatHelper = &testChatHelper{}
 	upgradeCh := make(chan keybase1.TLFID, 5)

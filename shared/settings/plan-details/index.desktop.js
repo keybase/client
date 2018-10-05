@@ -41,6 +41,7 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
         </Box>
       )
   }
+  return null
 }
 
 function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: Props) {

@@ -65,6 +65,9 @@ yarn run rn-gobuild-ios
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
+# Start React Native packager (do NOT use the one spawned by xcode)
+yarn rn-start ios
+
 # Open workspace (not xcodeproj)
 open react-native/ios/Keybase.xcworkspace
 ```
@@ -152,19 +155,6 @@ KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 ```
 3. Reload rules with `udevadm control --reload-rules && udevadm trigger`
 
-Follow instructions at
-https://developer.android.com/ndk/guides/index.html to install and
-configure the Android NDK.
-
-Don't install Revision 16, though. Instead, go to
-https://developer.android.com/ndk/downloads/older_releases.html and
-download Revision 15c. Then unzip it, and do:
-
-```sh
-mv $ANDROID_HOME/ndk-bundle{,.r16} # if needed
-mv /path/to/android-ndk-r15c/ $ANDROID_HOME/ndk-bundle
-```
-
 Then select "Open an existing Android Studio Project" and point it to
 `shared/react-native/android`. Not necessary to register the `client`
 dir as a VCS-controlled dir with Android studio, but may as well.
@@ -189,7 +179,7 @@ yarn rn-gobuild-android
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
-# Start the react native publisher (unlike on iOS, have to do this manually).
+# Start the react native packager
 yarn rn-start android
 ```
 

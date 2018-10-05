@@ -5,14 +5,16 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -64,6 +66,9 @@ const filePreview = (state: TypedState, action) =>
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
+    ...(action.payload.identifyBehavior
+      ? {identifyBehavior: action.payload.identifyBehavior}
+      : {}),
   })
     .then(dirent =>
       FsGen.createFilePreviewLoaded({
@@ -81,22 +86,25 @@ const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 function* folderList(
   action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload
 ): Saga.SagaGenerator<any, any> {
-  try {
-    const opID = Constants.makeUUID()
-    const {rootPath, refreshTag} =
-      action.type === FsGen.editSuccess
-        ? {rootPath: action.payload.parentPath, refreshTag: undefined}
-        : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const {rootPath, refreshTag} =
+    action.type === FsGen.editSuccess
+      ? {rootPath: action.payload.parentPath, refreshTag: undefined}
+      : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const loadingPathID = Constants.makeUUID()
 
-    if (refreshTag) {
-      if (folderListRefreshTags.get(refreshTag) === rootPath) {
-        // We are already subscribed; so don't fire RPC.
-        return
-      }
-
-      folderListRefreshTags.set(refreshTag, rootPath)
+  if (refreshTag) {
+    if (folderListRefreshTags.get(refreshTag) === rootPath) {
+      // We are already subscribed; so don't fire RPC.
+      return
     }
 
+    folderListRefreshTags.set(refreshTag, rootPath)
+  }
+
+  try {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: false}))
+
+    const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
@@ -105,7 +113,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
       })
     } else {
@@ -115,7 +123,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
         depth: 1,
       })
@@ -186,8 +194,18 @@ function* folderList(
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
+    if (action.type === FsGen.editSuccess) {
+      // Note that we discard the Edit metadata here rather than immediately
+      // after an FsGen.editSuccess event, so that if we hear about journal
+      // uploading the new folder before we hear from the folder list result,
+      // fs/footer/upload-container.js can determine this is a newly created
+      // folder instead of a file upload based on state.fs.edits.
+      yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
+    }
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
+  } finally {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: true}))
   }
 }
 
@@ -352,7 +370,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
         {
-          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+          filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         }
       )
       yield Saga.sequentially([
@@ -373,7 +391,6 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
 
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.put(FsGen.createSetFlags({syncing: true})),
         Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
@@ -381,10 +398,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
     yield Saga.put(makeUnretriableErrorHandler(action)(error))
   } finally {
     polling = false
-    yield Saga.sequentially([
-      Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})),
-      Saga.put(FsGen.createSetFlags({syncing: false})),
-    ])
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
   }
 }
 
@@ -450,29 +464,36 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+// Return a header till first semicolon in lower case.
+const headerTillSemiLower = (header: string): string => {
+  const idx = header.indexOf(';')
+  return (idx > -1 ? header.slice(0, idx) : header).toLowerCase()
+}
+
 // Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
 //   text/html;charset=utf-8
 //   text/html;charset=UTF-8
 //   Text/HTML;Charset="utf-8"
 //   text/html; charset="utf-8"
 // The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeTypeFromContentType = (contentType: string): string => {
-  const ind = contentType.indexOf(';')
-  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
+  const mimeType = headerTillSemiLower(contentType)
+  const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
+  return Constants.makeMime({mimeType, displayPreview})
 }
 
 const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: Types.Path) =>
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
-      ({error, statusCode, contentType}) => {
+      ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
           return
         }
         switch (statusCode) {
           case 200:
-            resolve(extractMimeTypeFromContentType(contentType || ''))
+            resolve(extractMimeFromContentType(contentType || '', disposition || ''))
             return
           case 403:
             reject(Constants.invalidTokenError)
@@ -512,9 +533,9 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   const state = yield Saga.select()
   let localHTTPServerInfo: Types._LocalHTTPServer =
     state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
-  // This should finish within 2 iterations most. But just in case we bound it
-  // at 4.
-  for (let i = 0; i < 4; ++i) {
+  // This should finish within 2 iterations at most. But just in case we bound
+  // it at 3.
+  for (let i = 0; i < 3; ++i) {
     if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
       localHTTPServerInfo = yield Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
       yield Saga.put(FsGen.createLocalHTTPServerInfo(localHTTPServerInfo))
@@ -535,7 +556,13 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
         // but the path has been removed since then.
         return
       }
-      throw err
+      // It's still possible we have a critical error, but if it's just the
+      // server port number that's changed, it's hard to detect. So just treat
+      // all other errors as this case. If this is actually a critical error,
+      // we end up doing this 3 times for nothing, which isn't the end of the
+      // world.
+      logger.info(`_loadMimeType i=${i} error:`, err)
+      localHTTPServerInfo.address = ''
     }
   }
   throw new Error('exceeded max retries')
@@ -577,46 +604,70 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   }
 }
 
-function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
-  const {path, routePath} = action.payload
-  const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
-    yield Saga.put(
-      putActionIfOnPath(
-        routePath,
-        navigateAppend([
-          {
-            props: {path},
-            selected: 'folder',
-          },
-        ])
-      )
-    )
-    return
-  }
-
-  let bare = false
-  if (pathItem.type === 'file') {
-    let mimeType = pathItem.mimeType
-    if (mimeType === '') {
-      mimeType = yield Saga.call(_loadMimeType, path)
-    }
-    bare = isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image'
-  }
-
-  yield Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {path},
-          selected: bare ? 'barePreview' : 'preview',
-        },
-      ])
-    )
-  )
+const _getRouteChangeActionForOpen = (
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
+  route: any
+) => {
+  const routeChange =
+    action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, route])
+  return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
+
+const openPathItem = (
+  state: TypedState,
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload
+) =>
+  Saga.call(function*() {
+    const {path} = action.payload
+
+    if (Types.getPathLevel(path) < 3) {
+      // We are in either /keybase or a TLF list. So treat it as a folder.
+      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
+      return
+    }
+
+    let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+    // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
+    // (PathItem), as the type of the entry could have changed before last time
+    // we heard about it from SimpleFS. Technically this is possible for
+    // FsGen.openPathItem too, but generally it's shortly after user has
+    // interacted with its parent folder, where we'd have just refreshed the
+    // PathItem for the entry.
+    if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
+      const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+        path: {
+          PathType: RPCTypes.simpleFSPathType.kbfs,
+          kbfs: Constants.fsPathToRpcPathString(path),
+        },
+      })
+      pathItem = makeEntry(dirent)
+      yield Saga.put(
+        FsGen.createFilePreviewLoaded({
+          meta: pathItem,
+          path,
+        })
+      )
+    }
+
+    if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
+      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
+      return
+    }
+
+    let selected = 'preview'
+    if (pathItem.type === 'file') {
+      let mimeType = pathItem.mimeType
+      if (mimeType === null) {
+        mimeType = yield Saga.call(_loadMimeType, path)
+      }
+      if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {
+        selected = 'barePreview'
+      }
+    }
+
+    // This covers both 'file' and 'symlink'
+    yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
+  })
 
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
@@ -637,7 +688,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
-  yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)

@@ -11,6 +11,34 @@ import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import * as Styles from '../styles'
 import {compose, connect, setDisplayName} from '../util/container'
 
+type TProps = PropsWithTimer<{
+  getAttachmentRef: () => ?React.Component<any>,
+}>
+type TState = {
+  showingToast: boolean,
+}
+
+class _ToastContainer extends React.Component<TProps, TState> {
+  state = {showingToast: false}
+  copy = () => {
+    this.setState({showingToast: true}, () =>
+      this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
+    )
+  }
+
+  render() {
+    return (
+      <Toast position="top center" attachTo={this.props.getAttachmentRef} visible={this.state.showingToast}>
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+        <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          Copied to clipboard
+        </Text>
+      </Toast>
+    )
+  }
+}
+const ToastContainer = HOCTimers(_ToastContainer)
+
 export type Props = PropsWithTimer<{
   containerStyle?: Styles.StylesCrossPlatform,
   withReveal?: boolean,
@@ -19,22 +47,17 @@ export type Props = PropsWithTimer<{
 }>
 
 type State = {
-  showingToast: boolean,
   revealed: boolean,
 }
-
 class _CopyText extends React.Component<Props, State> {
-  state = {
-    revealed: !this.props.withReveal,
-    showingToast: false,
-  }
+  state = {revealed: !this.props.withReveal}
+
   _attachmentRef = null
+  _toastRef: ?_ToastContainer = null
   _textRef = null
 
   copy = () => {
-    this.setState({showingToast: true}, () =>
-      this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
-    )
+    this._toastRef && this._toastRef.copy()
     this._textRef && this._textRef.highlightText()
     this.props.copyToClipboard(this.props.text)
   }
@@ -44,6 +67,7 @@ class _CopyText extends React.Component<Props, State> {
   }
 
   _isRevealed = () => !this.props.withReveal || this.state.revealed
+  _getAttachmentRef = () => this._attachmentRef
 
   render() {
     return (
@@ -52,12 +76,8 @@ class _CopyText extends React.Component<Props, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
-        <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
-            Copied to clipboard
-          </Text>
-        </Toast>
+        {/* $FlowIssue innerRef not typed yet */}
+        <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
           lineClamp={1}
           type="Body"
@@ -123,9 +143,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.blue4,
-      borderRadius: 100,
+      borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: 16,
+      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
+import * as Types from '../../../constants/types/wallets'
 import {Box2} from '../../../common-adapters'
 import Header from '.'
 
@@ -12,11 +13,14 @@ const defaultWalletMock = {
 
 const secondWalletMock = {
   isDefaultWallet: false,
+  keybaseUser: 'cecileb',
   walletName: 'Second account',
 }
 
-const commonActions = {
+const common = {
+  accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
   navigateAppend: Sb.action('navigateAppend'),
+  onBack: Sb.action('onBack'),
   onDeposit: Sb.action('onDeposit'),
   onReceive: Sb.action('onReceive'),
   onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
@@ -35,8 +39,8 @@ export const Container = (storyFn: any) => (
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Header', module)
     .addDecorator(Container)
-    .add('Default wallet', () => <Header {...commonActions} {...defaultWalletMock} />)
-    .add('Second wallet', () => <Header {...commonActions} {...secondWalletMock} />)
+    .add('Default wallet', () => <Header {...common} {...defaultWalletMock} />)
+    .add('Second wallet', () => <Header {...common} {...secondWalletMock} />)
 }
 
 const styleWidth = {width: 520}

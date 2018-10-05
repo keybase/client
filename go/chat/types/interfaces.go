@@ -74,7 +74,7 @@ type ConversationSource interface {
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
-		threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
+		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
@@ -103,8 +103,14 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
-		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+	SearchRegexp(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+}
+
+type Indexer interface {
+	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
+	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
+	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
 }
 
 type Sender interface {

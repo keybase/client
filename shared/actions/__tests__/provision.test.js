@@ -24,7 +24,7 @@ const noError = new HiddenString('')
 const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
   const {dispatch, getState, getRoutePath, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
   const mockIncomingCall = callMap[method]
   if (!mockIncomingCall) {
     throw new Error('No call')
@@ -78,35 +78,19 @@ const startReduxSaga = (initialStore = undefined) => {
 
 describe('provisioningManagerProvisioning', () => {
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
 
   it('cancels are correct', () => {
     const keys = ['keybase.1.gpgUi.selectKey', 'keybase.1.loginUi.getEmailOrUsername']
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
+      // $FlowIssue flow is correct in complaining here
+      callMap[k]((undefined: any), response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
         code: RPCTypes.constantsStatusCode.scgeneric,
         desc: Constants.cancelDesc,
       })
-    })
-  })
-
-  it('ignores are correct', () => {
-    const keys = [
-      'keybase.1.loginUi.displayPrimaryPaperKey',
-      'keybase.1.provisionUi.ProvisioneeSuccess',
-      'keybase.1.provisionUi.ProvisionerSuccess',
-      'keybase.1.provisionUi.DisplaySecretExchanged',
-    ]
-    keys.forEach(k => {
-      const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
-      expect(response.result).not.toHaveBeenCalled()
-      expect(response.error).not.toHaveBeenCalled()
     })
   })
 })

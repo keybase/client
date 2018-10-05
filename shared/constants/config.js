@@ -18,10 +18,15 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
+export const makeOutOfDate: I.RecordFactory<Types._OutOfDate> = I.Record({
+  critical: false,
+  message: undefined,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
-  avatars: {}, // Can't be an I.Map since it's used by remotes
+  avatars: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,
   daemonHandshakeFailedReason: '',
@@ -43,6 +48,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
+  outOfDate: undefined,
   pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,

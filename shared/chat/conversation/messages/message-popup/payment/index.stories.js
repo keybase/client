@@ -12,6 +12,7 @@ const commonProps = {
   loading: false,
   onCancel: null,
   onHidden: Sb.action('onHidden'),
+  onSeeDetails: null,
   position: 'bottom left',
   senderDeviceName: 'iPhone 6',
   timestamp: 'Yesterday 8:11 PM',
@@ -19,6 +20,7 @@ const commonProps = {
 }
 
 const onCancel = Sb.action('onCancel')
+const onSeeDetails = Sb.action('onSeeDetails')
 
 const theyRequestProps = {
   ...commonProps,
@@ -28,7 +30,7 @@ const theyRequestProps = {
   bottomLine: '',
   icon: receiveIcon,
   sender: 'kamel',
-  topLine: 'requested lumens worth',
+  topLine: 'requested Lumens worth',
   txVerb: 'requested',
 }
 
@@ -36,11 +38,12 @@ const youReceiveProps = {
   ...commonProps,
   amountNominal: '$1',
   balanceChange: '+5.0200803 XLM',
-  balanceChangeColor: S.globalColors.green2,
+  balanceChangeColor: S.globalColors.green,
   bottomLine: '',
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
-  topLine: 'you received lumens worth',
+  topLine: 'you received Lumens worth',
   txVerb: 'sent',
 }
 
@@ -53,7 +56,7 @@ const youRequestProps = {
   icon: receiveIcon,
   onCancel,
   sender: 'cecileb',
-  topLine: 'you requested lumens worth',
+  topLine: 'you requested Lumens worth',
   txVerb: 'requested',
 }
 
@@ -64,8 +67,9 @@ const youSendProps = {
   balanceChangeColor: S.globalColors.red,
   bottomLine: '',
   icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
-  topLine: 'you sent lumens worth',
+  topLine: 'you sent Lumens worth',
   txVerb: 'sent',
 }
 
@@ -86,9 +90,10 @@ const youReceiveBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
   balanceChange: '+1 BTC',
-  balanceChangeColor: S.globalColors.green2,
+  balanceChangeColor: S.globalColors.green,
   bottomLine: 'stronghold.com',
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
   topLine: 'you received',
   txVerb: 'sent',
@@ -101,6 +106,7 @@ const youSendBTCProps = {
   balanceChangeColor: S.globalColors.red,
   bottomLine: 'stronghold.com',
   icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
   topLine: 'you sent',
   txVerb: 'sent',
@@ -121,10 +127,10 @@ const loadingProps = {
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
-    .add('They request lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
-    .add('You receive lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
-    .add('You request lumens', () => <PaymentPopupMoved {...youRequestProps} />)
-    .add('You send lumens', () => <PaymentPopupMoved {...youSendProps} />)
+    .add('They request Lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
+    .add('You receive Lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
+    .add('You request Lumens', () => <PaymentPopupMoved {...youRequestProps} />)
+    .add('You send Lumens', () => <PaymentPopupMoved {...youSendProps} />)
     .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
@@ -143,7 +149,7 @@ class PaymentPopupMoved extends React.Component<React.ElementProps<typeof Paymen
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
-        <PaymentPopup {...this.props} attachTo={this.state.ref} />
+        <PaymentPopup {...this.props} attachTo={() => this.state.ref} />
       </React.Fragment>
     )
   }

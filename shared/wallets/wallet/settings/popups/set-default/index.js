@@ -2,14 +2,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import WalletPopup from '../../../../wallet-popup'
+import {WalletPopup} from '../../../../common'
 
 type Props = {|
   accountName: string,
   onAccept: () => void,
   onClose: () => void,
   username: string,
-  waitingKey: string,
+  waiting: boolean,
 |}
 
 const SetDefaultAccountPopup = (props: Props) => {
@@ -21,10 +21,11 @@ const SetDefaultAccountPopup = (props: Props) => {
       style={styles.button}
       onClick={props.onClose}
       label="Cancel"
+      disabled={props.waiting}
     />,
-    <Kb.WaitingButton
+    <Kb.Button
       key={1}
-      waitingKey={props.waitingKey}
+      waiting={props.waiting}
       fullWidth={Styles.isMobile}
       type="Wallet"
       style={styles.button}

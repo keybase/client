@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -640,4 +641,13 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	}
 
 	return nil
+}
+
+func HandleForceRepollNotification(ctx context.Context, g *libkb.GlobalContext, dtime gregor.TimeOrOffset) error {
+	e1 := g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
+	e2 := g.GetFastTeamLoader().ForceRepollUntil(libkb.NewMetaContext(ctx, g), dtime)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }

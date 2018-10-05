@@ -39,9 +39,10 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
-			"path": "github.com/Microsoft/go-winio",
-			"revision": "97e4973ce50b2ff5f09635a57e2b88a037aae829",
-			"revisionTime": "2018-08-23T15:24:21-07:00"
+			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
+			"path": "github.com/Keybase/go-winio",
+			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
+			"revisionTime": "2018-09-13T22:10:37Z"
 		},
 		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
@@ -79,6 +80,12 @@
 			"path": "github.com/andybalholm/cascadia",
 			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
 			"revisionTime": "2015-07-30T17:44:59Z"
+		},
+		{
+			"checksumSHA1": "bxtrVQB+698clLEGq7PppnWfXJk=",
+			"path": "github.com/araddon/dateparse",
+			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
+			"revisionTime": "2018-07-29T17:48:19Z"
 		},
 		{
 			"checksumSHA1": "5gnBrB9ISzgkQe5rLOlFp2MqA/8=",
@@ -126,6 +133,12 @@
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
 			"revisionTime": "2016-10-29T20:57:26Z"
+		},
+		{
+			"checksumSHA1": "vwNjR8772Pqs8z9ZdPFoatNI9Kg=",
+			"path": "github.com/deckarep/golang-set",
+			"revision": "699df6a3acf6867538e50931511e9dc403da108a",
+			"revisionTime": "2018-09-27T02:58:44Z"
 		},
 		{
 			"checksumSHA1": "F+YOz/6ymsuIxUy511OAdxjyhRI=",
@@ -209,10 +222,10 @@
 			"revisionTime": "2016-12-09T16:02:51-05:00"
 		},
 		{
-			"checksumSHA1": "cYBWzzaRbkBI848bMlYapMC4+Cs=",
+			"checksumSHA1": "AzpolYksuMdnqRhFpzPm1bEztJ0=",
 			"path": "github.com/keybase/go-codec/codec",
-			"revision": "1cf5262595f30a38e4c594385d275b83653a6a89",
-			"revisionTime": "2018-08-20T23:03:36Z"
+			"revision": "1643975621235e11516b5722dd9475e342465adf",
+			"revisionTime": "2018-09-28T23:00:36Z"
 		},
 		{
 			"checksumSHA1": "VJk3rOWfxEV9Ilig5lgzH1qg8Ss=",
@@ -299,10 +312,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "NYTzYJFl1q7e4KVBDefKnUroxU8=",
+			"checksumSHA1": "1aTSo342nWo/nSgpe2tabJRDuII=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "90b66cf1fabef350ab12761b2c6153335e766331",
-			"revisionTime": "2018-09-04T18:05:18Z"
+			"revision": "700a58ee3cc50885922b956ab7a2146a49ed37d6",
+			"revisionTime": "2018-09-27T18:36:17Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -384,14 +397,14 @@
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
-			"path": "github.com/keybase/ps-go",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",
 			"path": "github.com/keybase/pipeliner",
 			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
 			"revisionTime": "2018-08-24T13:24:23Z"
+		},
+		{
+			"path": "github.com/keybase/ps-go",
+			"revision": ""
 		},
 		{
 			"checksumSHA1": "AdTewzl8bd3Il/9CHP/+b4hkhyw=",
@@ -424,10 +437,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "zdyg2NMqEzg9lxg9PHWChXkc1FY=",
+			"checksumSHA1": "Kld5+GjvL8a6uEUo1xCJje4M5TQ=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "66f411bee2255cd32002dbffa8ab9fd0a1afb009",
-			"revisionTime": "2018-06-19T21:14:21Z"
+			"revision": "c696323809ee8a0ed77b3673503918a00a3e2679",
+			"revisionTime": "2018-10-01T19:10:01Z"
 		},
 		{
 			"path": "github.com/kr/pty",

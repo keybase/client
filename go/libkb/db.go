@@ -60,6 +60,10 @@ func jsonLocalDbGetInto(ops LocalDbOps, obj interface{}, id DbKey) (found bool, 
 	var buf []byte
 	buf, found, err = ops.Get(id)
 	if err == nil && found {
+		err = jsonw.EnsureMaxDepthBytesDefault(buf)
+		if err != nil {
+			return found, err
+		}
 		err = json.Unmarshal(buf, &obj)
 	}
 	return found, err
@@ -126,6 +130,10 @@ func (j *JSONLocalDb) OpenTransaction() (JSONLocalDbTransaction, error) {
 	return jtr, nil
 }
 
+func (j *JSONLocalDb) GetEngine() LocalDb {
+	return j.engine
+}
+
 type JSONLocalDbTransaction struct {
 	tr LocalDbTransaction
 }
@@ -188,6 +196,7 @@ const (
 	DBChatActive               = 0xea
 	DBUserEKBox                = 0xeb
 	DBTeamEKBox                = 0xec
+	DBChatIndex                = 0xed
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2
@@ -201,7 +210,7 @@ const (
 	DBIdentify                 = 0xfa
 	DBResolveUsernameToUID     = 0xfb
 	DBChatBodyHashIndex        = 0xfc
-	DBPvl                      = 0xfd
+	DBMerkleStore              = 0xfd
 	DBChatConvFailures         = 0xfe
 	DBTeamList                 = 0xff
 )

@@ -74,7 +74,7 @@ const propsToMenuItems = (props: AddNewProps) => {
       icon: 'iconfont-upload',
     })
   props.pickAndUploadPhoto && props.pickAndUploadVideo && items.push('Divider')
-  items.push({title: 'New folder', onClick: props.newFolderRow, icon: 'iconfont-folder-new'})
+  items.push({title: 'Create new folder', onClick: props.newFolderRow, icon: 'iconfont-folder-new'})
 
   return isMobile
     ? items.map(
@@ -122,7 +122,7 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
           )}
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           header={

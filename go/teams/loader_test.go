@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"bytes"
+	"encoding/hex"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -214,6 +216,57 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	requireGen(team.Data, 2)
+}
+
+func TestLoaderKBFSKeyGenOffset(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	displayName := fus[0].Username + "," + fus[1].Username
+	team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
+	require.NoError(t, err)
+
+	tlfID := newImplicitTLFID(false)
+	key1 := [32]byte{0, 1}
+	key2 := [32]byte{0, 2}
+	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+		KeyGeneration: 1,
+		Key:           key1,
+	}, keybase1.CryptKey{
+		KeyGeneration: 2,
+		Key:           key2,
+	}}
+	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
+		keybase1.TeamApplication_KBFS))
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+	})
+	require.NoError(t, err)
+	keys, err := team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keys))
+	require.Equal(t, 1, keys[0].Generation())
+	key3 := keys[0].Key
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				3: []keybase1.TeamApplication{keybase1.TeamApplication_KBFS},
+			},
+		},
+	})
+	require.NoError(t, err)
+	keys, err = team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(keys))
+	key, err := team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, key.Generation())
+	require.True(t, bytes.Equal(key1[:], key.Key[:]))
+	key, err = team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 3)
+	require.NoError(t, err)
+	require.Equal(t, 3, key.Generation())
+	require.True(t, bytes.Equal(key3[:], key.Key[:]))
 }
 
 // Test loading a team with WantMembers set.
@@ -969,4 +1022,45 @@ func TestLoaderUpgradeMerkleHead(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
 	require.True(t, teamName.Eq(team.Name))
+}
+
+// Load a team where a writer wrote a kbfs link.
+func TestLoaderKBFSWriter(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 as a writer")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 associates a tlf ID")
+	err = CreateTLF(context.Background(), tcs[1].G, keybase1.CreateTLFArg{
+		TeamID: rootID,
+		TlfID:  randomTlfID(t),
+	})
+	require.NoError(t, err)
+
+	t.Logf("users can still load the team")
+
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+func randomTlfID(t *testing.T) keybase1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	require.NoError(t, err)
+	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }

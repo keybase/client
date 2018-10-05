@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/amount"
 )
 
 type UISource interface {
@@ -112,7 +111,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, "")
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -300,26 +299,19 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 
 type exchangeRateMap map[string]stellar1.OutsideExchangeRate
 
-const defaultOutsideCurrency = "USD"
-
 // getLocalCurrencyAndExchangeRate gets display currency setting
 // for accountID and fetches exchange rate is set.
 //
 // Arguments `account` and `exchangeRates` may end up mutated.
-func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
-	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
+func getLocalCurrencyAndExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
+	displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, account.AccountID)
 	if err != nil {
 		return err
-	}
-	if displayCurrency == "" {
-		displayCurrency = defaultOutsideCurrency
-		g.Log.CDebugf(ctx, "Using default display currency %s for account %s",
-			displayCurrency, account.AccountID)
 	}
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
-		rate, err = remoter.ExchangeRate(ctx, displayCurrency)
+		rate, err = remoter.ExchangeRate(mctx.Ctx(), displayCurrency)
 		if err != nil {
 			return err
 		}
@@ -339,6 +331,8 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 	if err != nil {
 		return ret, err
 	}
+
+	mctx := libkb.NewMetaContext(ctx, s.G())
 
 	currentBundle, _, err := remote.Fetch(ctx, s.G())
 	if err != nil {
@@ -364,14 +358,14 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 		acc.Balance = balances
 
-		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), s.remoter, &acc, exchangeRates); err != nil {
+		if err := getLocalCurrencyAndExchangeRate(mctx, s.remoter, &acc, exchangeRates); err != nil {
 			s.G().Log.Warning("Could not load local currency exchange rate for %q", accID)
 		}
 
 		ret = append(ret, acc)
 	}
 
-	// Put the primary account first
+	// Put the primary account first, then sort by name, then by account ID
 	sort.SliceStable(ret, func(i, j int) bool {
 		if ret[i].IsPrimary {
 			return true
@@ -379,7 +373,10 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		if ret[j].IsPrimary {
 			return false
 		}
-		return i < j
+		if ret[i].Name == ret[j].Name {
+			return ret[i].AccountID < ret[j].AccountID
+		}
+		return ret[i].Name < ret[j].Name
 	})
 
 	return ret, accountError
@@ -447,12 +444,12 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	currentAmt, err := amount.ParseInt64(xlmAmount)
+	currentAmt, err := stellarnet.ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return err
 	}
 
-	argAmt, err := amount.ParseInt64(arg.Amount)
+	argAmt, err := stellarnet.ParseStellarAmount(arg.Amount)
 	if err != nil {
 		return err
 	}
@@ -512,7 +509,13 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 		return res, err
 	}
 	if recipient.AccountID == nil {
-		return res, fmt.Errorf("Recipient does not have an account.")
+		if recipient.User != nil {
+			return res, fmt.Errorf("Assertion resolved to Keybase user %q, but they do not have a Stellar account", recipient.User.Username)
+		} else if recipient.Assertion != nil {
+			return res, fmt.Errorf("Could not resolve assertion %q", *recipient.Assertion)
+		} else {
+			return res, fmt.Errorf("Could not find a Stellar account for %q", recipient.Input)
+		}
 	}
 	res.AccountID = stellar1.AccountID(*recipient.AccountID)
 	if recipient.User != nil {

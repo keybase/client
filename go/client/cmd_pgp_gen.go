@@ -186,11 +186,9 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
    (LKS) protocol. (For more information, try 'keybase help keyring').
 
    Also, by default, the public **and secret** halves of the new PGP key
-   are exported to the local GnuPG keyring, if one is found. Unless the
-   "--unencrypted" flag is provided, you will be asked to provide a
-   passphrase to encrypt the key in the GnuPG keyring. You can specify
-   "--no-export" to stop the export of the newly generated key to the
-   GnuPG keyring.
+   are exported to the local GnuPG keyring, if one is found. You can
+   specify "--no-export" to stop the export of the newly generated key
+   to the GnuPG keyring.
 
    On subsequent secret key accesses --- say for PGP decryption or
    for signing --- access to the local GnuPG keyring is not required.

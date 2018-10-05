@@ -9,11 +9,13 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/araddon/dateparse"
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
@@ -24,11 +26,7 @@ type CmdChatSearch struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	query            string
-	sentBy           string
-	maxHits          int
-	maxMessages      int
-	beforeContext    int
-	afterContext     int
+	opts             chat1.SearchOpts
 	isRegex          bool
 	hasTTY           bool
 }
@@ -37,10 +35,6 @@ func NewCmdChatSearchRunner(g *libkb.GlobalContext) *CmdChatSearch {
 	return &CmdChatSearch{
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (c *CmdChatSearch) SetQuery(q string) {
-	c.query = q
 }
 
 func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -60,17 +54,27 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
-				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", chat.MaxAllowedSearchHits),
+				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
 			},
 			cli.StringFlag{
 				Name:  "sent-by",
 				Value: "",
 				Usage: "Filter search results by the username of the sender.",
 			},
+			cli.StringFlag{
+				Name:  "sent-before",
+				Value: "",
+				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-after.",
+			},
+			cli.StringFlag{
+				Name:  "sent-after",
+				Value: "",
+				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-before.",
+			},
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", chat.MaxAllowedSearchMessages),
+				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", search.MaxAllowedSearchMessages),
 			},
 			cli.IntFlag{
 				Name:  "B, before-context",
@@ -141,15 +145,11 @@ func (c *CmdChatSearch) Run() (err error) {
 	conversationInfo := conversation.Info
 
 	arg := chat1.GetSearchRegexpArg{
-		ConversationID:   conversationInfo.Id,
+		ConvID:           conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		IsRegex:          c.isRegex,
-		SentBy:           c.sentBy,
-		MaxHits:          c.maxHits,
-		MaxMessages:      c.maxMessages,
-		BeforeContext:    c.beforeContext,
-		AfterContext:     c.afterContext,
+		Opts:             c.opts,
 	}
 
 	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
@@ -169,22 +169,42 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.query = ctx.Args().Get(1)
-	c.sentBy = ctx.String("sent-by")
-	c.maxHits = ctx.Int("max-hits")
-	if c.maxHits > chat.MaxAllowedSearchHits {
-		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
+	c.opts.SentBy = ctx.String("sent-by")
+	sentBeforeStr := ctx.String("sent-before")
+	sentAfterStr := ctx.String("sent-after")
+	if sentBeforeStr != "" && sentAfterStr != "" {
+		return fmt.Errorf("Only one of sent-before and sent-after can be specified")
 	}
-	c.maxMessages = ctx.Int("max-messages")
-	if c.maxMessages > chat.MaxAllowedSearchMessages {
-		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
+	if sentBeforeStr != "" {
+		sentBefore, err := dateparse.ParseAny(sentBeforeStr)
+		if err != nil {
+			return err
+		}
+		c.opts.SentBefore = gregor1.ToTime(sentBefore)
+	}
+	if sentAfterStr != "" {
+		sentAfter, err := dateparse.ParseAny(sentAfterStr)
+		if err != nil {
+			return err
+		}
+		c.opts.SentAfter = gregor1.ToTime(sentAfter)
 	}
 
-	c.afterContext = ctx.Int("after-context")
-	c.beforeContext = ctx.Int("before-context")
-	if c.afterContext == 0 && c.beforeContext == 0 {
+	c.opts.MaxHits = ctx.Int("max-hits")
+	if c.opts.MaxHits > search.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
+	}
+	c.opts.MaxMessages = ctx.Int("max-messages")
+	if c.opts.MaxMessages > search.MaxAllowedSearchMessages {
+		return fmt.Errorf("max-messages cannot exceed %d.", search.MaxAllowedSearchMessages)
+	}
+
+	c.opts.AfterContext = ctx.Int("after-context")
+	c.opts.BeforeContext = ctx.Int("before-context")
+	if c.opts.AfterContext == 0 && c.opts.BeforeContext == 0 {
 		context := ctx.Int("context")
-		c.beforeContext = context
-		c.afterContext = context
+		c.opts.BeforeContext = context
+		c.opts.AfterContext = context
 	}
 
 	c.isRegex = ctx.Bool("regex")

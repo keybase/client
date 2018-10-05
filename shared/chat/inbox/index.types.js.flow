@@ -31,21 +31,19 @@ export type RouteState = I.RecordOf<{
   smallTeamsExpanded: boolean,
 }>
 
-export type Props = {
+export type Props = {|
   children?: React$Element<any>,
   focusFilter: () => void, // withStateHandler function
   filter: string,
   filterFocusCount: number,
-  isLoading: boolean,
+  neverLoaded: boolean,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
-  showBuildATeam: boolean,
-  showNewChat: boolean,
-  showNewConversation: boolean,
-  showSmallTeamsExpandDivider: boolean,
+  allowShowFloatingButton: boolean,
   smallTeamsExpanded: boolean,
-  smallIDsHidden: Array<ConversationIDKey>,
   toggleSmallTeamsExpanded: () => void,
-}
+  onSelectUp: () => void,
+  onSelectDown: () => void,
+|}

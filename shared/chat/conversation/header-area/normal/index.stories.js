@@ -17,6 +17,7 @@ const defaultProps = {
   participants: ['joshblum', 'ayoubd'],
   smallTeam: true,
   teamName: 'keybase',
+  unMuteConversation: Sb.action('unMuteConversation'),
 }
 
 const isPendingProps = {

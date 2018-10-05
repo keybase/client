@@ -7,6 +7,7 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
+    "toggleSmallTeamsExpanded": {},
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -17,6 +18,7 @@
         "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'extension'", // from a notification from iOS share extension
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
@@ -290,8 +292,17 @@
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "forShare?": "boolean"
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -304,8 +315,7 @@
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "path?": "string",
-      "forShare?": "boolean"
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
@@ -422,6 +432,12 @@
       "_description":
         "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     },
+    "setWalletsOld": {
+      "_description": "Set that wallets in chat is not new."
+    },
+    "handleSeeingWallets": {
+      "_description": "The user has interacted with wallets in chat."
+    },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
@@ -441,11 +457,25 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
     },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
+    },
     "paymentInfoReceived": {
       "_description": "We received payment info for a sendPayment message",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "paymentInfo": "Types.ChatPaymentInfo"
+    },
+    "requestInfoReceived": {
+      "_description": "We received request info for a requestPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "requestInfo": "Types.ChatRequestInfo"
+    },
+    "prepareFulfillRequestForm": {
+      "_description": "Prime data to fulfill this message's request and navigate to the send form.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     }
   }
 }

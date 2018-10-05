@@ -40,6 +40,11 @@ const styles = Styles.styleSheetCreate({
       height: 525,
       width: 360,
     },
+    isMobile: {
+      height: '100%',
+      width: '100%',
+      maxWidth: 360,
+    },
   }),
   textContainer: {
     position: 'absolute',

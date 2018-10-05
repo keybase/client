@@ -1,18 +1,23 @@
 // @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Styles from '../../styles'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
 import {isLinux, isWindows} from '../../constants/platform'
 import logger from '../../logger'
-import {
-  ExitCodeFuseKextError,
-  ExitCodeFuseKextPermissionError,
-  ExitCodeAuthCanceledError,
-} from '../../constants/favorite'
 import UserData from './user-data.desktop'
 
 import type {InstallResult} from '../../constants/types/rpc-gen'
+
+// Copied from old constants/favorite.js
+//
+// See Installer.m: KBExitFuseKextError
+const ExitCodeFuseKextError = 4
+// See Installer.m: KBExitFuseKextPermissionError
+const ExitCodeFuseKextPermissionError = 5
+// See Installer.m: KBExitAuthCanceledError
+const ExitCodeAuthCanceledError = 6
 
 type State = {
   promptedForCLI: boolean,
@@ -131,6 +136,11 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
         )
       } else if (cr.name === 'cli') {
         hasCLIError = true
+      } else if (cr.name === 'redirector') {
+        hasFUSEError = true
+        errors.push(
+          `We were unable to load the part of Keybase that lets you access your files in ${Styles.fileUIName}. You should be able to do so if you wait a few minutes and restart Keybase.`
+        )
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)
         errors.push(`\n${cr.status.desc}`)

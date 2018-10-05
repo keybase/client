@@ -16,7 +16,7 @@ import (
 )
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
-	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers, includeKBFSKeys bool) (res keybase1.TeamPlusApplicationKeys, err error) {
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:         id,
@@ -26,7 +26,7 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	if err != nil {
 		return res, err
 	}
-	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
 func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
@@ -115,7 +115,8 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
 	}
-	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 10*time.Minute, 0, true)
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids,
+		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1359,7 +1360,6 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		// Need admin because only admins can issue this link
 		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {
 			return err
@@ -1384,7 +1384,7 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 	if err != nil {
 		return res, err
 	}
-	res.TlfID = team.KBFSTLFID()
+	res.TlfID = team.LatestKBFSTLFID()
 	g.Log.CDebugf(ctx, "res: %+v", res)
 	return res, err
 }

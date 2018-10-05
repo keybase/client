@@ -385,7 +385,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 		return nil, foundhint, err
 	}
 
-	pc, err := libkb.MakeProofChecker(m.G().Services, link)
+	pc, err := libkb.MakeProofChecker(m.G().GetProofServices(), link)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -401,17 +401,16 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 	if pvlSource == nil {
 		return nil, foundhint, fmt.Errorf("no pvl source for proof verification")
 	}
-	pvlU, err := pvlSource.GetPVL(m)
+	pvlU, err := pvlSource.GetLatestEntry(m)
 	if err != nil {
 		return nil, foundhint, fmt.Errorf("error getting pvl: %s", err)
 	}
 
-	perr := pc.CheckStatus(m, *hint, libkb.ProofCheckerModeActive, pvlU)
-	if perr != nil {
+	if _, perr := pc.CheckStatus(m, *hint, libkb.ProofCheckerModeActive, pvlU); perr != nil {
 		return perr, foundhint, nil
 	}
 
-	return perr, foundhint, nil
+	return nil, foundhint, nil
 }
 
 // GetSigHint gets the SigHint. This can return (nil, nil) if nothing goes wrong but there is no hint.

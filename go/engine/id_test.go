@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *keybase1.Identify2ResUPK2, err error) {
@@ -40,31 +41,31 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 }
 
 func checkAliceProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
-	checkKeyedProfile(tb, idUI, user, "alice", true, map[string]string{
+	checkKeyedProfile(tb, idUI, user, "alice", map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
 func checkBobProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
-	checkKeyedProfile(tb, idUI, user, "bob", true, map[string]string{
+	checkKeyedProfile(tb, idUI, user, "bob", map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
 func checkCharlieProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
-	checkKeyedProfile(tb, idUI, user, "charlie", true, map[string]string{
+	checkKeyedProfile(tb, idUI, user, "charlie", map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
 func checkDougProofs(tb libkb.TestingTB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeysV2) {
-	checkKeyedProfile(tb, idUI, user, "doug", false, nil)
+	checkKeyedProfile(tb, idUI, user, "doug", nil)
 }
 
-func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(tb libkb.TestingTB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeysV2, name string, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
 	}
@@ -98,9 +99,7 @@ func TestIdAlice(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify(&tc, "t_alice")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkAliceProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
@@ -109,9 +108,7 @@ func TestIdBob(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify(&tc, "t_bob")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkBobProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
@@ -120,9 +117,7 @@ func TestIdCharlie(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify(&tc, "t_charlie")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkCharlieProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
@@ -131,9 +126,7 @@ func TestIdDoug(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, result, err := runIdentify(&tc, "t_doug")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkDougProofs(t, idUI, &result.Upk.Current)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
@@ -142,9 +135,7 @@ func TestIdEllen(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, _, err := runIdentify(&tc, "t_ellen")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkDisplayKeys(t, idUI, 0, 0)
 }
 
@@ -160,22 +151,49 @@ func TestIdPGPNotEldest(t *testing.T) {
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
 	_, _, key := armorKey(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
 
 	Logout(tc)
 
 	idUI, _, err := runIdentify(&tc, u.Username)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	checkDisplayKeys(t, idUI, 1, 1)
+}
+
+func TestIdGenericSocialProof(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	// create new user and have them prove a gubble.social account
+	fu := CreateAndSignupFakeUser(tc, "login")
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	proveGubbleCloud(tc, fu, libkb.KeybaseSignatureV2)
+	Logout(tc)
+
+	fu2 := CreateAndSignupFakeUser(tc, "login")
+	fu2.LoginOrBust(tc)
+
+	idUI, result, err := runIdentify(&tc, fu.Username)
+	require.NoError(t, err)
+
+	expectedResult := keybase1.ProofResult{
+		State:  keybase1.ProofState_OK,
+		Status: keybase1.ProofStatus_OK,
+		Desc:   "",
+	}
+
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.social"].ProofResult)
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.cloud"].ProofResult)
+
+	checkKeyedProfile(t, idUI, &result.Upk.Current, fu.Username, map[string]string{
+		"gubble.social": fu.Username,
+		"gubble.cloud":  fu.Username,
+	})
 }
 
 type FakeIdentifyUI struct {

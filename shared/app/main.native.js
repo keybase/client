@@ -46,7 +46,7 @@ class Main extends React.Component<Props> {
         />
         <GatewayDest
           name="popup-root"
-          component={View}
+          component={ViewForGatewayDest}
           pointerEvents="box-none"
           style={globalStyles.fillAbsolute}
         />
@@ -54,6 +54,7 @@ class Main extends React.Component<Props> {
     )
   }
 }
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const mapStateToProps = (state: TypedState) => ({
   routeDef: state.routeTree.routeDef,

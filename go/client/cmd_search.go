@@ -85,21 +85,22 @@ func (c *CmdSearch) showResults(results []keybase1.UserSummary) error {
 }
 
 func (c *CmdSearch) showRegularResults(results []keybase1.UserSummary) error {
+	tui := c.G().UI.GetTerminalUI()
 	if len(results) == 0 {
-		GlobUI.Println("No results.")
+		tui.Printf("No results.\n")
 		return nil
 	}
 	for _, user := range results {
-		GlobUI.Printf("%s", user.Username)
+		tui.Printf("%s", user.Username)
 		for _, social := range user.Proofs.Social {
-			GlobUI.Printf(" %s:%s", social.ProofType, social.ProofName)
+			tui.Printf(" %s:%s", social.ProofType, social.ProofName)
 		}
 		for _, web := range user.Proofs.Web {
 			for _, protocol := range web.Protocols {
-				GlobUI.Printf(" %s://%s", protocol, web.Hostname)
+				tui.Printf(" %s://%s", protocol, web.Hostname)
 			}
 		}
-		GlobUI.Println()
+		tui.Printf("\n")
 	}
 	return nil
 }
@@ -129,7 +130,7 @@ func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 
 		output.SetIndex(userIndex, userBlob)
 	}
-	GlobUI.Println(output.MarshalPretty())
+	c.G().UI.GetTerminalUI().Printf("%s\n", output.MarshalPretty())
 	return nil
 }
 

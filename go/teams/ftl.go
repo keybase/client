@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -39,9 +40,16 @@ type FastTeamChainLoader struct {
 	lruMutex sync.RWMutex
 	lru      *lru.Cache
 
-	// Feature-flagging is power by the server. If we get feature flagged off, we
+	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
 	featureFlagGate *libkb.FeatureFlagGate
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 const FTLVersion = 1
@@ -50,7 +58,7 @@ const FTLVersion = 1
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
-		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, time.Hour),
+		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
 	}
 	ret.newLRU()
 	return ret
@@ -102,6 +110,20 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	return res, nil
 }
 
+// VerifyTeamName verifies that the given ID aligns with the given name, using the Merkle tree only
+// (and not verifying sigs along the way).
+func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) (err error) {
+	m = m.WithLogTag("FTL")
+	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
+	_, err = f.Load(m, keybase1.FastTeamLoadArg{
+		ID:             id,
+		Public:         id.IsPublic(),
+		AssertTeamName: &name,
+		ForceRefresh:   forceRefresh,
+	})
+	return err
+}
+
 func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 
 	if arg.ID.IsPublic() != arg.Public {
@@ -150,7 +172,7 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 			ForceRefresh: forceRefresh,
 		},
 		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
-		needFreshState:     true,
+		needLatestName:     true,
 		readSubteamID:      bottomSubteam,
 	})
 	if err != nil {
@@ -184,13 +206,14 @@ type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
 	downPointersNeeded []keybase1.Seqno
 	readSubteamID      keybase1.TeamID
-	needFreshState     bool
+	needLatestName     bool
 }
 
-// NeedFresh returns true if the load argument implies that we need a refreshment
-// of the local cache for this team.
-func (a fastLoadArg) NeedFresh() bool {
-	return a.needFreshState || a.NeedLatestKey
+// needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
+// let's say to figure out what this team is currently named, or to figure out the most recent
+// encryption key to encrypt new messages for.
+func (a fastLoadArg) needChainTail() bool {
+	return a.needLatestName || a.NeedLatestKey
 }
 
 // load acquires a lock by team ID, and the runs loadLocked.
@@ -301,6 +324,12 @@ func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app 
 		return nil
 	}
 
+	if arg.NeedLatestKey {
+		// This debug is useful to have since it will spell out which version is the latest in the log
+		// if the caller asked for latest.
+		m.CDebugf("FastTeamChainLoader#deriveKeysForApplication: sending back latest at key generation %d", state.LatestKeyGeneration)
+	}
+
 	for _, gen := range arg.KeyGenerationsNeeded {
 		if err = doKey(gen); err != nil {
 			return nil, err
@@ -389,8 +418,18 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		fresh = false
 	}
 
+	// The key generations needed are the ones passed in, and also, potentially, our cached
+	// LatestKeyGeneration from the state. It could be that when we go to the server, this is no
+	// longer the LatestKeyGeneration, but it might be. It depends. But in either case, we should
+	// pull down the mask, since it's a bug to not have it if it turns out the server refresh
+	// didn't budge the latest key generation.
+	kgn := append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
+	if arg.NeedLatestKey && state.LoadedLatest && state.LatestKeyGeneration > 0 {
+		kgn = append(kgn, state.LatestKeyGeneration)
+	}
+
 	for _, app := range arg.Applications {
-		for _, gen := range arg.KeyGenerationsNeeded {
+		for _, gen := range kgn {
 			add := false
 			if state.ReaderKeyMasks[app] == nil || state.ReaderKeyMasks[app][gen] == nil {
 				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)
@@ -475,19 +514,23 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 // computeWithPreviousState looks into the given load arg, and also our current cached state, to figure
 // what to get from the server. The results are compiled into a "shopping list" that we'll later
 // use when we concoct our server request.
-func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) {
+func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) {
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
-	if arg.NeedFresh() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
+	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && arg.ForceRefresh {
-		m.CDebugf("refresh forced via argument")
+	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
+		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
-		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
+	if arg.ForceRefresh {
+		m.CDebugf("refresh forced via flag")
+		s.needRefresh = true
+	}
+	if !s.needRefresh && f.InForceRepollMode(m) {
+		m.CDebugf("must repoll since in force mode")
 		s.needRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
@@ -1115,7 +1158,7 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 	var shoppingList shoppingList
 	if state != nil {
-		shoppingList.computeWithPreviousState(m, arg, state)
+		f.computeWithPreviousState(m, &shoppingList, arg, state)
 		if shoppingList.isEmpty() {
 			return f.toResult(m, arg, state)
 		}
@@ -1163,6 +1206,7 @@ func (f *FastTeamChainLoader) getLRU() *lru.Cache {
 // OnLogout is called when the user logs out, which pruges the LRU.
 func (f *FastTeamChainLoader) OnLogout() {
 	f.newLRU()
+	f.featureFlagGate.Clear()
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {
@@ -1182,4 +1226,26 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 	}
 
 	return nil
+}
+
+func (f *FastTeamChainLoader) ForceRepollUntil(m libkb.MetaContext, dtime gregor.TimeOrOffset) error {
+	m.CDebugf("FastTeamChainLoader#ForceRepollUntil(%+v)", dtime)
+	f.forceRepollMutex.Lock()
+	defer f.forceRepollMutex.Unlock()
+	f.forceRepollUntil = dtime
+	return nil
+}
+
+func (f *FastTeamChainLoader) InForceRepollMode(m libkb.MetaContext) bool {
+	f.forceRepollMutex.Lock()
+	defer f.forceRepollMutex.Unlock()
+	if f.forceRepollUntil == nil {
+		return false
+	}
+	if !f.forceRepollUntil.Before(m.G().Clock().Now()) {
+		m.CDebugf("FastTeamChainLoader#InForceRepollMode: returning true")
+		return true
+	}
+	f.forceRepollUntil = nil
+	return false
 }

@@ -5,6 +5,13 @@ export type StatResult = {
   lastModified: number,
 }
 
+export type WriteStream = {
+  write: any => void,
+  close: () => void,
+}
+
+declare export var downloadFolder: string
+
 declare export function tmpDir(): string
 declare export function tmpFile(suffix: string): string
 declare export function downloadFilePath(filename: string): Promise<string> // searches for one
@@ -12,5 +19,10 @@ declare export function downloadFilePathNoSearch(filename: string): string // no
 declare export function copy(from: string, to: string): Promise<void>
 declare export function exists(filename: string): Promise<boolean>
 declare export function stat(filename: string): Promise<StatResult>
-declare export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<void>
+declare export function writeStream(
+  filepath: string,
+  encoding: string,
+  append?: boolean
+): Promise<WriteStream>
 declare export function unlink(filepath: string): Promise<void>
+declare export function readFile(filepath: string, encoding: string): Promise<any>

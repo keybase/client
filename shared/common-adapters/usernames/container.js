@@ -1,34 +1,58 @@
 // @flow
 import {compose, connect, setDisplayName} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
+import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
-import * as Styles from '../../styles'
-import type {TextType, Background} from '../text'
-import {Usernames, type Props} from '.'
+import * as TrackerTypes from '../../constants/types/tracker'
+import {Usernames, type BaseUsernamesProps, type Props} from '.'
+
+export type StateProps = {|
+  _broken: {[key: string]: TrackerTypes.TrackerState},
+  _following: I.Set<string> | Set<string>,
+  _you: string,
+|}
 
 export type ConnectedProps = {|
-  backgroundMode?: Background,
-  colorBroken?: boolean,
-  colorFollowing?: boolean,
-  colorYou?: boolean | string,
-  commaColor?: string,
-  containerStyle?: Styles.StylesCrossPlatform,
-  inline?: boolean,
-  inlineGrammar?: boolean,
-  joinerStyle?: Styles.StylesCrossPlatform,
+  ...BaseUsernamesProps,
   onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile',
-  prefix?: ?string,
-  redColor?: string,
-  showAnd?: boolean,
   skipSelf?: boolean,
-  style?: Styles.StylesCrossPlatform,
-  suffix?: ?string,
-  title?: string,
-  type: TextType,
-  underline?: boolean,
   usernames: Array<string>,
 |}
+
+export type DispatchProps = {|
+  onOpenProfile?: (username: string) => void,
+  onOpenTracker?: (username: string) => void,
+|}
+
+export const connectedPropsToProps = (stateProps: StateProps, dispatchProps: DispatchProps, connectedProps: ConnectedProps): Props => {
+  const userData = connectedProps.usernames
+    .map(username => ({
+      broken: stateProps._broken.trackerState === 'error',
+      following: stateProps._following.has(username),
+      username,
+      you: stateProps._you === username,
+    }))
+    .filter(u => !connectedProps.skipSelf || !u.you)
+
+  let onUsernameClickedNew: ?((username: string) => void)
+  if (connectedProps.onUsernameClicked === 'tracker') {
+    onUsernameClickedNew = dispatchProps.onOpenTracker
+  } else if (connectedProps.onUsernameClicked === 'profile') {
+    onUsernameClickedNew = dispatchProps.onOpenProfile
+  } else if (typeof connectedProps.onUsernameClicked === 'function') {
+    onUsernameClickedNew = (connectedProps.onUsernameClicked: (username: string) => void)
+  }
+
+  // Remove onUsernameClicked
+  const {skipSelf, usernames, onUsernameClicked, ...props} = connectedProps
+
+  return ({
+    ...props,
+    onUsernameClicked: onUsernameClickedNew ? (onUsernameClickedNew: (username: string) => void) : undefined,
+    users: userData,
+  }: Props)
+}
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
@@ -49,30 +73,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => {
-  const userData = ownProps.usernames
-    .map(username => ({
-      broken: stateProps._broken.trackerState === 'error',
-      following: stateProps._following.has(username),
-      username,
-      you: stateProps._you === username,
-    }))
-    .filter(u => !ownProps.skipSelf || !u.you)
-
-  let onUsernameClicked
-  if (ownProps.onUsernameClicked === 'tracker') {
-    onUsernameClicked = dispatchProps.onOpenTracker
-  } else if (ownProps.onUsernameClicked === 'profile') {
-    onUsernameClicked = dispatchProps.onOpenProfile
-  } else if (typeof ownProps.onUsernameClicked === 'function') {
-    onUsernameClicked = ownProps.onUsernameClicked
-  }
-
-  // $FlowIssue for some reason, Flow seems to think that onUsernameClicked can be "tracker" or "profile", even though we've explicitly overridden those and made clear ownProps.onUsernameClicked has to be a function.
-  const props: Props = {...ownProps, onUsernameClicked, users: userData}
-
-  return props
-}
+const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => connectedPropsToProps(stateProps, dispatchProps, ownProps)
 
 const ConnectedUsernames = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

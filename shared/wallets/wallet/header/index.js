@@ -1,18 +1,21 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
+import {SmallAccountID} from '../../common'
 
 type Props = {
+  accountID: Types.AccountID,
   isDefaultWallet: boolean,
-  onDeposit: () => void,
   onReceive: () => void,
+  onBack: ?() => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSettings: () => void,
   onShowSecretKey: () => void,
-  keybaseUser?: string,
+  keybaseUser: string,
   walletName: ?string,
 }
 
@@ -25,9 +28,16 @@ const Header = (props: Props) => (
     gapEnd={true}
     style={styles.noShrink}
   >
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
-        {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="xtiny"
+        centerChildren={true}
+        style={styles.topContainer}
+      >
+        {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
+        {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
           <Kb.Text selectable={true} type="BodyBig">
             {props.walletName}
@@ -36,31 +46,40 @@ const Header = (props: Props) => (
           <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-        {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
-      </Kb.Box2>
+      {props.isDefaultWallet && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
+        </Kb.Box2>
+      )}
+      {props.walletName && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <SmallAccountID accountID={props.accountID} />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
       <SendButton
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
         onSendToAnotherAccount={props.onSendToAnotherAccount}
+        disabled={!props.walletName}
       />
-      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" />
+      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
       <DropdownButton
-        onDeposit={props.onDeposit}
         onSettings={props.onSettings}
         onShowSecretKey={props.onShowSecretKey}
+        disabled={!props.walletName}
       />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-type SendProps = {
+type SendProps = {|
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSendToAnotherAccount: () => void,
-}
+  disabled: boolean,
+|}
 
 class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
   _menuItems = [
@@ -80,12 +99,15 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
 
   render() {
     return (
-      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+      <Kb.ClickableBox
+        onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
+        ref={this.props.setAttachmentRef}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Wallet" label="Send" />
+          <Kb.Button onClick={null} type="Wallet" label="Send" disabled={this.props.disabled} />
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
@@ -97,18 +119,14 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
   }
 }
 
-type DropdownProps = {
-  onDeposit: () => void,
+type DropdownProps = {|
   onShowSecretKey: () => void,
   onSettings: () => void,
-}
+  disabled: boolean,
+|}
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
   _menuItems = [
-    {
-      onClick: () => this.props.onDeposit(),
-      title: 'Deposit',
-    },
     {
       onClick: () => this.props.onShowSecretKey(),
       title: 'Show secret key',
@@ -121,9 +139,17 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 
   render() {
     return (
-      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+      <Kb.ClickableBox
+        onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
+        ref={this.props.setAttachmentRef}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
+          <Kb.Button
+            onClick={null}
+            type="Secondary"
+            style={styles.dropdownButton}
+            disabled={this.props.disabled}
+          >
             <Kb.Icon
               fontSize={Styles.isMobile ? 22 : 16}
               type="iconfont-ellipsis"
@@ -132,7 +158,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
@@ -145,6 +171,10 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 }
 
 const styles = Styles.styleSheetCreate({
+  backButton: {
+    left: 0,
+    position: 'absolute',
+  },
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -159,6 +189,9 @@ const styles = Styles.styleSheetCreate({
   spinner: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
+  },
+  topContainer: {
+    position: 'relative',
   },
 })
 

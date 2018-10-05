@@ -278,18 +278,30 @@ protocol teams {
   record Audit {
     Time time;
     // The Maximum Merkle Seqno known globally at the time of the audit.
+    @mpackkey("mms") @jsonkey("mms")
     Seqno maxMerkleSeqno;
+
     // The maximum Seqno in the chain at the time of the audit.
+    @mpackkey("mcs") @jsonkey("mcs")
     Seqno maxChainSeqno;
+
     // The maximum merkle Seqno probed in this audit.
+    @mpackkey("mmp") @jsonkey("mmp")
     Seqno maxMerkleProbe;
   }
 
   record Probe {
-    @mpackkey("i")
+    @mpackkey("i") @jsonkey("i")
     int index;
-    @mpackkey("s")
+    @mpackkey("s") @jsonkey("t")
     Seqno teamSeqno;
+  }
+
+  enum AuditVersion {
+    V0_0,
+    V1_1,
+    V2_2,
+    V3_3
   }
 
   record AuditHistory {
@@ -300,6 +312,9 @@ protocol teams {
     // The Merkle sequence number signed into the head link of the team chain.
     Seqno priorMerkleSeqno;
 
+    // Version #, or 0 if not specified
+    AuditVersion version;
+
     // When the last audit(s) happened
     array<Audit> audits;
     // Probes of before the team was created. The value in the map is the index
@@ -307,6 +322,8 @@ protocol teams {
     map<Seqno,Probe> preProbes;
     // Probes of after the team was created
     map<Seqno,Probe> postProbes;
+    // For each chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> tails;
   }
 
   enum TeamInviteCategory {
@@ -444,10 +461,8 @@ protocol teams {
     boolean open;
     TeamRole openTeamJoinAs;
 
-    // If there is a TLF associated, it shows up here. The last writer wins
-    // here, and we are not concerned about historical associations that have been
-    // overwritten (for now). An empty TLFID is given by an empty string.
-    TLFID tlfID;
+    // The list of TLF ID that have been associated with this team in time ascending order.
+    array<TLFID> tlfIDs;
 
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
@@ -670,6 +685,9 @@ protocol teams {
     // Load the reader key mask for the given applications and the given
     // generations. Returns an error if any of the RKMs are not loaded.
     map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
+    // Load the reader key masks for the given applications at the key generation
+    // that includes KBFS keys.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerationsWithKBFS;
     // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
@@ -988,7 +1006,7 @@ protocol teams {
    * If refreshers are non-empty, then force a refresh of the cache if the requirements
    * of the refreshers aren't met.
    */
-  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers, boolean includeKBFSKeys);
   TeamID getTeamRootID(TeamID id);
 
   TeamShowcase getTeamShowcase(string name);

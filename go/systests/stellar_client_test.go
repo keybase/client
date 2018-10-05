@@ -28,6 +28,16 @@ func (s *stellarRetryClient) GetWalletAccountsLocal(ctx context.Context, sid int
 	return res, err
 }
 
+func (s *stellarRetryClient) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (res stellar1.WalletAccountLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetWalletAccountLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (res []stellar1.AccountAssetLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.GetAccountAssetsLocal(ctx, arg)
@@ -269,6 +279,16 @@ func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar
 	return err
 }
 
+func (s *stellarRetryClient) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.CancelPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) BalancesLocal(ctx context.Context, arg stellar1.AccountID) (res []stellar1.Balance, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.BalancesLocal(ctx, arg)
@@ -447,4 +467,38 @@ func (s *stellarRetryClient) LookupCLILocal(ctx context.Context, name string) (r
 		}
 	}
 	return res, err
+}
+
+func (s *stellarRetryClient) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.MarkAsReadLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAccountMobileOnlyLocalArg) (bool, error) {
+	var err error
+	var mobileOnly bool
+	for i := 0; i < retryCount; i++ {
+		mobileOnly, err = s.cli.IsAccountMobileOnlyLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return mobileOnly, err
+}
+
+func (s *stellarRetryClient) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetAccountMobileOnlyLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
 }

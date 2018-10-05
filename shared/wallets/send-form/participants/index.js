@@ -2,8 +2,26 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
-import ToField from './to-field'
-import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
+import {
+  type ToKeybaseUserProps,
+  ToKeybaseUser,
+  type ToStellarPublicKeyProps,
+  ToStellarPublicKey,
+  ToOtherAccount,
+} from './to-field'
+import type {AccountID} from '../../../constants/types/wallets'
+
+const ParticipantsKeybaseUser = (props: ToKeybaseUserProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <ToKeybaseUser {...props} />
+  </Kb.Box2>
+)
+
+const ParticipantsStellarPublicKey = (props: ToStellarPublicKeyProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <ToStellarPublicKey {...props} />
+  </Kb.Box2>
+)
 
 export type Account = {|
   contents: string,
@@ -11,9 +29,7 @@ export type Account = {|
   id: AccountID,
 |}
 
-type ParticipantsProps = {|
-  recipientType: CounterpartyType,
-  // Used for send to other account
+type ParticipantsOtherAccountProps = {|
   user: string,
   fromAccount: Account,
   toAccount?: Account,
@@ -22,40 +38,25 @@ type ParticipantsProps = {|
   onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
-  // Used for send to stellar address
-  incorrect?: string,
-  // Used to display a keybase profile
-  recipientUsername?: string,
-  recipientFullName?: string,
-  onShowProfile?: string => void,
-  onRemoveProfile?: () => void,
 |}
 
-const Participants = (props: ParticipantsProps) => (
+const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.recipientType === 'otherAccount' && (
-      <FromField
-        initialAccount={props.fromAccount}
-        accounts={props.allAccounts}
-        onChangeSelectedAccount={props.onChangeFromAccount}
-        user={props.user}
-      />
-    )}
-    <ToField
-      toAccount={props.toAccount}
+    <FromField
+      initialAccount={props.fromAccount}
       accounts={props.allAccounts}
-      incorrect={props.incorrect}
-      onChangeRecipient={props.onChangeRecipient}
-      onCreateNewAccount={props.onCreateNewAccount}
-      onLinkAccount={props.onLinkAccount}
-      onRemoveProfile={props.onRemoveProfile}
-      onShowProfile={props.onShowProfile}
-      recipientFullName={props.recipientFullName}
-      recipientType={props.recipientType}
-      recipientUsername={props.recipientUsername}
+      onChangeSelectedAccount={props.onChangeFromAccount}
       user={props.user}
+    />
+    <ToOtherAccount
+      user={props.user}
+      toAccount={props.toAccount}
+      allAccounts={props.allAccounts}
+      onChangeRecipient={props.onChangeRecipient}
+      onLinkAccount={props.onLinkAccount}
+      onCreateNewAccount={props.onCreateNewAccount}
     />
   </Kb.Box2>
 )
 
-export default Participants
+export {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount}

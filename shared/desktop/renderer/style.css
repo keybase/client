@@ -1,4 +1,8 @@
 @import "~emoji-mart/css/emoji-mart.css";
+@import "../../common-adapters/avatar.css";
+@import "../../common-adapters/box.css";
+@import "../../common-adapters/icon.css";
+@import "../../common-adapters/text.css";
 
 /* Reset */
 /* http://meyerweb.com/eric/tools/css/reset/

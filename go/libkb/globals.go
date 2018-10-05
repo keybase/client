@@ -82,7 +82,8 @@ type GlobalContext struct {
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        PvlSource        // a cache and fetcher for pvl
+	pvlSource        MerkleStore      // a cache and fetcher for pvl
+	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -103,7 +104,7 @@ type GlobalContext struct {
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
 	UIRouter           UIRouter                  // How to route UIs
-	Services           ExternalServicesCollector // All known external services
+	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
@@ -159,6 +160,7 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
 
@@ -595,8 +597,12 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+func (g *GlobalContext) GetParamProofStore() MerkleStore {
+	return g.paramProofStore
+}
+
 // to implement ProofContext
-func (g *GlobalContext) GetPvlSource() PvlSource {
+func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
 }
 
@@ -1023,17 +1029,29 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 }
 
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
-	if g.Services == nil {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.Services)
+	return MakeAssertionContext(g.proofServices)
 }
 
-func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
-	g.Services = s
+func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.proofServices = s
 }
 
-func (g *GlobalContext) SetPvlSource(s PvlSource) {
+func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetPvlSource(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.pvlSource = s
 }
 

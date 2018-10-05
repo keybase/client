@@ -795,17 +795,25 @@ protocol local {
 
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
+  record DownloadFileAttachmentLocalRes {
+    string filename;
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
   @lint("ignore")
-  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   enum PreviewLocationTyp {
     URL_0,
-    FILE_1
+    FILE_1,
+    BYTES_2
   }
 
   variant PreviewLocation switch (PreviewLocationTyp ltyp) {
     case URL: string;
     case FILE: string;
+    case BYTES: bytes;
   }
 
   record MakePreviewRes {
@@ -897,7 +905,17 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, string sentBy, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record FullInboxSearchRes {
+    array<ChatConvSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  FullInboxSearchRes fullInboxSearch(int sessionID, string query,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();

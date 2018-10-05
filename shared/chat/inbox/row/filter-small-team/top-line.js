@@ -1,9 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles, isMobile} from '../../../../styles'
-
-const height = isMobile ? 19 : 17
+import {globalStyles} from '../../../../styles'
 
 type Props = {
   participants: Array<string>,
@@ -22,20 +20,14 @@ class FilteredTopLine extends PureComponent<Props> {
           alignItems: 'center',
           flex: 1,
           justifyContent: 'flex-start',
-          maxHeight: height,
-          minHeight: height,
           position: 'relative',
         }}
       >
         <Box
           style={{
-            ...globalStyles.flexBoxColumn,
-            bottom: 0,
-            justifyContent: 'flex-start',
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 0,
+            ...globalStyles.fillAbsolute,
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
           }}
         >
           <PlaintextUsernames

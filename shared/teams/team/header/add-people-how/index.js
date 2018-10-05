@@ -4,7 +4,7 @@ import {FloatingMenu} from '../../../../common-adapters'
 import {isMobile} from '../../../../styles'
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   visible: boolean,
   onAddPeople: () => void,
   onHidden: () => void,

@@ -22,42 +22,30 @@ type ConvRow = {|
   onSelectConversation: () => void,
 |}
 
-type ChatContainerProps = {
+type ChatPreviewProps = {
   onViewAll: () => void,
   convRows: Array<ConvRow>,
 }
 
-export const ChatRow = ({onViewAll, onSelectConversation, convRows}: ChatContainerProps) => (
+export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
-      return (
-        <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
-      )
+      return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
     })}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  chatContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      color: Styles.globalColors.black,
-    },
-  }),
-  chatRowContainer: Styles.platformStyles({
-    common: {
-      height: 56,
-      overflow: 'hidden',
-    },
-    isElectron: {
-      textOverflow: 'ellipsis',
-    },
-  }),
+  buttonText: {color: Styles.globalColors.black_60},
+  chatContainer: {
+    backgroundColor: Styles.globalColors.white,
+    color: Styles.globalColors.black,
+  },
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,
-      borderRadius: 19,
+      borderRadius: Styles.borderRadius,
       marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.xtiny,
       paddingBottom: Styles.globalMargins.xtiny,
@@ -68,12 +56,6 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  buttonText: {color: Styles.globalColors.black_60},
-  conversationName: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
     },
   }),
 })

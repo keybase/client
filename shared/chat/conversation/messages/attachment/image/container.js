@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
@@ -30,7 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
 })
 
@@ -50,11 +51,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Uploading'
-        : message.transferState === 'remoteUploading'
-          ? 'waiting...'
-          : ''
+        : message.transferState === 'mobileSaving'
+          ? 'Saving...'
+          : message.transferState === 'remoteUploading'
+            ? 'waiting...'
+            : ''
   const buttonType = message.showPlayButton ? 'play' : null
-  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress =
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
 
   return {
     arrowColor,

@@ -1,22 +1,19 @@
 package chat
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/keybase/clockwork"
-
-	"github.com/keybase/client/go/teams"
-
-	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -27,7 +24,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
 
@@ -297,7 +295,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	for convLocal := range convLocalsCh {
 		convLocals = append(convLocals, convLocal)
 	}
-	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
+	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid.ToBytes(), convLocals); err != nil {
 		// Don't abort the operation on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
 	}
@@ -331,7 +329,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
 
-	readRes, err := storage.NewInbox(h.G(), uid).GetConversation(ctx, arg.ConversationID)
+	readRes, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, arg.ConversationID)
 	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
 		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
@@ -372,7 +370,13 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	localizer := NewBlockingLocalizer(h.G())
 	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
-		return res, err
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
+			ib.Convs = nil
+			ib.Pagination = nil
+		} else {
+			return res, err
+		}
 	}
 
 	return chat1.GetInboxAndUnboxLocalRes{
@@ -401,7 +405,13 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	localizer := NewBlockingLocalizer(h.G())
 	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
-		return res, err
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
+			ib.Convs = nil
+			ib.Pagination = nil
+		} else {
+			return res, err
+		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
 		Conversations:    utils.PresentConversationLocals(ib.Convs, h.G().Env.GetUsername().String()),
@@ -1453,18 +1463,16 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
-type discardWriterCloser struct{}
-
-func (discardWriterCloser) Write(b []byte) (int, error) {
-	return len(b), nil
-}
-
-func (discardWriterCloser) Close() error {
-	return nil
+func (h *Server) getDownloadTempDir(basename string) (string, error) {
+	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(p, basename), nil
 }
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
-func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
@@ -1481,19 +1489,49 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	var sink io.WriteCloser
-	if h.G().GetAppType() == libkb.MobileAppType {
-		// We never want to actually download anything on mobile, just get it in our cache
-		sink = discardWriterCloser{}
-	} else {
-		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	filename := arg.Filename
+	if filename == "" {
+		// No filename means we will create one in the OS temp dir
+		// Get the sent file name first
+		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
+			[]chat1.MessageID{arg.MessageID}, true)
 		if err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
+			return res, err
+		}
+		if !unboxed[0].IsValid() {
+			return res, errors.New("unable to download attachment from invalid message")
+		}
+		body := unboxed[0].Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil || typ != chat1.MessageType_ATTACHMENT {
+			return res, fmt.Errorf("invalid message type for download: %v", typ)
+		}
+		basepath := body.Attachment().Object.Filename
+		basename := path.Base(basepath)
+		fullpath, err := h.getDownloadTempDir(basename)
+		if err != nil {
+			return res, err
+		}
+		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			return res, err
+		}
+		filename = f.Name()
+		darg.Sink = f
+	} else {
+		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+			return res, err
 		}
 	}
-	darg.Sink = sink
 
-	return h.downloadAttachmentLocal(ctx, uid, darg)
+	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
+	if err != nil {
+		return res, err
+	}
+	return chat1.DownloadFileAttachmentLocalRes{
+		Filename:         filename,
+		IdentifyFailures: ires.IdentifyFailures,
+	}, nil
 }
 
 type downloadAttachmentArg struct {
@@ -1925,26 +1963,6 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	return res, nil
 }
 
-type remoteNotificationSuccessHandler struct{}
-
-func (g *remoteNotificationSuccessHandler) HandlerName() string {
-	return "remote notification success"
-}
-func (g *remoteNotificationSuccessHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
-	return nil
-}
-func (g *remoteNotificationSuccessHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-}
-func (g *remoteNotificationSuccessHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-}
-func (g *remoteNotificationSuccessHandler) OnDoCommandError(err error, nextTime time.Duration) {}
-func (g *remoteNotificationSuccessHandler) ShouldRetry(name string, err error) bool {
-	return false
-}
-func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool {
-	return false
-}
-
 func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.UnboxMobilePushNotificationArg) (res string, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
@@ -1960,11 +1978,16 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 	convID := chat1.ConversationID(bConvID)
-	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.Payload); err != nil {
+	mp := NewMobilePush(h.G())
+	mbu, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
+	if err != nil {
+		return res, err
+	}
+	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, mbu); err != nil {
 		return res, err
 	}
 	if arg.ShouldAck {
-		h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
+		mp.AckNotificationSuccess(ctx, arg.PushIDs)
 	}
 	return res, nil
 }
@@ -2094,10 +2117,10 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
@@ -2123,7 +2146,8 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 
@@ -2151,8 +2175,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.SentBy, arg.MaxHits,
-		arg.MaxMessages, arg.BeforeContext, arg.AfterContext)
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
 	if err != nil {
 		return res, err
 	}
@@ -2163,6 +2186,27 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		NumHits:   len(hits),
 	})
 	return chat1.GetSearchRegexpRes{
+		Hits:             hits,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) FullInboxSearch(ctx context.Context, arg chat1.FullInboxSearchArg) (res chat1.FullInboxSearchRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "FullInboxSearch")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	// TODO hook up uiCh/chatUI CORE-8901
+	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts)
+	if err != nil {
+		return res, err
+	}
+	return chat1.FullInboxSearchRes{
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
 	}, nil

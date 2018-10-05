@@ -5,7 +5,7 @@ import {globalColors} from '../styles'
 const followingStateToStyle = (followingState: Types.FollowingState) => {
   return {
     Following: {
-      color: globalColors.green2,
+      color: globalColors.green,
     },
     NoState: {
       color: globalColors.black_75,
@@ -14,7 +14,6 @@ const followingStateToStyle = (followingState: Types.FollowingState) => {
       color: globalColors.blue,
     },
     You: {
-      fontStyle: 'italic',
       color: globalColors.black_75,
     },
   }[followingState]

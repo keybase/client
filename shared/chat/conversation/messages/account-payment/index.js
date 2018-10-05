@@ -1,16 +1,14 @@
 // @flow
 import * as React from 'react'
+import {Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '../../../../common-adapters'
 import {
-  Box2,
-  Button,
-  Divider,
-  Icon,
-  Markdown,
-  ProgressIndicator,
-  Text,
-  type IconType,
-} from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
+import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {|
   action: string,
@@ -29,16 +27,20 @@ const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
     <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
       <ProgressIndicator style={styles.progressIndicator} />
-      <Text type="BodySmall">loading Stellar ledger...</Text>
+      <Text type="BodySmall">loading...</Text>
     </Box2>
   ) : (
     <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
-        <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
+        <Box2
+          direction="horizontal"
+          gap="xtiny"
+          style={collapseStyles([styles.headingContainer, {marginBottom: globalMargins.xtiny}])}
+        >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
             {props.action}{' '}
-            <Text type="BodySmallExtrabold" style={styles.purple}>
+            <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {props.amount}
             </Text>
             {props.pending ? '...' : '.'}
@@ -46,16 +48,13 @@ const AccountPayment = (props: Props) => {
         </Box2>
         {!!props.balanceChange && (
           <Box2 direction="horizontal">
-            <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
               {props.balanceChange}
             </Text>
           </Box2>
         )}
       </Box2>
-      <Box2 direction="horizontal" gap="small" fullWidth={true}>
-        <Divider vertical={true} style={styles.quoteMarker} />
-        <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-      </Box2>
+      <MarkdownMemo memo={props.memo} />
       {!!props.sendButtonLabel &&
         !!props.onSend && (
           <Button
@@ -92,7 +91,6 @@ const styles = styleSheetCreate({
     },
   }),
   purple: {color: globalColors.purple2},
-  quoteMarker: {maxWidth: 3, minWidth: 3},
 })
 
 export default AccountPayment

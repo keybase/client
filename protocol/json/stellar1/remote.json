@@ -189,16 +189,16 @@
           "name": "asset"
         },
         {
-          "type": "uint64",
-          "name": "operationID"
-        },
-        {
           "type": "TimeMs",
           "name": "ctime"
         },
         {
           "type": "string",
           "name": "cursorToken"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -460,6 +460,17 @@
             "items": "AccountReserve"
           },
           "name": "reserves"
+        },
+        {
+          "type": [
+            null,
+            "TransactionID"
+          ],
+          "name": "readTransactionID"
+        },
+        {
+          "type": "int",
+          "name": "unreadPayments"
         }
       ]
     },
@@ -480,6 +491,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "TransactionID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -657,6 +675,23 @@
         "type": "array",
         "items": "PaymentSummary"
       }
+    },
+    "markAsRead": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "TransactionID"
+        }
+      ],
+      "response": null
     },
     "paymentDetails": {
       "request": [

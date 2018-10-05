@@ -21,13 +21,15 @@ const ParticipantsRow = (props: Props) => (
         type="BodyTinySemibold"
         style={Styles.collapseStyles([
           styles.headingText,
-          props.headingAlignment === 'Right' ? {textAlign: 'right', width: 32} : {},
+          props.headingAlignment === 'Right' && {textAlign: 'right', width: 38},
           props.headingStyle,
         ])}
       >
         {props.heading}:
       </Kb.Text>
-      {props.children}
+      <Kb.Box style={styles.childContainer}>
+        <Kb.Box style={styles.childFillContainer}>{props.children}</Kb.Box>
+      </Kb.Box>
     </Kb.Box2>
     {props.bottomDivider && (
       <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
@@ -41,6 +43,21 @@ ParticipantsRow.defaultProps = {
 }
 
 const styles = Styles.styleSheetCreate({
+  childContainer: Styles.platformStyles({
+    isElectron: {
+      width: '100%',
+    },
+    isMobile: {
+      flexGrow: 1,
+      height: '100%',
+      position: 'relative',
+    },
+  }),
+  childFillContainer: Styles.platformStyles({
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+    },
+  }),
   headingText: {
     color: Styles.globalColors.blue,
     marginRight: Styles.globalMargins.tiny,
@@ -49,8 +66,9 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
+    maxWidth: '100%',
   },
 })
 

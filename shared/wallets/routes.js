@@ -4,15 +4,21 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
-import Container from './container'
+import WalletsAndDetails from './wallets-and-details'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
 import AccountSettings from './wallet/settings/container'
-import {SetDefaultAccountPopup, RemoveAccountPopup, ReallyRemoveAccountPopup} from './wallet/settings/popups'
+import {
+  SetDefaultAccountPopup,
+  RemoveAccountPopup,
+  ReallyRemoveAccountPopup,
+  RenameAccountPopup,
+} from './wallet/settings/popups'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
+import WalletsList from './wallet-list/container'
 
 const createNewAccount = {
   children: {},
@@ -46,19 +52,16 @@ const walletChildren = {
         component: ConfirmForm,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      linkExisting,
       createNewAccount,
+      linkExisting,
     },
     component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   settings: {
     children: {
-      setDefaultAccount: {
-        children: {},
-        component: SetDefaultAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
+      createNewAccount,
+      linkExisting,
       removeAccount: {
         children: {
           reallyRemoveAccount: {
@@ -70,23 +73,48 @@ const walletChildren = {
         component: RemoveAccountPopup,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
+      renameAccount: {
+        children: {},
+        component: RenameAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      setDefaultAccount: {
+        children: {},
+        component: SetDefaultAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
     },
     component: AccountSettings,
   },
   transactionDetails: {
+    children: {
+      createNewAccount,
+      linkExisting,
+    },
     component: TransactionDetails,
   },
 }
 
-const routeTree = makeRouteDefNode({
-  containerComponent: Container,
-  defaultSelected: 'wallet',
-  children: {
-    wallet: {
-      component: Wallet,
-      children: walletChildren,
-    },
-  },
-})
+const routeTree = isMobile
+  ? makeRouteDefNode({
+      children: {
+        wallet: {
+          children: walletChildren,
+          component: Wallet,
+        },
+      },
+      component: WalletsList,
+      tags: makeLeafTags({title: 'Wallets'}),
+    })
+  : makeRouteDefNode({
+      children: {
+        wallet: {
+          children: walletChildren,
+          component: Wallet,
+        },
+      },
+      containerComponent: WalletsAndDetails,
+      defaultSelected: 'wallet',
+    })
 
 export default routeTree

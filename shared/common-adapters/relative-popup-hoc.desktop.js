@@ -72,6 +72,7 @@ const positions: Array<Position> = [
   'left center',
   'top center',
   'bottom center',
+  'center center',
 ]
 
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
@@ -114,7 +115,7 @@ function _computePopupStyle(
     const xOffset = popupCoords.width + 8
     if (includes(position, 'right') && typeof style.right === 'number') {
       style.right -= xOffset
-    } else if (typeof style.left === 'number') {
+    } else if (includes(position, 'left') && typeof style.left === 'number') {
       style.left -= xOffset
     }
   }

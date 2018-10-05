@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 )
 
 type InboxVersionSource interface {
@@ -127,6 +128,10 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 		b.G().Log.CDebugf(ctx, "Badger resync complete")
 	}
 	return err
+}
+
+func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stellar1.AccountID, unreadCount int) {
+	b.badgeState.SetWalletAccountUnreadCount(accountID, unreadCount)
 }
 
 func (b *Badger) Clear(ctx context.Context) {

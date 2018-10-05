@@ -83,21 +83,8 @@ export function formatTimeForPopup(time: number): string {
   return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
 }
 
-export function formatTimeForStellarTransaction(timestamp: Date) {
-  const m = moment(timestamp)
-  return {
-    human: m.calendar(),
-    tooltip: m.format(),
-  }
-}
-
-export function formatTimeForStellarTransactionDetails(timestamp: Date) {
-  const m = moment(timestamp)
-  const human = m.format('ddd, MMM D YYYY - h:mm A') // Tue, May 22 2018 - 9:18 AM
-  return {
-    human,
-    tooltip: m.format(),
-  }
+export function formatTimeForStellarTooltip(timestamp: Date) {
+  return moment(timestamp).format()
 }
 
 export function formatTimeForRevoked(time: number): string {
@@ -111,6 +98,36 @@ export function daysToLabel(days: number): string {
     label += 's'
   }
   return label
+}
+
+// $FlowIssue - locale with no args returns the locale
+const defaultLocale = moment.locale()
+moment.defineLocale('people', {
+  parentLocale: 'en',
+  relativeTime: {
+    future: 'in %s',
+    past: '%s ago',
+    s: 'now',
+    ss: '%ds',
+    m: '1m',
+    mm: '%dm',
+    h: '1h',
+    hh: '%dh',
+    d: '1d',
+    dd: '%dd',
+    M: '1mo',
+    MM: '%dmo',
+    y: '1y',
+    yy: '%dy',
+  },
+})
+// When we define a locale, moment uses it. So reset it to use the default
+moment.locale(defaultLocale)
+
+const peopleItemFormatter = moment().locale('people')
+
+export function formatTimeForPeopleItem(time: number): string {
+  return peopleItemFormatter.set(moment(time)).fromNow(true)
 }
 
 const oneMinuteInMs = 60 * 1000

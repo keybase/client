@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -14,7 +15,7 @@ import (
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
-	cl, err := libkb.ImportLinkFromServer(g, nil, []byte(trackingServerReply), trackingUID)
+	cl, err := libkb.ImportLinkFromServer(libkb.NewMetaContextBackground(g), nil, []byte(trackingServerReply), trackingUID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,8 +77,8 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers(mode libkb.RunMode) []string { return nil }
-func (i *Identify2WithUIDTester) AllStringKeys() []string                       { return nil }
+func (i *Identify2WithUIDTester) ListProofCheckers() []string { return nil }
+func (i *Identify2WithUIDTester) AllStringKeys() []string     { return nil }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
@@ -100,12 +101,13 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ libkb.PvlUnparsed) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
+	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	if i.checkStatusHook != nil {
-		return i.checkStatusHook(h, pcm)
+		return nil, i.checkStatusHook(h, pcm)
 	}
 	m.CDebugf("Check status rubber stamp: %+v", h)
-	return nil
+	return nil, nil
 }
 
 func (i *Identify2WithUIDTester) GetTorError() libkb.ProofError {
@@ -247,7 +249,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -282,7 +284,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -307,7 +309,7 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrackAndSuppress")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		CanSuppressUI:    true,
@@ -342,7 +344,7 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	eng := NewIdentify2WithUID(tc.G, arg)
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
@@ -417,7 +419,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
 	defer tc.Cleanup()
 	tester := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = tester
+	tc.G.SetProofServices(tester)
 	tester.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
 			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
@@ -553,7 +555,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter",
@@ -577,7 +579,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
@@ -601,7 +603,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithNonExistentAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "beyonce@twitter",
@@ -642,7 +644,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter",
@@ -692,7 +694,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAncillaryAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacoplusplus@github+t_tracy@rooter",
@@ -743,7 +745,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -815,7 +817,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDLocalAssertions")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -894,7 +896,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -919,7 +921,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	Logout(tc)
 
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:    u,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -1015,7 +1017,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 			return nil
 		}
 
-		tc.G.Services = i
+		tc.G.SetProofServices(i)
 		arg := &keybase1.Identify2Arg{
 			Uid:              eve.UID(),
 			IdentifyBehavior: identifyBehavior,
@@ -1100,34 +1102,44 @@ func TestResolveAndCheck(t *testing.T) {
 	evilResolver := evilResolver{goodResolver, "t_alice", tracyUID}
 
 	var tests = []struct {
-		s string
-		e error
-		r libkb.Resolver
+		s       string
+		e       error
+		useEvil bool
 	}{
-		{"tacovontaco@twitter+t_tracy@rooter", nil, nil},
-		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, nil},
-		{"t_tracy", nil, nil},
-		{"t_tracy+" + string(tracyUID) + "@uid", nil, nil},
-		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, nil},
-		{"foobunny@github", libkb.ResolutionError{}, nil},
-		{"foobunny", libkb.NotFoundError{}, nil},
-		{"foobunny+foobunny@github", libkb.NotFoundError{}, nil},
-		{"t_alice", libkb.UIDMismatchError{}, &evilResolver},
-		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, &evilResolver},
-		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, &evilResolver},
+		{"tacovontaco@twitter+t_tracy@rooter", nil, false},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, false},
+		{"t_tracy", nil, false},
+		{"t_tracy+" + string(tracyUID) + "@uid", nil, false},
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, false},
+		{"foobunny@github", libkb.ResolutionError{}, false},
+		{"foobunny", libkb.NotFoundError{}, false},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}, false},
+		{"t_alice", libkb.UIDMismatchError{}, true},
+		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
+		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
+		{"foobunny@gubble.social", libkb.ResolutionError{}, false},
 	}
 	for _, test := range tests {
 		tc.G.Resolver = goodResolver
-		if test.r != nil {
-			tc.G.Resolver = test.r
+		if test.useEvil {
+			tc.G.Resolver = &evilResolver
 		}
-		upk, err := ResolveAndCheck(m, test.s, true)
+		upk, err := ResolveAndCheck(m, test.s, true /*useTracking*/)
 		require.IsType(t, test.e, err)
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
 			require.Equal(t, upk.GetName(), "t_tracy")
 		}
 	}
+
+	// Test happy path for gubble social assertion
+	fu := CreateAndSignupFakeUser(tc, "track")
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	assertion := fmt.Sprintf("%s@gubble.social", fu.Username)
+	upk, err := ResolveAndCheck(m, assertion, true /* useTracking */)
+	require.NoError(t, err)
+	require.True(t, upk.GetUID().Equal(fu.UID()))
+	require.Equal(t, upk.GetName(), fu.Username)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

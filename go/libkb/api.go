@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -330,7 +331,14 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	if wantJSONRes {
-		reader := newCountingReader(internalResp.Body)
+		var buf bytes.Buffer
+		bodyTee := io.TeeReader(internalResp.Body, &buf)
+		err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(bodyTee))
+		if err != nil {
+			return nil, finisher, nil, err
+		}
+
+		reader := newCountingReader(&buf)
 		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
@@ -422,6 +430,12 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	// check to see if the current context is canceled
+	select {
+	case <-m.Ctx().Done():
+		return nil, nil, m.Ctx().Err()
+	default:
+	}
 	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err

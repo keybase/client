@@ -69,46 +69,50 @@ const MentionHud = compose(
     }
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      if (nextProps.data.length === 0) {
-        nextProps.setSelectedIndex(0)
+    componentDidUpdate(prevProps, prevState) {
+      if (this.props.data.length === 0) {
+        if (prevProps.selectedIndex === 0) {
+          // We've already done this, so just get out of here so we don't infinite loop
+          return
+        }
+        this.props.setSelectedIndex(0)
       }
-      if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
-        nextProps.setSelectedIndex(Math.min(nextProps.selectedIndex, nextProps.data.length - 1))
+      if (this.props.data.length && this.props.data.length !== prevProps.data.length) {
+        this.props.setSelectedIndex(Math.min(this.props.selectedIndex, this.props.data.length - 1))
       }
 
-      if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        let next = nextProps.selectedIndex - 1
+      if (this.props.selectUpCounter !== prevProps.selectUpCounter) {
+        let next = this.props.selectedIndex - 1
         if (next < 0) {
-          next = Math.max(nextProps.data.length - 1, 0)
+          next = Math.max(this.props.data.length - 1, 0)
         }
-        nextProps.setSelectedIndex(next)
-      } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        let next = nextProps.selectedIndex + 1
-        if (next >= nextProps.data.length) {
+        this.props.setSelectedIndex(next)
+      } else if (this.props.selectDownCounter !== prevProps.selectDownCounter) {
+        let next = this.props.selectedIndex + 1
+        if (next >= this.props.data.length) {
           next = 0
         }
-        nextProps.setSelectedIndex(next)
+        this.props.setSelectedIndex(next)
       }
 
-      if (nextProps.pickSelectedChannelCounter !== this.props.pickSelectedChannelCounter) {
-        if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onPickChannel(nextProps.data[nextProps.selectedIndex].channelName)
+      if (this.props.pickSelectedChannelCounter !== prevProps.pickSelectedChannelCounter) {
+        if (this.props.selectedIndex < this.props.data.length) {
+          this.props.onPickChannel(this.props.data[this.props.selectedIndex].channelName)
         } else {
           // Just exit
-          nextProps.onPickChannel(nextProps.filter, {notChannel: true})
+          this.props.onPickChannel(this.props.filter, {notChannel: true})
         }
       }
 
-      if (nextProps.selectedIndex !== this.props.selectedIndex) {
-        if (nextProps.selectedIndex < nextProps.data.length) {
+      if (this.props.selectedIndex !== prevProps.selectedIndex) {
+        if (this.props.selectedIndex < this.props.data.length) {
           // Check if the previously selected entry matches the currently selected one
           // we do this to prevent replace the user's text if the currently selected
           // moves around in the list
-          const prevChannelname = this.props.fullList[this.props.selectedIndex]
-          const nextChannelname = nextProps.data[nextProps.selectedIndex].channelName
+          const prevChannelname = prevProps.fullList[prevProps.selectedIndex]
+          const nextChannelname = this.props.data[this.props.selectedIndex].channelName
           if (prevChannelname !== nextChannelname) {
-            nextProps.onSelectChannel(nextChannelname)
+            this.props.onSelectChannel(nextChannelname)
           }
         }
       }

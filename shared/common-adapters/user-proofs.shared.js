@@ -40,13 +40,7 @@ function proofColor(proof: Proof, forIcon: boolean): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
-      color = proof.isTracked
-        ? forIcon
-          ? globalColors.green
-          : globalColors.green2
-        : forIcon
-          ? globalColors.blue2
-          : globalColors.blue
+      color = proof.isTracked ? globalColors.green : forIcon ? globalColors.blue2 : globalColors.blue
       break
     }
     case proofChecking:
@@ -80,6 +74,7 @@ function iconNameForProof({type}: {type: PlatformsExpandedType}): IconType {
     dnsOrGenericWebSite: 'iconfont-identity-website',
     http: 'iconfont-identity-website',
     https: 'iconfont-identity-website',
+    web: 'iconfont-identity-website',
     dns: 'iconfont-identity-website',
   }
 

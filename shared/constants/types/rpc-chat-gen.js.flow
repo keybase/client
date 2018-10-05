@@ -24,87 +24,87 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
 
 export type MessageTypes = {|
   'chat.1.NotifyChat.ChatAttachmentUploadProgress': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, outboxID: OutboxID, bytesComplete: Long, bytesTotal: Long}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, outboxID: OutboxID, bytesComplete: Long, bytesTotal: Long|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatAttachmentUploadStart': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, outboxID: OutboxID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, outboxID: OutboxID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatIdentifyUpdate': {|
-    inParam: $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks}>,
+    inParam: $ReadOnly<{|update: Keybase1.CanonicalTLFNameAndIDWithBreaks|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatInboxStale': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatInboxSyncStarted': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatInboxSynced': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, syncRes: ChatSyncResult|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatJoinedConversation': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatLeftConversation': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatPaymentInfo': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, msgID: MessageID, info: UIPaymentInfo}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, msgID: MessageID, info: UIPaymentInfo|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatRequestInfo': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, msgID: MessageID, info: UIRequestInfo}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, msgID: MessageID, info: UIRequestInfo|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatResetConversation': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatSetConvRetention': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatSetConvSettings': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatSetTeamRetention': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatSubteamRename': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convs?: ?Array<InboxUIItem>}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convs?: ?Array<InboxUIItem>|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatTLFFinalize': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatTLFResolve': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatThreadsStale': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.ChatTypingUpdate': {|
-    inParam: $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>}>,
+    inParam: $ReadOnly<{|typingUpdates?: ?Array<ConvTypingUpdate>|}>,
     outParam: void,
   |},
   'chat.1.NotifyChat.NewChatActivity': {|
-    inParam: $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity, source: ChatActivitySource}>,
+    inParam: $ReadOnly<{|uid: Keybase1.UID, activity: ChatActivity, source: ChatActivitySource|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatAttachmentDownloadDone': {|
@@ -112,7 +112,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatAttachmentDownloadProgress': {|
-    inParam: $ReadOnly<{bytesComplete: Long, bytesTotal: Long}>,
+    inParam: $ReadOnly<{|bytesComplete: Long, bytesTotal: Long|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatAttachmentDownloadStart': {|
@@ -120,63 +120,63 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatConfirmChannelDelete': {|
-    inParam: $ReadOnly<{channel: String}>,
+    inParam: $ReadOnly<{|channel: String|}>,
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatInboxConversation': {|
-    inParam: $ReadOnly<{conv: String}>,
+    inParam: $ReadOnly<{|conv: String|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatInboxFailed': {|
-    inParam: $ReadOnly<{convID: ConversationID, error: InboxUIItemError}>,
+    inParam: $ReadOnly<{|convID: ConversationID, error: InboxUIItemError|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatInboxUnverified': {|
-    inParam: $ReadOnly<{inbox: String}>,
+    inParam: $ReadOnly<{|inbox: String|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchDone': {|
-    inParam: $ReadOnly<{numHits: Int}>,
+    inParam: $ReadOnly<{|numHits: Int|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatSearchHit': {|
-    inParam: $ReadOnly<{searchHit: ChatSearchHit}>,
+    inParam: $ReadOnly<{|searchHit: ChatSearchHit|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatThreadCached': {|
-    inParam: $ReadOnly<{thread?: ?String}>,
+    inParam: $ReadOnly<{|thread?: ?String|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatThreadFull': {|
-    inParam: $ReadOnly<{thread: String}>,
+    inParam: $ReadOnly<{|thread: String|}>,
     outParam: void,
   |},
   'chat.1.local.CancelPost': {|
-    inParam: $ReadOnly<{outboxID: OutboxID}>,
+    inParam: $ReadOnly<{|outboxID: OutboxID|}>,
     outParam: void,
   |},
   'chat.1.local.DownloadFileAttachmentLocal': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
-    outParam: DownloadAttachmentLocalRes,
+    inParam: $ReadOnly<{|conversationID: ConversationID, messageID: MessageID, filename: String, preview: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    outParam: DownloadFileAttachmentLocalRes,
   |},
   'chat.1.local.RetryPost': {|
-    inParam: $ReadOnly<{outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|outboxID: OutboxID, identifyBehavior?: ?Keybase1.TLFIdentifyBehavior|}>,
     outParam: void,
   |},
   'chat.1.local.SetConversationStatusLocal': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, status: ConversationStatus, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, status: ConversationStatus, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: SetConversationStatusLocalRes,
   |},
   'chat.1.local.addTeamMemberAfterReset': {|
-    inParam: $ReadOnly<{username: String, convID: ConversationID}>,
+    inParam: $ReadOnly<{|username: String, convID: ConversationID|}>,
     outParam: void,
   |},
   'chat.1.local.deleteConversationLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID, channelName: String, confirmed: Boolean}>,
+    inParam: $ReadOnly<{|convID: ConversationID, channelName: String, confirmed: Boolean|}>,
     outParam: DeleteConversationLocalRes,
   |},
   'chat.1.local.findConversationsLocal': {|
-    inParam: $ReadOnly<{tlfName: String, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, topicType: TopicType, topicName: String, oneChatPerTLF?: ?Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|tlfName: String, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, topicType: TopicType, topicName: String, oneChatPerTLF?: ?Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: FindConversationsLocalRes,
   |},
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {|
@@ -184,11 +184,11 @@ export type MessageTypes = {|
     outParam: GlobalAppNotificationSettings,
   |},
   'chat.1.local.getInboxAndUnboxUILocal': {|
-    inParam: $ReadOnly<{query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: GetInboxAndUnboxUILocalRes,
   |},
   'chat.1.local.getInboxNonblockLocal': {|
-    inParam: $ReadOnly<{maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NonblockFetchRes,
   |},
   'chat.1.local.getStaticConfig': {|
@@ -196,107 +196,107 @@ export type MessageTypes = {|
     outParam: StaticConfig,
   |},
   'chat.1.local.getTLFConversationsLocal': {|
-    inParam: $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType}>,
+    inParam: $ReadOnly<{|tlfName: String, topicType: TopicType, membersType: ConversationMembersType|}>,
     outParam: GetTLFConversationsLocalRes,
   |},
   'chat.1.local.getTeamRetentionLocal': {|
-    inParam: $ReadOnly<{teamID: Keybase1.TeamID}>,
+    inParam: $ReadOnly<{|teamID: Keybase1.TeamID|}>,
     outParam: ?RetentionPolicy,
   |},
   'chat.1.local.getThreadNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NonblockFetchRes,
   |},
   'chat.1.local.joinConversationByIDLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID}>,
+    inParam: $ReadOnly<{|convID: ConversationID|}>,
     outParam: JoinLeaveConversationLocalRes,
   |},
   'chat.1.local.leaveConversationLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID}>,
+    inParam: $ReadOnly<{|convID: ConversationID|}>,
     outParam: JoinLeaveConversationLocalRes,
   |},
   'chat.1.local.makePreview': {|
-    inParam: $ReadOnly<{filename: String, outboxID: OutboxID}>,
+    inParam: $ReadOnly<{|filename: String, outboxID: OutboxID|}>,
     outParam: MakePreviewRes,
   |},
   'chat.1.local.markAsReadLocal': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, msgID: MessageID}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, msgID: MessageID|}>,
     outParam: MarkAsReadLocalRes,
   |},
   'chat.1.local.newConversationLocal': {|
-    inParam: $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NewConversationLocalRes,
   |},
   'chat.1.local.postDeleteHistoryByAge': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec|}>,
     outParam: PostLocalRes,
   |},
   'chat.1.local.postDeleteNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postEditNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postFileAttachmentMessageLocalNonblock': {|
-    inParam: $ReadOnly<{convID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, clientPrev: MessageID, filename: String, title: String, metadata: Bytes, ephemeralLifetime?: ?Gregor1.DurationSec, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|convID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, clientPrev: MessageID, filename: String, title: String, metadata: Bytes, ephemeralLifetime?: ?Gregor1.DurationSec, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postFileAttachmentUploadLocalNonblock': {|
-    inParam: $ReadOnly<{convID: ConversationID, outboxID: OutboxID, filename: String, title: String, metadata: Bytes, callerPreview?: ?MakePreviewRes, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|convID: ConversationID, outboxID: OutboxID, filename: String, title: String, metadata: Bytes, callerPreview?: ?MakePreviewRes, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: void,
   |},
   'chat.1.local.postHeadline': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalRes,
   |},
   'chat.1.local.postHeadlineNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postMetadata': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalRes,
   |},
   'chat.1.local.postReactionNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postTextNonblock': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.previewConversationByIDLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID}>,
+    inParam: $ReadOnly<{|convID: ConversationID|}>,
     outParam: JoinLeaveConversationLocalRes,
   |},
   'chat.1.local.setAppNotificationSettingsLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>}>,
+    inParam: $ReadOnly<{|convID: ConversationID, channelWide: Boolean, settings?: ?Array<AppNotificationSettingLocal>|}>,
     outParam: SetAppNotificationSettingsLocalRes,
   |},
   'chat.1.local.setConvMinWriterRoleLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID, role: Keybase1.TeamRole}>,
+    inParam: $ReadOnly<{|convID: ConversationID, role: Keybase1.TeamRole|}>,
     outParam: void,
   |},
   'chat.1.local.setConvRetentionLocal': {|
-    inParam: $ReadOnly<{convID: ConversationID, policy: RetentionPolicy}>,
+    inParam: $ReadOnly<{|convID: ConversationID, policy: RetentionPolicy|}>,
     outParam: void,
   |},
   'chat.1.local.setGlobalAppNotificationSettingsLocal': {|
-    inParam: $ReadOnly<{settings: {[key: string]: Bool}}>,
+    inParam: $ReadOnly<{|settings: {[key: string]: Bool}|}>,
     outParam: void,
   |},
   'chat.1.local.setTeamRetentionLocal': {|
-    inParam: $ReadOnly<{teamID: Keybase1.TeamID, policy: RetentionPolicy}>,
+    inParam: $ReadOnly<{|teamID: Keybase1.TeamID, policy: RetentionPolicy|}>,
     outParam: void,
   |},
   'chat.1.local.unboxMobilePushNotification': {|
-    inParam: $ReadOnly<{payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean}>,
+    inParam: $ReadOnly<{|payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean|}>,
     outParam: String,
   |},
   'chat.1.local.updateTyping': {|
-    inParam: $ReadOnly<{conversationID: ConversationID, typing: Boolean}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, typing: Boolean|}>,
     outParam: void,
   |},
 |}
@@ -347,6 +347,8 @@ export const commonGetThreadReason = {
   fixretry: 4,
   prepare: 5,
   searcher: 6,
+  indexedSearch: 7,
+  kbfsfileactivity: 8,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -507,6 +509,7 @@ export const localOutboxStateType = {
 export const localPreviewLocationTyp = {
   url: 0,
   file: 1,
+  bytes: 2,
 }
 
 export const notifyChatChatActivitySource = {
@@ -612,6 +615,7 @@ export type ChatActivityType =
   | 10 // EPHEMERAL_PURGE_10
   | 11 // REACTION_UPDATE_11
 
+export type ChatConvSearchHit = $ReadOnly<{convID: ConversationID, hits?: ?Array<ChatSearchHit>}>
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
@@ -679,6 +683,7 @@ export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type EphemeralPurgeInfo = $ReadOnly<{c /* convID */: ConversationID, a /* isActive */: Boolean, n /* nextPurgeTime */: Gregor1.Time, e /* minUnexplodedID */: MessageID}>
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>
@@ -687,6 +692,7 @@ export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, c
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type FullInboxSearchRes = $ReadOnly<{hits?: ?Array<ChatConvSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type GenericPayload = $ReadOnly<{Action: String, inboxVers: InboxVers, convID: ConversationID, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type GetConversationForCLILocalQuery = $ReadOnly<{markAsRead: Boolean, MessageTypes?: ?Array<MessageType>, Since?: ?String, limit: UnreadFirstNumLimit, conv: ConversationLocal}>
 export type GetConversationForCLILocalRes = $ReadOnly<{conversation: ConversationLocal, messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -725,6 +731,8 @@ export type GetThreadReason =
   | 4 // FIXRETRY_4
   | 5 // PREPARE_5
   | 6 // SEARCHER_6
+  | 7 // INDEXED_SEARCH_7
+  | 8 // KBFSFILEACTIVITY_8
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 export type GlobalAppNotificationSetting =
@@ -890,10 +898,11 @@ export type PostFileAttachmentArg = $ReadOnly<{conversationID: ConversationID, t
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
-export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String}
+export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String} | {ltyp: 2, bytes: ?Bytes}
 export type PreviewLocationTyp =
   | 0 // URL_0
   | 1 // FILE_1
+  | 2 // BYTES_2
 
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>
@@ -917,6 +926,7 @@ export type RpInherit = $ReadOnly<{}>
 export type RpRetain = $ReadOnly<{}>
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
+export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
 export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -989,8 +999,8 @@ export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, m
 export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfo?: ?UIPaymentInfo, requestInfo?: ?UIRequestInfo}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
-export type UIPaymentInfo = $ReadOnly<{amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, status: Stellar1.PaymentStatus, statusDescription: String}>
-export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode}>
+export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String}>
+export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
@@ -1000,19 +1010,21 @@ export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUI
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
 export type VersionKind = String
 
-export type IncomingCallMapType<TypedState> = {|'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatInboxUnverified'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatInboxConversation'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatInboxFailed'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatThreadCached'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatThreadFull'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatSearchHit'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatSearchDone'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.chatUi.chatConfirmChannelDelete'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>) => void}, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.NewChatActivity'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatTLFFinalize'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatTLFResolve'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxStale'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatThreadsStale'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatTypingUpdate'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatJoinedConversation'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatLeftConversation'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatResetConversation'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxSyncStarted'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxSynced'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatSetConvRetention'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatSetTeamRetention'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatSetConvSettings'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatSubteamRename'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatAttachmentUploadStart'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatPaymentInfo'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'chat.1.NotifyChat.ChatRequestInfo'?: (params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn|}
+export type IncomingCallMapType = {|'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatInboxUnverified'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatInboxConversation'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatInboxFailed'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatThreadCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatThreadFull'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatSearchHit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatSearchDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.chatUi.chatConfirmChannelDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.NewChatActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatTLFFinalize'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatTLFResolve'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxStale'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatThreadsStale'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatTypingUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatJoinedConversation'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatLeftConversation'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatResetConversation'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxSyncStarted'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatInboxSynced'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatSetConvRetention'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatSetTeamRetention'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatSetConvSettings'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatSubteamRename'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatAttachmentUploadStart'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatPaymentInfo'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'chat.1.NotifyChat.ChatRequestInfo'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn|}
+
+export type CustomResponseIncomingCallMap = {|'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatInboxUnverified'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatInboxConversation'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatInboxFailed'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatThreadCached'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatThreadFull'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatSearchHit'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatSearchDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'outParam'>) => void}) => IncomingReturn, 'chat.1.chatUi.chatConfirmChannelDelete'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'outParam'>) => void}) => IncomingReturn|}
 declare export function localAddTeamMemberAfterResetRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'outParam'>>
 declare export function localCancelPostRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.CancelPost'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.CancelPost'>, 'outParam'>>
 declare export function localDeleteConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.deleteConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.deleteConversationLocal'>, 'outParam'>>
-declare export function localDownloadFileAttachmentLocalRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.DownloadFileAttachmentLocal'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function localDownloadFileAttachmentLocalRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.DownloadFileAttachmentLocal'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function localFindConversationsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.findConversationsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.findConversationsLocal'>, 'outParam'>>
 declare export function localGetGlobalAppNotificationSettingsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getGlobalAppNotificationSettingsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getGlobalAppNotificationSettingsLocal'>, 'outParam'>>
 declare export function localGetInboxAndUnboxUILocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxAndUnboxUILocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxAndUnboxUILocal'>, 'outParam'>>
-declare export function localGetInboxNonblockLocalRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxNonblockLocal'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function localGetInboxNonblockLocalRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxNonblockLocal'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function localGetStaticConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getStaticConfig'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getStaticConfig'>, 'outParam'>>
 declare export function localGetTLFConversationsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'outParam'>>
 declare export function localGetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'outParam'>>
-declare export function localGetThreadNonblockRpcSaga<TypedState>(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadNonblock'>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>
+declare export function localGetThreadNonblockRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadNonblock'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function localJoinConversationByIDLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'outParam'>>
 declare export function localLeaveConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'outParam'>>
 declare export function localMakePreviewRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'outParam'>>
@@ -1038,4 +1050,4 @@ declare export function localSetGlobalAppNotificationSettingsLocalRpcPromise(par
 declare export function localSetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'outParam'>>
 declare export function localUnboxMobilePushNotificationRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'outParam'>>
 declare export function localUpdateTypingRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'outParam'>>
-// Not enabled calls. To enable add to enabled-calls.json: 'chat.1.chatUi.chatAttachmentDownloadStart' 'chat.1.chatUi.chatAttachmentDownloadProgress' 'chat.1.chatUi.chatAttachmentDownloadDone' 'chat.1.chatUi.chatInboxUnverified' 'chat.1.chatUi.chatInboxConversation' 'chat.1.chatUi.chatInboxFailed' 'chat.1.chatUi.chatThreadCached' 'chat.1.chatUi.chatThreadFull' 'chat.1.chatUi.chatSearchHit' 'chat.1.chatUi.chatSearchDone' 'chat.1.chatUi.chatConfirmChannelDelete' 'chat.1.local.getThreadLocal' 'chat.1.local.getCachedThread' 'chat.1.local.getInboxAndUnboxLocal' 'chat.1.local.postLocal' 'chat.1.local.generateOutboxID' 'chat.1.local.postLocalNonblock' 'chat.1.local.postMetadataNonblock' 'chat.1.local.postDeleteHistoryUpto' 'chat.1.local.postDeleteHistoryThrough' 'chat.1.local.getInboxSummaryForCLILocal' 'chat.1.local.getConversationForCLILocal' 'chat.1.local.GetMessagesLocal' 'chat.1.local.postFileAttachmentLocal' 'chat.1.local.DownloadAttachmentLocal' 'chat.1.local.joinConversationLocal' 'chat.1.local.upgradeKBFSConversationToImpteam' 'chat.1.local.getSearchRegexp' 'chat.1.NotifyChat.NewChatActivity' 'chat.1.NotifyChat.ChatIdentifyUpdate' 'chat.1.NotifyChat.ChatTLFFinalize' 'chat.1.NotifyChat.ChatTLFResolve' 'chat.1.NotifyChat.ChatInboxStale' 'chat.1.NotifyChat.ChatThreadsStale' 'chat.1.NotifyChat.ChatTypingUpdate' 'chat.1.NotifyChat.ChatJoinedConversation' 'chat.1.NotifyChat.ChatLeftConversation' 'chat.1.NotifyChat.ChatResetConversation' 'chat.1.NotifyChat.ChatInboxSyncStarted' 'chat.1.NotifyChat.ChatInboxSynced' 'chat.1.NotifyChat.ChatSetConvRetention' 'chat.1.NotifyChat.ChatSetTeamRetention' 'chat.1.NotifyChat.ChatSetConvSettings' 'chat.1.NotifyChat.ChatSubteamRename' 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade' 'chat.1.NotifyChat.ChatAttachmentUploadStart' 'chat.1.NotifyChat.ChatAttachmentUploadProgress' 'chat.1.NotifyChat.ChatPaymentInfo' 'chat.1.NotifyChat.ChatRequestInfo' 'chat.1.remote.getInboxRemote' 'chat.1.remote.getThreadRemote' 'chat.1.remote.getPublicConversations' 'chat.1.remote.postRemote' 'chat.1.remote.newConversationRemote' 'chat.1.remote.newConversationRemote2' 'chat.1.remote.getMessagesRemote' 'chat.1.remote.markAsRead' 'chat.1.remote.SetConversationStatus' 'chat.1.remote.GetUnreadUpdateFull' 'chat.1.remote.getS3Params' 'chat.1.remote.s3Sign' 'chat.1.remote.getInboxVersion' 'chat.1.remote.syncInbox' 'chat.1.remote.syncChat' 'chat.1.remote.syncAll' 'chat.1.remote.tlfFinalize' 'chat.1.remote.tlfResolve' 'chat.1.remote.updateTypingRemote' 'chat.1.remote.joinConversation' 'chat.1.remote.leaveConversation' 'chat.1.remote.previewConversation' 'chat.1.remote.deleteConversation' 'chat.1.remote.getMessageBefore' 'chat.1.remote.getTLFConversations' 'chat.1.remote.setAppNotificationSettings' 'chat.1.remote.setGlobalAppNotificationSettings' 'chat.1.remote.getGlobalAppNotificationSettings' 'chat.1.remote.remoteNotificationSuccessful' 'chat.1.remote.setConvRetention' 'chat.1.remote.setTeamRetention' 'chat.1.remote.setConvMinWriterRole' 'chat.1.remote.retentionSweepConv' 'chat.1.remote.upgradeKBFSToImpteam'
+// Not enabled calls. To enable add to enabled-calls.json: 'chat.1.chatUi.chatAttachmentDownloadStart' 'chat.1.chatUi.chatAttachmentDownloadProgress' 'chat.1.chatUi.chatAttachmentDownloadDone' 'chat.1.chatUi.chatInboxUnverified' 'chat.1.chatUi.chatInboxConversation' 'chat.1.chatUi.chatInboxFailed' 'chat.1.chatUi.chatThreadCached' 'chat.1.chatUi.chatThreadFull' 'chat.1.chatUi.chatSearchHit' 'chat.1.chatUi.chatSearchDone' 'chat.1.chatUi.chatConfirmChannelDelete' 'chat.1.local.getThreadLocal' 'chat.1.local.getCachedThread' 'chat.1.local.getInboxAndUnboxLocal' 'chat.1.local.postLocal' 'chat.1.local.generateOutboxID' 'chat.1.local.postLocalNonblock' 'chat.1.local.postMetadataNonblock' 'chat.1.local.postDeleteHistoryUpto' 'chat.1.local.postDeleteHistoryThrough' 'chat.1.local.getInboxSummaryForCLILocal' 'chat.1.local.getConversationForCLILocal' 'chat.1.local.GetMessagesLocal' 'chat.1.local.postFileAttachmentLocal' 'chat.1.local.DownloadAttachmentLocal' 'chat.1.local.joinConversationLocal' 'chat.1.local.upgradeKBFSConversationToImpteam' 'chat.1.local.getSearchRegexp' 'chat.1.local.fullInboxSearch' 'chat.1.NotifyChat.NewChatActivity' 'chat.1.NotifyChat.ChatIdentifyUpdate' 'chat.1.NotifyChat.ChatTLFFinalize' 'chat.1.NotifyChat.ChatTLFResolve' 'chat.1.NotifyChat.ChatInboxStale' 'chat.1.NotifyChat.ChatThreadsStale' 'chat.1.NotifyChat.ChatTypingUpdate' 'chat.1.NotifyChat.ChatJoinedConversation' 'chat.1.NotifyChat.ChatLeftConversation' 'chat.1.NotifyChat.ChatResetConversation' 'chat.1.NotifyChat.ChatInboxSyncStarted' 'chat.1.NotifyChat.ChatInboxSynced' 'chat.1.NotifyChat.ChatSetConvRetention' 'chat.1.NotifyChat.ChatSetTeamRetention' 'chat.1.NotifyChat.ChatSetConvSettings' 'chat.1.NotifyChat.ChatSubteamRename' 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade' 'chat.1.NotifyChat.ChatAttachmentUploadStart' 'chat.1.NotifyChat.ChatAttachmentUploadProgress' 'chat.1.NotifyChat.ChatPaymentInfo' 'chat.1.NotifyChat.ChatRequestInfo' 'chat.1.remote.getInboxRemote' 'chat.1.remote.getThreadRemote' 'chat.1.remote.getPublicConversations' 'chat.1.remote.postRemote' 'chat.1.remote.newConversationRemote' 'chat.1.remote.newConversationRemote2' 'chat.1.remote.getMessagesRemote' 'chat.1.remote.markAsRead' 'chat.1.remote.SetConversationStatus' 'chat.1.remote.GetUnreadUpdateFull' 'chat.1.remote.getS3Params' 'chat.1.remote.s3Sign' 'chat.1.remote.getInboxVersion' 'chat.1.remote.syncInbox' 'chat.1.remote.syncChat' 'chat.1.remote.syncAll' 'chat.1.remote.tlfFinalize' 'chat.1.remote.tlfResolve' 'chat.1.remote.updateTypingRemote' 'chat.1.remote.joinConversation' 'chat.1.remote.leaveConversation' 'chat.1.remote.previewConversation' 'chat.1.remote.deleteConversation' 'chat.1.remote.getMessageBefore' 'chat.1.remote.getTLFConversations' 'chat.1.remote.setAppNotificationSettings' 'chat.1.remote.setGlobalAppNotificationSettings' 'chat.1.remote.getGlobalAppNotificationSettings' 'chat.1.remote.remoteNotificationSuccessful' 'chat.1.remote.setConvRetention' 'chat.1.remote.setTeamRetention' 'chat.1.remote.setConvMinWriterRole' 'chat.1.remote.retentionSweepConv' 'chat.1.remote.upgradeKBFSToImpteam' 'chat.1.remote.registerSharePost' 'chat.1.remote.failSharePost'

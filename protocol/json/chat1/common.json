@@ -1362,7 +1362,43 @@
         "BACKGROUNDCONVLOAD_3",
         "FIXRETRY_4",
         "PREPARE_5",
-        "SEARCHER_6"
+        "SEARCHER_6",
+        "INDEXED_SEARCH_7",
+        "KBFSFILEACTIVITY_8"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchOpts",
+      "fields": [
+        {
+          "type": "string",
+          "name": "sentBy"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentBefore"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentAfter"
+        },
+        {
+          "type": "int",
+          "name": "maxHits"
+        },
+        {
+          "type": "int",
+          "name": "maxMessages"
+        },
+        {
+          "type": "int",
+          "name": "beforeContext"
+        },
+        {
+          "type": "int",
+          "name": "afterContext"
+        }
       ]
     }
   ],

@@ -166,15 +166,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       })
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.loadedAvatars: {
-      const {nameToUrlMap} = action.payload
-      return state.merge({
-        avatars: {
-          ...state.avatars,
-          ...nameToUrlMap,
-        },
-      })
-    }
+    case ConfigGen.loadedAvatars:
+      return state.merge({avatars: state.avatars.merge(action.payload.avatars)})
     case ConfigGen.setNotifySound:
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
@@ -190,6 +183,14 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
+    case ConfigGen.outOfDate:
+      return state.set(
+        'outOfDate',
+        Constants.makeOutOfDate({
+          critical: action.payload.critical,
+          message: action.payload.message,
+        })
+      )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -203,6 +204,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
+    case ConfigGen.updateNow:
       return state
     default:
       /*::

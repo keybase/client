@@ -1,96 +1,95 @@
 // @flow
 // Rows for our normal inbox view. A set of small items on top ordered by time, a set of teams/channels ordered by alpha
 // If you have teams and a bunch of small chats we truncate and put a divider in between
+import * as Types from '../../../constants/types/chat2'
+import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
-import {
-  createSelector,
-  createImmutableEqualSelector,
-  type TypedState,
-  createSelectorCreator,
-  defaultMemoize,
-} from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
+import memoize from 'memoize-one'
+import type {RowItem} from '../index.types'
 
-const createShallowEqualSelector = createSelectorCreator(defaultMemoize, shallowEqual)
-
-const getMetaMap = (state: TypedState) => state.chat2.metaMap
 const smallTeamsCollapsedMaxShown = 5
 
-// Since the snippets are back in the meta we want to not have a ton of recalculation as the snippets are updating. especially when you're typing and updating
-// and the order isn't changing
-
-// Get small/adhoc teams
-const getSmallMetas = createSelector([getMetaMap], metaMap =>
-  metaMap.filter((meta, id) => meta.teamType !== 'big' && Constants.isValidConversationIDKey(id))
-)
-
-// Sort by timestamp
-const getSortedSmallIDs = createSelector([getSmallMetas], smallMap =>
-  smallMap
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .keySeq()
-    .toArray()
-)
-
-// Just to reselect cache the sorted values
-const getCachedSortedSmallIDs = createShallowEqualSelector([getSortedSmallIDs], smallMap => smallMap)
-
-// Alphabetical teams / channels
-const getBigMetas = createSelector([getMetaMap], metaMap =>
-  metaMap.filter((meta, id) => meta.teamType === 'big' && Constants.isValidConversationIDKey(id))
-)
-
-const getBigRowItems = createImmutableEqualSelector([getBigMetas], bigMetaMap => {
-  let lastTeam: ?string
-  return (
-    bigMetaMap
-      // alpha by team/channel
-      .sort(
-        (a, b) =>
-          a.teamname === b.teamname
-            ? a.channelname.localeCompare(b.channelname)
-            : a.teamname.localeCompare(b.teamname)
-      )
-      .reduce((arr, meta) => {
-        // headers for new teams
-        if (meta.teamname !== lastTeam) {
-          lastTeam = meta.teamname
-          arr.push({teamname: lastTeam, type: 'bigHeader'})
-        }
-        // channels
-        arr.push({
-          channelname: meta.channelname,
-          conversationIDKey: meta.conversationIDKey,
-          teamname: lastTeam,
-          type: 'big',
-        })
-
-        return arr
-      }, [])
-  )
+// Could make this faster by bookkeeping if this structure changed instead of if any item changed
+const splitMetas = memoize((metaMap: Types.MetaMap) => {
+  const bigMetas = []
+  const smallMetas = []
+  metaMap.forEach((meta, id) => {
+    if (Constants.isValidConversationIDKey(id)) {
+      if (meta.teamType === 'big') {
+        bigMetas.push(meta)
+      } else {
+        smallMetas.push(meta)
+      }
+    }
+  })
+  return {bigMetas, smallMetas}
 })
+
+const smallMetasEqual = (la, lb) => {
+  if (typeof la === 'boolean') return la === lb
+  return (
+    la.length === lb.length &&
+    la.every((a, idx) => {
+      const b = lb[idx]
+      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
+    })
+  )
+}
+const sortByTimestsamp = (a, b) => b.timestamp - a.timestamp
+const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
+  let metas
+  if (showAllSmallRows) {
+    metas = smallMetas.sort(sortByTimestsamp)
+  } else {
+    metas = I.Seq(smallMetas)
+      .partialSort(smallTeamsCollapsedMaxShown, sortByTimestsamp)
+      .toArray()
+  }
+  return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
+}, smallMetasEqual)
+
+const sortByTeamChannel = (a, b) =>
+  a.teamname === b.teamname
+    ? a.channelname.localeCompare(b.channelname)
+    : a.teamname.localeCompare(b.teamname)
+const getBigRows = memoize(bigMetas => {
+  let lastTeam: ?string
+  return bigMetas.sort(sortByTeamChannel).reduce((arr, meta) => {
+    // headers for new teams
+    if (meta.teamname !== lastTeam) {
+      lastTeam = meta.teamname
+      arr.push({teamname: lastTeam, type: 'bigHeader'})
+    }
+    // channels
+    arr.push({
+      channelname: meta.channelname,
+      conversationIDKey: meta.conversationIDKey,
+      teamname: lastTeam,
+      type: 'big',
+    })
+
+    return arr
+  }, [])
+}, shallowEqual)
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = createSelector(
-  [getCachedSortedSmallIDs, getBigRowItems, (_, smallTeamsExpanded) => smallTeamsExpanded],
-  (smallIDs, bigRows, smallTeamsExpanded) => {
-    const smallTeamsBelowTheFold = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
-    const showButton = !!(bigRows.length && smallTeamsBelowTheFold)
-    const truncateSmallTeams = showButton && !smallTeamsExpanded
-    const smallRows = (truncateSmallTeams ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs).map(
-      conversationIDKey => ({conversationIDKey, type: 'small'})
-    )
-    const smallIDsHidden = truncateSmallTeams ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
-    const divider = bigRows.length !== 0 ? [{showButton, type: 'divider'}] : []
+const getRowsAndMetadata = memoize((metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
+  const {bigMetas, smallMetas} = splitMetas(metaMap)
+  const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
+  const smallRows = getSmallRows(smallMetas, showAllSmallRows)
+  const bigRows = getBigRows(bigMetas)
+  const smallTeamsBelowTheFold = smallMetas.length > smallRows.length
+  const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
+  const allowShowFloatingButton = smallRows.length > smallTeamsCollapsedMaxShown && !!bigMetas.length
+  const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
-    return {
-      rows: [...smallRows, ...divider, ...bigRows],
-      showBuildATeam: bigRows.length === 0,
-      showSmallTeamsExpandDivider: showButton,
-      smallIDsHidden,
-      smallTeamsExpanded: smallTeamsExpanded && showButton, // only collapse if we're actually showing a divider,
-    }
+  return {
+    allowShowFloatingButton,
+    rows,
+    smallTeamsExpanded: showAllSmallRows, // only collapse if we're actually showing a divider,
   }
-)
+})
+
 export default getRowsAndMetadata

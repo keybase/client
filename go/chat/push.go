@@ -58,8 +58,8 @@ func (g *gregorMessageOrderer) isUIDKey(key string, uid gregor1.UID) bool {
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
-	ibox := storage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
 	}
@@ -331,8 +331,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		}
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
-		switch typ {
-		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
+		if utils.IsNotifiableChatMessageType(typ, msg.Valid().AtMentions, msg.Valid().ChannelMention) {
 			// Check for generic hit on desktop right off and return true if we hit
 			if conv.Notifications.Settings[apptype][kind] {
 				return true
@@ -349,10 +348,6 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 				notifyFromChanMention = conv.Notifications.ChannelWide
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
-		case chat1.MessageType_ATTACHMENT:
-			return conv.Notifications.Settings[apptype][kind]
-		default:
-			return false
 		}
 	}
 	return false
