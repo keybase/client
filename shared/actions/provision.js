@@ -30,7 +30,7 @@ type ValidCallback =
   | 'keybase.1.secretUi.getPassphrase'
 
 const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: Constants.cancelDesc})
+  response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: Constants.cancelDesc})
 }
 const ignoreCallback = (_: any) => {}
 
