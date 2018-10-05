@@ -437,8 +437,8 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
-  if (!state.wallets.currencies || code === 'XLM') {
-    return code
+  if (!state.wallets.currencies || !code) {
+    return 'XLM'
   }
   const currency = state.wallets.currencies.find(c => c.code === code)
   return currency ? code + ' (' + currency.symbol + ')' : code

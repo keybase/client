@@ -3,7 +3,7 @@ import Available from '.'
 import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  amountErrMsg: state.wallets.buildingPayment.currency !== 'XLM' && state.wallets.builtPayment.amountErrMsg,
+  amountErrMsg: state.wallets.builtPayment.amountErrMsg,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
