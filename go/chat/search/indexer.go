@@ -26,6 +26,9 @@ const MaxContext = 15
 type convIndex map[string]map[chat1.MessageID]bool
 
 func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
+	if set == nil {
+		return nil
+	}
 	msgIDSlice := []chat1.MessageID{}
 	for _, el := range set.ToSlice() {
 		msgID, ok := el.(chat1.MessageID)
@@ -279,12 +282,13 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 // searchHitsFromMsgIDs packages the search hit with context (nearby search
 // messages) and match info (for UI highlighting). Results are ordered desc by
 // msg id.
-func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts, numHits int) (convHits *chat1.ChatConvSearchHit, err error) {
+func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation, uid gregor1.UID,
+	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts, numHits int) (convHits *chat1.ChatInboxSearchHit, err error) {
 	if msgIDs == nil {
 		return nil, nil
 	}
 
+	convID := conv.GetConvID()
 	getUIMsgs := func(msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
 		for i := len(msgs) - 1; i >= 0; i-- {
 			msg := msgs[i]
@@ -304,7 +308,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, convID chat1.Conve
 
 	hits := []chat1.ChatSearchHit{}
 	for i, msg := range msgs {
-		if idSet.Contains(msg.GetMessageID()) && msg.IsValid() && opts.Matches(msg) {
+		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
 			msgText := msg.Valid().MessageBody.Text().Body
 			matches := queryRe.FindAllString(msgText, -1)
 			if matches != nil {
@@ -339,16 +343,17 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, convID chat1.Conve
 	if len(hits) == 0 {
 		return nil, nil
 	}
-	return &chat1.ChatConvSearchHit{
-		ConvID: convID,
-		Hits:   hits,
+	return &chat1.ChatInboxSearchHit{
+		ConvID:   convID,
+		ConvName: conv.GetName(),
+		Hits:     hits,
 	}, nil
 }
 
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning (convID,msgID) pairs with match information.
 func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
-	opts chat1.SearchOpts) (hits []chat1.ChatConvSearchHit, err error) {
+	opts chat1.SearchOpts, uiCh chan chat1.ChatInboxSearchHit) (hits []chat1.ChatInboxSearchHit, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	idx.Lock()
 	defer idx.Unlock()
@@ -388,17 +393,25 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 		if err != nil {
 			return nil, err
 		}
-		convHits, err := idx.searchHitsFromMsgIDs(ctx, convID, uid, msgIDs, queryRe, opts, numHits)
+		convHits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts, numHits)
 		if err != nil {
 			return nil, err
 		} else if convHits == nil {
 			continue
+		}
+		if uiCh != nil {
+			// Stream search hits back to the UI
+			// channel
+			uiCh <- *convHits
 		}
 		hits = append(hits, *convHits)
 		numHits += len(convHits.Hits)
 		if numHits >= opts.MaxHits {
 			break
 		}
+	}
+	if uiCh != nil {
+		close(uiCh)
 	}
 	return hits, nil
 }
