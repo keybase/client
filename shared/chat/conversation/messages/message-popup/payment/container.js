@@ -84,7 +84,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
-    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta)}${paymentInfo.amountDescription}`,
+    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',

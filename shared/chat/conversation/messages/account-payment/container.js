@@ -35,9 +35,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       return {
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta)}${
+        balanceChange: `${WalletConstants.balanceChangeSign(
+          paymentInfo.delta,
           paymentInfo.amountDescription
-        }`,
+        )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         icon: 'iconfont-stellar-send',
         loading: false,

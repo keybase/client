@@ -446,12 +446,12 @@ const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimpl
   return balanceChangeColor
 }
 
-const balanceChangeSign = (delta: Types.PaymentDelta) => {
+const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
   let sign = ''
   if (delta !== 'none') {
     sign = delta === 'increase' ? '+' : '-'
   }
-  return sign
+  return sign + balanceChange
 }
 
 export {
