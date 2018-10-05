@@ -21,7 +21,7 @@ type Props = {
   children?: React.Node,
   className?: string,
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip', // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied
-  lineClamp?: number,
+  lineClamp?: ?number,
   onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
   onClickURL?: ?string,
   onLongPress?: () => void,
