@@ -1,19 +1,25 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 
 import Wallet from '.'
 
-const mapStateToProps = (state: TypedState) => ({
-  accountID: Constants.getSelectedAccount(state),
-  assets: Constants.getAssets(state),
-  payments: Constants.getPayments(state),
-})
+const mapStateToProps = (state: TypedState) => {
+  const accountID = Constants.getSelectedAccount(state)
+  return {
+    accountID,
+    assets: Constants.getAssets(state),
+    payments: Constants.getPayments(state),
+    loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
+  }
+}
 
 const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
   navigateUp,
+  _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -64,8 +70,10 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     accountID: stateProps.accountID,
+    loadingMore: stateProps.loadingMore,
     navigateAppend: dispatchProps.navigateAppend,
     navigateUp: dispatchProps.navigateUp,
+    onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
     sections,
   }
 }
