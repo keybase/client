@@ -18,23 +18,18 @@ import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
 
-function showShareActionSheet(options: {
-  url?: ?any,
-  message?: ?any,
-}): Promise<{completed: boolean, method: string}> {
+export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
+  throw new Error('Show Share Action - unsupported on this platform')
+}
+export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 
-function downloadAndShowShareActionSheet(fileURL: string) {
-  throw new Error('Download and show share action - unsupported on this platform')
-}
-
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<void> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
@@ -44,7 +39,7 @@ const showMainWindow = () => {
   showDockIcon()
 }
 
-function displayNewMessageNotification(
+export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
@@ -54,22 +49,25 @@ function displayNewMessageNotification(
   throw new Error('Display new message notification not available on this platform')
 }
 
-function clearAllNotifications() {
+export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
   const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
   req.on('response', response => {
     let contentType = ''
+    let disposition = ''
     if (response.statusCode === 200) {
       const contentTypeHeader = response.headers['content-type']
       contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+      const dispositionHeader = response.headers['content-disposition']
+      disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType})
+    cb({statusCode: response.statusCode, contentType, disposition})
   })
   req.on('error', error => cb({error}))
   req.end()
@@ -212,6 +210,9 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
+      // This is from the API server. Consider notifications from API server
+      // always critical.
+      return Saga.put(ConfigGen.createOutOfDate({critical: true, message: upgradeMsg}))
     },
   })
 }
@@ -242,14 +243,39 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+const startOutOfDateCheckLoop = () =>
+  Saga.call(function*() {
+    while (1) {
+      try {
+        const {status, message} = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
+        if (status !== RPCTypes.configUpdateInfoStatus.upToDate) {
+          yield Saga.put(
+            ConfigGen.createOutOfDate({
+              critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+              message,
+            })
+          )
+        }
+        yield Saga.delay(3600 * 1000) // 1 hr
+      } catch (err) {
+        logger.warn('error getting update info: ', err)
+        yield Saga.delay(60 * 1000) // 1 min
+      }
+    }
+  })
+
+const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
+
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
   yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, startOutOfDateCheckLoop)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 
@@ -259,15 +285,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 
   // Start this immediately
   yield Saga.fork(loadStartupDetails)
-}
-
-export {
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  showShareActionSheet,
-  downloadAndShowShareActionSheet,
-  displayNewMessageNotification,
-  clearAllNotifications,
-  getContentTypeFromURL,
-  platformConfigSaga,
 }

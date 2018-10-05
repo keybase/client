@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -42,6 +43,13 @@ type FastTeamChainLoader struct {
 	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
 	featureFlagGate *libkb.FeatureFlagGate
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 const FTLVersion = 1
@@ -506,7 +514,7 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 // computeWithPreviousState looks into the given load arg, and also our current cached state, to figure
 // what to get from the server. The results are compiled into a "shopping list" that we'll later
 // use when we concoct our server request.
-func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) {
+func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) {
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
 	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
@@ -519,6 +527,10 @@ func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoa
 	}
 	if arg.ForceRefresh {
 		m.CDebugf("refresh forced via flag")
+		s.needRefresh = true
+	}
+	if !s.needRefresh && f.InForceRepollMode(m) {
+		m.CDebugf("must repoll since in force mode")
 		s.needRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
@@ -1146,7 +1158,7 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 	var shoppingList shoppingList
 	if state != nil {
-		shoppingList.computeWithPreviousState(m, arg, state)
+		f.computeWithPreviousState(m, &shoppingList, arg, state)
 		if shoppingList.isEmpty() {
 			return f.toResult(m, arg, state)
 		}
@@ -1214,4 +1226,26 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 	}
 
 	return nil
+}
+
+func (f *FastTeamChainLoader) ForceRepollUntil(m libkb.MetaContext, dtime gregor.TimeOrOffset) error {
+	m.CDebugf("FastTeamChainLoader#ForceRepollUntil(%+v)", dtime)
+	f.forceRepollMutex.Lock()
+	defer f.forceRepollMutex.Unlock()
+	f.forceRepollUntil = dtime
+	return nil
+}
+
+func (f *FastTeamChainLoader) InForceRepollMode(m libkb.MetaContext) bool {
+	f.forceRepollMutex.Lock()
+	defer f.forceRepollMutex.Unlock()
+	if f.forceRepollUntil == nil {
+		return false
+	}
+	if !f.forceRepollUntil.Before(m.G().Clock().Now()) {
+		m.CDebugf("FastTeamChainLoader#InForceRepollMode: returning true")
+		return true
+	}
+	f.forceRepollUntil = nil
+	return false
 }

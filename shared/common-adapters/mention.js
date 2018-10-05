@@ -31,7 +31,7 @@ const styles = Styles.styleSheetCreate({
   follow: {
     backgroundColor: Styles.globalColors.green3,
     borderRadius: 2,
-    color: Styles.globalColors.green2,
+    color: Styles.globalColors.green,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellow,

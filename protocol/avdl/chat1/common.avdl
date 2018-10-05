@@ -524,11 +524,14 @@
     FIXRETRY_4,
     PREPARE_5,
     SEARCHER_6,
-    INDEXED_SEARCH_7
+    INDEXED_SEARCH_7,
+    KBFSFILEACTIVITY_8
   }
 
   record SearchOpts {
     string sentBy;
+    gregor1.Time sentBefore;
+    gregor1.Time sentAfter;
     int maxHits;
     int maxMessages;
     int beforeContext;

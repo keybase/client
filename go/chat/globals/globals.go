@@ -12,6 +12,7 @@ type ChatContext struct {
 	MessageDeliverer    types.MessageDeliverer    // background message delivery service
 	ServerCacheVersions types.ServerCacheVersions // server side versions for chat caches
 	Searcher            types.Searcher            // For searching chat messages
+	Indexer             types.Indexer             // For searching chat messages in the entire inbox
 	Syncer              types.Syncer              // For syncing inbox with server
 	FetchRetrier        types.FetchRetrier        // For retrying failed fetch requests
 	ConvLoader          types.ConvLoader          // background conversation loader

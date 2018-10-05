@@ -133,7 +133,7 @@ const styles = Style.styleSheetCreate({
       ...Style.globalStyles.flexBoxRow,
       alignItems: 'center',
       borderColor: Style.globalColors.lightGrey2,
-      borderRadius: 100,
+      borderRadius: Style.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
       minWidth: 220,

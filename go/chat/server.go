@@ -2117,10 +2117,10 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
@@ -2146,7 +2146,8 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 
@@ -2174,7 +2175,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.Opts)
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
 	if err != nil {
 		return res, err
 	}
@@ -2188,6 +2189,70 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
 	}, nil
+}
+
+func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res chat1.InboxSearchRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "InboxSearch")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	chatUI := h.getChatUI(arg.SessionID)
+	uiCh := make(chan chat1.ChatInboxSearchHit)
+	ch := make(chan struct{})
+	numHits := 0
+	go func() {
+		for searchHit := range uiCh {
+			numHits += len(searchHit.Hits)
+			chatUI.ChatInboxSearchHit(ctx, chat1.ChatInboxSearchHitArg{
+				SessionID: arg.SessionID,
+				SearchHit: searchHit,
+			})
+		}
+		close(ch)
+	}()
+
+	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
+	if err != nil {
+		return res, err
+	}
+	<-ch
+	chatUI.ChatInboxSearchDone(ctx, chat1.ChatInboxSearchDoneArg{
+		SessionID: arg.SessionID,
+		NumHits:   numHits,
+		NumConvs:  len(hits),
+	})
+	return chat1.InboxSearchRes{
+		Hits:             hits,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchArg) (res map[string]chat1.IndexSearchConvStats, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "IndexSearch")()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if arg.ConvID == nil {
+		res, err = h.G().Indexer.IndexInbox(ctx, uid)
+	} else {
+		convStats, err := h.G().Indexer.IndexConv(ctx, uid, *arg.ConvID)
+		if err != nil {
+			return nil, err
+		}
+		res = map[string]chat1.IndexSearchConvStats{
+			arg.ConvID.String(): convStats,
+		}
+	}
+	return res, err
 }
 
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {

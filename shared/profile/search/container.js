@@ -14,4 +14,8 @@ const mapDispatchToProps = (dispatch, {navigateUp}: RouteProps<{}, {}>) => ({
   },
 })
 
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Search)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Search)

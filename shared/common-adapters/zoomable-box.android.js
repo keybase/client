@@ -203,14 +203,14 @@ class ZoomableBox extends React.Component<Props, State> {
   panX = () =>
     clamp(
       this.state.pan.x + this.state.panOffset.x,
-      (1 - this.scale()) * this.state.layoutWidth / 2,
-      (this.scale() - 1) * this.state.layoutWidth / 2
+      ((1 - this.scale()) * this.state.layoutWidth) / 2,
+      ((this.scale() - 1) * this.state.layoutWidth) / 2
     )
   panY = () =>
     clamp(
       this.state.pan.y + this.state.panOffset.y,
-      (1 - this.scale()) * this.state.layoutHeight / 2,
-      (this.scale() - 1) * this.state.layoutHeight / 2
+      ((1 - this.scale()) * this.state.layoutHeight) / 2,
+      ((this.scale() - 1) * this.state.layoutHeight) / 2
     )
 
   render() {

@@ -238,6 +238,32 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
+type HighSkip struct {
+	Seqno keybase1.Seqno
+	Hash  LinkID
+}
+
+func NewHighSkip(highSkipSeqno keybase1.Seqno, highSkipHash LinkID) HighSkip {
+	return HighSkip{
+		Seqno: highSkipSeqno,
+		Hash:  highSkipHash,
+	}
+}
+
+func NewInitialHighSkip() HighSkip {
+	return NewHighSkip(keybase1.Seqno(0), nil)
+}
+
+func (h HighSkip) AssertEqualsExpected(expected HighSkip) error {
+	if expected.Seqno != h.Seqno {
+		return fmt.Errorf("Expected highSkip.Seqno %d, got %d.", expected.Seqno, h.Seqno)
+	}
+	if !expected.Hash.Eq(h.Hash) {
+		return fmt.Errorf("Expected highSkip.Hash %s, got %s.", expected.Hash.String(), h.Hash.String())
+	}
+	return nil
+}
+
 type ProofMetadata struct {
 	Me                  *User
 	SigningUser         UserBasic
@@ -253,6 +279,9 @@ type ProofMetadata struct {
 	SeqType             keybase1.SeqType
 	MerkleRoot          *MerkleRoot
 	IgnoreIfUnsupported SigIgnoreIfUnsupported
+	// HighSkipFallback is used for teams to provide for a KEX-provisisonee to
+	// provide the provisioner's information as the latest high link.
+	HighSkipFallback *HighSkip
 }
 
 func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
@@ -315,10 +344,36 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
+	var highSkip *HighSkip
+	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
+	if allowHighSkips {
+		if (arg.Me != nil) && (arg.HighSkipFallback != nil) {
+			return nil, fmt.Errorf("arg.Me and arg.HighSkipFallback can't both be non-nil.")
+		} else if arg.Me != nil {
+			highSkipPre, err := arg.Me.GetExpectedNextHighSkip(m)
+			if err != nil {
+				return nil, err
+			}
+			highSkip = &highSkipPre
+		} else if arg.HighSkipFallback != nil {
+			highSkip = arg.HighSkipFallback
+		}
+
+		if highSkip != nil {
+			highSkipObj := jsonw.NewDictionary()
+			highSkipObj.SetKey("seqno", jsonw.NewInt64(int64(highSkip.Seqno)))
+			if hash := highSkip.Hash; hash != nil {
+				highSkipObj.SetKey("hash", jsonw.NewString(hash.String()))
+			} else {
+				highSkipObj.SetKey("hash", jsonw.NewNil())
+			}
+			ret.SetKey("high_skip", highSkipObj)
+		}
+	}
+
 	if arg.IgnoreIfUnsupported {
 		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
 	}
-
 	eldest := arg.Eldest
 	if eldest == "" {
 		eldest = arg.Me.GetEldestKID()
@@ -416,18 +471,27 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		}
 	}
 
+	// Only set the fallback for subkeys during KEX where arg.Me == nil; it is
+	// otherwise updated using me.SigChainBump().
+	var highSkipFallback *HighSkip
+	if arg.Me == nil && arg.DelegationType == DelegationTypeSubkey {
+		highSkip := NewHighSkip(arg.Seqno-1, arg.PrevLinkID)
+		highSkipFallback = &highSkip
+	}
+
 	ret, err = ProofMetadata{
-		Me:             arg.Me,
-		SigningUser:    arg.SigningUser,
-		LinkType:       LinkType(arg.DelegationType),
-		ExpireIn:       arg.Expire,
-		SigningKey:     arg.GetSigningKey(),
-		Eldest:         arg.EldestKID,
-		CreationTime:   arg.Ctime,
-		IncludePGPHash: includePGPHash,
-		Seqno:          arg.Seqno,
-		PrevLinkID:     arg.PrevLinkID,
-		MerkleRoot:     arg.MerkleRoot,
+		Me:               arg.Me,
+		SigningUser:      arg.SigningUser,
+		LinkType:         LinkType(arg.DelegationType),
+		ExpireIn:         arg.Expire,
+		SigningKey:       arg.GetSigningKey(),
+		Eldest:           arg.EldestKID,
+		CreationTime:     arg.Ctime,
+		IncludePGPHash:   includePGPHash,
+		Seqno:            arg.Seqno,
+		HighSkipFallback: highSkipFallback,
+		PrevLinkID:       arg.PrevLinkID,
+		MerkleRoot:       arg.MerkleRoot,
 	}.ToJSON(m)
 
 	if err != nil {
@@ -491,6 +555,7 @@ func GetDefaultSigVersion(g *GlobalContext) SigVersion {
 }
 
 func MakeSig(
+	m MetaContext,
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	innerLinkJSON []byte,
@@ -506,7 +571,12 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
+		highSkip, highSkipErr := me.GetExpectedNextHighSkip(m)
+		if highSkipErr != nil {
+			return sig, sigID, linkID, highSkipErr
+		}
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
+			m,
 			signingKey,
 			v1LinkType,
 			prevSeqno+1,
@@ -515,6 +585,7 @@ func MakeSig(
 			hasRevokes,
 			seqType,
 			ignoreIfUnsupported,
+			&highSkip,
 		)
 	default:
 		err = errors.New("Invalid Signature Version")
@@ -720,7 +791,7 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID)
+	me.SigChainBump(linkID, sigID, false)
 	me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:         int(generation),
 		Seqno:       me.GetSigChainLastKnownSeqno(),
@@ -815,6 +886,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 		return nil, err
 	}
 	sig, sigID, linkID, err := MakeSig(
+		m,
 		signer,
 		LinkTypeWalletStellar,
 		innerJSON,
@@ -829,7 +901,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID)
+	me.SigChainBump(linkID, sigID, false)
 	// TODO: do we need to locally do something like me.localDelegatePerUserKey?
 
 	res := make(JSONPayload)

@@ -6,6 +6,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -90,8 +91,35 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		sort.Slice(eldestSeqnos, func(i, j int) bool {
 			return eldestSeqnos[i] < eldestSeqnos[j]
 		})
-		log("%v", eldestSeqnos)
-		return "", nil
+		obj := struct {
+			Seqnos []keybase1.Seqno `json:"seqnos"`
+		}{eldestSeqnos}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "userhigh":
+		// List user high links
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 arg: username")
+		}
+		user, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
+		if err != nil {
+			return "", err
+		}
+		hls, err := user.GetHighLinkSeqnos(m)
+		if err != nil {
+			return "", err
+		}
+		obj := struct {
+			Seqnos []keybase1.Seqno `json:"seqnos"`
+		}{hls}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

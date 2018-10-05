@@ -33,6 +33,10 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
   }: DownloadProps)
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedDownload')
 )(Download)

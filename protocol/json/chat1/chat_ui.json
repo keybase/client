@@ -450,6 +450,13 @@
       "name": "UIPaymentInfo",
       "fields": [
         {
+          "type": [
+            null,
+            "stellar1.AccountID"
+          ],
+          "name": "accountID"
+        },
+        {
           "type": "string",
           "name": "amountDescription"
         },
@@ -464,6 +471,10 @@
         {
           "type": "string",
           "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
         },
         {
           "type": "stellar1.PaymentStatus",
@@ -767,11 +778,15 @@
     },
     {
       "type": "record",
-      "name": "ChatConvSearchHit",
+      "name": "ChatInboxSearchHit",
       "fields": [
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "convName"
         },
         {
           "type": {
@@ -915,6 +930,36 @@
         },
         {
           "name": "numHits",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxSearchHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatInboxSearchHit"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxSearchDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "numHits",
+          "type": "int"
+        },
+        {
+          "name": "numConvs",
           "type": "int"
         }
       ],

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -693,18 +694,39 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		opts.MaxMessages = 10000
 	}
 
+	searchOpts := chat1.SearchOpts{
+		SentBy:        opts.SentBy,
+		MaxHits:       opts.MaxHits,
+		MaxMessages:   opts.MaxMessages,
+		BeforeContext: opts.BeforeContext,
+		AfterContext:  opts.AfterContext,
+	}
+
+	if opts.SentBefore != "" && opts.SentAfter != "" {
+		err := fmt.Errorf("Only one of `sent_before` and `sent_after` can be specified")
+		return c.errReply(err)
+	}
+	if opts.SentBefore != "" {
+		sentBefore, err := dateparse.ParseAny(opts.SentBefore)
+		if err != nil {
+			return c.errReply(err)
+		}
+		searchOpts.SentBefore = gregor1.ToTime(sentBefore)
+	}
+	if opts.SentAfter != "" {
+		sentAfter, err := dateparse.ParseAny(opts.SentAfter)
+		if err != nil {
+			return c.errReply(err)
+		}
+		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
+	}
+
 	arg := chat1.GetSearchRegexpArg{
-		ConversationID:   convID,
+		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
 		IsRegex:          opts.IsRegex,
-		Opts: chat1.SearchOpts{
-			SentBy:        opts.SentBy,
-			MaxHits:       opts.MaxHits,
-			MaxMessages:   opts.MaxMessages,
-			BeforeContext: opts.BeforeContext,
-			AfterContext:  opts.AfterContext,
-		},
+		Opts:             searchOpts,
 	}
 
 	res, err := client.GetSearchRegexp(ctx, arg)

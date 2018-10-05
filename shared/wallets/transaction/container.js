@@ -2,26 +2,23 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
-  status: Types.StatusSimplified,
+  paymentID: Types.PaymentID,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  _transaction:
-    ownProps.status === 'pending'
-      ? Constants.getPendingPayment(state, ownProps.accountID, ownProps.paymentID)
-      : Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([
@@ -43,8 +40,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     amountXLM: tx.amountDescription,
     large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
     memo: tx.note.stringValue(),
-    // TODO -- waiting on CORE integration for these two
-    onCancelPayment: undefined,
+    onCancelPayment:
+      tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    // TODO -- waiting on CORE integration for this
     onRetryPayment: undefined,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
@@ -56,4 +55,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Transaction)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Transaction)

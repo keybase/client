@@ -2,10 +2,11 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
+import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
+import {MarkdownMemo} from '../common'
 
 type CounterpartyIconProps = {|
   large: boolean,
@@ -28,7 +29,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
-      return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
+      return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -247,7 +248,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampLineProps = {|
   error: string,
-  status: Types.StatusSimplified,
+  status?: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
@@ -268,6 +269,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
+      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
     </Text>
   )
 }
@@ -281,7 +283,8 @@ export type Props = {|
   // Ignored if yourRole is receiverOnly and counterpartyType is
   // stellarPublicKey.
   memo: string,
-  onCancelPayment?: () => void,
+  onCancelPayment: ?() => void,
+  onCancelPaymentWaitingKey: string,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
@@ -298,16 +301,13 @@ export const Transaction = (props: Props) => {
   const showMemo =
     props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   return (
-    <Box2 direction="vertical" fullWidth={true}>
+    <Box2
+      direction="vertical"
+      fullWidth={true}
+      style={{backgroundColor: pending ? globalColors.blue4 : globalColors.white}}
+    >
       <ClickableBox onClick={props.onSelectTransaction}>
-        <Box2
-          direction="horizontal"
-          fullWidth={true}
-          style={collapseStyles([
-            styles.container,
-            {backgroundColor: pending ? globalColors.blue4 : globalColors.white},
-          ])}
-        >
+        <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
@@ -316,7 +316,7 @@ export const Transaction = (props: Props) => {
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
-              error={props.statusDetail}
+              error={props.status === 'error' ? props.statusDetail : ''}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
@@ -332,25 +332,29 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {// TODO: Consolidate memo display code below with
-            // chat/conversation/messages/wallet-payment/index.js.
-            showMemo && (
-              <Box2
-                direction="horizontal"
-                gap="small"
-                fullWidth={true}
-                style={{marginTop: globalMargins.xtiny}}
-              >
-                <Divider vertical={true} style={styles.quoteMarker} />
-                <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-              </Box2>
-            )}
-            <AmountXLM
-              selectableText={props.selectableText}
-              pending={pending}
-              yourRole={props.yourRole}
-              amountXLM={props.amountXLM}
-            />
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            <Box2 direction="horizontal" fullWidth={true}>
+              {props.onCancelPayment && (
+                <WaitingButton
+                  type="Danger"
+                  label="Cancel"
+                  small={true}
+                  style={styles.cancelButton}
+                  onClick={evt => {
+                    evt.stopPropagation()
+                    props.onCancelPayment && props.onCancelPayment()
+                  }}
+                  waitingKey={props.onCancelPaymentWaitingKey}
+                />
+              )}
+              <Box2 direction="horizontal" style={{flex: 1}} />
+              <AmountXLM
+                selectableText={props.selectableText}
+                pending={pending}
+                yourRole={props.yourRole}
+                amountXLM={props.amountXLM}
+              />
+            </Box2>
           </Box2>
         </Box2>
       </ClickableBox>
@@ -359,12 +363,18 @@ export const Transaction = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  cancelButton: {
+    alignSelf: 'flex-start',
+    marginTop: globalMargins.tiny,
+  },
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  marginTopXTiny: {
+    marginTop: globalMargins.xtiny,
+  },
   pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
-  quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

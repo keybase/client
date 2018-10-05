@@ -53,6 +53,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  InviteByEmailDesktop
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(InviteByEmailDesktop)

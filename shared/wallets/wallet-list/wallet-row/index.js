@@ -45,13 +45,10 @@ const styles = Styles.styleSheetCreate({
 
   amount: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
-    fontSize: 11,
   },
   amountSelected: {
     ...rightColumnStyle,
     color: Styles.globalColors.white,
-    fontSize: 11,
   },
 })
 
@@ -67,13 +64,13 @@ const WalletRow = (props: Props) => {
       <HoverBox
         style={Styles.collapseStyles([
           styles.containerBox,
-          props.isSelected ? {backgroundColor: Styles.globalColors.blue} : {},
+          props.isSelected ? {backgroundColor: Styles.globalColors.purple3} : {},
         ])}
         direction="horizontal"
         fullWidth={true}
       >
         <Kb.Icon
-          type="icon-wallet-64"
+          type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
           color={Styles.globalColors.black_75}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
@@ -95,6 +92,7 @@ const WalletRow = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       </HoverBox>
+      <Kb.Divider />
     </Kb.ClickableBox>
   )
 }

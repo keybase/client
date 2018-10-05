@@ -905,8 +905,29 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex,
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record InboxSearchRes {
+    array<ChatInboxSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  InboxSearchRes inboxSearch(int sessionID, string query,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record IndexSearchConvStats {
+    // number of messages in the conversation that were indexed (type TEXT)
+    int numMessages;
+    // number of bytes in the final index
+    int indexSize;
+    // total time to index the conv
+    gregor1.DurationMsec durationMsec;
+  }
+
+  // ConversationID -> IndexSearchConvStats
+  map<string, IndexSearchConvStats> indexChatSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();

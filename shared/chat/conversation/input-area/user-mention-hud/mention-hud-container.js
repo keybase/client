@@ -82,7 +82,11 @@ class AutoLoadMentionHud extends React.Component<MentionHudProps> {
 }
 // TODO fix up the typing of this component
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   // $FlowIssue hud uses a ton of not safe recompose stuff
   setDisplayName('UserMentionHud')
 )(AutoLoadMentionHud)

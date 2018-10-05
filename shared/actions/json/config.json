@@ -7,7 +7,8 @@
   ],
   "actions": {
     "setupEngineListeners": {
-      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
+      "_description":
+        "when sagas should start creating their incoming handlers / onConnect handlers"
     },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
@@ -16,17 +17,19 @@
       "_description": "internal to config. should restart the handshake process"
     },
     "daemonHandshake": {
-      "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
+      "_description":
+        "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
-      "version": "number",
+      "version": "number"
     },
     "daemonHandshakeWait": {
-      "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
+      "_description":
+        "subsystems that need to do things during boot need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
       "increment": "boolean",
       "failedReason?": "?string",
-      "failedFatal?": "true",
+      "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
@@ -35,30 +38,32 @@
       "_description": "someone wants to log out"
     },
     "logoutHandshake": {
-      "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
-      "version": "number",
+      "_description":
+        "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
+      "version": "number"
     },
     "logoutHandshakeWait": {
-      "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
+      "_description":
+        "subsystems that need to do things during logout need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
-      "increment": "boolean",
+      "increment": "boolean"
     },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
-    "dumpLogs": { "reason": ["'quitting through menu'"] },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },
-    "changedFocus": { "appFocused": "boolean" },
-    "changedActive": { "userActive": "boolean" },
-    "link": { "link": "string" },
-    "mobileAppState": { "nextAppState": ["'active'", "'background'", "'inactive'"] },
+    "changedFocus": {"appFocused": "boolean"},
+    "changedActive": {"userActive": "boolean"},
+    "link": {"link": "string"},
+    "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "loadAvatars": { "usernames": "Array<string>" },
-    "loadedAvatars": { "avatars": "I.Map<string, I.Map<number, string>>" },
-    "loadTeamAvatars": { "teamnames": "Array<string>" },
+    "loadAvatars": {"usernames": "Array<string>"},
+    "loadedAvatars": {"avatars": "I.Map<string, I.Map<number, string>>"},
+    "loadTeamAvatars": {"teamnames": "Array<string>"},
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
@@ -69,23 +74,23 @@
       "uid": "string",
       "username": "string"
     },
-    "daemonError": { "daemonError": "?Error" },
+    "daemonError": {"daemonError": "?Error"},
     "setAccounts": {
       "defaultUsername": "string",
       "usernames": "Array<string>"
     },
-    "globalError": { "globalError": "null | Error | RPCError" },
+    "globalError": {"globalError": "null | Error | RPCError"},
     "updateFollowing": {
       "username": "string",
       "isTracking": "boolean"
     },
-    "pushLoaded": { "pushLoaded": "boolean" },
+    "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
       "startupConversation": "?ChatTypes.ConversationIDKey",
       "startupLink": "string",
       "startupTab": "?Tabs.Tab",
-      "startupFollowUser": "string",
+      "startupFollowUser": "string"
     },
     "setOpenAtLogin": {
       "open": "boolean",
@@ -95,12 +100,14 @@
       "sound": "boolean",
       "writeFile": "boolean"
     },
-    "debugDump": { "items": "Array<string>" },
-    "setDeletedSelf": { "deletedUsername": "string" },
+    "debugDump": {"items": "Array<string>"},
+    "setDeletedSelf": {"deletedUsername": "string"},
     "loggedOut": {},
-    "loggedIn": { "causedByStartup": "boolean" },
-    "updateMenubarWindowID": { "id": "number" },
+    "loggedIn": {"causedByStartup": "boolean"},
+    "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "_avatarQueue": {},
+    "outOfDate": {"critical": "boolean", "message?": "string"},
+    "updateNow": {}
   }
 }

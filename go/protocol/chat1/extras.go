@@ -1394,6 +1394,14 @@ func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *InboxSearchRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *InboxSearchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *GetInboxRemoteRes) GetRateLimit() (res []RateLimit) {
 	if r.RateLimit != nil {
 		res = []RateLimit{*r.RateLimit}
@@ -1601,4 +1609,36 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 
 func (s *ConversationSettings) IsNil() bool {
 	return s == nil || s.MinWriterRoleInfo == nil
+}
+
+type MsgMetadata interface {
+	GetSenderUsername() string
+	GetCtime() gregor1.Time
+}
+
+func (m MessageUnboxed) GetSenderUsername() string {
+	if !m.IsValid() {
+		return ""
+	}
+	return m.Valid().SenderUsername
+}
+
+func (m MessageUnboxed) GetCtime() gregor1.Time {
+	if !m.IsValid() {
+		return 0
+	}
+	return m.Valid().ServerHeader.Ctime
+}
+
+func (o SearchOpts) Matches(msgMetadata MsgMetadata) bool {
+	if o.SentBy != "" && msgMetadata.GetSenderUsername() != o.SentBy {
+		return false
+	}
+	if o.SentAfter != 0 && msgMetadata.GetCtime() < o.SentAfter {
+		return false
+	}
+	if o.SentBefore != 0 && msgMetadata.GetCtime() > o.SentBefore {
+		return false
+	}
+	return true
 }

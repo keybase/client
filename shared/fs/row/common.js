@@ -73,8 +73,8 @@ const pathItemActionIcon = {
 
 const badgeContainer = {
   position: 'absolute',
-  left: Styles.isMobile ? -24 : 24,
-  top: Styles.isMobile ? -20 : -1,
+  left: Styles.isMobile ? -28 : 24,
+  top: Styles.isMobile ? -4 : -1,
   zIndex: 200,
 }
 

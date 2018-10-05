@@ -1,9 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
-import Participants, {type Account} from '.'
+import {
+  type Account,
+  ParticipantsKeybaseUser,
+  ParticipantsStellarPublicKey,
+  ParticipantsOtherAccount,
+} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
 import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
@@ -76,6 +80,7 @@ const primaryAccount: Account = {
   name: 'Primary Account',
   contents: '2000 XLM',
   id: stringToAccountID('fakeaccountID'),
+  isDefault: true,
 }
 
 const accounts = [
@@ -84,16 +89,30 @@ const accounts = [
     name: 'Secondary Account',
     contents: '6435 XLM',
     id: stringToAccountID('fakeaccountID2'),
+    isDefault: false,
   },
   {
     name: 'third Account',
     contents: '10 XLM',
     id: stringToAccountID('fakeaccountID3'),
+    isDefault: false,
   },
 ]
 
-const defaultProps = {
-  // Account -> Account transactions
+const keybaseUserProps = {
+  recipientUsername: '',
+  onShowProfile: Sb.action('onShowProfile'),
+  onShowSuggestions: Sb.action('onShowSuggestions'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+}
+
+const stellarPublicKeyProps = {
+  recipientPublicKey: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+}
+
+const otherAccountProps = {
   user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
@@ -101,29 +120,19 @@ const defaultProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
-  onShowProfile: Sb.action('onShowProfile'),
-  onShowSuggestions: Sb.action('onShowSuggestions'),
-  toFieldInput: '',
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
-    .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
-    .add('To other account (multiple accounts)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} />
-    ))
-    .add('To other account (one account)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} allAccounts={accounts.slice(0, 1)} />
-    ))
-    .add('To stellar address', () => <Participants {...defaultProps} recipientType="stellarPublicKey" />)
+    .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
-      <Participants
-        {...defaultProps}
-        incorrect="Stellar address incorrect"
-        recipientType="stellarPublicKey"
-      />
+      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
+    ))
+    .add('To other account (multiple accounts)', () => <ParticipantsOtherAccount {...otherAccountProps} />)
+    .add('To other account (one account)', () => (
+      <ParticipantsOtherAccount {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
     ))
 }
 
