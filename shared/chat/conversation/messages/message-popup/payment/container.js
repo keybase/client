@@ -81,15 +81,11 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     }
   }
   const {_you: you} = stateProps
-  let sign = ''
-  if (paymentInfo.delta !== 'none') {
-    sign = paymentInfo.delta === 'increase' ? '+' : '-'
-  }
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
-    balanceChange: `${sign}${paymentInfo.amountDescription}`,
-    balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
+    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta)}${paymentInfo.amountDescription}`,
+    balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
