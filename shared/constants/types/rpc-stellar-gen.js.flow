@@ -195,7 +195,7 @@ export type AccountMode =
   | 1 // USER_1
 
 export type AccountReserve = $ReadOnly<{amount: String, description: String}>
-export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>
+export type Asset = $ReadOnly<{type: String, code: String, issuer: String, verifiedDomain: String, issuerName: String}>
 export type AutoClaim = $ReadOnly<{kbTxID: KeybaseTransactionID}>
 export type Balance = $ReadOnly<{asset: Asset, amount: String, limit: String}>
 export type BalanceDelta =

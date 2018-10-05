@@ -71,6 +71,14 @@
         {
           "type": "string",
           "name": "issuer"
+        },
+        {
+          "type": "string",
+          "name": "verifiedDomain"
+        },
+        {
+          "type": "string",
+          "name": "issuerName"
         }
       ]
     },
