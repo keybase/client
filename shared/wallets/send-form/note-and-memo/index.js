@@ -72,7 +72,9 @@ class NoteAndMemo extends React.Component<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.PlainInput
               multiline={true}
-              placeholder={this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'}
+              placeholder={`${
+                this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'
+              } (in Keybase)`}
               placeholderColor={placeholderColor}
               rowsMin={Styles.isMobile ? 2 : 3}
               rowsMax={8}
@@ -131,7 +133,7 @@ class NoteAndMemo extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.PlainInput
             multiline={true}
-            placeholder="Add a public memo"
+            placeholder="Add a public memo (on Stellar)"
             placeholderColor={placeholderColor}
             style={styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}

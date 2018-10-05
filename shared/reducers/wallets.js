@@ -34,10 +34,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.paymentsReceived:
       return state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-          Constants.updatePaymentMap(paymentsMap, action.payload.payments)
-        )
-        .updateIn(['pendingMap', action.payload.accountID], (pendingMap = I.Map()) =>
-          Constants.updatePaymentMap(pendingMap, action.payload.pending, true)
+          Constants.updatePaymentMap(paymentsMap, [...action.payload.payments, ...action.payload.pending])
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
@@ -66,7 +63,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return newState
         .deleteIn(['paymentCursorMap', state.selectedAccount])
         .deleteIn(['paymentsMap', state.selectedAccount])
-        .deleteIn(['pendingMap', state.selectedAccount])
     }
     case WalletsGen.setBuildingAmount:
       const {amount} = action.payload
@@ -168,6 +164,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:

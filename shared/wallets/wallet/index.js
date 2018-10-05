@@ -40,7 +40,6 @@ class Wallet extends React.Component<Props> {
         <Transaction
           accountID={this.props.accountID}
           paymentID={item.paymentID}
-          status={item.status}
           key={`${this.props.accountID}:${item.paymentID}`}
         />
       )

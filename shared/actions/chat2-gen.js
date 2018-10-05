@@ -101,13 +101,11 @@ export const updateTypers = 'chat2:updateTypers'
 type _AttachmentDownloadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
-  forShare?: boolean,
 |}>
 type _AttachmentDownloadedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
   path?: string,
-  forShare?: boolean,
 |}>
 type _AttachmentLoadingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

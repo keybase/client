@@ -2,9 +2,7 @@
 import {connect, type TypedState} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/wallets'
-import memoize from 'memoize-one'
 
 import Wallet from '.'
 
@@ -14,7 +12,6 @@ const mapStateToProps = (state: TypedState) => {
     accountID,
     assets: Constants.getAssets(state),
     payments: Constants.getPayments(state),
-    pending: Constants.getPendingPayments(state),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
   }
 }
@@ -36,18 +33,38 @@ const mergeProps = (stateProps, dispatchProps) => {
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
   sections.push({data: assets, title: 'Your assets'})
 
-  if (stateProps.pending && stateProps.pending.size > 0) {
+  // split into pending & history
+  let pending
+  let history
+  stateProps.payments &&
+    stateProps.payments.forEach(p => {
+      if (p.statusSimplified === 'completed') {
+        if (!history) {
+          history = []
+        }
+        history.push({paymentID: p.id, timestamp: p.time})
+      } else {
+        if (!pending) {
+          pending = []
+        }
+        pending.push({paymentID: p.id, timestamp: p.time})
+      }
+    })
+  if (!history) {
+    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
+  } else {
+    history = sortAndStripTimestamps(history)
+  }
+
+  if (pending) {
     sections.push({
-      data: stateProps.pending
-        .toList()
-        .map(p => ({paymentID: p.id, status: p.statusSimplified}))
-        .toArray(),
+      data: sortAndStripTimestamps(pending),
       title: 'Pending',
     })
   }
 
   sections.push({
-    data: paymentsFromState(stateProps.payments),
+    data: history,
     title: 'History',
   })
 
@@ -61,18 +78,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const paymentsFromState = memoize((paymentsMap: ?I.Map<Types.PaymentID, Types.Payment>) => {
-  if (!paymentsMap) {
-    return ['notLoadedYet']
-  }
-  if (paymentsMap.size === 0) {
-    return ['noPayments']
-  }
-  const payments = paymentsMap.toList()
-  return payments // payments always have a time
-    .sort((p1, p2) => (p2.time && p1.time && p2.time - p1.time) || 0)
-    .map(p => ({paymentID: p.id, status: p.statusSimplified}))
-    .toArray()
-})
+const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp: number}>) =>
+  p.sort((p1, p2) => p2.timestamp - p1.timestamp || 0).map(({paymentID}) => ({paymentID}))
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)

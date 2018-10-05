@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Icon, Text, ClickableBox, Box, ProgressBar} from '../../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 
 type Props = {
   arrowColor: string,
@@ -17,73 +17,78 @@ class FileAttachment extends React.PureComponent<Props> {
   render() {
     const iconType = 'icon-file-24' // TODO other states
     return (
-      <ClickableBox onClick={this.props.onDownload}>
-        <Box style={containerStyle}>
-          <Box style={titleStyle}>
-            <Icon type={iconType} style={iconStyle} />
-            <Text type="BodySemibold">{this.props.title}</Text>
-          </Box>
+      <Kb.ClickableBox onClick={this.props.onDownload}>
+        <Kb.Box style={styles.containerStyle}>
+          <Kb.Box style={styles.titleStyle}>
+            <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
+            <Kb.Text type="BodySemibold">{this.props.title}</Kb.Text>
+          </Kb.Box>
           {!!this.props.arrowColor && (
-            <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-download" style={{maxHeight: 14}} color={this.props.arrowColor} />
-            </Box>
+            <Kb.Box style={styles.downloadedIconWrapperStyle}>
+              <Kb.Icon
+                type="iconfont-download"
+                style={Kb.iconCastPlatformStyles(styles.downloadedIcon)}
+                color={this.props.arrowColor}
+              />
+            </Kb.Box>
           )}
           {!!this.props.progressLabel && (
-            <Box style={progressContainerStyle}>
-              <Text type="BodySmall" style={progressLabelStyle}>
+            <Kb.Box style={styles.progressContainerStyle}>
+              <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
                 {this.props.progressLabel}
-              </Text>
-              {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
-            </Box>
+              </Kb.Text>
+              {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+            </Kb.Box>
           )}
           {this.props.onShowInFinder && (
-            <Text type="BodySmallPrimaryLink" onClick={this.props.onShowInFinder} style={linkStyle}>
-              Show in {fileUIName}
-            </Text>
+            <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onShowInFinder} style={styles.linkStyle}>
+              Show in {Styles.fileUIName}
+            </Kb.Text>
           )}
-        </Box>
-      </ClickableBox>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const progressLabelStyle = {
-  color: globalColors.black_40,
-  marginRight: globalMargins.tiny,
-}
-
-const iconStyle = {
-  height: 24,
-  marginRight: globalMargins.tiny,
-}
-
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-}
-
-const titleStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  padding: globalMargins.tiny,
-}
-
-const downloadedIconWrapperStyle = {
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.white,
-  borderRadius: 20,
-  bottom: 0,
-  padding: 3,
-  position: 'absolute',
-  right: 0,
-}
-
-const progressContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-}
-
-const linkStyle = {
-  color: globalColors.black_60,
-}
+const styles = Styles.styleSheetCreate({
+  containerStyle: {
+    ...Styles.globalStyles.flexBoxColumn,
+  },
+  downloadedIcon: {
+    maxHeight: 14,
+    position: 'relative',
+    top: 1,
+  },
+  downloadedIconWrapperStyle: {
+    ...Styles.globalStyles.flexBoxCenter,
+    backgroundColor: Styles.globalColors.white,
+    borderRadius: 20,
+    bottom: 0,
+    padding: 3,
+    position: 'absolute',
+    right: 0,
+  },
+  iconStyle: {
+    height: 24,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  linkStyle: {
+    color: Styles.globalColors.black_60,
+  },
+  progressContainerStyle: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
+  progressLabelStyle: {
+    color: Styles.globalColors.black_40,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  titleStyle: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    padding: Styles.globalMargins.tiny,
+  },
+})
 
 export default FileAttachment
