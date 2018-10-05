@@ -31,6 +31,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
 		newCmdUploadAvatar(cl, g),
+		NewCmdPhoneNumber(cl, g),
 	}
 }
 
