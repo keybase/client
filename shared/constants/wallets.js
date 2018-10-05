@@ -66,7 +66,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   selectedAccount: Types.noAccountID,
   currencies: I.List(),
   currencyMap: I.Map(),
-  waitingForSetBuildingTo: false,
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>

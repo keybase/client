@@ -3,8 +3,16 @@ import Participants from '.'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import {getAccount, getAccountIDs, searchKey, unknownAccount} from '../../../constants/wallets'
+import {
+  getAccount,
+  getAccountIDs,
+  searchKey,
+  unknownAccount,
+  linkExistingWaitingKey,
+  createNewAccountWaitingKey,
+} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
+import {anyWaiting} from '../../../constants/waiting'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -18,18 +26,20 @@ const mapStateToProps = (state: TypedState) => {
         contents: account.balanceDescription,
         id: account.accountID,
         name: account.name || account.accountID,
+        unknown: account === unknownAccount,
       }
     })
     .toArray()
   let fromAccount
   let toAccount
-  let showSpinner = state.wallets.waitingForSetBuildingTo
+  let showSpinner = anyWaiting(state, linkExistingWaitingKey, createNewAccountWaitingKey)
   if (build.recipientType === 'otherAccount') {
     const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
     fromAccount = {
       contents: fromAccountFromState.balanceDescription,
       id: fromAccountFromState.accountID,
       name: fromAccountFromState.name || fromAccountFromState.accountID,
+      unknown: fromAccountFromState === unknownAccount,
     }
     if (build.to) {
       const toAccountFromState = getAccount(state, stringToAccountID(build.to))
@@ -37,6 +47,7 @@ const mapStateToProps = (state: TypedState) => {
         contents: toAccountFromState.balanceDescription,
         id: toAccountFromState.accountID,
         name: toAccountFromState.name || toAccountFromState.accountID,
+        unknown: toAccountFromState === unknownAccount,
       }
       showSpinner = toAccountFromState === unknownAccount
     }

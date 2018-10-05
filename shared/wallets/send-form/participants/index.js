@@ -9,6 +9,7 @@ export type Account = {|
   contents: string,
   name: string,
   id: AccountID,
+  unknown?: boolean,
 |}
 
 type ParticipantsProps = {|

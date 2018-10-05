@@ -77,9 +77,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('buildingPayment', state.get('buildingPayment').merge({secretNote}))
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
-      return state
-        .set('buildingPayment', state.get('buildingPayment').merge({to}))
-        .set('waitingForSetBuildingTo', false)
+      return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
@@ -152,14 +150,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.requestDetailReceived:
       const request = Constants.requestResultToRequest(action.payload.request)
       return request ? state.update('requests', r => r.set(request.id, request)) : state
-    case WalletsGen.createNewAccount:
-    case WalletsGen.linkExistingAccount:
-      return action.payload.setBuildingTo ? state.set('waitingForSetBuildingTo', true) : state
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
     case WalletsGen.cancelRequest:
+    case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
+    case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:

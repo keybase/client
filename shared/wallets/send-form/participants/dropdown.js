@@ -34,7 +34,7 @@ export const SelectedEntry = ({account, spinner, user, ...props}: SelectedEntryP
     )}
     <Kb.Avatar size={16} username={user} />
     <Kb.Text type="BodySemibold" style={styles.text}>
-      {account.name}
+      {!account.unknown && account.name}
     </Kb.Text>
   </Kb.Box2>
 )
