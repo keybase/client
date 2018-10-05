@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,12 +16,12 @@ type getCodeResponse struct {
 	VerificationCode string `json:"verification_code"`
 }
 
-func getVerificationCode(mctx libkb.MetaContext, phoneNumber string) (code string, err error) {
+func getVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
 	arg := libkb.APIArg{
 		Endpoint:    "test/phone_number_code",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"phone_number": libkb.S{Val: phoneNumber},
+			"phone_number": libkb.S{Val: phoneNumber.String()},
 		},
 	}
 	var resp getCodeResponse
@@ -38,7 +39,7 @@ func TestSetPhoneNumber(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUser("phon", tc.G)
 	require.NoError(t, err)
 
-	phoneNumber := "+14155552671"
+	phoneNumber := keybase1.PhoneNumber("+14155552671")
 
 	mctx := libkb.NewMetaContextForTest(tc)
 

@@ -171,18 +171,23 @@ protocol user {
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
   /**
-   Phone number support 
+   Phone number support for TOFU chats.
   */
-  record PhoneNumber {
+
+  // Phone number in E.164 format.
+  @typedef("string")
+  record PhoneNumber {}
+
+  record UserPhoneNumber {
     @jsonkey("phone_number")
-    string phoneNumber;
+    PhoneNumber phoneNumber;
     @jsonkey("verified")
     boolean verified;
     @jsonkey("ctime")
     UnixTime ctime;
   }
 
-  void addPhoneNumber(int sessionID, string phoneNumber);
-  void verifyPhoneNumber(int sessionID, string phoneNumber, string code);
-  array<PhoneNumber> getPhoneNumbers(int sessionID);
+  void addPhoneNumber(int sessionID, PhoneNumber phoneNumber);
+  void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
+  array<UserPhoneNumber> getPhoneNumbers(int sessionID);
 }

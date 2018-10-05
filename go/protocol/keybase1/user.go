@@ -272,16 +272,22 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
-// Phone number support
-type PhoneNumber struct {
-	PhoneNumber string   `codec:"phoneNumber" json:"phone_number"`
-	Verified    bool     `codec:"verified" json:"verified"`
-	Ctime       UnixTime `codec:"ctime" json:"ctime"`
-}
+// Phone number support for TOFU chats.
+type PhoneNumber string
 
 func (o PhoneNumber) DeepCopy() PhoneNumber {
-	return PhoneNumber{
-		PhoneNumber: o.PhoneNumber,
+	return o
+}
+
+type UserPhoneNumber struct {
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone_number"`
+	Verified    bool        `codec:"verified" json:"verified"`
+	Ctime       UnixTime    `codec:"ctime" json:"ctime"`
+}
+
+func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
+	return UserPhoneNumber{
+		PhoneNumber: o.PhoneNumber.DeepCopy(),
 		Verified:    o.Verified,
 		Ctime:       o.Ctime.DeepCopy(),
 	}
@@ -409,14 +415,14 @@ type FindNextMerkleRootAfterResetArg struct {
 }
 
 type AddPhoneNumberArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
+	SessionID   int         `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
 }
 
 type VerifyPhoneNumberArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
-	Code        string `codec:"code" json:"code"`
+	SessionID   int         `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
+	Code        string      `codec:"code" json:"code"`
 }
 
 type GetPhoneNumbersArg struct {
@@ -471,7 +477,7 @@ type UserInterface interface {
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
-	GetPhoneNumbers(context.Context, int) ([]PhoneNumber, error)
+	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -1054,7 +1060,7 @@ func (c UserClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumb
 	return
 }
 
-func (c UserClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []PhoneNumber, err error) {
+func (c UserClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
 	__arg := GetPhoneNumbersArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.getPhoneNumbers", []interface{}{__arg}, &res)
 	return

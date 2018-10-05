@@ -9,7 +9,7 @@ import (
 )
 
 // AddPhoneNumber calls API to add phone number to currently logged in account.
-func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber string) error {
+func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
 
@@ -25,7 +25,7 @@ func AddPhoneNumber(mctx libkb.MetaContext, phoneNumber string) error {
 
 // VerifyPhoneNumber calls API to verify previously added phone number using
 // verification code.
-func VerifyPhoneNumber(mctx libkb.MetaContext, phoneNumber string, code string) error {
+func VerifyPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, code string) error {
 	payload := make(libkb.JSONPayload)
 	payload["phone_number"] = phoneNumber
 	payload["verification_code"] = code
@@ -42,12 +42,12 @@ func VerifyPhoneNumber(mctx libkb.MetaContext, phoneNumber string, code string) 
 
 type phoneNumbersResponse struct {
 	libkb.AppStatusEmbed
-	PhoneNumbers []keybase1.PhoneNumber `json:"phone_numbers"`
+	PhoneNumbers []keybase1.UserPhoneNumber `json:"phone_numbers"`
 }
 
 // GetPhoneNumbers calls API to fetch list of phone numbers attached to
 // currently logged user.
-func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.PhoneNumber, error) {
+func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "user/phone_numbers",
 		SessionType: libkb.APISessionTypeREQUIRED,

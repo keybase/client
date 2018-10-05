@@ -372,7 +372,7 @@ func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.Verify
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
-func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) ([]keybase1.PhoneNumber, error) {
+func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) ([]keybase1.UserPhoneNumber, error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return phonenumbers.GetPhoneNumbers(mctx)
 }

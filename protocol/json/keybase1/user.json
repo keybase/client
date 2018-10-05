@@ -280,9 +280,16 @@
     {
       "type": "record",
       "name": "PhoneNumber",
+      "fields": [],
+      "doc": "Phone number support for TOFU chats.",
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "UserPhoneNumber",
       "fields": [
         {
-          "type": "string",
+          "type": "PhoneNumber",
           "name": "phoneNumber",
           "jsonkey": "phone_number"
         },
@@ -296,8 +303,7 @@
           "name": "ctime",
           "jsonkey": "ctime"
         }
-      ],
-      "doc": "Phone number support"
+      ]
     }
   ],
   "messages": {
@@ -681,7 +687,7 @@
         },
         {
           "name": "phoneNumber",
-          "type": "string"
+          "type": "PhoneNumber"
         }
       ],
       "response": null
@@ -694,7 +700,7 @@
         },
         {
           "name": "phoneNumber",
-          "type": "string"
+          "type": "PhoneNumber"
         },
         {
           "name": "code",
@@ -712,7 +718,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "PhoneNumber"
+        "items": "UserPhoneNumber"
       }
     }
   },
