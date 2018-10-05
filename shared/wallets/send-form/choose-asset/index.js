@@ -127,10 +127,10 @@ class ChooseAsset extends React.Component<Props, State> {
         type: 'expander',
       })
     }
-    if (!displayChoicesData.find(c => c.symbol === 'XLM')) {
+    if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
       displayChoicesData.unshift({
         key: 'XLM',
-        currencyCode: '',
+        currencyCode: 'XLM',
         selected: !this.props.selected,
         symbol: 'XLM',
         type: 'display choice',

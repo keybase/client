@@ -442,7 +442,9 @@ const getCurrencyAndSymbol = (state: TypedState, code: string) => {
     return 'XLM'
   }
   const currency = state.wallets.currencies.find(c => c.code === code)
-  return currency ? code + ' (' + currency.symbol + ')' : code
+    return currency ? code + ' (' + currency.symbol + ')' : code
+}
+
 const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {

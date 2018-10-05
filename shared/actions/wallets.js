@@ -21,7 +21,7 @@ import {isMobile} from '../constants/platform'
 const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
-    currency: state.wallets.buildingPayment.currency,
+    currency: state.wallets.buildingPayment.currency === 'XLM' ? null : state.wallets.buildingPayment.currency,
     fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
     from: state.wallets.buildingPayment.from === Types.noAccountID ? '' : state.wallets.buildingPayment.from,
     fromSeqno: '',
