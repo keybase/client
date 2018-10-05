@@ -29,6 +29,11 @@ const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}:
   sortSettingToAction,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('SortBar'))(
-  SortBar
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('SortBar')
+)(SortBar)

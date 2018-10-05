@@ -528,10 +528,10 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
   height > width
     ? {
         height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-        width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
+        width: (clamp(height || 0, 0, maxAttachmentPreviewSize) * width) / (height || 1),
       }
     : {
-        height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+        height: (clamp(width || 0, 0, maxAttachmentPreviewSize) * height) / (width || 1),
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 

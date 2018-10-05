@@ -166,7 +166,11 @@ export type Props = _Props & {
 }
 
 const ConnectedUserInput = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  ),
   setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},

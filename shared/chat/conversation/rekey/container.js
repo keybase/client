@@ -56,4 +56,8 @@ class Rekey extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Rekey)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Rekey)

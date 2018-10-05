@@ -33,7 +33,11 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath}: OwnProps
 }
 
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('ConnectedStillRow'),
   OpenHOC
 )(Still)

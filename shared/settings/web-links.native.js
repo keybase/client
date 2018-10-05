@@ -12,7 +12,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const WebLinks = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   defaultProps({
     dataDetectorTypes: 'none',
   }),

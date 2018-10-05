@@ -34,7 +34,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(props => ({bio: props.bio, fullname: props.fullname, location: props.location}), {
     onBioChange: () => bio => ({bio}),
     onFullnameChange: () => fullname => ({fullname}),

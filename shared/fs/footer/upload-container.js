@@ -79,7 +79,11 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
 
 export default compose(
   // $FlowIssue @jzila
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedUpload'),
   UploadCountdownHOC
 )(Upload)

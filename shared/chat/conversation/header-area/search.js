@@ -29,7 +29,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {focusInputCounter: 0},
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}

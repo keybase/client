@@ -8,8 +8,8 @@ export default function FacebookDescription() {
     <Box style={{flexDirection: 'column', maxWidth: 360}}>
       <Box>
         <Text style={{textAlign: 'center'}} type="BodySemibold">
-          Post your proof to Facebook. Make sure it’s <Text type="BodySemiboldItalic">public</Text>
-          , or we won’t be able to read it:
+          Post your proof to Facebook. Make sure it’s <Text type="BodySemiboldItalic">public</Text>, or we
+          won’t be able to read it:
         </Text>
       </Box>
       <Box style={{alignItems: 'center', marginTop: globalMargins.small}}>
