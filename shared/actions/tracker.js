@@ -174,7 +174,7 @@ function _getTrackToken(state, username) {
 
 function _getUsername(uid: string, state: TypedState): ?string {
   const trackers = state.tracker.userTrackers
-  return Object.keys(trackers).find(name => trackers[name].userInfo.uid === uid)
+  return Object.keys(trackers).find(name => trackers[name]?.userInfo?.uid === uid)
 }
 
 function* _follow(action: TrackerGen.FollowPayload) {
