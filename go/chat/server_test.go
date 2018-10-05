@@ -5519,10 +5519,10 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 
 		// Test basic equality match
-		msgBody := "hi, bye"
+		msgBody := "hi, byE"
 		messageID1 := sendMessage(msgBody, u1)
-		queries := []string{"hi", "hi, bye", "hi? bye"}
-		matchText := []string{"hi", "hi, bye", "hi, bye"}
+		queries := []string{"hi", "hi, ByE"}
+		matchText := []string{"hi", "hi, byE"}
 		for i, query := range queries {
 			res := search(query, opts)
 			require.Equal(t, 1, len(res.Hits))
