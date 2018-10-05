@@ -109,15 +109,13 @@ class Developer extends React.Component<Props, DeveloperState> {
           label="DB Nuke"
           onClick={props.onDBNuke}
         />
-        <Button
-          style={{marginTop: globalMargins.small}}
-          type="Danger"
-          label="Build Inbox Search Index"
-          onClick={props.onBuildInboxSearchIndex}
-          waiting={props.inboxSearchIndexInProgress}
-        />
         {this._showPprofControls() && (
           <React.Fragment>
+            <StartButton
+              label="Build Inbox Search Index"
+              onStart={props.onBuildInboxSearchIndex}
+              inProgress={props.inboxSearchIndexInProgress}
+            />
             <StartButton
               label={`Trace (${traceDurationSeconds}s)`}
               onStart={() => props.onTrace(traceDurationSeconds)}
