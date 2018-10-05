@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {Meta} from '../common-adapters'
 import * as FsTypes from '../constants/types/fs'
 import PathItemIcon from '../fs/common/path-item-icon'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
@@ -139,9 +138,9 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           {props.tlfType === 'team' ? (
             props.teamname
           ) : props.tlfType === 'public' ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {props.participants.join(',')}&nbsp;&nbsp;
-              <Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              {props.participants.join(',')}
+              <Kb.Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
             </Kb.Box2>
           ) : (
             `${props.participants.join(',')}`
