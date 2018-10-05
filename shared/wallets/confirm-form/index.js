@@ -21,6 +21,7 @@ type ConfirmSendProps = {|
   bannerBackground?: Background,
   bannerText?: string,
   waitingKey?: string,
+  synbol?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -29,7 +30,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Header
         amount={props.amount}
         assetType={props.assetType}
-        assetConversion={props.assetConversion}
+        assetConversion={ props.symbol ? props.symbol + props.amount : props.amount + ' ' + props.assetType}
         onBack={props.onBack}
       />
       <Kb.ScrollView style={styles.scrollView}>
@@ -65,7 +66,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.amount} {props.assetType}
+                  {props.assetConversion}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>

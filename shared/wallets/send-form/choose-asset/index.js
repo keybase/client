@@ -107,10 +107,11 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 
   render() {
+    const expanded = this.state.expanded || !this.props.otherChoices || this.props.otherChoices.length === 0
     const displayChoicesData = this.props.displayChoices && this.props.displayChoices
-      .slice(0, this.state.expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
+      .slice(0, expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
       .map(dc => ({...dc, key: dc.currencyCode}))
-    if (this.props.displayChoices && !this.state.expanded) {
+    if (this.props.displayChoices && !expanded) {
       displayChoicesData.push({
         key: 'expander',
         currencyCode: 'expander',

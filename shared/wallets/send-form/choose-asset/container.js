@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
     otherChoices: (sendAssets || []).map(a => ({
       currencyCode: a.asset.code,
       selected: a.asset.code === selected,
-      disabledExplanation: a.subtext || 'TBI',
+      disabledExplanation: a.subtext || 'Support for other assets coming soon',
       issuer: a.asset.issuer,
       type: 'other choice',
       })),
