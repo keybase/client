@@ -113,6 +113,13 @@ func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.M
 					return err
 				}
 				teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+			case "team.change":
+				var msg []keybase1.TeamChangeRow
+				if err := json.Unmarshal(creation.Body().Bytes(), &msg); err != nil {
+					g.G().Log.CDebugf(ctx, "error unmarshaling team.change items: %s", err)
+					return err
+				}
+				teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
 			}
 		}
 	}
