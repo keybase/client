@@ -5,7 +5,6 @@ import {
   styleSheetCreate,
   globalColors,
   globalMargins,
-  glamorous,
   isMobile,
   type StylesCrossPlatform,
 } from '../../styles'
@@ -18,12 +17,6 @@ type AddProps = {
 }
 
 const rowHeight = isMobile ? 56 : 48
-
-const HoverBox = isMobile
-  ? Kb.Box2
-  : glamorous(Kb.Box2)({
-      ':hover': {backgroundColor: globalColors.blueGrey2},
-    })
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
@@ -40,12 +33,17 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
   return (
     <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <HoverBox style={styles.addContainerBox} direction="horizontal" fullWidth={true}>
+      <Kb.Box2
+        style={styles.addContainerBox}
+        direction="horizontal"
+        fullWidth={true}
+        className="hover_background_color_blueGrey2"
+      >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
         <Kb.Text type="BodySemibold" style={{color: globalColors.purple2}}>
           Add an account
         </Kb.Text>
-      </HoverBox>
+      </Kb.Box2>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         closeOnSelect={true}
