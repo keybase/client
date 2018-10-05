@@ -27,6 +27,7 @@ export type Account = {|
   contents: string,
   name: string,
   id: AccountID,
+  isDefault: boolean,
 |}
 
 type ParticipantsOtherAccountProps = {|

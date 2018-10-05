@@ -80,6 +80,7 @@ const primaryAccount: Account = {
   name: 'Primary Account',
   contents: '2000 XLM',
   id: stringToAccountID('fakeaccountID'),
+  isDefault: true,
 }
 
 const accounts = [
@@ -88,11 +89,13 @@ const accounts = [
     name: 'Secondary Account',
     contents: '6435 XLM',
     id: stringToAccountID('fakeaccountID2'),
+    isDefault: false,
   },
   {
     name: 'third Account',
     contents: '10 XLM',
     id: stringToAccountID('fakeaccountID3'),
+    isDefault: false,
   },
 ]
 
