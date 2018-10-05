@@ -19,11 +19,23 @@ func TestTokenize(t *testing.T) {
 	}
 	// make sure we split correctly for various separators we support
 	for _, sep := range supportedSep {
-		msgText := strings.Join([]string{"hi", "bye", "hi", "约书亚和约翰屌爆"}, sep)
+		msgText := strings.Join([]string{
+			"*bye*",
+			"~hi~",
+			"hey",
+			"约书亚和约翰屌爆",
+			":100:",
+		}, sep)
 		tokens := tokenize(msgText)
 		t.Logf("msgText: %v, tokens: %v", msgText, tokens)
 		sort.Strings(tokens)
-		require.Equal(t, []string{"bye", "hi", "约书亚和约翰屌爆"}, tokens)
+		require.Equal(t, []string{
+			"*bye*",
+			":100:",
+			"hey",
+			"~hi~",
+			"约书亚和约翰屌爆",
+		}, tokens)
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
@@ -33,8 +45,8 @@ func TestTokenize(t *testing.T) {
 }
 
 func TestGetQueryRe(t *testing.T) {
-	queries := []string{"foo", "foo bar", "foo bar, baz?"}
-	expectedRe := []string{"foo", "foo.bar", "foo.bar..baz."}
+	queries := []string{"foo", "foo bar", "foo bar, baz? :100:"}
+	expectedRe := []string{"foo", "foo.bar", "foo.bar..baz..:100:"}
 	for i, query := range queries {
 		re, err := getQueryRe(query)
 		require.NoError(t, err)

@@ -7,8 +7,8 @@ import (
 	mapset "github.com/deckarep/golang-set"
 )
 
-// Split on whitespice but not unicode letters
-var tokenizeExpr = regexp.MustCompile("[\\s\\P{L}]")
+// Split on whitespace, punctuation, code and quote markdown separators
+var tokenizeExpr = regexp.MustCompile("[\\s\\.,\\?!`>]")
 
 // getIndexTokens splits the content of the given message on whitespace and
 // special characters returning a set of tokens normalized to lowercase.
