@@ -917,6 +917,18 @@ protocol local {
   FullInboxSearchRes fullInboxSearch(int sessionID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  record IndexSearchConvStats {
+    // number of messages in the conversation that were indexed (type TEXT)
+    int numMessages;
+    // number of bytes in the final index
+    int indexSize;
+    // total time to index the conv
+    gregor1.DurationMsec durationMsec;
+  }
+
+  // ConversationID -> IndexSearchConvStats
+  map<string, IndexSearchConvStats> indexSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
+
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();
   record StaticConfig {
