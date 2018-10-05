@@ -73,7 +73,9 @@ const sendPayment = (state: TypedState) =>
       quickReturn: true,
       secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
       to: state.wallets.buildingPayment.to,
-      toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
+      toIsAccountID:
+        state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
+        !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
@@ -156,10 +158,28 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
+      paymentCursor: payments.cursor,
       payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
       pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
+
+const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
+  const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
+  return (
+    cursor &&
+    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(payments =>
+      WalletsGen.createPaymentsReceived({
+        accountID: action.payload.accountID,
+        paymentCursor: payments.cursor,
+        payments: (payments.payments || [])
+          .map(elem => Constants.paymentResultToPayment(elem))
+          .filter(Boolean),
+        pending: [],
+      })
+    )
+  )
+}
 
 const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
   RPCTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
@@ -329,6 +349,24 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
     .then(request => WalletsGen.createRequestDetailReceived({request}))
     .catch(err => logger.error(`Error loading request detail: ${err.message}`))
 
+const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayload) => {
+  const {paymentID} = action.payload
+  const pid = Types.paymentIDToString(paymentID)
+  logger.info(`cancelPayment: cancelling payment with ID ${pid}`)
+  return RPCTypes.localCancelPaymentLocalRpcPromise(
+    {paymentID: Types.paymentIDToRPCPaymentID(action.payload.paymentID)},
+    Constants.cancelPaymentWaitingKey(action.payload.paymentID)
+  )
+    .then(_ => {
+      logger.info(`cancelPayment: successfully cancelled payment with ID ${pid}`)
+      return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
+    })
+    .catch(err => {
+      logger.error(`cancelPayment: failed to cancel payment with ID ${pid}. Error: ${err.message}`)
+      throw err
+    })
+}
+
 const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
   const {conversationIDKey, ordinal, requestID} = action.payload
   return RPCTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
@@ -403,6 +441,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
@@ -452,6 +491,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
   yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
+  yield Saga.actionToPromise(WalletsGen.cancelPayment, cancelPayment)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }

@@ -1273,6 +1273,19 @@
       ],
       "response": "boolean"
     },
+    "cancelPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "paymentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": "RelayClaimResult"
+    },
     "balancesLocal": {
       "request": [
         {

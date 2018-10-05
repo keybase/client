@@ -24,7 +24,7 @@ type SelectedEntryProps = {
 // The display of the selected account in the dropdown.
 export const SelectedEntry = ({account, user, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
-    <Kb.Avatar size={16} username={user} />
+    {account.isDefault && <Kb.Avatar size={16} username={user} />}
     <Kb.Text type="BodySemibold" style={styles.text}>
       {account.name}
     </Kb.Text>
@@ -42,6 +42,7 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
     keybaseUser={props.user}
     name={props.account.name}
     contents={props.account.contents}
+    isDefault={props.account.isDefault}
     showWalletIcon={false}
     center={true}
     fullWidth={true}

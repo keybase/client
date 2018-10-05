@@ -109,8 +109,12 @@ type Searcher interface {
 
 type Indexer interface {
 	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
+	BatchAdd(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
+	// For devel-testing
+	IndexFullInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.IndexSearchConvStats, error)
+	IndexConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.IndexSearchConvStats, error)
 }
 
 type Sender interface {

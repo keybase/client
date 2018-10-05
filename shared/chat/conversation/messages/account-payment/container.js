@@ -1,9 +1,9 @@
 // @flow
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as WalletConstants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Styles from '../../../../styles'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -30,16 +30,20 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
+      const pending = paymentInfo.status !== 'completed'
+      const verb = pending ? 'sending' : 'sent'
       return {
-        action: paymentInfo.worth ? 'sent Lumens worth' : 'sent',
+        action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
-        balanceChangeColor:
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red,
+        balanceChange: `${WalletConstants.balanceChangeSign(
+          paymentInfo.delta,
+          paymentInfo.amountDescription
+        )}`,
+        balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
-        pending: paymentInfo.status === 'pending',
+        pending,
         sendButtonLabel: '',
       }
     }
