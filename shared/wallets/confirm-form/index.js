@@ -21,7 +21,7 @@ type ConfirmSendProps = {|
   bannerBackground?: Background,
   bannerText?: string,
   waitingKey?: string,
-  synbol?: string,
+  symbol?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
