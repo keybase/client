@@ -3327,6 +3327,14 @@ babel-runtime@6.x, babel-runtime@6.x.x, babel-runtime@^6.11.6, babel-runtime@^6.
     core-js "^2.4.0"
     regenerator-runtime "^0.11.0"
 
+babel-runtime@7.0.0-beta.3:
+  version "7.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-7.0.0-beta.3.tgz#7c750de5514452c27612172506b49085a4a630f2"
+  integrity sha512-jlzZ8RACjt0QGxq+wqsw5bCQE9RcUyWpw987mDY3GYxTpOQT2xoyNoG++oVCHzr/nACLBIprfVBNvv/If1ZYcg==
+  dependencies:
+    core-js "^2.4.0"
+    regenerator-runtime "^0.11.0"
+
 babel-template@^6.16.0, babel-template@^6.24.1, babel-template@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-template/-/babel-template-6.26.0.tgz#de03e2d16396b069f46dd9fff8521fb1a0e35e02"
