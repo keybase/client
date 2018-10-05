@@ -9,8 +9,10 @@ import Transaction from '../transaction/container'
 
 type Props = {
   accountID: Types.AccountID,
+  loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
   navigateUp: () => any,
+  onLoadMore: () => void,
   sections: any[],
 }
 
@@ -65,16 +67,23 @@ class Wallet extends React.Component<Props> {
       <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
     </Kb.Box2>
   )
+
+  _onEndReached = () => {
+    this.props.onLoadMore()
+  }
+
   render() {
     return (
-      <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
+      <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
         <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
           keyExtractor={this._keyExtractor}
+          onEndReached={this._onEndReached}
         />
+        {this.props.loadingMore && <Kb.ProgressIndicator style={styles.loadingMore} />}
       </Kb.Box2>
     )
   }
@@ -90,6 +99,13 @@ const styles = Styles.styleSheetCreate({
   },
   historyPlaceholderText: {
     color: Styles.globalColors.black_40,
+  },
+  loadingMore: {
+    bottom: 10,
+    height: 20,
+    position: 'absolute',
+    right: 10,
+    width: 20,
   },
   spinner: {
     height: 46,

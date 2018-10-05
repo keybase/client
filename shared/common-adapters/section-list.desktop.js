@@ -5,6 +5,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
 import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
+import {throttle} from 'lodash-es'
 
 // NOTE: this ReactList is of type `simple` (by default)
 // setting it to `variable` or something more complex
@@ -76,9 +77,21 @@ class SectionList extends React.Component<Props, State> {
     )
   }
 
+  _checkOnEndReached = throttle(target => {
+    const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
+    if (diff < 5) {
+      this.props.onEndReached()
+    }
+  }, 100)
+
+  _onScroll = e => e.currentTarget && this._checkOnEndReached(e.currentTarget)
+
   render() {
     return (
-      <ScrollView style={collapseStyles([styles.fullHeight, this.props.style])}>
+      <ScrollView
+        style={collapseStyles([styles.fullHeight, this.props.style])}
+        onScroll={this.props.onEndReached ? this._onScroll : null}
+      >
         <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
       </ScrollView>
     )

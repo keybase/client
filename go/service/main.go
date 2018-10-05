@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
@@ -409,6 +410,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.Searcher = chat.NewSearcher(g)
+	g.Indexer = search.NewIndexer(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers

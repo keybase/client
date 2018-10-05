@@ -2212,6 +2212,29 @@ func (h *Server) FullInboxSearch(ctx context.Context, arg chat1.FullInboxSearchA
 	}, nil
 }
 
+func (h *Server) IndexSearch(ctx context.Context, arg chat1.IndexSearchArg) (res map[string]chat1.IndexSearchConvStats, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "IndexSearch")()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if arg.ConvID == nil {
+		res, err = h.G().Indexer.IndexFullInbox(ctx, uid)
+	} else {
+		convStats, err := h.G().Indexer.IndexConv(ctx, uid, *arg.ConvID)
+		if err != nil {
+			return nil, err
+		}
+		res = map[string]chat1.IndexSearchConvStats{
+			arg.ConvID.String(): convStats,
+		}
+	}
+	return res, err
+}
+
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
 	return chat1.StaticConfig{

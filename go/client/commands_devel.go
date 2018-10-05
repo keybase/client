@@ -39,6 +39,7 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatDeleteHistoryDev(cl, g),
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
+		newCmdChatIndexSearchDev(cl, g),
 	}
 }
 
