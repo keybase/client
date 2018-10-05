@@ -255,9 +255,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('transferState', null)
       })
     case Chat2Gen.attachmentDownload:
-      if (!action.payload.forShare) {
-        return messageMap
-      }
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
@@ -268,9 +265,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
-        }
-        if (action.payload.forShare) {
-          return message.set('transferState', null)
         }
         const path = action.error ? '' : action.payload.path
         return message

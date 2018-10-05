@@ -41,6 +41,7 @@ export opaque type PaymentID = StellarRPCTypes.PaymentID
 export const noPaymentID: PaymentID = 'NOPAYMENTID'
 export const rpcPaymentIDToPaymentID = (id: StellarRPCTypes.PaymentID): PaymentID => id
 export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentID => id
+export const paymentIDToString = (id: PaymentID): string => id
 export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Account = {
@@ -76,7 +77,7 @@ export type _BuildingPayment = {
   currency: string,
   from: string,
   publicMemo: HiddenString,
-  recipientType: ?CounterpartyType,
+  recipientType: CounterpartyType,
   secretNote: HiddenString,
   to: string,
 }
@@ -94,11 +95,12 @@ export type _BuiltPayment = {
   worthInfo: string,
 }
 
-export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
+export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
+export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type _Payment = {
   amountDescription: string,
-  delta: 'none' | 'increase' | 'decrease',
+  delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,
@@ -160,7 +162,7 @@ export type Request = I.RecordOf<_Request>
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
-  accountMap: I.Map<AccountID, Account>,
+  accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
@@ -177,7 +179,6 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
-  pendingMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,

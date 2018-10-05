@@ -12,7 +12,7 @@ protocol common {
   @typedef("string") record KeybaseRequestID {}
 
   record Asset {
-    string type; // 'native' | 'alphanum4' | 'alphanum12'
+    string type; // 'native' | 'credit_alphanum4' | 'credit_alphanum12'
     string code;
     string issuer;
   }

@@ -51,7 +51,7 @@ const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBr
   if (isBroken) {
     return Styles.globalColors.red
   }
-  return isFollowing ? Styles.globalColors.green2 : Styles.globalColors.blue
+  return isFollowing ? Styles.globalColors.green : Styles.globalColors.blue
 }
 
 const UserAvatar = ({author, onAuthorClick}) => (

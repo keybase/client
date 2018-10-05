@@ -6,6 +6,7 @@ import * as React from 'react'
 import Text from './text'
 import {
   type StylesCrossPlatform,
+  borderRadius,
   collapseStyles,
   globalColors,
   globalStyles,
@@ -114,8 +115,6 @@ class Button extends React.Component<Props> {
 const smallHeight = isMobile ? 32 : 28
 const regularHeight = isMobile ? 40 : 32
 const fullWidthHeight = isMobile ? 48 : 40
-const borderRadius = 50
-const smallBorderRadius = isMobile ? 50 : 28
 
 const common = platformStyles({
   common: {
@@ -156,7 +155,7 @@ const styles = styleSheetCreate({
   progressNormal: {height: isMobile ? 32 : 24},
   progressSmall: {height: isMobile ? 28 : 20},
   small: {
-    borderRadius: smallBorderRadius,
+    borderRadius,
     height: smallHeight,
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,
@@ -172,7 +171,7 @@ const containerStyles = styleSheetCreate({
     common: {
       ...common,
       backgroundColor: globalColors.white,
-      borderColor: globalColors.green2,
+      borderColor: globalColors.green,
       borderWidth: 2,
     },
     isElectron: {borderStyle: 'solid'},
@@ -191,7 +190,7 @@ const containerStyles = styleSheetCreate({
 const labelStyles = styleSheetCreate({
   CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
   DangerLabel: commonLabel,
-  PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green2},
+  PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
   PrimaryGreenLabel: commonLabel,
   PrimaryLabel: commonLabel,
   PrimaryPrivateLabel: commonLabel,
@@ -199,7 +198,7 @@ const labelStyles = styleSheetCreate({
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
   PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
-  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green2},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},

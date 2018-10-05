@@ -37,6 +37,8 @@ const load = () => {
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
@@ -62,6 +64,8 @@ const load = () => {
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
@@ -87,6 +91,8 @@ const load = () => {
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
@@ -113,6 +119,8 @@ const load = () => {
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
@@ -136,6 +144,8 @@ const load = () => {
         memo={memo}
         recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         timestamp={null}
@@ -161,6 +171,8 @@ const load = () => {
         title="Details"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}

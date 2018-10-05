@@ -596,7 +596,7 @@ const styleSearchContainer = {
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.black_10,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   justifyContent: 'center',
   minHeight: 24,
   minWidth: 240,

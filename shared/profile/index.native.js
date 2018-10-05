@@ -682,7 +682,7 @@ const styleSearchContainer = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: Styles.globalColors.black_10,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   justifyContent: 'center',
   minHeight: 32,
   minWidth: 200,
