@@ -354,14 +354,14 @@
     },
     {
       "type": "enum",
-      "name": "UpkLiteMinorVersion",
+      "name": "UPKLiteMinorVersion",
       "symbols": [
         "V0_0"
       ]
     },
     {
       "type": "record",
-      "name": "UpkLiteV1",
+      "name": "UPKLiteV1",
       "fields": [
         {
           "type": "UID",
@@ -394,20 +394,21 @@
           ],
           "name": "reset"
         }
-      ]
+      ],
+      "lint": "ignore"
     },
     {
       "type": "record",
-      "name": "UpkLiteV1AllIncarnations",
+      "name": "UPKLiteV1AllIncarnations",
       "fields": [
         {
-          "type": "UpkLiteV1",
+          "type": "UPKLiteV1",
           "name": "current"
         },
         {
           "type": {
             "type": "array",
-            "items": "UpkLiteV1"
+            "items": "UPKLiteV1"
           },
           "name": "pastIncarnations"
         },
@@ -420,10 +421,11 @@
           "name": "seqnoLinkIDs"
         },
         {
-          "type": "UpkLiteMinorVersion",
+          "type": "UPKLiteMinorVersion",
           "name": "minorVersion"
         }
-      ]
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {},

@@ -524,30 +524,30 @@ func (o UPAKVersioned) DeepCopy() UPAKVersioned {
 	}
 }
 
-type UpkLiteMinorVersion int
+type UPKLiteMinorVersion int
 
 const (
-	UpkLiteMinorVersion_V0 UpkLiteMinorVersion = 0
+	UPKLiteMinorVersion_V0 UPKLiteMinorVersion = 0
 )
 
-func (o UpkLiteMinorVersion) DeepCopy() UpkLiteMinorVersion { return o }
+func (o UPKLiteMinorVersion) DeepCopy() UPKLiteMinorVersion { return o }
 
-var UpkLiteMinorVersionMap = map[string]UpkLiteMinorVersion{
+var UPKLiteMinorVersionMap = map[string]UPKLiteMinorVersion{
 	"V0": 0,
 }
 
-var UpkLiteMinorVersionRevMap = map[UpkLiteMinorVersion]string{
+var UPKLiteMinorVersionRevMap = map[UPKLiteMinorVersion]string{
 	0: "V0",
 }
 
-func (e UpkLiteMinorVersion) String() string {
-	if v, ok := UpkLiteMinorVersionRevMap[e]; ok {
+func (e UPKLiteMinorVersion) String() string {
+	if v, ok := UPKLiteMinorVersionRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type UpkLiteV1 struct {
+type UPKLiteV1 struct {
 	Uid         UID                     `codec:"uid" json:"uid"`
 	Username    string                  `codec:"username" json:"username"`
 	EldestSeqno Seqno                   `codec:"eldestSeqno" json:"eldestSeqno"`
@@ -556,8 +556,8 @@ type UpkLiteV1 struct {
 	Reset       *ResetSummary           `codec:"reset,omitempty" json:"reset,omitempty"`
 }
 
-func (o UpkLiteV1) DeepCopy() UpkLiteV1 {
-	return UpkLiteV1{
+func (o UPKLiteV1) DeepCopy() UPKLiteV1 {
+	return UPKLiteV1{
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
@@ -584,21 +584,21 @@ func (o UpkLiteV1) DeepCopy() UpkLiteV1 {
 	}
 }
 
-type UpkLiteV1AllIncarnations struct {
-	Current          UpkLiteV1           `codec:"current" json:"current"`
-	PastIncarnations []UpkLiteV1         `codec:"pastIncarnations" json:"pastIncarnations"`
+type UPKLiteV1AllIncarnations struct {
+	Current          UPKLiteV1           `codec:"current" json:"current"`
+	PastIncarnations []UPKLiteV1         `codec:"pastIncarnations" json:"pastIncarnations"`
 	SeqnoLinkIDs     map[Seqno]LinkID    `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
-	MinorVersion     UpkLiteMinorVersion `codec:"minorVersion" json:"minorVersion"`
+	MinorVersion     UPKLiteMinorVersion `codec:"minorVersion" json:"minorVersion"`
 }
 
-func (o UpkLiteV1AllIncarnations) DeepCopy() UpkLiteV1AllIncarnations {
-	return UpkLiteV1AllIncarnations{
+func (o UPKLiteV1AllIncarnations) DeepCopy() UPKLiteV1AllIncarnations {
+	return UPKLiteV1AllIncarnations{
 		Current: o.Current.DeepCopy(),
-		PastIncarnations: (func(x []UpkLiteV1) []UpkLiteV1 {
+		PastIncarnations: (func(x []UPKLiteV1) []UPKLiteV1 {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UpkLiteV1, len(x))
+			ret := make([]UPKLiteV1, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

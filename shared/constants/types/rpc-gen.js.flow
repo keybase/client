@@ -1676,7 +1676,7 @@ export const uPKUPK2MinorVersion = {
   v6: 6,
 }
 
-export const uPKUpkLiteMinorVersion = {
+export const uPKUPKLiteMinorVersion = {
   v0: 0,
 }
 
@@ -2743,6 +2743,10 @@ export type UPK2MinorVersion =
   | 5 // V5_5
   | 6 // V6_6
 
+export type UPKLiteMinorVersion = 0 // V0_0
+
+export type UPKLiteV1 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys: {[key: string]: PublicKeyV2NaCl}, reset?: ?ResetSummary}>
+export type UPKLiteV1AllIncarnations = $ReadOnly<{current: UPKLiteV1, pastIncarnations?: ?Array<UPKLiteV1>, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UPKLiteMinorVersion}>
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
@@ -2753,10 +2757,6 @@ export type UpdateInfoStatus =
   | 1 // NEED_UPDATE_1
   | 2 // CRITICALLY_OUT_OF_DATE_2
 
-export type UpkLiteMinorVersion = 0 // V0_0
-
-export type UpkLiteV1 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys: {[key: string]: PublicKeyV2NaCl}, reset?: ?ResetSummary}>
-export type UpkLiteV1AllIncarnations = $ReadOnly<{current: UpkLiteV1, pastIncarnations?: ?Array<UpkLiteV1>, seqnoLinkIDs: {[key: string]: LinkID}, minorVersion: UpkLiteMinorVersion}>
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>

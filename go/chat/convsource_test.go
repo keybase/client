@@ -796,7 +796,7 @@ func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2
 	require.Fail(f.t, "LoadV2 call")
 	return nil, nil, nil
 }
-func (f failingUpak) LoadLite(arg libkb.LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err error) {
+func (f failingUpak) LoadLite(arg libkb.LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error) {
 	require.Fail(f.t, "LoadLite call")
 	return nil, nil
 }

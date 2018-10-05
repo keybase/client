@@ -19,7 +19,7 @@ type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
-	LoadLite(arg LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err error)
+	LoadLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error)
@@ -252,7 +252,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 	return err
 }
 
-func (u *CachedUPAKLoader) LoadLite(arg LoadUserArg) (*keybase1.UpkLiteV1AllIncarnations, error) {
+func (u *CachedUPAKLoader) LoadLite(arg LoadUserArg) (*keybase1.UPKLiteV1AllIncarnations, error) {
 	m, tbs := arg.m.WithTimeBuckets()
 	arg.m = m
 	defer tbs.Record("CachedUPAKLoader.LoadLite")()

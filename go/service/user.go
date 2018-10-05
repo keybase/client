@@ -340,7 +340,7 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	return ret, err
 }
 
-func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UpkLiteV1AllIncarnations, err error) {
+func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UPKLiteV1AllIncarnations, err error) {
 	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional().ForUPAKLite()
 	upakLite, err := h.G().GetUPAKLoader().LoadLite(arg)
 	if err != nil {

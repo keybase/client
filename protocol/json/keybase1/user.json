@@ -630,8 +630,8 @@
           "type": "UID"
         }
       ],
-      "response": "UpkLiteV1AllIncarnations",
-      "doc": "getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.",
+      "response": "UPKLiteV1AllIncarnations",
+      "doc": "getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.",
       "lint": "ignore"
     },
     "uploadUserAvatar": {

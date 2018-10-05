@@ -151,10 +151,10 @@ protocol user {
   UPAKVersioned getUPAK(UID uid);
 
   /**
-   getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.
+   getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
   */
   @lint("ignore")
-  UpkLiteV1AllIncarnations getUPAKLite(UID uid);
+  UPKLiteV1AllIncarnations getUPAKLite(UID uid);
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 

@@ -470,8 +470,8 @@ type UserInterface interface {
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
-	// getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.
-	GetUPAKLite(context.Context, UID) (UpkLiteV1AllIncarnations, error)
+	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
+	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
@@ -1051,8 +1051,8 @@ func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, er
 	return
 }
 
-// getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.
-func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UpkLiteV1AllIncarnations, err error) {
+// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
+func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
 	__arg := GetUPAKLiteArg{Uid: uid}
 	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res)
 	return

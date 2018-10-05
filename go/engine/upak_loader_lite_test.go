@@ -29,7 +29,7 @@ func deviceKeysMatch(dk1, dk2 _deviceKeys) bool {
 	return reflect.DeepEqual(highKeys1, highKeys2)
 }
 
-func assertUpkInstanceMatch(t *testing.T, upkLite keybase1.UpkLiteV1, upkFull keybase1.UserPlusKeysV2) {
+func assertUpkInstanceMatch(t *testing.T, upkLite keybase1.UPKLiteV1, upkFull keybase1.UserPlusKeysV2) {
 	require.Equal(t, upkLite.Uid, upkFull.Uid)
 	require.Equal(t, upkLite.Username, upkFull.Username)
 	require.Equal(t, upkLite.Status, upkFull.Status)

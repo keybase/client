@@ -9,7 +9,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err error) {
+func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error) {
 	uid := arg.uid
 	m := arg.m
 
@@ -26,7 +26,7 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UpkLiteV1AllIncarnations, err 
 	if err != nil {
 		return nil, err
 	}
-	return buildUpkLiteAllIncarnations(m, user, leaf, highChain)
+	return buildUPKLiteAllIncarnations(m, user, leaf, highChain)
 }
 
 type HighSigChainLoader struct {
@@ -52,7 +52,7 @@ type HighSigChain struct {
 	prevSubchains        []ChainLinks
 }
 
-const UpkLiteMinorVersionCurrent = keybase1.UpkLiteMinorVersion_V0
+const UPKLiteMinorVersionCurrent = keybase1.UPKLiteMinorVersion_V0
 
 func NewHighSigChainLoader(m MetaContext, user *User, leaf *MerkleUserLeaf) *HighSigChainLoader {
 	hsc := HighSigChain{
@@ -162,10 +162,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 }
 
 func (hsc *HighSigChain) VerifyChain(m MetaContext) (err error) {
-	m.CDebugf("+ HighSigChain#VerifyChain()")
-	defer func() {
-		m.CDebugf("- HighSigChain#VerifyChain() -> %s", ErrToOk(err))
-	}()
+	defer m.CTrace("HighSigChain.VerifyChain", func() error { return err })()
 
 	for i := len(hsc.chainLinks) - 1; i >= 0; i-- {
 		curr := hsc.chainLinks[i]
@@ -173,23 +170,23 @@ func (hsc *HighSigChain) VerifyChain(m MetaContext) (err error) {
 		if err = curr.VerifyLink(); err != nil {
 			return err
 		}
+		var expectedPrevID LinkID
+		var expectedPrevSeqno keybase1.Seqno
+		if curr.GetHighSkip() != nil {
+			expectedPrevSeqno = curr.GetHighSkip().Seqno
+			expectedPrevID = curr.GetHighSkip().Hash
+		} else {
+			// fallback to normal prevs if the link doesn't have a high_skip
+			expectedPrevSeqno = curr.GetSeqno() - 1
+			expectedPrevID = curr.GetPrev()
+		}
+		if i == 0 && (expectedPrevSeqno != 0 || expectedPrevID != nil) {
+			return ChainLinkPrevHashMismatchError{
+				fmt.Sprintf("The first link should have 0,nil for it's expected previous. It had %d, %s", expectedPrevSeqno, expectedPrevID),
+			}
+		}
 		if i > 0 {
 			prev := hsc.chainLinks[i-1]
-			var expectedPrevID LinkID
-			var expectedPrevSeqno keybase1.Seqno
-			if curr.GetHighSkip() != nil {
-				expectedPrevSeqno = curr.GetHighSkip().Seqno
-				expectedPrevID = curr.GetHighSkip().Hash
-			} else {
-				// fallback to normal prevs if the link doesn't have a high_skip
-				expectedPrevSeqno = curr.GetSeqno() - 1
-				expectedPrevID = curr.GetPrev()
-			}
-			if i == 0 && (expectedPrevSeqno != 0 || expectedPrevID != nil) {
-				return ChainLinkPrevHashMismatchError{
-					fmt.Sprintf("The first link should have 0,nil for it's expected previous. It had %d, %s", expectedPrevSeqno, expectedPrevID),
-				}
-			}
 			if !prev.id.Eq(expectedPrevID) {
 				return ChainLinkPrevHashMismatchError{fmt.Sprintf("Chain mismatch at seqno=%d", curr.GetSeqno())}
 			}
@@ -286,14 +283,14 @@ func extractDeviceKeys(cki *ComputedKeyInfos) *map[keybase1.KID]keybase1.PublicK
 	return &deviceKeys
 }
 
-func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf, hsc *HighSigChain) (ret *keybase1.UpkLiteV1AllIncarnations, err error) {
+func buildUPKLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf, hsc *HighSigChain) (ret *keybase1.UPKLiteV1AllIncarnations, err error) {
 	// build the current UPKLiteV1
 	uid := user.GetUID()
 	name := user.GetName()
 	status := user.GetStatus()
 	eldestSeqno := hsc.currentSubchainStart
 	deviceKeys := extractDeviceKeys(hsc.GetComputedKeyInfos())
-	currentUpk := keybase1.UpkLiteV1{
+	currentUpk := keybase1.UPKLiteV1{
 		Uid:         uid,
 		Username:    name,
 		EldestSeqno: eldestSeqno,
@@ -303,7 +300,7 @@ func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf
 	}
 
 	// build the historical (aka PastIncarnations) UPKLiteV1s
-	var previousUpks []keybase1.UpkLiteV1
+	var previousUpks []keybase1.UPKLiteV1
 	resetMap := make(map[int](*keybase1.ResetSummary))
 	if resets := leaf.resets; resets != nil {
 		for _, l := range resets.chain {
@@ -319,7 +316,7 @@ func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf
 			reset.EldestSeqno = eldestSeqno
 		}
 		prevDeviceKeys := extractDeviceKeys(latestLink.cki)
-		prevUpk := keybase1.UpkLiteV1{
+		prevUpk := keybase1.UPKLiteV1{
 			Uid:         uid,
 			Username:    name,
 			EldestSeqno: eldestSeqno,
@@ -336,11 +333,11 @@ func buildUpkLiteAllIncarnations(m MetaContext, user *User, leaf *MerkleUserLeaf
 		linkIDs[link.GetSeqno()] = link.LinkID().Export()
 	}
 
-	final := keybase1.UpkLiteV1AllIncarnations{
+	final := keybase1.UPKLiteV1AllIncarnations{
 		Current:          currentUpk,
 		PastIncarnations: previousUpks,
 		SeqnoLinkIDs:     linkIDs,
-		MinorVersion:     UpkLiteMinorVersionCurrent,
+		MinorVersion:     UPKLiteMinorVersionCurrent,
 	}
 	ret = &final
 	return ret, err

@@ -765,7 +765,7 @@ export const uPKUPK2MinorVersion = {
   v6: 6,
 }
 
-export const uPKUpkLiteMinorVersion = {
+export const uPKUPKLiteMinorVersion = {
   v0: 0,
 }
 
