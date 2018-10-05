@@ -435,7 +435,7 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
-const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
     balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
@@ -446,9 +446,19 @@ const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSi
   return balanceChangeColor
 }
 
+const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
+  let sign = ''
+  if (delta !== 'none') {
+    sign = delta === 'increase' ? '+' : '-'
+  }
+  return sign + balanceChange
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  balanceChangeColor,
+  balanceChangeSign,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
@@ -463,7 +473,6 @@ export {
   getAccountName,
   getAccount,
   getAssets,
-  getBalanceChangeColor,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,
