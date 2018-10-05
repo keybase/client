@@ -1919,6 +1919,24 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-add-48.png'),
   },
+  'icon-wallet-open-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-open-32.png'),
+  },
+  'icon-wallet-open-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-open-48.png'),
+  },
+  'icon-wallet-placeholder-add-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-placeholder-add-32.png'),
+  },
   'icon-wallet-receive-48': {
     isFont: false,
     extension: 'png',
@@ -1954,6 +1972,18 @@ const iconMeta_ = {
     extension: 'png',
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-secret-key-64.png'),
+  },
+  'icon-wallet-to-wallet-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-to-wallet-32.png'),
+  },
+  'icon-wallet-to-wallet-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-to-wallet-48.png'),
   },
   'icon-website-16': {
     isFont: false,

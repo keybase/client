@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
+import {
+  styleSheetCreate,
+  globalColors,
+  globalMargins,
+  glamorous,
+  isMobile,
+  type StylesCrossPlatform,
+} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -12,10 +19,11 @@ type AddProps = {
 
 const rowHeight = isMobile ? 56 : 48
 
-const styles = styleSheetCreate({
-  addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
-  progressIndicator: {height: 30, width: 30},
-})
+const HoverBox = isMobile
+  ? Kb.Box2
+  : glamorous(Kb.Box2)({
+      ':hover': {backgroundColor: globalColors.blueGrey2},
+    })
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
@@ -32,17 +40,12 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
   return (
     <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Kb.Box2
-        style={styles.addContainerBox}
-        direction="horizontal"
-        fullWidth={true}
-        gap="xsmall"
-        gapStart={true}
-        gapEnd={true}
-      >
-        <Kb.Icon type="iconfont-new" color={globalColors.blue} />
-        <Kb.Text type="BodyBigLink">Add an account</Kb.Text>
-      </Kb.Box2>
+      <HoverBox style={styles.addContainerBox} direction="horizontal" fullWidth={true}>
+        <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+        <Kb.Text type="BodySemibold" style={{color: globalColors.purple2}}>
+          Add an account
+        </Kb.Text>
+      </HoverBox>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         closeOnSelect={true}
@@ -111,6 +114,17 @@ class _WalletList extends React.Component<Props> {
 }
 
 const WalletList = Kb.HeaderOnMobile(_WalletList)
+
+const styles = styleSheetCreate({
+  icon: {
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+    width: 32,
+    height: 32,
+  },
+  addContainerBox: {height: rowHeight, alignItems: 'center'},
+  progressIndicator: {height: 30, width: 30},
+})
 
 export type {Props}
 export {WalletList}

@@ -67,7 +67,7 @@ class Wallet extends React.Component<Props> {
   )
   render() {
     return (
-      <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
+      <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
         <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
         <Kb.SectionList
           sections={this.props.sections}
