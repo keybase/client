@@ -357,23 +357,28 @@ class ProvisioningManager {
       : Saga.put(RouteTreeGen.createNavigateAppend({path: ['codePage'], parentPath: [Tabs.loginTab]}))
 
   maybeCancelProvision = (state: TypedState) => {
-    // We're not waiting on anything
-    if (!this._stashedResponse) {
-      return
-    }
-
     const root = state.routeTree.routeState && state.routeTree.routeState.selected
-    const response = this._stashedResponse
 
-    if (
-      (this._addingANewDevice && root === devicesRoot[0]) ||
-      (!this._addingANewDevice && root === Tabs.loginTab)
-    ) {
-      cancelOnCallback(null, response)
+    const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
+    const doingProvision = !this._addingANewDevice && root === Tabs.loginTab
+    if (doingDeviceAdd || doingProvision) {
+      // cancel if we're waiting on anything
+      const response = this._stashedResponse
+      if (response) {
+        cancelOnCallback(null, response)
+      }
       this._stashedResponse = null
       this._stashedResponseKey = null
-      // clear errors
-      return Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')}))
+      // clear errors and nav to root always
+      return Saga.sequentially([
+        Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')})),
+        Saga.put(
+          RouteTreeGen.createNavigateTo({
+            parentPath: [],
+            path: doingDeviceAdd ? devicesRoot : [Tabs.loginTab],
+          })
+        ),
+      ])
     }
   }
 }
@@ -404,7 +409,11 @@ const startProvisioning = (state: TypedState) =>
         },
         waitingKey: Constants.waitingKey,
       })
+      ProvisioningManager.getSingleton().done('provision call done w/ success')
     } catch (finalError) {
+      ProvisioningManager.getSingleton().done(
+        'provision call done w/ error' + finalError ? finalError.message : ' unknown error'
+      )
       yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
     }
   })
@@ -420,7 +429,7 @@ const addNewDevice = (state: TypedState) =>
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
-      ProvisioningManager.getSingleton().done('success')
+      ProvisioningManager.getSingleton().done('add device success')
       // Now refresh and nav back
       yield Saga.put(DevicesGen.createLoad())
       yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
@@ -476,7 +485,7 @@ const showPaperkeyPage = (state: TypedState) =>
 
 const showFinalErrorPage = (state: TypedState) => {
   if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
-    return Saga.put(RouteTreeGen.createNavigateAppend({path: ['error'], parentPath: [Tabs.loginTab]}))
+    return Saga.put(RouteTreeGen.createNavigateTo({path: ['error'], parentPath: [Tabs.loginTab]}))
   } else {
     return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.loginTab]}))
   }
