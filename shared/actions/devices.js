@@ -3,10 +3,13 @@ import * as Constants from '../constants/devices'
 import * as DevicesGen from './devices-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteActions from './route-tree'
+import * as I from 'immutable'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Tabs from '../constants/tabs'
 import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
-import {loginTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
+import {logError} from '../util/errors'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -80,7 +83,7 @@ const revoke = (state: TypedState, action: DevicesGen.RevokePayload) => {
 
 const navigateAfterRevoked = (state: TypedState, action: DevicesGen.RevokedPayload) =>
   action.payload.wasCurrentDevice
-    ? Saga.put(RouteActions.navigateTo([loginTab]))
+    ? Saga.put(RouteActions.navigateTo([Tabs.loginTab]))
     : Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation]))
 
 const showRevokePage = () =>
@@ -91,6 +94,22 @@ const showDevicePage = () =>
 
 const showPaperKeyPage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'paperKey']))
+
+let _wasOnDeviceTab = false
+const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  if (root === Tabs.devicesTab) {
+    _wasOnDeviceTab = true
+  } else if (_wasOnDeviceTab) {
+    _wasOnDeviceTab = false
+    // clear badges
+    return RPCTypes.gregorDismissCategoryRpcPromise({
+      category: 'new_device',
+    }).catch(logError)
+  }
+  return null
+}
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
@@ -103,6 +122,9 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(DevicesGen.showDevicePage, showDevicePage)
   yield Saga.actionToAction(DevicesGen.showPaperKeyPage, showPaperKeyPage)
   yield Saga.actionToAction(DevicesGen.revoked, navigateAfterRevoked)
+
+  // Badges
+  yield Saga.actionToPromise(RouteTreeGen.switchTo, clearBadgesAfterNav)
 
   // Loading data
   yield Saga.actionToPromise(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)

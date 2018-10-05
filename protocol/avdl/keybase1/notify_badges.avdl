@@ -19,6 +19,7 @@ protocol NotifyBadges {
     int newFollowers;
     int inboxVers;
     int homeTodoItems;
+    int newDevices;
 
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
