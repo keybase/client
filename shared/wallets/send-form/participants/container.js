@@ -63,6 +63,7 @@ const ConnectedParticipantsStellarPublicKey = compose(
 const makeAccount = (stateAccount: StateAccount) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
+  isDefault: stateAccount.isDefault,
   name: stateAccount.name || stateAccount.accountID,
 })
 
@@ -77,10 +78,10 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
     .toArray()
 
   return {
-    user: state.config.username,
+    allAccounts,
     fromAccount,
     toAccount,
-    allAccounts,
+    user: state.config.username,
   }
 }
 
@@ -91,21 +92,21 @@ const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onLinkAccount: () =>
-    dispatch(
-      RouteTree.navigateAppend([
-        {
-          props: {backButton: true},
-          selected: 'linkExisting',
-        },
-      ])
-    ),
   onCreateNewAccount: () =>
     dispatch(
       RouteTree.navigateAppend([
         {
           props: {backButton: true},
           selected: 'createNewAccount',
+        },
+      ])
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'linkExisting',
         },
       ])
     ),
