@@ -39,7 +39,6 @@ export type Props = {
   username: string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
-  tlfs: Array<Folder>,
   followersLoaded: boolean,
   followers: Array<Types.FriendshipUserInfo>,
   following: Array<Types.FriendshipUserInfo>,

@@ -3,7 +3,6 @@ import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
 import * as React from 'react'
-import {orderBy} from 'lodash-es'
 import moment from 'moment'
 import {
   Avatar,
@@ -19,7 +18,6 @@ import {
   Text,
   UserBio,
   UserProofs,
-  Usernames,
   BackButton,
   PopupHeaderText,
 } from '../common-adapters'
@@ -28,6 +26,7 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
+import Folders from './folders/container'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -38,7 +37,6 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
   searchHovered: boolean,
-  foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
 }
 
@@ -101,7 +99,6 @@ const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 class ProfileRender extends React.PureComponent<Props, State> {
   state: State = {
     searchHovered: false,
-    foldersExpanded: false,
     selectedProofMenuRowIndex: null,
   }
   _selectedProofMenuRowRef: ?React.Component<any>
@@ -246,48 +243,6 @@ class ProfileRender extends React.PureComponent<Props, State> {
           proofNotice = this.props.reason
         }
       }
-    }
-
-    // TODO/songgao: is it intended that this prop is still here? The prop is
-    // not provided in the container at all.
-    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
-      <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
-          <Icon
-            style={styleFolderIcon}
-            type={shared.folderIconType(folder)}
-            color={shared.folderIconColor(folder)}
-          />
-        </Box>
-        <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
-          <Usernames
-            inline={false}
-            users={folder.users}
-            type="Body"
-            style={{color: 'inherit'}}
-            containerStyle={{...Styles.globalStyles.flexBoxRow, flexWrap: 'wrap'}}
-            prefix={folder.isPublic ? 'public/' : 'private/'}
-          />
-        </Text>
-      </Box>
-    ))
-
-    if (!this.state.foldersExpanded && folders.length > 4) {
-      folders = folders.slice(0, 4)
-      folders.push(
-        <Box
-          key="more"
-          style={{...styleFolderLine, alignItems: 'center'}}
-          onClick={() => this.setState({foldersExpanded: true})}
-        >
-          <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type="iconfont-ellipsis" style={styleFolderIcon} textAlign="center" />
-          </Box>
-          <Text type="BodySmall" style={{color: Styles.globalColors.black_60, marginBottom: 2}}>
-            + {this.props.tlfs.length - folders.length} more
-          </Text>
-        </Box>
-      )
     }
 
     const missingProofs = !this.props.isYou
@@ -471,7 +426,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     {...proofMenuContent}
                   />
                 )}
-                {!loading && folders}
+                {!loading && <Folders profileUsername={this.props.username} />}
               </Box>
             </Box>
           </Box>
@@ -565,19 +520,6 @@ const userProofsTopPadding = Styles.globalMargins.small + Styles.globalMargins.t
 
 const styleProofs = {
   marginTop: userProofsTopPadding,
-}
-
-const styleFolderLine = {
-  ...Styles.globalStyles.flexBoxRow,
-  ...Styles.desktopStyles.clickable,
-  alignItems: 'flex-start',
-  minHeight: 24,
-  color: Styles.globalColors.black_60,
-}
-
-const styleFolderIcon = {
-  width: 16,
-  height: 16,
 }
 
 const styleMeta = {
