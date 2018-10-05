@@ -32,16 +32,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
       const pending = paymentInfo.status !== 'completed'
       const verb = pending ? 'sending' : 'sent'
-      let sign = ''
-      if (paymentInfo.delta !== 'none') {
-        sign = paymentInfo.delta === 'increase' ? '+' : '-'
-      }
-      const balanceChangeColor = WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status)
       return {
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${sign}${paymentInfo.amountDescription}`,
-        balanceChangeColor,
+        balanceChange: `${WalletConstants.balanceChangeSign(
+          paymentInfo.delta,
+          paymentInfo.amountDescription
+        )}`,
+        balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
