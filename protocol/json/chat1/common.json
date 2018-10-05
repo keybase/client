@@ -1363,7 +1363,8 @@
         "FIXRETRY_4",
         "PREPARE_5",
         "SEARCHER_6",
-        "INDEXED_SEARCH_7"
+        "INDEXED_SEARCH_7",
+        "KBFSFILEACTIVITY_8"
       ]
     },
     {
@@ -1373,6 +1374,14 @@
         {
           "type": "string",
           "name": "sentBy"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentBefore"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentAfter"
         },
         {
           "type": "int",

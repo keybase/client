@@ -2618,6 +2618,33 @@
     },
     {
       "type": "record",
+      "name": "FullInboxSearchRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatConvSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "StaticConfig",
       "fields": [
         {
@@ -3816,7 +3843,7 @@
           "type": "int"
         },
         {
-          "name": "conversationID",
+          "name": "convID",
           "type": "ConversationID"
         },
         {
@@ -3837,6 +3864,27 @@
         }
       ],
       "response": "GetSearchRegexpRes"
+    },
+    "fullInboxSearch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "SearchOpts"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "FullInboxSearchRes"
     },
     "getStaticConfig": {
       "request": [],

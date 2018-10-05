@@ -1,9 +1,9 @@
 // @flow
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as WalletConstants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Styles from '../../../../styles'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -30,16 +30,22 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
+      const pending = paymentInfo.status !== 'completed'
+      const verb = pending ? 'sending' : 'sent'
+      let sign = ''
+      if (paymentInfo.delta !== 'none') {
+        sign = paymentInfo.delta === 'increase' ? '+' : '-'
+      }
+      const balanceChangeColor = WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status)
       return {
-        action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
+        action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
-        balanceChangeColor:
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+        balanceChange: `${sign}${paymentInfo.amountDescription}`,
+        balanceChangeColor,
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
-        pending: paymentInfo.status === 'pending',
+        pending,
         sendButtonLabel: '',
       }
     }
@@ -54,14 +60,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         message.author === state.config.username
           ? {}
           : {
-              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' lumens worth ' : ' '}${
+              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
                 requestInfo.amountDescription
               }`,
             }
 
       return {
         ...sendProps,
-        action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
+        action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',

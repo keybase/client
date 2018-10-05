@@ -365,7 +365,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		ret = append(ret, acc)
 	}
 
-	// Put the primary account first
+	// Put the primary account first, then sort by name, then by account ID
 	sort.SliceStable(ret, func(i, j int) bool {
 		if ret[i].IsPrimary {
 			return true
@@ -373,7 +373,10 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		if ret[j].IsPrimary {
 			return false
 		}
-		return i < j
+		if ret[i].Name == ret[j].Name {
+			return ret[i].AccountID < ret[j].AccountID
+		}
+		return ret[i].Name < ret[j].Name
 	})
 
 	return ret, accountError

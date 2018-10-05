@@ -212,6 +212,10 @@ type MerkleClient struct {
 
 	// protects whole object
 	sync.RWMutex
+
+	// Protects multiple clients calling freshness-based fetches concurrently
+	// and all missing.
+	freshLock sync.Mutex
 }
 
 type MerkleRoot struct {
@@ -589,10 +593,16 @@ func (mc *MerkleClient) FetchRootFromServerBySeqno(m MetaContext, lowerBound key
 }
 
 func (mc *MerkleClient) FetchRootFromServerByFreshness(m MetaContext, d time.Duration) (mr *MerkleRoot, err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
+	defer m.CVTrace(VLog0, "MerkleClient#FetchRootFromServerByFreshness", func() error { return err })()
+
+	// on startup, many threads might try to mash this call at once (via the Auditor or
+	// other pathways). So protect this with a lock.
+	mc.freshLock.Lock()
+	defer mc.freshLock.Unlock()
+
 	root := mc.LastRoot()
 	now := m.G().Clock().Now()
-	if root != nil && now.Sub(root.fetched) >= d {
+	if root != nil && now.Sub(root.fetched) < d {
 		m.VLogf(VLog0, "fetched at=%v, and was current enough, so returning non-nil previously fetched root", root.fetched)
 		return root, nil
 	}

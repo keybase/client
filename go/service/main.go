@@ -320,7 +320,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()), d.badger)
 	return nil
 }
 

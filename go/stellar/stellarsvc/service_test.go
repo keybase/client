@@ -25,7 +25,7 @@ import (
 
 func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 	tc = externalstest.SetupTest(t, name, depth+1)
-	stellar.ServiceInit(tc.G, nil)
+	stellar.ServiceInit(tc.G, nil, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -812,7 +812,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
 		tc2.Srv = New(tc.G, newTestUISource(), rcm)
-		stellar.ServiceInit(tc.G, rcm)
+		stellar.ServiceInit(tc.G, rcm, nil)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

@@ -56,7 +56,7 @@ function UsernameText(props: Props) {
     let userStyle = {
       ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
       ...(props.colorFollowing && !u.you
-        ? {color: u.following ? Styles.globalColors.green2 : Styles.globalColors.blue}
+        ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
         : null),
       ...(props.colorBroken && u.broken && !u.you
         ? {color: props.redColor || Styles.globalColors.red}

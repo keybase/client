@@ -113,12 +113,14 @@ protocol chatUi {
   }
 
   record UIPaymentInfo {
-    string amountDescription;       // "1,323.1234567 XLM"
-    string worth;                   // "$123.23"
-    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string note;                    // secret note
-    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
-    string statusDescription;       // "pending", "completed", "error"
+    union { null, stellar1.AccountID } accountID; // "GXXXXXXX..."
+    string amountDescription;                     // "1,323.1234567 XLM"
+    string worth;                                 // "$123.23"
+    stellar1.BalanceDelta delta;                  // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                                  // secret note
+    stellar1.PaymentID paymentID;                 // opaque paymentID
+    stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;                     // "pending", "completed", "error"
   }
 
   record UIRequestInfo {

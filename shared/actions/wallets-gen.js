@@ -17,6 +17,7 @@ export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const buildPayment = 'wallets:buildPayment'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
+export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
@@ -78,6 +79,7 @@ type _BuiltPaymentReceivedPayload = $ReadOnly<{|
   build: Types.BuiltPayment,
   forBuildingPayment: Types.BuildingPayment,
 |}>
+type _CancelPaymentPayload = $ReadOnly<{|paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|
   conversationIDKey?: ChatTypes.ConversationIDKey,
   ordinal?: ChatTypes.Ordinal,
@@ -140,16 +142,13 @@ type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
+  paymentID: Types.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
-  publicMemo: HiddenString,
-  publicMemoType: string,
-  txID: string,
+  payment: Types.Payment,
 |}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
@@ -219,6 +218,10 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  * Ask the service to validate an account secret key.
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
+/**
+ * Cancel a payment. Valid for payments of status 'cancelable'.
+ */
+export const createCancelPayment = (payload: _CancelPaymentPayload) => ({error: false, payload, type: cancelPayment})
 /**
  * Cancel a request. Optionally delete an associated message
  */
@@ -418,6 +421,7 @@ export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _Acco
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
+export type CancelPaymentPayload = $Call<typeof createCancelPayment, _CancelPaymentPayload>
 export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequestPayload>
 export type ChangeAccountNamePayload = $Call<typeof createChangeAccountName, _ChangeAccountNamePayload>
 export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurrency, _ChangeDisplayCurrencyPayload>
@@ -480,6 +484,7 @@ export type Actions =
   | AssetsReceivedPayload
   | BuildPaymentPayload
   | BuiltPaymentReceivedPayload
+  | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload

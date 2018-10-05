@@ -93,6 +93,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	highSkip                           *HighSkip
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
@@ -226,6 +227,7 @@ type ChainLink struct {
 	unsigned         bool
 	dirty            bool
 	revocationsCache *[]keybase1.SigID
+	computedHighSkip *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -280,6 +282,10 @@ func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() SigIgnoreIfUnsupported {
 
 func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
 	return c.getIgnoreIfUnsupportedFromPayload()
+}
+
+func (c *ChainLink) getHighSkipFromPayload() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -499,6 +505,52 @@ func getSigVersionFromPayload(payload []byte) (SigVersion, error) {
 	return SigVersion(int(i)), nil
 }
 
+func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSkip, error) {
+	hs, dataType, _, err := jsonparser.Get(payload, "high_skip")
+	// high_skip is optional, but must be an object if it exists
+	if err != nil {
+		if err == jsonparser.KeyPathNotFoundError {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if dataType != jsonparser.Object {
+		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
+	}
+
+	highSkipSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
+	if err != nil {
+		return nil, err
+	}
+
+	// highSkipHash can either be null (zero-value of a LinkID) or a hexstring.
+	// We call GetString first instead of Get so we only parse the value
+	// twice for the first link.
+	highSkipHashStr, err := jsonparser.GetString(hs, "hash")
+	var highSkipHash LinkID
+	if err != nil {
+		// If there was an error parsing as a string, make sure the value is null.
+		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
+		if getErr != nil {
+			return nil, getErr
+		}
+		if dataType != jsonparser.Null {
+			return nil, ChainLinkError{
+				fmt.Sprintf("high_skip.hash was neither a valid string (%v) nor null.", err.Error()),
+			}
+		}
+	} else {
+		highSkipHash, err = LinkIDFromHex(highSkipHashStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	highSkip := NewHighSkip(keybase1.Seqno(highSkipSeqnoInt), highSkipHash)
+	return &highSkip, nil
+}
+
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
 
 	if !IsJSONObject(payload) {
@@ -536,6 +588,12 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 			return err
 		}
 	}
+
+	highSkip, err := tmp.parseHighSkipFromPayload(payload)
+	if err != nil {
+		return err
+	}
+	tmp.highSkip = highSkip
 
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
 	if err != nil {
@@ -651,11 +709,22 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	}
 
 	c.id = ol.LinkID()
+
+	// Because the outer link does not have a highSkip parent object, we check
+	// for the nullity of highSkipSeqno to see if highSkip should be set, since
+	// a null highSkipHash is valid when specifying highSkip=0.
+	var highSkipPtr *HighSkip
+	if ol.HighSkipSeqno != nil {
+		highSkip := NewHighSkip(*ol.HighSkipSeqno, *ol.HighSkipHash)
+		highSkipPtr = &highSkip
+	}
+
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,
 		seqno:               ol.Seqno,
 		seqType:             ol.SeqType,
 		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
+		highSkip:            highSkipPtr,
 		sigVersion:          ol.Version,
 		outerLinkV2:         ol,
 		stubbed:             true,
@@ -1047,13 +1116,14 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return ChainLinkError{fmt.Sprintf("In chainlink v2, expected inner link to match; got %d", innerVersion)}
 	}
 	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
-	linkType, err := c.GetSigchainV2Type(SigIgnoreIfUnsupported(ignoreIfUnsupported))
+	linkType, err := c.GetSigchainV2TypeFromInner(SigIgnoreIfUnsupported(ignoreIfUnsupported))
 	if err != nil {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
+	highSkip := c.getHighSkipFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, highSkip); err != nil {
 		return err
 	}
 
@@ -1090,6 +1160,10 @@ func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 
 func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
+}
+
+func (c *ChainLink) GetHighSkip() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) GetSigID() keybase1.SigID {
@@ -1238,7 +1312,7 @@ func (c *ChainLink) verifyLinkV2() error {
 	return c.verifyPayloadV2()
 }
 
-func (c *ChainLink) GetSigchainV2Type(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
+func (c *ChainLink) GetSigchainV2TypeFromInner(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
@@ -1253,6 +1327,22 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link has no v2 shell")
 	}
 	return c.unpacked.outerLinkV2.LinkType, nil
+}
+
+// GetSigchainV2Type is a helper function for getting a ChainLink's type. If it
+// is a v2 link (that may or may not be stubbed), return the type from the
+// outer link, otherwise from the inner link.
+func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
+	if c.unpacked == nil {
+		return SigchainV2TypeNone, errors.New("chain link is not unpacked")
+	}
+	if c.unpacked.outerLinkV2 == nil && c.unpacked.typ == "" {
+		return SigchainV2TypeNone, errors.New("chain inner link type is not unpacked, and has no v2 shell")
+	}
+	if c.unpacked.outerLinkV2 != nil {
+		return c.GetSigchainV2TypeFromV2Shell()
+	}
+	return c.GetSigchainV2TypeFromInner(c.GetIgnoreIfSupported())
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
@@ -1424,4 +1514,53 @@ func (c ChainLink) AllowStubbing() bool {
 		return false
 	}
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
+}
+
+// IsHighUserLink determines whether a chainlink counts as "high" in a user's chain,
+// which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
+// PGPUpdate, Revoke, or any link that is revoking.
+func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, error) {
+	v2Type, err := c.GetSigchainV2Type()
+	if err != nil {
+		return false, err
+	}
+
+	hardcodedEldest := false
+	if c.GetSeqno() > 1 {
+		prevLink := c.parent.GetLinkFromSeqno(c.GetSeqno() - 1)
+		if prevLink == nil {
+			return false, ChainLinkWrongSeqnoError{}
+		}
+		hardcodedEldest, err = isSubchainStart(mctx, &c, prevLink, uid)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == 1 || hardcodedEldest
+	isNewHighLink := isFirstLink ||
+		v2Type == SigchainV2TypeRevoke ||
+		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
+		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
+		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypePGPUpdate
+	return isNewHighLink, nil
+}
+
+// ExpectedNextHighSkip returns the expected highSkip of the immediately
+// subsequent link in the chain (which may not exist yet). This function can
+// only be called after VerifyChain has processed the chainLink, and set
+// c.computedHighSkip.
+func (c ChainLink) ExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
+	isHigh, err := c.IsHighUserLink(mctx, uid)
+	if err != nil {
+		return HighSkip{}, err
+	}
+	if isHigh {
+		return NewHighSkip(c.GetSeqno(), c.id), nil
+	}
+	if c.computedHighSkip == nil {
+		return HighSkip{}, NewUserReverifyNeededError("Expected to have already computed this link's HighSkip, but it was not computed.")
+	}
+	return *c.computedHighSkip, nil
 }

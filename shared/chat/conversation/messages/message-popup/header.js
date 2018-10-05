@@ -42,13 +42,13 @@ const MessagePopupHeader = (props: {
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           ENCRYPTED
         </Kb.Text>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           &nbsp;& SIGNED
         </Kb.Text>

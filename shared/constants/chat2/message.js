@@ -222,9 +222,11 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
 })
 
 export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+  accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
   note: new HiddenString(''),
+  paymentID: WalletTypes.noPaymentID,
   status: 'none',
   statusDescription: '',
   type: 'paymentInfo',
@@ -354,9 +356,11 @@ export const uiPaymentInfoToChatPaymentInfo = (
     return null
   }
   return makeChatPaymentInfo({
+    accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
+    paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
     status: WalletConstants.statusSimplifiedToString[p.status],
     statusDescription: p.statusDescription,
     worth: p.worth,
@@ -595,7 +599,7 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
-      const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
+      const rawText: string = m.messageBody.text?.body ?? ''
       return makeMessageText({
         ...common,
         ...explodable,
@@ -971,6 +975,22 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
+
+export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
+  if (!old) {
+    return m
+  }
+
+  // $FlowIssue doens't understand mergeWith
+  return old.mergeWith((oldVal, newVal, key) => {
+    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+      return oldVal.equals(newVal) ? oldVal : newVal
+    } else if (key === 'text') {
+      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+    }
+    return newVal === oldVal ? oldVal : newVal
+  }, m)
+}
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {

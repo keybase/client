@@ -39,6 +39,10 @@
       "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "cancelPayment": {
+      "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
+      "paymentID": "Types.PaymentID",
+    },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
@@ -72,7 +76,7 @@
     "loadPaymentDetail": {
       "_description": "Load extra detail for one given payment",
       "accountID": "Types.AccountID",
-      "paymentID": "StellarRPCTypes.PaymentID",
+      "paymentID": "Types.PaymentID",
     },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from",
@@ -137,10 +141,7 @@
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "paymentID": "StellarRPCTypes.PaymentID",
-      "publicMemo": "HiddenString",
-      "publicMemoType": "string",
-      "txID": "string",
+      "payment": "Types.Payment",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",

@@ -5,14 +5,13 @@ import (
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 const defaultPageSize = 300
-const MaxAllowedSearchHits = 10000
-const MaxAllowedSearchMessages = 100000
 
 type Searcher struct {
 	globals.Contextified
@@ -30,31 +29,28 @@ func NewSearcher(g *globals.Context) *Searcher {
 	}
 }
 
-func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, convID chat1.ConversationID,
-	re *regexp.Regexp, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
-	uid := gregor1.UID(s.G().Env.GetUID().ToBytes())
+func (s *Searcher) SearchRegexp(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
-	sentBy := opts.SentBy
 	maxHits := opts.MaxHits
 	maxMessages := opts.MaxMessages
 	beforeContext := opts.BeforeContext
 	afterContext := opts.AfterContext
 
-	// Context cannot exceed the page size.
-	if beforeContext >= s.pageSize {
-		beforeContext = s.pageSize - 1
+	if beforeContext >= search.MaxContext || beforeContext < 0 {
+		beforeContext = search.MaxContext - 1
 	}
-	if afterContext >= s.pageSize {
-		afterContext = s.pageSize - 1
-	}
-
-	if maxHits > MaxAllowedSearchHits {
-		maxHits = MaxAllowedSearchHits
+	if afterContext >= search.MaxContext || afterContext < 0 {
+		afterContext = search.MaxContext - 1
 	}
 
-	if maxMessages > MaxAllowedSearchMessages {
-		maxMessages = MaxAllowedSearchMessages
+	if maxHits > search.MaxAllowedSearchHits || maxHits < 0 {
+		maxHits = search.MaxAllowedSearchHits
+	}
+
+	if maxMessages > search.MaxAllowedSearchMessages || maxMessages < 0 {
+		maxMessages = search.MaxAllowedSearchMessages
 	}
 
 	// If we have to gather search result context around a pagination boundary,
@@ -79,9 +75,6 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 			}
 		}
 		thread.Messages = filteredMsgs
-		pagination = thread.Pagination
-		pagination.Num = s.pageSize
-		pagination.Previous = nil
 		return &thread, nil
 	}
 
@@ -153,10 +146,14 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 			curPage = nextPage
 			nextPage = nil
 		}
+		// update our global pagination so we can correctly fetch the next page.
+		pagination = curPage.Pagination
+		pagination.Num = s.pageSize
+		pagination.Previous = nil
 
 		for i, msg := range curPage.Messages {
 			numMessages++
-			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
+			if !opts.Matches(msg) {
 				continue
 			}
 			msgText := msg.Valid().MessageBody.Text().Body

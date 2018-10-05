@@ -12,7 +12,7 @@ const sendCommon = {
 
 const sentProps = {
   ...sendCommon,
-  action: 'sent lumens worth',
+  action: 'sent Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.red,
@@ -24,7 +24,7 @@ const sentProps = {
 
 const sendingProps = {
   ...sendCommon,
-  action: 'sending lumens worth',
+  action: 'sending Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.grey,
@@ -36,7 +36,7 @@ const sendingProps = {
 
 const requestCommon = {
   ...sendCommon,
-  action: 'requested lumens worth',
+  action: 'requested Lumens worth',
   balanceChange: '',
   balanceChangeColor: '',
   icon: 'iconfont-stellar-request',

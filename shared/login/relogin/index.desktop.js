@@ -29,7 +29,7 @@ const ButtonBox = Styles.glamorous(Kb.Box)({
   alignItems: 'center',
   color: Styles.globalColors.lightGrey2,
   border: `solid 1px ${Styles.globalColors.lightGrey2}`,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   paddingRight: Styles.globalMargins.small,
   width: 270,
 })

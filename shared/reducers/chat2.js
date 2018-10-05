@@ -255,9 +255,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('transferState', null)
       })
     case Chat2Gen.attachmentDownload:
-      if (!action.payload.forShare) {
-        return messageMap
-      }
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
@@ -268,9 +265,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
-        }
-        if (action.payload.forShare) {
-          return message.set('transferState', null)
         }
         const path = action.error ? '' : action.payload.path
         return message
@@ -463,6 +457,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
       let oldMessageMap = state.messageMap
 
+      // so we can keep messages if they haven't mutated
+      const previousMessageMap = state.messageMap
+
       // first group into convoid
       const convoToMessages: {[cid: string]: Array<Types.Message>} = messages.reduce((map, m) => {
         const key = String(m.conversationIDKey)
@@ -501,7 +498,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       )
 
-      const findExisting = (
+      const findExistingSentOrPending = (
         conversationIDKey: Types.ConversationIDKey,
         m: Types.MessageText | Types.MessageAttachment
       ) => {
@@ -534,7 +531,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
               const m = canSendType(message)
               if (m) {
                 // Sendable so we might have an existing message
-                if (!findExisting(conversationIDKey, m)) {
+                if (!findExistingSentOrPending(conversationIDKey, m)) {
                   arr.push(m.ordinal)
                 }
               } else if (message.type === 'placeholder') {
@@ -572,8 +569,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             const messages = convoToMessages[cid]
             messages.forEach(message => {
               const m = canSendType(message)
-              const old = m ? findExisting(conversationIDKey, m) : null
-              const toSet = old ? Constants.upgradeMessage(old, message) : message
+              const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
+              let toSet
+              if (oldSentOrPending) {
+                toSet = Constants.upgradeMessage(oldSentOrPending, message)
+              } else {
+                toSet = Constants.mergeMessage(
+                  m ? previousMessageMap.getIn([conversationIDKey, m.ordinal]) : null,
+                  message
+                )
+              }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
           })
@@ -582,7 +587,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
-        s.set('messageOrdinals', messageOrdinals)
+        // only if different
+        if (!state.messageOrdinals.equals(messageOrdinals)) {
+          s.set('messageOrdinals', messageOrdinals)
+        }
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
