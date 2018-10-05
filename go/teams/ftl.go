@@ -414,8 +414,8 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 
 	if arg.NeedLatestKey && !state.LoadedLatest {
 		m.CDebugf("latest was never loaded, we need to load it")
-		shoppingList.needRefresh = true
-		shoppingList.needLatest = true
+		shoppingList.needMerkleRefresh = true
+		shoppingList.needLatestKey = true
 		fresh = false
 	}
 
@@ -475,8 +475,8 @@ func stateHasDownPointers(m libkb.MetaContext, shoppingList *shoppingList, arg f
 
 // shoppingList is a list of what we need from the server.
 type shoppingList struct {
-	needRefresh bool
-	needLatest  bool // true if we never loaded the latest mask, and need to do it
+	needMerkleRefresh bool // if we need to refresh the Merkle path for this team
+	needLatestKey     bool // true if we never loaded the latest mask, and need to do it
 
 	// links *and* PTKs newer than the given seqno. And RKMs for
 	// the given apps.
@@ -487,7 +487,7 @@ type shoppingList struct {
 	applications []keybase1.TeamApplication
 
 	// The generations we care about. We'll always get back the most recent RKMs
-	// if we send a needRefresh.
+	// if we send a needMerkleRefresh.
 	generations []keybase1.PerTeamKeyGeneration
 }
 
@@ -502,14 +502,14 @@ type groceries struct {
 // isEmpty returns true if our shopping list is empty. In this case, we have no need to go to the
 // server (store), and can just return with what's in our cache.
 func (s shoppingList) isEmpty() bool {
-	return !s.needRefresh && len(s.generations) == 0 && len(s.downPointers) == 0
+	return !s.needMerkleRefresh && len(s.generations) == 0 && len(s.downPointers) == 0
 }
 
 // onlyNeedsRefresh will be true if we only are going to the server for a refresh,
 // say when encrypting for the latest key version. If the merkle tree says we're up to date,
 // we can skip the team/get call.
 func (s shoppingList) onlyNeedsRefresh() bool {
-	return s.needRefresh && !s.needLatest && len(s.generations) == 0 && len(s.downPointers) == 0
+	return s.needMerkleRefresh && !s.needLatestKey && len(s.generations) == 0 && len(s.downPointers) == 0
 }
 
 // addDownPointer adds a down pointer to our shopping list. If we need to read naming information
@@ -528,19 +528,19 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 	s.linksSince = state.Chain.Last.Seqno
 	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
 		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if arg.ForceRefresh {
 		m.CDebugf("refresh forced via flag")
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
-	if !s.needRefresh && f.InForceRepollMode(m) {
+	if !s.needMerkleRefresh && f.InForceRepollMode(m) {
 		m.CDebugf("must repoll since in force mode")
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
 		m.CDebugf("state was missing needed encryption keys, or we need the freshest")
@@ -552,7 +552,7 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 
 // computeFreshLoad computes a shopping list from a fresh load of the state.
 func (s *shoppingList) computeFreshLoad(m libkb.MetaContext, arg fastLoadArg) {
-	s.needRefresh = true
+	s.needMerkleRefresh = true
 	s.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
 	s.downPointers = append([]keybase1.Seqno{}, arg.downPointersNeeded...)
 	s.generations = append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
