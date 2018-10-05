@@ -364,15 +364,18 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 
 func (h *UserHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#AddPhoneNumber", func() error { return err })()
 	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
 }
 
 func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#VerifyPhoneNumber", func() error { return err })()
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
 func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) ([]keybase1.UserPhoneNumber, error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#GetPhoneNumbers", func() error { return err })()
 	return phonenumbers.GetPhoneNumbers(mctx)
 }
