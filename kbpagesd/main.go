@@ -127,8 +127,9 @@ func main() {
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
 		rpc.Protocol, error) {
 		// Start autogit before the RPC connection to the service is
-		// fully initialized.
-		shutdownGit = libgit.StartAutogit(config)
+		// fully initialized. Use a big cache since kbpages doesn't
+		// need memory for other stuff.
+		shutdownGit = libgit.StartAutogit(config, 1000)
 
 		return keybase1.SimpleFSProtocol(
 			simplefs.NewSimpleFS(libkbfsCtx, config)), nil

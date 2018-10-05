@@ -23,7 +23,7 @@ func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	shutdown := StartAutogit(config)
+	shutdown := StartAutogit(config, 25)
 	defer shutdown()
 
 	h, err := libkbfs.ParseTlfHandle(
@@ -74,7 +74,7 @@ func TestAutogitRepoNode(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	am := NewAutogitManager(config)
+	am := NewAutogitManager(config, 25)
 	defer am.Shutdown()
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
@@ -168,7 +168,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	am := NewAutogitManager(config)
+	am := NewAutogitManager(config, 25)
 	defer am.Shutdown()
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
@@ -197,7 +197,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	t.Log("Use autogit to open it as another user.")
 	config2 := libkbfs.ConfigAsUser(config, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	am2 := NewAutogitManager(config2)
+	am2 := NewAutogitManager(config2, 25)
 	defer am2.Shutdown()
 	rw2 := rootWrapper{am2}
 	config2.AddRootNodeWrapper(rw2.wrap)

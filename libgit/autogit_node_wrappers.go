@@ -31,20 +31,21 @@ import (
 //   `repoDirNode`.
 // * `repoDirNode` returns a `*Browser` object when `GetFS()` is
 //   called, which is configured to access the corresponding
-//   subdirectory within the git repository.  It makes a new
-//   `*Browser` instance for each `GetFS()` call, which is slightly
-//   inefficient, but necessary to put the right context debug log
-//   tags into place for the subsequent browsing.  (We can revisit
-//   this later if it proves to be a bottleneck, though I suspect the
-//   bottleneck is in fetching and processing the actual git data
-//   needed to reconstruct the files.)  It wraps all children as a
-//   `libkbfs.ReadonlyNode` (inherited from `rootNode`); it also wraps
-//   subdirectories in `repoDirNode`, and file entries in
+//   subdirectory within the git repository.  It wraps all children as
+//   a `libkbfs.ReadonlyNode` (inherited from `rootNode`); it also
+//   wraps subdirectories in `repoDirNode`, and file entries in
 //   `repoFileNode`.
 // * `repoFileNode` returns a `*browserFile` object when `GetFile()`
-//   is called, which is expected to be closed by the caller.  It
-//   constructs a new `*Browser` on each call (for the same reasons as
-//   above).
+//   is called, which is expected to be closed by the caller.
+//
+// The `*Browser` objects returned are cached in the AutogitManager
+// instance, in an LRU-cache, and are cleared whenever the underlying
+// repo is updated.  However, this means that the log debug tags that
+// are in use may be from the original request that caused the
+// `*Browser` to be cached, rather than from the request that is using
+// the cached browser.  If this becomes a problem when trying to debug
+// stuff, we can modify the go-git `Tree` code to be able to replace
+// the underlying storage layer with one that uses the right context.
 
 const (
 	// AutogitRoot is the subdirectory name within a TLF where autogit
@@ -60,25 +61,26 @@ const (
 
 type repoFileNode struct {
 	libkbfs.Node
-	am       *AutogitManager
-	repoFS   *libfs.FS
-	filePath string
-	branch   plumbing.ReferenceName
+	am        *AutogitManager
+	gitRootFS *libfs.FS
+	repo      string
+	subdir    string
+	branch    plumbing.ReferenceName
+	filePath  string
 }
 
 var _ libkbfs.Node = (*repoFileNode)(nil)
 
 func (rfn repoFileNode) GetFile(ctx context.Context) billy.File {
-	// Make a new Browser for every request, for the sole purpose of
-	// using the appropriate debug tags.
 	ctx = libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rfn.am.log)
-	repoFS := rfn.repoFS.WithContext(ctx)
-	b, err := NewBrowser(repoFS, rfn.am.config.Clock(), rfn.branch)
+		ctx, ctxAutogitIDKey, ctxAutogitOpID, rfn.am.log)
+	_, b, err := rfn.am.GetBrowserForRepo(
+		ctx, rfn.gitRootFS, rfn.repo, rfn.branch, rfn.subdir)
 	if err != nil {
-		rfn.am.log.CDebugf(ctx, "Error making browser: %+v", err)
+		rfn.am.log.CDebugf(nil, "Error getting browser: %+v", err)
 		return nil
 	}
+
 	f, err := b.Open(rfn.filePath)
 	if err != nil {
 		rfn.am.log.CDebugf(ctx, "Error opening file: %+v", err)
@@ -89,10 +91,11 @@ func (rfn repoFileNode) GetFile(ctx context.Context) billy.File {
 
 type repoDirNode struct {
 	libkbfs.Node
-	am     *AutogitManager
-	repoFS *libfs.FS
-	subdir string
-	branch plumbing.ReferenceName
+	am        *AutogitManager
+	gitRootFS *libfs.FS
+	repo      string
+	subdir    string
+	branch    plumbing.ReferenceName
 }
 
 var _ libkbfs.Node = (*repoDirNode)(nil)
@@ -118,47 +121,41 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 }
 
 func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
-	// Make a new Browser for every request, for the sole purpose of
-	// using the appropriate debug tags.
 	ctx = libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
-	repoFS := rdn.repoFS.WithContext(ctx)
-	b, err := NewBrowser(repoFS, rdn.am.config.Clock(), rdn.branch)
+		ctx, ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
+	_, b, err := rdn.am.GetBrowserForRepo(
+		ctx, rdn.gitRootFS, rdn.repo, rdn.branch, rdn.subdir)
 	if err != nil {
-		rdn.am.log.CDebugf(ctx, "Error making browser: %+v", err)
+		rdn.am.log.CDebugf(ctx, "Error getting browser: %+v", err)
 		return nil
-	}
-	if rdn.subdir == "" || rdn.subdir == "." {
-		return b
 	}
 
-	childB, err := b.Chroot(rdn.subdir)
-	if err != nil {
-		rdn.am.log.CDebugf(ctx, "Error chroot'ing browser: %+v", err)
-		return nil
-	}
-	return childB
+	return b
 }
 
 func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rdn.Node.WrapChild(child)
 	name := child.GetBasename()
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 
-	if rdn.subdir == "" && strings.HasPrefix(name, AutogitBranchPrefix) {
-		branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
+	if rdn.subdir == "" && strings.HasPrefix(name, AutogitBranchPrefix) &&
+		rdn.gitRootFS != nil {
+		newBranchPart := strings.TrimPrefix(name, AutogitBranchPrefix)
+		branch := plumbing.ReferenceName(path.Join(
+			string(rdn.branch),
+			strings.Replace(newBranchPart, branchSlash, "/", -1)))
+
 		return &repoDirNode{
-			Node:   child,
-			am:     rdn.am,
-			repoFS: rdn.repoFS,
-			subdir: "",
-			branch: plumbing.ReferenceName(path.Join(
-				string(rdn.branch),
-				strings.Replace(branchName, branchSlash, "/", -1))),
+			Node:      child,
+			am:        rdn.am,
+			gitRootFS: rdn.gitRootFS,
+			repo:      rdn.repo,
+			subdir:    "",
+			branch:    branch,
 		}
 	}
 
-	ctx := libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 	fs := rdn.GetFS(ctx)
 	fi, err := fs.Lstat(name)
 	if err != nil {
@@ -167,19 +164,22 @@ func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	}
 	if fi.IsDir() {
 		return &repoDirNode{
-			Node:   child,
-			am:     rdn.am,
-			repoFS: rdn.repoFS,
-			subdir: path.Join(rdn.subdir, name),
-			branch: rdn.branch,
+			Node:      child,
+			am:        rdn.am,
+			gitRootFS: rdn.gitRootFS,
+			repo:      rdn.repo,
+			subdir:    path.Join(rdn.subdir, name),
+			branch:    rdn.branch,
 		}
 	}
 	return &repoFileNode{
-		Node:     child,
-		am:       rdn.am,
-		repoFS:   rdn.repoFS,
-		filePath: path.Join(rdn.subdir, name),
-		branch:   rdn.branch,
+		Node:      child,
+		am:        rdn.am,
+		gitRootFS: rdn.gitRootFS,
+		repo:      rdn.repo,
+		subdir:    rdn.subdir,
+		branch:    rdn.branch,
+		filePath:  name,
 	}
 }
 
@@ -202,21 +202,25 @@ func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
 // WrapChild implements the Node interface for autogitRootNode.
 func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = arn.Node.WrapChild(child)
-	repoFS, err := arn.fs.Chroot(child.GetBasename())
+	repo := child.GetBasename()
+	rdn := &repoDirNode{
+		Node:      child,
+		am:        arn.am,
+		gitRootFS: arn.fs,
+		repo:      repo,
+		subdir:    "",
+		branch:    "",
+	}
+
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
+	repoFS, _, err := arn.am.GetBrowserForRepo(ctx, arn.fs, repo, "", "")
 	if err != nil {
-		arn.am.log.CDebugf(nil, "Error getting repo: %+v", err)
+		arn.am.log.CDebugf(ctx, "Error getting browser: %+v", err)
 		return child
 	}
-	rdn := &repoDirNode{
-		Node:   child,
-		am:     arn.am,
-		repoFS: repoFS.(*libfs.FS),
-		subdir: "",
-		branch: "",
-	}
-	if fs, ok := repoFS.(*libfs.FS); ok {
-		arn.am.registerRepoNode(fs.RootNode(), rdn)
-	}
+
+	arn.am.registerRepoNode(repoFS.RootNode(), rdn)
 	return rdn
 }
 

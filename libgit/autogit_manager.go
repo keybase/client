@@ -9,12 +9,14 @@ import (
 	"os"
 	"sync"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 type getNewConfigFn func(context.Context) (
@@ -30,6 +32,18 @@ type ctxAutogitTagKey int
 const (
 	ctxAutogitIDKey ctxAutogitTagKey = iota
 )
+
+type browserCacheKey struct {
+	fs       *libfs.FS
+	repoName string
+	branch   plumbing.ReferenceName
+	subdir   string
+}
+
+type browserCacheValue struct {
+	repoFS  *libfs.FS
+	browser *Browser
+}
 
 // AutogitManager can clone and pull source git repos into a
 // destination folder, potentially across different TLFs.  New
@@ -48,12 +62,21 @@ type AutogitManager struct {
 	deleteCancels          map[string]context.CancelFunc
 	shutdown               bool
 
+	browserLock  sync.Mutex
+	browserCache *lru.Cache
+
 	doRemoveSelfCheckouts sync.Once
 }
 
 // NewAutogitManager constructs a new AutogitManager instance.
-func NewAutogitManager(config libkbfs.Config) *AutogitManager {
+func NewAutogitManager(
+	config libkbfs.Config, browserCacheSize int) *AutogitManager {
 	log := config.MakeLogger("")
+	browserCache, err := lru.New(browserCacheSize)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	return &AutogitManager{
 		config:                 config,
 		log:                    log,
@@ -61,6 +84,7 @@ func NewAutogitManager(config libkbfs.Config) *AutogitManager {
 		registeredFBs:          make(map[libkbfs.FolderBranch]bool),
 		repoNodesForWatchedIDs: make(map[libkbfs.NodeID]*repoDirNode),
 		deleteCancels:          make(map[string]context.CancelFunc),
+		browserCache:           browserCache,
 	}
 }
 
@@ -170,18 +194,20 @@ func (am *AutogitManager) registerRepoNode(
 	defer am.registryLock.Unlock()
 	am.repoNodesForWatchedIDs[nodeToWatch.GetID()] = rdn
 	fb := nodeToWatch.GetFolderBranch()
-	if !am.registeredFBs[fb] {
-		go am.removeOldCheckouts(rdn)
-		am.doRemoveSelfCheckouts.Do(func() { go am.removeSelfCheckouts() })
-		am.watchedNodes = append(am.watchedNodes, nodeToWatch)
-		err := am.config.Notifier().RegisterForChanges(
-			[]libkbfs.FolderBranch{fb}, am)
-		if err != nil {
-			am.log.CWarningf(nil, "Error registering %s: +%v", fb.Tlf, err)
-			return
-		}
-		am.registeredFBs[fb] = true
+	if am.registeredFBs[fb] {
+		return
 	}
+
+	go am.removeOldCheckouts(rdn)
+	am.doRemoveSelfCheckouts.Do(func() { go am.removeSelfCheckouts() })
+	am.watchedNodes = append(am.watchedNodes, nodeToWatch)
+	err := am.config.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{fb}, am)
+	if err != nil {
+		am.log.CWarningf(nil, "Error registering %s: +%v", fb.Tlf, err)
+		return
+	}
+	am.registeredFBs[fb] = true
 }
 
 // LocalChange implements the libkbfs.Observer interface for AutogitManager.
@@ -191,23 +217,54 @@ func (am *AutogitManager) LocalChange(
 }
 
 func (am *AutogitManager) getNodesToInvalidate(
-	affectedNodeIDs []libkbfs.NodeID) (nodes []libkbfs.Node) {
+	affectedNodeIDs []libkbfs.NodeID) (
+	nodes []libkbfs.Node, repoNodeIDs []libkbfs.NodeID) {
 	am.registryLock.RLock()
 	defer am.registryLock.RUnlock()
 	for _, nodeID := range affectedNodeIDs {
 		node, ok := am.repoNodesForWatchedIDs[nodeID]
 		if ok {
 			nodes = append(nodes, node)
+			repoNodeIDs = append(repoNodeIDs, nodeID)
 		}
 	}
-	return nodes
+	return nodes, repoNodeIDs
+}
+
+func (am *AutogitManager) clearInvalidatedBrowsers(
+	repoNodeIDs []libkbfs.NodeID) {
+	am.browserLock.Lock()
+	defer am.browserLock.Unlock()
+
+	keys := am.browserCache.Keys()
+	for _, k := range keys {
+		// Clear all cached browsers associated with
+		tmp, ok := am.browserCache.Get(k)
+		if !ok {
+			continue
+		}
+		v, ok := tmp.(browserCacheValue)
+		if !ok {
+			continue
+		}
+		rootNodeID := v.repoFS.RootNode().GetID()
+		for _, nodeID := range repoNodeIDs {
+			if rootNodeID == nodeID {
+				am.log.CDebugf(
+					nil, "Invalidating browser for %s", v.repoFS.Root())
+				am.browserCache.Remove(k)
+				break
+			}
+		}
+	}
 }
 
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) BatchChanges(
 	ctx context.Context, _ []libkbfs.NodeChange,
 	affectedNodeIDs []libkbfs.NodeID) {
-	nodes := am.getNodesToInvalidate(affectedNodeIDs)
+	nodes, repoNodeIDs := am.getNodesToInvalidate(affectedNodeIDs)
+	go am.clearInvalidatedBrowsers(repoNodeIDs)
 	for _, node := range nodes {
 		node := node
 		go func() {
@@ -225,10 +282,84 @@ func (am *AutogitManager) TlfHandleChange(
 	// Do nothing.
 }
 
+// GetBrowserForRepo returns the root FS for the specified repo and a
+// `Browser` for the branch and subdir.
+func (am *AutogitManager) GetBrowserForRepo(
+	ctx context.Context, gitFS *libfs.FS, repoName string,
+	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
+	key := browserCacheKey{gitFS, repoName, branch, subdir}
+
+	am.browserLock.Lock()
+	defer am.browserLock.Unlock()
+	tmp, ok := am.browserCache.Get(key)
+	if ok {
+		b, ok := tmp.(browserCacheValue)
+		if !ok {
+			return nil, nil, errors.Errorf("Bad browser in cache: %T", tmp)
+		}
+		return b.repoFS, b.browser, nil
+	}
+
+	// It's kind of dumb to hold the browser lock through all of this,
+	// but it doesn't seem worthwhile to build the whole
+	// channel/notification system that would be needed to manage
+	// multiple concurrent requests for the same repo node.
+
+	am.log.CDebugf(ctx, "Making browser for repo=%s, branch=%s, subdir=%s",
+		repoName, branch, subdir)
+
+	rootKey := key
+	rootKey.subdir = ""
+
+	// Shortcut if the root of the repo already has a browser.
+	if subdir != "" {
+		tmp, ok = am.browserCache.Get(rootKey)
+		if ok {
+			rootB, ok := tmp.(browserCacheValue)
+			if ok {
+				b, err := rootB.browser.Chroot(subdir)
+				if err != nil {
+					return nil, nil, err
+				}
+				browser, ok := b.(*Browser)
+				if !ok {
+					return nil, nil, errors.Errorf("Bad browser type: %T", b)
+				}
+				am.browserCache.Add(
+					key, browserCacheValue{rootB.repoFS, browser})
+				return rootB.repoFS, browser, nil
+			}
+		}
+	}
+
+	billyFS, err := gitFS.Chroot(repoName)
+	if err != nil {
+		return nil, nil, err
+	}
+	repoFS := billyFS.(*libfs.FS)
+	browser, err := NewBrowser(repoFS, am.config.Clock(), branch)
+	if err != nil {
+		return nil, nil, err
+	}
+	if subdir != "" {
+		am.browserCache.Add(rootKey, browserCacheValue{repoFS, browser})
+		b, err := browser.Chroot(subdir)
+		if err != nil {
+			return nil, nil, err
+		}
+		browser, ok = b.(*Browser)
+		if !ok {
+			return nil, nil, errors.Errorf("Bad browser type: %T", b)
+		}
+	}
+	am.browserCache.Add(key, browserCacheValue{repoFS, browser})
+	return repoFS, browser, nil
+}
+
 // StartAutogit launches autogit, and returns a function that should
 // be called on shutdown.
-func StartAutogit(config libkbfs.Config) func() {
-	am := NewAutogitManager(config)
+func StartAutogit(config libkbfs.Config, browserCacheSize int) func() {
+	am := NewAutogitManager(config, browserCacheSize)
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 	return am.Shutdown
