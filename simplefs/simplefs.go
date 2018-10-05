@@ -26,7 +26,7 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/sync/errgroup"
-	billy "gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -64,6 +64,7 @@ var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported 
 var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
 var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
+var errInvalidPathType = simpleFSError{"Invalid path type"}
 
 type newFSFunc func(
 	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
@@ -161,6 +162,24 @@ func rawPathFromKbfsPath(path keybase1.Path) (string, error) {
 		return stdpath.Clean(path.KbfsArchived().Path), nil
 	default:
 		return "", errOnlyRemotePathSupported
+	}
+}
+
+func rawPathFromPath(path keybase1.Path) (string, error) {
+	pt, err := path.PathType()
+	if err != nil {
+		return "", err
+	}
+
+	switch pt {
+	case keybase1.PathType_KBFS:
+		return stdpath.Clean(path.Kbfs()), nil
+	case keybase1.PathType_KBFS_ARCHIVED:
+		return stdpath.Clean(path.KbfsArchived().Path), nil
+	case keybase1.PathType_LOCAL:
+		return stdpath.Clean(path.Local()), nil
+	default:
+		return "", errInvalidPathType
 	}
 }
 
@@ -959,6 +978,42 @@ func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyAr
 		func(ctx context.Context) (err error) {
 			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
+}
+
+// SimpleFSSymlink starts making a symlink of a file or directory
+func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) (err error) {
+	// This is not async.
+	ctx, err = k.startSyncOp(ctx, "Symlink", arg)
+	if err != nil {
+		return err
+	}
+	defer func() { k.doneSyncOp(ctx, err) }()
+
+	// Get root FS of dst
+	t, tlfName, restOfDstPath, finalDstElem, err := remoteTlfAndPath(arg.Dest)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+	if err != nil {
+		return err
+	}
+	fs, err := libfs.NewFS(
+		ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
+		keybase1.MDPriorityNormal)
+	if err != nil {
+		return err
+	}
+	srcRawPath, err := rawPathFromPath(arg.Src)
+	if err != nil {
+		return err
+	}
+
+	err = fs.Symlink(
+		stdpath.Clean(srcRawPath),
+		stdpath.Join(restOfDstPath, finalDstElem))
+	return err
 }
 
 type pathPair struct {
