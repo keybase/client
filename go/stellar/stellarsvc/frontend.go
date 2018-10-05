@@ -206,6 +206,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
+
+			s.G().Log.CWarningf(ctx, "@@@@@@@@@ GetAccountAssetsLocal/d: %+v", d)
+			s.G().Log.CWarningf(ctx, "@@@@@@@@@ GetAccountAssetsLocal/asset: %+v", d.Asset)
 			assets = append(assets, stellar1.AccountAssetLocal{
 				Name:                   d.Asset.Code,
 				AssetCode:              d.Asset.Code,
@@ -219,6 +222,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			})
 		}
 	}
+
+	s.G().Log.CWarningf(ctx, "@@@@@@@@@ GetAccountAssetsLocal: %+v", assets)
 
 	return assets, nil
 }
