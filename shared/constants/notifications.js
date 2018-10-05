@@ -11,6 +11,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     homeTodoItems,
     conversations,
     newTlfs,
+    newDevices,
     rekeysNeeded,
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
@@ -39,6 +40,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     [Tabs.gitTab, newGit],
     [Tabs.teamsTab, newTeams],
     [Tabs.peopleTab, homeTodoItems],
+    [Tabs.devicesTab, newDevices],
   ])
 
   return {

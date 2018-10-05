@@ -66,6 +66,10 @@
           "name": "homeTodoItems"
         },
         {
+          "type": "int",
+          "name": "newDevices"
+        },
+        {
           "type": {
             "type": "array",
             "items": "BadgeConversationInfo"

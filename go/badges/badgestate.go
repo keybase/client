@@ -91,6 +91,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
+	b.state.NewDevices = 0
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
@@ -150,6 +151,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			b.state.RekeysNeeded += body.Count
 		case "follow":
 			b.state.NewFollowers++
+		case "new_device":
+			b.state.NewDevices++
 		case "new_git_repo":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
