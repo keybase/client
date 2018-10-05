@@ -68,6 +68,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  sentPaymentError: '',
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -285,6 +286,18 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   })
 }
 
+const bannerLevelToBackground = (level: string) => {
+  switch (level) {
+    case 'info':
+      return 'Announcements'
+    case 'error':
+      return 'HighRisk'
+    default:
+      console.warn('Unexpected banner level', level)
+      return 'Information'
+  }
+}
+
 const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
   switch (t) {
     case 'ownaccount':
@@ -457,6 +470,7 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  bannerLevelToBackground,
   balanceChangeColor,
   balanceChangeSign,
   cancelPaymentWaitingKey,
