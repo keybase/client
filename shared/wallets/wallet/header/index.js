@@ -20,14 +20,7 @@ type Props = {
 }
 
 const Header = (props: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    gap="tiny"
-    gapStart={true}
-    gapEnd={true}
-    style={styles.noShrink}
-  >
+  <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2
         direction="horizontal"
@@ -71,6 +64,7 @@ const Header = (props: Props) => (
         disabled={!props.walletName}
       />
     </Kb.Box2>
+    <Kb.Divider />
   </Kb.Box2>
 )
 

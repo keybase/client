@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
+	"github.com/keybase/client/go/jsonparserw"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -271,7 +272,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	// has not interacted with the deleted user. The idea being if you have
 	// interacted (chatted, etc) with this user you should still verify their
 	// sigchain. Otherwise you can ignore it.
-	if val, err := jsonparser.GetInt(body, "status", "code"); err == nil {
+	if val, err := jsonparserw.GetInt(body, "status", "code"); err == nil {
 		if keybase1.StatusCode(val) == keybase1.StatusCode_SCDeleted {
 			// Do not bother trying to read the sigchain - user is
 			// deleted.
@@ -286,7 +287,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 	numEntries := 0
 
-	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+	jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
 		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {

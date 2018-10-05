@@ -64,8 +64,9 @@ const sendPayment = (state: TypedState) =>
       quickReturn: true,
       secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
       to: state.wallets.buildingPayment.to,
-      toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
-      // FIXME: use chosen currency info here
+      toIsAccountID:
+        state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
+        !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey

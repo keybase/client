@@ -4368,6 +4368,20 @@ func (o FullInboxSearchRes) DeepCopy() FullInboxSearchRes {
 	}
 }
 
+type IndexSearchConvStats struct {
+	NumMessages  int                  `codec:"numMessages" json:"numMessages"`
+	IndexSize    int                  `codec:"indexSize" json:"indexSize"`
+	DurationMsec gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
+}
+
+func (o IndexSearchConvStats) DeepCopy() IndexSearchConvStats {
+	return IndexSearchConvStats{
+		NumMessages:  o.NumMessages,
+		IndexSize:    o.IndexSize,
+		DurationMsec: o.DurationMsec.DeepCopy(),
+	}
+}
+
 type StaticConfig struct {
 	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
 }
@@ -4765,6 +4779,11 @@ type FullInboxSearchArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type IndexSearchArg struct {
+	ConvID           *ConversationID              `codec:"convID,omitempty" json:"convID,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type GetStaticConfigArg struct {
 }
 
@@ -4823,6 +4842,7 @@ type LocalInterface interface {
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 	FullInboxSearch(context.Context, FullInboxSearchArg) (FullInboxSearchRes, error)
+	IndexSearch(context.Context, IndexSearchArg) (map[string]IndexSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
@@ -5684,6 +5704,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"indexSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]IndexSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IndexSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IndexSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.IndexSearch(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getStaticConfig": {
 				MakeArg: func() interface{} {
 					var ret [1]GetStaticConfigArg
@@ -5979,6 +6015,11 @@ func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpA
 
 func (c LocalClient) FullInboxSearch(ctx context.Context, __arg FullInboxSearchArg) (res FullInboxSearchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.fullInboxSearch", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) IndexSearch(ctx context.Context, __arg IndexSearchArg) (res map[string]IndexSearchConvStats, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.indexSearch", []interface{}{__arg}, &res)
 	return
 }
 
