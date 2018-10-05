@@ -38,6 +38,10 @@
       "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "cancelPayment": {
+      "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
+      "paymentID": "Types.PaymentID",
+    },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
@@ -63,6 +67,10 @@
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
+    },
+    "loadMorePayments": {
+      "_description": "Scrolled down the list of payments for a given account",
+      "accountID": "Types.AccountID",
     },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
@@ -150,6 +158,7 @@
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
+      "paymentCursor": "?StellarRPCTypes.PageCursor",
       "payments": "Array<Types.Payment>",
       "pending": "Array<Types.Payment>",
     },

@@ -11,10 +11,12 @@ import * as Route from './route-tree'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
-import {walletsTab} from '../constants/tabs'
+import * as Tabs from '../constants/tabs'
+import * as SettingsConstants from '../constants/settings'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 import {anyWaiting} from '../constants/waiting'
+import {isMobile} from '../constants/platform'
 
 const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -144,10 +146,28 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
+      paymentCursor: payments.cursor,
       payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
       pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
+
+const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
+  const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
+  return (
+    cursor &&
+    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(payments =>
+      WalletsGen.createPaymentsReceived({
+        accountID: action.payload.accountID,
+        paymentCursor: payments.cursor,
+        payments: (payments.payments || [])
+          .map(elem => Constants.paymentResultToPayment(elem))
+          .filter(Boolean),
+        pending: [],
+      })
+    )
+  )
+}
 
 const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
   RPCTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
@@ -297,7 +317,11 @@ const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPa
     // we don't want to show, don't nav
     return
   }
-  return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+  const wallet = isMobile
+    ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'wallet']
+    : [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]
+
+  return Saga.put(Route.navigateTo(wallet))
 }
 
 const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
@@ -321,6 +345,24 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
     .then(request => WalletsGen.createRequestDetailReceived({request}))
     .catch(err => logger.error(`Error loading request detail: ${err.message}`))
 
+const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayload) => {
+  const {paymentID} = action.payload
+  const pid = Types.paymentIDToString(paymentID)
+  logger.info(`cancelPayment: cancelling payment with ID ${pid}`)
+  return RPCTypes.localCancelPaymentLocalRpcPromise(
+    {paymentID: Types.paymentIDToRPCPaymentID(action.payload.paymentID)},
+    Constants.cancelPaymentWaitingKey(action.payload.paymentID)
+  )
+    .then(_ => {
+      logger.info(`cancelPayment: successfully cancelled payment with ID ${pid}`)
+      return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
+    })
+    .catch(err => {
+      logger.error(`cancelPayment: failed to cancel payment with ID ${pid}. Error: ${err.message}`)
+      throw err
+    })
+}
+
 const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
   const {conversationIDKey, ordinal, requestID} = action.payload
   return RPCTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
@@ -335,9 +377,9 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
   const path = getPath(routeState)
   const lastNode = path.last()
   if (Constants.sendReceiveFormRoutes.includes(lastNode)) {
-    if (path.first() === walletsTab) {
+    if (path.first() === Tabs.walletsTab) {
       // User is on send form in wallets tab, navigate back to root of tab
-      return Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+      return Saga.put(Route.navigateTo([{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}]))
     }
     // User is somewhere else, send them to most recent parent that isn't a form route
     const firstFormIndex = path.findIndex(node => Constants.sendReceiveFormRoutes.includes(node))
@@ -395,6 +437,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
@@ -445,6 +488,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
   yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
+  yield Saga.actionToPromise(WalletsGen.cancelPayment, cancelPayment)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }

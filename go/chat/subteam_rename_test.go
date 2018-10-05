@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -143,11 +144,46 @@ func TestChatSubteamRename(t *testing.T) {
 			require.Fail(t, "unexpected update")
 		case <-time.After(2 * time.Second):
 		}
-		ib, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: u1ExpectedUpdates,
-		}, nil)
-		require.NoError(t, err)
-		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
+
+		pollIB := func() *types.Inbox {
+			ib, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
+				ConvIDs: u1ExpectedUpdates,
+			}, nil)
+			require.NoError(t, err)
+			require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
+			for _, conv := range ib.Convs {
+				convID := conv.GetConvID()
+				if convID.Eq(subConv1.Id) || convID.Eq(subConv2.Id) {
+					if newSubteamName.String() != conv.Info.TlfName {
+						return nil
+					}
+				}
+				if convID.Eq(subSubConv1.Id) || convID.Eq(subSubConv2.Id) {
+					if newSubSubteamName.String() != conv.Info.TlfName {
+						return nil
+					}
+				}
+			}
+			return &ib
+		}
+
+		// Poll a few times to Read the inbox. Once gregor notifications come in that the teams changed, we'll
+		// get the right answer for the subteam name checks in the poll functions.  But until that happens
+		// we can retry.
+		var ib *types.Inbox
+		wait := 10 * time.Millisecond
+		for i := 0; i < 10; i++ {
+			ib = pollIB()
+			if ib != nil {
+				break
+			}
+			t.Logf("Polled for conversation name upgrades, but they weren't here yet, will wait %v and retry", wait)
+			time.Sleep(wait)
+			wait *= 2
+		}
+
+		// If this happened, we failed our poll many times in a row!
+		require.NotNil(t, ib)
 
 		for _, conv := range ib.Convs {
 			convID := conv.GetConvID()

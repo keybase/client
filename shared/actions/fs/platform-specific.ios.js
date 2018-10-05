@@ -4,7 +4,7 @@ import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import {type TypedState} from '../../util/container'
 import {pickAndUploadToPromise} from './common.native'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
 const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
@@ -22,7 +22,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheet, {url: localPath, mimeType}),
+        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':

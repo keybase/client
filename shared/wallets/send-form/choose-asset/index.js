@@ -10,7 +10,14 @@ import {
   SectionList,
   Text,
 } from '../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
+import {
+  borderRadius,
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../styles'
 import Header from '../header'
 
 const unexpandedNumDisplayOptions = 4
@@ -297,7 +304,7 @@ const styles = styleSheetCreate({
   }),
   expanderContainer: {
     backgroundColor: globalColors.black_05,
-    borderRadius: 11,
+    borderRadius,
     height: 22,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,

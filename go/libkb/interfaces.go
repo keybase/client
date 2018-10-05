@@ -636,6 +636,7 @@ type FastTeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
+	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
 	OnLogout()
 }
 
@@ -651,6 +652,7 @@ type Stellar interface {
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
+	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 }
 
 type DeviceEKStorage interface {

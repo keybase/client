@@ -1,9 +1,25 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, Icon, NameWithIcon, ProgressIndicator, Text} from '../../common-adapters'
+import {
+  Box2,
+  Divider,
+  Icon,
+  NameWithIcon,
+  ProgressIndicator,
+  Text,
+  WaitingButton,
+  WithTooltip,
+} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
@@ -18,6 +34,8 @@ export type NotLoadingProps = {|
   // stellarPublicKey.
   memo: string,
   onBack: () => void,
+  onCancelPayment: ?() => void,
+  onCancelPaymentWaitingKey: string,
   title: string,
   onLoadPaymentDetail: () => void,
   onShowProfile: string => void,
@@ -173,6 +191,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
         counterpartyType={props.counterpartyType}
         large={true}
         memo={props.memo}
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
         onShowProfile={props.onShowProfile}
         selectableText={true}
         status={props.status}
@@ -194,7 +214,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
 
       <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
         <Text type="BodySmallSemibold">Status:</Text>
-        <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
+        <WithTooltip
+          containerStyle={styles.statusBox}
+          text={
+            props.status === 'cancelable'
+              ? `${
+                  props.counterparty
+                } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
+              : ''
+          }
+          textStyle={styles.tooltipText}
+          multiline={true}
+        >
           <Icon
             color={colorForStatus(props.status)}
             fontSize={16}
@@ -215,13 +246,22 @@ const TransactionDetails = (props: NotLoadingProps) => {
           >
             {descriptionForStatus(props.status, props.yourRole)}
           </Text>
-        </Box2>
+        </WithTooltip>
         {props.status !== 'error' && (
           <TimestampLine
-            status={props.status}
-            error={props.statusDetail}
+            error={props.status === 'error' ? props.statusDetail : ''}
             selectableText={true}
             timestamp={props.timestamp}
+          />
+        )}
+        {props.onCancelPayment && (
+          <WaitingButton
+            waitingKey={props.onCancelPaymentWaitingKey}
+            type="Danger"
+            label="Cancel"
+            onClick={props.onCancelPayment}
+            small={true}
+            style={{alignSelf: 'flex-start'}}
           />
         )}
       </Box2>
@@ -281,9 +321,16 @@ const styles = styleSheetCreate({
     marginLeft: globalMargins.tiny,
   },
   statusBox: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    alignSelf: 'flex-start',
   },
   statusText: {
     marginLeft: globalMargins.xtiny,
   },
+  tooltipText: platformStyles({
+    isElectron: {
+      wordBreak: 'break-work',
+    },
+  }),
 })

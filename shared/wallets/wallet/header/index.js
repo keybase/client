@@ -9,6 +9,7 @@ type Props = {
   accountID: Types.AccountID,
   isDefaultWallet: boolean,
   onReceive: () => void,
+  onBack: ?() => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
@@ -28,7 +29,14 @@ const Header = (props: Props) => (
     style={styles.noShrink}
   >
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="xtiny"
+        centerChildren={true}
+        style={styles.topContainer}
+      >
+        {props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />}
         {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
           <Kb.Text selectable={true} type="BodyBig">
@@ -163,6 +171,10 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 }
 
 const styles = Styles.styleSheetCreate({
+  backButton: {
+    left: 0,
+    position: 'absolute',
+  },
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -177,6 +189,9 @@ const styles = Styles.styleSheetCreate({
   spinner: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
+  },
+  topContainer: {
+    position: 'relative',
   },
 })
 

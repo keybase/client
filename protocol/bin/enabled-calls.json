@@ -167,6 +167,7 @@
   "keybase.1.user.uploadUserAvatar": {"promise": true},
   "stellar.1.local.buildPaymentLocal": {"promise": true},
   "stellar.1.local.getSendAssetChoicesLocal": {"promise": true},
+  "stellar.1.local.cancelPaymentLocal": {"promise": true},
   "stellar.1.local.cancelRequestLocal": {"promise": true},
   "stellar.1.local.createWalletAccountLocal": {"promise": true},
   "stellar.1.local.getAccountAssetsLocal": {"promise": true},
@@ -187,5 +188,5 @@
   "stellar.1.local.makeRequestLocal": {"promise": true},
   "stellar.1.local.sendPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
-  "stellar.1.local.validateSecretKeyLocal": {"promise": true},
+  "stellar.1.local.validateSecretKeyLocal": {"promise": true}
 }

@@ -246,7 +246,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySmallSuccess: {
-    colorForBackgroundMode: {Normal: globalColors.green2},
+    colorForBackgroundMode: {Normal: globalColors.green},
     fontSize: 12,
     styleOverride: globalStyles.fontRegular,
   },

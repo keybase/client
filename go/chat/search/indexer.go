@@ -29,14 +29,14 @@ type msgMetadata struct {
 	Ctime          gregor1.Time
 }
 
-// matches applys any filters specified in the searchOpts, returning if the msg
-// matches or not
-func (m msgMetadata) matches(opts chat1.SearchOpts) bool {
-	if opts.SentBy != "" && opts.SentBy != m.SenderUsername {
-		return false
-	}
-	// TODO add sentBefore, sentAfter date filters
-	return true
+// For the chat1.MsgMetadata inferface
+func (m msgMetadata) GetSenderUsername() string {
+	return m.SenderUsername
+}
+
+// For the chat1.MsgMetadata inferface
+func (m msgMetadata) GetCtime() gregor1.Time {
+	return m.Ctime
 }
 
 type msgMetadataIndex map[chat1.MessageID]msgMetadata
@@ -214,7 +214,7 @@ func (idx *Indexer) searchConvLocked(ctx context.Context, convID chat1.Conversat
 		msgIDs := mapset.NewThreadUnsafeSet()
 		for msgID, msgMetadata := range metadata {
 			// honor search filters
-			if msgMetadata.matches(opts) {
+			if opts.Matches(msgMetadata) {
 				msgIDs.Add(msgID)
 			}
 		}

@@ -86,7 +86,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     attachTo: ownProps.attachTo,
     balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
     balanceChangeColor:
-      paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+      paymentInfo.delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red,
     bottomLine: '', // TODO on asset support in payment
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,

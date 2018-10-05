@@ -42,6 +42,10 @@ class Text extends Component<Props> {
   }
   _nativeText: any
 
+  highlightText() {
+    // ignored
+  }
+
   focus() {
     if (this._nativeText) {
       this._nativeText.focus()
