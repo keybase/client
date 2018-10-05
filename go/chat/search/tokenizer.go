@@ -38,5 +38,5 @@ func tokenize(msgText string) []string {
 // getQueryRe returns a regex to match the query string on message text. This
 // is used for result highlighting.
 func getQueryRe(query string) (*regexp.Regexp, error) {
-	return regexp.Compile(tokenizeExpr.ReplaceAllString(query, "."))
+	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
 }

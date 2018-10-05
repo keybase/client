@@ -24,14 +24,14 @@ func TestTokenize(t *testing.T) {
 			"~hi~",
 			"hey",
 			"约书亚和约翰屌爆",
-			":100:",
+			":+1:",
 		}, sep)
 		tokens := tokenize(msgText)
 		t.Logf("msgText: %v, tokens: %v", msgText, tokens)
 		sort.Strings(tokens)
 		require.Equal(t, []string{
 			"*bye*",
-			":100:",
+			":+1:",
 			"hey",
 			"~hi~",
 			"约书亚和约翰屌爆",
@@ -45,12 +45,15 @@ func TestTokenize(t *testing.T) {
 }
 
 func TestGetQueryRe(t *testing.T) {
-	queries := []string{"foo", "foo bar", "foo bar, baz? :100:"}
-	expectedRe := []string{"foo", "foo.bar", "foo.bar..baz..:100:"}
+	queries := []string{"foo", "foo bar", "foo bar, baz? :+1:"}
+	expectedRe := []string{"foo", "foo bar", "foo bar, baz\\? :\\+1:"}
 	for i, query := range queries {
 		re, err := getQueryRe(query)
 		require.NoError(t, err)
-		expected := regexp.MustCompile(expectedRe[i])
+		expected := regexp.MustCompile("(?i)" + expectedRe[i])
 		require.Equal(t, expected, re)
+		t.Logf("query: %v, expectedRe: %v, re: %v", query, expectedRe, re)
+		ok := re.MatchString(query)
+		require.True(t, ok)
 	}
 }
