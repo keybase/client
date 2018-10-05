@@ -187,6 +187,8 @@ export type _State = {
   sentPaymentError: string,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
+  paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
+  paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,

@@ -54,9 +54,13 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   buildingPayment: makeBuildingPayment(),
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
+  currencies: I.List(),
+  currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
+  paymentCursorMap: I.Map(),
+  paymentLoadingMoreMap: I.Map(),
   paymentsMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
@@ -65,8 +69,6 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
-  currencies: I.List(),
-  currencyMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
