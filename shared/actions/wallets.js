@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
-import * as RPCTypes from '../constants/types/rpc-stellar-gen'
-import * as RPCTypesKb from '../constants/types/rpc-gen'
+import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Chat2Gen from './chat2-gen'
@@ -21,7 +21,7 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 
 const buildPayment = (state: TypedState, action: any) =>
-  RPCTypes.localBuildPaymentLocalRpcPromise({
+  RPCStellarTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
     fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
@@ -41,7 +41,7 @@ const buildPayment = (state: TypedState, action: any) =>
       })
     )
     .catch(error => {
-      if (error instanceof RPCError && error.code === RPCTypesKb.constantsStatusCode.sccanceled) {
+      if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
         // ignore cancellation
       } else {
         throw error
@@ -50,7 +50,7 @@ const buildPayment = (state: TypedState, action: any) =>
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
-  return RPCTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
+  return RPCStellarTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
     .then(accountID =>
       WalletsGen.createCreatedNewAccount({accountID, showOnCreation: action.payload.showOnCreation})
@@ -62,7 +62,7 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
 }
 
 const sendPayment = (state: TypedState) =>
-  RPCTypes.localSendPaymentLocalRpcPromise(
+  RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
@@ -82,7 +82,7 @@ const sendPayment = (state: TypedState) =>
   ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
 
 const requestPayment = (state: TypedState) =>
-  RPCTypes.localMakeRequestLocalRpcPromise(
+  RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
@@ -105,8 +105,8 @@ const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedP
   // Don't load the account if we already have a call doing this
   const waitingKey = Constants.loadAccountWaitingKey(accountID)
   if (!Constants.isAccountLoaded(state, accountID) && !anyWaiting(state, waitingKey)) {
-    return RPCTypes.localGetWalletAccountLocalRpcPromise({accountID: accountID}, waitingKey).then(account =>
-      WalletsGen.createAccountsReceived({accounts: [Constants.accountResultToAccount(account)]})
+    return RPCStellarTypes.localGetWalletAccountLocalRpcPromise({accountID: accountID}, waitingKey).then(
+      account => WalletsGen.createAccountsReceived({accounts: [Constants.accountResultToAccount(account)]})
     )
   }
 }
@@ -121,7 +121,7 @@ const loadAccounts = (
     | ConfigGen.LoggedInPayload
 ) =>
   !action.error &&
-  RPCTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
     WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
     })
@@ -136,7 +136,7 @@ const loadAssets = (
     | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
-  RPCTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
+  RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
       assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
@@ -153,8 +153,8 @@ const loadPayments = (
 ) =>
   !action.error &&
   Promise.all([
-    RPCTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
@@ -168,28 +168,29 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
   return (
     cursor &&
-    RPCTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(payments =>
-      WalletsGen.createPaymentsReceived({
-        accountID: action.payload.accountID,
-        paymentCursor: payments.cursor,
-        payments: (payments.payments || [])
-          .map(elem => Constants.paymentResultToPayment(elem))
-          .filter(Boolean),
-        pending: [],
-      })
+    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(
+      payments =>
+        WalletsGen.createPaymentsReceived({
+          accountID: action.payload.accountID,
+          paymentCursor: payments.cursor,
+          payments: (payments.payments || [])
+            .map(elem => Constants.paymentResultToPayment(elem))
+            .filter(Boolean),
+          pending: [],
+        })
     )
   )
 }
 
 const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
-  RPCTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
+  RPCStellarTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
     WalletsGen.createDisplayCurrenciesReceived({
       currencies: (res || []).map(c => Constants.currenciesResultToCurrencies(c)),
     })
   )
 
 const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
-  RPCTypes.localGetDisplayCurrencyLocalRpcPromise({
+  RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
     accountID: action.payload.accountID,
   }).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
@@ -199,7 +200,7 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   )
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
-  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise(
+  RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
     {
       accountID: action.payload.accountID,
       currency: action.payload.code, // called currency, though it is a code
@@ -208,7 +209,7 @@ const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDispl
   ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
 const changeAccountName = (state: TypedState, action: WalletsGen.ChangeAccountNamePayload) =>
-  RPCTypes.localChangeWalletAccountNameLocalRpcPromise(
+  RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
     {
       accountID: action.payload.accountID,
       newName: action.payload.name,
@@ -217,7 +218,7 @@ const changeAccountName = (state: TypedState, action: WalletsGen.ChangeAccountNa
   ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
 
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
-  RPCTypes.localDeleteWalletAccountLocalRpcPromise(
+  RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
     {
       accountID: action.payload.accountID,
       userAcknowledged: 'yes',
@@ -226,7 +227,7 @@ const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayloa
   ).then(res => WalletsGen.createDeletedAccount())
 
 const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
-  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
+  RPCStellarTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
     {
       accountID: action.payload.accountID,
     },
@@ -234,7 +235,7 @@ const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsD
   ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
-  RPCTypes.localGetPaymentDetailsLocalRpcPromise({
+  RPCStellarTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
     id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
   }).then(res =>
@@ -246,7 +247,7 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
 
 const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
-  return RPCTypes.localLinkNewWalletAccountLocalRpcPromise(
+  return RPCStellarTypes.localLinkNewWalletAccountLocalRpcPromise(
     {
       name,
       secretKey: secretKey.stringValue(),
@@ -265,7 +266,7 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
-  return RPCTypes.localValidateAccountNameLocalRpcPromise({name})
+  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise({name})
     .then(() => WalletsGen.createValidatedAccountName({name}))
     .catch(err => {
       logger.warn(`Error validating account name: ${err.desc}`)
@@ -275,7 +276,7 @@ const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccou
 
 const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
-  return RPCTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
+  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
     .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
     .catch(err => {
       logger.warn(`Error validating secret key: ${err.desc}`)
@@ -329,11 +330,12 @@ const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPa
 }
 
 const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPayload) =>
-  RPCTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
-    WalletsGen.createSecretKeyReceived({
-      accountID: action.payload.accountID,
-      secretKey: new HiddenString(res),
-    })
+  RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({accountID: action.payload.accountID}).then(
+    res =>
+      WalletsGen.createSecretKeyReceived({
+        accountID: action.payload.accountID,
+        secretKey: new HiddenString(res),
+      })
   )
 
 const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
@@ -345,7 +347,7 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
   )
 
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
-  RPCTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
+  RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
     .then(request => WalletsGen.createRequestDetailReceived({request}))
     .catch(err => logger.error(`Error loading request detail: ${err.message}`))
 
@@ -353,7 +355,7 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
   const {paymentID} = action.payload
   const pid = Types.paymentIDToString(paymentID)
   logger.info(`cancelPayment: cancelling payment with ID ${pid}`)
-  return RPCTypes.localCancelPaymentLocalRpcPromise(
+  return RPCStellarTypes.localCancelPaymentLocalRpcPromise(
     {paymentID: Types.paymentIDToRPCPaymentID(action.payload.paymentID)},
     Constants.cancelPaymentWaitingKey(action.payload.paymentID)
   )
@@ -369,7 +371,7 @@ const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayloa
 
 const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
   const {conversationIDKey, ordinal, requestID} = action.payload
-  return RPCTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
+  return RPCStellarTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
     .then(
       () => (conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null)
     )
