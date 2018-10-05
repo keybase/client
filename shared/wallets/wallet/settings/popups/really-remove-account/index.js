@@ -69,12 +69,14 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
-        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.mainText])} type="Header">
-          One last thing! Make sure you keep a copy of your secret key before removing{' '}
-          <Kb.Text type="HeaderItalic" style={styles.warningText}>
-            {this.props.name}
-          </Kb.Text>.
-        </Kb.Text>
+        <Kb.Box2 direction="vertical">
+          <Kb.Text style={styles.warningText} type="Header">
+            One last thing! Make sure you keep a copy of your secret key before removing{' '}
+          </Kb.Text>
+          <Kb.Text type="HeaderItalic" style={Styles.collapseStyles([styles.warningText, styles.mainText])}>
+            {this.props.name}.
+          </Kb.Text>
+        </Kb.Box2>
         <Kb.Text type="BodySmall" style={styles.warningText}>
           Paste it in a 100% safe place.
         </Kb.Text>
@@ -107,9 +109,14 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
     },
   }),
-  mainText: {
-    paddingBottom: Styles.globalMargins.small,
-  },
+  mainText: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   warningText: {
     color: Styles.globalColors.brown_60,
     textAlign: 'center',
