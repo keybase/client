@@ -91,7 +91,7 @@ const vowels = 'AEIOU'.split('')
 const emoji = [':+1:', ':-1:', ':heavy_check_mark:', ':boom:', ':globe_with_meridians:', ':bathtub:']
 const rng = new Sb.Rnd(7324)
 const makeName = () => {
-  const length = rng.next() % 5 + 3
+  const length = (rng.next() % 5) + 3
   let res = ''
   for (let i = 0; i < length; i++) {
     i % 2 === 0
@@ -119,7 +119,7 @@ examples.push({
   ...common,
   reactions: emoji.map(e => ({
     emoji: e,
-    users: makeUsers(rng.next() % maxUsersInReaction + 1),
+    users: makeUsers((rng.next() % maxUsersInReaction) + 1),
   })),
 })
 

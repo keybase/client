@@ -21,8 +21,7 @@ const commonProps = {
 
 class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
   state = {value: ''}
-  // prettier-ignore
-  _input = React.createRef<typeof PlainInput>()
+  _input: {current: React$ElementRef<typeof PlainInput> | null} = React.createRef()
 
   _insertText = (t: string) => {
     const input = this._input.current

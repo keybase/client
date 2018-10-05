@@ -52,7 +52,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 }
 
 const ConnectedNameWithIcon = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('NameWithIcon')
 )(NameWithIcon)
 

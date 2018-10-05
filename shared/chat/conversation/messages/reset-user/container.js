@@ -30,4 +30,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   viewProfile: () => dispatchProps._viewProfile(stateProps.username),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ResetUser)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(ResetUser)

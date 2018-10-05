@@ -134,6 +134,11 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Inbox'))(
-  InboxWrapper
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('Inbox')
+)(InboxWrapper)

@@ -22,13 +22,16 @@ const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
         hierarchy. Some random ideas:
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.devops
+        • {teamname}
+        .devops
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.legal
+        • {teamname}
+        .legal
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.customers.vip
+        • {teamname}
+        .customers.vip
       </Text>
 
       <Text

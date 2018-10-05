@@ -36,6 +36,10 @@ export default compose(
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
 )(SetPublicName)

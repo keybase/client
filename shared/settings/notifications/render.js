@@ -112,8 +112,8 @@ const Notifications = (props: Props) =>
           />
         )}
 
-        {!isMobile && (
-          <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
+      {!isMobile && (
+        <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
           <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
             Sound
           </Text>
@@ -125,10 +125,8 @@ const Notifications = (props: Props) =>
               label="Desktop Chat Notification Sound"
             />
           </Box>
-
         </Box>
-
-          )}
+      )}
     </Box>
   )
 

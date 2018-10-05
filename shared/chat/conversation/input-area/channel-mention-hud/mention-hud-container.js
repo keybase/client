@@ -26,6 +26,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('ChannelMentionHud'))(
-  MentionHud
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
+  setDisplayName('ChannelMentionHud')
+)(MentionHud)

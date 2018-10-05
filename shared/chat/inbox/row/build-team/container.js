@@ -19,6 +19,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('BuildTeam'))(
-  BuildTeam
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('BuildTeam')
+)(BuildTeam)

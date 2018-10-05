@@ -7,5 +7,5 @@ export type Props = {|
   daemonError: ?Error,
   onDismiss: () => void,
   debugDump: Array<string>,
-  copyToClipboard: string => void
+  copyToClipboard: string => void,
 |}

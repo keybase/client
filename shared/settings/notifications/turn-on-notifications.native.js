@@ -40,7 +40,8 @@ const TurnOnNotifications = (props: Props) => (
       <Text type="BodySemiboldItalic" backgroundMode="HighRisk">
         very
       </Text>{' '}
-      important you turn them back on.{'\n'}
+      important you turn them back on.
+      {'\n'}
       <Text onClick={props.onEnable} type="BodySemiboldLink" backgroundMode="HighRisk">
         Enable notifications
       </Text>
@@ -54,6 +55,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onEnable: () => dispatch(PushGen.createRequestPermissions()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  TurnOnNotifications
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(TurnOnNotifications)

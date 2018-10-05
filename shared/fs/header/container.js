@@ -33,7 +33,11 @@ const mergeProps = (_, {onBack, onChat}, {path, routePath}) => {
 }
 
 export default compose(
-  connect(() => ({}), mapDispatchToProps, mergeProps),
+  connect(
+    () => ({}),
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('FolderHeader'),
   OpenHOC
 )(FolderHeader)

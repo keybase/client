@@ -75,6 +75,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('WrapperTimestamp'))(
-  WrapperTimestamp
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
+  setDisplayName('WrapperTimestamp')
+)(WrapperTimestamp)
