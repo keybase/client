@@ -66,7 +66,7 @@ const Header = (props: HeaderProps) =>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
+          <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
           <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
@@ -74,11 +74,11 @@ const Header = (props: HeaderProps) =>
             colorYou={true}
             inline={true}
             usernames={[props.sender]}
-            type="BodyTinySemibold"
+            type="BodySmallSemibold"
           />
         </Kb.Box2>
-        <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
-        <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
+        <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.balanceChange && (
         <Kb.Text

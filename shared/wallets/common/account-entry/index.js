@@ -76,7 +76,6 @@ const styles = Styles.styleSheetCreate({
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,
-    fontSize: 11,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   icon: {

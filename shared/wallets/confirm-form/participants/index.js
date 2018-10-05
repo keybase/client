@@ -42,12 +42,12 @@ const Participants = (props: ParticipantsProps) => {
         throw new Error('Recipient type stellarPublicKey requires prop recipientStellarAddress')
       }
       toFieldContent = (
-        <React.Fragment>
+        <Kb.Box2 direction="horizontal" gap="xtiny">
           <Kb.Icon type="icon-stellar-logo-16" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
           <Kb.Text type="BodySemibold" style={styles.stellarAddressConfirmText}>
             {props.recipientStellarAddress}
           </Kb.Text>
-        </React.Fragment>
+        </Kb.Box2>
       )
       break
     case 'otherAccount':
