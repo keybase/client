@@ -25,6 +25,7 @@ const AssetInput = (props: Props) => (
     )}
     <Kb.NewInput
       type="number"
+      hello="goodbye"
       decoration={
         <Kb.Box2 direction="vertical" style={styles.flexEnd}>
           <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
