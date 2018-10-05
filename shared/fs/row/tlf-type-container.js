@@ -30,7 +30,11 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('ConnectedTlfTypeRow'),
   OpenHOC
 )(TlfType)

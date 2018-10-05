@@ -31,7 +31,11 @@ const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
-  connect(mapStateToPropsKeybaseUser, mapDispatchToPropsKeybaseUser, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsKeybaseUser,
+    mapDispatchToPropsKeybaseUser,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('ParticipantsKeybaseUser')
 )(ParticipantsKeybaseUser)
 
@@ -52,11 +56,15 @@ const mapDispatchToPropsStellarPublicKey = (dispatch: Dispatch) => ({
 })
 
 const ConnectedParticipantsStellarPublicKey = compose(
-  connect(mapStateToPropsStellarPublicKey, mapDispatchToPropsStellarPublicKey, (s, d, o) => ({
-    ...o,
-    ...s,
-    ...d,
-  })),
+  connect(
+    mapStateToPropsStellarPublicKey,
+    mapDispatchToPropsStellarPublicKey,
+    (s, d, o) => ({
+      ...o,
+      ...s,
+      ...d,
+    })
+  ),
   setDisplayName('ParticipantsStellarPublicKey')
 )(ParticipantsStellarPublicKey)
 
@@ -113,7 +121,11 @@ const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
 })
 
 const ConnectedParticipantsOtherAccount = compose(
-  connect(mapStateToPropsOtherAccount, mapDispatchToPropsOtherAccount, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsOtherAccount,
+    mapDispatchToPropsOtherAccount,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('ParticipantsOtherAccount')
 )(ParticipantsOtherAccount)
 
@@ -142,7 +154,11 @@ const ParticipantsChooser = props => {
 }
 
 const ConnectedParticipantsChooser = compose(
-  connect(mapStateToPropsChooser, () => ({}), (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsChooser,
+    () => ({}),
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('Participants')
 )(ParticipantsChooser)
 

@@ -35,6 +35,10 @@ const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: Own
 }
 
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('ConnectedUploadingRow')
 )(Uploading)

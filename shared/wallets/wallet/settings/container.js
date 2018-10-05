@@ -80,7 +80,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.refresh()

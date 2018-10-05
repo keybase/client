@@ -34,4 +34,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(VideoFullscreen)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(VideoFullscreen)

@@ -145,7 +145,9 @@ class UserInput extends Component<Props, State> {
           onClick={this.focus}
           onMouseDown={this._preventInputDefocus}
         >
-          {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
+          {userItems.map(item => (
+            <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />
+          ))}
           <Box style={_inputLineStyle}>
             <AutosizeInput
               autoFocus={autoFocus}

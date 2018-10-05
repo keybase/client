@@ -28,4 +28,8 @@ function DevMenu(props) {
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
 })
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(DevMenu)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(DevMenu)

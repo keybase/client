@@ -84,12 +84,12 @@ func (c *CmdChatIndexSearch) Run() (err error) {
 	}
 
 	// Nil convID means index entire inbox
-	arg := chat1.IndexSearchArg{
+	arg := chat1.IndexChatSearchArg{
 		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
-	res, err := resolver.ChatClient.IndexSearch(ctx, arg)
+	res, err := resolver.ChatClient.IndexChatSearch(ctx, arg)
 	if err != nil {
 		return err
 	}

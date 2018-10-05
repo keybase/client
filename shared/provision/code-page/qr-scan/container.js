@@ -34,10 +34,17 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('QRScan'),
   safeSubmit(['onSubmitTextCode'], ['error']),
-  withStateHandlers({mountKey: '0'}, {incrementMountKey: ({mountKey}) => () => ({mountKey: String(Number(mountKey) + 1)})}),
+  withStateHandlers(
+    {mountKey: '0'},
+    {incrementMountKey: ({mountKey}) => () => ({mountKey: String(Number(mountKey) + 1)})}
+  ),
   withProps(p => ({
     onOpenSettings: () => {
       // When they click open settings we force a remount

@@ -2618,12 +2618,12 @@
     },
     {
       "type": "record",
-      "name": "FullInboxSearchRes",
+      "name": "InboxSearchRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "ChatConvSearchHit"
+            "items": "ChatInboxSearchHit"
           },
           "name": "hits"
         },
@@ -3883,7 +3883,7 @@
       ],
       "response": "GetSearchRegexpRes"
     },
-    "fullInboxSearch": {
+    "inboxSearch": {
       "request": [
         {
           "name": "sessionID",
@@ -3902,9 +3902,9 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "FullInboxSearchRes"
+      "response": "InboxSearchRes"
     },
-    "indexSearch": {
+    "indexChatSearch": {
       "request": [
         {
           "name": "convID",

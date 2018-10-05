@@ -85,7 +85,8 @@ class JoinedUserNotice extends React.PureComponent<Props> {
             <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
               {teamname}
             </Text>
-          )}.
+          )}
+          .
         </Text>
         {author === you &&
           isBigTeam && (

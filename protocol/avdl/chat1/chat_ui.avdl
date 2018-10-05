@@ -207,13 +207,17 @@ protocol chatUi {
     array<string>  matches;
   }
 
-  record ChatConvSearchHit {
+  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
+  void chatSearchDone(int sessionID, int numHits);
+
+  record ChatInboxSearchHit {
     ConversationID convID;
+    string convName;
     array<ChatSearchHit> hits;
   }
 
-  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
-  void chatSearchDone(int sessionID, int numHits);
+  void chatInboxSearchHit(int sessionID, ChatInboxSearchHit searchHit);
+  void chatInboxSearchDone(int sessionID, int numHits, int numConvs);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

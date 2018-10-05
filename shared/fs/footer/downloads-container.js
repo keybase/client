@@ -29,6 +29,10 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedDownloads')
 )(Downloads)

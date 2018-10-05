@@ -33,6 +33,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Channel'))(
-  Channel
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('Channel')
+)(Channel)

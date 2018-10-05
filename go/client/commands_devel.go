@@ -31,6 +31,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamDebug(cl, g),
 		newCmdScript(cl, g),
 		newCmdUploadAvatar(cl, g),
+		NewCmdPhoneNumber(cl, g),
 	}
 }
 
@@ -40,6 +41,7 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
 		newCmdChatIndexSearchDev(cl, g),
+		newCmdChatInboxSearchDev(cl, g),
 	}
 }
 

@@ -96,7 +96,11 @@ const ConnectedEditChannel: React.ComponentType<{
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
 }> = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       if (this.props.waitingForGetInfo) {

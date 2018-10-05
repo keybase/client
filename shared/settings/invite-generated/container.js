@@ -12,6 +12,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   onClose: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  InviteGenerated
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(InviteGenerated)

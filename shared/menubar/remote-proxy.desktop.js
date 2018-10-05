@@ -109,7 +109,11 @@ const mergeProps = stateProps => {
 
 // Actions are handled by remote-container
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   // flow correctly complains this shouldn't be true. We really want this to never be null before it hits RemoteMenubarWindow but we can't do that with branch. TODO use a wrapper to fix this
   // $FlowIssue
   branch(props => !props.externalRemoteWindow, renderNothing),

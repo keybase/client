@@ -1,13 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {
-  styleSheetCreate,
-  globalColors,
-  globalMargins,
-  isMobile,
-  type StylesCrossPlatform,
-} from '../../styles'
+import {styleSheetCreate, globalColors, globalMargins, isMobile, type StylesCrossPlatform} from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 

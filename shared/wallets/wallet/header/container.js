@@ -71,4 +71,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Header)

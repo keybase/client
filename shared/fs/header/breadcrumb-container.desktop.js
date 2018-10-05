@@ -51,6 +51,10 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedBreadcrumb')
 )(Breadcrumb)

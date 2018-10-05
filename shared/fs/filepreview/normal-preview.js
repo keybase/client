@@ -90,7 +90,9 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default mapProps(({routePath, routeProps}): NormalPreviewProps => ({
-  path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
-  routePath,
-}))(NormalPreview)
+export default mapProps(
+  ({routePath, routeProps}): NormalPreviewProps => ({
+    path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
+    routePath,
+  })
+)(NormalPreview)
