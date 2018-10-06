@@ -574,18 +574,20 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 	}
 
 	t.Log("Set the cache maximum bytes to the current total.")
+	require.Equal(t, 0, cache.workingSetCache.numBlocks)
 	currBytes := int64(standardCache.currBytes)
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.syncCacheByteTracker.limit = currBytes
 
-	t.Log("Add a block to the cache. Verify that an error occurred and " +
-		"no blocks were evicted.")
+	t.Log("Add a block to the cache. Verify that no blocks were evicted " +
+		"and the working set got a new block.")
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
 	err := cache.Put(
 		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
-	require.EqualError(t, err, cachePutCacheFullError{blockPtr.ID}.Error())
+	require.NoError(t, err)
 
 	require.Equal(t, int64(standardCache.currBytes), currBytes)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
+	require.Equal(t, 1, cache.workingSetCache.numBlocks)
 }

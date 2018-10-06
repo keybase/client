@@ -163,8 +163,12 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	defer cache.mtx.RUnlock()
 	if cache.config.IsSyncedTlf(tlfID) && cache.syncCache != nil {
 		workingSetCache := cache.workingSetCache
-		go workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
-		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
+		err := cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
+		if err == nil {
+			go workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+			return nil
+		}
+		// Otherwise drop through and put it into the working set cache.
 	}
 	// TODO: Allow more intelligent transitioning from the sync cache to
 	// the working set cache.

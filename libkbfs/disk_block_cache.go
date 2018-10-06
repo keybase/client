@@ -597,10 +597,10 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err := cache.checkCacheLocked("Put")
+	err = cache.checkCacheLocked("Put")
 	if err != nil {
 		return err
 	}
@@ -645,11 +645,6 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 				return cachePutCacheFullError{blockID}
 			}
 		} else {
-			if cache.config.IsSyncedTlf(tlfID) {
-				// TODO: Make better error type
-				return errors.New("Attempted to add a block of a synced " +
-					"TLF to the working set disk cache.")
-			}
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
 			if err != nil {
 				return err
