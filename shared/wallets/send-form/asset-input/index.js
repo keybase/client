@@ -19,7 +19,7 @@ type Props = {|
 
 export class AssetInput extends React.Component<Props> {
   render() {
-    return(
+    return (
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
         {!!this.props.topLabel && (
           <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
