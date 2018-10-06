@@ -44,7 +44,8 @@ const InviteAddedToTeamNotice = (props: Props) => {
             'you'
           ) : (
             <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-          )}.
+          )}
+          .
         </Text>
       }
     />

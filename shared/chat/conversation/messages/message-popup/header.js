@@ -71,7 +71,8 @@ const MessagePopupHeader = (props: {
       </Kb.Box2>
       <Kb.Box style={styles.headerDetailsContainer}>
         <Kb.Text type="BodySmall">
-          from device&nbsp;<Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
+          from device&nbsp;
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
       <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>

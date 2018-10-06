@@ -14,21 +14,28 @@ const mapStateToProps = (state: TypedState) => {
   const recipientFullName = userInfo ? userInfo.fullname : ''
   const fromAccount = getAccount(state, stringToAccountID(built.from))
   const recipientAccount = getAccount(state, stringToAccountID(build.to))
+  const recipientAccountIsDefault = recipientAccount.isDefault
   const recipientStellarAddress = build.to
 
   return {
     recipientType,
     yourUsername: state.config.username,
     fromAccountAssets: fromAccount.balanceDescription,
+    fromAccountIsDefault: fromAccount.isDefault,
     fromAccountName: fromAccount.name || fromAccount.accountID,
     recipientAccountAssets: recipientAccount.balanceDescription,
     recipientAccountName: recipientAccount.name || recipientAccount.accountID,
-    recipientUsername,
+    recipientAccountIsDefault,
     recipientFullName,
     recipientStellarAddress,
+    recipientUsername,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(ConfirmSend)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ConfirmSend)

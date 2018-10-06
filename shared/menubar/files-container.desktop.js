@@ -16,7 +16,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) => dispatch(FsGen.createOpenFilesFromWidget({path, type})),
+  _onSelectPath: (path: FsTypes.Path, type: FsTypes.PathType) =>
+    dispatch(FsGen.createOpenFilesFromWidget({path, type})),
   loadTlfUpdates: () => dispatch(FsGen.createUserFileEditsLoad()),
 })
 
@@ -63,6 +64,7 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps), TlfUpdateHoc)(
-  FilesPreview
-)
+export default compose(
+  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  TlfUpdateHoc
+)(FilesPreview)

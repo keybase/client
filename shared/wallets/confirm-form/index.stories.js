@@ -29,6 +29,7 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  sendFailed: false,
   waiting: false,
 }
 
@@ -53,9 +54,14 @@ const load = () => {
     .add('With a public memo and encrypted note', () => (
       <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} />
     ))
-    .add('With a banner', () => <ConfirmSend {...confirmProps} {...banner} />)
+    .add('With a banner', () => <ConfirmSend {...confirmProps} banners={[banner]} />)
     .add('With a public memo, encrypted note, and banner', () => (
-      <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} {...banner} />
+      <ConfirmSend
+        {...confirmProps}
+        publicMemo={publicMemo}
+        encryptedNote={encryptedNote}
+        banners={[banner]}
+      />
     ))
 }
 

@@ -54,6 +54,10 @@ const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onVie
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ResetBanner')
 )(Banner)

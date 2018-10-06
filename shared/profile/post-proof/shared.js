@@ -50,8 +50,7 @@ export function propsForPlatform(props: Props): MoreProps {
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
             Click the link below and post the form in the subreddit{' '}
-            <Text type="BodySemiboldItalic">KeybaseProofs</Text>
-            .
+            <Text type="BodySemiboldItalic">KeybaseProofs</Text>.
           </Text>
         ),
         noteText: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
@@ -104,8 +103,8 @@ export function propsForPlatform(props: Props): MoreProps {
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
             Enter the following as a TXT entry in your DNS zone,{' '}
-            <Text type="BodySemibold">exactly as it appears</Text>
-            . If you need a "name" for your entry, give it "@".
+            <Text type="BodySemibold">exactly as it appears</Text>. If you need a "name" for your entry, give
+            it "@".
           </Text>
         ),
         onCompleteText: 'OK posted! Check for it!',

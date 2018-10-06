@@ -31,4 +31,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamChannel)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BigTeamChannel)

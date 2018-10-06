@@ -81,4 +81,8 @@ const mergeProps = (stateProps, dispatchProps) => {
 const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp: number}>) =>
   p.sort((p1, p2) => p2.timestamp - p1.timestamp || 0).map(({paymentID}) => ({paymentID}))
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Wallet)

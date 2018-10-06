@@ -15,4 +15,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(DBNukeConfirm)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(DBNukeConfirm)

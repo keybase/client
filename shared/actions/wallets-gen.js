@@ -54,6 +54,7 @@ export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
 export const sendPayment = 'wallets:sendPayment'
 export const sentPayment = 'wallets:sentPayment'
+export const sentPaymentError = 'wallets:sentPaymentError'
 export const setAccountAsDefault = 'wallets:setAccountAsDefault'
 export const setBuildingAmount = 'wallets:setBuildingAmount'
 export const setBuildingCurrency = 'wallets:setBuildingCurrency'
@@ -171,6 +172,7 @@ type _SelectAccountPayload = $ReadOnly<{|
   show?: boolean,
 |}>
 type _SendPaymentPayload = void
+type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
 type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
@@ -263,6 +265,10 @@ export const createDeleteAccount = (payload: _DeleteAccountPayload) => ({error: 
  * Export a Stellar account's secret key
  */
 export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({error: false, payload, type: exportSecretKey})
+/**
+ * Failed to send a payment
+ */
+export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({error: false, payload, type: sentPaymentError})
 /**
  * In response to a notification, resync payment info
  */
@@ -461,6 +467,7 @@ export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _Se
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
 export type SendPaymentPayload = $Call<typeof createSendPayment, _SendPaymentPayload>
+export type SentPaymentErrorPayload = $Call<typeof createSentPaymentError, _SentPaymentErrorPayload>
 export type SentPaymentPayload = $Call<typeof createSentPayment, _SentPaymentPayload>
 export type SetAccountAsDefaultPayload = $Call<typeof createSetAccountAsDefault, _SetAccountAsDefaultPayload>
 export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
@@ -524,6 +531,7 @@ export type Actions =
   | SecretKeySeenPayload
   | SelectAccountPayload
   | SendPaymentPayload
+  | SentPaymentErrorPayload
   | SentPaymentPayload
   | SetAccountAsDefaultPayload
   | SetBuildingAmountPayload

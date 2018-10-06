@@ -117,11 +117,7 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 	return strings.TrimSpace(response) == confirm, nil
 }
 
-func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	if c.noOutput {
-		return nil
-	}
-	searchHit := arg.SearchHit
+func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
 	getMsgPrefix := func(msg chat1.UIMessage) string {
 		m := msg.Valid()
 		t := gregor1.FromTime(m.Ctime)
@@ -156,13 +152,19 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	// to refactor for UIMessage
 	hitTextColoredEscaped := highlightEscapeHits(searchHit.HitMessage, searchHit.Matches)
 	if hitTextColoredEscaped != "" {
-		w := c.terminal.OutputWriter()
-		fmt.Fprintf(w, getContext(searchHit.BeforeMessages))
+		c.terminal.Output(getContext(searchHit.BeforeMessages))
 		fmt.Fprintln(c.terminal.UnescapedOutputWriter(), hitTextColoredEscaped)
-		fmt.Fprintf(w, getContext(searchHit.AfterMessages))
-		fmt.Fprintln(w, "")
+		c.terminal.Output(getContext(searchHit.AfterMessages))
+		c.terminal.Output("\n")
 	}
 	return nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	if c.noOutput {
+		return nil
+	}
+	return c.renderSearchHit(ctx, arg.SearchHit)
 }
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
@@ -171,6 +173,31 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	}
 	w := c.terminal.ErrorWriter()
 	fmt.Fprintf(w, "Search complete. Found %d results.", arg.NumHits)
+	fmt.Fprintln(w, "")
+	return nil
+}
+
+func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.OutputWriter()
+	searchHit := arg.SearchHit
+	fmt.Fprintf(w, "Conversation: %s, found %d results\n", searchHit.ConvName, len(searchHit.Hits))
+	for _, hit := range searchHit.Hits {
+		if err := c.renderSearchHit(ctx, hit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Search complete. Found %d results in %d conversations.", arg.NumHits, arg.NumConvs)
 	fmt.Fprintln(w, "")
 	return nil
 }

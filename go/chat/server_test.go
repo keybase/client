@@ -804,7 +804,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		numconvs := 5
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		var firstConv chat1.ConversationInfoLocal
@@ -944,7 +944,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		numconvs := 5
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		// Create a bunch of blank convos
@@ -2454,7 +2454,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2565,7 +2565,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2689,7 +2689,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -2865,7 +2865,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -2961,7 +2961,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -3050,7 +3050,7 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		bgConvLoads := make(chan chat1.ConversationID, 10)
@@ -3108,7 +3108,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		t.Logf("test empty thread")
@@ -3184,7 +3184,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -3240,7 +3240,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
@@ -4666,7 +4666,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
@@ -5197,7 +5197,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		searchHitCb := make(chan chat1.ChatSearchHitArg, 100)
 		searchDoneCb := make(chan chat1.ChatSearchDoneArg, 100)
-		chatUI := kbtest.NewChatUI(nil, nil, searchHitCb, searchDoneCb)
+		chatUI := kbtest.NewChatUI(nil, nil, searchHitCb, searchDoneCb, nil, nil)
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
@@ -5415,7 +5415,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 	})
 }
 
-func TestChatSearchFullInbox(t *testing.T) {
+func TestChatSearchInbox(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -5426,7 +5426,7 @@ func TestChatSearchFullInbox(t *testing.T) {
 			return
 		}
 
-		ctc := makeChatTestContext(t, "FullInboxSearch", 2)
+		ctc := makeChatTestContext(t, "InboxSearch", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 		u1 := users[0]
@@ -5438,6 +5438,11 @@ func TestChatSearchFullInbox(t *testing.T) {
 
 		tc1 := ctc.as(t, u1)
 		tc2 := ctc.as(t, u2)
+
+		inboxSearchHitCb := make(chan chat1.ChatInboxSearchHitArg, 100)
+		inboxSearchDoneCb := make(chan chat1.ChatInboxSearchDoneArg, 100)
+		chatUI := kbtest.NewChatUI(nil, nil, nil, nil, inboxSearchHitCb, inboxSearchDoneCb)
+		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.SetListener(listener1)
@@ -5496,8 +5501,8 @@ func TestChatSearchFullInbox(t *testing.T) {
 			}
 		}
 
-		search := func(query string, opts chat1.SearchOpts) chat1.FullInboxSearchRes {
-			res, err := tc1.chatLocalHandler().FullInboxSearch(tc1.startCtx, chat1.FullInboxSearchArg{
+		search := func(query string, opts chat1.SearchOpts) chat1.InboxSearchRes {
+			res, err := tc1.chatLocalHandler().InboxSearch(tc1.startCtx, chat1.InboxSearchArg{
 				Query: query,
 				Opts:  opts,
 			})
@@ -5514,10 +5519,10 @@ func TestChatSearchFullInbox(t *testing.T) {
 		}
 
 		// Test basic equality match
-		msgBody := "hi, bye"
+		msgBody := "hi, byE"
 		messageID1 := sendMessage(msgBody, u1)
-		queries := []string{"hi", "hi, bye", "hi? bye"}
-		matchText := []string{"hi", "hi, bye", "hi, bye"}
+		queries := []string{"hi", "hi, ByE"}
+		matchText := []string{"hi", "hi, byE"}
 		for i, query := range queries {
 			res := search(query, opts)
 			require.Equal(t, 1, len(res.Hits))

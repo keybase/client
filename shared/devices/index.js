@@ -155,4 +155,7 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)
+export default compose(
+  Kb.OverlayParentHOC,
+  Kb.HeaderOnMobile
+)(Devices)
