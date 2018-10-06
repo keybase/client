@@ -16,66 +16,74 @@ type Props = {|
   warningPayee?: string,
 |}
 
-const AssetInput = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
-    {!!props.topLabel && (
-      <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
-        {props.topLabel}
-      </Kb.Text>
-    )}
-    <Kb.NewInput
-      type="number"
-      decoration={
-        <Kb.Box2 direction="vertical" style={styles.flexEnd}>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
-            {props.displayUnit}
+export class AssetInput extends React.Component<Props, State> {
+  render() {
+    return(
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
+        {!!this.props.topLabel && (
+          <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
+            {this.props.topLabel}
           </Kb.Text>
-          <Kb.Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
-            Change
+        )}
+        <Kb.NewInput
+          type="number"
+          decoration={
+            <Kb.Box2 direction="vertical" style={styles.flexEnd}>
+              <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
+                {this.props.displayUnit}
+              </Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onChangeDisplayUnit}>
+                Change
+              </Kb.Text>
+            </Kb.Box2>
+          }
+          containerStyle={styles.inputContainer}
+          style={styles.input}
+          onChangeText={this.props.onChangeAmount}
+          textType="HeaderBigExtrabold"
+          placeholder={this.props.inputPlaceholder}
+          placeholderColor={Styles.globalColors.purple2_40}
+          error={!!this.props.warningAsset}
+          value={this.props.value}
+        />
+        {this.props.warningAsset &&
+          !this.props.warningPayee && (
+            <Kb.Text type="BodySmallError">
+              Your available to send is{' '}
+              <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
+                {this.props.warningAsset}
+              </Kb.Text>
+              .
+            </Kb.Text>
+          )}
+        {!!this.props.warningPayee && (
+          <Kb.Text type="BodySmallError">
+            {this.props.warningPayee} doesn't accept{' '}
+            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+              {this.props.warningAsset}
+            </Kb.Text>
+            . Please pick another asset.
           </Kb.Text>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
+            {this.props.bottomLabel}
+          </Kb.Text>
+          <Kb.Icon
+            type="iconfont-question-mark"
+            color={Styles.globalColors.black_40}
+            fontSize={12}
+            onClick={this.props.onClickInfo}
+          />
         </Kb.Box2>
-      }
-      containerStyle={styles.inputContainer}
-      style={styles.input}
-      onChangeText={props.onChangeAmount}
-      textType="HeaderBigExtrabold"
-      placeholder={props.inputPlaceholder}
-      placeholderColor={Styles.globalColors.purple2_40}
-      error={!!props.warningAsset}
-      value={props.value}
-    />
-    {props.warningAsset &&
-      !props.warningPayee && (
-        <Kb.Text type="BodySmallError">
-          Your available to send is{' '}
-          <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
-            {props.warningAsset}
-          </Kb.Text>
-          .
-        </Kb.Text>
-      )}
-    {!!props.warningPayee && (
-      <Kb.Text type="BodySmallError">
-        {props.warningPayee} doesn't accept{' '}
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
-          {props.warningAsset}
-        </Kb.Text>
-        . Please pick another asset.
-      </Kb.Text>
-    )}
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
-        {props.bottomLabel}
-      </Kb.Text>
-      <Kb.Icon
-        type="iconfont-question-mark"
-        color={Styles.globalColors.black_40}
-        fontSize={12}
-        onClick={props.onClickInfo}
-      />
-    </Kb.Box2>
-  </Kb.Box2>
-)
+      </Kb.Box2>
+    )
+  }
+
+  componentDidMount() {
+    this.props.refresh()
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   unit: {

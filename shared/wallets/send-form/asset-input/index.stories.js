@@ -10,6 +10,7 @@ const common = {
   onClickInfo: action('onClickInfo'),
   topLabel: '',
   value: '',
+  refresh: action('onRefresh')
 }
 
 const props1 = {
