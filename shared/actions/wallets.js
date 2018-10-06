@@ -168,8 +168,12 @@ const loadPayments = (
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
       paymentCursor: payments.cursor,
-      payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
-      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      payments: (payments.payments || [])
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .filter(Boolean),
+      pending: (pending || [])
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .filter(Boolean),
     })
   )
 
@@ -183,7 +187,7 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
           accountID: action.payload.accountID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem))
+            .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
             .filter(Boolean),
           pending: [],
         })

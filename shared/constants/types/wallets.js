@@ -13,7 +13,7 @@ export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Possible read states a transaction can be in.
-export type ReadState = 'unread' | 'oldestUnread' | 'read'
+export type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -110,6 +110,7 @@ export type _Payment = {
   noteErr: HiddenString,
   publicMemo: HiddenString,
   publicMemoType: string,
+  readState: ReadState,
   source: string,
   sourceAccountID: string,
   sourceType: string,
