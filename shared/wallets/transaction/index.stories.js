@@ -31,27 +31,32 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     // Pending.
     {memo: shortMemo, timestamp: null},
   ]
+  const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
   roles.forEach(r => {
     sizes.forEach(s => {
       stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
+        let first = true
         memosAndTimes.forEach(t => {
-          components.push(
-            storyFn({
-              key: components.length,
-              ...r,
-              ...s,
-              ...t,
-              // TODO: Fix
-              readState: 'read',
-              onCancelPayment: null,
-              onCancelPaymentWaitingKey: '',
-              onSelectTransaction: Sb.action('onSelectTransaction'),
-              onShowProfile: Sb.action('onShowProfile'),
-              selectableText: false,
-            })
-          )
+          const localReadStates = first ? readStates : readStates.slice(0, 1)
+          first = false
+          localReadStates.forEach(rs => {
+            components.push(
+              storyFn({
+                key: components.length,
+                ...r,
+                ...s,
+                ...t,
+                ...rs,
+                onCancelPayment: null,
+                onCancelPaymentWaitingKey: '',
+                onSelectTransaction: Sb.action('onSelectTransaction'),
+                onShowProfile: Sb.action('onShowProfile'),
+                selectableText: false,
+              })
+            )
+          })
         })
         return components
       })
