@@ -48,6 +48,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps._onShowProfile,
+    // TODO: Fix
+    readState: 'read',
     selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,

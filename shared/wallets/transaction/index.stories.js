@@ -43,6 +43,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
               ...r,
               ...s,
               ...t,
+              // TODO: Fix
+              readState: 'read',
               onCancelPayment: null,
               onCancelPaymentWaitingKey: '',
               onSelectTransaction: Sb.action('onSelectTransaction'),

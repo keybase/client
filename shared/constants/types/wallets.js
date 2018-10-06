@@ -12,6 +12,9 @@ export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
+// Possible read states a transaction can be in.
+export type ReadState = 'unread' | 'oldestUnread' | 'read'
+
 // Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
