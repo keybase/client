@@ -24,12 +24,21 @@ module.exports = (storybookBaseConfig, configType) => {
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
-    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
-    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.js'),
-    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
-    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
-    new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js'),
-    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.js')
+    new webpack.NormalModuleReplacementPlugin(
+      /^react-redux$/,
+      path.join(__dirname, '/../__mocks__/react-redux.js')
+    ),
+    new webpack.NormalModuleReplacementPlugin(
+      /^electron$/,
+      path.join(__dirname, '/../__mocks__/electron.js')
+    ),
+    new webpack.NormalModuleReplacementPlugin(/engine/, path.join(__dirname, '/../__mocks__/engine.js')),
+    new webpack.NormalModuleReplacementPlugin(/util\/saga/, path.join(__dirname, '/../__mocks__/saga.js')),
+    new webpack.NormalModuleReplacementPlugin(/route-tree/, path.join(__dirname, '/../__mocks__/empty.js')),
+    new webpack.NormalModuleReplacementPlugin(
+      /feature-flags/,
+      path.join(__dirname, '/../__mocks__/feature-flags.js')
+    )
   )
 
   // Override default ignoring node_modules
