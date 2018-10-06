@@ -1,7 +1,7 @@
 // @flow
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 
