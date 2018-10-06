@@ -13,6 +13,7 @@ const ff: FeatureFlags = {
   fileWidgetEnabled: false,
   plansEnabled: false,
   walletsEnabled: false,
+  newTeamBuildingForChat: false,
 }
 
 // load overrides

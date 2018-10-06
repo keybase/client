@@ -5,10 +5,12 @@ import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
+import * as TeamBuildingTypes from '../team-building'
 
 export type PendingMode =
   | 'none' // no pending
   | 'searchingForUsers' // doing a search
+  | 'newChat' // doing a search
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
@@ -61,7 +63,7 @@ export type _State = {
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
-}
+} & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
 
