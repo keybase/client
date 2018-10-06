@@ -14,9 +14,10 @@ type Props = {|
   value: string,
   warningAsset?: string,
   warningPayee?: string,
+  refresh: () => void,
 |}
 
-export class AssetInput extends React.Component<Props, State> {
+export class AssetInput extends React.Component<Props> {
   render() {
     return(
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>

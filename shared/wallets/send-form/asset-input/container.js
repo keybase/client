@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _refresh: () => dispatch(WalletsGen.createLoadDisplayCurrencies()),
+  refresh: () => dispatch(WalletsGen.createLoadDisplayCurrencies()),
   onChangeDisplayUnit: () => {
     dispatch(
       Route.navigateAppend([
@@ -36,7 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
-  refresh: () => dispatchProps._refresh(),
 })
 
 export default compose(
