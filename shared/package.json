@@ -46,7 +46,7 @@
     "rn-jsbuild-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
     "storybook": "cross-env-shell BABEL_ENV=yarn BABEL_PLATFORM=Electron start-storybook -s . -p 6006",
     "storybook-build": "cross-env-shell BABEL_PLATFORM=Electron build-storybook -c .storybook -o .static-storybook",
-    "rn-storybook": "echo 'Uh-oh! rn-storybook is temporarily disabled, but you can still view it on iOS by setting isStorybook to @true. See shared/stories/README.md' # cross-env-shell BABEL_PLATFORM=Electron storybook start -p 7007",
+    "rn-storybook": "cross-env-shell BABEL_PLATFORM=Electron storybook start -p 7007",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile",
     "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
