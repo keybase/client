@@ -26,7 +26,7 @@ func (sh SigHint) GetAPIURL() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
-	if jw == nil {
+	if jw == nil || !jw.IsOk() {
 		return nil, nil
 	}
 	sh = &SigHint{}
