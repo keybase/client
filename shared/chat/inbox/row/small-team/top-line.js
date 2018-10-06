@@ -133,7 +133,8 @@ class _SimpleTopLine extends React.Component<Props> {
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
-            style={{fontSize: 14, position: 'relative', right: globalMargins.xtiny}}
+            fontSize={14}
+            style={{position: 'relative', right: globalMargins.xtiny}}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
