@@ -18,13 +18,16 @@ export const serialize = {
       }, {}),
   broken: v => v,
   clearCacheTrigger: v => undefined,
-  conversationIDs: v => v.map(v => v.conversationIDKey),
+  conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
   conversationMap: (v, o) =>
     v.reduce((map, toSend) => {
-      if (!o || o.indexOf(toSend) === -1) {
-        map[toSend.conversationIDKey] = conversationSerialize(toSend)
-      }
-      return map
+      const oldConv = o && o.find(oldElem => oldElem.conversation === toSend.conversation)
+      return oldConv && oldConv.hasBadge === toSend.hasBadge && oldConv.hasUnread === toSend.hasUnread
+        ? map
+        : {
+            ...map,
+            [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
+          }
     }, {}),
   endEstimate: v => v,
   externalRemoteWindow: v => v,
