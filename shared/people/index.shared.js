@@ -6,7 +6,14 @@ import Todo from './task/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../styles'
+import {
+  borderRadius,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  desktopStyles,
+  collapseStyles,
+} from '../styles'
 
 export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
@@ -15,6 +22,7 @@ export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (
     case 'notification':
       return <FollowNotification {...item} key={item.notificationTime} onClickUser={props.onClickUser} />
   }
+  return null
 }
 
 export const PeoplePageSearchBar = (
@@ -68,7 +76,7 @@ const styleSearchContainer = {
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: globalColors.black_10,
-  borderRadius: 100,
+  borderRadius,
   justifyContent: 'center',
   zIndex: 20,
 }

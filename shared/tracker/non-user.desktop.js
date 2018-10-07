@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles, platformStyles, collapseStyles} from '../styles'
+import {
+  borderRadius,
+  globalColors,
+  globalStyles,
+  desktopStyles,
+  platformStyles,
+  collapseStyles,
+} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
@@ -122,7 +129,7 @@ const stylesLinkBox = {
   alignItems: 'center',
   alignSelf: 'stretch',
   marginTop: 8,
-  borderRadius: 48,
+  borderRadius,
   height: 32,
   backgroundColor: globalColors.white,
 }
@@ -131,7 +138,7 @@ const stylesLink = platformStyles({
   isElectron: {
     ...desktopStyles.windowDraggingClickable,
     marginLeft: 7,
-    color: globalColors.green2,
+    color: globalColors.green,
   },
 })
 

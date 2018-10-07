@@ -62,4 +62,11 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), FilesLoadingHoc)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  FilesLoadingHoc
+)

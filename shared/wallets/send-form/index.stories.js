@@ -19,7 +19,7 @@ const provider = Sb.createPropProviderWithCommon({
   Available: props => ({}),
   Banner: props => ({}),
   Body: props => ({
-    bannerInfo: props.bannerInfo,
+    banners: [],
     isProcessing: props.isProcessing,
     isRequest: props.isRequest,
   }),

@@ -19,6 +19,10 @@ const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, dispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    dispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   safeSubmit(['onBack', 'onSubmit'], ['error'])
 )(UsernameOrEmail)

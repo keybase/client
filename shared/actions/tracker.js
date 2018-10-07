@@ -174,7 +174,8 @@ function _getTrackToken(state, username) {
 
 function _getUsername(uid: string, state: TypedState): ?string {
   const trackers = state.tracker.userTrackers
-  return Object.keys(trackers).find(name => trackers[name].userInfo.uid === uid)
+  // $FlowIssue flow thinks we don't need this cause the value of tracker[name] can't be null but it can be in practice cause the type is slightly wrong
+  return Object.keys(trackers).find(name => trackers[name]?.userInfo?.uid === uid)
 }
 
 function* _follow(action: TrackerGen.FollowPayload) {

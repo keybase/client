@@ -108,7 +108,17 @@ class SharedAskForUserData {
   _teamLastReq = {}
   _userQueue = {}
   _userLastReq = {}
+  _username = ''
 
+  // call this with the current username
+  _checkLoggedIn = username => {
+    if (username !== this._username) {
+      console.log('clearing cache due to username change')
+      this._username = username
+      this._teamLastReq = {}
+      this._userLastReq = {}
+    }
+  }
   _makeCalls = throttle(() => {
     if (!this._dispatch) {
       return
@@ -156,6 +166,7 @@ const _sharedAskForUserData = new SharedAskForUserData()
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
+  _sharedAskForUserData._checkLoggedIn(state.config.username)
   return {
     _urlMap: name ? state.config.avatars.get(name) : null,
     following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
@@ -267,9 +278,14 @@ class AvatarConnector extends React.PureComponent<Props> {
   }
 }
 
-const Avatar = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Avatar'))(
-  AvatarConnector
-)
+const Avatar = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('Avatar')
+)(AvatarConnector)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

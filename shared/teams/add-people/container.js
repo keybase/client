@@ -90,7 +90,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   compose(
     withStateHandlers(
       {role: 'writer', sendNotification: true},

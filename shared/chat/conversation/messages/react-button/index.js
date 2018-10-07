@@ -163,6 +163,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   componentWillUnmount() {
     this._stopCycle()
+    this.props.onShowPicker && this.props.onShowPicker(false)
   }
 
   _getAttachmentRef = () => this._attachmentRef
@@ -246,12 +247,12 @@ const styles = Styles.styleSheetCreate({
     borderColor: Styles.globalColors.blue,
   },
   borderBase: {
-    borderRadius: Styles.isMobile ? 15 : 12,
+    borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
   },
   buttonBox: {
     backgroundColor: Styles.globalColors.white,
-    borderWidth: 2,
+    borderWidth: 1,
     height: Styles.isMobile ? 30 : 24,
     ...Styles.transition('border-color', 'background-color'),
   },

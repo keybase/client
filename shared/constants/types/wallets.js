@@ -4,10 +4,6 @@ import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
-// We treat PaymentIDs from the service as opaque
-export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTypes.PaymentID) =>
-  p1.txID === p2.txID
-
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
@@ -39,6 +35,14 @@ export const accountIDToString = (accountID: AccountID): string => accountID
 export const noAccountID = stringToAccountID('NOACCOUNTID')
 
 export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
+
+// We treat PaymentIDs from the service as opaque
+export opaque type PaymentID = StellarRPCTypes.PaymentID
+export const noPaymentID: PaymentID = 'NOPAYMENTID'
+export const rpcPaymentIDToPaymentID = (id: StellarRPCTypes.PaymentID): PaymentID => id
+export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentID => id
+export const paymentIDToString = (id: PaymentID): string => id
+export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Account = {
   accountID: AccountID,
@@ -73,7 +77,7 @@ export type _BuildingPayment = {
   currency: string,
   from: string,
   publicMemo: HiddenString,
-  recipientType: ?CounterpartyType,
+  recipientType: CounterpartyType,
   secretNote: HiddenString,
   to: string,
 }
@@ -91,13 +95,14 @@ export type _BuiltPayment = {
   worthInfo: string,
 }
 
-export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
+export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
+export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type _Payment = {
   amountDescription: string,
-  delta: 'none' | 'increase' | 'decrease',
+  delta: PaymentDelta,
   error: ?string,
-  id: StellarRPCTypes.PaymentID,
+  id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
   publicMemo: HiddenString,
@@ -145,6 +150,13 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
+
+export type Banner = {|
+  bannerBackground: BannerBackground,
+  bannerText: string,
+|}
+
 export type BuildingPayment = I.RecordOf<_BuildingPayment>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
@@ -157,7 +169,7 @@ export type Request = I.RecordOf<_Request>
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
-  accountMap: I.Map<AccountID, Account>,
+  accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
@@ -172,9 +184,11 @@ export type _State = {
   secretKeyError: string,
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
+  sentPaymentError: string,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
-  paymentsMap: I.Map<AccountID, I.List<Payment>>,
-  pendingMap: I.Map<AccountID, I.List<Payment>>,
+  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
+  paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
+  paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,

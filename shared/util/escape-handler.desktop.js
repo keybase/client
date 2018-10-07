@@ -23,7 +23,7 @@ class EscapeHandler extends Component<Props> {
   }
 
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 
@@ -73,7 +73,7 @@ class GlobalEscapeHandler extends Component<GlobalProps> {
   }
 
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 

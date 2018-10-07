@@ -48,5 +48,9 @@ export default compose(
       onNameChange: () => name => ({name}),
     }
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
 )(CreateAccount)

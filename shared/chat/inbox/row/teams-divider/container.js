@@ -72,4 +72,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(TeamsDivider)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(TeamsDivider)

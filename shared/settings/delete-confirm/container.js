@@ -41,6 +41,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   HOCTimers
 )(DeleteConfirmContainer)

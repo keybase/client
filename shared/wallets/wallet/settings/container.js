@@ -17,7 +17,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
-  const name = account.name || accountID || account.accountID
+  const name = account.name || Constants.getAccountName(account) || accountID || account.accountID
   const me = state.config.username || ''
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
@@ -80,7 +80,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.refresh()

@@ -67,7 +67,8 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
             ])}
             title={`#${this.props.channelname}`}
           >
-            &nbsp;#{this.props.channelname}
+            &nbsp;#
+            {this.props.channelname}
           </Text>
         </Box>
       </ClickableBox>

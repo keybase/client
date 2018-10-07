@@ -12,7 +12,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.resetStore:
       return initialState
     case WalletsGen.accountsReceived:
-      const accountMap = I.Map(action.payload.accounts.map(account => [account.accountID, account]))
+      const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
@@ -28,19 +28,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
-        payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
-          payment.merge({
-            publicMemo: action.payload.publicMemo,
-            publicMemoType: action.payload.publicMemoType,
-            txID: action.payload.txID,
-          })
-        )
+      return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
+        Constants.updatePaymentMap(payments, [action.payload.payment])
       )
     case WalletsGen.paymentsReceived:
       return state
-        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
-        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+        .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+          Constants.updatePaymentMap(paymentsMap, [...action.payload.payments, ...action.payload.pending])
+        )
+        .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
+        .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
@@ -53,10 +50,20 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .set('exportedSecretKey', new HiddenString(''))
         .set('exportedSecretKeyAccountID', Types.noAccountID)
-    case WalletsGen.selectAccount:
-      return state
-        .set('exportedSecretKey', new HiddenString(''))
-        .set('selectedAccount', action.payload.accountID)
+    case WalletsGen.selectAccount: {
+      const newState = state.merge({
+        exportedSecretKey: new HiddenString(''),
+        selectedAccount: action.payload.accountID,
+      })
+      // we clear the old selected payments and cursors
+      if (!state.selectedAccount) {
+        return newState
+      }
+
+      return newState
+        .deleteIn(['paymentCursorMap', state.selectedAccount])
+        .deleteIn(['paymentsMap', state.selectedAccount])
+    }
     case WalletsGen.setBuildingAmount:
       const {amount} = action.payload
       return state.set('buildingPayment', state.get('buildingPayment').merge({amount}))
@@ -118,6 +125,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKey: new HiddenString(''),
         secretKeyError: '',
         secretKeyValidationState: 'none',
+        sentPaymentError: '',
       })
     case WalletsGen.createdNewAccount:
       return action.error
@@ -147,12 +155,19 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             secretKeyValidationState: 'none',
             selectedAccount: action.payload.accountID,
           })
+    case WalletsGen.sentPaymentError:
+      return state.set('sentPaymentError', action.payload.error)
     case WalletsGen.requestDetailReceived:
       const request = Constants.requestResultToRequest(action.payload.request)
       return request ? state.update('requests', r => r.set(request.id, request)) : state
+    case WalletsGen.loadMorePayments:
+      return state.paymentCursorMap.get(action.payload.accountID)
+        ? state.setIn(['paymentLoadingMoreMap', action.payload.accountID], true)
+        : state
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:

@@ -110,7 +110,7 @@ class StorybookErrorBoundary extends React.Component<
             style={{
               ...Styles.globalStyles.flexBoxColumn,
               backgroundColor: Styles.globalColors.darkBlue3,
-              borderRadius: 4,
+              borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',
             }}
@@ -173,9 +173,9 @@ class PerfBox extends React.Component<{copiesToRender: number, children: React.N
         <ClickableBox onClick={this._incrementKey}>
           <Text type="Body">Refresh: #{this.state.key}</Text>
         </ClickableBox>
-        {new Array(this.props.copiesToRender)
-          .fill(0)
-          .map((_, idx) => <Box key={idx}>{this.props.children}</Box>)}
+        {new Array(this.props.copiesToRender).fill(0).map((_, idx) => (
+          <Box key={idx}>{this.props.children}</Box>
+        ))}
       </Box>
     )
   }

@@ -32,7 +32,7 @@ export const SelectedEntry = ({account, spinner, user, ...props}: SelectedEntryP
     {spinner && (
       <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
     )}
-    <Kb.Avatar size={16} username={user} />
+    {account.isDefault && <Kb.Avatar size={16} username={user} />}
     <Kb.Text type="BodySemibold" style={styles.text}>
       {!account.unknown && account.name}
     </Kb.Text>
@@ -50,6 +50,7 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
     keybaseUser={props.user}
     name={props.account.name}
     contents={props.account.contents}
+    isDefault={props.account.isDefault}
     showWalletIcon={false}
     center={true}
     fullWidth={true}

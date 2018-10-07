@@ -179,7 +179,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
               />
               {!!proof.mTime && (
                 <Text type="BodySmall" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
-                  Posted on<br />
+                  Posted on
+                  <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>
               )}
@@ -596,7 +597,7 @@ const styleSearchContainer = {
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.black_10,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   justifyContent: 'center',
   minHeight: 24,
   minWidth: 240,

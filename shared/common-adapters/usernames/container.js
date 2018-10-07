@@ -25,7 +25,11 @@ export type DispatchProps = {|
   onOpenTracker?: (username: string) => void,
 |}
 
-export const connectedPropsToProps = (stateProps: StateProps, dispatchProps: DispatchProps, connectedProps: ConnectedProps): Props => {
+export const connectedPropsToProps = (
+  stateProps: StateProps,
+  dispatchProps: DispatchProps,
+  connectedProps: ConnectedProps
+): Props => {
   const userData = connectedProps.usernames
     .map(username => ({
       broken: stateProps._broken.trackerState === 'error',
@@ -35,7 +39,7 @@ export const connectedPropsToProps = (stateProps: StateProps, dispatchProps: Dis
     }))
     .filter(u => !connectedProps.skipSelf || !u.you)
 
-  let onUsernameClickedNew: ?((username: string) => void)
+  let onUsernameClickedNew: ?(username: string) => void
   if (connectedProps.onUsernameClicked === 'tracker') {
     onUsernameClickedNew = dispatchProps.onOpenTracker
   } else if (connectedProps.onUsernameClicked === 'profile') {
@@ -73,10 +77,15 @@ const mapDispatchToProps = dispatch => ({
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => connectedPropsToProps(stateProps, dispatchProps, ownProps)
+const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
+  connectedPropsToProps(stateProps, dispatchProps, ownProps)
 
 const ConnectedUsernames = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('Usernames')
 )(Usernames)
 

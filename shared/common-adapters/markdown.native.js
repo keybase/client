@@ -183,7 +183,7 @@ class Markdown extends React.PureComponent<Props> {
     const content = parseMarkdown(this.props.children, createComponent, this.props.meta)
     if (typeof content === 'string') {
       if (this.props.preview) {
-        return createComponent('', '', content, {})
+        return createComponent('', '', content, {}) || null
       } else {
         return (
           <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
@@ -192,7 +192,7 @@ class Markdown extends React.PureComponent<Props> {
         )
       }
     }
-    return content
+    return content || null
   }
 }
 

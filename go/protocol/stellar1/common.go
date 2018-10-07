@@ -26,6 +26,12 @@ func (o TransactionID) DeepCopy() TransactionID {
 	return o
 }
 
+type PaymentID string
+
+func (o PaymentID) DeepCopy() PaymentID {
+	return o
+}
+
 type KeybaseTransactionID string
 
 func (o KeybaseTransactionID) DeepCopy() KeybaseTransactionID {
@@ -53,16 +59,6 @@ type KeybaseRequestID string
 
 func (o KeybaseRequestID) DeepCopy() KeybaseRequestID {
 	return o
-}
-
-type PaymentID struct {
-	TxID TransactionID `codec:"txID" json:"txID"`
-}
-
-func (o PaymentID) DeepCopy() PaymentID {
-	return PaymentID{
-		TxID: o.TxID.DeepCopy(),
-	}
 }
 
 type Asset struct {

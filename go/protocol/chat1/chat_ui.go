@@ -422,20 +422,30 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 }
 
 type UIPaymentInfo struct {
+	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
+	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
 	Status            stellar1.PaymentStatus `codec:"status" json:"status"`
 	StatusDescription string                 `codec:"statusDescription" json:"statusDescription"`
 }
 
 func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 	return UIPaymentInfo{
+		AccountID: (func(x *stellar1.AccountID) *stellar1.AccountID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
+		PaymentID:         o.PaymentID.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		StatusDescription: o.StatusDescription,
 	}
@@ -851,14 +861,16 @@ func (o ChatSearchHit) DeepCopy() ChatSearchHit {
 	}
 }
 
-type ChatConvSearchHit struct {
-	ConvID ConversationID  `codec:"convID" json:"convID"`
-	Hits   []ChatSearchHit `codec:"hits" json:"hits"`
+type ChatInboxSearchHit struct {
+	ConvID   ConversationID  `codec:"convID" json:"convID"`
+	ConvName string          `codec:"convName" json:"convName"`
+	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
 }
 
-func (o ChatConvSearchHit) DeepCopy() ChatConvSearchHit {
-	return ChatConvSearchHit{
-		ConvID: o.ConvID.DeepCopy(),
+func (o ChatInboxSearchHit) DeepCopy() ChatInboxSearchHit {
+	return ChatInboxSearchHit{
+		ConvID:   o.ConvID.DeepCopy(),
+		ConvName: o.ConvName,
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil
@@ -923,6 +935,17 @@ type ChatSearchDoneArg struct {
 	NumHits   int `codec:"numHits" json:"numHits"`
 }
 
+type ChatInboxSearchHitArg struct {
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	SearchHit ChatInboxSearchHit `codec:"searchHit" json:"searchHit"`
+}
+
+type ChatInboxSearchDoneArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	NumHits   int `codec:"numHits" json:"numHits"`
+	NumConvs  int `codec:"numConvs" json:"numConvs"`
+}
+
 type ChatConfirmChannelDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Channel   string `codec:"channel" json:"channel"`
@@ -939,6 +962,8 @@ type ChatUiInterface interface {
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
+	ChatInboxSearchHit(context.Context, ChatInboxSearchHitArg) error
+	ChatInboxSearchDone(context.Context, ChatInboxSearchDoneArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
@@ -1106,6 +1131,38 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chatInboxSearchHit": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatInboxSearchHitArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatInboxSearchHitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatInboxSearchHitArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxSearchHit(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chatInboxSearchDone": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatInboxSearchDoneArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatInboxSearchDoneArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatInboxSearchDoneArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxSearchDone(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"chatConfirmChannelDelete": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatConfirmChannelDeleteArg
@@ -1179,6 +1236,16 @@ func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg)
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatInboxSearchHit(ctx context.Context, __arg ChatInboxSearchHitArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxSearchHit", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatInboxSearchDone(ctx context.Context, __arg ChatInboxSearchDoneArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxSearchDone", []interface{}{__arg}, nil)
 	return
 }
 

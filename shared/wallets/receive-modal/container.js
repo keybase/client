@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onClose: dispatchProps.navigateUp,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Receive)

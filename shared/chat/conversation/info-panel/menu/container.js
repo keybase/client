@@ -95,6 +95,10 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('TeamDropdownMenu')
 )(InfoPanelMenu)

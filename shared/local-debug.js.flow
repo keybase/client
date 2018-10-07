@@ -21,3 +21,4 @@ declare export var showDevTools: boolean
 declare export var skipSecondaryDevtools: boolean
 declare export var skipAppFocusActions: boolean
 declare export var userTimings: boolean
+declare export function updateServerConfigLastLoggedIn(): void

@@ -172,4 +172,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
   }
 
-export default compose(HOCTimers, UploadCountdownHOC)
+export default compose(
+  HOCTimers,
+  UploadCountdownHOC
+)

@@ -47,10 +47,15 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   type: 'folder',
 })
 
+export const makeMime: I.RecordFactory<Types._Mime> = I.Record({
+  mimeType: '',
+  displayPreview: false,
+})
+
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   ...pathItemMetadataDefault,
   type: 'file',
-  mimeType: '',
+  mimeType: null,
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
@@ -574,18 +579,21 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
-export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
-  if (mimeType === 'text/plain') {
-    return 'text'
-  }
-  if (mimeType.startsWith('image/')) {
-    return 'image'
-  }
-  if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-    return 'av'
-  }
-  if (mimeType === 'application/pdf') {
-    return 'pdf'
+export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
+  if (mime && mime.displayPreview) {
+    const mimeType = mime.mimeType
+    if (mimeType === 'text/plain') {
+      return 'text'
+    }
+    if (mimeType.startsWith('image/')) {
+      return 'image'
+    }
+    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+      return 'av'
+    }
+    if (mimeType === 'application/pdf') {
+      return 'pdf'
+    }
   }
   return 'default'
 }
@@ -652,7 +660,7 @@ export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect 
 // shouldUseOldMimeType determines if mimeType from newItem should reuse
 // what's in oldItem.
 export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+  if (!oldItem.mimeType || newItem.mimeType) {
     return false
   }
 

@@ -253,7 +253,7 @@ describe('checkPassphrase', () => {
     })
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.passphraseError.stringValue()).toEqual(
-      'Passphrase must be at least 6 characters long'
+      'Passphrase must be at least 8 characters long'
     )
   })
   it('passes must have values', () => {

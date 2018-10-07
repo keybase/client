@@ -40,10 +40,6 @@ func TestIndexer(t *testing.T) {
 	g := globals.NewContext(tc.G, tc.ChatG)
 	indexer := NewIndexer(g)
 	ctx := context.TODO()
-	testMsgMetadata := msgMetadata{
-		SenderUsername: testSenderUsername,
-		Ctime:          testCtime,
-	}
 
 	convID1 := chat1.ConversationID("conv1")
 	dbKey1 := indexer.dbKey(convID1, uid)
@@ -57,14 +53,14 @@ func TestIndexer(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedConvIdx := convIndex{
-		"the":   msgMetadataIndex{5: testMsgMetadata},
-		"quick": msgMetadataIndex{5: testMsgMetadata},
-		"brown": msgMetadataIndex{5: testMsgMetadata},
-		"fox":   msgMetadataIndex{5: testMsgMetadata},
-		"jumps": msgMetadataIndex{5: testMsgMetadata},
-		"over":  msgMetadataIndex{5: testMsgMetadata},
-		"lazy":  msgMetadataIndex{5: testMsgMetadata},
-		"dog":   msgMetadataIndex{5: testMsgMetadata},
+		"the":   map[chat1.MessageID]bool{5: true},
+		"quick": map[chat1.MessageID]bool{5: true},
+		"brown": map[chat1.MessageID]bool{5: true},
+		"fox":   map[chat1.MessageID]bool{5: true},
+		"jumps": map[chat1.MessageID]bool{5: true},
+		"over":  map[chat1.MessageID]bool{5: true},
+		"lazy":  map[chat1.MessageID]bool{5: true},
+		"dog":   map[chat1.MessageID]bool{5: true},
 	}
 
 	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
@@ -77,15 +73,15 @@ func TestIndexer(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedConvIdx2 := convIndex{
-		"the":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"quick": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"brown": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"fox":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"jumps": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"over":  msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"lazy":  msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"dog":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"cool":  msgMetadataIndex{6: testMsgMetadata},
+		"the":   map[chat1.MessageID]bool{5: true, 6: true},
+		"quick": map[chat1.MessageID]bool{5: true, 6: true},
+		"brown": map[chat1.MessageID]bool{5: true, 6: true},
+		"fox":   map[chat1.MessageID]bool{5: true, 6: true},
+		"jumps": map[chat1.MessageID]bool{5: true, 6: true},
+		"over":  map[chat1.MessageID]bool{5: true, 6: true},
+		"lazy":  map[chat1.MessageID]bool{5: true, 6: true},
+		"dog":   map[chat1.MessageID]bool{5: true, 6: true},
+		"cool":  map[chat1.MessageID]bool{6: true},
 	}
 
 	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
@@ -113,15 +109,15 @@ func TestIndexer(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedConvIdx3 := convIndex{
-		"the":   msgMetadataIndex{6: testMsgMetadata},
-		"quick": msgMetadataIndex{6: testMsgMetadata},
-		"brown": msgMetadataIndex{6: testMsgMetadata},
-		"fox":   msgMetadataIndex{6: testMsgMetadata},
-		"jumps": msgMetadataIndex{6: testMsgMetadata},
-		"over":  msgMetadataIndex{6: testMsgMetadata},
-		"lazy":  msgMetadataIndex{6: testMsgMetadata},
-		"dog":   msgMetadataIndex{6: testMsgMetadata},
-		"cool":  msgMetadataIndex{6: testMsgMetadata},
+		"the":   map[chat1.MessageID]bool{6: true},
+		"quick": map[chat1.MessageID]bool{6: true},
+		"brown": map[chat1.MessageID]bool{6: true},
+		"fox":   map[chat1.MessageID]bool{6: true},
+		"jumps": map[chat1.MessageID]bool{6: true},
+		"over":  map[chat1.MessageID]bool{6: true},
+		"lazy":  map[chat1.MessageID]bool{6: true},
+		"dog":   map[chat1.MessageID]bool{6: true},
+		"cool":  map[chat1.MessageID]bool{6: true},
 	}
 	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
 	require.NoError(t, err)

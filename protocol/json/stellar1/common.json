@@ -28,6 +28,12 @@
     },
     {
       "type": "record",
+      "name": "PaymentID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "KeybaseTransactionID",
       "fields": [],
       "typedef": "string"
@@ -49,16 +55,6 @@
       "name": "KeybaseRequestID",
       "fields": [],
       "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "PaymentID",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "txID"
-        }
-      ]
     },
     {
       "type": "record",

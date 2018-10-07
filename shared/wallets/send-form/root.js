@@ -7,7 +7,6 @@ import Header from './header'
 
 type Props = {|
   isRequest: boolean,
-  bannerInfo?: string,
   isProcessing?: boolean,
   onClose: () => void,
   onLinkAccount: () => void,
@@ -19,7 +18,6 @@ const Root = (props: Props) => (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header />
       <Body
-        bannerInfo={props.bannerInfo}
         isProcessing={props.isProcessing}
         isRequest={props.isRequest}
         onLinkAccount={props.onLinkAccount}
@@ -47,6 +45,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 525,
       width: 360,
+    },
+    isMobile: {
+      height: '100%',
+      width: '100%',
+      maxWidth: 360,
     },
   }),
   textContainer: {

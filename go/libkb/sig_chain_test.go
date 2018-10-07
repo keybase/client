@@ -225,7 +225,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf, uid)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right

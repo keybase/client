@@ -14,7 +14,10 @@ type Props = {
 const ReceiveModal = (props: Props) => {
   const header = (
     <React.Fragment>
-      <Text type="BodySmallSemibold">{props.username}’s account</Text>
+      <Text type="BodySmallSemibold">
+        {props.username}
+        ’s account
+      </Text>
       <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
         Receive
       </Text>

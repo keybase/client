@@ -915,24 +915,33 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
-func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
-	desc, err := FormatAmountXLM(amount)
+// Example: "157.5000000 XLM"
+// Example: "12.9000000 USD/GB...VTUK"
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	switch asset.Type {
+	case "credit_alphanum4", "credit_alphanum12":
+	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
+	default:
+		return "", fmt.Errorf("unrecognized asset type: %v", asset.Type)
+	}
+	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
+	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+		return "", fmt.Errorf("invalid asset code: %v", asset.Code)
+	}
+	// Sanity check asset issuer.
+	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-
-	switch delta {
-	case stellar1.BalanceDelta_DECREASE:
-		desc = "- " + desc
-	case stellar1.BalanceDelta_INCREASE:
-		desc = "+ " + desc
-	}
-
-	return desc, nil
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
+		fmt.Sprintf("%v/%v", asset.Code, issuerAccountID.LossyAbbreviation()))
 }
 
 // Example: "157.5000000 XLM"
-func FormatAmountXLM(amount string) (string, error) {
+func FormatAmountDescriptionXLM(amount string) (string, error) {
 	// Do not simplify XLM amounts, all zeroes are important because
 	// that's the exact number of digits that Stellar protocol
 	// supports.
@@ -1170,7 +1179,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		PaymentID: stellar1.PaymentID{TxID: txID},
+		PaymentID: stellar1.NewPaymentID(txID),
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)

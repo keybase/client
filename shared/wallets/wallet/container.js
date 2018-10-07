@@ -1,20 +1,25 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/wallets'
 
 import Wallet from '.'
 
-const mapStateToProps = (state: TypedState) => ({
-  accountID: Constants.getSelectedAccount(state),
-  assets: Constants.getAssets(state),
-  payments: Constants.getPayments(state),
-  pending: Constants.getPendingPayments(state),
-})
+const mapStateToProps = (state: TypedState) => {
+  const accountID = Constants.getSelectedAccount(state)
+  return {
+    accountID,
+    assets: Constants.getAssets(state),
+    payments: Constants.getPayments(state),
+    loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
+  }
+}
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
+  navigateUp,
+  _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -28,33 +33,56 @@ const mergeProps = (stateProps, dispatchProps) => {
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
   sections.push({data: assets, title: 'Your assets'})
 
-  if (stateProps.pending && stateProps.pending.count() > 0) {
+  // split into pending & history
+  let pending
+  let history
+  stateProps.payments &&
+    stateProps.payments.forEach(p => {
+      if (p.statusSimplified === 'completed') {
+        if (!history) {
+          history = []
+        }
+        history.push({paymentID: p.id, timestamp: p.time})
+      } else {
+        if (!pending) {
+          pending = []
+        }
+        pending.push({paymentID: p.id, timestamp: p.time})
+      }
+    })
+  if (!history) {
+    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
+  } else {
+    history = sortAndStripTimestamps(history)
+  }
+
+  if (pending) {
     sections.push({
-      data: stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray(),
+      data: sortAndStripTimestamps(pending),
       title: 'Pending',
     })
   }
 
   sections.push({
-    data: paymentsFromState(stateProps.payments),
+    data: history,
     title: 'History',
   })
 
   return {
     accountID: stateProps.accountID,
+    loadingMore: stateProps.loadingMore,
     navigateAppend: dispatchProps.navigateAppend,
+    navigateUp: dispatchProps.navigateUp,
+    onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
     sections,
   }
 }
 
-const paymentsFromState = (payments: ?I.List<Types.Payment>) => {
-  if (!payments) {
-    return ['notLoadedYet']
-  }
-  if (payments.count() === 0) {
-    return ['noPayments']
-  }
-  return payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
-}
+const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp: number}>) =>
+  p.sort((p1, p2) => p2.timestamp - p1.timestamp || 0).map(({paymentID}) => ({paymentID}))
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Wallet)

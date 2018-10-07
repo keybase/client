@@ -32,6 +32,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  ConfirmOrPending
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ConfirmOrPending)

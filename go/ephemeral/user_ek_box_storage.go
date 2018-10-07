@@ -7,9 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+const userEKBoxStorageDBVersion = 3
 
 type userEKBoxCacheItem struct {
 	UserEKBoxed keybase1.UserEkBoxed
@@ -41,8 +44,6 @@ func (c userEKBoxCacheItem) Error() error {
 type userEKBoxCache map[keybase1.EkGeneration]userEKBoxCacheItem
 type UserEKBoxMap map[keybase1.EkGeneration]keybase1.UserEkBoxed
 type UserEKUnboxedMap map[keybase1.EkGeneration]keybase1.UserEk
-
-const userEKBoxStorageDBVersion = 2
 
 // We cache UserEKBoxes from the server in memory and a persist to a local
 // KVStore.
@@ -100,17 +101,17 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 
 	// Try cache first
 	cacheItem, ok := cache[generation]
-	if ok {
-		defer s.Unlock() // release the lock after we unbox
-		if cacheItem.HasError() {
-			return userEK, cacheItem.Error()
-		}
-		return s.unbox(ctx, generation, cacheItem.UserEKBoxed)
+	if !ok {
+		// We don't have anything in our cache, fetch from the server
+		s.Unlock() // release the lock while we fetch
+		return s.fetchAndStore(ctx, generation)
 	}
 
-	// We don't have anything in our cache, fetch from the server
-	s.Unlock() // release the lock while we fetch
-	return s.fetchAndStore(ctx, generation)
+	defer s.Unlock() // release the lock after we unbox
+	if cacheItem.HasError() {
+		return userEK, cacheItem.Error()
+	}
+	return s.unbox(ctx, generation, cacheItem.UserEKBoxed)
 }
 
 type UserEKBoxedResponse struct {
@@ -140,8 +141,7 @@ func (s *UserEKBoxStorage) fetchAndStore(ctx context.Context, generation keybase
 		return userEK, err
 	}
 
-	err = res.Body.UnmarshalAgain(&result)
-	if err != nil {
+	if err = res.Body.UnmarshalAgain(&result); err != nil {
 		return userEK, err
 	}
 
@@ -228,7 +228,11 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "unable to get from deviceEKStorage %v", err)
-		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
+		switch err.(type) {
+		case erasablekv.UnboxError:
+			return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
+		}
+		return userEK, err
 	}
 
 	deviceSeed := DeviceEKSeed(deviceEK.Seed)

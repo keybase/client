@@ -19,7 +19,8 @@ const mapDispatchToProps = dispatch => ({
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
-    dispatch(WalletsGen.createAbandonPayment())
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
@@ -65,7 +66,11 @@ const Wrapper = (props: WrapperProps) => {
 }
 
 const WalletsIcon = Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   Container.setDisplayName('WalletsIcon')
 )(Wrapper)
 
