@@ -8,7 +8,7 @@ import HiddenString from '../util/hidden-string'
 export const waitingKey = 'provision:waiting'
 
 // Do NOT change this. This is the value used by the daemon also so this way we can ignore it when they do it / when we do
-export const cancelDesc = 'kex canceled by caller'
+export const cancelDesc = 'Input canceled'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageIncomingTextCode: new HiddenString(''),

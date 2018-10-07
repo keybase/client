@@ -32,4 +32,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   onSelect: () => dispatchProps._onSelectAccount(ownProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(WalletRow)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(WalletRow)

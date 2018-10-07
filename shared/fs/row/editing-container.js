@@ -42,6 +42,10 @@ const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('EditingRow')
 )(Editing)

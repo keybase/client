@@ -152,6 +152,13 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
+
+export type Banner = {|
+  bannerBackground: BannerBackground,
+  bannerText: string,
+|}
+
 export type BuildingPayment = I.RecordOf<_BuildingPayment>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
@@ -179,6 +186,7 @@ export type _State = {
   secretKeyError: string,
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
+  sentPaymentError: string,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,

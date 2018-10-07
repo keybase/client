@@ -22,7 +22,7 @@ type Props = {
   className?: string,
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip', // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied
   lineClamp?: number,
-  onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
+  onClick?: ?(e: SyntheticEvent<>) => void | ?(() => void),
   onClickURL?: ?string,
   onLongPress?: () => void,
   onPress?: void,

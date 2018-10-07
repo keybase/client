@@ -1394,11 +1394,11 @@ func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
-func (r *FullInboxSearchRes) GetRateLimit() []RateLimit {
+func (r *InboxSearchRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *FullInboxSearchRes) SetRateLimits(rl []RateLimit) {
+func (r *InboxSearchRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

@@ -119,6 +119,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onSendOrRequestLumens: (to: string) => {
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createClearErrors())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
@@ -208,4 +209,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ProfileContainer)

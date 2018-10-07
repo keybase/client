@@ -19,6 +19,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createClearErrors())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
     dispatch(WalletsGen.createSetBuildingFrom({from}))
     dispatch(
@@ -70,4 +71,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Header)

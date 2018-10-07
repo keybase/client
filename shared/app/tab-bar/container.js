@@ -74,5 +74,9 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-const ConnectedTabBar = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+const ConnectedTabBar = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TabBarRender)
 export default (isMobile ? ConnectedTabBar : KeyHandler(ConnectedTabBar))

@@ -32,4 +32,8 @@ const mergeProps = ({importError}, dispatchProps) =>
         onSubmit: dispatchProps.onSubmitGpgMethod,
       }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(GPGSign)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(GPGSign)

@@ -190,7 +190,9 @@ class UserInput extends Component<Props, State> {
             marginLeft: globalMargins.xtiny,
           }}
         >
-          {userItems.map(item => <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />)}
+          {userItems.map(item => (
+            <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />
+          ))}
           <Box
             style={{
               ...globalStyles.flexBoxRow,

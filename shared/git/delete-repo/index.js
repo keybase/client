@@ -60,7 +60,8 @@ class DeleteRepo extends React.Component<Props, State> {
             </Box>
           )}
           <Text type="Header" style={{marginBottom: 27}}>
-            Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
+            Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
+            repository?
           </Text>
           <Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Box

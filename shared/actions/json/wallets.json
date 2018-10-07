@@ -7,7 +7,8 @@
   ],
   "actions": {
     "abandonPayment": {
-      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states.",
+      "_description":
+        "Signal that a payment being built is abandoned and reset the form fields to their initial states.",
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -24,7 +25,7 @@
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
-      "forBuildingPayment": "Types.BuildingPayment"
+      "forBuildingPayment": "Types.BuildingPayment",
     },
     "clearBuildingPayment": {
       "_description": "Clear a payment that was being prepared",
@@ -190,6 +191,10 @@
     "sentPayment": {
       "_description": "Successfully sent a payment",
       "kbTxID": "HiddenString",
+    },
+    "sentPaymentError": {
+      "_description": "Failed to send a payment",
+      "error": "string",
     },
     "setBuildingAmount": {
       "_description": "Set building amount",

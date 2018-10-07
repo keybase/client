@@ -33,7 +33,8 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
           onClick={updateNow}
         >
           update now
-        </Kb.Text>.
+        </Kb.Text>
+        .
       </Kb.Text>
     </Kb.Box2>
   )

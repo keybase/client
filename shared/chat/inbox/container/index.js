@@ -9,6 +9,7 @@ import type {TypedState} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
+import ff from '../../../util/feature-flags'
 
 const mapStateToProps = (state: TypedState) => ({
   _metaMap: state.chat2.metaMap,
@@ -23,6 +24,12 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
+  onNewChat: () =>
+    dispatch(
+      Chat2Gen.createSetPendingMode({
+        pendingMode: ff.newTeamBuildingForChat ? 'newChat' : 'searchingForUsers',
+      })
+    ),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
     const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
       if (row.type === 'small' || row.type === 'big') {
@@ -37,7 +44,6 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
     }
   },
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({

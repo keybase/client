@@ -70,6 +70,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  sentPaymentError: '',
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -287,6 +288,18 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   })
 }
 
+const bannerLevelToBackground = (level: string) => {
+  switch (level) {
+    case 'info':
+      return 'Announcements'
+    case 'error':
+      return 'HighRisk'
+    default:
+      console.warn('Unexpected banner level', level)
+      return 'Information'
+  }
+}
+
 const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
   switch (t) {
     case 'ownaccount':
@@ -445,7 +458,7 @@ const getCurrencyAndSymbol = (state: TypedState, code: string) => {
     return currency ? code + ' (' + currency.symbol + ')' : code
 }
 
-const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
     balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
@@ -456,9 +469,20 @@ const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSi
   return balanceChangeColor
 }
 
+const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
+  let sign = ''
+  if (delta !== 'none') {
+    sign = delta === 'increase' ? '+' : '-'
+  }
+  return sign + balanceChange
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  bannerLevelToBackground,
+  balanceChangeColor,
+  balanceChangeSign,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
@@ -475,7 +499,6 @@ export {
   getAccount,
   getAssets,
   getCurrencyAndSymbol,
-  getBalanceChangeColor,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,

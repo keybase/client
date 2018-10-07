@@ -98,9 +98,9 @@ const defaultNumFileOptionsShown = 3
 
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.updates
-      .slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown)
-      .map(u => <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />)}
+    {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
+      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
+    ))}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll
@@ -135,7 +135,16 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           in&nbsp;
         </Kb.Text>
         <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
-          {props.tlfType === 'team' ? props.teamname : props.participants.join(',')}
+          {props.tlfType === 'team' ? (
+            props.teamname
+          ) : props.tlfType === 'public' ? (
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              {props.participants.join(',')}
+              <Kb.Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
+            </Kb.Box2>
+          ) : (
+            `${props.participants.join(',')}`
+          )}
         </Kb.Text>
       </Kb.Box2>
       <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />

@@ -6,6 +6,7 @@ import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -63,11 +64,15 @@ const sendPayment = (state: TypedState) =>
       quickReturn: true,
       secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
       to: state.wallets.buildingPayment.to,
-      toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
+      toIsAccountID:
+        state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
+        !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
-  ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+  )
+    .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+    .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 
 const requestPayment = (state: TypedState) =>
   RPCTypes.localMakeRequestLocalRpcPromise(
@@ -85,6 +90,8 @@ const requestPayment = (state: TypedState) =>
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 
 const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+
+const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
 const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
   const {from: _accountID} = action.payload.build
@@ -398,6 +405,14 @@ const setupEngineListeners = () => {
 const refreshPayments = ({accountID}) =>
   Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)}))
 
+const maybeClearErrors = (state: TypedState) => {
+  const routePath = getPath(state.routeTree.routeState)
+  const selectedTab = routePath.first()
+  if (selectedTab === Tabs.walletsTab) {
+    return Saga.put(WalletsGen.createClearErrors())
+  }
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -474,6 +489,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
+
   yield Saga.actionToAction(WalletsGen.sentPayment, maybeNavigateAwayFromSendForm)
 
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
@@ -484,6 +501,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   // Effects of abandoning payments
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.abandonPayment, clearErrors)
   yield Saga.actionToAction(WalletsGen.abandonPayment, maybeNavigateAwayFromSendForm)
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
@@ -491,6 +509,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.cancelPayment, cancelPayment)
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+
+  // Clear some errors on navigateUp.
+  yield Saga.actionToAction(RouteTreeGen.navigateUp, maybeClearErrors)
 }
 
 export default walletsSaga

@@ -103,4 +103,8 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LoginWrapper)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(LoginWrapper)

@@ -28,8 +28,8 @@ class InviteGeneratedRender extends Component<Props> {
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
           <Text type="Body" style={textStyle}>
-            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>
-            , but you can also give them the below link:
+            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
+            the below link:
           </Text>
         ) : (
           <Text type="Body" style={textStyle}>

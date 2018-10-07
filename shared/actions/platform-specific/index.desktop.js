@@ -18,7 +18,7 @@ import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
 
-export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}):void {
+export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export function showShareActionSheetFromFile(fileURL: string): Promise<void> {

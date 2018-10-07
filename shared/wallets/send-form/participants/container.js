@@ -31,7 +31,11 @@ const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
-  connect(mapStateToPropsKeybaseUser, mapDispatchToPropsKeybaseUser, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsKeybaseUser,
+    mapDispatchToPropsKeybaseUser,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('ParticipantsKeybaseUser')
 )(ParticipantsKeybaseUser)
 
@@ -52,17 +56,22 @@ const mapDispatchToPropsStellarPublicKey = (dispatch: Dispatch) => ({
 })
 
 const ConnectedParticipantsStellarPublicKey = compose(
-  connect(mapStateToPropsStellarPublicKey, mapDispatchToPropsStellarPublicKey, (s, d, o) => ({
-    ...o,
-    ...s,
-    ...d,
-  })),
+  connect(
+    mapStateToPropsStellarPublicKey,
+    mapDispatchToPropsStellarPublicKey,
+    (s, d, o) => ({
+      ...o,
+      ...s,
+      ...d,
+    })
+  ),
   setDisplayName('ParticipantsStellarPublicKey')
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: StateAccount) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
+  isDefault: stateAccount.isDefault,
   name: stateAccount.name || stateAccount.accountID,
 })
 
@@ -77,10 +86,10 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
     .toArray()
 
   return {
-    user: state.config.username,
+    allAccounts,
     fromAccount,
     toAccount,
-    allAccounts,
+    user: state.config.username,
   }
 }
 
@@ -91,15 +100,6 @@ const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onLinkAccount: () =>
-    dispatch(
-      RouteTree.navigateAppend([
-        {
-          props: {backButton: true},
-          selected: 'linkExisting',
-        },
-      ])
-    ),
   onCreateNewAccount: () =>
     dispatch(
       RouteTree.navigateAppend([
@@ -109,10 +109,23 @@ const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
         },
       ])
     ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'linkExisting',
+        },
+      ])
+    ),
 })
 
 const ConnectedParticipantsOtherAccount = compose(
-  connect(mapStateToPropsOtherAccount, mapDispatchToPropsOtherAccount, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsOtherAccount,
+    mapDispatchToPropsOtherAccount,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('ParticipantsOtherAccount')
 )(ParticipantsOtherAccount)
 
@@ -141,7 +154,11 @@ const ParticipantsChooser = props => {
 }
 
 const ConnectedParticipantsChooser = compose(
-  connect(mapStateToPropsChooser, () => ({}), (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToPropsChooser,
+    () => ({}),
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('Participants')
 )(ParticipantsChooser)
 
