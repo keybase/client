@@ -1412,11 +1412,11 @@ func (g *gregorHandler) pingLoop() {
 		id, duration, timeout, url.Host)
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
 
+	ticker := libkb.NewBgTicker(duration)
 	for {
-		deadline := g.G().Clock().Now().Add(duration)
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.G().Clock().AfterTime(deadline):
+		case <-ticker.C:
 			var err error
 
 			doneCh := make(chan error)
