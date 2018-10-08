@@ -106,7 +106,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
-		keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
@@ -148,8 +147,10 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
-		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
+	walletHandler := newWalletHandler(xp, g)
+	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
