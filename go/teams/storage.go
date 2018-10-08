@@ -203,15 +203,15 @@ func (s *diskStorageGeneric) put(ctx context.Context, state teamDataGeneric) err
 }
 
 // Res is valid if (found && err == nil)
-func (s *diskStorageGeneric) get(ctx context.Context, teamID keybase1.TeamID, public bool) (res teamDataGeneric, found bool, err error) {
+func (s *diskStorageGeneric) get(ctx context.Context, teamID keybase1.TeamID, public bool) (teamDataGeneric, bool, error) {
 	s.Lock()
 	defer s.Unlock()
 
 	key := s.dbKey(ctx, teamID, public)
 	item := s.getEmptyDiskItem()
-	found, err = s.encryptedDB.Get(ctx, key, item)
+	found, err := s.encryptedDB.Get(ctx, key, item)
 	if (err != nil) || !found {
-		return res, found, err
+		return nil, found, err
 	}
 
 	if item.version() != s.version {
@@ -223,13 +223,13 @@ func (s *diskStorageGeneric) get(ctx context.Context, teamID keybase1.TeamID, pu
 
 	// Sanity check
 	if len(ret.ID()) == 0 {
-		return res, false, fmt.Errorf("decode from disk had empty team id")
+		return nil, false, fmt.Errorf("decode from disk had empty team id")
 	}
 	if !ret.ID().Eq(teamID) {
-		return res, false, fmt.Errorf("decode from disk had wrong team id %v != %v", ret.ID(), teamID)
+		return nil, false, fmt.Errorf("decode from disk had wrong team id %v != %v", ret.ID(), teamID)
 	}
 	if ret.IsPublic() != public {
-		return res, false, fmt.Errorf("decode from disk had wrong publicness %v != %v (%v)", ret.IsPublic(), public, teamID)
+		return nil, false, fmt.Errorf("decode from disk had wrong publicness %v != %v (%v)", ret.IsPublic(), public, teamID)
 	}
 
 	return item.value(), true, nil
