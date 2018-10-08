@@ -40,7 +40,7 @@ func TestLoadParamServices(t *testing.T) {
 	require.EqualValues(t, group, gubbleConf.Group)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
 		Re:  "^([a-zA-Z0-9_])+$",
-		Min: 1,
+		Min: 2,
 		Max: 20,
 	}, gubbleConf.UsernameConfig)
 	require.Equal(t, "#33A0FF", gubbleConf.BrandColor)

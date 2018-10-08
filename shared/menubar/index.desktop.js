@@ -71,7 +71,6 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
@@ -91,6 +90,7 @@ class MenubarRender extends React.Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
@@ -183,7 +183,6 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={styles.topRow}>
@@ -228,6 +227,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {Flags.fileWidgetEnabled ? (
           <Kb.ScrollView>
             <ChatContainer convLimit={3} />

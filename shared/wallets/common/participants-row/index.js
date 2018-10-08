@@ -21,7 +21,7 @@ const ParticipantsRow = (props: Props) => (
         type="BodyTinySemibold"
         style={Styles.collapseStyles([
           styles.headingText,
-          props.headingAlignment === 'Right' && {textAlign: 'right', width: 38},
+          props.headingAlignment === 'Right' && {textAlign: 'right', width: 40},
           props.headingStyle,
         ])}
       >

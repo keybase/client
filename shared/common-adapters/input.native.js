@@ -51,6 +51,23 @@ class Input extends Component<Props, State> {
     this._timeoutIds.forEach(clearTimeout)
   }
 
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
+      this._clearText()
+    }
+  }
+
+  _clearText = () => {
+    if (!this.props.uncontrolled) {
+      throw new Error('clearTextCounter only works on uncontrolled components')
+    }
+
+    this.transformText(() => ({
+      text: '',
+      selection: {start: 0, end: 0},
+    }))
+  }
+
   _setInputRef = (ref: NativeTextInput | null) => {
     this._input = ref
   }

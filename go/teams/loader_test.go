@@ -67,11 +67,12 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
-	team = st.Get(context.TODO(), teamID, public)
+	mctx := libkb.NewMetaContextForTest(tc)
+	team = st.Get(mctx, teamID, public)
 	require.NotNil(t, team)
 	t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
 	team.CachedAt = keybase1.ToTime(tc.G.Clock().Now().Add(freshnessLimit * -2))
-	st.Put(context.TODO(), team)
+	st.Put(mctx, team)
 	t.Logf("cache post-set cachedAt:%v", team.CachedAt.Time())
 
 	t.Logf("load the team again")
@@ -824,7 +825,8 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NoError(t, err, "load team chitchat")
 
 	t.Logf("check that the link is stubbed in storage")
-	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(context.Background(), rootID, rootID.IsPublic())
+	mctx := libkb.NewMetaContextForTest(*tcs[2])
+	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(mctx, rootID, rootID.IsPublic())
 	require.NotNil(t, rootData, "root team should be cached")
 	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 
