@@ -168,7 +168,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 	v := MakeLocalUserVerifyingKeyOrBust(name)
 	session := SessionInfo{
 		Name:           name,
-		UID:            keybase1.UID("fake uid"),
+		UID:            keybase1.MakeTestUID(1),
 		CryptPublicKey: k,
 		VerifyingKey:   v,
 	}
@@ -230,8 +230,8 @@ func testIdentify(
 
 // Test that the user cache works and is invalidated as expected.
 func TestKeybaseDaemonUserCache(t *testing.T) {
-	uid1 := keybase1.UID("uid1")
-	uid2 := keybase1.UID("uid2")
+	uid1 := keybase1.MakeTestUID(1)
+	uid2 := keybase1.MakeTestUID(2)
 	name1 := kbname.NewNormalizedUsername("name1")
 	name2 := kbname.NewNormalizedUsername("name2")
 	users := map[keybase1.UID]UserInfo{

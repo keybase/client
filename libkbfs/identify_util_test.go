@@ -52,7 +52,8 @@ func (ti *testIdentifier) Identify(
 					Remote: true,
 				}
 		}
-		ei.userBreak(userInfo.Name, userInfo.UID, &keybase1.IdentifyTrackBreaks{})
+		ei.userBreak(
+			ctx, userInfo.Name, userInfo.UID, &keybase1.IdentifyTrackBreaks{})
 		return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
 	}
 
@@ -71,7 +72,7 @@ func (ti *testIdentifier) Identify(
 		ti.identifiedIDs[userInfo.UID.AsUserOrTeam()] = true
 	}()
 
-	ei.userBreak(userInfo.Name, userInfo.UID, nil)
+	ei.userBreak(ctx, userInfo.Name, userInfo.UID, nil)
 	return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
 }
 

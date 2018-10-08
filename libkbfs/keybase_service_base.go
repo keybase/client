@@ -492,7 +492,7 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 				"error type=%T", err, res.Ul.Name, err)
 	default:
 		// If the caller is waiting for breaks, let them know we got an error.
-		ei.onError()
+		ei.onError(ctx)
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
 	}
@@ -506,7 +506,9 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		if err != nil {
 			return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 		}
-		ei.userBreak(name, asUser, res.TrackBreaks)
+		ei.userBreak(ctx, name, asUser, res.TrackBreaks)
+	} else {
+		ei.teamBreak(ctx, res.Ul.Id.AsTeamOrBust(), res.TrackBreaks)
 	}
 
 	return name, res.Ul.Id, nil
@@ -547,13 +549,17 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	}
 	name := kbname.NormalizedUsername(res.DisplayName)
 
-	// This is required for every identify call. The userBreak
-	// function will take care of checking if res.TrackBreaks is nil
-	// or not.
-	for userVer, breaks := range res.TrackBreaks {
-		// TODO: resolve the UID into a username so we don't have to
-		// pass in the full display name here?
-		ei.userBreak(name, userVer.Uid, &breaks)
+	// Exactly one break callback is required for every identify call.
+	if len(res.TrackBreaks) > 0 {
+		// Iterate the map to get one entry, then break.
+		for userVer, breaks := range res.TrackBreaks {
+			// TODO: resolve the UID into a username so we don't have to
+			// pass in the full display name here?
+			ei.userBreak(ctx, name, userVer.Uid, &breaks)
+			break
+		}
+	} else {
+		ei.teamBreak(ctx, keybase1.TeamID(""), nil)
 	}
 
 	iteamInfo := ImplicitTeamInfo{

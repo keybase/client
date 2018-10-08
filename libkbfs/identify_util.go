@@ -26,21 +26,47 @@ type extendedIdentify struct {
 	tlfBreaks  *keybase1.TLFBreak
 }
 
-func (ei *extendedIdentify) userBreak(username kbname.NormalizedUsername, uid keybase1.UID, breaks *keybase1.IdentifyTrackBreaks) {
+func (ei *extendedIdentify) userBreak(
+	ctx context.Context, username kbname.NormalizedUsername, uid keybase1.UID,
+	breaks *keybase1.IdentifyTrackBreaks) {
 	if ei.userBreaks == nil {
 		return
 	}
 
-	ei.userBreaks <- keybase1.TLFIdentifyFailure{
+	select {
+	case ei.userBreaks <- keybase1.TLFIdentifyFailure{
 		Breaks: breaks,
 		User: keybase1.User{
 			Uid:      uid,
 			Username: string(username),
 		},
+	}:
+	case <-ctx.Done():
 	}
 }
 
-func (ei *extendedIdentify) onError() {
+func (ei *extendedIdentify) teamBreak(
+	ctx context.Context, teamID keybase1.TeamID,
+	breaks *keybase1.IdentifyTrackBreaks) {
+	if ei.userBreaks == nil {
+		return
+	}
+
+	if breaks != nil && (len(breaks.Keys) != 0 || len(breaks.Proofs) != 0) {
+		panic(fmt.Sprintf("Unexpected team %s breaks: %v", teamID, breaks))
+	}
+
+	// Otherwise just send an empty message to close the loop.
+	select {
+	case ei.userBreaks <- keybase1.TLFIdentifyFailure{
+		Breaks: nil,
+		User:   keybase1.User{},
+	}:
+	case <-ctx.Done():
+	}
+}
+
+func (ei *extendedIdentify) onError(ctx context.Context) {
 	if ei.userBreaks == nil {
 		return
 	}
@@ -48,9 +74,12 @@ func (ei *extendedIdentify) onError() {
 	// The identify got an error, so just send a nil breaks list so
 	// that the goroutine waiting on the breaks can finish and the
 	// error can be returned.
-	ei.userBreaks <- keybase1.TLFIdentifyFailure{
+	select {
+	case ei.userBreaks <- keybase1.TLFIdentifyFailure{
 		Breaks: nil,
 		User:   keybase1.User{},
+	}:
+	case <-ctx.Done():
 	}
 }
 
@@ -293,10 +322,14 @@ func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier,
 	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	t tlf.Type) error {
+	ei := getExtendedIdentify(ctx)
+	if ei.behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		return nil
+	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		ei := getExtendedIdentify(ctx)
 		return ei.makeTlfBreaksIfNeeded(ctx, len(names))
 	})
 
