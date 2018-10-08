@@ -813,11 +813,7 @@ const placeholderUIMessageToMessage = (
         id: Types.numberToMessageID(p.messageID),
         ordinal: Types.numberToOrdinal(p.messageID),
       })
-    : makeMessageDeleted({
-        conversationIDKey,
-        id: Types.numberToMessageID(p.messageID),
-        ordinal: Types.numberToOrdinal(p.messageID),
-      })
+    : null
 }
 
 const errorUIMessagetoMessage = (
