@@ -13,6 +13,8 @@ type Props = {
   isRequest: boolean,
   banners: Array<BannerType>,
   isProcessing?: boolean,
+  onLinkAccount: () => void,
+  onCreateNewAccount: () => void,
 }
 
 const Spinner = () => (
@@ -21,17 +23,17 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({banners, isProcessing, isRequest}: Props) => (
+const Body = (props: Props) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
-    {isProcessing && <Spinner />}
-    {banners.map(banner => (
+    {props.isProcessing && <Spinner />}
+    {props.banners.map(banner => (
       <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
     ))}
-    <Participants />
+    <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
     <AssetInput />
     <Divider />
     <NoteAndMemo />
-    <Footer isRequest={isRequest} />
+    <Footer isRequest={props.isRequest} />
   </Box2>
 )
 

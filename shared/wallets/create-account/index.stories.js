@@ -9,11 +9,12 @@ const props = {
   name: '',
   nameValidationState: 'none',
   onCancel: Sb.action('onCancel'),
-  onCheckName: Sb.action('onCheckName'),
+  // onCheckName: Sb.action('onCheckName'),
   onClearErrors: Sb.action('onCancel'),
   onCreateAccount: Sb.action('onCreateAccount'),
   onDone: Sb.action('onDone'),
   onNameChange: Sb.action('onNameChange'),
+  onBack: Sb.action('onBack'),
   waiting: false,
 }
 

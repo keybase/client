@@ -15,8 +15,8 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
-  onCancel: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
+  onCancel: () => navigateUp && dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
       WalletsGen.createValidateSecretKey({
@@ -33,9 +33,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        showOnCreation: routeProps.get('showOnCreation'),
+        showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
+        setBuildingTo: fromSendForm,
       })
     ),
+  fromSendForm,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -45,12 +47,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   nameValidationState: stateProps.nameValidationState,
   secretKeyValidationState: stateProps.secretKeyValidationState,
   waiting: stateProps.waiting,
-  onCancel: dispatchProps.onCancel,
+  onCancel: ownProps.onCancel || dispatchProps.onCancel,
   onCheckKey: dispatchProps.onCheckKey,
   onCheckName: dispatchProps.onCheckName,
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
-  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
+  onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
 })
 
 export default connect(

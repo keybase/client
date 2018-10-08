@@ -28,6 +28,7 @@ export type Account = {|
   name: string,
   id: AccountID,
   isDefault: boolean,
+  unknown?: boolean,
 |}
 
 type ParticipantsOtherAccountProps = {|
@@ -39,6 +40,7 @@ type ParticipantsOtherAccountProps = {|
   onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
+  showSpinner: boolean,
 |}
 
 const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
@@ -55,6 +57,7 @@ const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
       allAccounts={props.allAccounts}
       onChangeRecipient={props.onChangeRecipient}
       onLinkAccount={props.onLinkAccount}
+      showSpinner={props.showSpinner}
       onCreateNewAccount={props.onCreateNewAccount}
     />
   </Kb.Box2>

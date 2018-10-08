@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
+import {Box2, Text} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import {
   type Account,
@@ -120,6 +121,7 @@ const otherAccountProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
+  showSpinner: false,
 }
 
 const load = () => {
@@ -130,7 +132,16 @@ const load = () => {
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
     ))
-    .add('To other account (multiple accounts)', () => <ParticipantsOtherAccount {...otherAccountProps} />)
+    .add('To other account (multiple accounts)', () => (
+      <Box2 direction="vertical" gap="small">
+        <Text type="Header">Initial State:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} />
+        <Text type="Header">Before setting toAccount:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} showSpinner={true} />
+        <Text type="Header">After setting toAccount, but before toAccount is loaded:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} showSpinner={true} />
+      </Box2>
+    ))
     .add('To other account (one account)', () => (
       <ParticipantsOtherAccount {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
     ))
