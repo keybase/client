@@ -16,47 +16,106 @@ import (
 
 // Store TeamData's on memory and disk. Threadsafe.
 type Storage struct {
-	libkb.Contextified
-	sync.Mutex
-	mem  *MemoryStorage
-	disk *DiskStorage
+	*storageGeneric
+}
+
+// Increment to invalidate the disk cache.
+const diskStorageVersion = 10
+const MemCacheLRUSize = 200
+
+type DiskStorageItem struct {
+	Version int                `codec:"V"`
+	State   *keybase1.TeamData `codec:"S"`
+}
+
+var _ teamDataGeneric = (*keybase1.TeamData)(nil)
+var _ diskItemGeneric = (*DiskStorageItem)(nil)
+
+func (d *DiskStorageItem) version() int {
+	return d.Version
+}
+func (d *DiskStorageItem) value() teamDataGeneric {
+	return d.State
+}
+func (d *DiskStorageItem) setVersion(i int) {
+	d.Version = i
+}
+func (d *DiskStorageItem) setValue(v teamDataGeneric) error {
+	typed, ok := v.(*keybase1.TeamData)
+	if !ok {
+		return fmt.Errorf("teams.Storage#Put: Bad object for setValue; got type %T", v)
+	}
+	d.State = typed
+	return nil
 }
 
 func NewStorage(g *libkb.GlobalContext) *Storage {
-	return &Storage{
-		Contextified: libkb.NewContextified(g),
-		mem:          NewMemoryStorage(g),
-		disk:         NewDiskStorage(g),
-	}
+	s := newStorageGeneric(g, MemCacheLRUSize, diskStorageVersion, libkb.DBChatInbox, libkb.EncryptionReasonTeamsLocalStorage, func() diskItemGeneric { return &DiskStorageItem{} })
+	return &Storage{s}
 }
 
 func (s *Storage) Put(ctx context.Context, state *keybase1.TeamData) {
+	s.storageGeneric.put(ctx, state)
+}
+
+// Can return nil.
+func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) *keybase1.TeamData {
+	vp := s.storageGeneric.get(ctx, teamID, public)
+	if vp == nil {
+		return nil
+	}
+	ret, ok := vp.(*keybase1.TeamData)
+	if !ok {
+		s.G().Log.CDebugf(ctx, "teams.Storage#Get cast error: %T is wrong type", vp)
+	}
+	return ret
+}
+
+//---------------------------
+
+// Store TeamData's on memory and disk. Threadsafe.
+type storageGeneric struct {
+	libkb.Contextified
+	sync.Mutex
+	mem  *memoryStorageGeneric
+	disk *diskStorageGeneric
+}
+
+func newStorageGeneric(g *libkb.GlobalContext, lruSize int, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, gdi func() diskItemGeneric) *storageGeneric {
+	return &storageGeneric{
+		Contextified: libkb.NewContextified(g),
+		mem:          newMemoryStorageGeneric(g, lruSize),
+		disk:         newDiskStorageGeneric(g, version, dbObjTyp, reason, gdi),
+	}
+}
+
+func (s *storageGeneric) put(ctx context.Context, state teamDataGeneric) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.mem.Put(ctx, state)
+	s.mem.put(ctx, state)
 
-	err := s.disk.Put(ctx, state)
+	err := s.disk.put(ctx, state)
 	if err != nil {
 		s.G().Log.CWarningf(ctx, "teams.Storage.Put err: %v", err)
 	}
 }
 
 // Can return nil.
-func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) *keybase1.TeamData {
+func (s *storageGeneric) get(ctx context.Context, teamID keybase1.TeamID, public bool) teamDataGeneric {
 	s.Lock()
 	defer s.Unlock()
 
-	item := s.mem.Get(ctx, teamID, public)
+	item := s.mem.get(ctx, teamID, public)
 	if item != nil {
 		// Mem hit
 		return item
 	}
 
-	res, found, err := s.disk.Get(ctx, teamID, public)
+	res, found, err := s.disk.get(ctx, teamID, public)
 	if found && err == nil {
 		// Disk hit
-		s.mem.Put(ctx, res)
+		s.mem.put(ctx, res)
 		return res
 	}
 	if err != nil {
@@ -66,65 +125,77 @@ func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) 
 	return nil
 }
 
-func (s *Storage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
+func (s *storageGeneric) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
 	s.Lock()
 	defer s.Unlock()
 
-	s.mem.Delete(ctx, teamID, public)
-	return s.disk.Delete(ctx, teamID, public)
+	s.mem.delete(ctx, teamID, public)
+	return s.disk.delete(ctx, teamID, public)
 }
 
 // Clear the in-memory storage.
-func (s *Storage) clearMem() {
-	s.mem.Clear()
+func (s *storageGeneric) clearMem() {
+	s.mem.clear()
 }
 
 // --------------------------------------------------
 
+type teamDataGeneric interface {
+	IsPublic() bool
+	ID() keybase1.TeamID
+}
+
+type diskItemGeneric interface {
+	version() int
+	value() teamDataGeneric
+	setVersion(i int)
+	setValue(o teamDataGeneric) error
+}
+
 // Store TeamData's on disk. Threadsafe.
-type DiskStorage struct {
+type diskStorageGeneric struct {
 	libkb.Contextified
 	sync.Mutex
-	encryptedDB *encrypteddb.EncryptedDB
+	encryptedDB      *encrypteddb.EncryptedDB
+	version          int
+	dbObjTyp         libkb.ObjType
+	getEmptyDiskItem func() diskItemGeneric
 }
 
-// Increment to invalidate the disk cache.
-const diskStorageVersion = 10
-
-type DiskStorageItem struct {
-	Version int                `codec:"V"`
-	State   *keybase1.TeamData `codec:"S"`
-}
-
-func NewDiskStorage(g *libkb.GlobalContext) *DiskStorage {
+func newDiskStorageGeneric(g *libkb.GlobalContext, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, gdi func() diskItemGeneric) *diskStorageGeneric {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return getLocalStorageSecretBoxKey(ctx, g)
+		return getLocalStorageSecretBoxKeyGeneric(ctx, g, reason)
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
 	}
-	return &DiskStorage{
-		Contextified: libkb.NewContextified(g),
-		encryptedDB:  encrypteddb.New(g, dbFn, keyFn),
+	return &diskStorageGeneric{
+		Contextified:     libkb.NewContextified(g),
+		encryptedDB:      encrypteddb.New(g, dbFn, keyFn),
+		version:          version,
+		dbObjTyp:         dbObjTyp,
+		getEmptyDiskItem: gdi,
 	}
 }
 
-func (s *DiskStorage) Put(ctx context.Context, state *keybase1.TeamData) error {
+func (s *diskStorageGeneric) put(ctx context.Context, state teamDataGeneric) error {
 	s.Lock()
 	defer s.Unlock()
 
-	if !s.G().ActiveDevice.Valid() && state.Chain.Public {
+	if !s.G().ActiveDevice.Valid() && !state.IsPublic() {
 		s.G().Log.CDebugf(ctx, "skipping team store since user is logged out")
 		return nil
 	}
 
-	key := s.dbKey(ctx, state.Chain.Id, state.Chain.Public)
-	item := DiskStorageItem{
-		Version: diskStorageVersion,
-		State:   state,
+	key := s.dbKey(ctx, state.ID(), state.IsPublic())
+	item := s.getEmptyDiskItem()
+	item.setVersion(s.version)
+	err := item.setValue(state)
+	if err != nil {
+		return err
 	}
 
-	err := s.encryptedDB.Put(ctx, key, item)
+	err = s.encryptedDB.Put(ctx, key, item)
 	if err != nil {
 		return err
 	}
@@ -132,37 +203,39 @@ func (s *DiskStorage) Put(ctx context.Context, state *keybase1.TeamData) error {
 }
 
 // Res is valid if (found && err == nil)
-func (s *DiskStorage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) (res *keybase1.TeamData, found bool, err error) {
+func (s *diskStorageGeneric) get(ctx context.Context, teamID keybase1.TeamID, public bool) (res teamDataGeneric, found bool, err error) {
 	s.Lock()
 	defer s.Unlock()
 
 	key := s.dbKey(ctx, teamID, public)
-	var item DiskStorageItem
-	found, err = s.encryptedDB.Get(ctx, key, &item)
+	item := s.getEmptyDiskItem()
+	found, err = s.encryptedDB.Get(ctx, key, item)
 	if (err != nil) || !found {
 		return res, found, err
 	}
 
-	if item.Version != diskStorageVersion {
+	if item.version() != s.version {
 		// Pretend it wasn't found.
-		return res, false, nil
+		return nil, false, nil
 	}
+
+	ret := item.value()
 
 	// Sanity check
-	if len(item.State.Chain.Id) == 0 {
+	if len(ret.ID()) == 0 {
 		return res, false, fmt.Errorf("decode from disk had empty team id")
 	}
-	if !item.State.Chain.Id.Eq(teamID) {
-		return res, false, fmt.Errorf("decode from disk had wrong team id %v != %v", item.State.Chain.Id, teamID)
+	if !ret.ID().Eq(teamID) {
+		return res, false, fmt.Errorf("decode from disk had wrong team id %v != %v", ret.ID(), teamID)
 	}
-	if item.State.Chain.Public != public {
-		return res, false, fmt.Errorf("decode from disk had wrong publicness %v != %v (%v)", item.State.Chain.Public, public, teamID)
+	if ret.IsPublic() != public {
+		return res, false, fmt.Errorf("decode from disk had wrong publicness %v != %v (%v)", ret.IsPublic(), public, teamID)
 	}
 
-	return item.State, true, nil
+	return item.value(), true, nil
 }
 
-func (s *DiskStorage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
+func (s *diskStorageGeneric) delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
 	s.Lock()
 	defer s.Unlock()
 
@@ -170,50 +243,48 @@ func (s *DiskStorage) Delete(ctx context.Context, teamID keybase1.TeamID, public
 	return s.encryptedDB.Delete(ctx, key)
 }
 
-func (s *DiskStorage) dbKey(ctx context.Context, teamID keybase1.TeamID, public bool) libkb.DbKey {
+func (s *diskStorageGeneric) dbKey(ctx context.Context, teamID keybase1.TeamID, public bool) libkb.DbKey {
 	key := fmt.Sprintf("tid:%s", teamID)
 	if public {
 		key = fmt.Sprintf("tid:%s|pub", teamID)
 	}
 	return libkb.DbKey{
-		Typ: libkb.DBChatInbox,
+		Typ: s.dbObjTyp,
 		Key: key,
 	}
 }
 
 // --------------------------------------------------
 
-const MemCacheLRUSize = 200
-
 // Store some TeamSigChainState's in memory. Threadsafe.
-type MemoryStorage struct {
+type memoryStorageGeneric struct {
 	libkb.Contextified
 	lru *lru.Cache
 }
 
-func NewMemoryStorage(g *libkb.GlobalContext) *MemoryStorage {
-	nlru, err := lru.New(MemCacheLRUSize)
+func newMemoryStorageGeneric(g *libkb.GlobalContext, sz int) *memoryStorageGeneric {
+	nlru, err := lru.New(sz)
 	if err != nil {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &MemoryStorage{
+	return &memoryStorageGeneric{
 		Contextified: libkb.NewContextified(g),
 		lru:          nlru,
 	}
 }
 
-func (s *MemoryStorage) Put(ctx context.Context, state *keybase1.TeamData) {
-	s.lru.Add(s.key(state.Chain.Id, state.Chain.Public), state)
+func (s *memoryStorageGeneric) put(ctx context.Context, state teamDataGeneric) {
+	s.lru.Add(s.key(state.ID(), state.IsPublic()), state)
 }
 
 // Can return nil.
-func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) *keybase1.TeamData {
+func (s *memoryStorageGeneric) get(ctx context.Context, teamID keybase1.TeamID, public bool) teamDataGeneric {
 	untyped, ok := s.lru.Get(s.key(teamID, public))
 	if !ok {
 		return nil
 	}
-	state, ok := untyped.(*keybase1.TeamData)
+	state, ok := untyped.(teamDataGeneric)
 	if !ok {
 		s.G().Log.Warning("Team MemoryStorage got bad type from lru: %T", untyped)
 		return nil
@@ -221,15 +292,15 @@ func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID, public 
 	return state
 }
 
-func (s *MemoryStorage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) {
+func (s *memoryStorageGeneric) delete(ctx context.Context, teamID keybase1.TeamID, public bool) {
 	s.lru.Remove(s.key(teamID, public))
 }
 
-func (s *MemoryStorage) Clear() {
+func (s *memoryStorageGeneric) clear() {
 	s.lru.Purge()
 }
 
-func (s *MemoryStorage) key(teamID keybase1.TeamID, public bool) (key string) {
+func (s *memoryStorageGeneric) key(teamID keybase1.TeamID, public bool) (key string) {
 	key = fmt.Sprintf("tid:%s", teamID)
 	if public {
 		key = fmt.Sprintf("tid:%s|pub", teamID)
@@ -239,7 +310,7 @@ func (s *MemoryStorage) key(teamID keybase1.TeamID, public bool) (key string) {
 
 // --------------------------------------------------
 
-func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
+func getLocalStorageSecretBoxKeyGeneric(ctx context.Context, g *libkb.GlobalContext, reason libkb.EncryptionReason) (fkey [32]byte, err error) {
 	// Get secret device key
 	encKey, err := engine.GetMySecretKey(ctx, g, getLameSecretUI, libkb.DeviceEncryptionKeyType,
 		"encrypt teams storage")
@@ -252,7 +323,7 @@ func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (f
 	}
 
 	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonTeamsLocalStorage)
+	skey, err := encKey.SecretSymmetricKey(reason)
 	if err != nil {
 		return fkey, err
 	}
@@ -260,6 +331,8 @@ func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (f
 	copy(fkey[:], skey[:])
 	return fkey, nil
 }
+
+// --------------------------------------------------
 
 type LameSecretUI struct{}
 
