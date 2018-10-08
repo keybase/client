@@ -414,7 +414,8 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 
 	if arg.NeedLatestKey && !state.LoadedLatest {
 		m.CDebugf("latest was never loaded, we need to load it")
-		shoppingList.needRefresh = true
+		shoppingList.needMerkleRefresh = true
+		shoppingList.needLatestKey = true
 		fresh = false
 	}
 
@@ -474,7 +475,8 @@ func stateHasDownPointers(m libkb.MetaContext, shoppingList *shoppingList, arg f
 
 // shoppingList is a list of what we need from the server.
 type shoppingList struct {
-	needRefresh bool
+	needMerkleRefresh bool // if we need to refresh the Merkle path for this team
+	needLatestKey     bool // true if we never loaded the latest mask, and need to do it
 
 	// links *and* PTKs newer than the given seqno. And RKMs for
 	// the given apps.
@@ -485,7 +487,7 @@ type shoppingList struct {
 	applications []keybase1.TeamApplication
 
 	// The generations we care about. We'll always get back the most recent RKMs
-	// if we send a needRefresh.
+	// if we send a needMerkleRefresh.
 	generations []keybase1.PerTeamKeyGeneration
 }
 
@@ -500,7 +502,14 @@ type groceries struct {
 // isEmpty returns true if our shopping list is empty. In this case, we have no need to go to the
 // server (store), and can just return with what's in our cache.
 func (s shoppingList) isEmpty() bool {
-	return !s.needRefresh && len(s.generations) == 0 && len(s.downPointers) == 0
+	return !s.needMerkleRefresh && len(s.generations) == 0 && len(s.downPointers) == 0
+}
+
+// onlyNeedsRefresh will be true if we only are going to the server for a refresh,
+// say when encrypting for the latest key version. If the merkle tree says we're up to date,
+// we can skip the team/get call.
+func (s shoppingList) onlyNeedsRefresh() bool {
+	return s.needMerkleRefresh && !s.needLatestKey && len(s.generations) == 0 && len(s.downPointers) == 0
 }
 
 // addDownPointer adds a down pointer to our shopping list. If we need to read naming information
@@ -519,19 +528,19 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 	s.linksSince = state.Chain.Last.Seqno
 	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
 		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if arg.ForceRefresh {
 		m.CDebugf("refresh forced via flag")
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
-	if !s.needRefresh && f.InForceRepollMode(m) {
+	if !s.needMerkleRefresh && f.InForceRepollMode(m) {
 		m.CDebugf("must repoll since in force mode")
-		s.needRefresh = true
+		s.needMerkleRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
 		m.CDebugf("state was missing needed encryption keys, or we need the freshest")
@@ -543,7 +552,7 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 
 // computeFreshLoad computes a shopping list from a fresh load of the state.
 func (s *shoppingList) computeFreshLoad(m libkb.MetaContext, arg fastLoadArg) {
-	s.needRefresh = true
+	s.needMerkleRefresh = true
 	s.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
 	s.downPointers = append([]keybase1.Seqno{}, arg.downPointersNeeded...)
 	s.generations = append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
@@ -597,14 +606,15 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 
 // loadFromServerWithRetries loads the leaf in the merkle tree and then fetches from team/get.json the links
 // needed for the team chain. There is a race possible, when a link is added between the two. In that
-// case, refetch in a loop until we match up. It will retry in the case of GreenLinkErrors.
-func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg fastLoadArg, shoppingList shoppingList) (groceries *groceries, err error) {
+// case, refetch in a loop until we match up. It will retry in the case of GreenLinkErrors. If
+// the given state was fresh already, then we'll return a nil groceries.
+func (f *FastTeamChainLoader) loadFromServerWithRetries(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (groceries *groceries, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#loadFromServerWithRetries(%s,%v)", arg.ID, arg.Public), func() error { return err })()
 
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
-		groceries, err = f.loadFromServerOnce(m, arg, shoppingList)
+		groceries, err = f.loadFromServerOnce(m, arg, state, shoppingList)
 		switch err.(type) {
 		case nil:
 			return groceries, nil
@@ -640,7 +650,7 @@ func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HT
 // we previously read. If we find a green link, we retry in our caller. Otherwise, we also do the
 // key decryption here, decrypting the most recent generation, and all prevs we haven't previously
 // decrypted.
-func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, shoppingList shoppingList) (ret *groceries, err error) {
+func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (ret *groceries, err error) {
 
 	defer m.CTrace("FastTeamChainLoader#loadFromServerOnce", func() error { return err })()
 
@@ -655,6 +665,15 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 
 	if err != nil {
 		return nil, err
+	}
+
+	if shoppingList.onlyNeedsRefresh() && state != nil && state.Chain.Last != nil && state.Chain.Last.Seqno == lastSeqno {
+		if !lastLinkID.Eq(state.Chain.Last.LinkID) {
+			m.CDebugf("link ID mismatch at tail seqno %d: wanted %s but got %s", state.Chain.Last.LinkID, lastLinkID)
+			return nil, NewFastLoadError("cached last link at seqno=%d did not match current merke tree", lastSeqno)
+		}
+		m.CDebugf("according to merkle tree, previously loaded chain at %d is current, and shopping list was empty", lastSeqno)
+		return nil, nil
 	}
 
 	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(shoppingList), arg.Public)
@@ -1102,14 +1121,20 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 
 // refresh the team's state, but loading with the server. It will download new stubbed chainlinks,
 // fill in unstubbed chainlinks, make sure that prev pointers match, make sure that the merkle
-// tree agrees with the chain tail, and then run the audit mechanism.
+// tree agrees with the chain tail, and then run the audit mechanism. If the state is already
+// fresh, we will return (nil, nil) and short-circuit.
 func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, shoppingList shoppingList) (res *keybase1.FastTeamData, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#refresh(%+v)", arg), func() error { return err })()
 
-	groceries, err := f.loadFromServerWithRetries(m, arg, shoppingList)
+	groceries, err := f.loadFromServerWithRetries(m, arg, state, shoppingList)
 	if err != nil {
 		return nil, err
+	}
+
+	if groceries == nil {
+		m.CDebugf("FastTeamChainLoader#refresh: our state was fresh according to the Merkle tree")
+		return nil, nil
 	}
 
 	// Either makes a new state, or deepcopies the existing state, so that in the case
@@ -1168,11 +1193,18 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 	m.CDebugf("FastTeamChainLoader#loadLocked: computed shopping list: %+v", shoppingList)
 
-	state, err = f.refresh(m, arg, state, shoppingList)
+	var newState *keybase1.FastTeamData
+	newState, err = f.refresh(m, arg, state, shoppingList)
 	if err != nil {
 		return nil, err
 	}
-	f.updateCache(m, state, lru)
+
+	// If newState == nil, that means that no updates were required, and the old state
+	// is fine.
+	if newState != nil {
+		state = newState
+		f.updateCache(m, state, lru)
+	}
 
 	return f.toResult(m, arg, state)
 }
