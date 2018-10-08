@@ -435,7 +435,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", teamEnv.Profile)
 	defer tracer.Finish()
-	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	defer tbs.LogIfNonZero(ctx, "API.request")
 
@@ -448,7 +447,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var ret *keybase1.TeamData
 	if !arg.forceFullReload {
 		// Load from cache
-		ret = l.storage.Get(mctx, arg.teamID, arg.public)
+		ret = l.storage.Get(libkb.NewMetaContext(ctx, l.G()), arg.teamID, arg.public)
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -775,7 +774,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Cache the validated result
 	tracer.Stage("put")
-	l.storage.Put(mctx, ret)
+	l.storage.Put(libkb.NewMetaContext(ctx, l.G()), ret)
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
