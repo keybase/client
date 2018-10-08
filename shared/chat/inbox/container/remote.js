@@ -18,10 +18,10 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize((state, ...vals) =>
+const valuesCached = memoize((badgeMap, unreadMap, ...vals) =>
   vals.map(v => ({
-    hasBadge: Constants.getHasBadge(state, v.conversationIDKey),
-    hasUnread: Constants.getHasUnread(state, v.conversationIDKey),
+    hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+    hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
     conversation: v,
   }))
 )
@@ -38,7 +38,11 @@ const metaMapToFirstValues = memoize(metaMap =>
 let _username: string
 export const conversationsToSend = (state: TypedState) => {
   _username = state.config.username
-  return valuesCached(state, ...metaMapToFirstValues(state.chat2.metaMap))
+  return valuesCached(
+    state.chat2.badgeMap,
+    state.chat2.unreadMap,
+    ...metaMapToFirstValues(state.chat2.metaMap)
+  )
 }
 
 export const serialize = ({
