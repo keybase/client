@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"sort"
@@ -63,25 +64,48 @@ func (o *Outbox) dbKey() libkb.DbKey {
 	}
 }
 
-func (o *Outbox) readDiskOutbox(ctx context.Context) (diskOutbox, Error) {
-	var obox diskOutbox
-	found, err := o.readDiskBox(ctx, o.dbKey(), &obox)
+func (o *Outbox) ingestMobileSharedOutboxLocked(ctx context.Context) {
+	dir := o.G().GetEnv().GetChatMobileSharedOutboxDir()
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return obox, NewInternalError(ctx, o.DebugLabeler, "failure to read chat outbox: %s",
-			err.Error())
+		o.Debug(ctx, "ingestMobileSharedOutbox: failed reading shared dir:err: %s", err)
+		return
+	}
+	for _, fi := range files {
+		dat, err := ioutil.ReadFile(fi.Name())
+		if err != nil {
+			o.Debug(ctx, "ingestMobileSharedOutbox: failed reading file: %s err: %s", fi.Name(), err)
+			continue
+		}
+		var rec chat1.OutboxRecord
+		if err = decode(dat, &rec); err != nil {
+			o.Debug(ctx, "ingestMobileSharedOutbox: failed to decode file: %s err: %s", fi.Name(), err)
+			continue
+		}
+		if _, err = o.pushMessageLocked(ctx, rec.ConvID, rec.Msg, &rec.OutboxID, rec.IdentifyBehavior); err != nil {
+			o.Debug(ctx, "ingestMobileSharedOutbox: failed to push rec: %s", err)
+			continue
+		}
+	}
+}
+
+func (o *Outbox) readDiskOutbox(ctx context.Context) (res diskOutbox, err Error) {
+	found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
+	if ierr != nil {
+		return res, NewInternalError(ctx, o.DebugLabeler, "failure to read chat outbox: %s", ierr)
 	}
 	if !found {
-		return obox, MissError{}
+		return res, MissError{}
 	}
-	if obox.Version != outboxVersion {
+	if res.Version != outboxVersion {
 		o.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
-			obox.Version, outboxVersion)
+			res.Version, outboxVersion)
 		if cerr := o.clear(ctx); cerr != nil {
-			return obox, cerr
+			return res, cerr
 		}
 		return diskOutbox{Version: outboxVersion}, nil
 	}
-	return obox, nil
+	return res, nil
 }
 
 func (o *Outbox) clear(ctx context.Context) Error {
@@ -105,12 +129,9 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 	o.clock = cl
 }
 
-func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
+func (o *Outbox) pushMessageLocked(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
-	locks.Outbox.Lock()
-	defer locks.Outbox.Unlock()
-
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
 	if err != nil {
@@ -168,11 +189,22 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	return rec, nil
 }
 
+func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, Error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+	return o.pushMessageLocked(ctx, convID, msg, suppliedOutboxID, identifyBehavior)
+}
+
 // PullAllConversations grabs all outbox entries for the current outbox, and optionally deletes them
 // from storage
 func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, remove bool) ([]chat1.OutboxRecord, error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
+
+	// bring in any records from the mobile shared outbox
+	o.ingestMobileSharedOutbox(ctx)
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
