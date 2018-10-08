@@ -11,6 +11,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'devices:'
+export const badgeAppForDevices = 'devices:badgeAppForDevices'
 export const endangeredTLFsLoaded = 'devices:endangeredTLFsLoaded'
 export const load = 'devices:load'
 export const loaded = 'devices:loaded'
@@ -22,6 +23,7 @@ export const showPaperKeyPage = 'devices:showPaperKeyPage'
 export const showRevokePage = 'devices:showRevokePage'
 
 // Payload Types
+type _BadgeAppForDevicesPayload = $ReadOnly<{|ids: Array<string>|}>
 type _EndangeredTLFsLoadedPayload = $ReadOnly<{|
   deviceID: Types.DeviceID,
   tlfs: Array<string>,
@@ -40,6 +42,7 @@ type _ShowPaperKeyPagePayload = void
 type _ShowRevokePagePayload = $ReadOnly<{|deviceID: Types.DeviceID|}>
 
 // Action Creators
+export const createBadgeAppForDevices = (payload: _BadgeAppForDevicesPayload) => ({error: false, payload, type: badgeAppForDevices})
 export const createEndangeredTLFsLoaded = (payload: _EndangeredTLFsLoadedPayload) => ({error: false, payload, type: endangeredTLFsLoaded})
 export const createLoad = (payload: _LoadPayload) => ({error: false, payload, type: load})
 export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
@@ -51,6 +54,7 @@ export const createShowPaperKeyPage = (payload: _ShowPaperKeyPagePayload) => ({e
 export const createShowRevokePage = (payload: _ShowRevokePagePayload) => ({error: false, payload, type: showRevokePage})
 
 // Action Payloads
+export type BadgeAppForDevicesPayload = $Call<typeof createBadgeAppForDevices, _BadgeAppForDevicesPayload>
 export type EndangeredTLFsLoadedPayload = $Call<typeof createEndangeredTLFsLoaded, _EndangeredTLFsLoadedPayload>
 export type LoadPayload = $Call<typeof createLoad, _LoadPayload>
 export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
@@ -64,6 +68,7 @@ export type ShowRevokePagePayload = $Call<typeof createShowRevokePage, _ShowRevo
 // All Actions
 // prettier-ignore
 export type Actions =
+  | BadgeAppForDevicesPayload
   | EndangeredTLFsLoadedPayload
   | LoadPayload
   | LoadedPayload

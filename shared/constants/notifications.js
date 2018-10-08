@@ -11,6 +11,8 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     homeTodoItems,
     conversations,
     newTlfs,
+    newDevices,
+    revokedDevices,
     rekeysNeeded,
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
@@ -25,6 +27,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
   }
 
   const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
+  const deviceChanges = I.Set((newDevices || []).concat(revokedDevices || [])).size
   const totalMessages = (conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
     0
@@ -43,6 +46,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     [Tabs.teamsTab, newTeams],
     [Tabs.peopleTab, homeTodoItems],
     [Tabs.walletsTab, totalPayments],
+    [Tabs.devicesTab, deviceChanges],
   ])
 
   return {

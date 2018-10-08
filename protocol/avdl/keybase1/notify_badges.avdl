@@ -25,6 +25,8 @@ protocol NotifyBadges {
     int inboxVers;
     int homeTodoItems;
 
+    array<DeviceID> newDevices;
+    array<DeviceID> revokedDevices;
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
     array<string> newTeamNames;

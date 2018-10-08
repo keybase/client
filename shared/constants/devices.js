@@ -42,6 +42,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   justRevokedSelf: '',
   newPaperkey: new HiddenString(''),
   selectedDeviceID: null,
+  isNew: I.Set(),
 })
 
 const emptyDevice = makeDevice()
