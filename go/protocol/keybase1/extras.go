@@ -2637,3 +2637,11 @@ func (d TeamData) ID() TeamID {
 func (d TeamData) IsPublic() bool {
 	return d.Chain.Public
 }
+
+func (d FastTeamData) ID() TeamID {
+	return d.Chain.ID
+}
+
+func (d FastTeamData) IsPublic() bool {
+	return d.Chain.Public
+}

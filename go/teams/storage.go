@@ -21,7 +21,7 @@ type Storage struct {
 
 // Increment to invalidate the disk cache.
 const diskStorageVersion = 10
-const MemCacheLRUSize = 200
+const memCacheLRUSize = 200
 
 type DiskStorageItem struct {
 	Version int                `codec:"V"`
@@ -54,7 +54,7 @@ func NewStorage(g *libkb.GlobalContext) *Storage {
 	// That's a copy-paste bug, but we get away with it since we have a `tid:` prefix that
 	// disambiguates these entries from true Chat entries. We're not going to fix it now
 	// since it would kill the team cache, but sometime in the future we should fix it.
-	s := newStorageGeneric(g, MemCacheLRUSize, diskStorageVersion, libkb.DBChatInbox, libkb.EncryptionReasonTeamsLocalStorage, func() diskItemGeneric { return &DiskStorageItem{} })
+	s := newStorageGeneric(g, memCacheLRUSize, diskStorageVersion, libkb.DBChatInbox, libkb.EncryptionReasonTeamsLocalStorage, "slow", func() diskItemGeneric { return &DiskStorageItem{} })
 	return &Storage{s}
 }
 
@@ -75,19 +75,78 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 	return ret
 }
 
+// Store TeamData's on memory and disk. Threadsafe.
+type FTLStorage struct {
+	*storageGeneric
+}
+
+// Increment to invalidate the disk cache.
+const ftlDiskStorageVersion = 10
+const ftlMemCacheLRUSize = 200
+
+type ftlDiskStorageItem struct {
+	Version int                    `codec:"V"`
+	State   *keybase1.FastTeamData `codec:"S"`
+}
+
+var _ teamDataGeneric = (*keybase1.FastTeamData)(nil)
+var _ diskItemGeneric = (*ftlDiskStorageItem)(nil)
+
+func (d *ftlDiskStorageItem) version() int {
+	return d.Version
+}
+func (d *ftlDiskStorageItem) value() teamDataGeneric {
+	return d.State
+}
+func (d *ftlDiskStorageItem) setVersion(i int) {
+	d.Version = i
+}
+func (d *ftlDiskStorageItem) setValue(v teamDataGeneric) error {
+	typed, ok := v.(*keybase1.FastTeamData)
+	if !ok {
+		return fmt.Errorf("teams.FTLStorage#Put: Bad object for setValue; got type %T", v)
+	}
+	d.State = typed
+	return nil
+}
+
+func NewFTLStorage(g *libkb.GlobalContext) *FTLStorage {
+	s := newStorageGeneric(g, ftlMemCacheLRUSize, ftlDiskStorageVersion, libkb.DBFTLStorage, libkb.EncryptionReasonTeamsLocalStorage, "ftl", func() diskItemGeneric { return &ftlDiskStorageItem{} })
+	return &FTLStorage{s}
+}
+
+func (s *FTLStorage) Put(mctx libkb.MetaContext, state *keybase1.FastTeamData) {
+	s.storageGeneric.put(mctx, state)
+}
+
+// Can return nil.
+func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool) *keybase1.FastTeamData {
+	vp := s.storageGeneric.get(mctx, teamID, public)
+	if vp == nil {
+		return nil
+	}
+	ret, ok := vp.(*keybase1.FastTeamData)
+	if !ok {
+		mctx.CDebugf("teams.FTLStorage#Get cast error: %T is wrong type", vp)
+	}
+	return ret
+}
+
 //---------------------------
 
 // Store TeamData's of FastTeamData's on memory and disk. Threadsafe.
 type storageGeneric struct {
 	sync.Mutex
-	mem  *memoryStorageGeneric
-	disk *diskStorageGeneric
+	mem         *memoryStorageGeneric
+	disk        *diskStorageGeneric
+	description string
 }
 
-func newStorageGeneric(g *libkb.GlobalContext, lruSize int, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, gdi func() diskItemGeneric) *storageGeneric {
+func newStorageGeneric(g *libkb.GlobalContext, lruSize int, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, description string, gdi func() diskItemGeneric) *storageGeneric {
 	return &storageGeneric{
-		mem:  newMemoryStorageGeneric(lruSize),
-		disk: newDiskStorageGeneric(g, version, dbObjTyp, reason, gdi),
+		mem:         newMemoryStorageGeneric(lruSize),
+		disk:        newDiskStorageGeneric(g, version, dbObjTyp, reason, gdi),
+		description: description,
 	}
 }
 
@@ -99,7 +158,7 @@ func (s *storageGeneric) put(mctx libkb.MetaContext, state teamDataGeneric) {
 
 	err := s.disk.put(mctx, state)
 	if err != nil {
-		mctx.CWarningf("teams.Storage.Put err: %v", err)
+		mctx.CWarningf("teams.Storage#Put err: %v", err)
 	}
 }
 
@@ -110,6 +169,7 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 
 	item := s.mem.get(mctx, teamID, public)
 	if item != nil {
+		mctx.VLogf(libkb.VLog0, "teams.Storage#Get(%v) hit mem (%s)", teamID, s.description)
 		// Mem hit
 		return item
 	}
@@ -117,13 +177,14 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 	res, found, err := s.disk.get(mctx, teamID, public)
 	if found && err == nil {
 		// Disk hit
+		mctx.VLogf(libkb.VLog0, "teams.Storage#Get(%v) hit disk (%s)", teamID, s.description)
 		s.mem.put(mctx, res)
 		return res
 	}
 	if err != nil {
 		mctx.CDebugf("teams.Storage#Get disk err: %v", err)
 	}
-
+	mctx.VLogf(libkb.VLog0, "teams.Storage#Get(%v) missed (%s)", teamID, s.description)
 	return nil
 }
 

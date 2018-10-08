@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -33,12 +32,9 @@ type FastTeamChainLoader struct {
 	// single-flight lock on TeamID
 	locktab libkb.LockTable
 
-	// Hold onto FastTeamLoad by-products as long as we have room
-	// We don't store them to disk (as we do slow Load objects).
-	// LRU of TeamID -> keybase1.FastTeamData. The LRU is protected
-	// by a mutex, because it's swapped out on logout.
-	lruMutex sync.RWMutex
-	lru      *lru.Cache
+	// Hold onto FastTeamLoad by-products as long as we have room, and store
+	// then persistently to disk.
+	storage *FTLStorage
 
 	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
@@ -59,8 +55,8 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
+		storage:         NewFTLStorage(g),
 	}
-	ret.newLRU()
 	return ret
 }
 
@@ -372,17 +368,12 @@ func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, sta
 }
 
 // findState in cache finds the team ID's state in an in-memory cache.
-func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID, lru *lru.Cache) (state *keybase1.FastTeamData) {
-	tmp, found := lru.Get(id)
-	if !found {
+func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID) *keybase1.FastTeamData {
+	tmp := f.storage.Get(m, id, id.IsPublic())
+	if tmp == nil {
 		return nil
 	}
-	state, ok := tmp.(*keybase1.FastTeamData)
-	if !ok {
-		m.CErrorf("Bad type assertion in FastTeamChainLoader#checkCachine")
-		return nil
-	}
-	return state
+	return tmp
 }
 
 // stateHasKeySeed returns true/false if the state has the seed material for the given
@@ -1145,16 +1136,15 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 }
 
 // updateCache puts the new version of the state into the cache on the team's ID.
-func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.FastTeamData, lru *lru.Cache) {
-	lru.Add(state.Chain.ID, state)
+func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.FastTeamData) {
+	f.storage.Put(m, state)
 }
 
 // loadLocked is the inner loop for loading team. Should be called when holding the lock
 // this teamID.
 func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
-	lru := f.getLRU()
 
-	state := f.findStateInCache(m, arg.ID, lru)
+	state := f.findStateInCache(m, arg.ID)
 
 	var shoppingList shoppingList
 	if state != nil {
@@ -1172,40 +1162,14 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 	if err != nil {
 		return nil, err
 	}
-	f.updateCache(m, state, lru)
+	f.updateCache(m, state)
 
 	return f.toResult(m, arg, state)
 }
 
-// newLRU installs a new LRU for the loader and purges the old one. Does a swap to avoid race conditions
-// around logging out.
-func (f *FastTeamChainLoader) newLRU() {
-
-	f.lruMutex.Lock()
-	defer f.lruMutex.Unlock()
-
-	if f.lru != nil {
-		f.lru.Purge()
-	}
-
-	// TODO - make this configurable
-	lru, err := lru.New(10000)
-	if err != nil {
-		panic(err)
-	}
-	f.lru = lru
-}
-
-// gerLRU gets the LRU currently active for this loader under protection of the lru Mutex.
-func (f *FastTeamChainLoader) getLRU() *lru.Cache {
-	f.lruMutex.RLock()
-	defer f.lruMutex.RUnlock()
-	return f.lru
-}
-
 // OnLogout is called when the user logs out, which pruges the LRU.
 func (f *FastTeamChainLoader) OnLogout() {
-	f.newLRU()
+	f.storage.clearMem()
 	f.featureFlagGate.Clear()
 }
 
@@ -1218,11 +1182,10 @@ func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.T
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	lru := f.getLRU()
-	if state := f.findStateInCache(m, id, lru); state != nil {
+	if state := f.findStateInCache(m, id); state != nil {
 		m.CDebugf("Found state in cache; updating")
 		state.LatestSeqnoHint = seqno
-		f.updateCache(m, state, lru)
+		f.updateCache(m, state)
 	}
 
 	return nil
