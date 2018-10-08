@@ -789,7 +789,7 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 }
 
 func MobileKeychainPermissionDeniedCheck(g *GlobalContext, err error) {
-	if !isIOS || g.GetAppType() != MobileAppType || g.AppState.State() != keybase1.AppState_FOREGROUND {
+	if !isIOS || g.GetAppType() != MobileAppType || g.AppState.State() == keybase1.AppState_FOREGROUND {
 		return
 	}
 	if err != keychain.ErrorInteractionNotAllowed {
