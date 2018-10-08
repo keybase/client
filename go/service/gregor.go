@@ -1413,9 +1413,10 @@ func (g *gregorHandler) pingLoop() {
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
 
 	for {
+		deadline := g.G().Clock().Now().Add(duration)
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.G().Clock().After(duration):
+		case <-g.G().Clock().AfterTime(deadline):
 			var err error
 
 			doneCh := make(chan error)
