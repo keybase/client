@@ -14,4 +14,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendForm)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SendForm)

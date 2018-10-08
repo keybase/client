@@ -56,10 +56,10 @@ class AvatarUpload extends React.Component<Props> {
     if (!this.props.image) return
 
     let height = AVATAR_SIZE
-    let width = AVATAR_SIZE * this.props.image.width / this.props.image.height
+    let width = (AVATAR_SIZE * this.props.image.width) / this.props.image.height
 
     if (width < AVATAR_SIZE) {
-      height = AVATAR_SIZE * this.props.image.height / this.props.image.width
+      height = (AVATAR_SIZE * this.props.image.height) / this.props.image.width
       width = AVATAR_SIZE
     }
 

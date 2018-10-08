@@ -45,7 +45,9 @@ const FloatingPicker = (props: Props) => {
           prompt={props.promptString}
           style={styles.picker}
         >
-          {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
+          {props.items.map(item => (
+            <Picker.Item key={item.label} {...item} />
+          ))}
         </Picker>
       </Box2>
     </Overlay>

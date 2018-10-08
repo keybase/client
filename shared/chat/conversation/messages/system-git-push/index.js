@@ -39,7 +39,8 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >
           {repo}
-        </Text>.
+        </Text>
+        .
       </Text>
     </Box>
   )
@@ -56,7 +57,8 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
           type="BodySmallSemibold"
           style={repoID ? {color: globalColors.black_60} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
-        >{` ${repo}/${branchName}`}</Text>:
+        >{` ${repo}/${branchName}`}</Text>
+        :
       </Text>
       <Box style={globalStyles.flexBoxColumn}>
         {(commitRef.commits || []).map((commit, i) => (

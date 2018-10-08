@@ -182,7 +182,7 @@ const menuButtons = (props: MenuButtonsProps) => (
               />
               <Box ref={props.setAttachmentRef}>
                 {popupableMessageTypes.includes(props.message.type) && (
-                  <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
+                  <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
                 )}
               </Box>
             </Box>

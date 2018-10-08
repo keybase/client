@@ -139,7 +139,9 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
       } else if (cr.name === 'redirector') {
         hasFUSEError = true
         errors.push(
-          `We were unable to load the part of Keybase that lets you access your files in ${Styles.fileUIName}. You should be able to do so if you wait a few minutes and restart Keybase.`
+          `We were unable to load the part of Keybase that lets you access your files in ${
+            Styles.fileUIName
+          }. You should be able to do so if you wait a few minutes and restart Keybase.`
         )
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)

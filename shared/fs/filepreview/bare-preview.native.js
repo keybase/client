@@ -116,4 +116,8 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BarePreview)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BarePreview)

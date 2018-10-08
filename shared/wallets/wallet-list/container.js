@@ -30,4 +30,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   title: 'Wallets',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(WalletList)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(WalletList)

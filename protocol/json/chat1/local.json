@@ -2618,12 +2618,12 @@
     },
     {
       "type": "record",
-      "name": "FullInboxSearchRes",
+      "name": "InboxSearchRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "ChatConvSearchHit"
+            "items": "ChatInboxSearchHit"
           },
           "name": "hits"
         },
@@ -2640,6 +2640,24 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IndexSearchConvStats",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numMessages"
+        },
+        {
+          "type": "int",
+          "name": "indexSize"
+        },
+        {
+          "type": "gregor1.DurationMsec",
+          "name": "durationMsec"
         }
       ]
     },
@@ -3865,7 +3883,7 @@
       ],
       "response": "GetSearchRegexpRes"
     },
-    "fullInboxSearch": {
+    "inboxSearch": {
       "request": [
         {
           "name": "sessionID",
@@ -3884,7 +3902,27 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "FullInboxSearchRes"
+      "response": "InboxSearchRes"
+    },
+    "indexChatSearch": {
+      "request": [
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "ConversationID"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "IndexSearchConvStats",
+        "keys": "string"
+      }
     },
     "getStaticConfig": {
       "request": [],

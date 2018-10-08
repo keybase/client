@@ -14,6 +14,10 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
 })
 
 export default compose(
-  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('ConnectedOpenHOC')
 )

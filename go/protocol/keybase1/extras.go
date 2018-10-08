@@ -2625,3 +2625,7 @@ func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
 	}
 	return fmt.Errorf("invalid selector (not recognized)")
 }
+
+func (p PhoneNumber) String() string {
+	return string(p)
+}

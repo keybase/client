@@ -48,7 +48,9 @@ const Banner = ({
     bannerContent = (
       <Box style={globalStyles.flexBoxColumn}>
         <Text type="Header" style={textStyle}>
-          {onDismiss && 'Yay! '}Keybase is {onDismiss && 'now '}enabled in your {fileUIName}.
+          {onDismiss && 'Yay! '}
+          Keybase is {onDismiss && 'now '}
+          enabled in your {fileUIName}.
         </Text>
         {openInSystemFileManager && (
           <Box style={{justifyContent: 'flex-start'}}>

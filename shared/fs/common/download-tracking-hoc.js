@@ -61,7 +61,11 @@ const DownloadTrackingHoc = (ComposedComponent: React.ComponentType<any>) =>
   }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedDownloadTrackingHoc'),
   DownloadTrackingHoc
 )

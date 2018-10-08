@@ -79,5 +79,9 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default hot(module)(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(Main)
 )

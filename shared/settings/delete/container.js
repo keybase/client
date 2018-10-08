@@ -8,4 +8,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onDelete: () => dispatch(navigateAppend(['deleteConfirm'])),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Delete)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Delete)

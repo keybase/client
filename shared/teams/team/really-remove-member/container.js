@@ -26,6 +26,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  ReallyLeaveTeam
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ReallyLeaveTeam)

@@ -73,7 +73,9 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
               />
             )}
           </Box>
-          {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
+          {this.props.personals.map(p => (
+            <Row key={p} {...this._rowPropsToProps(p)} />
+          ))}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team</Text>
             {this.props.loading && (
@@ -82,7 +84,9 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
               />
             )}
           </Box>
-          {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
+          {this.props.teams.map(p => (
+            <Row key={p} {...this._rowPropsToProps(p)} />
+          ))}
         </ScrollView>
         <FloatingMenu
           attachTo={this.props.getAttachmentRef}

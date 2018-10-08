@@ -29,7 +29,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
-      return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
+      return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any

@@ -231,7 +231,9 @@ class ProofsRender extends React.Component<Props> {
           {loading ? (
             <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
               <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
-                {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
+                {[147, 77, 117].map((w, idx) => (
+                  <LoadingProofRow key={idx} textBlockWidth={w} />
+                ))}
               </IgnorePropsBox>
             </CSSTransition>
           ) : (

@@ -18,23 +18,18 @@ import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
 
-function showShareActionSheet(options: {
-  url?: ?any,
-  message?: ?any,
-}): Promise<{completed: boolean, method: string}> {
+export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
+  throw new Error('Show Share Action - unsupported on this platform')
+}
+export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 
-function downloadAndShowShareActionSheet(fileURL: string) {
-  throw new Error('Download and show share action - unsupported on this platform')
-}
-
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<void> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
@@ -44,7 +39,7 @@ const showMainWindow = () => {
   showDockIcon()
 }
 
-function displayNewMessageNotification(
+export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
@@ -54,11 +49,11 @@ function displayNewMessageNotification(
   throw new Error('Display new message notification not available on this platform')
 }
 
-function clearAllNotifications() {
+export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
   cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
@@ -271,7 +266,7 @@ const startOutOfDateCheckLoop = () =>
 
 const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
   yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
@@ -290,15 +285,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 
   // Start this immediately
   yield Saga.fork(loadStartupDetails)
-}
-
-export {
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  showShareActionSheet,
-  downloadAndShowShareActionSheet,
-  displayNewMessageNotification,
-  clearAllNotifications,
-  getContentTypeFromURL,
-  platformConfigSaga,
 }

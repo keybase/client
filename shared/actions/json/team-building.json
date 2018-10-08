@@ -1,0 +1,14 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/team-building'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "finishedTeamBuilding": {},
+    "cancelTeamBuilding": {},
+    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
+    "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
+    "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
+    "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "Types.ServiceIdWithContact"},
+  }
+}
