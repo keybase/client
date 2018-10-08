@@ -338,8 +338,9 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
-		ID:     teamID,
-		Public: teamID.IsPublic(),
+		ID:           teamID,
+		Public:       teamID.IsPublic(),
+		ForceRefresh: true,
 	})
 	if err != nil {
 		return nil, err
@@ -399,8 +400,7 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
-	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM &&
-		m.G().FeatureFlags.Enabled(m, libkb.FeatureFTL) {
+	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM && m.G().FeatureFlags.Enabled(m, libkb.FeatureFTL) {
 		res, err = decryptionKeyViaFTL(m, teamID, keyGeneration)
 		if shouldFallbackToSlowLoadAfterFTLError(m, err) {
 			// See comment above in EncryptionKey()
@@ -653,6 +653,8 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 	if err != nil {
 		return nil, err
 	}
+
+	t.loader.loadTeam(ctx, tlfID,
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      public,
