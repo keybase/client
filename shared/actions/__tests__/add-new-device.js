@@ -18,17 +18,28 @@ const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
 const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
-  const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
+  const {dispatch, getState, getRoutePath, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
   const mockIncomingCall = callMap[method]
   if (!mockIncomingCall) {
     throw new Error('No call')
   }
   const response = {error: jest.fn(), result: jest.fn()}
-  const put: any = mockIncomingCall((payload: any), (response: any), getState())
-  if (put && put.PUT && put.PUT.action) {
-    dispatch(put.PUT.action)
+  const effect: any = mockIncomingCall((payload: any), (response: any))
+  if (effect) {
+    // Throws in the generator only, so we have to stash it
+    let thrown
+    sagaMiddleware.run(function*(): Generator<any, any, any> {
+      try {
+        yield effect
+      } catch (e) {
+        thrown = e
+      }
+    })
+    if (thrown) {
+      throw thrown
+    }
   }
   return {
     dispatch,
@@ -57,6 +68,7 @@ const startReduxSaga = (initialStore = undefined) => {
     dispatch,
     getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab]),
     getState,
+    sagaMiddleware,
   }
 }
 

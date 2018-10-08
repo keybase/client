@@ -9,16 +9,16 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func NewStubbedError(l *chainLinkUnpacked) StubbedError {
+func NewStubbedError(l *ChainLinkUnpacked) StubbedError {
 	return StubbedError{l: l, note: nil}
 }
 
-func NewStubbedErrorWithNote(l *chainLinkUnpacked, note string) StubbedError {
+func NewStubbedErrorWithNote(l *ChainLinkUnpacked, note string) StubbedError {
 	return StubbedError{l: l, note: &note}
 }
 
 type StubbedError struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note *string
 }
 
@@ -31,7 +31,7 @@ func (e StubbedError) Error() string {
 }
 
 type InvalidLink struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note string
 }
 
@@ -39,13 +39,13 @@ func (e InvalidLink) Error() string {
 	return fmt.Sprintf("invalid link (seqno %d): %s", e.l.Seqno(), e.note)
 }
 
-func NewInvalidLink(l *chainLinkUnpacked, format string, args ...interface{}) InvalidLink {
+func NewInvalidLink(l *ChainLinkUnpacked, format string, args ...interface{}) InvalidLink {
 	return InvalidLink{l, fmt.Sprintf(format, args...)}
 }
 
 type AppendLinkError struct {
 	prevSeqno keybase1.Seqno
-	l         *chainLinkUnpacked
+	l         *ChainLinkUnpacked
 	inner     error
 }
 
@@ -53,12 +53,12 @@ func (e AppendLinkError) Error() string {
 	return fmt.Sprintf("appending %v->%v: %v", e.prevSeqno, e.l.Seqno(), e.inner)
 }
 
-func NewAppendLinkError(l *chainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
+func NewAppendLinkError(l *ChainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
 	return AppendLinkError{prevSeqno, l, inner}
 }
 
 type InflateError struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note *string
 }
 
@@ -70,11 +70,11 @@ func (e InflateError) Error() string {
 		int(e.l.outerLink.Seqno), *e.note)
 }
 
-func NewInflateError(l *chainLinkUnpacked) InflateError {
+func NewInflateError(l *ChainLinkUnpacked) InflateError {
 	return InflateError{l: l, note: nil}
 }
 
-func NewInflateErrorWithNote(l *chainLinkUnpacked, note string) InflateError {
+func NewInflateErrorWithNote(l *ChainLinkUnpacked, note string) InflateError {
 	return InflateError{l: l, note: &note}
 }
 
@@ -273,6 +273,14 @@ func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplicati
 	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
 }
 
+type AdminPermissionRequiredError struct{}
+
+func NewAdminPermissionRequiredError() error { return &AdminPermissionRequiredError{} }
+
+func (e AdminPermissionRequiredError) Error() string {
+	return "Only admins can perform this operation."
+}
+
 type ImplicitAdminCannotLeaveError struct{}
 
 func NewImplicitAdminCannotLeaveError() error { return &ImplicitAdminCannotLeaveError{} }
@@ -420,4 +428,16 @@ func NewBadPublicError(id keybase1.TeamID, isPublic bool) error {
 
 func (e BadPublicError) Error() string {
 	return fmt.Sprintf("Public bit for team %s is wrong (%v)", e.id, e.isPublic)
+}
+
+type AuditError struct {
+	Msg string
+}
+
+func NewAuditError(format string, args ...interface{}) error {
+	return AuditError{Msg: fmt.Sprintf(format, args...)}
+}
+
+func (e AuditError) Error() string {
+	return fmt.Sprintf("Audit error: %s", e.Msg)
 }

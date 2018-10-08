@@ -6,21 +6,23 @@ import ImportPgp from './prove-pgp-import'
 import PgpInfo from './add'
 import ProvePgpChoice, {type Options as ProvePgpChoiceOptions} from './prove-pgp-choice'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
-import {connect} from 'react-redux'
+import {connect} from '../../util/container'
 
 const ConnectedChoice = connect(
   () => ({}),
   (dispatch: Dispatch) => ({
     onCancel: () => dispatch(navigateUp()),
     onOptionClick: (type: ProvePgpChoiceOptions) => dispatch(navigateAppend([type])),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(ProvePgpChoice)
 
 const ConnectedImport = connect(
   () => ({}),
   (dispatch: Dispatch) => ({
     onCancel: () => dispatch(navigateUp()),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(ImportPgp)
 
 const ConnectedPgpInfo = connect(
@@ -34,14 +36,16 @@ const ConnectedPgpInfo = connect(
     onChangeEmail3: email3 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email3}})),
     onChangeFullName: fullName => dispatch(ProfileGen.createUpdatePgpInfo({info: {fullName}})),
     onNext: () => dispatch(ProfileGen.createGeneratePgp()),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(PgpInfo)
 
 const ConnectedGeneratePgp = connect(
   () => ({}),
   (dispatch: Dispatch) => ({
     onCancel: () => dispatch(ProfileGen.createCancelPgpGen()),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(GeneratePgp)
 
 const ConnectedFinished = connect(
@@ -50,7 +54,8 @@ const ConnectedFinished = connect(
   }),
   (dispatch: Dispatch) => ({
     onDone: shouldStoreKeyOnServer => dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer})),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(Finished)
 
 export {ConnectedChoice, ConnectedImport, ConnectedPgpInfo, ConnectedGeneratePgp, ConnectedFinished}

@@ -120,7 +120,7 @@ type RPCDecodeError struct {
 }
 
 func (r RPCDecodeError) Error() string {
-	return fmt.Sprintf("RPC error. type: %d, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
+	return fmt.Sprintf("RPC error. type: %s, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
 }
 
 func newRPCDecodeError(t MethodType, n string, l int, e error) RPCDecodeError {

@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {
   collapseStyles,
-  glamorous,
   globalStyles,
   globalColors,
   globalMargins,
@@ -25,22 +24,30 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-const HoverBox = isMobile
-  ? Box
-  : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blue4},
-    })
+type State = {
+  isHovered: boolean,
+}
 
-class BigTeamChannel extends PureComponent<Props> {
+class BigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Box style={styles.rowContainer}>
-          <HoverBox
+          <Box
+            className="hover_background_color_blueGrey2"
             style={collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
             ])}
+            onMouseLeave={this._onMouseLeave}
+            onMouseOver={this._onMouseOver}
           >
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
@@ -58,25 +65,29 @@ class BigTeamChannel extends PureComponent<Props> {
             >
               #{this.props.channelname}
             </Text>
-            {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
+            {this.props.isMuted && (
+              <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
+            )}
             {this.props.hasBadge && <UnreadIcon />}
-          </HoverBox>
+          </Box>
         </Box>
       </ClickableBox>
     )
   }
 }
 
-const MutedIcon = ({isSelected}) => (
+const MutedIcon = ({isHovered, isSelected}) => (
   <Icon
     type={
-      isSelected
-        ? isMobile
+      isMobile
+        ? isSelected
           ? 'icon-shh-active-24'
-          : 'icon-shh-active-16'
-        : isMobile
-          ? 'icon-shh-24'
-          : 'icon-shh-16'
+          : 'icon-shh-24'
+        : isSelected
+          ? 'icon-shh-active-16'
+          : isHovered
+            ? 'icon-shh-hover-16'
+            : 'icon-shh-16'
     }
     style={mutedStyle}
   />

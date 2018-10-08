@@ -1,26 +1,25 @@
 // @flow
-import {jsonDebugFileName} from './constants/platform.desktop'
+import {jsonDebugFileName, serverConfigFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+let PERF = false
 
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: null, // Override feature flags
+  featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  maskStrings: false, // Replace all hiddenstrings w/ fake values
-  printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
+  printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
   reduxSagaLogger: false, // Print saga debug info
@@ -47,14 +46,35 @@ if (__DEV__) {
   config.userTimings = true
 }
 
-// Load overrides from a local json file
 if (!__STORYBOOK__) {
   const fs = require('fs')
+  // Load overrides from server config
+  if (fs.existsSync(serverConfigFileName)) {
+    try {
+      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
+      if (serverConfig.lastLoggedInUser) {
+        const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
+        if (userConfig.walletsEnabled) {
+          config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
+        }
+        if (userConfig.printRPCStats) {
+          config.printRPCStats = true
+        }
+      }
+    } catch (e) {
+      console.warn('Invalid server config')
+    }
+  }
+
+  // Load overrides from a local json file
   if (fs.existsSync(jsonDebugFileName)) {
     try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
+      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
+      if (pathJson.hasOwnProperty('PERF')) {
+        PERF = pathJson.PERF
+      }
     } catch (e) {
       console.warn('Invalid local debug file')
     }
@@ -89,7 +109,7 @@ if (PERF) {
   config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
-  config.userTimings = true
+  config.userTimings = false
 }
 
 export const {
@@ -101,13 +121,12 @@ export const {
   forceImmediateLogging,
   ignoreDisconnectOverlay,
   isDevApplePushToken,
-  printBridgeB64,
   immediateStateLogging,
   isTesting,
-  maskStrings,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
+  printRPCBytes,
   printRPCWaitingSession,
   printRPCStats,
   reduxSagaLogger,
@@ -117,5 +136,3 @@ export const {
   skipSecondaryDevtools,
   userTimings,
 } = config
-
-export function setup(store: any) {}

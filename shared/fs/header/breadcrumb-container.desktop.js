@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import Breadcrumb from './breadcrumb.desktop'
@@ -39,7 +39,9 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
 
   return items.length > 3
     ? {
-        dropdownItems: items.slice(0, items.length - 2),
+        // Note that .reverse() is in-place, so call it here instead of in
+        // component.
+        dropdownItems: items.slice(0, items.length - 2).reverse(),
         shownItems: items.slice(items.length - 2),
       }
     : {
@@ -49,6 +51,10 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedBreadcrumb')
 )(Breadcrumb)

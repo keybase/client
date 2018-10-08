@@ -17,6 +17,7 @@ export type Props = {
   onComplete: () => void,
   isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
+  copyToClipboard: string => void,
 }
 
 export default class Render extends React.Component<Props> {}

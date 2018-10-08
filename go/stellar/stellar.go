@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
-	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -31,9 +30,13 @@ const AccountNameMaxRunes = 24
 // Safe (but wasteful) to call even if the user has a bundle already.
 func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
-	clearBundle, err := bundle.NewInitialBundle()
+	loggedInUsername := g.ActiveDevice.Username(libkb.NewMetaContext(ctx, g))
+	if !loggedInUsername.IsValid() {
+		return false, fmt.Errorf("could not get logged-in username")
+	}
+	clearBundle, err := bundle.NewInitialBundle(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
-		return created, err
+		return false, err
 	}
 	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
@@ -54,14 +57,6 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return false, err
 	default:
 		return false, err
-	}
-	primary, err := clearBundle.PrimaryAccount()
-	if err != nil {
-		g.Log.CErrorf(ctx, "We've just posted a bundle that's missing PrimaryAccount: %s", err)
-		return false, err
-	}
-	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD"); err != nil {
-		g.Log.CWarningf(ctx, "Error during setting display currency for %q: %s", primary.AccountID, err)
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, nil
@@ -118,7 +113,6 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		return
 	}
 	_, _, err = CreateWalletGated(ctx, g)
-	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -239,6 +233,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	res = stellarcommon.Recipient{
 		Input: to,
 	}
+	if len(to) == 0 {
+		return res, fmt.Errorf("empty recipient parameter")
+	}
 
 	storeAddress := func(address string) error {
 		_, err := libkb.ParseStellarAccountID(address)
@@ -253,7 +250,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return nil
 	}
 
-	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+	if strings.Contains(string(to), stellarAddress.Separator) {
 		name, domain, err := stellarAddress.Split(string(to))
 		if err != nil {
 			return res, err
@@ -321,7 +318,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	}
 
 	if idRes.User.Username == "" {
-		expr, err := externals.AssertionParse(string(to))
+		expr, err := externals.AssertionParse(m.G(), string(to))
 		if err != nil {
 			m.CDebugf("error parsing assertion: %s", err)
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
@@ -659,7 +656,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	}
 	for _, b := range balances {
 		if b.Asset.IsNativeXLM() {
-			a, err := amount.ParseInt64(b.Amount)
+			a, err := stellarnet.ParseStellarAmount(b.Amount)
 			if err != nil {
 				return false, err
 			}
@@ -872,7 +869,7 @@ func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keyba
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}
-	m.CDebugf("identifyRecipient: resp: %+v", *resp)
+	m.CDebugf("identifyRecipient: uv: %v", resp.Upk.Current.ToUserVersion())
 
 	var frep keybase1.TLFIdentifyFailure
 	frep.User = keybase1.User{
@@ -918,31 +915,46 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
-func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
-	desc, err := FormatAmountXLM(amount)
+// Example: "157.5000000 XLM"
+// Example: "12.9000000 USD/GB...VTUK"
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	switch asset.Type {
+	case "credit_alphanum4", "credit_alphanum12":
+	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
+	default:
+		return "", fmt.Errorf("unrecognized asset type: %v", asset.Type)
+	}
+	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
+	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+		return "", fmt.Errorf("invalid asset code: %v", asset.Code)
+	}
+	// Sanity check asset issuer.
+	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-
-	switch delta {
-	case stellar1.BalanceDelta_DECREASE:
-		desc = "- " + desc
-	case stellar1.BalanceDelta_INCREASE:
-		desc = "+ " + desc
-	}
-
-	return desc, nil
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
+		fmt.Sprintf("%v/%v", asset.Code, issuerAccountID.LossyAbbreviation()))
 }
 
 // Example: "157.5000000 XLM"
-func FormatAmountXLM(amount string) (string, error) {
-	return FormatAmountWithSuffix(amount, false, "XLM")
+func FormatAmountDescriptionXLM(amount string) (string, error) {
+	// Do not simplify XLM amounts, all zeroes are important because
+	// that's the exact number of digits that Stellar protocol
+	// supports.
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, "XLM")
 }
 
-func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
 	formatted, err := FormatAmount(amount, precisionTwo)
 	if err != nil {
 		return "", err
+	}
+	if simplify {
+		formatted = libkb.StellarSimplifyAmount(formatted)
 	}
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
@@ -951,7 +963,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := stellarnet.ParseDecimalStrict(amount)
+	x, err := stellarnet.ParseAmount(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
@@ -964,25 +976,34 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("unable to parse amount %s", amount)
 	}
-	if parts[1] == "0000000" {
-		// get rid of all zeros after point if default precision
-		parts = parts[:1]
-	}
+	var hasComma bool
 	head := parts[0]
-	if len(head) <= 3 {
-		return strings.Join(parts, "."), nil
-	}
-	sinceComma := 0
-	var b bytes.Buffer
-	for i := len(head) - 1; i >= 0; i-- {
-		if sinceComma == 3 && head[i] != '-' {
-			b.WriteByte(',')
-			sinceComma = 0
+	if len(head) > 0 {
+		sinceComma := 0
+		var b bytes.Buffer
+		for i := len(head) - 1; i >= 0; i-- {
+			if sinceComma == 3 && head[i] != '-' {
+				b.WriteByte(',')
+				sinceComma = 0
+				hasComma = true
+			}
+			b.WriteByte(head[i])
+			sinceComma++
 		}
-		b.WriteByte(head[i])
-		sinceComma++
+		parts[0] = reverse(b.String())
 	}
-	parts[0] = reverse(b.String())
+	if parts[1] == "0000000" {
+		// Remove decimal part if it's all zeroes in 7-digit precision.
+		if hasComma {
+			// With the exception of big numbers where we inserted
+			// thousands separator - leave fractional part with two
+			// digits so we can have decimal point, but not all the
+			// distracting 7 zeroes.
+			parts[1] = "00"
+		} else {
+			parts = parts[:1]
+		}
+	}
 
 	return strings.Join(parts, "."), nil
 }
@@ -997,10 +1018,13 @@ func reverse(s string) string {
 
 // ChangeAccountName changes the name of an account.
 // Make sure to keep this in sync with ValidateAccountNameLocal.
-// An empty name is always acceptable.
+// An empty name is not allowed.
 // Renaming an account to an already used name is blocked.
 // Maximum length of AccountNameMaxRunes runes.
 func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	if newName == "" {
+		return fmt.Errorf("name required")
+	}
 	runes := utf8.RuneCountInString(newName)
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
@@ -1086,8 +1110,29 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+const DefaultCurrencySetting = "USD"
+
+// GetAccountDisplayCurrency gets currency setting from the server, and it
+// returned currency is empty (NULL in database), then default "USD" is used.
+// When creating a wallet, client always sets default currency setting. Also
+// when a new account in existing wallet is created, it will inherit currency
+// setting from primary account (this happens serverside). Empty currency
+// settings should only happen in very old accounts or when wallet generation
+// was interrupted in precise moment.
+func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.AccountID) (res string, err error) {
 	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
+	if err != nil {
+		return res, err
+	}
+	if codeStr == "" {
+		codeStr = DefaultCurrencySetting
+		mctx.CDebugf("Using default display currency %s for account %s", codeStr, accountID)
+	}
+	return codeStr, nil
+}
+
+func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+	codeStr, err := GetAccountDisplayCurrency(mctx, accountID)
 	if err != nil {
 		return res, err
 	}
@@ -1134,7 +1179,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		PaymentID: stellar1.PaymentID{TxID: txID},
+		PaymentID: stellar1.NewPaymentID(txID),
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
@@ -1170,6 +1215,16 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
 		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
+	}
+
+	if arg.Asset != nil {
+		a, err := stellarnet.ParseStellarAmount(arg.Amount)
+		if err != nil {
+			return ret, err
+		}
+		if a <= 0 {
+			return ret, fmt.Errorf("must request positive amount of XLM")
+		}
 	}
 
 	if arg.Currency != nil {
@@ -1290,4 +1345,16 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 		return keybase1.UserVersion{}, "", err
 	}
 	return upak.Current.ToUserVersion(), libkb.NewNormalizedUsername(upak.Current.GetName()), err
+}
+
+// AccountExchangeRate returns the exchange rate for an account for the logged in user.
+// Note that it is possible that multiple users can own the same account and have
+// different display currency preferences.
+func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.OutsideExchangeRate, error) {
+	currency, err := GetCurrencySetting(mctx, remoter, accountID)
+	if err != nil {
+		return stellar1.OutsideExchangeRate{}, err
+	}
+
+	return remoter.ExchangeRate(mctx.Ctx(), string(currency.Code))
 }

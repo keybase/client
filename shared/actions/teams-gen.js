@@ -6,9 +6,11 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'teams:'
 export const addParticipant = 'teams:addParticipant'
 export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
@@ -37,6 +39,7 @@ export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
+export const leftTeam = 'teams:leftTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
 export const saveChannelMembership = 'teams:saveChannelMembership'
@@ -156,9 +159,12 @@ type _IgnoreRequestPayload = $ReadOnly<{|
   username: string,
 |}>
 type _InviteToTeamByEmailPayload = $ReadOnly<{|
-  teamname: string,
-  role: Types.TeamRoleType,
+  destSubPath: I.List<string>,
   invitees: string,
+  role: Types.TeamRoleType,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  teamname: string,
 |}>
 type _InviteToTeamByPhonePayload = $ReadOnly<{|
   teamname: string,
@@ -167,7 +173,14 @@ type _InviteToTeamByPhonePayload = $ReadOnly<{|
   fullName: string,
 |}>
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
-type _LeaveTeamPayload = $ReadOnly<{|teamname: string|}>
+type _LeaveTeamPayload = $ReadOnly<{|
+  teamname: string,
+  context: 'teams' | 'chat',
+|}>
+type _LeftTeamPayload = $ReadOnly<{|
+  teamname: string,
+  context: 'teams' | 'chat',
+|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|
   email: string,
   teamname: string,
@@ -187,7 +200,7 @@ type _SaveChannelMembershipPayload = $ReadOnly<{|
 |}>
 type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
   teamname: string,
-  policy: Types.RetentionPolicy,
+  policy: RetentionPolicy,
 |}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
@@ -259,7 +272,7 @@ type _SetTeamPublicitySettingsPayload = $ReadOnly<{|
 |}>
 type _SetTeamRetentionPolicyPayload = $ReadOnly<{|
   teamname: string,
-  retentionPolicy: Types.RetentionPolicy,
+  retentionPolicy: RetentionPolicy,
 |}>
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
@@ -308,6 +321,10 @@ export const createGetTeamRetentionPolicy = (payload: _GetTeamRetentionPolicyPay
  * Sets the retention policy for a team. The store will be updated automatically.
  */
 export const createSaveTeamRetentionPolicy = (payload: _SaveTeamRetentionPolicyPayload) => ({error: false, payload, type: saveTeamRetentionPolicy})
+/**
+ * We successfully left a team
+ */
+export const createLeftTeam = (payload: _LeftTeamPayload) => ({error: false, payload, type: leftTeam})
 export const createAddParticipant = (payload: _AddParticipantPayload) => ({error: false, payload, type: addParticipant})
 export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload) => ({error: false, payload, type: addPeopleToTeam})
 export const createAddTeamWithChosenChannels = (payload: _AddTeamWithChosenChannelsPayload) => ({error: false, payload, type: addTeamWithChosenChannels})
@@ -395,6 +412,7 @@ export type InviteToTeamByEmailPayload = $Call<typeof createInviteToTeamByEmail,
 export type InviteToTeamByPhonePayload = $Call<typeof createInviteToTeamByPhone, _InviteToTeamByPhonePayload>
 export type JoinTeamPayload = $Call<typeof createJoinTeam, _JoinTeamPayload>
 export type LeaveTeamPayload = $Call<typeof createLeaveTeam, _LeaveTeamPayload>
+export type LeftTeamPayload = $Call<typeof createLeftTeam, _LeftTeamPayload>
 export type RemoveMemberOrPendingInvitePayload = $Call<typeof createRemoveMemberOrPendingInvite, _RemoveMemberOrPendingInvitePayload>
 export type RemoveParticipantPayload = $Call<typeof createRemoveParticipant, _RemoveParticipantPayload>
 export type SaveChannelMembershipPayload = $Call<typeof createSaveChannelMembership, _SaveChannelMembershipPayload>
@@ -460,6 +478,7 @@ export type Actions =
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
   | LeaveTeamPayload
+  | LeftTeamPayload
   | RemoveMemberOrPendingInvitePayload
   | RemoveParticipantPayload
   | SaveChannelMembershipPayload

@@ -9,7 +9,7 @@ import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
 import * as Tabs from '../constants/tabs'
 import {switchTo} from '../actions/route-tree'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import {connect, type TypedState} from '../util/container'
 import {globalStyles} from '../styles'
 import flags from '../util/feature-flags'
 import RpcStats from './rpc-stats'
@@ -77,7 +77,7 @@ const mapStateToProps = (state: TypedState) => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     const tab = hotkeyTabMap[cmd.replace(/(command|ctrl)\+/, '')]
     if (tab) {
@@ -102,4 +102,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Nav)

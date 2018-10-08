@@ -2,7 +2,7 @@
 import * as Route from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import SystemSimpleToComplex from '.'
-import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   you: state.config.username || '',
@@ -24,4 +24,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemSimpleToComplex)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SystemSimpleToComplex)

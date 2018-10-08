@@ -18,7 +18,7 @@ type Props = {
 }
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
@@ -26,7 +26,7 @@ const connectedUsernamesProps = {
 }
 
 const ManageComponent = (props: Props) => {
-  const textType = props.message.addee === props.you ? 'BodySmallSemiboldInlineLink' : 'BodySmall'
+  const textType = props.message.addee === props.you ? 'BodySmallSemiboldSecondaryLink' : 'BodySmall'
   if (props.message.addee === props.you) {
     return (
       <Text onClick={props.onManageChannels} type={textType} style={{color: globalColors.blue}}>
@@ -102,7 +102,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
             <Text
               onClick={onViewTeam}
               style={{color: globalColors.black_60}}
-              type="BodySmallSemiboldInlineLink"
+              type="BodySmallSemiboldSecondaryLink"
             >
               {teamname}
             </Text>

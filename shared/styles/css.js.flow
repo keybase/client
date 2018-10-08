@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 export type Color = null | string
 type Dimension = string | number
 

@@ -23,6 +23,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -32,6 +33,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
@@ -69,7 +71,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 		TagsFunc:      logger.LogTagsFromContextRPC,
 		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
 	}
-	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()), libkb.MakeWrapError(g.G().ExternalG()))
+	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()), libkb.MakeWrapError(g.G().ExternalG()), rpc.DefaultMaxFrameLength)
 	conn := rpc.NewConnectionWithTransport(g, trans,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
@@ -112,6 +114,13 @@ func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.M
 					return err
 				}
 				teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+			case "team.change":
+				var msg []keybase1.TeamChangeRow
+				if err := json.Unmarshal(creation.Body().Bytes(), &msg); err != nil {
+					g.G().Log.CDebugf(ctx, "error unmarshaling team.change items: %s", err)
+					return err
+				}
+				teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
 			}
 		}
 	}
@@ -163,14 +172,11 @@ func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
 // Create a team with me as the owner
 func createTeam(tc libkb.TestContext) string {
 	b, err := libkb.RandBytes(4)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	name := hex.EncodeToString(b)
+	require.NoError(tc.T, err)
+
+	name := fmt.Sprintf("TeAm%v", hex.EncodeToString(b))
 	_, err = teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return name
 }
 
@@ -335,6 +341,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 3
 	g.Searcher = searcher
+	g.Indexer = search.NewIndexer(g)
 
 	h.setTestRemoteClient(ri)
 
@@ -363,6 +370,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+
+	g.StellarLoader = types.DummyStellarLoader{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -649,7 +658,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 			require.Equal(t, refName, conv.MaxMsgSummaries[0].TlfName)
 		case chat1.ConversationMembersType_TEAM:
 			teamName := ctc.teamCache[teamKey(ctc.users())]
-			require.Equal(t, teamName, conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, strings.ToLower(teamName), conv.MaxMsgSummaries[0].TlfName)
 		}
 	})
 }
@@ -795,7 +804,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		numconvs := 5
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		var firstConv chat1.ConversationInfoLocal
@@ -935,7 +944,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		numconvs := 5
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		// Create a bunch of blank convos
@@ -1904,6 +1913,7 @@ type serverChatListener struct {
 	setConvSettings  chan chat1.ConversationID
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
+	subteamRename    chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1978,6 +1988,9 @@ func (n *serverChatListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
 }
+func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
+	n.subteamRename <- convIDs
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2002,6 +2015,7 @@ func newServerChatListener() *serverChatListener {
 		setConvSettings:  make(chan chat1.ConversationID, buf),
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
+		subteamRename:    make(chan []chat1.ConversationID, buf),
 	}
 }
 
@@ -2440,7 +2454,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2551,7 +2565,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -2675,7 +2689,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -2851,7 +2865,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -2947,7 +2961,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
@@ -3036,7 +3050,7 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
 		bgConvLoads := make(chan chat1.ConversationID, 10)
@@ -3094,7 +3108,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		t.Logf("test empty thread")
@@ -3170,7 +3184,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		query := chat1.GetThreadQuery{
@@ -3226,7 +3240,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
@@ -3283,7 +3297,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		t.Logf("testing untrusted inbox load failure")
 		ttype := chat1.TopicType_CHAT
-		require.NoError(t, storage.NewInbox(g, uid).Clear(context.TODO()))
+		require.NoError(t, storage.NewInbox(g).Clear(context.TODO(), uid))
 		g.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
@@ -3310,7 +3324,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		rquery, _, err := g.InboxSource.GetInboxQueryLocalToRemote(context.TODO(), query)
 		require.NoError(t, err)
-		_, lconvs, _, err := storage.NewInbox(g, uid).Read(context.TODO(), rquery, p)
+		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, rquery, p)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), conv.Id)
@@ -3470,6 +3484,16 @@ func consumeSetConvSettings(t *testing.T, listener *serverChatListener) chat1.Co
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get setConvSettings notification")
 		return chat1.ConversationID{}
+	}
+}
+
+func consumeSubteamRename(t *testing.T, listener *serverChatListener) []chat1.ConversationID {
+	select {
+	case x := <-listener.subteamRename:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get subteamRename notification")
+		return nil
 	}
 }
 
@@ -4642,7 +4666,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
 		threadCb := make(chan kbtest.NonblockThreadResult, 100)
-		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
@@ -5147,7 +5171,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 	})
 }
 
-func TestChatSrvGetSearchRegexp(t *testing.T) {
+func TestChatSearchConvRegexp(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 
 		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
@@ -5166,13 +5190,14 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
 			mt, ctc.as(t, u2).user())
+		convID := conv.Id
 
 		tc1 := ctc.as(t, u1)
 		tc2 := ctc.as(t, u2)
 
 		searchHitCb := make(chan chat1.ChatSearchHitArg, 100)
 		searchDoneCb := make(chan chat1.ChatSearchDoneArg, 100)
-		chatUI := kbtest.NewChatUI(nil, nil, searchHitCb, searchDoneCb)
+		chatUI := kbtest.NewChatUI(nil, nil, searchHitCb, searchDoneCb, nil, nil)
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
@@ -5195,6 +5220,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 					require.Equal(t, len(beforeMsgIDs), len(searchHit.BeforeMessages))
 					for i, msgID := range beforeMsgIDs {
 						msg := searchHit.BeforeMessages[i]
+						t.Logf("msg: %v", msg.Valid())
 						require.True(t, msg.IsValid())
 						require.Equal(t, msgID, msg.GetMessageID())
 					}
@@ -5216,8 +5242,8 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 			_verifyHit(searchHit)
 			select {
-			case searchHitArg := <-searchHitCb:
-				_verifyHit(searchHitArg.SearchHit)
+			case searchHitRes := <-searchHitCb:
+				_verifyHit(searchHitRes.SearchHit)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no search result received")
 			}
@@ -5231,84 +5257,120 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 			}
 		}
 
-		search := func(query string, isRegex bool, sentBy string, maxHits, maxMessages, beforeContext, afterContext int) chat1.GetSearchRegexpRes {
+		search := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.GetSearchRegexpRes {
 			res, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-				ConversationID: conv.Id,
-				Query:          query,
-				IsRegex:        isRegex,
-				SentBy:         sentBy,
-				MaxHits:        maxHits,
-				MaxMessages:    maxMessages,
-				BeforeContext:  beforeContext,
-				AfterContext:   afterContext,
+				ConvID:  convID,
+				Query:   query,
+				IsRegex: isRegex,
+				Opts:    opts,
 			})
 			require.NoError(t, err)
+			t.Logf("searchQuery: %v, searchRes: %+v", query, res)
 			return res
 		}
 
 		isRegex := false
-		sentBy := ""
-		maxHits := 5
-		beforeContext := 2
-		afterContext := 2
-		maxMessages := 1000
+		opts := chat1.SearchOpts{
+			MaxHits:       5,
+			BeforeContext: 2,
+			AfterContext:  2,
+			MaxMessages:   1000,
+		}
 
 		// Test basic equality match
 		query := "hi"
-		msgBody := "hi"
+		msgBody := "hi there"
 		messageID1 := sendMessage(msgBody, u1)
-		res := search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res := search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit(nil, messageID1, nil, []string{msgBody}, res.Hits[0])
+		verifyHit(nil, messageID1, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, opts)
 		require.Equal(t, 0, len(res.Hits))
 		verifySearchDone(0)
 
 		// Test maxHits
-		maxHits = 1
+		opts.MaxHits = 1
 		query = "hi"
 		messageID2 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
-		maxHits = 5
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		opts.MaxHits = 5
+		res = search(query, isRegex, opts)
 		require.Equal(t, 2, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{msgBody}, res.Hits[0])
-		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, res.Hits[1])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, nil, []string{query}, res.Hits[0])
+		verifyHit(nil, messageID1, []chat1.MessageID{messageID2}, []string{query}, res.Hits[1])
 		verifySearchDone(2)
 
 		messageID3 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, opts)
 		require.Equal(t, 3, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, res.Hits[0])
-		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, res.Hits[1])
-		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, res.Hits[2])
+		verifyHit([]chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{query}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{query}, res.Hits[1])
+		verifyHit(nil, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{query}, res.Hits[2])
 		verifySearchDone(3)
 
 		// test sentBy
 		// invalid username
-		sentBy = u1.Username + "foo"
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		opts.SentBy = u1.Username + "foo"
+		res = search(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
 		// send from user2 and make sure we can filter
-		sentBy = u2.Username
+		opts.SentBy = u2.Username
 		msgBody = "hi"
 		query = "hi"
 		messageID4 := sendMessage(msgBody, u2)
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
-		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, res.Hits[0])
+		verifyHit([]chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
-		sentBy = ""
+		opts.SentBy = ""
+
+		// test sentBefore/sentAfter
+		msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+			ConversationID: convID,
+			MessageIDs:     []chat1.MessageID{messageID1, messageID4},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(msgRes.Messages))
+		msg1 := msgRes.Messages[0]
+		msg4 := msgRes.Messages[1]
+
+		// nothing sent after msg4
+		opts.SentAfter = msg4.GetCtime() + 500
+		res = search(query, isRegex, opts)
+		require.Zero(t, len(res.Hits))
+		opts.SentAfter = msg1.GetCtime()
+		res = search(query, isRegex, opts)
+		require.Equal(t, 4, len(res.Hits))
+
+		// nothing sent before msg1
+		opts.SentAfter = 0
+		opts.SentBefore = msg1.GetCtime() - 500
+		res = search(query, isRegex, opts)
+		require.Zero(t, len(res.Hits))
+		opts.SentBefore = msg4.GetCtime()
+		res = search(query, isRegex, opts)
+		require.Equal(t, 4, len(res.Hits))
+		opts.SentBefore = 0
+		timeout := 20 * time.Second
+		// drain the cbs, 8 hits and 4 dones
+		for i := 0; i < 8+4; i++ {
+			select {
+			case <-searchHitCb:
+			case <-searchDoneCb:
+			case <-time.After(timeout):
+				require.Fail(t, "no search result received")
+			}
+		}
 
 		// Test regex functionality
 		isRegex = true
@@ -5317,7 +5379,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		msgBody = `约书亚和约翰屌爆了`
 		query = `约.*`
 		messageID5 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
+		res = search(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
@@ -5327,32 +5389,250 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 		for _, char := range lowercase {
 			sendMessage("h."+string(char), u1)
 		}
-		maxHits = len(lowercase)
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, maxHits, len(res.Hits))
-		verifySearchDone(maxHits)
+		opts.MaxHits = len(lowercase)
+		res = search(query, isRegex, opts)
+		require.Equal(t, opts.MaxHits, len(res.Hits))
+		verifySearchDone(opts.MaxHits)
 
 		query = `h\..*`
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, maxHits, len(res.Hits))
-		verifySearchDone(maxHits)
+		res = search(query, isRegex, opts)
+		require.Equal(t, opts.MaxHits, len(res.Hits))
+		verifySearchDone(opts.MaxHits)
 
 		// Test maxMessages
-		maxMessages = 2
-		res = search(query, isRegex, sentBy, maxHits, maxMessages, beforeContext, afterContext)
-		require.Equal(t, maxMessages, len(res.Hits))
-		verifySearchDone(maxMessages)
+		opts.MaxMessages = 2
+		res = search(query, isRegex, opts)
+		require.Equal(t, opts.MaxMessages, len(res.Hits))
+		verifySearchDone(opts.MaxMessages)
 
 		// Test invalid regex
-		_, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-			ConversationID: conv.Id,
-			Query:          "(",
-			IsRegex:        true,
-			SentBy:         "",
-			MaxHits:        0,
-			MaxMessages:    0,
+		_, err = tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
+			ConvID:  convID,
+			Query:   "(",
+			IsRegex: true,
 		})
 		require.Error(t, err)
+	})
+}
+
+func TestChatSearchInbox(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+
+		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
+		// with using Pagination Next/Prev and we don't need to triple test
+		// here.
+		switch mt {
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "InboxSearch", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		u1 := users[0]
+		u2 := users[1]
+
+		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
+			mt, ctc.as(t, u2).user())
+		convID := conv.Id
+
+		tc1 := ctc.as(t, u1)
+		tc2 := ctc.as(t, u2)
+
+		inboxSearchHitCb := make(chan chat1.ChatInboxSearchHitArg, 100)
+		inboxSearchDoneCb := make(chan chat1.ChatInboxSearchDoneArg, 100)
+		chatUI := kbtest.NewChatUI(nil, nil, nil, nil, inboxSearchHitCb, inboxSearchDoneCb)
+		tc1.h.mockChatUI = chatUI
+
+		listener1 := newServerChatListener()
+		tc1.h.G().NotifyRouter.SetListener(listener1)
+		listener2 := newServerChatListener()
+		tc2.h.G().NotifyRouter.SetListener(listener2)
+
+		sendMessage := func(msgBody string, user *kbtest.FakeUser) chat1.MessageID {
+			msgID := mustPostLocalForTest(t, ctc, user, conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
+
+			// TODO remove this once the indexer is integrated into conv source
+			// CORE-8900
+			msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+				ConversationID: convID,
+				MessageIDs:     []chat1.MessageID{msgID},
+			})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(msgRes.Messages))
+			msg := msgRes.Messages[0]
+			chatG := ctc.world.Tcs[u1.Username].ChatG
+			err = chatG.Indexer.Add(tc1.startCtx, convID,
+				u1.User.GetUID().ToBytes(), msg)
+			require.NoError(t, err)
+			chatG2 := ctc.world.Tcs[u2.Username].ChatG
+			err = chatG2.Indexer.Add(tc2.startCtx, convID,
+				u2.User.GetUID().ToBytes(), msg)
+			require.NoError(t, err)
+			return msgID
+		}
+
+		verifyHit := func(convID chat1.ConversationID, beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID,
+			afterMsgIDs []chat1.MessageID, matches []string, searchHit chat1.ChatSearchHit) {
+			if beforeMsgIDs == nil {
+				require.Nil(t, searchHit.BeforeMessages)
+			} else {
+				require.Equal(t, len(beforeMsgIDs), len(searchHit.BeforeMessages))
+				for i, msgID := range beforeMsgIDs {
+					msg := searchHit.BeforeMessages[i]
+					require.True(t, msg.IsValid())
+					require.Equal(t, msgID, msg.GetMessageID())
+				}
+			}
+			require.EqualValues(t, hitMessageID, searchHit.HitMessage.Valid().MessageID)
+			require.Equal(t, matches, searchHit.Matches)
+
+			if afterMsgIDs == nil {
+				require.Nil(t, searchHit.AfterMessages)
+			} else {
+				require.Equal(t, len(afterMsgIDs), len(searchHit.AfterMessages))
+				for i, msgID := range afterMsgIDs {
+					msg := searchHit.AfterMessages[i]
+					require.True(t, msg.IsValid())
+					require.Equal(t, msgID, msg.GetMessageID())
+				}
+			}
+		}
+
+		search := func(query string, opts chat1.SearchOpts) chat1.InboxSearchRes {
+			res, err := tc1.chatLocalHandler().InboxSearch(tc1.startCtx, chat1.InboxSearchArg{
+				Query: query,
+				Opts:  opts,
+			})
+			require.NoError(t, err)
+			t.Logf("searchQuery: %v, searchRes: %+v", query, res)
+			return res
+		}
+
+		opts := chat1.SearchOpts{
+			MaxHits:       5,
+			BeforeContext: 2,
+			AfterContext:  2,
+			MaxMessages:   1000,
+		}
+
+		// Test basic equality match
+		msgBody := "hi, byE"
+		messageID1 := sendMessage(msgBody, u1)
+		queries := []string{"hi", "hi, ByE"}
+		matchText := []string{"hi", "hi, byE"}
+		for i, query := range queries {
+			res := search(query, opts)
+			require.Equal(t, 1, len(res.Hits))
+			convHit := res.Hits[0]
+			require.Equal(t, convID, convHit.ConvID)
+			require.Equal(t, 1, len(convHit.Hits))
+			verifyHit(convID, []chat1.MessageID{1}, messageID1, nil, []string{matchText[i]}, convHit.Hits[0])
+		}
+
+		// No match since highlighting fails
+		query := "hi bye"
+		res := search(query, opts)
+		require.Equal(t, 0, len(res.Hits))
+
+		// Test basic no results
+		query = "hey"
+		res = search(query, opts)
+		require.Equal(t, 0, len(res.Hits))
+
+		// Test maxHits
+		opts.MaxHits = 1
+		query = "hi"
+		messageID2 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit := res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{query}, convHit.Hits[0])
+
+		opts.MaxHits = 5
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 2, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{query}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2}, []string{query}, convHit.Hits[1])
+
+		messageID3 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 3, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{query}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{query}, convHit.Hits[1])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{query}, convHit.Hits[2])
+
+		// test sentBy
+		// invalid username
+		opts.SentBy = u1.Username + "foo"
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		// send from user2 and make sure we can filter
+		opts.SentBy = u2.Username
+		msgBody = "hi"
+		query = "hi"
+		messageID4 := sendMessage(msgBody, u2)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{query}, convHit.Hits[0])
+		opts.SentBy = ""
+
+		// test sentBefore/sentAfter
+		msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+			ConversationID: convID,
+			MessageIDs:     []chat1.MessageID{messageID1, messageID4},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(msgRes.Messages))
+		msg1 := msgRes.Messages[0]
+		msg4 := msgRes.Messages[1]
+
+		// nothing sent after msg4
+		opts.SentAfter = msg4.GetCtime() + 500
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		opts.SentAfter = msg1.GetCtime()
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		require.Equal(t, 4, len(res.Hits[0].Hits))
+
+		// nothing sent before msg1
+		opts.SentAfter = 0
+		opts.SentBefore = msg1.GetCtime() - 500
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		opts.SentBefore = msg4.GetCtime()
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		require.Equal(t, 4, len(res.Hits[0].Hits))
+		opts.SentBefore = 0
+
+		// Test utf8
+		msgBody = `约书亚和约翰屌爆了`
+		query = `约书亚和约翰屌爆了`
+		messageID5 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{query}, convHit.Hits[0])
 	})
 }
 
@@ -5365,6 +5645,95 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, res)
+}
+
+func TestChatSrvStellarMessages(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+				return
+			}
+
+			ctc := makeChatTestContext(t, "SrvStellarMessages", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+
+			uid := users[0].User.GetUID().ToBytes()
+			tc := ctc.world.Tcs[users[0].Username]
+			ctx := ctc.as(t, users[0]).startCtx
+			listener := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+			tc.ChatG.Syncer.(*Syncer).isConnected = true
+
+			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+
+			t.Logf("send a request message")
+			body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
+				RequestID: stellar1.KeybaseRequestID("dummy id"),
+				Note:      "Test note",
+			})
+
+			if ephemeralLifetime != nil {
+				_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
+				require.Error(t, err)
+				return
+			}
+
+			_, err := postLocalForTestNoAdvanceClock(t, ctc, users[0], created, body)
+			require.NoError(t, err)
+
+			var unboxed chat1.UIMessage
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
+				require.Equal(t, body.Requestpayment(), unboxed.Valid().MessageBody.Requestpayment())
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_REQUESTPAYMENT)
+
+			tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_REQUESTPAYMENT, tv.Messages[0].GetMessageType())
+
+			t.Logf("delete the message")
+			darg := chat1.PostDeleteNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(ctx, darg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event (DELETE) received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+
+			tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_DELETE, tv.Messages[0].GetMessageType())
+			for _, msg := range tv.Messages {
+				require.NotEqual(t, chat1.MessageType_REQUESTPAYMENT, msg.GetMessageType())
+			}
+		})
+	})
 }
 
 func randSweepChannel() uint64 {

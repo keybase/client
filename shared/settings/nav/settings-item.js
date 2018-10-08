@@ -27,7 +27,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         />
       )}
       <Text
-        type={'BodySmallSemibold'}
+        type="BodySemibold"
         style={Style.collapseStyles([
           props.selected ? styles.selectedText : styles.itemText,
           props.textColor ? {color: props.textColor} : {},

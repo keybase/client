@@ -14,6 +14,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type TestCase struct {
@@ -139,6 +141,12 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 			err := json.Unmarshal(link, &outer)
 			require.NoError(t, err)
 			var inner interface{}
+
+			err = jsonw.EnsureMaxDepthBytesDefault([]byte(outer.PayloadJSON))
+			if err != nil {
+				t.Logf("team link '%v' #'%v': JSON exceeds max depth permissable: %v", teamLabel, i+1, err)
+			}
+			require.NoError(t, err)
 			err = json.Unmarshal([]byte(outer.PayloadJSON), &inner)
 			if err != nil {
 				t.Logf("team link '%v' #'%v': corrupted: %v", teamLabel, i+1, err)
@@ -156,6 +164,11 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 
 		tc := SetupTest(t, "team", 1)
 		defer tc.Cleanup()
+
+		// The auditor won't work in this case, since we have fake links that won't match the
+		// local database. In particular, the head merkle seqno might be off the right end
+		// of the merkle sequence in the DB.
+		tc.G.Env.Test.TeamSkipAudit = true
 
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")

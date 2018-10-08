@@ -1,12 +1,11 @@
-• You can now upload custom user and team avatars from inside the app
+• Inbox performance improvements
+• More polish around the app
+• Better feedback on buttons that are waiting for the server to respond
 
-Chat:
-    • React to chat messages with emojis
-    • Better image orientation on attachment
-    • Better 'new messages' line handling
-    • Improve attachment upload experience
-Other stuff:
-    • New hotkeys to switch application tabs. Just hit command (or control) and the numbers 1-7
-    • Simplified some social proof flows
-    • Simplified provisioning process
-    • Better revoke device page
+Improved error handling in these flows:
+    • Loading the home page on spotty networks
+    • Various operations on the files tab
+    • Creating / deleting git repositories
+    • Leaving a team
+
+• 64 bit windows build

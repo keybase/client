@@ -1,23 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Text,
-  ClickableBox,
-  Icon,
-  ProgressBar,
-  ProgressIndicator,
-  iconCastPlatformStyles,
-} from '../../../../../common-adapters'
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  fileUIName,
-  platformStyles,
-  styleSheetCreate,
-  collapseStyles,
-} from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 import {ImageRender} from './image-render'
 import {isMobile} from '../../../../../util/container'
 
@@ -26,8 +10,8 @@ type Props = {
   hasProgress: boolean,
   height: number,
   onClick: () => void,
+  onShowInFinder: null | ((e: SyntheticEvent<any>) => void),
   onDoubleClick: () => void,
-  onShowInFinder: null | (() => void),
   path: string,
   fullPath: string,
   progress: number,
@@ -85,139 +69,151 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <ClickableBox
-        style={styles.imageContainer}
-        onClick={this._onClick}
-        onDoubleClick={this._onDoubleClick}
-        onLongPress={this.props.toggleMessageMenu}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
-      >
-        <Text type="BodySemibold" style={styles.title}>
-          {this.props.title}
-        </Text>
-        <Box
-          style={collapseStyles([
-            styles.loading,
-            !this.state.loaded && styles.spinner,
-            {
-              height: this.props.height,
-              width: this.props.width,
-            },
-          ])}
+      <React.Fragment>
+        <Kb.ClickableBox
+          style={styles.imageContainer}
+          onClick={this._onClick}
+          onDoubleClick={this._onDoubleClick}
+          onLongPress={this.props.toggleMessageMenu}
+          onMouseEnter={this._onMouseEnter}
+          onMouseLeave={this._onMouseLeave}
         >
-          {!!this.props.path && (
-            <ImageRender
-              ref={ref => {
-                this.imageRef = ref
-              }}
-              src={this.props.path}
-              videoSrc={this.props.fullPath}
-              onLoad={this._setLoaded}
-              onLoadedVideo={this._setVideoLoaded}
-              loaded={this.state.loaded}
-              inlineVideoPlayable={this.props.inlineVideoPlayable}
-              style={collapseStyles([
-                styles.image,
+          <Kb.Text type="BodySemibold" style={styles.title}>
+            {this.props.title}
+          </Kb.Text>
+          <Kb.Box
+            style={Kb.iconCastPlatformStyles(
+              Styles.collapseStyles([
+                styles.loading,
+                !this.state.loaded && styles.spinner,
                 {
                   height: this.props.height,
-                  opacity: this.state.loaded ? 1 : 0,
                   width: this.props.width,
                 },
-              ])}
-            />
-          )}
-          {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-            <ProgressIndicator style={styles.progress} />
-          )}
-          {!!this.props.showButton &&
-            !this.state.playingVideo && (
-              <Icon
-                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                style={iconCastPlatformStyles(styles.playButton)}
+              ])
+            )}
+          >
+            {!!this.props.path && (
+              <ImageRender
+                ref={ref => {
+                  this.imageRef = ref
+                }}
+                src={this.props.path}
+                videoSrc={this.props.fullPath}
+                onLoad={this._setLoaded}
+                onLoadedVideo={this._setVideoLoaded}
+                loaded={this.state.loaded}
+                inlineVideoPlayable={this.props.inlineVideoPlayable}
+                style={Styles.collapseStyles([
+                  styles.image,
+                  {
+                    height: this.props.height,
+                    opacity: this.state.loaded ? 1 : 0,
+                    width: this.props.width,
+                  },
+                ])}
               />
             )}
-          {this.props.videoDuration.length > 0 &&
-            !this.state.playingVideo &&
-            this.state.loaded && (
-              <Box style={styles.durationContainer}>
-                <Text type={'BodySmall'} style={styles.durationText}>
-                  {this.props.videoDuration}
-                </Text>
-              </Box>
+            {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+              <Kb.ProgressIndicator style={styles.progress} />
             )}
-          {!!this.props.arrowColor && (
-            <Box style={styles.downloadedIconWrapper}>
-              <Icon
-                type="iconfont-download"
-                style={iconCastPlatformStyles(styles.downloadIcon)}
-                color={this.props.arrowColor}
-              />
-            </Box>
-          )}
-        </Box>
-        <Box style={styles.progressContainer}>
-          <Text type={'BodySmall'} style={styles.progressLabel}>
-            {this.props.progressLabel ||
-              '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
-          </Text>
-          {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
-        </Box>
+            {!!this.props.showButton &&
+              !this.state.playingVideo && (
+                <Kb.Icon
+                  type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                  style={Kb.iconCastPlatformStyles(styles.playButton)}
+                />
+              )}
+            {this.props.videoDuration.length > 0 &&
+              !this.state.playingVideo &&
+              this.state.loaded && (
+                <Kb.Box style={styles.durationContainer}>
+                  <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                    {this.props.videoDuration}
+                  </Kb.Text>
+                </Kb.Box>
+              )}
+            {!!this.props.arrowColor && (
+              <Kb.Box style={styles.downloadedIconWrapper}>
+                <Kb.Icon
+                  type="iconfont-download"
+                  style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                  color={this.props.arrowColor}
+                />
+              </Kb.Box>
+            )}
+          </Kb.Box>
+          <Kb.Box style={styles.progressContainer}>
+            {!this.props.onShowInFinder && (
+              <Kb.Text type={'BodySmall'} style={styles.progressLabel}>
+                {this.props.progressLabel ||
+                  '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
+              </Kb.Text>
+            )}
+            {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
+          </Kb.Box>
+        </Kb.ClickableBox>
         {this.props.onShowInFinder && (
-          <Text
+          <Kb.Text
             type="BodySmallPrimaryLink"
             onClick={this.props.onShowInFinder}
             style={styles.link}
             className={!isMobile ? 'hover-underline' : undefined}
           >
-            Show in {fileUIName}
-          </Text>
+            Show in {Styles.fileUIName}
+          </Kb.Text>
         )}
-      </ClickableBox>
+      </React.Fragment>
     )
   }
 }
 
-const styles = styleSheetCreate({
-  spinner: platformStyles({
-    isElectron: {
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isMobile: {
-      ...globalStyles.flexBoxCenter,
-      alignItems: 'center',
-      margin: 'auto',
-      flex: 1,
-    },
-  }),
-  downloadIcon: {maxHeight: 14},
+const styles = Styles.styleSheetCreate({
+  downloadIcon: {
+    maxHeight: 14,
+    position: 'relative',
+    top: 1,
+  },
   downloadedIconWrapper: {
-    ...globalStyles.flexBoxCenter,
-    backgroundColor: globalColors.fastBlank,
+    ...Styles.globalStyles.flexBoxCenter,
+    backgroundColor: Styles.globalColors.fastBlank,
     borderRadius: 20,
     bottom: 0,
     padding: 3,
     position: 'absolute',
     right: 0,
   },
+  durationContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: Styles.globalColors.black_60,
+    borderRadius: 2,
+    bottom: Styles.globalMargins.tiny,
+    padding: 1,
+    position: 'absolute',
+    right: Styles.globalMargins.tiny,
+  },
+  durationText: {
+    color: Styles.globalColors.white,
+    paddingLeft: 3,
+    paddingRight: 3,
+  },
   image: {
-    backgroundColor: globalColors.fastBlank,
+    backgroundColor: Styles.globalColors.fastBlank,
     maxWidth: 320,
     position: 'relative',
   },
   imageContainer: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
     width: '100%',
   },
   link: {
-    color: globalColors.black_60,
+    color: Styles.globalColors.black_60,
   },
   loading: {
-    backgroundColor: globalColors.black_05,
-    borderRadius: globalMargins.xtiny,
+    backgroundColor: Styles.globalColors.black_05,
+    borderRadius: Styles.globalMargins.xtiny,
     maxWidth: 320,
     position: 'relative',
   },
@@ -232,56 +228,48 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: platformStyles({
-    isElectron: {
-      bottom: '5%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-    isMobile: {
-      bottom: '7%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-  }),
-  durationText: {
-    color: globalColors.white,
-    paddingLeft: 5,
-    paddingRight: 5,
-  },
-  progressContainer: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  progressLabel: {
-    color: globalColors.black_40,
-    marginRight: globalMargins.tiny,
-  },
-  title: platformStyles({
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-  progress: platformStyles({
+  progress: Styles.platformStyles({
     isElectron: {
       bottom: '50%',
       left: '50%',
-      marginBottom: -32,
-      marginLeft: -32,
-      marginRight: -32,
-      marginTop: -32,
+      marginBottom: -24,
+      marginLeft: -24,
+      marginRight: -24,
+      marginTop: -24,
       position: 'absolute',
       right: '50%',
       top: '50%',
+      width: 48,
     },
     isMobile: {
-      width: 48,
-      position: 'absolute',
       margin: 'auto',
+      position: 'absolute',
+      width: 48,
+    },
+  }),
+  progressContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
+  progressLabel: {
+    color: Styles.globalColors.black_40,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  spinner: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isMobile: {
+      ...Styles.globalStyles.flexBoxCenter,
+      alignItems: 'center',
+      flex: 1,
+      margin: 'auto',
+    },
+  }),
+  title: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-word',
     },
   }),
 })

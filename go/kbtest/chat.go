@@ -235,6 +235,10 @@ func (m *TlfMock) AllCryptKeys(ctx context.Context, tlfName string, public bool)
 	}
 	return res, nil
 }
+func (m *TlfMock) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+	fakeNameInfo := types.NameInfo{}
+	return &fakeNameInfo, nil
+}
 
 func (m *TlfMock) LookupID(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
@@ -936,6 +940,14 @@ func (m *ChatRemoteMock) SetConvMinWriterRole(ctx context.Context, _ chat1.SetCo
 	return res, errors.New("SetConvMinWriterRole not mocked")
 }
 
+func (m *ChatRemoteMock) RegisterSharePost(ctx context.Context, _ chat1.RegisterSharePostArg) error {
+	return errors.New("RegisterSharePost not mocked")
+}
+
+func (m *ChatRemoteMock) FailSharePost(ctx context.Context, _ chat1.FailSharePostArg) error {
+	return errors.New("FailSharePost not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -953,18 +965,24 @@ type NonblockSearchResult struct {
 }
 
 type ChatUI struct {
-	inboxCb      chan NonblockInboxResult
-	threadCb     chan NonblockThreadResult
-	searchHitCb  chan chat1.ChatSearchHitArg
-	searchDoneCb chan chat1.ChatSearchDoneArg
+	inboxCb           chan NonblockInboxResult
+	threadCb          chan NonblockThreadResult
+	searchHitCb       chan chat1.ChatSearchHitArg
+	searchDoneCb      chan chat1.ChatSearchDoneArg
+	inboxSearchHitCb  chan chat1.ChatInboxSearchHitArg
+	inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg
 }
 
-func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult, searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg) *ChatUI {
+func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult,
+	searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg,
+	inboxSearchHitCb chan chat1.ChatInboxSearchHitArg, inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg) *ChatUI {
 	return &ChatUI{
-		inboxCb:      inboxCb,
-		threadCb:     threadCb,
-		searchHitCb:  searchHitCb,
-		searchDoneCb: searchDoneCb,
+		inboxCb:           inboxCb,
+		threadCb:          threadCb,
+		searchHitCb:       searchHitCb,
+		searchDoneCb:      searchDoneCb,
+		inboxSearchHitCb:  inboxSearchHitCb,
+		inboxSearchDoneCb: inboxSearchDoneCb,
 	}
 }
 
@@ -1052,6 +1070,16 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
 	c.searchDoneCb <- arg
+	return nil
+}
+
+func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+	c.inboxSearchHitCb <- arg
+	return nil
+}
+
+func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+	c.inboxSearchDoneCb <- arg
 	return nil
 }
 
@@ -1213,14 +1241,6 @@ func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName strin
 func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
 	return nil, nil
-}
-
-func (m *MockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
-}
-
-func (m *MockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
-	return "", nil
 }
 
 func (m *MockChatHelper) convKey(name string, topicName *string) string {

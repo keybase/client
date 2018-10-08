@@ -5,6 +5,7 @@ export type Props = {
   title?: string,
   onBack?: ?() => void,
   onCancel?: ?() => void,
+  customCancelText?: string,
   hideBackLabel?: boolean,
   headerStyle?: StylesCrossPlatform,
   customComponent?: ?React.Node,

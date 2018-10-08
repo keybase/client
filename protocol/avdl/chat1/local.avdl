@@ -780,7 +780,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
   void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
@@ -795,17 +795,25 @@ protocol local {
 
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
+  record DownloadFileAttachmentLocalRes {
+    string filename;
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
   @lint("ignore")
-  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   enum PreviewLocationTyp {
     URL_0,
-    FILE_1
+    FILE_1,
+    BYTES_2
   }
 
   variant PreviewLocation switch (PreviewLocationTyp ltyp) {
     case URL: string;
     case FILE: string;
+    case BYTES: bytes;
   }
 
   record MakePreviewRes {
@@ -897,7 +905,29 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, string sentBy, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record InboxSearchRes {
+    array<ChatInboxSearchHit> hits;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  InboxSearchRes inboxSearch(int sessionID, string query,
+    SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record IndexSearchConvStats {
+    // number of messages in the conversation that were indexed (type TEXT)
+    int numMessages;
+    // number of bytes in the final index
+    int indexSize;
+    // total time to index the conv
+    gregor1.DurationMsec durationMsec;
+  }
+
+  // ConversationID -> IndexSearchConvStats
+  map<string, IndexSearchConvStats> indexChatSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();

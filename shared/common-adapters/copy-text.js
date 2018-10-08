@@ -1,49 +1,65 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '.'
+import * as ConfigGen from '../actions/config-gen'
+import {Box2} from './box'
+import Icon from './icon'
+import Button from './button'
+import ButtonBar from './button-bar'
+import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
-import {copyToClipboard} from '../util/clipboard'
-import {
-  collapseStyles,
-  type StylesCrossPlatform,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import * as Styles from '../styles'
+import {compose, connect, setDisplayName} from '../util/container'
 
-type Props = PropsWithTimer<{
-  containerStyle?: StylesCrossPlatform,
-  withReveal?: boolean,
-  text: string,
+type TProps = PropsWithTimer<{
+  getAttachmentRef: () => ?React.Component<any>,
 }>
-
-type State = {
+type TState = {
   showingToast: boolean,
-  revealed: boolean,
 }
 
-class _CopyText extends React.Component<Props, State> {
-  state = {
-    revealed: false,
-    showingToast: false,
-  }
-  _attachmentRef = null
-
-  componendDidMount() {
-    if (!this.props.withReveal) {
-      this.setState({revealed: true})
-    }
-  }
-
+class _ToastContainer extends React.Component<TProps, TState> {
+  state = {showingToast: false}
   copy = () => {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
     )
-    copyToClipboard(this.props.text)
+  }
+
+  render() {
+    return (
+      <Toast position="top center" attachTo={this.props.getAttachmentRef} visible={this.state.showingToast}>
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+        <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          Copied to clipboard
+        </Text>
+      </Toast>
+    )
+  }
+}
+const ToastContainer = HOCTimers(_ToastContainer)
+
+export type Props = PropsWithTimer<{
+  containerStyle?: Styles.StylesCrossPlatform,
+  withReveal?: boolean,
+  text: string,
+  copyToClipboard: string => void,
+}>
+
+type State = {
+  revealed: boolean,
+}
+class _CopyText extends React.Component<Props, State> {
+  state = {revealed: !this.props.withReveal}
+
+  _attachmentRef = null
+  _toastRef: ?_ToastContainer = null
+  _textRef = null
+
+  copy = () => {
+    this._toastRef && this._toastRef.copy()
+    this._textRef && this._textRef.highlightText()
+    this.props.copyToClipboard(this.props.text)
   }
 
   reveal = () => {
@@ -51,52 +67,68 @@ class _CopyText extends React.Component<Props, State> {
   }
 
   _isRevealed = () => !this.props.withReveal || this.state.revealed
+  _getAttachmentRef = () => this._attachmentRef
 
   render() {
     return (
-      <Kb.Box2
+      <Box2
         ref={r => (this._attachmentRef = r)}
         direction="horizontal"
-        style={collapseStyles([styles.container, this.props.containerStyle])}
+        style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
-        <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          {isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
-            Copied to clipboard
-          </Kb.Text>
-        </Toast>
-        <Kb.Text
+        {/* $FlowIssue innerRef not typed yet */}
+        <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+        <Text
           lineClamp={1}
           type="Body"
           selectable={true}
-          style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
+          style={Styles.collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
+          allowHighlightText={true}
+          ref={r => (this._textRef = r)}
         >
           {this._isRevealed() ? this.props.text : '••••••••••••'}
-        </Kb.Text>
+        </Text>
         {!this._isRevealed() && (
-          <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
             Reveal
-          </Kb.Text>
+          </Text>
         )}
-        <Kb.ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
-          <Kb.Button type="Primary" style={styles.button} onClick={this.copy}>
-            <Kb.Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
-          </Kb.Button>
-        </Kb.ButtonBar>
-      </Kb.Box2>
+        <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
+          <Button type="Primary" style={styles.button} onClick={this.copy}>
+            <Icon
+              type="iconfont-clipboard"
+              color={Styles.globalColors.white}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
+          </Button>
+        </ButtonBar>
+      </Box2>
     )
   }
 }
-const CopyText = HOCTimers(_CopyText)
+
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+})
+
+const CopyText = compose(
+  connect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
+  setDisplayName('CopyText'),
+  HOCTimers
+)(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   buttonContainer: {
     flexGrow: 1,
     minHeight: 0,
-    width: 'initial',
+    width: 'auto',
   },
-  button: platformStyles({
+  button: Styles.platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
@@ -111,13 +143,13 @@ const styles = styleSheetCreate({
       paddingTop: 10,
     },
   }),
-  container: platformStyles({
+  container: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: globalColors.blue4,
-      borderRadius: 100,
+      backgroundColor: Styles.globalColors.blue4,
+      borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: 16,
+      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {
@@ -130,13 +162,13 @@ const styles = styleSheetCreate({
     },
   }),
   reveal: {
-    marginLeft: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      ...globalStyles.fontTerminalSemibold,
-      color: globalColors.blue,
-      fontSize: isMobile ? 15 : 13,
+      ...Styles.globalStyles.fontTerminalSemibold,
+      color: Styles.globalColors.blue,
+      fontSize: Styles.isMobile ? 15 : 13,
       textAlign: 'left',
     },
     isAndroid: {
@@ -150,9 +182,9 @@ const styles = styleSheetCreate({
       height: 15,
     },
   }),
-  toastText: platformStyles({
+  toastText: Styles.platformStyles({
     common: {
-      color: globalColors.white,
+      color: Styles.globalColors.white,
       textAlign: 'center',
     },
     isMobile: {

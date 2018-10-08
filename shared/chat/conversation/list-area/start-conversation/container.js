@@ -9,6 +9,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
   isLoading: WaitingConstants.anyWaiting(state, Constants.waitingKeyCreating),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
+  isError: state.chat2.pendingStatus === 'failed',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -25,10 +26,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
   return {
     isLoading: stateProps.isLoading,
+    isError: stateProps.isError,
     onStart: () => dispatchProps.onStart(participants),
     participants: str,
     showAddParticipants: stateProps.showAddParticipants,
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(StartConversation)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(StartConversation)

@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
+const mapDispatchToProps = (dispatch, {routeProps, navigateUp}) => {
   return {
     onBack: () => {
       dispatch(navigateUp())
@@ -25,6 +25,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 )(RetentionWarning)

@@ -9,7 +9,6 @@ import {
   lifecycle,
   withProps,
   type TypedState,
-  type Dispatch,
 } from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -30,7 +29,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {focusInputCounter: 0},
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}
@@ -46,5 +49,6 @@ export default compose(
     autoFocus: true,
     searchKey: 'chatSearch',
     placeholder: 'Search someone',
+    showServiceFilter: true,
   })
 )(UserInput)

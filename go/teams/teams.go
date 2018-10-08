@@ -107,8 +107,16 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
-func (t *Team) KBFSTLFID() keybase1.TLFID {
-	return t.chain().inner.TlfID
+func (t *Team) KBFSTLFIDs() []keybase1.TLFID {
+	return t.chain().inner.TlfIDs
+}
+
+func (t *Team) LatestKBFSTLFID() (res keybase1.TLFID) {
+	ids := t.KBFSTLFIDs()
+	if len(ids) > 0 {
+		res = ids[len(ids)-1]
+	}
+	return res
 }
 
 func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
@@ -376,6 +384,11 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
 }
 
+func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
+	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t.Data, application,
+		t.chain().GetLatestGeneration())
+}
+
 // ApplicationKey returns the most recent key for an application.
 func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamApplication) (keybase1.TeamApplicationKey, error) {
 	latestGen := t.chain().GetLatestGeneration()
@@ -387,7 +400,12 @@ func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
 }
 
-func (t *Team) Rotate(ctx context.Context) error {
+func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
+}
+
+func (t *Team) Rotate(ctx context.Context) (err error) {
 
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
@@ -397,9 +415,12 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
 
-	admin, err := t.getAdminPermission(ctx, false)
+	// Try to get the admin perms if they are available, if not, proceed anyway
+	var admin *SCTeamAdmin
+	admin, err = t.getAdminPermission(ctx)
 	if err != nil {
-		return err
+		t.G().Log.CDebugf(ctx, "Rotate: unable to get admin permission: %v, attempting without admin section", err)
+		admin = nil
 	}
 
 	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
@@ -607,8 +628,9 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		role = keybase1.TeamRole_NONE
 	}
 	if role == keybase1.TeamRole_NONE {
-		_, err := t.getAdminPermission(ctx, false)
-		if err == nil {
+		_, err := t.getAdminPermission(ctx)
+		switch err.(type) {
+		case nil, AdminPermissionRequiredError:
 			return NewImplicitAdminCannotLeaveError()
 		}
 	}
@@ -695,7 +717,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		return err
 	}
 
-	admin, err := parentTeam.getAdminPermission(ctx, true)
+	admin, err := parentTeam.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
@@ -1021,7 +1043,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 }
 
 func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error {
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
@@ -1073,6 +1095,9 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	return nil
 }
 
+// NOTE since this function uses `Load` and not `load2`, readSubteamID cannot
+// be passed through, this call will fail if a user is not a member of the
+// parent team (or child of the parent team) for which the validator validates
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
 	targetTeam = t
 	for {
@@ -1096,7 +1121,7 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 	}
 }
 
-func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
@@ -1109,10 +1134,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 		return nil, err
 	}
 	if targetTeam == nil {
-		if required {
-			err = errors.New("Only admins can perform this operation.")
-		}
-		return nil, err
+		return nil, NewAdminPermissionRequiredError()
 	}
 
 	logPoint := targetTeam.chain().GetAdminUserLogPoint(uv)
@@ -1130,7 +1152,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
@@ -1283,6 +1305,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 	v2Sig, _, newLinkID, err := libkb.MakeSigchainV2OuterSig(
+		t.MetaContext(ctx),
 		deviceSigningKey,
 		linkType,
 		nextSeqno,
@@ -1291,6 +1314,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
@@ -1610,7 +1634,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
@@ -1729,14 +1753,10 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
 	})
 
-	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	latestKey, err := t.ApplicationKey(ctx, appType)
 	if err != nil {
 		return err
 	}
-	if len(teamKeys) == 0 {
-		return errors.New("no team keys for TLF associate")
-	}
-	latestKey := teamKeys[len(teamKeys)-1]
 	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
 	if err != nil {
 		return err
@@ -1819,7 +1839,9 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 // bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
 func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 	changes.KeyRotated = changes.KeyRotated || t.rotated
+	m := libkb.NewMetaContext(ctx, t.G())
 	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().GetFastTeamLoader().HintLatestSeqno(m, t.ID, t.NextSeqno())
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
 
@@ -1853,12 +1875,12 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 	}
 
 	// Associate the imp team with the TLF ID
-	if team.KBFSTLFID().IsNil() {
+	if team.LatestKBFSTLFID().IsNil() {
 		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
 			return err
 		}
 	} else {
-		if team.KBFSTLFID().String() != tlfID.String() {
+		if team.LatestKBFSTLFID().String() != tlfID.String() {
 			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
 				team.ID, tlfID)
 		}

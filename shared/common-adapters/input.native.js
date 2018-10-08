@@ -42,16 +42,6 @@ class Input extends Component<Props, State> {
       height: null,
     }
 
-    if (__DEV__) {
-      if (props.type === 'password' || props.type === 'passwordVisible') {
-        if (!props.uncontrolled) {
-          console.error(
-            'Controlled password field on mobile, likely incorrect. Can crash on long passphrases'
-          )
-        }
-      }
-    }
-
     // TODO: Remove once we can use HOCTimers.
     this._timeoutIds = []
   }
@@ -59,6 +49,23 @@ class Input extends Component<Props, State> {
   // TODO: Remove once we can use HOCTimers.
   componentWillUnmount = () => {
     this._timeoutIds.forEach(clearTimeout)
+  }
+
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
+      this._clearText()
+    }
+  }
+
+  _clearText = () => {
+    if (!this.props.uncontrolled) {
+      throw new Error('clearTextCounter only works on uncontrolled components')
+    }
+
+    this.transformText(() => ({
+      text: '',
+      selection: {start: 0, end: 0},
+    }))
   }
 
   _setInputRef = (ref: NativeTextInput | null) => {
@@ -361,7 +368,7 @@ class Input extends Component<Props, State> {
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodyError" style={collapseStyles([styles.error, this.props.errorStyle])}>
+          <Text type="BodySmallError" style={collapseStyles([styles.error, this.props.errorStyle])}>
             {this.props.errorText || ''}
           </Text>
         )}
@@ -373,7 +380,7 @@ class Input extends Component<Props, State> {
 const _headerTextStyle = getTextStyle('Header')
 const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
-const _bodyErrorTextStyle = getTextStyle('BodyError')
+const _bodyErrorTextStyle = getTextStyle('BodySmallError')
 
 const styles = styleSheetCreate({
   error: {

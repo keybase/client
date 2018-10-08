@@ -8,6 +8,7 @@ class FakeEngine {
     console.error('Engine disabled!')
   }
   reset() {}
+  dispatchWaitingAction() {}
   cancelRPC() {}
   cancelSession() {}
   rpc() {}

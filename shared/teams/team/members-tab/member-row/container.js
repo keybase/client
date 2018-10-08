@@ -43,7 +43,7 @@ type DispatchProps = {
   onClick: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
@@ -89,4 +89,8 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamMemberRow)

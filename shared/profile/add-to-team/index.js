@@ -76,7 +76,7 @@ const DropdownItem = ({item}: {item: string}) => (
       paddingRight: globalMargins.small,
     }}
   >
-    <Text type="Body">{capitalize(item)}</Text>
+    <Text type="BodyBig">{capitalize(item)}</Text>
   </Box2>
 )
 

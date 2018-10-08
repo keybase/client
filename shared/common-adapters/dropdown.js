@@ -1,34 +1,35 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import PopupDialog from './popup-dialog'
+import Overlay from './overlay'
+import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
+import type {Position} from './relative-popup-hoc'
 import Icon from './icon'
-import {
-  type StylesCrossPlatform,
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  glamorous,
-  isMobile,
-  desktopStyles,
-} from '../styles'
+import * as Styles from '../styles'
 
 type Props = {
   onChanged: (selected: React.Node) => void,
   selected?: React.Node,
   items: Array<React.Node>,
-  style?: StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
+  selectedBoxStyle?: Styles.StylesCrossPlatform,
+  position?: Position,
+  disabled?: boolean,
 }
 type State = {
   expanded: boolean,
 }
-class Dropdown extends React.Component<Props, State> {
+
+class Dropdown extends React.Component<Props & OverlayParentProps, State> {
   state = {expanded: false}
 
+  static defaultProps = {
+    disabled: false,
+  }
+
   _toggleOpen = () => {
-    this.setState(prevProps => ({
-      expanded: !prevProps.expanded,
+    this.setState(prevState => ({
+      expanded: !prevState.expanded,
     }))
   }
 
@@ -39,87 +40,99 @@ class Dropdown extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={collapseStyles([{width: isMobile ? '100%' : 270}, this.props.style])}>
-        <ButtonBox onClick={this._toggleOpen}>
-          {this.state.expanded && (
-            <PopupDialog
-              onClose={this._toggleOpen}
-              styleCover={{
-                backgroundColor: globalColors.transparent,
-                bottom: undefined,
-                left: undefined,
-                padding: undefined,
-                right: undefined,
-                top: undefined,
-                zIndex: 999,
-              }}
-              styleClose={{opacity: 0}}
-              styleClipContainer={{borderRadius: 4, marginTop: 80}}
-            >
-              <Box style={{height: '100%', width: '100%'}}>
-                <Box
-                  style={{
-                    ...globalStyles.flexBoxColumn,
-                    ...desktopStyles.scrollable,
-                    border: `1px solid ${globalColors.blue}`,
-                    borderRadius: 4,
-                    maxHeight: 300,
-                    width: 270,
-                  }}
-                >
-                  {this.props.items.map((i, idx) => (
-                    <ItemBox key={idx} onClick={() => this._onSelect(i)}>
-                      {i}
-                    </ItemBox>
-                  ))}
-                </Box>
-              </Box>
-            </PopupDialog>
-          )}
-          <Box style={{...globalStyles.flexBoxCenter, minHeight: 40, width: '100%'}}>
+      <Box style={Styles.collapseStyles([{width: Styles.isMobile ? '100%' : 270}, this.props.style])}>
+        <ButtonBox
+          onClick={!this.props.disabled ? this._toggleOpen : null}
+          disabled={this.props.disabled}
+          ref={this.props.setAttachmentRef}
+        >
+          <Box style={Styles.collapseStyles([styles.selectedBox, this.props.selectedBoxStyle])}>
             {this.props.selected}
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
+          <Icon
+            type="iconfont-caret-down"
+            inheritColor={true}
+            fontSize={Styles.isMobile ? 12 : 8}
+            style={{marginTop: Styles.isMobile ? 4 : -8}}
+          />
         </ButtonBox>
+        <Overlay
+          style={styles.overlay}
+          attachTo={this.props.getAttachmentRef}
+          visible={this.state.expanded}
+          onHidden={this._toggleOpen}
+          position={this.props.position || 'center center'}
+        >
+          {this.props.items.map((i, idx) => (
+            <ItemBox key={idx} onClick={() => this._onSelect(i)}>
+              {i}
+            </ItemBox>
+          ))}
+        </Overlay>
       </Box>
     )
   }
 }
 
-const ItemBox = glamorous(Box)({
-  ...globalStyles.flexBoxRow,
-  ...(isMobile
+const styles = Styles.styleSheetCreate({
+  selectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 48},
+    isElectron: {minHeight: 32},
+    common: {
+      ...Styles.globalStyles.flexBoxCenter,
+      width: '100%',
+    },
+  }),
+  overlay: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.scrollable,
+      border: `1px solid ${Styles.globalColors.blue}`,
+      borderRadius: 4,
+      maxHeight: 300,
+      width: 270,
+    },
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.white,
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    // TODO: make sure mobile looks alright
+  }),
+})
+
+const ItemBox = Styles.glamorous(Box)({
+  ...Styles.globalStyles.flexBoxRow,
+  ...(Styles.isMobile
     ? {}
     : {
         ':hover': {
-          backgroundColor: globalColors.blue3_40,
+          backgroundColor: Styles.globalColors.blue4,
         },
       }),
   borderBottomWidth: 1,
-  borderColor: globalColors.lightGrey2,
+  borderColor: Styles.globalColors.black_10,
   borderStyle: 'solid',
-  minHeight: 40,
+  minHeight: 32,
   width: '100%',
 })
 
-const ButtonBox = glamorous(Box)({
-  ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? {}
-    : {
-        ':hover': {
-          border: `solid 1px ${globalColors.blue2}`,
-          color: globalColors.blue2,
-        },
-      }),
+const ButtonBox = Styles.glamorous(Box)(props => ({
+  ...Styles.globalStyles.flexBoxRow,
+  ...(!props.disabled && !Styles.isMobile
+    ? {
+        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blue},
+        cursor: 'pointer',
+      }
+    : {}),
+  ...(props.disabled ? {opacity: 0.3} : {}),
   alignItems: 'center',
-  borderColor: globalColors.lightGrey2,
-  borderRadius: 100,
+  borderColor: Styles.globalColors.black_10,
+  borderRadius: Styles.borderRadius,
   borderStyle: 'solid',
   borderWidth: 1,
-  color: globalColors.lightGrey2,
-  paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
+  color: Styles.globalColors.black_40,
+  paddingRight: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.small,
   width: '100%',
-})
+}))
 
-export default Dropdown
+export default OverlayParentHOC(Dropdown)

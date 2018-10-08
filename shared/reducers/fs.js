@@ -1,10 +1,24 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
+
+const coalesceFolderUpdate = (
+  original: Types.FolderPathItem,
+  updated: Types.FolderPathItem
+): Types.FolderPathItem =>
+  // We don't want to override a loaded folder into pending, because otherwise
+  // next time user goes into that folder we'd show placeholders. We also don't
+  // want to simply use the original PathItem, since it's possible some
+  // metadata has updated. So use the new item, but reuse children and
+  // progress.
+  original.progress === 'loaded' && updated.progress === 'pending'
+    ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
+    : updated
 
 export default function(state: Types.State = initialState, action: FsGen.Actions) {
   switch (action.type) {
@@ -13,7 +27,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
-        if (!original || original.type !== 'file' || meta.type !== 'file') {
+
+        // Since updateIn passes `original` in as `any`, it may not be an
+        // actual PathItem.
+        if (!original) {
+          return meta
+        }
+
+        if (original.type === 'folder' && meta.type === 'folder') {
+          return coalesceFolderUpdate(original, meta)
+        } else if (original.type !== 'file' || meta.type !== 'file') {
           return meta
         }
 
@@ -22,33 +45,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.folderListLoaded: {
       let toRemove = new Set()
       const toMerge = action.payload.pathItems.map((item, path) => {
-        const original = state.pathItems.get(path)
+        const original = state.pathItems.get(path, Constants.unknownPathItem)
 
-        if (original && original.type === 'file' && item.type === 'file') {
+        if (original.type === 'file' && item.type === 'file') {
           return Constants.shouldUseOldMimeType(original, item)
             ? item.set('mimeType', original.mimeType)
             : item
         }
 
         if (item.type !== 'folder') return item
-        if (!original || original.type !== 'folder') return item
+        if (original.type !== 'folder') return item
 
         // Make flow happy by referencing them with a new name that's
         // explicitly typed.
         const originalFolder: Types.FolderPathItem = original
         let newItem: Types.FolderPathItem = item
 
-        if (originalFolder.progress === 'loaded' && item.progress === 'pending') {
-          // We don't want to override a loaded folder into pending, because
-          // otherwise next time user goes into that folder we'd show
-          // placeholders. We also don't want to simply use the original
-          // PathItem, since it's possible some metadata has updated. So use
-          // the new item, but reuse children and progress.
-          if (originalFolder.type === 'folder' && item.type === 'folder') {
-            // make flow happy
-            newItem = item.set('children', originalFolder.children).set('progress', 'loaded')
-          }
-        }
+        newItem = coalesceFolderUpdate(originalFolder, newItem)
 
         originalFolder.children.forEach(
           name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
@@ -56,15 +69,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         return newItem
       })
-      return state
-        .set(
-          'pathItems',
-          state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
-        )
-        .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+      return state.set(
+        'pathItems',
+        state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
+      )
     }
-    case FsGen.folderListLoad:
-      return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
+    case FsGen.loadingPath:
+      return state.updateIn(
+        ['loadingPaths', action.payload.path],
+        set =>
+          action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
+      )
     case FsGen.favoritesLoaded:
       return state.set(
         'tlfs',
@@ -79,12 +94,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
-      const entryType =
-        action.payload.entryType ||
-        (() => {
-          const item = state.pathItems.get(path)
-          return item ? item.type : 'unknown'
-        })()
+      const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
       return state.setIn(
         ['downloads', key],
         Constants.makeDownload({
@@ -111,11 +121,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
-    case FsGen.downloadFinished: {
-      const {key, error} = action.payload
+    case FsGen.downloadSuccess: {
       return state.updateIn(
-        ['downloads', key, 'state'],
-        original => original && original.set('isDone', true).set('error', error)
+        ['downloads', action.payload.key, 'state'],
+        original => original && original.set('isDone', true)
       )
     }
     case FsGen.dismissDownload: {
@@ -125,12 +134,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
       )
-    case FsGen.uploadWritingFinished: {
-      const {path, error} = action.payload
-      const withError = error ? state.setIn(['uploads', 'errors', path], error) : state
-      return withError.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
-        writingToJournal.remove(action.payload.path)
-      )
+    case FsGen.uploadWritingSuccess: {
+      const {path} = action.payload
+      return state
+        .removeIn(['uploads', 'errors', path])
+        .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
@@ -167,7 +175,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(
         ['pathItems', action.payload.path],
         pathItem =>
-          pathItem && pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
+          pathItem
+            ? pathItem.type === 'file'
+              ? pathItem.set('mimeType', action.payload.mimeType)
+              : pathItem
+            : Constants.makeFile({
+                mimeType: action.payload.mimeType,
+                name: Types.getPathName(action.payload.path),
+              })
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
@@ -176,8 +191,20 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
       }
+
+      const existingNewFolderNames = new Set(
+        state.edits
+          .filter(edit => edit.parentPath === parentPath)
+          .map(edit => edit.name)
+          .toSet()
+      )
+
       let newFolderName = 'New Folder'
-      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+      for (
+        let i = 2;
+        parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
+        ++i
+      ) {
         newFolderName = `New Folder ${i}`
       }
 
@@ -200,36 +227,71 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
-    case FsGen.editSuccess:
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
-    case FsGen.editFailed:
-      // $FlowFixMe
-      return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.fsError:
-      return state.setIn(['errors', Constants.makeUUID()], action.payload.error)
+      const {erroredAction, error} = action.payload.error
+      logger.error('error (fs)', erroredAction.type, error)
+      const nextState: Types.State = state.setIn(['errors', Constants.makeUUID()], action.payload.error)
+
+      switch (erroredAction.type) {
+        case FsGen.commitEdit:
+          // $FlowFixMe
+          return nextState.setIn(['edits', erroredAction.payload.editID, 'status'], 'failed')
+        case FsGen.upload:
+          // $FlowFixMe
+          return nextState.setIn(
+            [
+              'uploads',
+              'errors',
+              Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
+            ],
+            error
+          )
+        case FsGen.download:
+          if (erroredAction.payload.intent !== 'none') {
+            return nextState
+          }
+          // $FlowFixMe
+          return nextState.updateIn(
+            ['downloads', erroredAction.payload.key, 'state'],
+            original => original && original.set('isDone', true).set('error', error)
+          )
+        default:
+          return nextState
+      }
+    case FsGen.userFileEditsLoaded:
+      return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
-    case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.fsActivity:
+    case FsGen.notifySyncActivity:
+    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
+    case FsGen.openPathInFilesTab:
+    case FsGen.openPathInSystemFileManager:
+    case FsGen.openLocalPathInSystemFileManager:
     case FsGen.commitEdit:
+    case FsGen.editSuccess:
     case FsGen.letResetUserBackIn:
+    case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
+    case FsGen.openFilesFromWidget:
+    case FsGen.userFileEditsLoad:
       return state
     default:
       /*::

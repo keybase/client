@@ -16,12 +16,14 @@ const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
-  fsWritesEnabled: true,
+  fileWidgetEnabled: false,
   plansEnabled: false,
   walletsEnabled: false,
+  newTeamBuildingForChat: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  fileWidgetEnabled: true,
   walletsEnabled: true,
 }
 

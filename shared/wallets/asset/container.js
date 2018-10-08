@@ -24,8 +24,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerName || 'Unknown',
     name: asset.name,
-    reserves: asset.reserves,
+    reserves: asset.reserves.toArray(),
   }
 }
 
-export default connect(mapStateToProps, null, mergeProps)(Asset)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(Asset)

@@ -1,8 +1,21 @@
 // @flow
 import * as React from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
-type Props = {}
+type HeaderOnMobileProps = {
+  title?: string,
+  onBack?: ?() => void,
+  onCancel?: ?() => void,
+  hideBackLabel?: boolean,
+  headerStyle?: StylesCrossPlatform,
+  customComponent?: ?React.Node,
+  theme?: 'light' | 'dark', // defaults to light
+  rightActionLabel?: string,
+  onRightAction?: ?() => void,
+}
 
-declare export default function HeaderOnMobile<P: {}>(
+// TODO could try and enforce that the types match but for now we assume anything is ok
+
+declare export default function HeaderOnMobile<P>(
   WrappedComponent: React.ComponentType<P>
-): React.ComponentType<P & Props>
+): React.ComponentType<P>

@@ -21,7 +21,7 @@ function TrackerError({errorMessage, onRetry, onClose}: Props) {
         headerStyle={{position: undefined}}
         loggedIn={false}
       />
-      <Text style={errorTextStyle} type="BodyError">
+      <Text style={errorTextStyle} type="BodySmallError">
         {errorMessage}
       </Text>
       <ButtonBar>

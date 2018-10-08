@@ -55,12 +55,12 @@ const TeamRow = ({
             <Box style={styles.topLine}>
               <Text type="BodySemibold">{name}</Text>
               {isOpen && (
-                <Meta title="open" style={styles.charm} backgroundColor={Styles.globalColors.green} />
+                <Meta title="open" style={styles.isOpen} backgroundColor={Styles.globalColors.green} />
               )}
             </Box>
             <Box style={styles.bottomLine}>
               {isNew && (
-                <Meta title="new" style={styles.charm} backgroundColor={Styles.globalColors.orange} />
+                <Meta title="new" style={styles.isNew} backgroundColor={Styles.globalColors.orange} />
               )}
               <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
             </Box>
@@ -106,9 +106,13 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
     marginLeft: Styles.globalMargins.tiny,
   },
-  charm: {
+  isOpen: {
     alignSelf: 'center',
     marginLeft: 4,
+  },
+  isNew: {
+    alignSelf: 'center',
+    marginRight: 4,
   },
   badge: {
     position: 'absolute',
@@ -132,6 +136,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flex: 1,
+    marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
   avatarContainer: {

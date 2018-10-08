@@ -17,7 +17,7 @@ type Props = {
 }
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
@@ -44,7 +44,8 @@ const InviteAddedToTeamNotice = (props: Props) => {
             'you'
           ) : (
             <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-          )}.
+          )}
+          .
         </Text>
       }
     />

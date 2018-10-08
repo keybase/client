@@ -1,5 +1,5 @@
 // @flow
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
@@ -7,6 +7,8 @@ import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../c
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {gitGitPushType} from '../../../../constants/types/rpc-gen'
+
+const branchRefPrefix = 'refs/heads/'
 
 type Props = {
   message: Types.MessageSystemGitPush,
@@ -18,7 +20,7 @@ type Props = {
 const gitPushType = invert(gitGitPushType)
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
@@ -37,7 +39,8 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >
           {repo}
-        </Text>.
+        </Text>
+        .
       </Text>
     </Box>
   )
@@ -54,7 +57,8 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
           type="BodySmallSemibold"
           style={repoID ? {color: globalColors.black_60} : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
-        >{` ${repo}/${branchName}`}</Text>:
+        >{` ${repo}/${branchName}`}</Text>
+        :
       </Text>
       <Box style={globalStyles.flexBoxColumn}>
         {(commitRef.commits || []).map((commit, i) => (
@@ -127,7 +131,10 @@ class GitPush extends React.PureComponent<Props> {
     switch (gitType) {
       case 'default':
         return refs.map(ref => {
-          const branchName = ref.refName.split('/')[2]
+          let branchName = ref.refName
+          if (branchName.startsWith(branchRefPrefix)) {
+            branchName = branchName.substring(branchRefPrefix.length)
+          } // else show full ref
           return (
             <GitPushCommon
               key={branchName}

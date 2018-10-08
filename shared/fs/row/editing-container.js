@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import Editing from './editing'
 
 type OwnProps = {
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {editID}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {editID, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {editID, routePath}: OwnProps) => ({
   onSubmit: () => dispatch(FsGen.createCommitEdit({editID})),
   onUpdate: (name: string) => dispatch(FsGen.createNewFolderName({editID, name})),
   onCancel: () => dispatch(FsGen.createDiscardEdit({editID})),
@@ -42,6 +42,10 @@ const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('EditingRow')
 )(Editing)

@@ -4,13 +4,13 @@ import * as I from 'immutable'
 import {
   Box,
   Box2,
-  Button,
+  ButtonBar,
   ClickableBox,
   Dropdown,
   Input,
   PopupDialog,
   Text,
-  ButtonBar,
+  WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {capitalize} from 'lodash-es'
@@ -28,7 +28,7 @@ const _makeDropdownItem = (item: string) => (
       paddingRight: globalMargins.small,
     }}
   >
-    <Text type="Body">{capitalize(item)}</Text>
+    <Text type="BodyBig">{capitalize(item)}</Text>
   </Box>
 )
 
@@ -141,7 +141,12 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
             </Box2>
 
             <ButtonBar>
-              <Button label="Invite" onClick={this._onInvite} type="Primary" />
+              <WaitingButton
+                label="Invite"
+                onClick={this._onInvite}
+                type="Primary"
+                waitingKey={props.waitingKey}
+              />
             </ButtonBar>
           </Box>
         </Box>

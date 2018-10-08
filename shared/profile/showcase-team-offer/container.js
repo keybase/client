@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
@@ -41,10 +41,14 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.loadTeams()
     },
-  }),
+  })
 )(HeaderOnMobile(Render))

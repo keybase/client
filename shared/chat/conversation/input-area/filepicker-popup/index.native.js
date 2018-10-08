@@ -7,7 +7,7 @@ import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Text type="BodySmallSemibold">Select Attachment Type</Text>
+    <Text type="BodySmallSemibold">Select attachment type</Text>
   </Box2>
 )
 

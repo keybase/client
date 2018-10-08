@@ -3,7 +3,6 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import React, {Component} from 'react'
-import {type EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -27,7 +26,7 @@ import {makeLeafTags} from '../route-tree'
 import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
-  mode: 'modal' | null,
+  mode: 'modal' | 'card',
   renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
   onNavigateBack: () => any,
   stack: RouteRenderStack,
@@ -156,8 +155,8 @@ function renderStackRoute(route, shouldRender) {
 }
 
 class MainNavStack extends Component<any, {verticalOffset: number}> {
-  _listener: EmitterListener
-  _mounted = true
+  _listener = null
+  _mounted = false
   state = {
     verticalOffset: 0,
   }
@@ -175,6 +174,11 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
   }
 
   statusBarListener = (frameData: any) => {
+    if (frameData.height === 0 && isIPhoneX) {
+      // this is a rotation event
+      return
+    }
+
     // the iPhone X has default status bar height of 45px
     // and it doesn't increase in height like earlier devices.
     // (so this should always be 0 on an iPhone X, but this should still
@@ -195,7 +199,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
       <CardStackShim
         key={props.routeSelected}
         hidden={false}
-        mode={null}
+        mode="card"
         stack={props.routeStack}
         renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
@@ -361,8 +365,15 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  // MUST spread ownProps as navigateUp overrides the passed in props!!
+  ...ownProps,
+  hideNav: stateProps.hideNav,
+  navigateUp: dispatchProps.navigateUp,
 })
 
 const styles = styleSheetCreate({
@@ -396,4 +407,8 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Nav)

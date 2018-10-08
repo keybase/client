@@ -106,7 +106,9 @@ class EmojiPicker extends React.Component<Props, State> {
           direction="horizontal"
           style={collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
         >
-          {results.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />)}
+          {results.map(e => (
+            <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />
+          ))}
         </Box2>
       )
     }
@@ -118,22 +120,18 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={item => <EmojiRow {...item} onChoose={this.props.onChoose} />}
+        renderItem={item => <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />}
         renderSectionHeader={HeaderRow}
       />
     ) : null
   }
 }
 
-const EmojiRow = ({
-  item,
-  onChoose,
-}: {
-  item: {emojis: Array<EmojiData>, key: string},
-  onChoose: EmojiData => void,
-}) => (
-  <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={onChoose} />)}
+const EmojiRow = (props: {item: {emojis: Array<EmojiData>, key: string}, onChoose: EmojiData => void}) => (
+  <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
+    {props.item.emojis.map(e => (
+      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
+    ))}
   </Box2>
 )
 

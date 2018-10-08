@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box} from '..'
+import Box from '../box'
 import {Gateway} from 'react-gateway'
 import type {Props} from './index.types'
 import {globalStyles} from '../../styles'

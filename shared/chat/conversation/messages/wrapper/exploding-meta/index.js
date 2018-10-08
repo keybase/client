@@ -147,7 +147,7 @@ class ExplodingMeta extends React.Component<Props, State> {
         break
       case 'boom':
         children = (
-          <Box2 direction="horizontal">
+          <Box2 direction="horizontal" style={styles.boomIconContainer}>
             <Icon
               type="iconfont-boom"
               style={castPlatformStyles(styles.boomIcon)}
@@ -222,6 +222,14 @@ const styles = styleSheetCreate({
       left: 0,
     },
   }),
+  boomIconContainer: platformStyles({
+    isElectron: {
+      width: 35,
+    },
+    isMobile: {
+      width: 44,
+    },
+  }),
   container: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
@@ -268,9 +276,6 @@ const styles = styleSheetCreate({
     isMobile: {
       height: 15,
       width: 32,
-    },
-    isAndroid: {
-      height: 17,
     },
   }),
 })

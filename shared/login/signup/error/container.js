@@ -1,6 +1,6 @@
 // @flow
 import Error from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import * as SignupGen from '../../../actions/signup-gen'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -12,4 +12,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRestart: () => dispatch(SignupGen.createRestartSignup()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Error)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Error)

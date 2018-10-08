@@ -35,6 +35,7 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
 
   KBErrorCodeFuseKext = -300,
   KBErrorCodeFuseKextPermission = -301,
+  KBErrorCodeFuseKextMountsPresent = -302,
 };
 
 typedef NS_ENUM (NSInteger, KBErrorResponse) {

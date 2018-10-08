@@ -32,7 +32,7 @@ Edit a message:
     {"method": "edit", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": "new content"}}}}
 
 React to a message:
-	{"method": "reaction", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": ":+1:"}}}}
+    {"method": "reaction", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": ":+1:"}}}}
 
 Upload an attachment:
     {"method": "attach", "params": {"options": {"channel": {"name": "you,them"}, "filename": "photo.jpg", "title": "Sunset last night"}}}
@@ -59,7 +59,7 @@ Mute a conversation:
     {"method": "setstatus", "params": {"options": {"channel": {"name": "you,them"}, "status": "muted"}}}
 
 Search conversation with a regex:
-    {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*", "is_regex": true}}}
+    {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*", "is_regex": true, "sent_by": "you"}}}
 
 Read a team conversation:
     {"method": "read", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "general"}}}}

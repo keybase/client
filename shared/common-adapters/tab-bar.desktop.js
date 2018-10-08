@@ -1,6 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, Avatar, Badge} from '.'
+import Box from './box'
+import Icon from './icon'
+import Text from './text'
+import Avatar from './avatar'
+import Badge from './badge'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
@@ -17,7 +21,7 @@ import {
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 
@@ -49,7 +53,6 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
           style={platformStyles({
             common: {
               color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
-              fontSize: 12,
             },
             isElectron: {
               ...desktopStyles.clickable,
@@ -100,7 +103,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderAvatar(color: string, badgeNumber: number) {
-    if (this.props.source.type !== 'avatar') return // needed to make flow happy
+    if (this.props.source.type !== 'avatar') return null // needed to make flow happy
     return (
       <Box
         className={'nav-item-avatar' + (this.props.selected ? ' selected' : '')}
@@ -133,10 +136,10 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {!!this.props.label && (
           <Text
             className="title"
-            type="BodySmallSemiboldItalic"
+            type="BodyTinySemibold"
             style={{
+              ...stylesNavText,
               color: undefined,
-              fontSize: 12,
               textAlign: 'center',
               ...desktopStyles.clickable,
               ...this.props.styleLabel,
@@ -151,7 +154,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderNav(badgeNumber: number) {
-    if (this.props.source.type !== 'nav') return // needed to make flow happy
+    if (this.props.source.type !== 'nav') return null // needed to make flow happy
     return (
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
@@ -184,7 +187,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   _renderIcon(color: string, badgeNumber: number) {
-    if (this.props.source.type !== 'icon') return // needed to make flow happy
+    if (this.props.source.type !== 'icon') return null // needed to make flow happy
     const backgroundColor = globalColors.darkBlue3
     return (
       <Box

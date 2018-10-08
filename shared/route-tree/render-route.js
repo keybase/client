@@ -5,7 +5,6 @@ import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNod
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import Box from '../common-adapters/box'
 
-import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
 
 type _RenderRouteResult = {
@@ -54,8 +53,8 @@ export type RouteProps<P, S> = {
   setRouteState: (partialState: any) => void,
 
   // Navigation if your path hasn't changed underneath you
-  navigateUp: () => Action,
-  navigateAppend: (...Array<any>) => Action,
+  navigateUp: () => any,
+  navigateAppend: (...Array<any>) => any,
 }
 
 type RenderRouteNodeProps<S> = {

@@ -22,20 +22,23 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop  string
-	Kbfs     string
-	Service  string
-	Updater  string
-	Start    string
-	Install  string
-	System   string
-	Git      string
-	Trace    string
-	Watchdog string
+	Desktop    string
+	Kbfs       string
+	Service    string
+	Updater    string
+	Start      string
+	Install    string
+	System     string
+	Git        string
+	Trace      string
+	CPUProfile string
+	Watchdog   string
 }
 
 // LogSendContext for LogSend
@@ -73,7 +76,7 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -125,6 +128,13 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 	if len(traceBundle) > 0 {
 		l.G().Log.Debug("trace bundle size: %d", len(traceBundle))
 		if err := addFile(mpart, "trace_tar_gz", "trace.tar.gz", traceBundle); err != nil {
+			return "", err
+		}
+	}
+
+	if len(cpuProfileBundle) > 0 {
+		l.G().Log.Debug("CPU profile bundle size: %d", len(cpuProfileBundle))
+		if err := addFile(mpart, "cpu_profile_tar_gz", "cpu_profile.tar.gz", cpuProfileBundle); err != nil {
 			return "", err
 		}
 	}
@@ -431,6 +441,20 @@ func addFilesToTarGz(log logger.Logger, w io.Writer, paths []string) bool {
 	return added
 }
 
+func getBundledFiles(log logger.Logger, files []string, maxFileCount int) []byte {
+	// Send the newest files.
+	if len(files) > maxFileCount {
+		files = files[len(files)-maxFileCount:]
+	}
+
+	buf := bytes.NewBuffer(nil)
+	added := addFilesToTarGz(log, buf, files)
+	if !added {
+		return nil
+	}
+	return buf.Bytes()
+}
+
 func getTraceBundle(log logger.Logger, traceDir string) []byte {
 	traceFiles, err := GetSortedTraceFiles(traceDir)
 	if err != nil {
@@ -438,17 +462,17 @@ func getTraceBundle(log logger.Logger, traceDir string) []byte {
 		return nil
 	}
 
-	// Send the newest trace files.
-	if len(traceFiles) > MaxTraceFileCount {
-		traceFiles = traceFiles[len(traceFiles)-MaxTraceFileCount:]
-	}
+	return getBundledFiles(log, traceFiles, MaxTraceFileCount)
+}
 
-	buf := bytes.NewBuffer(nil)
-	added := addFilesToTarGz(log, buf, traceFiles)
-	if !added {
+func getCPUProfileBundle(log logger.Logger, cpuProfileDir string) []byte {
+	cpuProfileFiles, err := GetSortedCPUProfileFiles(cpuProfileDir)
+	if err != nil {
+		log.Warning("Error getting CPU profile files in %q: %s", cpuProfileDir, err)
 		return nil
 	}
-	return buf.Bytes()
+
+	return getBundledFiles(log, cpuProfileFiles, MaxCPUProfileFileCount)
 }
 
 // LogSend sends the tails of log files to kb, and also the last
@@ -464,6 +488,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var systemLog string
 	var gitLog string
 	var traceBundle []byte
+	var cpuProfileBundle []byte
 	var watchdogLog string
 
 	if sendLogs {
@@ -487,6 +512,9 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		if logs.Trace != "" {
 			traceBundle = getTraceBundle(l.G().Log, logs.Trace)
 		}
+		if logs.CPUProfile != "" {
+			cpuProfileBundle = getCPUProfileBundle(l.G().Log, logs.CPUProfile)
+		}
 		// Only add extended status if we're sending logs
 		if mergeExtendedStatus {
 			statusJSON = l.mergeExtendedStatus(statusJSON)
@@ -503,14 +531,19 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		watchdogLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, uid, installID)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
 }
 
 // mergeExtendedStatus adds the extended status to the given status json blob.
 // If any errors occur the original status is returned unmodified.
 func (l *LogSendContext) mergeExtendedStatus(status string) string {
+	err := jsonw.EnsureMaxDepthBytesDefault([]byte(status))
+	if err != nil {
+		return status
+	}
+
 	var statusObj map[string]interface{}
-	if err := json.Unmarshal([]byte(status), &statusObj); err != nil {
+	if err = json.Unmarshal([]byte(status), &statusObj); err != nil {
 		return status
 	}
 

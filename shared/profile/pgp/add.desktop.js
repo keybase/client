@@ -46,7 +46,7 @@ class PgpAdd extends Component<Props> {
         />
         <Text
           style={styleInfoMessage(!!this.props.errorText)}
-          type={this.props.errorText ? 'BodyError' : 'Body'}
+          type={this.props.errorText ? 'BodySmallError' : 'Body'}
         >
           {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
         </Text>

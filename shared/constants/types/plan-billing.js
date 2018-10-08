@@ -1,7 +1,6 @@
 // @flow
 import HiddenString from '../../util/hidden-string'
 import type {PlanLevel} from './settings'
-import type {TypedAction, NoErrorTypedAction} from './flux'
 
 export type UpdateBillingArgs = {
   planId?: string,
@@ -87,26 +86,27 @@ export type State = {
   errorMessage: ?string,
 }
 
-export type BillingError = TypedAction<'plan-billing:billingError', void, {errorText: string}>
-export type BootstrapData = NoErrorTypedAction<'plan-billing:bootstrapData', void>
-export type FetchBillingAndQuota = NoErrorTypedAction<'plan-billing:fetchBillingAndQuota', void>
-export type FetchBillingOverview = NoErrorTypedAction<'plan-billing:fetchBillingOverview', void>
-export type UpdateBilling = NoErrorTypedAction<'plan-billing:updateBilling', UpdateBillingArgs>
-export type UpdateAvailablePlans = NoErrorTypedAction<
-  'plan-billing:updateAvailablePlans',
-  {availablePlans: AvailablePlans}
->
-export type UpdatePaymentInfo = TypedAction<
-  'plan-billing:updatePaymentInfo',
-  {paymentInfo: PaymentInfo},
-  {error: any}
->
+// TODO generate this
+export type BillingError = {type: 'plan-billing:billingError', payload: {errorText: string}}
+export type BootstrapData = {type: 'plan-billing:bootstrapData', payload: void}
+export type FetchBillingAndQuota = {type: 'plan-billing:fetchBillingAndQuota', payload: void}
+export type FetchBillingOverview = {type: 'plan-billing:fetchBillingOverview', payload: void}
+export type UpdateBilling = {type: 'plan-billing:updateBilling', payload: UpdateBillingArgs}
+export type UpdateAvailablePlans = {
+  type: 'plan-billing:updateAvailablePlans',
+  payload: {availablePlans: AvailablePlans},
+}
+export type UpdatePaymentInfo = {
+  type: 'plan-billing:updatePaymentInfo',
+  payload: {paymentInfo: PaymentInfo},
+  // {error: any}
+}
 export type ChangeType = 'change' | 'upgrade' | 'downgrade'
-export type UpdateBillingAndQuota = TypedAction<
-  'plan-billing:updateBillingAndQuota',
-  BillingAndQuota,
-  {error: any}
->
+export type UpdateBillingAndQuota = {
+  type: 'plan-billing:updateBillingAndQuota',
+  payload: BillingAndQuota,
+  // {error: any}
+}
 export type Actions =
   | UpdateBilling
   | FetchBillingAndQuota

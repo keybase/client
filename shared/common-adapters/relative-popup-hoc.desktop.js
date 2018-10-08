@@ -5,7 +5,7 @@ import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
-import {connect, type Dispatch} from '../util/container'
+import {connect} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
@@ -56,6 +56,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
 
 type ComputedStyle = {
   position: string,
+  zIndex: number,
   top?: number | 'auto',
   left?: number | 'auto',
   right?: number | 'auto',
@@ -71,6 +72,7 @@ const positions: Array<Position> = [
   'left center',
   'top center',
   'bottom center',
+  'center center',
 ]
 
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
@@ -80,7 +82,7 @@ function _computePopupStyle(
   popupCoords: ClientRect,
   offset: ?number
 ): ComputedStyle {
-  const style: ComputedStyle = {position: 'absolute'}
+  const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
   const {pageYOffset, pageXOffset} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
@@ -113,7 +115,7 @@ function _computePopupStyle(
     const xOffset = popupCoords.width + 8
     if (includes(position, 'right') && typeof style.right === 'number') {
       style.right -= xOffset
-    } else if (typeof style.left === 'number') {
+    } else if (includes(position, 'left') && typeof style.left === 'number') {
       style.left -= xOffset
     }
   }
@@ -295,8 +297,8 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   )
 
   const C: React.ComponentType<Props<any>> = connect(
-    undefined,
-    (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+    () => ({}),
+    (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())
         const onPopupWillClose = routeProps.get('onPopupWillClose')
@@ -304,7 +306,8 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
       },
       targetRect: routeProps.get('targetRect'),
       position: routeProps.get('position'),
-    })
+    }),
+    (s, d, o) => ({...o, ...s, ...d})
   )((props: Props<any> & {onClosePopup: () => void}) => {
     // $FlowIssue
     return <ModalPopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />

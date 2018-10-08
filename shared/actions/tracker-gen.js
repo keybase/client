@@ -8,7 +8,8 @@ import * as Types from '../constants/types/tracker'
 import * as FolderTypes from '../constants/types/folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'tracker:'
 export const cacheIdentify = 'tracker:cacheIdentify'
 export const follow = 'tracker:follow'
 export const getMyProfile = 'tracker:getMyProfile'
@@ -120,7 +121,7 @@ type _SetUpdateTrackersPayload = $ReadOnly<{|
 |}>
 type _ShowNonUserPayload = $ReadOnly<{|
   username: string,
-  nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam,
+  nonUser: {throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string},
 |}>
 type _ShowTrackerPayload = $ReadOnly<{|username: string|}>
 type _UnfollowPayload = $ReadOnly<{|username: string|}>

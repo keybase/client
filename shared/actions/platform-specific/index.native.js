@@ -3,11 +3,10 @@ import logger from '../../logger'
 import {type TypedState} from '../../constants/reducer'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
-import * as GregorGen from '../../actions/gregor-gen'
+import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
-import * as RouteTree from '../../constants/route-tree'
-import * as mime from 'react-native-mime-types'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
@@ -18,13 +17,56 @@ import {
   ActionSheetIOS,
   CameraRoll,
   PermissionsAndroid,
+  Clipboard,
 } from 'react-native'
 import {getPath} from '../../route-tree'
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
+import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
-function showShareActionSheet(options: {
+type NextURI = string
+function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+  let goodPath = filePath
+  logger.debug('saveAttachment: ', goodPath)
+  return CameraRoll.saveToCameraRoll(goodPath)
+}
+
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  const fileURL = 'file://' + filePath
+  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
+  const logPrefix = '[saveAttachmentToCameraRoll] '
+  if (!isIOS) {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        message: 'Keybase needs access to your storage so we can download an attachment.',
+        title: 'Keybase Storage Permission',
+      }
+    )
+    if (permissionStatus !== 'granted') {
+      logger.error(logPrefix + 'Unable to acquire storage permissions')
+      throw new Error('Unable to acquire storage permissions')
+    }
+  }
+  try {
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
+    await CameraRoll.saveToCameraRoll(fileURL, saveType)
+    logger.info(logPrefix + 'Success')
+  } catch (e) {
+    // This can fail if the user backgrounds too quickly, so throw up a local notification
+    // just in case to get their attention.
+    PushNotifications.localNotification({
+      message: `Failed to save ${saveType} to camera roll`,
+    })
+    logger.debug(logPrefix + 'failed to save: ' + e)
+    throw e
+  } finally {
+    RNFetchBlob.fs.unlink(filePath)
+  }
+}
+
+function showShareActionSheetFromURL(options: {
   url?: ?any,
   message?: ?any,
   mimeType?: ?string,
@@ -41,64 +83,9 @@ function showShareActionSheet(options: {
   }
 }
 
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
-  let goodPath = filePath
-  logger.debug('saveAttachment: ', goodPath)
-  return CameraRoll.saveToCameraRoll(goodPath)
-}
-
-async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
-  const logPrefix = '[saveAttachmentToCameraRoll] '
-  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
-  if (isIOS && saveType !== 'video') {
-    // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
-    // method for videos.
-    logger.info(logPrefix + 'Saving iOS picture to camera roll')
-    await CameraRoll.saveToCameraRoll(fileURL)
-    return
-  }
-  if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        message: 'Keybase needs access to your storage so we can download an attachment.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
-      logger.error(logPrefix + 'Unable to acquire storage permissions')
-      throw new Error('Unable to acquire storage permissions')
-    }
-  }
-  const download = await RNFetchBlob.config({
-    appendExt: mime.extension(mimeType),
-    fileCache: true,
-  }).fetch('GET', fileURL)
-  logger.info(logPrefix + 'Fetching success, getting local file path')
-  const path = download.path()
-  logger.info(logPrefix + `Saving to ${path}`)
-  try {
-    logger.info(logPrefix + 'Attempting to save')
-    await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
-    logger.info(logPrefix + 'Success')
-  } catch (err) {
-    logger.error(logPrefix + 'Failed:', err)
-    throw err
-  } finally {
-    logger.info(logPrefix + 'Deleting tmp file')
-    await RNFetchBlob.fs.unlink(path)
-  }
-}
-
-// Downloads a file, shows the shareactionsheet, and deletes the file afterwards
-function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
-  const extension = mime.extension(mimeType)
-  return RNFetchBlob.config({appendExt: extension, fileCache: true})
-    .fetch('GET', fileURL)
-    .then(res => res.path())
-    .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
-    .then(([_, path]) => RNFetchBlob.fs.unlink(path))
+// Shows the shareactionsheet for a file, and deletes the file afterwards
+function showShareActionSheetFromFile(filePath: string): Promise<void> {
+  return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
 const openAppSettings = () => {
@@ -118,7 +105,7 @@ const openAppSettings = () => {
 
 const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) =>
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
@@ -126,6 +113,7 @@ const getContentTypeFromURL = (
     ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           let statusCode = response.status
           if (
             statusCode === 200 ||
@@ -133,10 +121,11 @@ const getContentTypeFromURL = (
             // 416 can happen if the file is empty.
             statusCode === 416
           ) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, contentType})
+          cb({statusCode, contentType, disposition})
         })
         .catch(error => {
           console.log(error)
@@ -145,10 +134,12 @@ const getContentTypeFromURL = (
     : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           if (response.status === 200) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
           }
-          cb({statusCode: response.status, contentType})
+          cb({statusCode: response.status, contentType, disposition})
         })
         .catch(error => {
           console.log(error)
@@ -264,7 +255,7 @@ function* loadStartupDetails() {
   )
 }
 
-const waitForStartupDetails = (state: TypedState) => {
+const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -272,21 +263,34 @@ const waitForStartupDetails = (state: TypedState) => {
   // Else we have to wait for the loadStartupDetails to finish
   return Saga.call(function*() {
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: true, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
     yield Saga.take(ConfigGen.setStartupDetails)
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: false, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
   })
+}
+
+const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+  Clipboard.setString(action.payload.text)
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
+  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel
@@ -296,10 +300,10 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 }
 
 export {
-  downloadAndShowShareActionSheet,
+  showShareActionSheetFromFile,
+  showShareActionSheetFromURL,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
-  showShareActionSheet,
   getContentTypeFromURL,
   platformConfigSaga,
 }

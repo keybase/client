@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {BackButton, Box, Text} from '../common-adapters'
-import {connect, type Dispatch} from '../util/container'
+import {connect} from '../util/container'
 import {globalStyles, globalColors} from '../styles'
 import {navigateUp} from '../actions/route-tree'
 
@@ -25,7 +25,11 @@ function DevMenu(props) {
   )
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
 })
-export default connect(() => ({}), mapDispatchToProps)(DevMenu)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(DevMenu)

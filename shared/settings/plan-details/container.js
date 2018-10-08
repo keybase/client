@@ -1,7 +1,7 @@
-// @flow
+// @noflow
 import logger from '../../logger'
-import PlanDetails from './index'
-import {connect} from 'react-redux'
+import PlanDetails from '.'
+import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import {priceToString, planToStars} from '../../constants/plan-billing'
 import {type AvailablePlan} from '../../constants/types/plan-billing'

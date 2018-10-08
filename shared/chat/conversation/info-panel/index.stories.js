@@ -92,9 +92,6 @@ const conversationProps = {
   onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
 
-  onAddPeople: Sb.unexpected('onAddPeople'),
-  onViewTeam: Sb.unexpected('onViewTeam'),
-
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
   onJoinChannel: Sb.unexpected('onJoinChannel'),
   onEditChannel: Sb.unexpected('onEditChannel'),
@@ -110,9 +107,6 @@ const teamCommonProps = {
   onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
   onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
-
-  onAddPeople: Sb.action('onAddPeople'),
-  onViewTeam: Sb.action('onViewTeam'),
 }
 
 const smallTeamProps = {

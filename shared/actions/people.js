@@ -5,8 +5,7 @@ import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
-import * as RouteTypes from '../constants/types/route-tree'
-import * as RouteConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import engine from '../engine'
@@ -94,21 +93,20 @@ const setupEngineListeners = () => {
       .catch(error => console.warn('Error in registering home UI:', error))
   })
 
-  engine().setIncomingActionCreators(
-    'keybase.1.homeUI.homeUIRefresh',
-    () =>
+  engine().setIncomingCallMap({
+    'keybase.1.homeUI.homeUIRefresh': () =>
       _wasOnPeopleTab
-        ? [
+        ? Saga.put(
             PeopleGen.createGetPeopleData({
               markViewed: false,
               numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-            }),
-          ]
-        : null
-  )
+            })
+          )
+        : null,
+  })
 }
 
-const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => {
+const _onNavigateTo = (action: RouteTreeGen.NavigateAppendPayload, state: TypedState) => {
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
@@ -118,7 +116,7 @@ const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => 
   }
 }
 
-const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
+const _onTabChange = (action: RouteTreeGen.SwitchToPayload, state: TypedState) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -148,8 +146,8 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     }
   })
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
-  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
-  yield Saga.safeTakeEveryPure(RouteConstants.navigateTo, _onNavigateTo)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.navigateTo, _onNavigateTo)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 

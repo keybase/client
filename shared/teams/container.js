@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
@@ -21,7 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
   teamnames: getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
@@ -39,7 +40,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  onOpenFolder: (teamname: Teamname) => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+  onOpenFolder: (teamname: Teamname) =>
+    dispatch(
+      FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
+    ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
@@ -61,7 +65,11 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props._loadTeams()

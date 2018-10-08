@@ -47,10 +47,15 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   type: 'folder',
 })
 
+export const makeMime: I.RecordFactory<Types._Mime> = I.Record({
+  mimeType: '',
+  displayPreview: false,
+})
+
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   ...pathItemMetadataDefault,
   type: 'file',
-  mimeType: '',
+  mimeType: null,
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
@@ -150,10 +155,20 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 })
 
 // Populate `time` with Date.now() if not provided.
-export const makeError = (
-  record?: $Rest<Types._FsError, {time: number}> & {time?: number}
-): I.RecordOf<Types._FsError> =>
-  record && record.time ? _makeError(record) : _makeError({...(record || {}), time: Date.now()})
+export const makeError = (record?: {
+  time?: number,
+  error: any,
+  erroredAction: any,
+  retriableAction?: any,
+}): I.RecordOf<Types._FsError> => {
+  let {time, error, erroredAction, retriableAction} = record || {}
+  return _makeError({
+    time: time || Date.now(),
+    error: !error ? 'unknown error' : error.message || JSON.stringify(error),
+    erroredAction,
+    retriableAction,
+  })
+}
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
@@ -162,11 +177,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   tlfs: makeTlfs(),
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
+  loadingPaths: I.Map(),
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
   errors: I.Map(),
+  tlfUpdates: I.List(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -191,11 +207,12 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
 })
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
 const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.darkBlue
+const privateTextColor = globalColors.black_75
 const publicIconColor = globalColors.yellowGreen
 const publicTextColor = globalColors.yellowGreen2
 const unknownTextColor = globalColors.grey
@@ -245,12 +262,20 @@ const itemStylesKeybase = {
 }
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
-  if (usernames.length === 1) {
-    return makeAvatarPathItemIconSpec(usernames[0])
-  } else if (usernames.length > 1) {
-    return makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
-  }
-  return makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+  return usernames.length === 0
+    ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+    : usernames.length === 1
+      ? makeAvatarPathItemIconSpec(usernames[0])
+      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+}
+export const getIconSpecFromUsernamesAndTeamname = (
+  usernames: ?Array<string>,
+  teamname: ?string,
+  me?: ?string
+) => {
+  return teamname && teamname.length > 0
+    ? makeTeamAvatarPathItemIconSpec(teamname)
+    : getIconSpecFromUsernames(usernames || [], me)
 }
 const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -343,10 +368,15 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-export const makeDownloadKey = (path: Types.Path, localPath: string) =>
-  `download:${Types.pathToString(path)}:${localPath}`
-export const makeUploadKey = (localPath: string, path: Types.Path) =>
-  `upload:${Types.pathToString(path)}:${localPath}`
+const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
+export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
+  path,
+  key: makeDownloadKey(path),
+})
+export const getDownloadIntentFromAction = (
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+): Types.DownloadIntent =>
+  action.type === FsGen.download ? 'none' : action.type === FsGen.shareNative ? 'share' : 'camera-roll'
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -489,18 +519,81 @@ export const createFavoritesLoadedFromJSONResults = (
   })
 }
 
-export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
-  if (mimeType === 'text/plain') {
-    return 'text'
+export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
+  path: Types.stringToPath(''),
+  writer: '',
+  serverTime: 0,
+  history: I.List(),
+})
+
+export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  filename: '',
+  serverTime: 0,
+  editType: 'unknown',
+})
+
+const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
+  switch (fsNotificationType) {
+    case RPCTypes.kbfsCommonFSNotificationType.fileCreated:
+      return 'created'
+    case RPCTypes.kbfsCommonFSNotificationType.fileModified:
+      return 'modified'
+    case RPCTypes.kbfsCommonFSNotificationType.fileDeleted:
+      return 'deleted'
+    case RPCTypes.kbfsCommonFSNotificationType.fileRenamed:
+      return 'renamed'
+    default:
+      return 'unknown'
   }
-  if (mimeType.startsWith('image/')) {
-    return 'image'
-  }
-  if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-    return 'av'
-  }
-  if (mimeType === 'application/pdf') {
-    return 'pdf'
+}
+
+export const userTlfHistoryRPCToState = (
+  history: Array<RPCTypes.FSFolderEditHistory>
+): Types.UserTlfUpdates => {
+  let updates = []
+  history.forEach(folder => {
+    const updateServerTime = folder.serverTime
+    const path = pathFromFolderRPC(folder.folder)
+    const tlfUpdates = folder.history
+      ? folder.history.map(({writerName, edits}) =>
+          makeTlfUpdate({
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
+            history: I.List(
+              edits
+                ? edits.map(({filename, notificationType, serverTime}) =>
+                    makeTlfEdit({
+                      filename,
+                      serverTime,
+                      editType: fsNotificationTypeToEditType(notificationType),
+                    })
+                  )
+                : []
+            ),
+          })
+        )
+      : []
+    updates = updates.concat(tlfUpdates)
+  })
+  return I.List(updates)
+}
+
+export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
+  if (mime && mime.displayPreview) {
+    const mimeType = mime.mimeType
+    if (mimeType === 'text/plain') {
+      return 'text'
+    }
+    if (mimeType.startsWith('image/')) {
+      return 'image'
+    }
+    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+      return 'av'
+    }
+    if (mimeType === 'application/pdf') {
+      return 'pdf'
+    }
   }
   return 'default'
 }
@@ -547,6 +640,12 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   }
 }
 
+export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
+  const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return Types.stringToPath('')
+  return Types.stringToPath(`/keybase/${visibility}/${folder.name}`)
+}
+
 export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {
   const elems = Types.getPathElements(path)
   if (elems.length !== 3) {
@@ -561,7 +660,7 @@ export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect 
 // shouldUseOldMimeType determines if mimeType from newItem should reuse
 // what's in oldItem.
 export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+  if (!oldItem.mimeType || newItem.mimeType) {
     return false
   }
 
@@ -652,11 +751,53 @@ export const kbfsEnabled = (state: TypedState) =>
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
 
+export const kbfsOutdated = (state: TypedState) =>
+  isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
+
+export const kbfsUninstallString = (state: TypedState) => {
+  if (state.fs.fuseStatus && state.fs.fuseStatus.status && state.fs.fuseStatus.status.fields) {
+    const field = state.fs.fuseStatus.status.fields.find(element => {
+      return element.key === 'uninstallString'
+    })
+    if (field) {
+      return field.value
+    }
+  }
+  return ''
+}
+
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 
+export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
+  Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
+    case FsGen.favoritesLoad:
+      return 'Failed to load TLF lists.'
+    case FsGen.filePreviewLoad:
+      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.folderListLoad:
+      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.download:
+      return `Failed to download for ${getDownloadIntentFromAction(action)}: ${Types.getPathName(
+        action.payload.path
+      )}.`
+    case FsGen.upload:
+      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
+    case FsGen.notifySyncActivity:
+      return `Failed to gather information about KBFS uploading activities.`
+    case FsGen.refreshLocalHTTPServerInfo:
+      return 'Failed to get information about internal HTTP server.'
+    case FsGen.mimeTypeLoad:
+      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.favoriteIgnore:
+      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInSystemFileManager:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openLocalPathInSystemFileManager:
+      return `Failed to open path: ${action.payload.path}.`
     default:
       return 'An unexplainable error has occurred.'
   }

@@ -33,7 +33,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 }
 
 const ConnectedFiles = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props.getFuseStatus()

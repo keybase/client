@@ -208,6 +208,10 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
+  void ChatSubteamRename(keybase1.UID uid, array<InboxUIItem> convs);
+
+  @notify("")
+  @lint("ignore")
   void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
 
   @notify("")
@@ -218,4 +222,11 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatAttachmentUploadProgress(keybase1.UID uid, ConversationID convID, OutboxID outboxID, long bytesComplete, long bytesTotal);
 
+  @notify("")
+  @lint("ignore")
+  void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
 }

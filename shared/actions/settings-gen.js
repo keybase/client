@@ -8,7 +8,8 @@ import * as Types from '../constants/types/settings'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'settings:'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const invitesClearError = 'settings:invitesClearError'

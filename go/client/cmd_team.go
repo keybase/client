@@ -31,6 +31,7 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdTeamAPI(cl, g),
 			newCmdTeamSettings(cl, g),
 			newCmdTeamProfileLoad(cl, g),
+			newCmdTeamFTL(cl, g),
 		},
 	}
 }

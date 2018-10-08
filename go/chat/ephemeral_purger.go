@@ -190,8 +190,6 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 		return fmt.Errorf("Must call Start() before adding to the Queue")
 	}
 
-	b.Debug(ctx, "Queue purgeInfo: %v, queue: %v", purgeInfo, len(b.pq.queue))
-
 	// We only keep active items in the queue.
 	if !purgeInfo.IsActive {
 		return nil
@@ -203,6 +201,15 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 		b.resetTimer(ctx, purgeInfo)
 	}
 	b.updateQueue(purgeInfo)
+	b.Debug(ctx, "Queue purgeInfo: %v, head: %+v, looping: %v, len(queue): %v",
+		purgeInfo, head, b.looping, len(b.pq.queue))
+
+	// Sanity check to force our timer to fire if it hasn't for some reason.
+	head = b.pq.Peek()
+	if head.purgeInfo.NextPurgeTime.Time().Before(b.clock.Now()) {
+		b.Debug(ctx, "Queue resetting timer, head is in the past.")
+		b.resetTimer(ctx, head.purgeInfo)
+	}
 	return nil
 }
 
@@ -213,6 +220,8 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 
 	// Create a new queue
 	b.pq = newPriorityQueue()
+	heap.Init(b.pq)
+
 	allPurgeInfo, err := b.storage.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
 		b.Debug(ctx, "unable to get purgeInfo: %v", allPurgeInfo)

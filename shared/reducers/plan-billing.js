@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../logger'
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'

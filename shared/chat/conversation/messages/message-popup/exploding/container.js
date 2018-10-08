@@ -1,20 +1,20 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
+import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-import {copyToClipboard} from '../../../../../util/clipboard'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,
@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onAddReaction: () => {
     dispatch(
       Route.navigateAppend([
@@ -55,7 +55,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
   _onCopy: () => {
     if (ownProps.message.type === 'text') {
-      copyToClipboard(ownProps.message.text.stringValue())
+      dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
     }
   },
   _onDownload: () =>
@@ -93,10 +93,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         ordinal: ownProps.message.ordinal,
       })
     ),
-  _onShowInFinder: () =>
+  _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
-    ownProps.message.downloadPath &&
-    dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath})),
+      ownProps.message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: ownProps.message.downloadPath}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -155,6 +156,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ExplodingPopup')
 )(Exploding)

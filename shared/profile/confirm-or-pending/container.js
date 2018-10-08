@@ -3,7 +3,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import ConfirmOrPending from '.'
 import {proveCommonProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
-import {connect} from 'react-redux'
+import {connect} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
@@ -32,4 +32,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(ConfirmOrPending)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ConfirmOrPending)

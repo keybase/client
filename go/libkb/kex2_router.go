@@ -30,7 +30,7 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 		mctx.CDebugf("- KexRouter.Post(%x, %x, %d) -> %s", sessID, sender, seqno, ErrToOk(err))
 	}()
 
-	_, err = mctx.G().API.Post(APIArg{
+	arg := APIArg{
 		Endpoint: "kex2/send",
 		Args: HTTPArgs{
 			"I":      HexArg(sessID[:]),
@@ -39,7 +39,9 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 			"msg":    B64Arg(msg),
 		},
 		MetaContext: mctx.BackgroundWithLogTags(),
-	})
+	}
+	kexAPITimeout(&arg, time.Second*5)
+	_, err = mctx.G().API.Post(arg)
 
 	return err
 }
@@ -53,6 +55,16 @@ type kexResp struct {
 
 func (k *kexResp) GetAppStatus() *AppStatus {
 	return &k.Status
+}
+
+func kexAPITimeout(arg *APIArg, initial time.Duration) {
+	arg.RetryCount = 5
+	arg.RetryMultiplier = 1.0
+	initialMin := time.Second * 3
+	if initial < initialMin {
+		initial = initialMin
+	}
+	arg.InitialTimeout = initial
 }
 
 // Get implements Get in the kex2.MessageRouter interface.
@@ -77,6 +89,7 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 		},
 		MetaContext: mctx.BackgroundWithLogTags(),
 	}
+	kexAPITimeout(&arg, 2*poll)
 	var j kexResp
 
 	if err = mctx.G().API.GetDecode(arg, &j); err != nil {

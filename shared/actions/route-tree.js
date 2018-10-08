@@ -1,12 +1,11 @@
 // @flow
-import * as Types from '../constants/types/route-tree'
-import * as Constants from '../constants/route-tree'
+// TODO deprecate eventually and use RouteTreeGen directly
 import * as I from 'immutable'
 import * as Saga from '../util/saga'
+import * as RouteTreeGen from './route-tree-gen'
 import {getPath} from '../route-tree'
 
 import type {RouteDefParams, Path, PropsPath} from '../route-tree'
-import type {TypedAction} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
 export function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
@@ -15,34 +14,18 @@ export function pathSelector(state: TypedState, parentPath?: Path): I.List<strin
 
 // Set the tree of route definitions. Dispatched at initialization
 // time.
-export function setInitialRouteDef(routeDef: RouteDefParams): Types.SetInitialRouteDef {
-  return {
-    type: Constants.setInitialRouteDef,
-    payload: {routeDef},
-  }
-}
+export const setInitialRouteDef = (routeDef: RouteDefParams) =>
+  RouteTreeGen.createSetInitialRouteDef({routeDef})
 
 // Update the tree of route definitions.  Dispatched when route
 // definitions update through HMR.
-export function refreshRouteDef(
-  loginRouteTree: RouteDefParams,
-  appRouteTree: RouteDefParams
-): Types.RefreshRouteDef {
-  return {
-    type: Constants.refreshRouteDef,
-    payload: {loginRouteTree, appRouteTree},
-  }
-}
+export const refreshRouteDef = (loginRouteTree: RouteDefParams, appRouteTree: RouteDefParams) =>
+  RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree})
 
 // Switch the tree of route definitions. Dispatched when switching
 // from logged out to logged in and vice versa.
-export function switchRouteDef(routeDef: RouteDefParams, path?: Path): Types.SwitchRouteDef {
-  return {
-    type: Constants.switchRouteDef,
-    // $FlowIssue
-    payload: {path, routeDef},
-  }
-}
+export const switchRouteDef = (routeDef: RouteDefParams, path?: Path) =>
+  RouteTreeGen.createSwitchRouteDef({path, routeDef})
 
 // Switch to a new path, restoring the subpath it was previously on. E.g.:
 //
@@ -54,12 +37,7 @@ export function switchRouteDef(routeDef: RouteDefParams, path?: Path): Types.Swi
 //
 // If parentPath is provided, the path will be switched to relative to
 // parentPath without navigating to it.
-export function switchTo(path: Path, parentPath?: Path): Types.SwitchTo {
-  return {
-    type: Constants.switchTo,
-    payload: {path, parentPath},
-  }
-}
+export const switchTo = (path: Path, parentPath?: Path) => RouteTreeGen.createSwitchTo({path, parentPath})
 
 // Navigate to a new absolute path. E.g.:
 //
@@ -75,69 +53,32 @@ export function switchTo(path: Path, parentPath?: Path): Types.SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo(
-  path: PropsPath<any>,
-  parentPath?: ?Path,
-  navigationSource: Types.NavigationSource = 'user'
-): Types.NavigateTo {
-  return {
-    type: Constants.navigateTo,
-    payload: {path, parentPath, navigationSource},
-  }
-}
+export const navigateTo = (path: PropsPath<any>, parentPath?: ?Path) =>
+  RouteTreeGen.createNavigateTo({path, parentPath})
 
 // Navigate to a path relative to the current path.
 // If parentPath is provided, the path will be appended relative to parentPath
 // without navigating to it.
-export function navigateAppend(path: PropsPath<any>, parentPath?: Path): Types.NavigateAppend {
-  return {
-    type: Constants.navigateAppend,
-    payload: {path, parentPath},
-  }
-}
+export const navigateAppend = (path: PropsPath<any>, parentPath?: Path) =>
+  RouteTreeGen.createNavigateAppend({path, parentPath})
 
 // Navigate one step up from the current path.
-export function navigateUp(): Types.NavigateUp {
-  return {
-    type: Constants.navigateUp,
-    payload: null,
-  }
-}
+export const navigateUp = () => RouteTreeGen.createNavigateUp()
 
 // Do a navigate action if the path is still what is expected
-export function putActionIfOnPath<T: TypedAction<any, any, any>>(
-  expectedPath: Path,
-  otherAction: T,
-  parentPath?: Path
-): Types.PutActionIfOnPath<T> {
-  return {
-    type: Constants.putActionIfOnPath,
-    payload: {expectedPath, otherAction, parentPath},
-  }
-}
+export const putActionIfOnPath = (expectedPath: Path, otherAction: any, parentPath?: Path) =>
+  RouteTreeGen.createPutActionIfOnPath({expectedPath, otherAction, parentPath})
 
 // Update the state object of a route at a specified path.
-export function setRouteState(
+export const setRouteState = (
   path: Path,
   partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)
-): Types.SetRouteState {
-  return {
-    type: Constants.setRouteState,
-    payload: {path, partialState},
-  }
-}
+) => RouteTreeGen.createSetRouteState({partialState, path})
 
 // Reset the props and state for a subtree.
-export function resetRoute(path: Path): Types.ResetRoute {
-  return {
-    type: Constants.resetRoute,
-    payload: {path},
-  }
-}
+export const resetRoute = (path: Path) => RouteTreeGen.createResetRoute({path})
 
-function* _putActionIfOnPath({
-  payload: {otherAction, expectedPath, parentPath},
-}: Types.PutActionIfOnPath<any>) {
+function* _putActionIfOnPath({payload: {otherAction, expectedPath, parentPath}}) {
   const state: TypedState = yield Saga.select()
   const currentPath = pathSelector(state, parentPath)
   if (I.is(I.List(expectedPath), currentPath)) {
@@ -146,7 +87,7 @@ function* _putActionIfOnPath({
 }
 
 function* routeSaga(): any {
-  yield Saga.safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
+  yield Saga.safeTakeEvery(RouteTreeGen.putActionIfOnPath, _putActionIfOnPath)
 }
 
 export default routeSaga

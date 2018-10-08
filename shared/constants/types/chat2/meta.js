@@ -1,10 +1,11 @@
 // Metadata about a conversation.
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
-import * as TeamsTypes from '../teams'
-import type {RetentionPolicy} from '../teams'
+import type {RetentionPolicy} from '../retention-policy'
 
+type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
 
@@ -19,7 +20,7 @@ export type _ConversationMeta = {
   isMuted: boolean,
   wasFinalizedBy: string, // a conversation can be finalized but not superseded
   membershipType: MembershipType,
-  minWriterRole: TeamsTypes.TeamRoleType, // minimum role to be able to write into a channel
+  minWriterRole: TeamRoleType, // minimum role to be able to write into a channel
   notificationsDesktop: NotificationsType,
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,

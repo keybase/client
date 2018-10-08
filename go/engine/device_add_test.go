@@ -25,7 +25,8 @@ func TestDeviceAddPUK(t *testing.T) {
 	testDeviceAdd(t, true)
 }
 
-func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret) {
+func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret,
+	uid keybase1.UID) {
 	defer wg.Done()
 	err := (func() error {
 		uis := libkb.UIs{
@@ -46,11 +47,8 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Description: &dname,
 			Type:        libkb.DeviceTypeDesktop,
 		}
-		provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
-		if err := RunEngine2(m, provisionee); err != nil {
-			return err
-		}
-		return nil
+		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
+		return RunEngine2(m, provisionee)
 	})()
 	require.NoError(t, err, "kex2 provisionee")
 }
@@ -78,7 +76,7 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, userX.UID())
 
 	// run DeviceAdd engine on device X
 	uis := libkb.UIs{
@@ -94,7 +92,20 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	wg.Wait()
 }
 
-func TestDeviceAddPhrase(t *testing.T) {
+func TestDeviceAddPhraseLegacyDesktop(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Desktop)
+}
+
+func TestDeviceAddPhraseLegacyMobile(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Mobile)
+}
+
+func TestDeviceAddPhraseV2(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV2)
+}
+
+func testDeviceAddPhrase(t *testing.T, typ libkb.Kex2SecretType) {
+
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -106,7 +117,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
 
-	secretY, err := libkb.NewKex2Secret(false)
+	secretY, err := libkb.NewKex2SecretFromTypeAndUID(typ, userX.UID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +126,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret())
+	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret(), userX.UID())
 
 	// run DeviceAdd engine on device X
 	uis := libkb.UIs{
@@ -152,7 +163,7 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, userX.UID())
 
 	testSecretUI := userX.NewSecretUI()
 

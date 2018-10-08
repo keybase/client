@@ -14,13 +14,16 @@
 1. Delete all icons from this folder
 2. Download iconfont svgs from this [zeplin sheet](https://zpl.io/29y4w5w)
 3. Optionally if there are PNG assets to update, download from this [zeplin sheet](https://zpl.io/VQoMDq4)
-  1. Note: **Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.**
+    - Note: **Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.**
 4. Move assets to the appropriate directory
-  1. svg iconfonts: `client/shared/images/iconfont`
-  2. png assets: `client/shared/images/icons`
+    - svg iconfonts: `client/shared/images/iconfont`
+    - png assets: `client/shared/images/icons`
 5. Generate the iconfont and update constants on both apps
-  1. font: `client/shared/fonts/kb.ttf`
-  2. constants: `client/shared/common-adapters/icon.constants`
+    - `yarn updated-fonts` Will generate a font file and update the constants
+      - font: `client/shared/fonts/kb.ttf`
+      - constants: `client/shared/common-adapters/icon.constants`
+    - `yarn update-constants` will only update the constants
+
 
 ### Notes on SVG output
 
@@ -42,6 +45,10 @@ iconfont. It is okay to have gaps in the counters.
 
 For instructions on adding/modifying icons look at the instructions in this
 [zeplin sheet](https://zpl.io/29y4w5w).
+
+### Notes on Icon Generation
+
+[NOTES.md](NOTES.md)
 
 ### Debugging
 

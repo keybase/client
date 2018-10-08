@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {isAndroid} from '../constants/platform'
 
@@ -28,6 +28,8 @@ const colors = {
   blue3_60_on_white: 'rgb(203, 224, 255)',
   blue4: '#EBF2FC',
   blue5: '#F7F9FC',
+  blueGrey: '#F2F4F7',
+  blueGrey2: '#E0E8F6',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',
@@ -42,8 +44,7 @@ const colors = {
   darkBlue4: '#1036AC',
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   fastBlank: isAndroid ? undefined : '#ffffff',
-  green: '#3DCCA6',
-  green2: '#34AD8D',
+  green: '#37BD99',
   green3: '#E8FAF6',
   grey: '#cccccc',
   lightGrey: '#f0f0f0',

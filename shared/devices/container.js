@@ -4,15 +4,15 @@ import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTree from '../actions/route-tree'
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
+import {compose, connect, setDisplayName, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
 
-const mapStateToProps = (state: Container.TypedState) => ({
+const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
   addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
@@ -36,7 +36,9 @@ const splitAndSortDevices = deviceMap =>
     d => d.revokedAt
   )
 
-const mergeProps = (stateProps, dispatchProps) => {
+type OwnProps = void
+
+function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   return {
     _stateOverride: null,
@@ -52,8 +54,14 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  Container.setDisplayName('Devices'),
-  Container.safeSubmitPerMount(['onBack'])
+const Connected = compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('Devices'),
+  safeSubmitPerMount(['onBack'])
 )(Devices)
+
+export default Connected

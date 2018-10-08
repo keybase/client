@@ -8,7 +8,13 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
 // We keep track of sessionID to response objects since this is initiated by the daemon
-const sessionIDToResponse: {[key: string]: any} = {}
+type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+const sessionIDToResponse: {
+  [key: string]: {
+    error: IncomingErrorCallback,
+    result: ({+passphrase: string, +storeSecret: boolean}) => void,
+  },
+} = {}
 
 function setupEngineListeners() {
   engine().actionOnConnect('registerSecretUI', () => {
@@ -21,26 +27,28 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', (payload, response) => {
-    logger.info('Asked for passphrase')
-    const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
-    const {sessionID} = payload
+  engine().setCustomResponseIncomingCallMap({
+    'keybase.1.secretUi.getPassphrase': (param, response) => {
+      logger.info('Asked for passphrase')
+      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry
+      const {sessionID} = param
 
-    // Stash response
-    sessionIDToResponse[String(sessionID)] = response
+      // Stash response
+      sessionIDToResponse[String(sessionID)] = response
 
-    return [
-      PinentryGen.createNewPinentry({
-        cancelLabel,
-        prompt,
-        retryLabel,
-        sessionID,
-        showTyping: features.showTyping,
-        submitLabel,
-        type,
-        windowTitle,
-      }),
-    ]
+      return Saga.put(
+        PinentryGen.createNewPinentry({
+          cancelLabel,
+          prompt,
+          retryLabel,
+          sessionID,
+          showTyping: features.showTyping,
+          submitLabel,
+          type,
+          windowTitle,
+        })
+      )
+    },
   })
 }
 

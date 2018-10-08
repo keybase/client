@@ -37,7 +37,6 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// provisioner needs to be logged in
 	userX, err := kbtest.CreateAndSignupFakeUser("X", tcX.G)
 	require.NoError(t, err)
-	// provisioner needs to be logged in
 	err = userX.Login(tcX.G)
 	require.NoError(t, err)
 
@@ -108,7 +107,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
+			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), fakeSalt())
 			m := libkb.NewMetaContextForTest(tcY).WithUIs(uis).WithNewProvisionalLoginContext()
 			return engine.RunEngine2(m, provisionee)
 		})()

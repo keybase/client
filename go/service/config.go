@@ -7,13 +7,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -127,6 +131,7 @@ func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID
 	if defaultUsername.IsNil() && len(all) > 0 {
 		defaultUsername = all[0]
 	}
+	hasProvisionedUser := !defaultUsername.IsNil()
 
 	// Callers expect ProvisionedUsernames to contain the DefaultUsername, so
 	// we ensure it is here as a final sanity check before returning.
@@ -136,13 +141,15 @@ func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID
 		provisionedUsernames = append(provisionedUsernames, username.String())
 		hasDefaultUsername = hasDefaultUsername || username.Eq(defaultUsername)
 	}
-	if !hasDefaultUsername {
+
+	if !hasDefaultUsername && hasProvisionedUser {
 		provisionedUsernames = append(provisionedUsernames, defaultUsername.String())
 	}
 
 	return keybase1.AllProvisionedUsernames{
 		DefaultUsername:      defaultUsername.String(),
 		ProvisionedUsernames: provisionedUsernames,
+		HasProvisionedUser:   hasProvisionedUser,
 	}, nil
 }
 
@@ -262,6 +269,64 @@ func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) e
 
 func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {
 	return h.G().GetOutOfDateInfo(), nil
+}
+
+func getNeedUpdate() (bool, error) {
+	updaterPath, err := install.UpdaterBinPath()
+	if err != nil {
+		return false, err
+	}
+	cmd := exec.Command(updaterPath, "need-update")
+	out, err := cmd.Output()
+	if err != nil {
+		return false, err
+	}
+	needUpdate, err := strconv.ParseBool(strings.TrimSpace(string(out)))
+	if err != nil {
+		return false, err
+	}
+	return needUpdate, nil
+}
+
+func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
+	outOfDateInfo := h.G().GetOutOfDateInfo()
+	if len(outOfDateInfo.UpgradeTo) != 0 {
+		// This is from the API server. Consider client critically out of date
+		// if we are asked to upgrade by the API server.
+		return keybase1.UpdateInfo{
+			Status:  keybase1.UpdateInfoStatus_CRITICALLY_OUT_OF_DATE,
+			Message: outOfDateInfo.CustomMessage,
+		}, nil
+	}
+	needUpdate, err := getNeedUpdate() // This is from the updater.
+	if err != nil {
+		h.G().Log.Errorf("Error calling updater: %s", err)
+		return keybase1.UpdateInfo{
+			Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
+		}, err
+	}
+	if needUpdate {
+		return keybase1.UpdateInfo{
+			Status: keybase1.UpdateInfoStatus_NEED_UPDATE,
+		}, nil
+	}
+	return keybase1.UpdateInfo{
+		Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
+	}, nil
+}
+
+func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
+	updaterPath, err := install.UpdaterBinPath()
+	if err != nil {
+		return err
+	}
+	pid, err := libcmdline.SpawnDetachedProcess(
+		updaterPath, []string{"check"}, h.G().Log)
+	if err != nil {
+		return err
+	}
+	h.G().Log.Debug("Starting background updater process (%s). pid=%d", updaterPath, pid)
+	return nil
 }
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {

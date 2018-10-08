@@ -14,7 +14,7 @@ import {ReactionTooltip} from '.'
  */
 
 export type OwnProps = {|
-  attachmentRef?: ?React.Component<any, any>,
+  attachmentRef?: () => ?React.Component<any>,
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
   onHidden: () => void,
@@ -39,7 +39,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {_reactions, _usersInfo}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
     ownProps.onHidden()
     dispatch(
@@ -70,8 +70,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         }))
         .toArray(),
     }))
-    // earliest reactions go at the top
-    .sort((a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0))
+    .sort(
+      // earliest reactions go at the top
+      (a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0)
+    )
+    // strip timestamp
+    .map(e => ({
+      emoji: e.emoji,
+      users: e.users.map(u => ({
+        fullName: u.fullName,
+        username: u.username,
+      })),
+    }))
   if (!isMobile && ownProps.emoji) {
     // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === ownProps.emoji)
@@ -90,6 +100,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ReactionTooltip')
 )(ReactionTooltip)

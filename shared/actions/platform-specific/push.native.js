@@ -17,6 +17,7 @@ import {isIOS} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
+let lastCount = -1
 const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
@@ -24,9 +25,11 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
   )
 
   PushNotifications.setApplicationIconBadgeNumber(count)
-  if (count === 0) {
+  // Only do this native call if the count actually changed, not over and over if its zero
+  if (count === 0 && lastCount !== 0) {
     PushNotifications.cancelAllLocalNotifications()
   }
+  lastCount = count
 }
 
 // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
@@ -138,14 +141,18 @@ const handleLoudMessage = notification => {
   return Saga.call(function*() {
     yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
     yield Saga.put(Chat2Gen.createNavigateToThread())
-    if (unboxPayload && membersType) {
+    if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
-      yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-        convID: conversationIDKey,
-        membersType,
-        payload: unboxPayload,
-        shouldAck: false,
-      })
+      try {
+        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: conversationIDKey,
+          membersType,
+          payload: unboxPayload,
+          shouldAck: false,
+        })
+      } catch (e) {
+        logger.info('[Push] failed to unbox message form payload')
+      }
     }
   })
 }
@@ -158,6 +165,11 @@ const handleFollow = notification => {
   const {username} = notification
   logger.info('[Push] follower: ', username)
   return Saga.put(ProfileGen.createShowUserProfile({username}))
+}
+
+const handleChatExtension = notification => {
+  const {conversationIDKey} = notification
+  return Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
 }
 
 // on iOS the go side handles a lot of push details
@@ -176,6 +188,8 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
         return handleLoudMessage(notification)
       case 'follow':
         return handleFollow(notification)
+      case 'chat.extension':
+        return handleChatExtension(notification)
     }
   } catch (e) {
     if (__DEV__) {
@@ -205,10 +219,12 @@ const uploadPushToken = (state: TypedState) =>
       logger.error("[PushToken] Couldn't save a push token", e)
     })
 
-const deletePushToken = (state: TypedState) =>
+const deletePushToken = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   Saga.call(function*() {
     const waitKey = 'push:deleteToken'
-    yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey}))
+    yield Saga.put(
+      ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+    )
 
     try {
       const deviceID = state.config.deviceID
@@ -225,7 +241,13 @@ const deletePushToken = (state: TypedState) =>
     } catch (e) {
       logger.error('[PushToken] delete failed', e)
     } finally {
-      yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: false, name: waitKey}))
+      yield Saga.put(
+        ConfigGen.createLogoutHandshakeWait({
+          increment: false,
+          name: waitKey,
+          version: action.payload.version,
+        })
+      )
     }
   })
 
@@ -256,7 +278,7 @@ const requestPermissions = () =>
       logger.info('[PushRequesting] asking native')
       const permissions = yield Saga.call(requestPermissionsFromNative)
       logger.info('[PushRequesting] after prompt:', permissions)
-      if (permissions.alert || permissions.badge) {
+      if (permissions?.alert || permissions?.badge) {
         logger.info('[PushRequesting] enabled')
         yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
       } else {

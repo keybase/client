@@ -14,6 +14,7 @@ protocol local {
     string seqno;               // the stellar sequence number for this account 
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+  WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
@@ -55,7 +56,8 @@ protocol local {
     NONE_0,
     KEYBASE_1,
     STELLAR_2,
-    SBS_3
+    SBS_3,
+    OWNACCOUNT_4
   }
 
   // Summary of a payment.
@@ -69,16 +71,34 @@ protocol local {
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23"
+    string worth;                   // "$123.23" (worth at the time the payment was created)
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+                                    // currentWorth is how much the amount of XLM in
+                                    // amountDescription is currently worth in the
+                                    // display currency preference of the user looking
+                                    // at this payment. Both can be "".
+    string currentWorth;            // "$379.12" (worth at the current viewing time)
+    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
+
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;
+
+    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
   }
 
   record PaymentOrErrorLocal {
@@ -89,10 +109,15 @@ protocol local {
   record PaymentsPageLocal {
     array<PaymentOrErrorLocal> payments;
     union { null, PageCursor } cursor;
+    union { null, PaymentID } oldestUnread;  // draw orange line underneath this payment
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
+
+  // markAsReadLocal will mark as "read" all the payments created at or before the time 
+  // of the payment referenced by `mostRecentID`.
+  void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.
@@ -104,15 +129,31 @@ protocol local {
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
     boolean showCancel;             // true if cancel is an option for this payment
-    string amountDescription;       // "1,323.1234567 XLM"
+    string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23"
-    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
+    string worth;                   // "$123.23", amount in local currency at the time of sending, or empty if no OutsideCurrency
+    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+                                    // currentWorth is how much the amount of XLM in
+                                    // amountDescription is currently worth in the
+                                    // display currency preference of the user looking
+                                    // at this payment. Both can be "".
+    string currentWorth;            // "$379.12" (worth at the current viewing time)
+    string currentWorthCurrency;    // "USD", "CAD", of currentWorth
+
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;
@@ -122,9 +163,11 @@ protocol local {
   }
 
   // accountID should be the accountID that you want the details for.
-  // This is used for formatting the amountDescription to know if it is a payment that
-  // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
+  // This is used for formatting the `amountDescription` to know if it
+  // is a payment that increases or decreases the balance. AccountID
+  // is optional, but then `amountDescription` will not be formatted
+  // with "+" or "-", and also `delta` will always be NONE.
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, union { null, AccountID } accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.
@@ -186,30 +229,39 @@ protocol local {
   }
 
   // Check but do not send a payment.
-  // Opt  - Optional field.
-  // Opt* - Optional for this RPC but required for res.readyToSend to be set.
+  // Arguments are optional unless marked [required] or otherwise described.
+  // However, a coherent payment is required in order for res.readyToSend to returned as true.
   BuildPaymentResLocal buildPaymentLocal(
     int sessionID,
+
+    // Exactly one of `from` and `fromPrimaryAccount` must be set.
     AccountID from,
-    // Opt. Stellar seqno of the sender when the user started the form.
-    // If it is old, the payment will be blocked blocked.
+    boolean fromPrimaryAccount, // Whether to send from the user's primary account.
+    // Stellar seqno of the sender when the user started the form.
+    // If it is old, the payment will be blocked.
     string fromSeqno,
-    // Opt*. Recipient username, acctID, or assertion.
+
+    // Recipient username, acctID, or assertion.
     // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     string to,
-    boolean toIsAccountID,
-    string amount, // Opt*. Amount of the asset OR outside currency being sent. Example: "3.005"
+    boolean toIsAccountID, // [required]
+
+    string amount, // Amount of the asset OR outside currency being sent. Example: "3.005"
     // Zero or one of `asset` and `currency` should be set.
-    // If both are null or `asset` is native XLM then XLM are being sent.
+    // If both are null or `asset` is native then XLM are being sent.
     // If `currency` is set then XLM is being sent after converting `amount`.
     // Note: Sending non-XLM assets is not yet supported.
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
-    string secretNote,   // Opt. Encrypted for the sender, and recipient if possible.
-    string publicMemo    // Opt. Public stellar memo field.
+
+    string secretNote,   // Encrypted for the sender, and recipient if possible.
+    string publicMemo    // Public stellar memo field.
   );
   record BuildPaymentResLocal {
     boolean readyToSend;
+
+    // Optional. Set if a valid account ID to send from was found.
+    AccountID from;
 
     // Optional. Error to show with the To field.
     // All errMsg fields are in 'keybase chat language' markdown.
@@ -217,7 +269,7 @@ protocol local {
     string toErrMsg;
 
     // Optional. `arg.to` may be an account ID that resolves to a user.
-    // If this is returned, caller should switch to (to=res.toUsername,toIsAccountID=false).
+    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
     string toUsername;
 
     // Optional. Error to show with the amount field.
@@ -234,8 +286,8 @@ protocol local {
     string publicMemoErrMsg;
 
     // Optional. Blank if non-native assets are being sent or if there is a global error.
-    // Example: "This is *96.5634762 XLM*."
-    // Example: "This is *$246.47*."
+    // Example: "96.5634762 XLM"
+    // Example: "$246.47"
     string worthDescription;
     // Set with `worthDescription`
     // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
@@ -291,26 +343,27 @@ protocol local {
     ParticipantType toUserType; // keybase or SBS
     string toAssertion; // keybase username or sbs assertion.
 
+    // Raw unformatted amount and asset/currency that come with the
+    // request. Can be used directly to build a payment.
     string amount;
+    // Exactly one of asset or currency below is filled
     union { null, Asset } asset;
     union { null, OutsideCurrencyCode } currency;
 
     // Formatted amount of either outside currency or stellar lumens.
-    string amountDescription; // "123.23 CAD"
+    string amountDescription; // "$123.23 CAD"
 
-    // Amount of Stellar lumens and formatted amount of Stellar
-    // lumens. It's either same as amountDescription, or amount of
-    // stellars after converting from outside currency.
-    string amountStellar; // "123.23"
-    string amountStellarDescription; // "123.23 XLM"
-
-    // Payment ID if funded, empty if not funded.
-    boolean completed;
-    KeybaseTransactionID fundingKbTxID;
     RequestStatus status;
   }
-  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
-  void cancelRequestLocal(KeybaseRequestID reqID);
+  RequestDetailsLocal getRequestDetailsLocal(int sessionID, KeybaseRequestID reqID);
+  void cancelRequestLocal(int sessionID, KeybaseRequestID reqID);
+  KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset, 
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
+
+  void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+  boolean isAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+
+  RelayClaimResult cancelPaymentLocal(int sessionID, PaymentID paymentID);
 
   // -------------------------------------------------------
   // CLI protocol
@@ -380,7 +433,7 @@ protocol local {
   // Whether this account is one of this user's.
   boolean ownAccountLocal(AccountID accountID);
 
-  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
+  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary, string name);
 
   // prompts for passphrase
   SecretKey exportSecretKeyLocal(AccountID accountID);

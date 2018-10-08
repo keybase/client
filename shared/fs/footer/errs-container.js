@@ -1,12 +1,12 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Errs from './errs'
 
 const mapStateToProps = state => ({errors: state.fs.errors})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _dismiss: (key: string) => dispatch(FsGen.createDismissFsError({key})),
   _retry: dispatch,
 })
@@ -45,6 +45,10 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedErrs')
 )(Errs)

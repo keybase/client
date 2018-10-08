@@ -2,8 +2,7 @@
 import * as React from 'react'
 import People from './'
 import * as PeopleGen from '../actions/people-gen'
-import {connect} from 'react-redux'
-import {type TypedState} from '../util/container'
+import {connect, type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
@@ -29,7 +28,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: WaitingConstants.anyWaiting(state, getPeopleDataWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   getData: (markViewed = true) =>
     dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
   onSearch: () => {
@@ -50,4 +49,9 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LoadOnMount)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+  // $FlowIssue TODO don't use toJS above, you lose all types
+)(LoadOnMount)

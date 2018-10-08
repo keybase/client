@@ -2,10 +2,11 @@
 import logger from '../logger'
 import * as RS from 'redux-saga'
 import * as Effects from 'redux-saga/effects'
-import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
-import type {Action} from '../constants/types/flux'
+import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
+import type {TypedActions} from '../actions/typed-actions-gen'
+import put from './typed-put'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
@@ -13,7 +14,7 @@ function safeTakeEvery(
   pattern: RS.Pattern,
   worker: Function
 ): RS.ForkEffect<null, Function, $ReadOnlyArray<any>> {
-  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: Action): RS.Saga<void> {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: TypedActions): RS.Saga<void> {
     try {
       yield Effects.call(worker, action)
     } catch (error) {
@@ -43,27 +44,50 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
-function actionToPromise<A, RA>(
+function actionToPromise<A>(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | Promise<RA>
+  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
 ) {
-  return safeTakeEvery(pattern, function*(action: A) {
-    const state: TypedState = yield Effects.select()
-    const toPut = yield Effects.call(f, state, action)
-    if (toPut) {
-      yield Effects.put(toPut)
+  return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
+    try {
+      const state: TypedState = yield Effects.select()
+      const toPut = yield Effects.call(f, state, action)
+      if (toPut) {
+        yield Effects.put(toPut)
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToPromise cancelled')
+      }
     }
   })
 }
 
 // like safeTakeEveryPure but simpler, only 2 params and gives you a state first
-function actionToAction<A, FinalAction>(
-  pattern: RS.Pattern,
-  f: (state: TypedState, action: A) => null | false | FinalAction
-) {
-  return safeTakeEvery(pattern, function*(action: A) {
-    const state: TypedState = yield Effects.select()
-    yield f(state, action)
+function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action: A) => E) {
+  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): Generator<any, void, any> {
+    try {
+      const state: TypedState = yield Effects.select()
+      yield f(state, action)
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToAction cancelled')
+      }
+    }
   })
 }
 
@@ -72,24 +96,17 @@ function actionToAction<A, FinalAction>(
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
+function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
   pattern: RS.Pattern,
-  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalAction,
-  actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
+  pureWorker: (action: A, state: TypedState) => any,
+  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalEffect,
+  actionCreatorsWithError?: ?(result: R, action: A) => FinalErrorEffect
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
     try {
-      let result
-      if (pureWorker.length === 2) {
-        const state: TypedState = yield Effects.select()
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action, state)
-      } else {
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action)
-      }
+      const state: TypedState = yield Effects.select()
+      const result = yield pureWorker(action, state)
 
       if (actionCreatorsWithResult) {
         if (actionCreatorsWithResult.length === 3) {
@@ -115,11 +132,11 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   })
 }
 // Similar to safeTakeEveryPure
-function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
+function safeTakeLatestPure<A, R, FinalEffect, FinalErrorEffect>(
   pattern: RS.Pattern,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
-  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
+  actionCreatorsWithResult?: (result: R, action: A) => FinalEffect,
+  actionCreatorsWithError?: (result: R, action: A) => FinalErrorEffect
 ) {
   const safeTakeLatestPureWorker = function* safeTakeLatestPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
@@ -199,38 +216,6 @@ function safeTakeLatest(
   return _safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
 }
 
-// If you `yield identity(x)` you get x back
-// TODO deprecate
-function identity<X>(x: X) {
-  return Effects.call(() => x)
-}
-
-// these should be opaue types, but eslint doesn't support that yet
-export type Ok<X> = {type: 'ok', payload: X}
-export type Err<E> = {type: 'err', payload: E}
-export type Result<X, E> = Ok<X> | Err<E>
-
-// TODO deprecate, use promise instead
-function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => R>(
-  fn: Fn,
-  a1: A1,
-  a2: A2,
-  a3: A3,
-  a4: A4,
-  a5: A5
-) {
-  const wrapper = function*() {
-    try {
-      const result = yield Effects.call(fn, a1, a2, a3, a4, a5)
-      return {type: 'ok', payload: result}
-    } catch (error) {
-      return {type: 'err', payload: error}
-    }
-  }
-
-  return Effects.call(wrapper)
-}
-
 export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
@@ -240,7 +225,6 @@ export {
   cancelled,
   fork,
   join,
-  put,
   race,
   select,
   spawn,
@@ -251,8 +235,7 @@ export {
 } from 'redux-saga/effects'
 
 export {
-  callAndWrap,
-  identity,
+  put,
   safeTakeEvery,
   safeTakeEveryPure,
   actionToPromise,

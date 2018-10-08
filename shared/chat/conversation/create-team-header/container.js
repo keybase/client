@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import CreateTeamHeader from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 
 type OwnProps = {
@@ -28,4 +28,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.conversationIDKey),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)
+const Connected = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(CreateTeamHeader)
+export default Connected

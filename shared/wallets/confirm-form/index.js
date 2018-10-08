@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Banner from '../banner'
-import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants, {type Recipient} from '../participants'
+import Participants from './participants/container'
 import NoteAndMemo from './note-and-memo'
+import {type Banner as BannerType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -18,16 +18,9 @@ type ConfirmSendProps = {|
   waiting?: boolean,
   encryptedNote?: string,
   publicMemo?: string,
-  bannerBackground?: Background,
-  bannerText?: string,
-
-  // TODO: these props are probably one level too high, and should be in Participants' container.
-  yourUsername: string,
-  yourWalletName: string,
-  yourWalletContents: string,
-  receiverUsername: string,
-  receiverFullName: string,
-  recipientType: Recipient,
+  banners?: Array<BannerType>,
+  sendFailed: boolean,
+  waitingKey?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -40,17 +33,10 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         onBack={props.onBack}
       />
       <Kb.ScrollView style={styles.scrollView}>
-        {!!props.bannerBackground &&
-          !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
-        <Participants
-          recipientType={props.recipientType}
-          isConfirm={true}
-          recipientUsername={props.receiverUsername}
-          recipientFullName={props.receiverFullName}
-          fromWalletUser={props.yourUsername}
-          fromWallet={props.yourWalletName}
-          fromWalletContents={props.yourWalletContents}
-        />
+        {(props.banners || []).map(banner => (
+          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        ))}
+        <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
         )}
@@ -64,23 +50,24 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         gapEnd={true}
         style={styles.buttonContainer}
       >
-        <Kb.Button
+        <Kb.WaitingButton
           type="PrimaryGreen"
+          disabled={props.sendFailed}
           onClick={props.onSendClick}
-          waiting={props.waiting}
+          waitingKey={props.waitingKey}
           fullWidth={true}
           style={styles.button}
           children={
             <React.Fragment>
               <Kb.Icon
                 type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
+                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
                 color={Styles.globalColors.white}
               />
-              <Kb.Text type="BodySemibold" style={styles.buttonText}>
+              <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
-                <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
-                  {props.amount}
+                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
+                  {props.amount} {props.assetType}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>
@@ -94,7 +81,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.white},
   buttonIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.xtiny,
   },
   buttonContainer: Styles.platformStyles({
     common: {

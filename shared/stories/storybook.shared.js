@@ -5,7 +5,14 @@ import * as Styles from '../styles'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
-import {type SelectorMap} from './storybook'
+import {action} from '@storybook/addon-actions'
+import Box from '../common-adapters/box'
+import Text from '../common-adapters/text'
+import ClickableBox from '../common-adapters/clickable-box'
+
+type SelectorMap = {
+  [componentDisplayName: string]: (any => any) | Object,
+}
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
@@ -103,7 +110,7 @@ class StorybookErrorBoundary extends React.Component<
             style={{
               ...Styles.globalStyles.flexBoxColumn,
               backgroundColor: Styles.globalColors.darkBlue3,
-              borderRadius: 4,
+              borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',
             }}
@@ -140,4 +147,50 @@ const scrollViewDecorator = (story: any) => (
   <Kb.ScrollView style={{height: '100%', width: '100%'}}>{story()}</Kb.ScrollView>
 )
 
-export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd, scrollViewDecorator}
+class PerfBox extends React.Component<{copiesToRender: number, children: React.Node}, {key: number}> {
+  state = {key: 1}
+  _text = null
+  _startTime = 0
+  _endTime = 0
+
+  _incrementKey = () => {
+    this.setState(old => ({key: old.key + 1}))
+  }
+
+  _updateTime = () => {
+    this._endTime = this._getTime()
+    const diff = this._endTime - this._startTime
+    console.log('PerfTiming: ', diff)
+  }
+
+  _getTime = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now() // eslint-disable-line
+
+  render() {
+    this._startTime = this._getTime()
+    setTimeout(this._updateTime, 0)
+    return (
+      <Box key={this.state.key}>
+        <ClickableBox onClick={this._incrementKey}>
+          <Text type="Body">Refresh: #{this.state.key}</Text>
+        </ClickableBox>
+        {new Array(this.props.copiesToRender).fill(0).map((_, idx) => (
+          <Box key={idx}>{this.props.children}</Box>
+        ))}
+      </Box>
+    )
+  }
+}
+
+const perfDecorator = (copiesToRender: number = 100) => (story: any) => (
+  <PerfBox copiesToRender={copiesToRender}>{story()} </PerfBox>
+)
+
+export {
+  unexpected,
+  createPropProvider,
+  StorybookErrorBoundary,
+  Rnd,
+  scrollViewDecorator,
+  action,
+  perfDecorator,
+}

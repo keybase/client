@@ -65,11 +65,7 @@ func main() {
 		return
 	}
 
-	g := libkb.NewGlobalContext()
-	g.Init()
-
-	// Set our panel of external services.
-	g.SetServices(externals.GetServices())
+	g := externals.NewGlobalContextInit()
 
 	go HandleSignals(g)
 	err := mainInner(g, startupErrors)

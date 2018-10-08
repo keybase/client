@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/unlock-folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'unlock-folders:'
 export const checkPaperKey = 'unlock-folders:checkPaperKey'
 export const checkPaperKeyDone = 'unlock-folders:checkPaperKeyDone'
 export const closeDone = 'unlock-folders:closeDone'

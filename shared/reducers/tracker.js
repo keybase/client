@@ -48,9 +48,8 @@ export default function(
   switch (action.type) {
     case TrackerGen.resetStore:
       return {
-        ...state,
-        trackers: {},
-        nonUserTrackers: {},
+        ...Constants.initialState,
+        serverStarted: state.serverStarted,
       }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
@@ -91,7 +90,8 @@ export default function(
           isPrivate: nonUser.isPrivate,
           name: nonUser.assertion,
           reason: `You opened ${nonUser.folderName}`,
-          serviceName: nonUser.socialAssertion.service,
+          serviceName: nonUser.service,
+          type: 'nonUser',
         }
       })
     }

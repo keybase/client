@@ -12,7 +12,7 @@ import {isMobile} from '../../../../../constants/platform'
 type OwnProps = {|
   isEditing: boolean,
   measure: null | (() => void),
-  message: Types.MessageText | Types.MessageAttachment,
+  message: Types.DecoratedMessage,
   previous: ?Types.Message,
   toggleMessageMenu: () => void,
 |}
@@ -23,10 +23,21 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
   const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
   const lastPositionExists = orangeLineMessageID === message.id
-  const messageSent = !message.submitState
-  const messageFailed = message.submitState === 'failed'
-  const messagePending = message.submitState === 'pending'
-  const isExplodingUnreadable = message.explodingUnreadable
+
+  // text and attachment messages have a bunch of info about the status.
+  // payments don't.
+  let messageSent, messageFailed, messagePending, isExplodingUnreadable
+  if (message.type === 'text' || message.type === 'attachment') {
+    messageSent = !message.submitState
+    messageFailed = message.submitState === 'failed'
+    messagePending = message.submitState === 'pending'
+    isExplodingUnreadable = message.explodingUnreadable
+  } else {
+    messageSent = true
+    messageFailed = false
+    messagePending = false
+    isExplodingUnreadable = false
+  }
 
   return {
     isBroken,
@@ -62,7 +73,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
+    Constants.authorIsCollapsible(message) &&
+    Constants.authorIsCollapsible(previous)
 
   const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
@@ -70,26 +82,45 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
-  let failureDescription = null
+  let failureDescription = ''
+  let isErrorFixable = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
-    failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+    failureDescription = message.errorReason
+    if (stateProps.isYou && message.submitState === 'pending') {
+      // This is a message still in the outbox, we can retry/edit to fix
+      failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+      isErrorFixable = true
+    }
+  }
+
+  // Properties that are different between request/payment and text/attachment
+  let exploded = false
+  let explodedBy = ''
+  let explodesAt = 0
+  let exploding = false
+  let isEdited = false
+  if (message.type === 'text' || message.type === 'attachment') {
+    exploded = message.exploded
+    explodedBy = message.explodedBy
+    explodesAt = message.explodingTime
+    exploding = message.exploding
+    isEdited = message.hasBeenEdited
   }
 
   return {
     author: message.author,
     conversationIDKey: message.conversationIDKey,
-    exploded: message.exploded,
-    explodedBy: message.explodedBy,
-    explodesAt: message.explodingTime,
-    exploding: message.exploding,
+    exploded,
+    explodedBy,
+    explodesAt,
+    exploding,
     failureDescription,
     includeHeader,
     isBroken: stateProps.isBroken,
-    isEdited: message.hasBeenEdited,
+    isEdited,
     isEditing: stateProps.isEditing,
     isExplodingUnreadable: stateProps.isExplodingUnreadable,
     isFollowing: stateProps.isFollowing,
-    isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
     measure: ownProps.measure,
     message,
@@ -100,21 +131,26 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
-    onCancel: stateProps.isYou
+    onCancel: isErrorFixable
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
-    onRetry: stateProps.isYou
-      ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+    onRetry: isErrorFixable
+      ? () => {
+          message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+        }
       : null,
     ordinal: message.ordinal,
     timestamp: message.timestamp,
     toggleMessageMenu: ownProps.toggleMessageMenu,
-    type: message.type,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('WrapperAuthor')
 )(WrapperAuthor)

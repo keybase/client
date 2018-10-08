@@ -66,11 +66,15 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onSubmit: (passphrase: string) =>
     dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(_Passphrase)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(_Passphrase)

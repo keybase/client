@@ -900,7 +900,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	// if the caller is ok with receiving placeholders
 	var iboxMaxMsgID chat1.MessageID
 	if maxPlaceholders > 0 {
-		iboxRes, err := storage.NewInbox(s.G(), uid).GetConversation(ctx, convID)
+		iboxRes, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
 		if err != nil {
 			s.Debug(ctx, "PullLocalOnly: failed to read inbox for conv, not using: %s", err)
 		} else if iboxRes.Conv.ReaderInfo == nil {
@@ -931,12 +931,6 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return s.storage.ClearAll(ctx, convID, uid)
 }
-
-type ByMsgID []chat1.MessageUnboxed
-
-func (m ByMsgID) Len() int           { return len(m) }
-func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
@@ -986,7 +980,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 			return nil, err
 		}
 
-		sort.Sort(ByMsgID(rmsgsUnboxed))
+		sort.Sort(utils.ByMsgUnboxedMsgID(rmsgsUnboxed))
 		for _, rmsg := range rmsgsUnboxed {
 			rmsgsTab[rmsg.GetMessageID()] = rmsg
 		}
@@ -1063,7 +1057,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		}
 	}
 	if len(merges) > 0 {
-		sort.Sort(ByMsgID(merges))
+		sort.Sort(utils.ByMsgUnboxedMsgID(merges))
 		if err := s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
@@ -1075,7 +1069,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		return res, ierr
 	}
 
-	sort.Sort(ByMsgID(res))
+	sort.Sort(utils.ByMsgUnboxedMsgID(res))
 	return res, nil
 }
 

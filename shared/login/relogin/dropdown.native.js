@@ -9,7 +9,7 @@ import {
   NativeModal,
 } from '../../common-adapters/mobile.native'
 import * as React from 'react'
-import {globalStyles, globalColors} from '../../styles'
+import {borderRadius, globalStyles, globalColors} from '../../styles'
 import {isIOS} from '../../constants/platform'
 
 type Props = {
@@ -136,7 +136,9 @@ class Dropdown extends React.Component<Props, State> {
 
     return (
       <NativePicker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
-        {items.map(i => <NativePicker.Item key={i.label} {...i} />)}
+        {items.map(i => (
+          <NativePicker.Item key={i.label} {...i} />
+        ))}
       </NativePicker>
     )
   }
@@ -185,7 +187,7 @@ class Dropdown extends React.Component<Props, State> {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderRadius: 100,
+  borderRadius,
   height: 40,
   paddingLeft: 17,
   paddingRight: 17,

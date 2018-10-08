@@ -16,4 +16,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       SignupGen.createCheckPassphrase({pass1: new HiddenString(pass1), pass2: new HiddenString(pass2)})
     ),
 })
-export default connect(mapStateToProps, mapDispatchToProps)(Passphrase)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Passphrase)

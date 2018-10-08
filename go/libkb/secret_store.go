@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type SecretRetriever interface {

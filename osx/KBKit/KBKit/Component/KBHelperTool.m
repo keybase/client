@@ -87,6 +87,9 @@
     alertText = @"New Keybase feature: multiple users in macOS";
     // Use a division slash instead of a regular / to avoid weird line breaks.
     infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
+  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]]) {
+    alertText = @"Keybase helper update";
+    infoText = @"This Keybase release contains security updates to the helper tool.\n\nYou may need to enter your password for this update.";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];

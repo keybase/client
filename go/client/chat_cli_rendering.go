@@ -510,7 +510,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.TxID.String())
+	details, err := cli.PaymentDetailCLILocal(ctx, stellar1.TransactionIDFromPaymentID(body.PaymentID).String())
 	if err != nil {
 		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"
@@ -553,15 +553,16 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 		return formattingErrorStr
 	}
 
-	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.KeybaseRequestID(body.RequestID))
+	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
+		ReqID: stellar1.KeybaseRequestID(body.RequestID),
+	})
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
 		return formattingErrorStr
 	}
 
 	if details.Currency != nil {
-		view = fmt.Sprintf("requested Lumens worth %s (%s)", details.AmountDescription,
-			details.AmountStellarDescription)
+		view = fmt.Sprintf("requested Lumens worth %s", details.AmountDescription)
 	} else {
 		view = fmt.Sprintf("requested %s", details.AmountDescription)
 	}

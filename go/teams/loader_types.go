@@ -23,15 +23,19 @@ type parentChildOperation struct {
 
 // --------------------------------------------------
 
-type signerX struct {
+type SignerX struct {
 	signer keybase1.UserVersion
 	// Whether the user is definitely an implicit admin
 	implicitAdmin bool
 }
 
+func NewSignerX(signer keybase1.UserVersion, implicitAdmin bool) SignerX {
+	return SignerX{signer, implicitAdmin}
+}
+
 // --------------------------------------------------
 
-type chainLinkUnpacked struct {
+type ChainLinkUnpacked struct {
 	source    *SCChainLink
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
@@ -42,7 +46,11 @@ type chainLinkUnpacked struct {
 	innerTeamID keybase1.TeamID
 }
 
-func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
+func UnpackChainLink(link *SCChainLink) (*ChainLinkUnpacked, error) {
+	return unpackChainLink(link)
+}
+
+func unpackChainLink(link *SCChainLink) (*ChainLinkUnpacked, error) {
 	var outerLink *libkb.OuterLinkV2WithMetadata
 	var err error
 	switch {
@@ -78,7 +86,7 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 			return nil, err
 		}
 	}
-	ret := &chainLinkUnpacked{
+	ret := &ChainLinkUnpacked{
 		source:      link,
 		outerLink:   outerLink,
 		inner:       inner,
@@ -88,43 +96,43 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 	return ret, nil
 }
 
-func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {
+func (l *ChainLinkUnpacked) Seqno() keybase1.Seqno {
 	return l.outerLink.Seqno
 }
 
-func (l *chainLinkUnpacked) SeqType() keybase1.SeqType {
+func (l *ChainLinkUnpacked) SeqType() keybase1.SeqType {
 	return l.outerLink.SeqType
 }
 
-func (l *chainLinkUnpacked) Prev() libkb.LinkID {
+func (l *ChainLinkUnpacked) Prev() libkb.LinkID {
 	return l.outerLink.Prev
 }
 
-func (l *chainLinkUnpacked) LinkID() libkb.LinkID {
+func (l *ChainLinkUnpacked) LinkID() libkb.LinkID {
 	return l.outerLink.LinkID()
 }
 
-func (l *chainLinkUnpacked) SigID() keybase1.SigID {
+func (l *ChainLinkUnpacked) SigID() keybase1.SigID {
 	return l.outerLink.SigID()
 }
 
-func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
+func (l *ChainLinkUnpacked) LinkType() libkb.SigchainV2Type {
 	return l.outerLink.LinkType
 }
 
-func (l *chainLinkUnpacked) isStubbed() bool {
+func (l *ChainLinkUnpacked) isStubbed() bool {
 	return l.inner == nil
 }
 
-func (l chainLinkUnpacked) SignatureMetadata() keybase1.SignatureMetadata {
+func (l ChainLinkUnpacked) SignatureMetadata() keybase1.SignatureMetadata {
 	return l.inner.SignatureMetadata()
 }
 
-func (l chainLinkUnpacked) SigChainLocation() keybase1.SigChainLocation {
+func (l ChainLinkUnpacked) SigChainLocation() keybase1.SigChainLocation {
 	return l.inner.SigChainLocation()
 }
 
-func (l chainLinkUnpacked) LinkTriple() keybase1.LinkTriple {
+func (l ChainLinkUnpacked) LinkTriple() keybase1.LinkTriple {
 	return keybase1.LinkTriple{
 		Seqno:   l.Seqno(),
 		SeqType: l.SeqType(),
@@ -139,7 +147,7 @@ func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {
 	}
 }
 
-func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
+func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 	if l.inner == nil {
 		return fmt.Errorf("cannot check inner-outer match without inner link")
 	}
@@ -186,5 +194,6 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		l.innerLinkID,
 		linkType,
 		useSeqType,
-		l.inner.IgnoreIfUnsupported)
+		l.inner.IgnoreIfUnsupported,
+		nil)
 }

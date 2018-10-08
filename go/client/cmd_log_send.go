@@ -233,18 +233,20 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	}
 
 	traceDir := logDir
+	cpuProfileDir := logDir
 	if status != nil {
 		return libkb.Logs{
-			Desktop:  status.Desktop.Log,
-			Kbfs:     status.KBFS.Log,
-			Service:  status.Service.Log,
-			Updater:  status.Updater.Log,
-			Start:    status.Start.Log,
-			System:   install.SystemLogPath(),
-			Git:      status.Git.Log,
-			Install:  installLogPath,
-			Trace:    traceDir,
-			Watchdog: watchdogLogPath,
+			Desktop:    status.Desktop.Log,
+			Kbfs:       status.KBFS.Log,
+			Service:    status.Service.Log,
+			Updater:    status.Updater.Log,
+			Start:      status.Start.Log,
+			System:     install.SystemLogPath(),
+			Git:        status.Git.Log,
+			Install:    installLogPath,
+			Trace:      traceDir,
+			CPUProfile: cpuProfileDir,
+			Watchdog:   watchdogLogPath,
 		}
 	}
 

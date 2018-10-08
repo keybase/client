@@ -9,12 +9,14 @@ export type Position =
   | 'left center'
   | 'top center'
   | 'bottom center'
+  | 'center center'
 
-export type Props<PP: {}> = {
+export type Props<PP: {}> = {|
+  ...PP,
   targetRect: ?ClientRect,
   position: Position,
   style?: Object,
-} & PP
+|}
 
 export type RelativePopupHocType<PP> = (
   PopupComponent: React.ComponentType<PP>

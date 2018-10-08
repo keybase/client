@@ -390,8 +390,8 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	if n.IsNil() {
 		return nil
 	}
-	if err = n.CheckValid(); err != nil {
-		return err
+	if !n.IsValid() {
+		return NewBadUsernameError(n.String())
 	}
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Icon, Text} from '../../common-adapters'
+import {Box, Icon, Text, WithTooltip} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import OpenInFileUI from '../common/open-in-fileui-container'
+import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
 
 const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
@@ -20,7 +20,9 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
           <Breadcrumb path={path} />
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
-            <OpenInFileUI path={path} />
+            <WithTooltip text="Show in Finder">
+              <OpenInSystemFileManager path={path} />
+            </WithTooltip>
             {onChat && (
               <Icon
                 type="iconfont-chat"

@@ -1,4 +1,4 @@
-# desktop VERSION
+# desktop VERSION. TODO flow supports multiple config files now
 # TODO: work on splitting out the .js.flow files into types.js.flow files
 # To test the future desktop version uncomment lines w/ D1 in front
 [ignore]
@@ -16,16 +16,12 @@
 <PROJECT_ROOT>/desktop/release/.*
 <PROJECT_ROOT>/react-native/react-native-contacts
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
-# all this BS is cause this uses ocaml regexp for some reason and doesnt' include negative lookaheads. we want to ignore node_modules outside of these
-# immutable
-# recompose
-.*/node_modules/[abcdefghjklmnopqstuvwxyzA-Z@-].*
-.*/node_modules/i[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/im[abcdefghijklnopqrstuvwxyzA-Z@-].*
-.*/node_modules/r[abcdfghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/re[abdefghijklmnopqrstuvwxyzA-Z@-].*
-.*/node_modules/rec[abcdefghijklmnpqrstuvwxyzA-Z@-].*
-.*/node_modules/reco[abcdefghijklnopqrstuvwxyzA-Z@-].*
+<PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
+<PROJECT_ROOT>/node_modules/react-navigation/src/views/CardStack/CardStackTransitioner.js
+<PROJECT_ROOT>/node_modules/electron-packager
+<PROJECT_ROOT>/node_modules/react-window
+.*memoize-one.*
+<PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
 .*[.]gif$
 .*[.]png$
 
@@ -42,6 +38,7 @@ munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 experimental.const_params=true
+esproposal.optional_chaining=enable
 
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> '<PROJECT_ROOT>/__mocks__/global-image-stub.js'
 
@@ -50,6 +47,9 @@ module.system=haste
 module.system.haste.use_name_reducers=true
 # strip .js or .js.flow suffix
 module.system.haste.name_reducers='^\(.*\)\.js\(\.flow\)?$' -> '\1'
+module.system.haste.paths.blacklist=.*__mocks__.*
+module.system.haste.paths.blacklist=<PROJECT_ROOT>/node_modules/react-native/Libraries/Animated/src/polyfills/.*
+module.system.haste.paths.whitelist=<PROJECT_ROOT>/node_modules/react-native/Libraries/.*
 # strip .mobile suffix
 # module.system.haste.name_reducers='^\(.*\)\.ios$' -> '\1'
 # module.system.haste.name_reducers='^\(.*\)\.android$' -> '\1'
@@ -83,5 +83,12 @@ untyped-import=off
 deprecated-type=error
 sketchy-number-and=off
 
+[strict]
+nonstrict-import
+unclear-type
+unsafe-getters-setters
+untyped-import
+untyped-type-import
+
 [version]
-^0.79.0
+^0.82.0

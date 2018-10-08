@@ -4,10 +4,11 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
-import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 import Input, {type Props} from '.'
 
 type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   onScrollDown: () => void,
 }
@@ -23,7 +24,7 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
@@ -123,4 +124,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   typing: stateProps.typing,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Input)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Input)

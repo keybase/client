@@ -13,9 +13,39 @@ import {
   metaPending,
   metaUnreachable,
 } from '../constants/tracker'
-import {pathFromFolder} from '../constants/favorite'
 
 // TODO this is a ton of stuff thats ported over from the dumb component. We could reduce this by making a provider and feeding the container
+
+// Copied from old constants/favorite.js
+// Start --->
+import type {UserList} from '../common-adapters/usernames'
+import {defaultKBFSPath} from '../constants/config'
+function pathFromFolder({
+  isPublic,
+  isTeam,
+  users,
+}: {
+  isPublic: boolean,
+  isTeam: boolean,
+  users: UserList,
+}): {sortName: string, path: string} {
+  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
+  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
+  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
+
+  let subdir = 'unknown'
+  if (isTeam) {
+    subdir = 'team'
+  } else if (isPublic) {
+    subdir = 'public'
+  } else {
+    subdir = 'private'
+  }
+
+  const path = `${defaultKBFSPath}/${subdir}/${sortName}`
+  return {sortName, path}
+}
+// <--- End
 
 function createFolder(partialFolder) {
   // $FlowIssue spreading inexact
@@ -189,6 +219,7 @@ const props = {
   onRecheckProof: Sb.action('onRecheckProof'),
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
+  onSendOrRequestLumens: Sb.action('onSendOrRequestLumens'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),

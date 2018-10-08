@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect} from 'react-redux'
+import {connect} from '../../../util/container'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -50,7 +50,7 @@ type DispatchProps = {|
   // TODO remove member
 |}
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
   onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
   _onEditMembership: (name: string, username: string) =>
     dispatch(
@@ -107,4 +107,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(TeamMember)
+export default compose(
+  // $FlowIssue this type is messed up, TODO cleanup
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  HeaderHoc
+)(TeamMember)

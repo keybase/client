@@ -14,7 +14,7 @@ import (
 type LoaderContext interface {
 	// Get new links from the server.
 	getNewLinksFromServer(ctx context.Context,
-		teamID keybase1.TeamID, public bool, lows getLinksLows,
+		teamID keybase1.TeamID, lows getLinksLows,
 		readSubteamID *keybase1.TeamID) (*rawTeam, error)
 	// Get full links from the server.
 	// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
@@ -64,7 +64,7 @@ func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func (r *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error) {
+func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -72,7 +72,7 @@ func (r *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error)
 	if err != nil {
 		return nil, err
 	}
-	var links []*chainLinkUnpacked
+	var links []*ChainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
 		link, err := unpackChainLink(&pLink2)
@@ -103,23 +103,39 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 
 // Get new links from the server.
 func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, public bool, lows getLinksLows,
+	teamID keybase1.TeamID, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
+	return l.getLinksFromServerCommon(ctx, teamID, &lows, nil, readSubteamID)
+}
+
+// Get full links from the server.
+// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
+func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
+	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
+	return l.getLinksFromServerCommon(ctx, teamID, nil, requestSeqnos, readSubteamID)
+}
+
+func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
+	teamID keybase1.TeamID, lows *getLinksLows, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
-	if public {
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	if teamID.IsPublic() {
 		arg.SessionType = libkb.APISessionTypeOPTIONAL
-	} else {
-		arg.SessionType = libkb.APISessionTypeREQUIRED
-
 	}
+
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
-		"low":    libkb.I{Val: int(lows.Seqno)},
-		"public": libkb.B{Val: public},
-		// These don't really work yet on the client or server.
+		"public": libkb.B{Val: teamID.IsPublic()},
+	}
+	if lows != nil {
+		arg.Args["low"] = libkb.I{Val: int(lows.Seqno)}
+		// At some point to save bandwidth these could be hooked up.
 		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
 		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
+	}
+	if len(requestSeqnos) > 0 {
+		arg.Args["seqnos"] = libkb.S{Val: seqnosToString(requestSeqnos)}
 	}
 	if readSubteamID != nil {
 		arg.Args["read_subteam_id"] = libkb.S{Val: readSubteamID.String()}
@@ -141,36 +157,6 @@ func seqnosToString(v []keybase1.Seqno) string {
 		s = append(s, fmt.Sprintf("%d", int(e)))
 	}
 	return strings.Join(s, ",")
-}
-
-// Get full links from the server.
-// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
-func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
-	seqnoCommas := seqnosToString(requestSeqnos)
-
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	arg.Args = libkb.HTTPArgs{
-		"id":     libkb.S{Val: teamID.String()},
-		"seqnos": libkb.S{Val: seqnoCommas},
-		// These don't really work yet on the client or server.
-		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
-		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
-	}
-	if readSubteamID != nil {
-		arg.Args["read_subteam_id"] = libkb.S{Val: readSubteamID.String()}
-	}
-
-	var rt rawTeam
-	if err := l.G().API.GetDecode(arg, &rt); err != nil {
-		return nil, err
-	}
-	if !rt.ID.Eq(teamID) {
-		return nil, fmt.Errorf("server returned wrong team ID: %v != %v", rt.ID, teamID)
-	}
-	return &rt, nil
 }
 
 func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {

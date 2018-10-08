@@ -3,14 +3,14 @@
 // We don't want to log every part of the action, just the useful bits.
 
 import * as I from 'immutable'
-import * as RouteTreeConstants from '../constants/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as WaitingGen from '../actions/waiting-gen'
+import * as EntitiesGen from '../actions/entities-gen'
 import {getPath} from '../route-tree'
 import type {TypedState} from '../constants/reducer'
-import * as Entity from '../constants/types/entities'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = action => {
@@ -31,7 +31,13 @@ const pathActionTransformer = (action, oldState) => {
   }
 }
 
-const entityTransformer = (action: Entity.Actions) => ({
+const entityTransformer = (
+  action:
+    | EntitiesGen.DeleteEntityPayload
+    | EntitiesGen.MergeEntityPayload
+    | EntitiesGen.ReplaceEntityPayload
+    | EntitiesGen.SubtractEntityPayload
+) => ({
   payload: {keyPath: action.payload.keyPath},
   type: action.type,
 })
@@ -40,16 +46,16 @@ const defaultTransformer = ({type}) => ({type})
 const fullOutput = a => a
 
 const actionTransformMap = {
-  [RouteTreeConstants.switchTo]: pathActionTransformer,
-  [RouteTreeConstants.navigateTo]: pathActionTransformer,
-  [RouteTreeConstants.navigateAppend]: pathActionTransformer,
-  [RouteTreeConstants.setRouteState]: pathActionTransformer,
-  [RouteTreeConstants.resetRoute]: pathActionTransformer,
+  [RouteTreeGen.switchTo]: pathActionTransformer,
+  [RouteTreeGen.navigateTo]: pathActionTransformer,
+  [RouteTreeGen.navigateAppend]: pathActionTransformer,
+  [RouteTreeGen.setRouteState]: pathActionTransformer,
+  [RouteTreeGen.resetRoute]: pathActionTransformer,
 
-  'entity:delete': entityTransformer,
-  'entity:merge': entityTransformer,
-  'entity:replace': entityTransformer,
-  'entity:subtract': entityTransformer,
+  [EntitiesGen.deleteEntity]: entityTransformer,
+  [EntitiesGen.mergeEntity]: entityTransformer,
+  [EntitiesGen.replaceEntity]: entityTransformer,
+  [EntitiesGen.subtractEntity]: entityTransformer,
 
   _loadAvatarHelper: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
@@ -78,7 +84,7 @@ const actionTransformMap = {
   },
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
-  [GregorGen.updateReachability]: fullOutput,
+  [GregorGen.updateReachable]: fullOutput,
 
   [Chat2Gen.messageSend]: a => ({
     payload: {conversationIDKey: a.payload.conversationIDKey},

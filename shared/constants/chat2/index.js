@@ -2,8 +2,8 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as TeamBuildingConstants from '../../constants/team-building'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -19,6 +19,7 @@ import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountsInfoMap: I.Map(),
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
@@ -26,6 +27,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
+  isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -34,12 +36,17 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   pendingMode: 'none',
+  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
+  smallTeamsExpanded: false,
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
+
+  // Team Building
+  ...TeamBuildingConstants.makeSubState(),
 })
 
 // We stash the resolved pending conversation idkey into the meta itself
@@ -49,8 +56,8 @@ export const getResolvedPendingConversationIDKey = (state: TypedState) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Constants.noConversationIDKey,
-  targetConversationIDKey: Constants.noConversationIDKey,
+  sourceConversationIDKey: noConversationIDKey,
+  targetConversationIDKey: noConversationIDKey,
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
@@ -122,6 +129,10 @@ export const isUserActivelyLookingAtThisThread = (
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
+export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
+  const meta = getMeta(state, getSelectedConversation(state))
+  return meta.teamname === teamname
+}
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
@@ -170,6 +181,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+// When user clicks wallets icon in chat input, set seenWalletsGregorKey with
+// body of 'true'
+export const seenWalletsGregorKey = 'chat.seenWallets'
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
@@ -225,12 +240,17 @@ export {
 
 export {
   allMessageTypes,
+  authorIsCollapsible,
+  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
+  getRequestMessageInfo,
+  getPaymentMessageInfo,
   isSpecialMention,
   isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
@@ -244,9 +264,13 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
+  uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
+  mergeMessage,
 } from './message'
 
 export {

@@ -11,7 +11,7 @@ const mapStateToProps = (state, {conversationIDKey, teamname, channelname}) => (
   teamname,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxBig'}))
     if (isMobile) {
@@ -27,4 +27,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname || '',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(FilterBigTeamChannel)

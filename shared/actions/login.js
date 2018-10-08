@@ -16,23 +16,19 @@ export function setupLoginHMR(cb: () => void) {
 }
 
 const cancelDesc = 'Canceling RPC'
-const cancelOnCallback = (params, response, state) => {
+const cancelOnCallback = (params, response) => {
   response.error({
     code: RPCTypes.constantsStatusCode.scgeneric,
     desc: cancelDesc,
   })
 }
-const ignoreCallback = (params, state) => {}
+const ignoreCallback = params => {}
 
-const getPassphraseHandler = passphrase => (
-  params: RPCTypes.SecretUiGetPassphraseRpcParam,
-  response,
-  state
-) => {
+const getPassphraseHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
-      cancelOnCallback(params, response, state)
+      cancelOnCallback(params, response)
       return Saga.put(LoginGen.createLoginError({error: new HiddenString(params.pinentry.retryLabel)}))
     } else {
       response.result({
@@ -41,7 +37,7 @@ const getPassphraseHandler = passphrase => (
       })
     }
   } else {
-    cancelOnCallback(params, response, state)
+    cancelOnCallback(params, response)
   }
 }
 
@@ -50,19 +46,21 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
       yield RPCTypes.loginLoginRpcSaga({
-        // cancel if we get any of these callbacks, we're logging in, not provisioning
-        incomingCallMap: {
+        customResponseIncomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
+        },
+        // cancel if we get any of these callbacks, we're logging in, not provisioning
+        incomingCallMap: {
+          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,

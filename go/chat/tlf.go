@@ -107,6 +107,10 @@ func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, publi
 	return res, err
 }
 
+func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+	return nil, fmt.Errorf("LookupName not implemented for KBFSNameInfoSource")
+}
+
 func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
 	defer t.Trace(ctx, func() error { return err }, "AllCryptKeys(%s,%v)", tlfName, public)()
 	_, res, err = t.loadAll(ctx, tlfName, public)

@@ -1,5 +1,4 @@
-// @flow
-import {Component} from 'react' // eslint-disable-line
+// @flow strict
 
 const provablePlatformsMap = {
   twitter: true,
@@ -10,6 +9,7 @@ const provablePlatformsMap = {
   dns: true,
   http: true,
   https: true,
+  web: true,
   rooter: __DEV__,
 }
 
@@ -23,6 +23,7 @@ const platformsExpandedMap = {
   dns: true,
   http: true,
   https: true,
+  web: true,
   rooter: __DEV__,
   btc: true,
   zcash: true,

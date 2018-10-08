@@ -27,6 +27,7 @@ type Kex2Provisioner struct {
 	provisioneeDeviceName string
 	provisioneeDeviceType string
 	mctx                  libkb.MetaContext
+	proof                 *jsonw.Wrapper
 }
 
 // Kex2Provisioner implements kex2.Provisioner interface.
@@ -233,7 +234,8 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 		return nil, err
 	}
 
-	// check the reverse signature
+	// check the reverse signature and put the values from the provisionee into
+	// e.proof
 	if err = e.checkReverseSig(jw); err != nil {
 		m.CDebugf("provisioner failed to verify reverse sig: %s", err)
 		return nil, err
@@ -241,12 +243,12 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 	m.CDebugf("provisioner verified reverse sig")
 
 	// remember some device information for ProvisionUI.ProvisionerSuccess()
-	if err = e.rememberDeviceInfo(jw); err != nil {
+	if err = e.rememberDeviceInfo(e.proof); err != nil {
 		return nil, err
 	}
 
 	// sign the whole thing with provisioner's signing key
-	s, _, _, err := libkb.SignJSON(jw, e.signingKey)
+	s, _, _, err := libkb.SignJSON(e.proof, e.signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -330,9 +332,10 @@ func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 	return token, csrf, nil
 }
 
-// skeletonProof generates a partial key proof structure that
-// device Y can fill in.
-func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (string, error) {
+// skeletonProof generates a partial key proof structure that device Y can
+// fill in. When verifying the reverse signature we fill in the values from Y
+// to check the reverse signature
+func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (sigBody string, err error) {
 
 	// Set the local sigchain guard to tell background tasks
 	// to stay off the sigchain while we do this.
@@ -353,19 +356,25 @@ func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (string, error) {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	jw, err := libkb.KeyProof(m, delg)
+	e.proof, err = libkb.KeyProof(m, delg)
 	if err != nil {
 		return "", err
 	}
-	body, err := jw.Marshal()
+	body, err := e.proof.Marshal()
 	if err != nil {
 		return "", err
 	}
 	return string(body), nil
 }
 
-// checkReverseSig verifies that the reverse sig in jw is valid
-// and matches jw.
+// checkReverseSig verifies that the reverse sig in jw is valid and matches
+// e.proof. The provisionee is only allowed to pass the following fields to the
+// provisioner:
+// body.device
+// body.sibkey.kid
+// The values at these paths in the json reserialized and are inserted into the
+// skeleton proof that we initially passed to the provisionee so we can ensure
+// no other values were added when verifying the signature.
 func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	kid, err := jw.AtPath("body.sibkey.kid").GetString()
 	if err != nil {
@@ -383,8 +392,23 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	}
 
 	// set reverse_sig to nil to verify it:
-	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewNil())
-	msg, err := jw.Marshal()
+	e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewNil())
+
+	// Copy known fields that provisionee set into e.proof
+	deviceWrapper := jw.AtPath("body.device")
+	// NOTE the time value is dropped during Export, value here is arbitrary.
+	device, err := libkb.ParseDevice(deviceWrapper, time.Now())
+	if err != nil {
+		return err
+	}
+	dw, err := device.Export(libkb.LinkType(libkb.DelegationTypeSibkey))
+	if err != nil {
+		return err
+	}
+	e.proof.SetValueAtPath("body.device", dw)
+	e.proof.SetValueAtPath("body.sibkey.kid", jsonw.NewString(kid))
+
+	msg, err := e.proof.Marshal()
 	if err != nil {
 		return err
 	}
@@ -394,7 +418,7 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	}
 
 	// put reverse_sig back in
-	jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
+	e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
 
 	return nil
 }

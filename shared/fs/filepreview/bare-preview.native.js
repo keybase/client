@@ -6,7 +6,7 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {Box, ClickableBox, Text, ProgressIndicator} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
-import {connect, type Dispatch, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -116,4 +116,8 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BarePreview)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BarePreview)

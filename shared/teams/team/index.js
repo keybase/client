@@ -57,7 +57,6 @@ class Team extends React.Component<Props> {
       case 'subteam-subteam':
         return renderSubteamsItem(this.props.teamname, row)
       case 'settings':
-        // $FlowIssue complains about teamname not being in the props but i don't see how that could be true
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
         /*::

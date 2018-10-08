@@ -1,17 +1,16 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import * as FavoriteGen from '../actions/favorite-gen'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
-import {connect, compose, type Dispatch} from '../util/container'
+import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
+import {isWindows, isDarwin} from '../constants/platform'
 
 const closeWindow = () => {
   SafeElectron.getRemote()
@@ -20,7 +19,7 @@ const closeWindow = () => {
 }
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _showUser: (username: string) => {
     const link = urlHelper('user', {username})
     link && openUrl(link)
@@ -28,10 +27,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   logIn: () => {
     dispatch(ConfigGen.createShowMain())
     dispatch(navigateTo([loginTab]))
-  },
-  onFolderClick: (path: ?string) => {
-    dispatch(KBFSGen.createOpen({path: path || defaultKBFSPath}))
-    closeWindow()
   },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
@@ -41,6 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
+  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
   quit: () => {
     closeWindow()
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
@@ -49,9 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: () => {
-    dispatch(FavoriteGen.createFavoriteList())
-  },
+  refresh: () => dispatch(FsGen.createUserFileEditsLoad()),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -65,11 +59,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     link && openUrl(link)
     closeWindow()
   },
+  updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  showUser: () => dispatchProps._showUser(stateProps.username),
-  ...ownProps,
-})
-export default compose(connect(state => state, mapDispatchToProps, mergeProps))(Menubar)
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    showUser: () => dispatchProps._showUser(stateProps.username),
+    ...ownProps,
+  }
+}
+export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

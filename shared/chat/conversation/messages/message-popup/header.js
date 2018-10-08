@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
 import {isAndroid} from '../../../../constants/platform'
 import type {DeviceType} from '../../../../constants/types/devices'
@@ -43,13 +42,13 @@ const MessagePopupHeader = (props: {
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           ENCRYPTED
         </Kb.Text>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           &nbsp;& SIGNED
         </Kb.Text>
@@ -61,7 +60,7 @@ const MessagePopupHeader = (props: {
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             usernames={[author]}
@@ -72,18 +71,23 @@ const MessagePopupHeader = (props: {
       </Kb.Box2>
       <Kb.Box style={styles.headerDetailsContainer}>
         <Kb.Text type="BodySmall">
-          from device&nbsp;<Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
+          from device&nbsp;
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
       <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>
       {deviceRevokedAt && (
-        <PopupHeaderText
-          color={Styles.globalColors.white}
-          backgroundColor={Styles.globalColors.blue}
-          style={Styles.collapseStyles([styles.revokedAtContainer, isLast && styles.revokedAtContainerLast])}
+        <Kb.Box2
+          gap="small"
+          fullWidth={true}
+          gapStart={true}
+          direction="vertical"
+          style={Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-        </PopupHeaderText>
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+          </Kb.PopupHeaderText>
+        </Kb.Box2>
       )}
     </Kb.Box>
   )
@@ -98,10 +102,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      maxWidth: Styles.isMobile ? '100%' : 240,
       width: '100%',
     },
     isElectron: {
+      maxWidth: 240,
       paddingTop: iconSpacing,
     },
     isMobile: {
@@ -128,14 +132,11 @@ const styles = Styles.styleSheetCreate({
       marginTop: 0,
     },
   }),
-  revokedAtContainer: {
-    marginTop: Styles.globalMargins.small,
-    width: '100%',
-  },
   revokedAtContainerLast: {
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
     marginBottom: -Styles.globalMargins.small,
+    overflow: 'hidden',
   },
 })
 

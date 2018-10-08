@@ -220,18 +220,12 @@ func runRotate(t *testing.T, createTeamEK bool) {
 
 	storage := annG.GetTeamEKBoxStorage()
 	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
-	var expectedMaxGeneration keybase1.EkGeneration
 	if createTeamEK {
 		require.NoError(t, err)
-		expectedMaxGeneration = teamEK.Metadata.Generation
 	} else {
 		require.Error(t, err)
 		require.Equal(t, teamEK, keybase1.TeamEk{})
-		expectedMaxGeneration = -1
 	}
-	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
-	require.NoError(t, err)
-	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
 func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
@@ -362,6 +356,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
@@ -402,49 +397,4 @@ func TestEphemeralTeamMemberLeaveAndReadd(t *testing.T) {
 
 func TestEphemeralTeamMemberRemoveAndReadd(t *testing.T) {
 	readdToTeamWithEKs(t, false /* leave */)
-}
-
-func TestEphemeralSelfProvision(t *testing.T) {
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
-
-	user := ctx.installKeybaseForUser("user", 10)
-	user.signup()
-
-	g := user.getPrimaryGlobalContext()
-	ephemeral.ServiceInit(g)
-
-	team := user.createTeam([]*smuUser{})
-	teamName, err := keybase1.TeamNameFromString(team.name)
-	require.NoError(t, err)
-	teamID := teamName.ToPrivateTeamID()
-
-	ekLib := g.GetEKLib()
-	teamEK1, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
-	require.NoError(t, err)
-
-	// Now self provision the user and make sure she can still access the teamEK
-	secUI := user.secretUI()
-	provLoginUI := &libkb.TestLoginUI{Username: user.username}
-	uis := libkb.UIs{
-		ProvisionUI: &testProvisionUI{},
-		LogUI:       g.Log,
-		SecretUI:    secUI,
-		LoginUI:     provLoginUI,
-	}
-
-	m := libkb.NewMetaContextForTest(*user.primaryDevice().tctx).WithUIs(uis)
-	libkb.CreateClonedDevice(*user.primaryDevice().tctx, m)
-	newName := "uncloneme"
-	eng := engine.NewSelfProvisionEngine(g, newName)
-	err = engine.RunEngine2(m, eng)
-	require.NoError(t, err)
-
-	g.GetDeviceEKStorage().ClearCache()
-	g.GetUserEKBoxStorage().ClearCache()
-	g.GetTeamEKBoxStorage().ClearCache()
-
-	teamEK2, err := getTeamEK(g, teamID, teamEK1.Metadata.Generation)
-	require.NoError(t, err)
-	require.Equal(t, teamEK1, teamEK2)
 }

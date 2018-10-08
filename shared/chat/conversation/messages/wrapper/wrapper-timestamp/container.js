@@ -14,19 +14,18 @@ export type OwnProps = {|
   previous: ?Types.Message,
 |}
 
-const decoratedMessageTypes: Array<Types.MessageType> = ['attachment', 'text', 'systemLeft']
 const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
+  if (
+    (message.type === 'text' || message.type === 'attachment') &&
+    (message.exploded || message.errorReason)
+  ) {
     return false
-  }
-  if (decoratedMessageTypes.includes(message.type)) {
-    return true
   }
   if (message.type === 'systemJoined') {
     // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
     return message.author !== you
   }
-  return false
+  return Constants.decoratedMessageTypes.includes(message.type)
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -50,10 +49,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     Constants.enoughTimeBetweenMessages(message, previous) ||
     (message.timestamp && (stateProps.orangeLineAbove || !previous))
 
-  const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : null
+  const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
   let type = 'children'
-  if (['text', 'attachment'].includes(ownProps.message.type)) {
+  if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
     type = 'wrapper-author'
   }
 
@@ -65,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
+    isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,
@@ -75,6 +75,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('WrapperTimestamp'))(
-  WrapperTimestamp
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
+  setDisplayName('WrapperTimestamp')
+)(WrapperTimestamp)

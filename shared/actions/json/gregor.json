@@ -5,19 +5,13 @@
   ],
   "actions": {
     "pushState": {
-      "state": "RPCTypesGregor.State",
+      "state": "Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>",
       "reason": "RPCTypes.PushReason"
     },
+    "startReachability": {},
     "checkReachability": {},
-    "pushOOBM": {
-      "messages": "Array<RPCTypesGregor.OutOfBandMessage>"
-    },
-    "updateReachability": {
-      "reachability": "RPCTypes.Reachability"
-    },
-    "updateSeenMsgs": {
-      "seenMsgs": "Array<Types.NonNullGregorItem>"
-    },
+    "pushOOBM": { "messages": "Array<RPCTypesGregor.OutOfBandMessage>" },
+    "updateReachable": { "reachable": "RPCTypes.Reachable" },
     "updateCategory": {
       "category": "string",
       "body": "string",

@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
   pending: state.teams.teamCreationPending,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   _onCreateNewTeam: (joinSubteam: boolean, teamname: string) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
@@ -41,7 +41,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),

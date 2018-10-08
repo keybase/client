@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 
@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onClose: dispatchProps.navigateUp,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Receive)

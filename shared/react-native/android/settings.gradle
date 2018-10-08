@@ -1,6 +1,7 @@
 rootProject.name = 'Keybase'
 
 include ':app', ':keybaselib'
+
 include ':react-native-push-notification', ':app'
 project(':react-native-push-notification').projectDir = new File(rootProject.projectDir, '../../node_modules/react-native-push-notification/android')
 include ':react-native-camera'
@@ -8,6 +9,6 @@ project(':react-native-camera').projectDir = new File(rootProject.projectDir,   
 include ':react-native-image-picker'
 project(':react-native-image-picker').projectDir = new File(rootProject.projectDir, '../../node_modules/react-native-image-picker/android')
 include ':react-native-fetch-blob'
-project(':react-native-fetch-blob').projectDir = new File(rootProject.projectDir, '../../node_modules/react-native-fetch-blob/android')
+project(':react-native-fetch-blob').projectDir = new File(rootProject.projectDir, '../../node_modules/rn-fetch-blob/android')
 include ':react-native-contacts'
 project(':react-native-contacts').projectDir = new File(rootProject.projectDir, '../../node_modules/react-native-contacts/android')

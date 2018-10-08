@@ -342,13 +342,13 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		return OfflineError{}
 	}
 	// Grab current on disk version
-	ibox := storage.NewInbox(s.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(s.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		s.Debug(ctx, "Sync: failed to get current inbox version (using 0): %s", err.Error())
 		vers = chat1.InboxVers(0)
 	}
-	srvVers, err := ibox.ServerVersion(ctx)
+	srvVers, err := ibox.ServerVersion(ctx, uid)
 	if err != nil {
 		s.Debug(ctx, "Sync: failed to get current inbox server version (using 0): %s", err.Error())
 		srvVers = 0
@@ -385,7 +385,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	switch rtyp {
 	case chat1.SyncInboxResType_CLEAR:
 		s.Debug(ctx, "Sync: version out of date, clearing inbox: %v", vers)
-		if err = ibox.Clear(ctx); err != nil {
+		if err = ibox.Clear(ctx, uid); err != nil {
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
@@ -402,7 +402,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 
 		var iboxSyncRes storage.InboxSyncRes
 		expunges := make(map[string]chat1.Expunge)
-		if iboxSyncRes, err = ibox.Sync(ctx, incr.Vers, incr.Convs); err != nil {
+		if iboxSyncRes, err = ibox.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear

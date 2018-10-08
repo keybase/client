@@ -1,93 +1,118 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  CopyText,
-  Icon,
-  InfoNote,
-  MaybePopup,
-  Text,
-  iconCastPlatformStyles,
-} from '../../common-adapters'
-import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
+import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
+import * as Styles from '../../styles'
+import {SmallAccountID, WalletPopup} from '../common'
+import * as Types from '../../constants/types/wallets'
 
 type Props = {
+  accountID: Types.AccountID,
   secretKey: ?string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
+  walletName: ?string,
 }
 
-export default class extends React.Component<Props> {
-  componentWillMount() {
+export default class ExportSecretKeyPopup extends React.Component<Props> {
+  componentDidMount() {
     this.props.onLoadSecretKey()
   }
 
   render() {
+    const header = (
+      <React.Fragment>
+        {this.props.walletName ? (
+          <Text type="BodySmallSemibold">{this.props.walletName}</Text>
+        ) : (
+          <SmallAccountID accountID={this.props.accountID} />
+        )}
+        <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+          Secret key
+        </Text>
+      </React.Fragment>
+    )
+
+    const mobileHeaderWrapper = (
+      <Box2 direction="horizontal" centerChildren={true} style={styles.header}>
+        <Box2 direction="vertical">{header}</Box2>
+      </Box2>
+    )
+
     return (
-      <MaybePopup onClose={this.props.onClose}>
-        <Box2 direction="vertical" style={styles.container} centerChildren={true}>
-          <Icon
-            type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-            style={iconCastPlatformStyles(styles.icon)}
-          />
-          <Text type="BodySmallSemibold">{this.props.username}’s wallet</Text>
-          <Text type="Header" style={styles.headerText}>
-            Secret key
+      <WalletPopup
+        onClose={this.props.onClose}
+        customCancelText="Close"
+        customComponent={Styles.isMobile && mobileHeaderWrapper}
+        containerStyle={styles.container}
+      >
+        <Icon
+          type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
+          style={iconCastPlatformStyles(styles.icon)}
+        />
+        {!Styles.isMobile && header}
+        {!!this.props.secretKey && (
+          <Box2 direction="vertical" style={styles.secretKeyContainer}>
+            <CopyText withReveal={true} text={this.props.secretKey} />
+          </Box2>
+        )}
+        <InfoNote>
+          <Text type="BodySmall" style={styles.infoNoteText}>
+            Only paste your secret key in 100% safe places.
           </Text>
-          {!!this.props.secretKey && (
-            <Box2 direction="vertical" style={styles.secretKeyContainer}>
-              <CopyText withReveal={true} text={this.props.secretKey} />
-            </Box2>
-          )}
-          <InfoNote>
-            <Text type="BodySmall" style={styles.infoNoteText}>
-              Only paste your secret key in 100% safe places.
-            </Text>
-          </InfoNote>
-          <Button label="Close" onClick={this.props.onClose} type="Secondary" />
-        </Box2>
-      </MaybePopup>
+        </InfoNote>
+        {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
+      </WalletPopup>
     )
   }
 }
 
-const styles = styleSheetCreate({
-  container: platformStyles({
-    common: {
-      alignItems: 'center',
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-    },
-    isElectron: {
-      height: 525,
-      width: 360,
-      paddingBottom: globalMargins.xlarge,
-      paddingTop: globalMargins.xlarge,
-      textAlign: 'center',
-    },
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
     isMobile: {
-      paddingBottom: globalMargins.medium,
-      paddingTop: globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+      paddingBottom: Styles.globalMargins.xlarge,
     },
   }),
-  headerText: {
-    marginBottom: globalMargins.medium,
-  },
-  icon: {
-    marginBottom: globalMargins.small,
-  },
+  header: Styles.platformStyles({
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
+    },
+  }),
+  headerText: Styles.platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.xlarge,
+    },
+  }),
+  icon: Styles.platformStyles({
+    isElectron: {
+      marginBottom: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginBottom: 50,
+    },
+  }),
   infoNoteText: {
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
     textAlign: 'center',
   },
   progressContainer: {
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
   },
-  secretKeyContainer: {
-    marginBottom: globalMargins.medium,
-    maxWidth: 272,
-    width: '100%',
-  },
+  secretKeyContainer: Styles.platformStyles({
+    common: {
+      width: '100%',
+    },
+    isElectron: {
+      maxWidth: 272,
+      marginBottom: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.xlarge,
+    },
+  }),
 })

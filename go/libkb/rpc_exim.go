@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -23,6 +24,7 @@ import (
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	pkgErrors "github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -66,7 +68,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt
@@ -149,22 +151,25 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
-	if e == nil {
+	switch e {
+	case nil:
 		return nil
-	}
-
-	if e == io.EOF {
+	case io.EOF:
 		return &keybase1.Status{
 			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
-	}
-
-	if e == pgpErrors.ErrKeyIncorrect {
+	case pgpErrors.ErrKeyIncorrect:
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
+		}
+	case context.Canceled:
+		return &keybase1.Status{
+			Code: SCCanceled,
+			Name: "SC_CANCELED",
+			Desc: "Canceled",
 		}
 	}
 
@@ -422,7 +427,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := VerificationError{}
+		ret := kbcrypto.VerificationError{}
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
@@ -702,13 +707,11 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return e
 	case SCEphemeralPairwiseMACsMissingUIDs:
-		e := EphemeralPairwiseMACsMissingUIDsError{}
 		uids := []keybase1.UID{}
 		for _, field := range s.Fields {
 			uids = append(uids, keybase1.UID(field.Value))
 		}
-		e.UIDs = uids
-		return e
+		return NewEphemeralPairwiseMACsMissingUIDsError(uids)
 	case SCMerkleClientError:
 		e := MerkleClientError{m: s.Desc}
 		for _, field := range s.Fields {
@@ -724,6 +727,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return e
 	case SCTeamFTLOutdated:
 		return NewTeamFTLOutdatedError(s.Desc)
+	case SCFeatureFlag:
+		var feature Feature
+		for _, field := range s.Fields {
+			if field.Key == "feature" {
+				feature = Feature(field.Value)
+			}
+		}
+		return NewFeatureFlagError(s.Desc, feature)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1914,16 +1925,6 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e VerificationError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCSigCannotVerify,
-		Name: "SC_SIG_CANNOT_VERIFY",
-		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
-		},
-	}
-}
-
 func (e NoSigChainError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCKeyNoEldest,
@@ -2349,5 +2350,13 @@ func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
 	ret.Code = SCTeamFTLOutdated
 	ret.Name = "TEAM_FTL_OUTDATED"
 	ret.Desc = e.msg
+	return ret
+}
+
+func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCFeatureFlag
+	ret.Name = "FEATURE_FLAG"
+	ret.Desc = e.msg
+	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
 }

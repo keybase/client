@@ -46,6 +46,13 @@ const provider = Sb.createPropProviderWithCommon({
       users,
     }
   },
+  WalletsIcon: ownProps => ({
+    isNew: true,
+    onClick: Sb.action('onOpenWalletsForm'),
+    shouldRender: true,
+    size: ownProps.size,
+    style: ownProps.style,
+  }),
 })
 
 type Props = {
@@ -89,12 +96,10 @@ const InputContainer = (props: Props) => {
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onCancelEditing: Sb.action('onCancelEditing'),
     onFilePickerError: Sb.action('onFilePickerError'),
-    onCancelQuoting: Sb.action('onCancelQuoting'),
     onSeenExplodingMessages: Sb.action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
-    pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
     editText: '',
@@ -106,7 +111,6 @@ const InputContainer = (props: Props) => {
       return props.isEditing ? 'some text' : ''
     },
 
-    selectExplodingMode: Sb.action('selectExplodingMode'),
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
   }

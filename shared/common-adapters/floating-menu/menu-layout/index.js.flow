@@ -2,18 +2,20 @@
 import * as React from 'react'
 
 export type MenuItem = {|
-  title: string, // Only used as ID if view is provided for Header
-  view?: React.Node, // Required for header
-  subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   disabled?: boolean,
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   onPress?: void,
   style?: Object,
+  subTitle?: string, // subTitle is not used on native
+  title: string, // Only used as ID if view is provided for Header
+  view?: React.Node, // Required for header
 |}
 
+export type MenuItems = Array<MenuItem | 'Divider' | null>
+
 export type MenuLayoutProps = {
-  items: Array<MenuItem | 'Divider' | null>,
+  items: MenuItems,
   header?: ?MenuItem,
   onHidden: () => void,
   closeOnClick?: boolean,

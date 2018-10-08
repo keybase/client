@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {fsTab} from '../../../constants/tabs'
 import {navigateTo} from '../../../actions/route-tree'
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}) => {
-  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username)
+  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     onReAddToTeam: (username: string) => () =>
@@ -54,6 +54,10 @@ const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onVie
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ResetBanner')
 )(Banner)

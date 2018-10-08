@@ -48,8 +48,15 @@ func NewHome(g *libkb.GlobalContext) *Home {
 	return home
 }
 
+func homeRetry(a libkb.APIArg) libkb.APIArg {
+	a.RetryCount = 3
+	a.InitialTimeout = 4 * time.Second
+	a.RetryMultiplier = 1.1
+	return a
+}
+
 func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
-	defer h.G().CTrace(ctx, "Home#get", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#getToCache", func() error { return err })()
 
 	numPeopleToRequest := 100
 	if numPeopleWanted > numPeopleToRequest {
@@ -65,7 +72,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 		"num_people":   libkb.I{Val: numPeopleToRequest},
 	}
 	var raw rawGetHome
-	if err = h.G().API.GetDecode(arg, &raw); err != nil {
+	if err = h.G().API.GetDecode(homeRetry(arg), &raw); err != nil {
 		return err
 	}
 	home := raw.Home
@@ -92,7 +99,7 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 }
 
 func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (ret keybase1.HomeScreen, err error) {
-	defer h.G().CTrace(ctx, "Home#Get", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#Get", func() error { return err })()
 
 	// 10 people by default
 	if numPeopleWanted < 0 {
@@ -102,26 +109,30 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	h.Lock()
 	defer h.Unlock()
 
-	inCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
-	if inCache {
-		inCache = h.homeCache.isValid(ctx, h.G())
+	useCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
+	if useCache {
+		useCache = h.homeCache.isValid(ctx, h.G())
 	}
 
-	if inCache {
-		h.G().Log.CDebugf(ctx, "| cache is good; skipping get")
-		if markViewed {
-			h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-			tmpErr := h.markViewedWithLock(ctx)
-			if tmpErr != nil {
-				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
+	if useCache && markViewed {
+		h.bustHomeCacheIfBadgedFollowers(ctx)
+		useCache = h.homeCache != nil
+		// If we blew up our cache, get out of here and refetch, proceed with
+		// marking the view.
+		if useCache {
+			h.G().Log.CDebugf(ctx, "| cache is good; going to server to mark view")
+			if err := h.markViewedAPICall(ctx); err != nil {
+				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", err.Error())
 			}
 		}
-	} else {
+	}
+
+	if !useCache {
+		h.G().Log.CDebugf(ctx, "| cache is no good; going fetching from server")
 		// If we've already found the people we need to show in the cache,
 		// there's no reason to reload them.
 		skipLoadPeople := len(people) > 0
-		err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople)
-		if err != nil {
+		if err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople); err != nil {
 			return ret, err
 		}
 	}
@@ -186,16 +197,16 @@ func (p *peopleCache) isValid(ctx context.Context, g *libkb.GlobalContext, numPe
 }
 
 func (h *Home) skipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType) (err error) {
-	defer h.G().CTrace(ctx, "Home#SkipType", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#skipTodoType", func() error { return err })()
 
-	_, err = h.G().API.Post(libkb.APIArg{
+	_, err = h.G().API.Post(homeRetry(libkb.APIArg{
 		Endpoint:    "home/todo/skip",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"type": libkb.I{Val: int(typ)},
 		},
 		NetContext: ctx,
-	})
+	}))
 
 	return err
 }
@@ -211,8 +222,7 @@ func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 }
 
 func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
-
-	defer h.G().CTrace(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
 
 	if h.homeCache == nil {
 		h.G().Log.CDebugf(ctx, "| nil home cache, nothing to bust")
@@ -224,13 +234,11 @@ func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
 		if !item.Badged {
 			continue
 		}
-		typ, err := item.Data.T()
-		if err != nil {
+		if typ, err := item.Data.T(); err != nil {
 			bust = true
 			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: bad item: %v", err)
 			break
-		}
-		if typ == keybase1.HomeScreenItemType_PEOPLE {
+		} else if typ == keybase1.HomeScreenItemType_PEOPLE {
 			bust = true
 			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: found badged home people item @%d", i)
 			break
@@ -253,38 +261,40 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 	if which, ok = keybase1.HomeScreenTodoTypeRevMap[typ]; !ok {
 		which = fmt.Sprintf("unknown=%d", int(typ))
 	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("home#SkipTodoType(%s)", which), func() error { return err })()
 	h.bustCache(ctx, false)
 	return h.skipTodoType(ctx, typ)
 }
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#MarkViewed", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#MarkViewed", func() error { return err })()
 	h.Lock()
 	defer h.Unlock()
 	return h.markViewedWithLock(ctx)
 }
 
 func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#markViewedWithLock", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#markViewedWithLock", func() error { return err })()
 	h.bustHomeCacheIfBadgedFollowers(ctx)
 	return h.markViewedAPICall(ctx)
 }
 
 func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#markViewedAPICall", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#markViewedAPICall", func() error { return err })()
 
-	_, err = h.G().API.Post(libkb.APIArg{
+	if _, err = h.G().API.Post(homeRetry(libkb.APIArg{
 		Endpoint:    "home/visit",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        libkb.HTTPArgs{},
 		NetContext:  ctx,
-	})
-	return err
+	})); err != nil {
+		h.G().Log.CWarningf(ctx, "Unable to home#markViewedAPICall: %v", err)
+	}
+	return nil
 }
 
 func (h *Home) ActionTaken(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#ActionTaken", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#ActionTaken", func() error { return err })()
 	h.bustCache(ctx, false)
 	return err
 }
@@ -299,7 +309,7 @@ type updateGregorMessage struct {
 }
 
 func (h *Home) updateUI(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#updateUI", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#updateUI", func() error { return err })()
 	var ui keybase1.HomeUIInterface
 	if h.G().UIRouter == nil {
 		h.G().Log.CDebugf(ctx, "no UI router, swallowing update")
@@ -318,7 +328,7 @@ func (h *Home) updateUI(ctx context.Context) (err error) {
 }
 
 func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
-	defer h.G().CTrace(ctx, "Home#handleUpdate", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "Home#handleUpdate", func() error { return err })()
 	var msg updateGregorMessage
 	if err = json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		h.G().Log.Debug("error unmarshaling home.update item: %s", err.Error())
@@ -340,9 +350,11 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 func (h *Home) IsAlive() bool {
 	return true
 }
+
 func (h *Home) Name() string {
 	return "Home"
 }
+
 func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case "home.update":
@@ -354,6 +366,7 @@ func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, catego
 		return false, nil
 	}
 }
+
 func (h *Home) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	return true, nil
 }

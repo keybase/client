@@ -7,7 +7,9 @@ package libkb
 
 import (
 	"encoding/base64"
+	"os"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	keychain "github.com/keybase/go-keychain"
 )
 
@@ -56,11 +58,24 @@ func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName stri
 	}
 }
 
+func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(m MetaContext, err error) {
+	if !isIOS || m.G().GetAppType() != MobileAppType ||
+		m.G().AppState.State() == keybase1.AppState_FOREGROUND {
+		return
+	}
+	if err != keychain.ErrorInteractionNotAllowed {
+		return
+	}
+	m.G().Log.Warning("keychain permission denied on mobile: %s", err)
+	os.Exit(4)
+}
+
 func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName NormalizedUsername) (LKSecFullSecret, error) {
 	m.CDebugf("KeychainSecretStore.RetrieveSecret(%s)", accountName)
 	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(m), string(accountName), "", "")
 	if err != nil {
 		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) error: %s", accountName, err)
+		k.mobileKeychainPermissionDeniedCheck(m, err)
 		return LKSecFullSecret{}, err
 	}
 	if encodedSecret == nil {

@@ -7,7 +7,7 @@ if (__STORYBOOK__) {
   // MUST happen first
   const {inject} = require('./stories/mock-react-redux')
   inject()
-  const load = require('./stories/index.native.js').default
+  const load = require('./storybook/index.native').default
   load()
 } else {
   const {load} = require('./app/index.native')

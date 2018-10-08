@@ -82,7 +82,8 @@ func (t BaseServiceType) LastWriterWins() bool                               { r
 func (t BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { return nil, nil }
 func (t BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }
 
-func (t BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes) (string, error) {
+func (t BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes,
+	kbUsername string, sigID keybase1.SigID) (string, error) {
 	return ppr.Text, nil
 }
 
@@ -147,6 +148,29 @@ func (a assertionContext) NormalizeSocialName(service string, username string) (
 	st := a.esc.GetServiceType(service)
 	if st == nil {
 		return "", fmt.Errorf("Unknown social network: %s", service)
+	}
+	return st.NormalizeUsername(username)
+}
+
+//=============================================================================
+
+// NOTE the static methods should only be used in tests or as a basic sanity
+// check for the syntactical correctness of an assertion. All other callers
+// should use the non-static versions.
+// This uses only the 'static' services which exclude any parameterized proofs.
+type staticAssertionContext struct {
+	esc ExternalServicesCollector
+}
+
+func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
+	return staticAssertionContext{esc: s}
+}
+
+func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.esc.GetServiceType(service)
+	if st == nil {
+		// If we don't know about this service, normalize by going to lowercase
+		return strings.ToLower(username), nil
 	}
 	return st.NormalizeUsername(username)
 }

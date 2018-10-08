@@ -2,15 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
+import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
-
-type Role = 'sender' | 'receiver'
+import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
+import {MarkdownMemo} from '../common'
 
 type CounterpartyIconProps = {|
   large: boolean,
+  onShowProfile: string => void,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
 |}
@@ -19,11 +19,17 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <Avatar username={props.counterparty} size={size} />
+      return (
+        <Avatar
+          onClick={() => props.onShowProfile(props.counterparty)}
+          username={props.counterparty}
+          size={size}
+        />
+      )
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'account':
-      return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
+    case 'otherAccount':
+      return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -42,7 +48,7 @@ type StellarPublicKeyProps = {|
 const StellarPublicKey = (props: StellarPublicKeyProps) => {
   const key = props.publicKey
   return (
-    <Text type={props.textType} title={key}>
+    <Text type={props.textType} selectable={props.showFullKey} title={key}>
       {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
     </Text>
   )
@@ -52,14 +58,17 @@ type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -68,7 +77,9 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorFollowing={true}
           colorBroken={true}
           inline={true}
+          onUsernameClicked={props.onShowProfile}
           type={textTypeSemibold}
+          underline={true}
           usernames={[props.counterparty]}
         />
       )
@@ -77,15 +88,11 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
-    case 'account':
-      return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
-      ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
-      )
+    case 'otherAccount':
+      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -99,11 +106,13 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 type DetailProps = {|
   large: boolean,
   pending: boolean,
-  yourRole: Role,
+  yourRole: Types.Role,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
   isXLM: boolean,
+  onShowProfile: string => void,
+  selectableText: boolean,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -111,75 +120,127 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
-  const counterparty = (
+  const amount = props.isXLM ? (
+    <Text selectable={props.selectableText} type={textTypeExtrabold}>
+      {props.amountUser}
+    </Text>
+  ) : (
+    <React.Fragment>
+      Lumens worth{' '}
+      <Text selectable={true} type={textTypeExtrabold}>
+        {props.amountUser}
+      </Text>
+    </React.Fragment>
+  )
+
+  const counterparty = () => (
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
       large={props.large}
+      onShowProfile={props.onShowProfile}
       showFullKey={false}
       textType={textType}
       textTypeSemibold={textTypeSemibold}
     />
   )
-  const amount = props.isXLM ? (
-    <Text type={textTypeExtrabold}>{props.amountUser}</Text>
-  ) : (
-    <React.Fragment>
-      Lumens worth <Text type={textTypeExtrabold}>{props.amountUser}</Text>
-    </React.Fragment>
-  )
 
-  if (props.counterpartyType === 'account') {
-    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    if (props.yourRole === 'sender') {
+  switch (props.yourRole) {
+    case 'senderOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from this account to {counterparty()}.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'Sending' : 'You sent'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} to {counterparty()}.
+          </Text>
+        )
+      }
+    case 'receiverOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from {counterparty()} to this account.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'sending' : 'sent you'
+        return (
+          <Text type={textTypeSemibold}>
+            {counterparty()} {verbPhrase} {amount}.
+          </Text>
+        )
+      }
+    case 'senderAndReceiver':
+      const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
-        <Text type={textType}>
-          {verbPhrase} {amount} from this account to {counterparty}.
+        <Text type={textTypeSemibold}>
+          {verbPhrase} {amount} from this account to itself.
         </Text>
       )
-    }
-
-    return (
-      <Text type={textType}>
-        {verbPhrase} {amount} from {counterparty} to this account.
-      </Text>
-    )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
+      */
+      throw new Error(`Unexpected role ${props.yourRole}`)
   }
-
-  if (props.yourRole === 'sender') {
-    const verbPhrase = props.pending ? 'Sending' : 'You sent'
-    return (
-      <Text type={textType}>
-        {verbPhrase} {amount} to {counterparty}.
-      </Text>
-    )
-  }
-
-  const verbPhrase = props.pending ? 'sending' : 'sent you'
-  return (
-    <Text type={textType}>
-      {counterparty} {verbPhrase} {amount}.
-    </Text>
-  )
 }
 
 type AmountXLMProps = {|
-  delta: 'increase' | 'decrease',
-  yourRole: Role,
+  yourRole: Types.Role,
   amountXLM: string,
   pending: boolean,
+  selectableText: boolean,
 |}
 
+const roleToColor = (role: Types.Role): string => {
+  switch (role) {
+    case 'senderOnly':
+      return globalColors.red
+    case 'receiverOnly':
+      return globalColors.green
+    case 'senderAndReceiver':
+      return globalColors.black
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
+  }
+}
+
+const getAmount = (role: Types.Role, amountXLM: string): string => {
+  switch (role) {
+    case 'senderOnly':
+      return `- ${amountXLM}`
+    case 'receiverOnly':
+      return `+ ${amountXLM}`
+    case 'senderAndReceiver':
+      return '0 XLM'
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
+  }
+}
+
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.pending
-    ? globalColors.black_20
-    : props.delta === 'decrease'
-      ? globalColors.red
-      : globalColors.green
-  const amount = `${props.amountXLM}`
+  const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
+
+  const amount = getAmount(props.yourRole, props.amountXLM)
   return (
-    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
-      {props.delta === 'increase' ? '+ ' : '- '}
+    <Text selectable={props.selectableText} style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {amount}
     </Text>
   )
@@ -187,9 +248,9 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampLineProps = {|
   error: string,
-  status: Types.StatusSimplified,
-  timestamp: Date | null,
-  relative: boolean,
+  status?: Types.StatusSimplified,
+  timestamp: ?Date,
+  selectableText: boolean,
 |}
 
 export const TimestampLine = (props: TimestampLineProps) => {
@@ -201,22 +262,14 @@ export const TimestampLine = (props: TimestampLineProps) => {
     )
   }
   if (!props.timestamp) {
-    return (
-      <Text type="BodySmall">
-        {props.relative ? 'Pending' : "The Stellar network hasn't confirmed your transaction."}
-      </Text>
-    )
+    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
   }
-  let human
-  let tooltip
-  if (props.relative) {
-    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
-  } else {
-    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
-  }
+  const human = formatTimeForMessages(props.timestamp)
+  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
-    <Text title={tooltip} type="BodySmall">
+    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
+      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
     </Text>
   )
 }
@@ -226,46 +279,45 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
   large: boolean,
-  // Ignored if yourRole is receiver and counterpartyType is
+  // Ignored if yourRole is receiverOnly and counterpartyType is
   // stellarPublicKey.
   memo: string,
-  onCancelPayment?: () => void,
+  onCancelPayment: ?() => void,
+  onCancelPaymentWaitingKey: string,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
+  onShowProfile: string => void,
+  selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
-    props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
+    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   return (
-    <Box2 direction="vertical" fullWidth={true}>
+    <Box2
+      direction="vertical"
+      fullWidth={true}
+      style={{backgroundColor: pending ? globalColors.blue4 : globalColors.white}}
+    >
       <ClickableBox onClick={props.onSelectTransaction}>
-        <Box2
-          direction="horizontal"
-          fullWidth={true}
-          style={collapseStyles([
-            styles.container,
-            {backgroundColor: pending ? globalColors.blue4 : globalColors.white},
-          ])}
-        >
+        <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
             large={props.large}
+            onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
-              error={props.statusDetail}
-              relative={true}
+              error={props.status === 'error' ? props.statusDetail : ''}
+              selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
             />
@@ -277,26 +329,32 @@ export const Transaction = (props: Props) => {
               counterpartyType={props.counterpartyType}
               amountUser={props.amountUser || props.amountXLM}
               isXLM={!props.amountUser}
+              onShowProfile={props.onShowProfile}
+              selectableText={props.selectableText}
             />
-            {// TODO: Consolidate memo display code below with
-            // chat/conversation/messages/wallet-payment/index.js.
-            showMemo && (
-              <Box2
-                direction="horizontal"
-                gap="small"
-                fullWidth={true}
-                style={{marginTop: globalMargins.xtiny}}
-              >
-                <Divider vertical={true} style={styles.quoteMarker} />
-                <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-              </Box2>
-            )}
-            <AmountXLM
-              delta={props.delta}
-              pending={pending}
-              yourRole={props.yourRole}
-              amountXLM={props.amountXLM}
-            />
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            <Box2 direction="horizontal" fullWidth={true}>
+              {props.onCancelPayment && (
+                <WaitingButton
+                  type="Danger"
+                  label="Cancel"
+                  small={true}
+                  style={styles.cancelButton}
+                  onClick={evt => {
+                    evt.stopPropagation()
+                    props.onCancelPayment && props.onCancelPayment()
+                  }}
+                  waitingKey={props.onCancelPaymentWaitingKey}
+                />
+              )}
+              <Box2 direction="horizontal" style={{flex: 1}} />
+              <AmountXLM
+                selectableText={props.selectableText}
+                pending={pending}
+                yourRole={props.yourRole}
+                amountXLM={props.amountXLM}
+              />
+            </Box2>
           </Box2>
         </Box2>
       </ClickableBox>
@@ -305,12 +363,18 @@ export const Transaction = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  cancelButton: {
+    alignSelf: 'flex-start',
+    marginTop: globalMargins.tiny,
+  },
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  marginTopXTiny: {
+    marginTop: globalMargins.xtiny,
+  },
   pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
-  quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

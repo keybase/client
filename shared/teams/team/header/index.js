@@ -40,7 +40,6 @@ export type Props = {
   role: Types.MaybeTeamRoleType,
   showingMenu: boolean,
   teamname: Types.Teamname,
-  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
@@ -128,7 +127,7 @@ const _TeamHeader = (props: Props) => (
 
       {/* Add people how dropdown */}
       <AddPeopleHow
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
         onHidden={props.toggleShowingMenu}

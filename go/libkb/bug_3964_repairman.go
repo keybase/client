@@ -61,18 +61,7 @@ func (b *bug3964Repairman) updateSecretStore(m MetaContext, nun NormalizedUserna
 
 func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error) {
 	defer b.G().Trace("bug3964Repairman#saveRepairmanVisit", func() error { return err })()
-	cw := b.G().Env.GetConfigWriter()
-	cwt, err := cw.BeginTransaction()
-	if err != nil {
-		return err
-	}
-	err = cw.SetBug3964RepairTime(nun, time.Now())
-	if err == nil {
-		err = cwt.Commit()
-	} else {
-		cwt.Abort()
-	}
-	return err
+	return b.G().Env.GetConfigWriter().SetBug3964RepairTime(nun, time.Now())
 }
 
 func (b *bug3964Repairman) postToServer(m MetaContext, serverHalfSet *LKSecServerHalfSet, ppgen PassphraseGeneration, nun NormalizedUsername) (err error) {

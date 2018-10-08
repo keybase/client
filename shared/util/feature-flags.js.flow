@@ -3,9 +3,10 @@ export type FeatureFlags = {|
   admin: boolean,
   avatarUploadsEnabled: boolean,
   explodingMessagesEnabled: boolean,
-  fsWritesEnabled: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
+  newTeamBuildingForChat: boolean,
+  fileWidgetEnabled?: boolean,
 |}
 
 declare var ff: FeatureFlags

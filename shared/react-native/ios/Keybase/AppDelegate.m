@@ -7,14 +7,15 @@
 //
 
 #import "AppDelegate.h"
-#import "RCTPushNotificationManager.h"
-#import "RCTBundleURLProvider.h"
-#import "RCTRootView.h"
+#import <React/RCTPushNotificationManager.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
 #import "Engine.h"
 #import "LogSend.h"
-#import "RCTLinkingManager.h"
+#import <React/RCTLinkingManager.h>
 #import <keybase/keybase.h>
 #import "Pusher.h"
+#import "Fs.h"
 
 // Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
 // You'll also have to edit the React.xcodeproj. Instructions here:
@@ -40,108 +41,38 @@ const BOOL isDebug = NO;
 
 @implementation AppDelegate
 
-
-- (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
-{
-  NSURL * URL = [NSURL fileURLWithPath: filePathString];
-  NSError * error = nil;
-  BOOL success = [URL setResourceValue: @YES forKey: NSURLIsExcludedFromBackupKey error: &error];
-  if(!success){
-    NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
-  }
-  return success;
-}
-
-- (void) createBackgroundReadableDirectory:(NSString*) path setAllFiles:(BOOL)setAllFiles
-{
-  NSFileManager* fm = [NSFileManager defaultManager];
-  NSError* error = nil;
-  NSLog(@"creating background readable directory: path: %@ setAllFiles: %d", path, setAllFiles);
-  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the directory accessible as long as the user has
-  // unlocked the phone once. The files are still stored on the disk encrypted (note for the chat database, it
-  // means we are encrypting it twice), and are inaccessible otherwise.
-  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
-  [fm createDirectoryAtPath:path withIntermediateDirectories:YES
-                 attributes:noProt
-                      error:nil];
-  if (![fm setAttributes:noProt ofItemAtPath:path error:&error]) {
-    NSLog(@"Error setting file attributes on path: %@ error: %@", path, error);
-  }
-  if (!setAllFiles) {
-    NSLog(@"setAllFiles is false, so returning now");
-    return;
-  } else {
-    NSLog(@"setAllFiles is true charging forward");
-  }
-
-  // If the caller wants us to set everything in the directory, then let's do it now (one level down at least)
-  NSArray<NSString*>* contents = [fm contentsOfDirectoryAtPath:path error:&error];
-  if (contents == nil) {
-    NSLog(@"Error listing directory contents: %@", error);
-  } else {
-    for (NSString* file in contents) {
-      if (![fm setAttributes:noProt ofItemAtPath:file error:&error]) {
-        NSLog(@"Error setting file attributes on file: %@ error: %@", file, error);
-      }
-    }
-  }
-}
-
 - (void) setupGo
 {
 #if TESTING
   return
 #endif
 
+  NSError* err;
   BOOL securityAccessGroupOverride = isSimulator;
   BOOL skipLogFile = false;
 
-  NSString * home = NSHomeDirectory();
-
-  NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
-  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
-  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-
-  // Make keybasePath if it doesn't exist
-  [self createBackgroundReadableDirectory:keybasePath setAllFiles:YES];
-  [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
-  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
-  [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
-  [self createBackgroundReadableDirectory:eraseableKVPath setAllFiles:YES];
-
-  NSError * err;
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
-                                                   @"homedir": home,
-                                                   @"logFile": serviceLogFile,
+                                                   @"homedir": fsPaths[@"home"],
+                                                   @"sharedHome": fsPaths[@"sharedHome"],
+                                                   @"logFile": fsPaths[@"logFile"],
                                                    @"serverURI": @"",
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
                                                    } error:&err];
 }
 
-#ifdef SYSTRACING
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=true"];
-}
-
-- (BOOL)shouldBridgeUseCxxBridge:(RCTBridge *)bridge {
-  return NO;
-}
-#endif
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (void) setupLogger
 {
   self.fileLogger = [[DDFileLogger alloc] init];
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
   self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
   [DDLog addLogger:self.fileLogger];
+}
 
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
 
@@ -244,6 +175,21 @@ const BOOL isDebug = NO;
       completionHandler(UIBackgroundFetchResultNewData);
       NSLog(@"Remote notification handle finished...");
     });
+  } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSError* err = nil;
+      NSString* convID = notification[@"convID"];
+      NSString* body = notification[@"m"];
+      int membersType = [notification[@"t"] intValue];
+      int messageID = [notification[@"msgID"] intValue];
+      KeybaseHandleBackgroundNotification(convID, body, membersType, false,
+                                          messageID, @"", 0, 0, @"", nil, &err);
+      if (err != nil) {
+        NSLog(@"Failed to handle in engine: %@", err);
+      }
+    });
+    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    completionHandler(UIBackgroundFetchResultNewData);
   } else {
     [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);

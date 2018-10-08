@@ -58,8 +58,8 @@ func (g *gregorMessageOrderer) isUIDKey(key string, uid gregor1.UID) bool {
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
-	ibox := storage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
 	}
@@ -331,8 +331,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		}
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
-		switch typ {
-		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
+		if utils.IsNotifiableChatMessageType(typ, msg.Valid().AtMentions, msg.Valid().ChannelMention) {
 			// Check for generic hit on desktop right off and return true if we hit
 			if conv.Notifications.Settings[apptype][kind] {
 				return true
@@ -349,10 +348,6 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 				notifyFromChanMention = conv.Notifications.ChannelWide
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
-		case chat1.MessageType_ATTACHMENT:
-			return conv.Notifications.Settings[apptype][kind]
-		default:
-			return false
 		}
 	}
 	return false
@@ -1010,6 +1005,57 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 	return nil
 }
 
+func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "SubteamRename")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.subteamRename: nil message body")
+	}
+
+	var update chat1.SubteamRenameUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	if err = dec.Decode(&update); err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) {
+		defer g.Trace(ctx, func() error { return nil }, "SubteamRename(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+		// Update inbox and get conversations
+		convs, err := g.G().InboxSource.SubteamRename(ctx, uid, update.InboxVers, update.ConvIDs)
+		if err != nil {
+			g.Debug(ctx, "SubteamRename: unable to read conversation: %s", err.Error())
+			return
+		}
+		if len(convs) != len(update.ConvIDs) {
+			g.Debug(ctx, "SubteamRename: unable to find all conversations")
+		}
+
+		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
+		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
+		for _, conv := range convs {
+			uiItem := g.presentUIItem(ctx, &conv, uid)
+			if uiItem != nil {
+				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
+				convIDs[uiItem.TopicType] = append(convIDs[uiItem.TopicType], conv.GetConvID())
+			}
+		}
+		for topicType, items := range convUIItems {
+			cids := convIDs[topicType]
+			g.G().ActivityNotifier.SubteamRename(ctx, uid, cids, topicType, items)
+		}
+	}(bctx)
+
+	return nil
+}
+
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
@@ -1036,6 +1082,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.SetConvSettings(ctx, obm)
 	case types.PushKBFSUpgrade:
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
+	case types.PushSubteamRename:
+		return true, g.SubteamRename(ctx, obm)
 	}
 
 	return false, nil

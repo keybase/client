@@ -36,6 +36,7 @@ const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
   conversationIDKey,
+  copyToClipboard: Sb.action('copyToClipboard'),
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
@@ -67,7 +68,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
       // Move the start day up by the previous number of days to avoid overlap
       start.add(dayRange, 'days')
       // Get a new date range for random timestamps
-      dayRange = r.next() % days + 1
+      dayRange = (r.next() % days) + 1
       end.add(dayRange, 'days')
 
       const diff = end.diff(start)
@@ -77,7 +78,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
       currentTimestamp = newTimestamp.valueOf()
 
       // Reset threashold and count
-      messagesThreshold = r.next() % threshold + 1
+      messagesThreshold = (r.next() % threshold) + 1
       generatedCount = 1
 
       return currentTimestamp

@@ -6,17 +6,17 @@ import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
 import {upperFirst} from 'lodash-es'
 
-type Props = {
+type Props = {|
   canSetMinWriterRole: boolean,
   isSmallTeam: boolean,
   minWriterRole: TeamTypes.TeamRoleType,
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
-}
+|}
 
-type State = {
+type State = {|
   saving: boolean,
   selected: TeamTypes.TeamRoleType,
-}
+|}
 
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}
@@ -71,15 +71,20 @@ class MinWriterRole extends React.Component<Props, State> {
   }
 }
 
+type DropdownProps = Kb.OverlayParentProps & {
+  minWriterRole: TeamTypes.TeamRoleType,
+  items: Kb.MenuItems,
+  saving: boolean,
+}
 const _Dropdown = ({
-  attachmentRef,
+  getAttachmentRef,
   items,
   minWriterRole,
   saving,
   setAttachmentRef,
   showingMenu,
   toggleShowingMenu,
-}) => (
+}: DropdownProps) => (
   <React.Fragment>
     <Kb.ClickableBox
       style={styles.dropdown}
@@ -93,7 +98,7 @@ const _Dropdown = ({
       <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
     </Kb.ClickableBox>
     <Kb.FloatingMenu
-      attachTo={attachmentRef}
+      attachTo={getAttachmentRef}
       closeOnSelect={true}
       visible={showingMenu}
       items={items}
@@ -128,7 +133,7 @@ const styles = Style.styleSheetCreate({
       ...Style.globalStyles.flexBoxRow,
       alignItems: 'center',
       borderColor: Style.globalColors.lightGrey2,
-      borderRadius: 100,
+      borderRadius: Style.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
       minWidth: 220,

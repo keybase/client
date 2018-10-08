@@ -3,9 +3,9 @@ import React from 'react'
 import {Box, Text} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
 
-type Props = {
+type Props = {|
   onShowNewTeamDialog: () => void,
-}
+|}
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>

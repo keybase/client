@@ -2,7 +2,7 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Intro from '.'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
+import {connect, type TypedState, isMobile} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...Array<any>) => any,
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
   return {bannerMessage}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}: OwnProps) => ({
   _onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onLogin: () => dispatch(ProvisionGen.createStartProvision()),
   onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
@@ -33,4 +33,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSignup: dispatchProps.onSignup,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Intro)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Intro)

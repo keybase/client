@@ -5,31 +5,42 @@ import {Box} from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import Payment from '.'
 
+const sendCommon = {
+  onSend: action('onSend'),
+  sendButtonLabel: '',
+}
+
 const sentProps = {
-  action: 'sent lumens worth',
+  ...sendCommon,
+  action: 'sent Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.red,
   icon: 'iconfont-stellar-send',
+  loading: false,
   memo: ':beer:',
   pending: false,
 }
 
 const sendingProps = {
-  action: 'sending lumens worth',
+  ...sendCommon,
+  action: 'sending Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.grey,
   icon: 'iconfont-time',
+  loading: false,
   memo: ':beer:',
   pending: true,
 }
 
 const requestCommon = {
-  action: 'requested lumens worth',
+  ...sendCommon,
+  action: 'requested Lumens worth',
   balanceChange: '',
   balanceChangeColor: '',
   icon: 'iconfont-stellar-request',
+  loading: false,
   pending: false,
 }
 
@@ -44,17 +55,31 @@ const theyRequestProps = {
   ...requestCommon,
   amount: '$107',
   memo: 'things',
-  sendButtonLabel: 'Send Lumens worth $107',
   onSend: action('onSend'),
+  sendButtonLabel: 'Send Lumens worth $107',
 }
 
 const sentAssetProps = {
+  ...sendCommon,
   action: 'sent',
   amount: '1 BTC/Abc.def',
   balanceChange: '-1 BTC',
   balanceChangeColor: globalColors.red,
   icon: 'iconfont-stellar-send',
+  loading: false,
   memo: '₿',
+  pending: false,
+}
+
+const loadingProps = {
+  ...sendCommon,
+  action: '',
+  amount: '',
+  balanceChange: '',
+  balanceChangeColor: '',
+  icon: 'iconfont-stellar-send',
+  loading: true,
+  memo: '',
   pending: false,
 }
 
@@ -66,6 +91,7 @@ const load = () => {
     .add('You request', () => <Payment {...youRequestProps} />)
     .add('They request', () => <Payment {...theyRequestProps} />)
     .add('Sent non-native', () => <Payment {...sentAssetProps} />)
+    .add('Loading', () => <Payment {...loadingProps} />)
 }
 
 export default load

@@ -3,7 +3,7 @@
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
-import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
+import TerserPlugin from 'terser-webpack-plugin'
 import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
@@ -28,7 +28,7 @@ const config = (_, {mode}) => {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
         plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '2.0.2'}}]],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '3.0.2'}}]],
       },
     }
 
@@ -86,7 +86,7 @@ const config = (_, {mode}) => {
       __DEV__: isDev,
       __HOT__: isHot,
       __STORYBOOK__: false,
-      __STORYSHOT: false,
+      __STORYSHOT__: false,
       __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
     }
     console.warn('Injecting defines: ', defines)
@@ -124,11 +124,11 @@ const config = (_, {mode}) => {
         : {
             optimization: {
               minimizer: [
-                new UglifyJSPlugin({
+                new TerserPlugin({
                   cache: true,
                   parallel: true,
                   sourceMap: true,
-                  uglifyOptions: {
+                  terserOptions: {
                     compress: {
                       inline: false, // uglify has issues inlining code and handling variables https://github.com/mishoo/UglifyJS2/issues/2842
                     },

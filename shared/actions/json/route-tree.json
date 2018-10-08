@@ -1,0 +1,46 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/route-tree'",
+    "import * as Constants from '../constants/route-tree'",
+    "import * as RCConstants from '../route-tree'"
+  ],
+  "actions": {
+    "setInitialRouteDef": {
+      "_description": "Set the tree of route definitions. Dispatched at initialization time.",
+      "routeDef": "RCConstants.RouteDefParams"
+    },
+    "refreshRouteDef": {
+      "loginRouteTree": "RCConstants.RouteDefParams",
+      "appRouteTree": "RCConstants.RouteDefParams"
+    },
+    "switchRouteDef": {
+      "routeDef": "RCConstants.RouteDefParams",
+      "path?": "?RCConstants.Path"
+    },
+    "switchTo": {
+      "path": "RCConstants.Path",
+      "parentPath?": "?RCConstants.Path"
+    },
+    "navigateTo": {
+      "path": "RCConstants.PropsPath<any>",
+      "parentPath?": "?RCConstants.Path"
+    },
+    "navigateAppend": {
+      "path": "RCConstants.PropsPath<any>",
+      "parentPath?": "?RCConstants.Path"
+    },
+    "navigateUp": {},
+    "putActionIfOnPath": {
+      "expectedPath": "RCConstants.Path",
+      "otherAction": "any",
+      "parentPath?": "?RCConstants.Path"
+    },
+    "setRouteState": {
+      "path": "RCConstants.Path",
+      "partialState": "{} | ((oldState: I.Map<string, any>) => I.Map<string, any>)"
+    },
+    "resetRoute": {
+      "path": "RCConstants.Path"
+    }
+  }
+}

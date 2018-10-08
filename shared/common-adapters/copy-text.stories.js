@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import Box from './box'
-import {storiesOf} from '../stories/storybook'
 import CopyText from './copy-text'
 
 const load = () => {
-  storiesOf('Common/Copy text', module)
+  Sb.storiesOf('Common/Copy text', module)
     .addDecorator(story => (
       <Box style={{display: 'flex', flexDirection: 'row', maxWidth: 550, padding: 20, paddingTop: 50}}>
         {story()}

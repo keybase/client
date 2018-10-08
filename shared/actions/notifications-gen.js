@@ -8,7 +8,8 @@ import * as Types from '../constants/types/notifications'
 import * as Tabs from '../constants/tabs'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'notifications:'
 export const badgeApp = 'notifications:badgeApp'
 export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
 export const listenForNotifications = 'notifications:listenForNotifications'

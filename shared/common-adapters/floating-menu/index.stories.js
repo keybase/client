@@ -18,6 +18,7 @@ const commonProps = {
   onHidden: Sb.action('onHidden'),
   visible: true,
   items: commonItems,
+  closeOnSelect: true,
 }
 
 const load = () => {

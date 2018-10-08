@@ -15,8 +15,13 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
+const DONT_RENDER_CONVERSATION = __DEV__ && false
+
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
+    if (DONT_RENDER_CONVERSATION) {
+      return <NoConversation />
+    }
     switch (this.props.type) {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
@@ -85,4 +90,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Conversation)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(Conversation)

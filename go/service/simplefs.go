@@ -162,7 +162,7 @@ func (s *SimpleFSHandler) SimpleFSRemove(ctx context.Context, arg keybase1.Simpl
 }
 
 // SimpleFSStat - Get info about file
-func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.Path) (keybase1.Dirent, error) {
+func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (keybase1.Dirent, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.Dirent{}, err
@@ -294,15 +294,6 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 		return keybase1.FSFolderEditHistory{}, err
 	}
 	return cli.SimpleFSFolderEditHistory(ctx, path)
-}
-
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
-	cli, err := s.client()
-	if err != nil {
-		return err
-	}
-	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.

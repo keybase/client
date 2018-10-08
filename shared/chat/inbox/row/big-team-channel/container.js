@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxBig'})),
 })
@@ -31,4 +31,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamChannel)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BigTeamChannel)

@@ -7,37 +7,47 @@ import {type StylesCrossPlatform} from '../../../../../styles'
 import ExplodingMeta, {type _Props as ViewProps} from '.'
 
 const emptyProps = {
-  exploding: false,
   exploded: true,
   explodesAt: 0,
+  exploding: false,
   messageKey: '',
   pending: false,
 }
 
 export type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  onClick: () => void,
+  onClick: ?() => void,
   ordinal: Types.Ordinal,
   style?: StylesCrossPlatform,
 |}
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
     return emptyProps
   }
   return {
-    exploding: message.exploding,
     exploded: message.exploded,
     explodesAt: message.explodingTime,
+    exploding: message.exploding,
     messageKey: Constants.getMessageKey(message),
     pending: ['pending', 'failed'].includes(message.submitState),
   }
 }
 
-type WrapperProps = {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  exploded: stateProps.exploded,
+  explodesAt: stateProps.explodesAt,
+  exploding: stateProps.exploding,
+  messageKey: stateProps.messageKey,
+  onClick: ownProps.onClick,
+  pending: stateProps.pending,
+  style: ownProps.style,
+})
+
+type WrapperProps = {|
   ...ViewProps,
   exploding: boolean,
-}
+|}
 const Wrapper = (props: WrapperProps) =>
   !props.exploding ? null : (
     <ExplodingMeta
@@ -50,7 +60,12 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-export default Container.compose(
-  Container.connect(mapStateToProps),
+const Connected = Container.compose(
+  Container.connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   Container.setDisplayName('ExplodingMeta')
 )(Wrapper)
+export default Connected

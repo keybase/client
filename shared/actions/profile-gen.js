@@ -8,7 +8,8 @@ import * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'profile:'
 export const addProof = 'profile:addProof'
 export const backToProfile = 'profile:backToProfile'
 export const cancelAddProof = 'profile:cancelAddProof'

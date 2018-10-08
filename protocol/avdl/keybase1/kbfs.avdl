@@ -65,4 +65,9 @@ protocol kbfs {
   */
   KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
 
+  /**
+    upgradeTLF upgrades a TLF to use implicit team keys
+  */
+  void upgradeTLF(string tlfName, boolean public);
+
 }

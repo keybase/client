@@ -7,7 +7,18 @@ import Preview from './preview/container'
 import {connect} from '../../../util/container'
 import type {TypedState} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  focusInputCounter: number,
+  onScrollDown: () => void,
+|}
+type Props = {|
+  ...OwnProps,
+  isPreview: boolean,
+  noInput: boolean,
+|}
+
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   let conversationIDKeyToShow = conversationIDKey
@@ -30,14 +41,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-type Props = {
-  conversationIDKey: Types.ConversationIDKey,
-  focusInputCounter: number,
-  isPreview: boolean,
-  noInput: boolean,
-  onScrollDown: () => void,
-}
-
 class InputArea extends React.PureComponent<Props> {
   render() {
     if (this.props.noInput) {
@@ -56,4 +59,8 @@ class InputArea extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps)(InputArea)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(InputArea)

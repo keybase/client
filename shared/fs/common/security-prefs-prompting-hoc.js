@@ -1,5 +1,5 @@
 // @flow
-import {branch, compose, connect, renderNothing, type Dispatch, type TypedState} from '../../util/container'
+import {branch, compose, connect, renderNothing, type TypedState} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
 import * as FsGen from '../../actions/fs-gen'
 import {navigateAppend} from '../../actions/route-tree'
@@ -44,7 +44,11 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
 }
 
 const DesktopSecurityPrefsPromptingHoc = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   branch(displayOnce, renderNothing)
 )
 

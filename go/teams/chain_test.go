@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -57,6 +58,115 @@ func TestTeamSigChainParse(t *testing.T) {
 			t.Logf("payload stubbed")
 		}
 	}
+}
+
+func assertHighSeqForTeam(t *testing.T, tc libkb.TestContext, teamID *keybase1.TeamID, expected int) {
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID:          *teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	actual := int(team.chain().GetLatestHighSeqno())
+	require.Equal(t, expected, actual)
+}
+
+func TestTeamSigChainHighLinks(t *testing.T) {
+	tc := SetupTest(t, "team_sig_chain_high_links", 1)
+	defer tc.Cleanup()
+	ctx := context.TODO()
+
+	// Create some users. The owner is last so that it has the active session.
+	u2, err := kbtest.CreateAndSignupFakeUser("we", tc.G) //admin
+	require.NoError(t, err)
+	u3, err := kbtest.CreateAndSignupFakeUser("ji", tc.G) //non-admin
+	require.NoError(t, err)
+	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) //owner
+	require.NoError(t, err)
+	t.Logf("create the team...")
+	// Create a team. This creates the first high link.
+	teamName := u1.Username + "t"
+	teamNameObj, err := keybase1.TeamNameFromString(teamName)
+	require.NoError(t, err)
+	teamID, err := CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 1)
+
+	t.Logf("adding new reader...")
+	// Adding a new reader is not a high link, so the lastest high seq won't change.
+	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 1)
+
+	t.Logf("adding new admin...")
+	// Adding a new admin IS a high link, so we should jump to 3.
+	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 3)
+
+	t.Logf("promoting from admin to owner...")
+	// Promoting from admin to owner is a high link.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 4)
+
+	t.Logf("demoting from owner to admin...")
+	// Demoting from owner to admin is a high link.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 5)
+
+	t.Logf("adding new subteam...")
+	// Creating a subteam is not a high link for the parent team
+	// but it is for the subteam. The link types are different
+	// "team.root" and "team.subteam_head" so we should check both teams.
+	sub := "sub"
+	subteamID, err := CreateSubteam(ctx, tc.G, sub, teamNameObj, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, subteamID, 1)
+	assertHighSeqForTeam(t, tc, teamID, 5)
+
+	t.Logf("adding new admin to subteam...")
+	// Adding an admin to the subteam is a high link for the subteam but not
+	// the parent. Primarily, we do this to verify that high links advance
+	// the same way on subteams (since there are places that default to a
+	// value of 1 for sequence number). It's overkill to test any more than
+	// just this on the subteam since it should work the same way.
+	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, subteamID, 2)
+	assertHighSeqForTeam(t, tc, teamID, 5)
+
+	t.Logf("demoting admin to writer...")
+	// Back to the root team... downgrading an admin IS a high link for the root team
+	// but it is not one for the subteam, because the subteam needs to care about it's
+	// parent's high links anyway.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 7)
+	assertHighSeqForTeam(t, tc, subteamID, 2)
+
+	t.Logf("demoting admin...")
+	// Back to the root team... downgrading an admin IS a high link for the root team
+	// but it is not one for the subteam, because the subteam needs to care about it's
+	// parent's high links anyway.
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 7)
+	assertHighSeqForTeam(t, tc, subteamID, 2)
+
+	t.Logf("rotating keys...")
+	// Rotated keys do not create high links.
+	err = RotateKey(ctx, tc.G, *teamID)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 7)
+	assertHighSeqForTeam(t, tc, subteamID, 2)
+
+	t.Logf("deleting subteam...")
+	// Deleting a subteam will not create a high link.
+	subteamName := teamName + "." + sub
+	err = Delete(ctx, tc.G, &teamsUI{}, subteamName)
+	require.NoError(t, err)
+	assertHighSeqForTeam(t, tc, teamID, 7)
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {
@@ -113,6 +223,8 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		require.Equal(t, "0120802f55ed5e14f61c730871b5e99d637054ff7f5ba0c1b2cc52b154e3baf80a000a", string(ptk.SigKID))
 		require.Equal(t, "0121e2511cbfb0418187a8e19183a1cd92637bc83fe116d1eb8984f52394495b5f120a", string(ptk.EncKID))
 		require.Equal(t, keybase1.Seqno(3), state.GetLatestSeqno())
+		require.Equal(t, state.GetLatestHighSeqno(), keybase1.Seqno(1))
+		require.Equal(t, state.GetLatestHighLinkID(), keybase1.LinkID("62cb761ad346a3d28be1eed107c35548a2dd6fade9219a38591841f62d586cfe"))
 
 		checkRole := func(uid keybase1.UID, role keybase1.TeamRole) {
 			uv := NewUserVersion(uid, 1)
@@ -191,6 +303,8 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		require.Equal(t, "01208b245208e8951cde7abd3f5ebac5579424e51ed0951fe14ac8a7996c9ccf8ae50a", string(ptk.SigKID))
 		require.Equal(t, "01218ca00b08b4ee5729d957cf14155098b74199588bb5eee778ad1eae58bce26c370a", string(ptk.EncKID))
 		require.Equal(t, keybase1.Seqno(2), state.GetLatestSeqno())
+		require.Equal(t, state.GetLatestHighSeqno(), keybase1.Seqno(1))
+		require.Equal(t, state.GetLatestHighLinkID(), keybase1.LinkID("6828ac32019bd8c0327ea57cd21b6182c3b6e4d4080182bb0119f9a630833f51"))
 
 		checkRole := func(uid keybase1.UID, role keybase1.TeamRole) {
 			uv := NewUserVersion(uid, 1)
@@ -308,9 +422,9 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 	})
 }
 
-func signerToX(uv *keybase1.UserVersion) *signerX {
+func signerToX(uv *keybase1.UserVersion) *SignerX {
 	if uv == nil {
 		return nil
 	}
-	return &signerX{signer: *uv}
+	return &SignerX{signer: *uv}
 }

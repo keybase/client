@@ -12,6 +12,11 @@
       "import_as": "gregor1"
     },
     {
+      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -442,6 +447,79 @@
     },
     {
       "type": "record",
+      "name": "UIPaymentInfo",
+      "fields": [
+        {
+          "type": [
+            null,
+            "stellar1.AccountID"
+          ],
+          "name": "accountID"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "stellar1.BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
+        },
+        {
+          "type": "stellar1.PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIRequestInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "stellar1.RequestStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -537,6 +615,20 @@
         {
           "type": "boolean",
           "name": "hasPairwiseMacs"
+        },
+        {
+          "type": [
+            null,
+            "UIPaymentInfo"
+          ],
+          "name": "paymentInfo"
+        },
+        {
+          "type": [
+            null,
+            "UIRequestInfo"
+          ],
+          "name": "requestInfo"
         }
       ]
     },
@@ -567,6 +659,14 @@
         {
           "type": "double",
           "name": "ordinal"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "title"
         },
         {
           "type": [
@@ -673,6 +773,27 @@
             "items": "string"
           },
           "name": "matches"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatInboxSearchHit",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
         }
       ]
     }
@@ -809,6 +930,36 @@
         },
         {
           "name": "numHits",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxSearchHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatInboxSearchHit"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxSearchDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "numHits",
+          "type": "int"
+        },
+        {
+          "name": "numConvs",
           "type": "int"
         }
       ],

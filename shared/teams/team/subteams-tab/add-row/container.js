@@ -7,7 +7,7 @@ type OwnProps = {teamname: string}
 
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
     dispatch(navigateAppend([{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}])),
 })
@@ -16,4 +16,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onCreateSubteam: dispatchProps.onCreateSubteam,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Add)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Add)

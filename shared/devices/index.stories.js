@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
-import Devices from './container'
+import DevicesReal from './container'
 import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 import paperKey from './paper-key/index.stories'
@@ -18,6 +18,9 @@ const idToType = i => {
       return 'backup'
   }
 }
+
+// Flow correctly complains about own props being incorrect
+const Devices = (p: any) => <DevicesReal {...p} />
 
 const provider = Sb.createPropProviderWithCommon({
   DeviceRow: ({deviceID}) => ({

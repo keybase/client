@@ -65,14 +65,15 @@ type GlobalContext struct {
 	ChatHelper       ChatHelper           // conveniently send chat messages
 	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
 
-	cacheMu          *sync.RWMutex    // protects all caches
-	ProofCache       *ProofCache      // where to cache proof results
-	trackCache       *TrackCache      // cache of IdentifyOutcomes for tracking purposes
-	identify2Cache   Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
-	linkCache        *LinkCache       // cache of ChainLinks
-	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
-	teamLoader       TeamLoader       // Play back teams for id/name properties
-	fastTeamLoader   FastTeamLoader   // Play back team in "fast" mode for keys and names only
+	cacheMu          *sync.RWMutex   // protects all caches
+	ProofCache       *ProofCache     // where to cache proof results
+	trackCache       *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	identify2Cache   Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	linkCache        *LinkCache      // cache of ChainLinks
+	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader       TeamLoader      // Play back teams for id/name properties
+	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	teamAuditor      TeamAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -81,7 +82,8 @@ type GlobalContext struct {
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        PvlSource        // a cache and fetcher for pvl
+	pvlSource        MerkleStore      // a cache and fetcher for pvl
+	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -102,7 +104,7 @@ type GlobalContext struct {
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
 	UIRouter           UIRouter                  // How to route UIs
-	Services           ExternalServicesCollector // All known external services
+	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
@@ -123,6 +125,7 @@ type GlobalContext struct {
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+	FeatureFlags        *FeatureFlagSet      // user's feature flag set
 
 	StandaloneChatConnector StandaloneChatConnector
 
@@ -157,6 +160,7 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
 
@@ -183,6 +187,7 @@ func NewGlobalContext() *GlobalContext {
 		ActiveDevice:       NewActiveDevice(),
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
+		FeatureFlags:       NewFeatureFlagSet(),
 	}
 	return ret
 }
@@ -219,6 +224,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
+	g.teamAuditor = newNullTeamAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -265,11 +271,14 @@ func (g *GlobalContext) Logout() error {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 
+	ctx := context.Background()
+	mctx := NewMetaContext(ctx, g)
+
 	username := g.Env.GetUsername()
 
 	g.ActiveDevice.Clear()
 
-	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
+	g.LocalSigchainGuard().Clear(ctx, "Logout")
 
 	g.CallLogoutHooks()
 
@@ -289,6 +298,11 @@ func (g *GlobalContext) Logout() error {
 		ftl.OnLogout()
 	}
 
+	auditor := g.teamAuditor
+	if auditor != nil {
+		auditor.OnLogout(mctx)
+	}
+
 	st := g.stellar
 	if st != nil {
 		st.OnLogout()
@@ -297,7 +311,7 @@ func (g *GlobalContext) Logout() error {
 	// remove stored secret
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil {
-		if err := g.secretStore.ClearSecret(NewMetaContextBackground(g), username); err != nil {
+		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 			g.Log.Debug("clear stored secret error: %s", err)
 		}
 	}
@@ -310,6 +324,8 @@ func (g *GlobalContext) Logout() error {
 
 	// send logout notification
 	g.NotifyRouter.HandleLogout()
+
+	g.FeatureFlags.Clear()
 
 	return nil
 }
@@ -533,6 +549,12 @@ func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
 	return g.fastTeamLoader
 }
 
+func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamAuditor
+}
+
 func (g *GlobalContext) GetStellar() Stellar {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -575,8 +597,12 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+func (g *GlobalContext) GetParamProofStore() MerkleStore {
+	return g.paramProofStore
+}
+
 // to implement ProofContext
-func (g *GlobalContext) GetPvlSource() PvlSource {
+func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
 }
 
@@ -1003,17 +1029,29 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 }
 
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
-	if g.Services == nil {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.Services)
+	return MakeAssertionContext(g.proofServices)
 }
 
-func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
-	g.Services = s
+func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.proofServices = s
 }
 
-func (g *GlobalContext) SetPvlSource(s PvlSource) {
+func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetPvlSource(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.pvlSource = s
 }
 
@@ -1027,6 +1065,12 @@ func (g *GlobalContext) SetFastTeamLoader(l FastTeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.fastTeamLoader = l
+}
+
+func (g *GlobalContext) SetTeamAuditor(a TeamAuditor) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamAuditor = a
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {

@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState, type Dispatch, isMobile} from '../../util/container'
+import {connect, type TypedState, isMobile} from '../../util/container'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeSelected, routePath}) => ({
+const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
   _onTabClick: isMobile
     ? (tab: Tab, me: ?string) => {
         if (tab === chatTab && routeSelected === tab) {
@@ -74,5 +74,9 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-const ConnectedTabBar = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBarRender)
+const ConnectedTabBar = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TabBarRender)
 export default (isMobile ? ConnectedTabBar : KeyHandler(ConnectedTabBar))

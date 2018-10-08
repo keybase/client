@@ -1,21 +1,22 @@
 // @flow
 import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {IncomingCallMapType} from '../constants/types/rpc-gen'
+import type {CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../dev/user-timings'
+import {getEngine} from './require'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
-  // used to deal with waiting, set by engine
-  static _dispatchWaitingAction: (key: string, waiting: boolean) => void
   // Our id
   _id: SessionID
   // Map of methods => callbacks
   _incomingCallMap: IncomingCallMapType | {}
+  // Map of methods => callbacks
+  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
   // Let the outside know we're waiting
   _waitingKey: string
   // Tell engine we're done
@@ -42,6 +43,7 @@ class Session {
   constructor(p: {
     sessionID: SessionID,
     incomingCallMap: ?IncomingCallMapType,
+    customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
     waitingKey?: string,
     invoke: invokeType,
     endHandler: EndHandlerType,
@@ -50,6 +52,7 @@ class Session {
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
+    this._customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
     this._endHandler = p.endHandler
@@ -83,7 +86,7 @@ class Session {
         type: 'engineInternal',
       })
       if (this._waitingKey) {
-        Session._dispatchWaitingAction(this._waitingKey, waiting)
+        getEngine().dispatchWaitingAction(this._waitingKey, waiting)
       }
 
       // Request is finished, do cleanup
@@ -120,7 +123,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: ?Object, callback: ?() => void) {
+  start(method: MethodKey, param: Object, callback: ?() => void) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -170,7 +173,12 @@ class Session {
       reason: '[-calling:session]',
       type: 'engineInternal',
     })
-    const handler = this._incomingCallMap[method]
+
+    let handler = this._incomingCallMap[method]
+
+    if (!handler) {
+      handler = this._customResponseIncomingCallMap[method]
+    }
 
     if (!handler) {
       return false

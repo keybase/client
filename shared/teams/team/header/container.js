@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   _onAddSelf: (you: ?string) => {
     if (!you) {
       return
@@ -59,4 +59,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamHeader)

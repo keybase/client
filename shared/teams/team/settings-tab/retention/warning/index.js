@@ -13,7 +13,7 @@ import {
   Text,
 } from '../../../../../common-adapters'
 import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../../../styles'
-import type {RetentionEntityType} from '../container'
+import type {RetentionEntityType} from '..'
 
 type Props = {
   days: number,

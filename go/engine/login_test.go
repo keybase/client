@@ -827,6 +827,79 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	}
 }
 
+// Test provisioning where we use one username, but suddenly we are
+// key-exchanging with someone else.
+func TestProvisionWithUnexpectedX(t *testing.T) {
+	t.Logf("Setting contexts and users")
+
+	// We want to provision as this user:
+	tcV := SetupEngineTest(t, "kex2provision")
+	defer tcV.Cleanup()
+	wantedUser := CreateAndSignupFakeUserPaper(tcV, "usr1")
+
+	// But actually this one will respond:
+	tcF := SetupEngineTest(t, "unexpected")
+	defer tcF.Cleanup()
+	actualUser := CreateAndSignupFakeUserPaper(tcF, "usr2")
+	var secretX kex2.Secret
+	_, err := rand.Read(secretX[:])
+	require.NoError(t, err)
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	t.Logf("provisionee login")
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: wantedUser.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	t.Logf("start provisionee")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "different user")
+	}()
+
+	// start provisioner
+	t.Logf("start provisioner")
+	provisioner := NewKex2Provisioner(tcF.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		uis := libkb.UIs{
+			SecretUI:    actualUser.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		m := NewMetaContextForTest(tcF).WithUIs(uis)
+		err := RunEngine2(m, provisioner)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "different user")
+	}()
+
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	t.Logf("wait")
+	wg.Wait()
+}
+
 func testSign(t *testing.T, tc libkb.TestContext) {
 	// should be able to sign something with new device keys without
 	// entering a passphrase

@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as DeviceTypes from './devices'
 import HiddenString from '../../util/hidden-string'
@@ -26,6 +27,7 @@ export type _State = {
   usernameOrEmail: string,
   deviceName: string,
   devices: I.List<Device>,
+  gpgImportError: ?string,
   existingDevices: I.List<string>,
 }
 

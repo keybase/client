@@ -110,7 +110,8 @@
         "NONE_0",
         "KEYBASE_1",
         "STELLAR_2",
-        "SBS_3"
+        "SBS_3",
+        "OWNACCOUNT_4"
       ]
     },
     {
@@ -159,19 +160,50 @@
         },
         {
           "type": "string",
-          "name": "source"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "currentWorth"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",
-          "name": "targetType"
+          "name": "fromType"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
+        },
+        {
+          "type": "string",
+          "name": "fromAccountName"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -180,6 +212,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -220,6 +256,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -273,19 +316,50 @@
         },
         {
           "type": "string",
-          "name": "source"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "currentWorth"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",
-          "name": "targetType"
+          "name": "fromType"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
+        },
+        {
+          "type": "string",
+          "name": "fromAccountName"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -370,6 +444,10 @@
         {
           "type": "boolean",
           "name": "readyToSend"
+        },
+        {
+          "type": "AccountID",
+          "name": "from"
         },
         {
           "type": "string",
@@ -485,22 +563,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountStellar"
-        },
-        {
-          "type": "string",
-          "name": "amountStellarDescription"
-        },
-        {
-          "type": "boolean",
-          "name": "completed"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "fundingKbTxID"
         },
         {
           "type": "RequestStatus",
@@ -689,6 +751,19 @@
         "items": "WalletAccountLocal"
       }
     },
+    "getWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "WalletAccountLocal"
+    },
     "getAccountAssetsLocal": {
       "request": [
         {
@@ -741,7 +816,7 @@
         "items": "PaymentOrErrorLocal"
       }
     },
-    "getPaymentDetailsLocal": {
+    "markAsReadLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -750,6 +825,26 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
+    },
+    "getPaymentDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
@@ -991,6 +1086,10 @@
           "type": "AccountID"
         },
         {
+          "name": "fromPrimaryAccount",
+          "type": "boolean"
+        },
+        {
           "name": "fromSeqno",
           "type": "string"
         },
@@ -1090,6 +1189,10 @@
     "getRequestDetailsLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
@@ -1099,11 +1202,89 @@
     "cancelRequestLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
       ],
       "response": null
+    },
+    "makeRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
+    },
+    "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "isAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
+    "cancelPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "paymentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "balancesLocal": {
       "request": [
@@ -1231,6 +1412,10 @@
         {
           "name": "makePrimary",
           "type": "boolean"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ],
       "response": null

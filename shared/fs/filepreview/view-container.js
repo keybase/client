@@ -1,13 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {
-  compose,
-  connect,
-  lifecycle,
-  type Dispatch,
-  type TypedState,
-  setDisplayName,
-} from '../../util/container'
+import {compose, connect, lifecycle, type TypedState, setDisplayName} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -26,26 +19,20 @@ type Props = {
 }
 
 const mapStateToProps = (state: TypedState, {path}: Props) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeFile())
   return {
     _serverInfo: state.fs.localHTTPServerInfo,
-    mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : '',
-    isSymlink: _pathItem.type === 'symlink',
+    _pathItem: state.fs.pathItems.get(path, Constants.makeFile()),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
+const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = (
-  {_serverInfo, mimeType, isSymlink},
-  {loadMimeType},
-  {path, routePath, onLoadingStateChange}
-) => ({
+const mergeProps = ({_serverInfo, _pathItem}, {loadMimeType}, {path, routePath, onLoadingStateChange}) => ({
   url: Constants.generateFileURL(path, _serverInfo),
-  mimeType,
-  isSymlink,
+  mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
+  isSymlink: _pathItem.type === 'symlink',
   path,
   loadMimeType,
   routePath,
@@ -58,7 +45,7 @@ const Renderer = props => {
     return <DefaultView path={path} routePath={routePath} />
   }
 
-  if (mimeType === '') {
+  if (!mimeType) {
     // We are still loading mimeType which is needed to determine which
     // component to use.
     return (
@@ -83,7 +70,7 @@ const Renderer = props => {
       // Security risks to links in PDF viewing. See DESKTOP-6888.
       return <DefaultView path={path} routePath={routePath} />
     default:
-      return <Text type="BodyError">This shouldn't happen</Text>
+      return <Text type="BodySmallError">This shouldn't happen</Text>
   }
 }
 
@@ -100,11 +87,15 @@ const stylesLoadingText = platformStyles({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {
-      if (!this.props.isSymlink && this.props.mimeType === '') {
+      if (!this.props.isSymlink && !this.props.mimeType) {
         this.props.loadMimeType()
       }
     },
@@ -112,9 +103,9 @@ export default compose(
       if (
         !this.props.isSymlink &&
         // Trigger loadMimeType if we don't have it yet,
-        this.props.mimeType === '' &&
+        !this.props.mimeType &&
         // but only if we haven't triggered it before.
-        prevProps.mimeType !== ''
+        prevProps.mimeType
       ) {
         this.props.loadMimeType()
       }

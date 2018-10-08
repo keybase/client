@@ -132,7 +132,8 @@ protocol SimpleFS {
 
   enum ListFilter {
     NO_FILTER_0,
-    FILTER_ALL_HIDDEN_1
+    FILTER_ALL_HIDDEN_1,
+    FILTER_SYSTEM_HIDDEN_2
   }
 
   record ListArgs {
@@ -298,7 +299,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get revision info for a directory entry
@@ -389,23 +390,6 @@ protocol SimpleFS {
    recorded by the server) of their most recent edit.
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
-
-  // suppressNotifications suppresses KBFS notifications, particularly FSEvent
-  // and FSSyncEvent.
-  //
-  // Caller should call this again after (suppressDurationSec / 2) to continue
-  // suppressing.  If no such call is made in suppressDurationSec, KBFS will
-  // resume notifications.
-
-  // When resuming notifications, if a notification would have happened since
-  // last suppressNotifications call but was suppressed, this notification will
-  // go through. If multiple notifications would have happened, only one of
-  // them is sent at resuming. Since only one of them is sent at resuming, if
-  // suppressing is used caller shouldn't depend on the completeness of
-  // notifications such as any differential nature of the data between
-  // different notifications.
-  void simpleFSSuppressNotifications(int suppressDurationSec);
-
 
   record SimpleFSQuotaUsage {
     int64 usageBytes;

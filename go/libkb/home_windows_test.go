@@ -31,25 +31,27 @@ func doDirectoryTest(t *testing.T, d string, description string, suffix string) 
 
 // There isn't much to test; the directory needn't exist yet
 func TestWindows(t *testing.T) {
-	hf := NewHomeFinder("tester", nil, "windows", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
+	hf := NewHomeFinder("tester", nil, nil, "windows", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
 
 	doDirectoryTest(t, hf.CacheDir(), "Cache", "")
 	doDirectoryTest(t, hf.DataDir(), "Data", "")
 	doDirectoryTest(t, hf.ConfigDir(), "Config", "")
 
-	hf = NewHomeFinder("tester", nil, "windows", func() RunMode { return StagingRunMode }, makeLogGetter(t))
+	hf = NewHomeFinder("tester", nil, nil, "windows", func() RunMode { return StagingRunMode },
+		makeLogGetter(t))
 
 	doDirectoryTest(t, hf.CacheDir(), "Cache", "Staging")
 	doDirectoryTest(t, hf.DataDir(), "Data", "Staging")
 	doDirectoryTest(t, hf.ConfigDir(), "Config", "Staging")
 
-	hf = NewHomeFinder("tester", nil, "windows", func() RunMode { return DevelRunMode }, makeLogGetter(t))
+	hf = NewHomeFinder("tester", nil, nil, "windows", func() RunMode { return DevelRunMode },
+		makeLogGetter(t))
 
 	doDirectoryTest(t, hf.CacheDir(), "Cache", "Devel")
 	doDirectoryTest(t, hf.DataDir(), "Data", "Devel")
 	doDirectoryTest(t, hf.ConfigDir(), "Config", "Devel")
 
-	whf := Win32{Base{"tester", nil, func() RunMode { return DevelRunMode }, makeLogGetter(t)}}
+	whf := Win32{Base{"tester", nil, nil, func() RunMode { return DevelRunMode }, makeLogGetter(t)}}
 	fromTemp := whf.deriveFromTemp()
 	if len(fromTemp) == 0 {
 		t.Errorf("%s does not exist", fromTemp)

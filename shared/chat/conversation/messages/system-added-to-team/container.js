@@ -6,7 +6,7 @@ import {getMeta} from '../../../../constants/chat2/'
 import {getRole, isAdmin} from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
 import {teamsTab} from '../../../../constants/tabs'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, ownProps) => {
   const teamname = getMeta(state, ownProps.message.conversationIDKey).teamname
@@ -40,4 +40,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemAddedToTeam)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SystemAddedToTeam)

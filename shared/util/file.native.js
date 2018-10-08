@@ -1,56 +1,48 @@
 // @flow
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
 import {findAvailableFilename} from './file.shared'
 
-import type {StatResult} from './file'
+import type {StatResult, WriteStream} from './file'
 
-function tmpDir(): string {
+export function tmpDir(): string {
   return RNFetchBlob.fs.dirs.CacheDir
 }
 
-function tmpFile(suffix: string): string {
+export function tmpFile(suffix: string): string {
   return `${tmpDir()}/${suffix}`
 }
 
-function downloadFilePathNoSearch(filename: string): string {
+export function downloadFilePathNoSearch(filename: string): string {
   return `${tmpDir()}/${filename}`
 }
 
-function downloadFilePath(suffix: string): Promise<string> {
+export function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, `${tmpDir()}/${suffix}`)
 }
 
-function copy(from: string, to: string): Promise<void> {
+export function copy(from: string, to: string): Promise<void> {
   return RNFetchBlob.fs.cp(from, to)
 }
 
-function exists(filepath: string): Promise<boolean> {
+export function exists(filepath: string): Promise<boolean> {
   return RNFetchBlob.fs.exists(filepath)
 }
 
-function stat(filepath: string): Promise<StatResult> {
+export function stat(filepath: string): Promise<StatResult> {
   return RNFetchBlob.fs.stat(filepath).then(stats => ({size: stats.size, lastModified: stats.lastModified}))
 }
 
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<void> {
+export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {
   return RNFetchBlob.fs.writeStream(filepath, encoding, append)
 }
 
-function unlink(filepath: string): Promise<void> {
+export function unlink(filepath: string): Promise<void> {
   return RNFetchBlob.fs.unlink(filepath)
 }
 
-const cachesDirectoryPath = tmpDir()
-
-export {
-  cachesDirectoryPath,
-  copy,
-  exists,
-  downloadFilePath,
-  stat,
-  tmpDir,
-  tmpFile,
-  unlink,
-  writeStream,
-  downloadFilePathNoSearch,
+export function readFile(filepath: string, encoding: string): Promise<any> {
+  return RNFetchBlob.fs.readFile(filepath, encoding)
 }
+
+export const cachesDirectoryPath = tmpDir()
+export const downloadFolder = ''

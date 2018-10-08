@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -35,7 +36,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
-	httpSrv         *libkb.HTTPSrv
+	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
@@ -51,13 +52,13 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
 		ri:              ri,
 		urlMap:          l,
 		fetcher:         fetcher,
 	}
+	r.initHTTPSrv()
 	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
@@ -83,9 +84,33 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 	}
 }
 
+func (r *AttachmentHTTPSrv) initHTTPSrv() {
+	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
+	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+}
+
 func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	if err := r.httpSrv.Start(); err != nil {
-		r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
+	maxTries := 2
+	success := false
+	for i := 0; i < maxTries; i++ {
+		if err := r.httpSrv.Start(); err != nil {
+			if err == kbhttp.ErrPinnedPortInUse {
+				// If we hit this, just try again and get a different port.
+				// The advantage is that backing in and out of the thread will restore attachments,
+				// whereas if we do nothing you need to bkg/foreground.
+				r.Debug(context.TODO(),
+					"startHTTPSrv: pinned port taken error, re-initializing and trying again")
+				r.initHTTPSrv()
+				continue
+			}
+			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
+			break
+		}
+		success = true
+		break
+	}
+	if !success {
+		r.Debug(context.TODO(), "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
 		return
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
@@ -163,22 +188,17 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 	w.WriteHeader(code)
 }
 
-func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset) bool {
-	return strings.HasPrefix(asset.MimeType, "video")
-}
-
-func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, error) {
-	dir := filepath.Join(r.G().GetCacheDir(), "contentstash")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return nil, err
+func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset, req *http.Request) bool {
+	noStream := "true" == req.URL.Query().Get("nostream")
+	if noStream {
+		// If we just want the bits without streaming
+		return false
 	}
-	return ioutil.TempFile(dir, "cs")
+	return strings.HasPrefix(asset.MimeType, "video")
 }
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
-	// Hack for Android video to work
-
 	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
 		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
@@ -242,7 +262,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	size := asset.Size
 	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
-	if r.shouldServeContent(ctx, asset) {
+	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return

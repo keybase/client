@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch, {routeProps}) => ({
   _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
   onCancel: () => dispatch(navigateUp()),
 })
@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(DeviceRevoke)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(DeviceRevoke)

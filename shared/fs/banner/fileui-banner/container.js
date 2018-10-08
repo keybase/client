@@ -12,21 +12,24 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState) => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
+  const kbfsOutdated = Constants.kbfsOutdated(state)
   return {
     kbfsEnabled,
+    kbfsOutdated,
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
+    dokanUninstallString: Constants.kbfsUninstallString(state),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
-    _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+    _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
   }
 }
 
@@ -36,14 +39,20 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onDismiss: dispatchProps.onDismiss,
   onInstall: dispatchProps.onInstall,
   onUninstall: dispatchProps.onUninstall,
-  openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
+  openInSystemFileManager:
+    stateProps.kbfsEnabled && path ? () => dispatchProps._openInSystemFileManager : undefined,
   path,
+  dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })
 
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      connect(mapStateToProps, mapDispatchToProps, mergeProps),
+      connect(
+        mapStateToProps,
+        mapDispatchToProps,
+        mergeProps
+      ),
       setDisplayName('FilesBanner'),
       lifecycle({
         componentDidMount() {

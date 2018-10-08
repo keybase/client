@@ -10,10 +10,13 @@ import * as ChatTypes from '../constants/types/chat2'
 import {RPCError} from '../util/errors'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'config:'
+export const _avatarQueue = 'config:_avatarQueue'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
+export const copyToClipboard = 'config:copyToClipboard'
 export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
@@ -33,6 +36,7 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
+export const outOfDate = 'config:outOfDate'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
@@ -44,6 +48,8 @@ export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateFollowing = 'config:updateFollowing'
+export const updateMenubarWindowID = 'config:updateMenubarWindowID'
+export const updateNow = 'config:updateNow'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = $ReadOnly<{|
@@ -58,11 +64,16 @@ type _BootstrapStatusLoadedPayload = $ReadOnly<{|
 |}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
+type _CopyToClipboardPayload = $ReadOnly<{|text: string|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
-type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
+type _DaemonHandshakePayload = $ReadOnly<{|
+  firstTimeConnecting: boolean,
+  version: number,
+|}>
 type _DaemonHandshakeWaitPayload = $ReadOnly<{|
   name: string,
+  version: number,
   increment: boolean,
   failedReason?: ?string,
   failedFatal?: true,
@@ -74,17 +85,22 @@ type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
 type _LoadAvatarsPayload = $ReadOnly<{|usernames: Array<string>|}>
 type _LoadTeamAvatarsPayload = $ReadOnly<{|teamnames: Array<string>|}>
-type _LoadedAvatarsPayload = $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>
+type _LoadedAvatarsPayload = $ReadOnly<{|avatars: I.Map<string, I.Map<number, string>>|}>
 type _LoggedInPayload = $ReadOnly<{|causedByStartup: boolean|}>
 type _LoggedOutPayload = void
-type _LogoutHandshakePayload = void
+type _LogoutHandshakePayload = $ReadOnly<{|version: number|}>
 type _LogoutHandshakeWaitPayload = $ReadOnly<{|
   name: string,
+  version: number,
   increment: boolean,
 |}>
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
+type _OutOfDatePayload = $ReadOnly<{|
+  critical: boolean,
+  message?: string,
+|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|
@@ -114,6 +130,9 @@ type _UpdateFollowingPayload = $ReadOnly<{|
   username: string,
   isTracking: boolean,
 |}>
+type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
+type _UpdateNowPayload = void
+type __avatarQueuePayload = void
 
 // Action Creators
 /**
@@ -163,6 +182,7 @@ export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
+export const createCopyToClipboard = (payload: _CopyToClipboardPayload) => ({error: false, payload, type: copyToClipboard})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
@@ -174,6 +194,7 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: 
 export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
+export const createOutOfDate = (payload: _OutOfDatePayload) => ({error: false, payload, type: outOfDate})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({error: false, payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
@@ -182,11 +203,15 @@ export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({error: false, payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
+export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
+export const createUpdateNow = (payload: _UpdateNowPayload) => ({error: false, payload, type: updateNow})
+export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: false, payload, type: _avatarQueue})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
 export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
 export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
+export type CopyToClipboardPayload = $Call<typeof createCopyToClipboard, _CopyToClipboardPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
 export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
@@ -206,6 +231,7 @@ export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait,
 export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
+export type OutOfDatePayload = $Call<typeof createOutOfDate, _OutOfDatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
@@ -217,6 +243,9 @@ export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListener
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
 export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
+export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
+export type UpdateNowPayload = $Call<typeof createUpdateNow, _UpdateNowPayload>
+export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
 
 // All Actions
 // prettier-ignore
@@ -224,6 +253,7 @@ export type Actions =
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
+  | CopyToClipboardPayload
   | DaemonErrorPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
@@ -243,6 +273,7 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
+  | OutOfDatePayload
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
@@ -254,4 +285,7 @@ export type Actions =
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateFollowingPayload
+  | UpdateMenubarWindowIDPayload
+  | UpdateNowPayload
+  | _avatarQueuePayload
   | {type: 'common:resetStore', payload: void}

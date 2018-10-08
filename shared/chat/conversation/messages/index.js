@@ -40,6 +40,10 @@ class MessageFactory extends React.PureComponent<Props> {
         return <WrapperTimestamp {...messageWrapperProps} />
       case 'attachment':
         return <WrapperTimestamp {...messageWrapperProps} />
+      case 'requestPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
+      case 'sendPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
       case 'placeholder':
         return (
           <WrapperTimestamp {...messageWrapperProps}>
@@ -134,7 +138,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('MessageFactory'),
   lifecycle({
     componentDidUpdate(prevProps) {

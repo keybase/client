@@ -11,14 +11,19 @@ import {isMobile} from '../../constants/platform'
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',
   autoFocus: false,
+  hideClearSearch: false,
   placeholder: 'Type someone',
   onExitSearch: Sb.action('onExitSearch'),
   onSelectUser: Sb.action('onSelectUser'),
+  onFocus: Sb.action('onFocus'),
+  showServiceFilter: true,
 }
 
 const inputCommon = {
   autoFocus: false,
+  hideClearSearch: false,
   hideAddButton: false,
+  onFocus: Sb.action('onFocus'),
   onAddSelectedUser: Sb.action('Add selected user'),
   onCancel: Sb.action('Cancel'),
   onChangeText: Sb.action('Change text'),

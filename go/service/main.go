@@ -23,9 +23,11 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
@@ -34,7 +36,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/pvl"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
@@ -62,6 +64,7 @@ type Service struct {
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 }
 
@@ -84,6 +87,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
 }
@@ -102,7 +106,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
-		keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
@@ -144,8 +147,10 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
-		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
+	walletHandler := newWalletHandler(xp, g)
+	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
@@ -155,7 +160,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()))
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
 
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
@@ -279,6 +284,8 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
+	d.SetupChatModules(nil)
+
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -299,6 +306,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	epick.Push(d.setupTeams())
 	epick.Push(d.setupStellar())
 	epick.Push(d.setupPVL())
+	epick.Push(d.setupParamProofStore())
 	epick.Push(d.setupEphemeralKeys())
 	return epick.Error()
 }
@@ -314,12 +322,17 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()), d.badger)
 	return nil
 }
 
 func (d *Service) setupPVL() error {
-	pvlsource.NewPvlSourceAndInstall(d.G())
+	pvl.NewPvlSourceAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupParamProofStore() error {
+	externals.NewParamProofStoreAndInstall(d.G())
 	return nil
 }
 
@@ -332,7 +345,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
-	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 	d.addGlobalHooks()
@@ -344,6 +356,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletInit()
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
+	d.runTeamUpgrader(ctx)
 	go d.identifySelf()
 }
 
@@ -384,9 +397,11 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
-func (d *Service) createChatModules() {
+func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g := globals.NewContext(d.G(), d.ChatG())
-	ri := d.gregor.GetClient
+	if ri == nil {
+		ri = d.gregor.GetClient
+	}
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
@@ -396,6 +411,7 @@ func (d *Service) createChatModules() {
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.Searcher = chat.NewSearcher(g)
+	g.Indexer = search.NewIndexer(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -413,7 +429,7 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
 	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
@@ -422,6 +438,8 @@ func (d *Service) createChatModules() {
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+
+	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -492,6 +510,11 @@ func (d *Service) identifySelf() {
 
 func (d *Service) runTLFUpgrade() {
 	d.tlfUpgrader.Run()
+}
+
+func (d *Service) runTeamUpgrader(ctx context.Context) {
+	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
 }
 
 func (d *Service) runBackgroundIdentifier() {
@@ -1224,7 +1247,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
-	d.createChatModules()
+	d.SetupChatModules(nil)
 	d.startupGregor()
 	d.startChatModules()
 

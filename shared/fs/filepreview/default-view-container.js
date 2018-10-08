@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -11,34 +11,38 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     _username,
     _path: path,
-    fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+    fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
     pathItem,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
-  download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
-  saveMedia: () => dispatch(FsGen.createSaveMedia({path, routePath})),
-  shareNative: () => dispatch(FsGen.createShareNative({path, routePath})),
-  showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+const mapDispatchToProps = (dispatch, {path, routePath}) => ({
+  download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
+  saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
+  shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
+  showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {download, saveMedia, shareNative, showInFileUI} = dispatchProps
+  const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
     itemStyles,
     pathItem,
     download,
-    save: saveMedia,
-    share: shareNative,
-    showInFileUI,
+    saveMedia,
+    shareNative,
+    showInSystemFileManager,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('FilePreviewDefaultView')
 )(DefaultView)

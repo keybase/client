@@ -3,7 +3,7 @@ import * as GitGen from '../../../../actions/git-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import Git from '.'
-import {connect, type Dispatch, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClickUserAvatar: (username: string) =>
@@ -15,4 +15,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(() => ({}), mapDispatchToProps)(Git)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Git)

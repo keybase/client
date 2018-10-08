@@ -84,9 +84,8 @@ const effectTriggeredTransform = obj => {
       toLog = {
         effect: {
           PUT: {
-            type: obj.effect.PUT.action &&
-              obj.effect.PUT.action.payload &&
-              obj.effect.PUT.action.payload.type,
+            type:
+              obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type,
           },
         },
       }
@@ -113,9 +112,12 @@ const ERROR_STYLE = 'color: red'
 const CANCEL_STYLE = 'color: #ccc'
 
 const IS_BROWSER = typeof window !== 'undefined' && window.document
-const globalScope = typeof window.document === 'undefined' && navigator.product === 'ReactNative'
-  ? global
-  : IS_BROWSER ? window : null
+const globalScope =
+  typeof window.document === 'undefined' && navigator.product === 'ReactNative'
+    ? global
+    : IS_BROWSER
+      ? window
+      : null
 // `VERBOSE` can be made a setting configured from the outside.
 const VERBOSE = true
 
@@ -470,7 +472,8 @@ function logFormatter() {
   }
 
   function getLog() {
-    let msgs = [], msgsArgs = []
+    let msgs = [],
+      msgsArgs = []
     for (var i = 0; i < logs.length; i++) {
       msgs.push(logs[i].msg)
       msgsArgs = msgsArgs.concat(logs[i].args)

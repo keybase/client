@@ -11,15 +11,17 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
+  const walletName = routeProps.get('walletName')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
   return {
     accountID,
     secretKey,
     username: state.config.username,
+    walletName,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createSecretKeySeen({accountID}))
     dispatch(navigateUp())
@@ -33,4 +35,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ExportSecretKey)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ExportSecretKey)

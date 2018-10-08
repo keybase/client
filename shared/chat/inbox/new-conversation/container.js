@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import NewConversation from '.'
 
 type Props = {
@@ -11,7 +10,7 @@ type Props = {
   onCancel: () => void,
   onClick: () => void,
   shouldShow: boolean,
-  users: I.OrderedSet<string>,
+  users: Array<string>,
 }
 
 const mapStateToProps = (state: TypedState) => {
@@ -43,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCancel: dispatchProps.onCancel,
   onClick: dispatchProps.onClick,
   shouldShow: stateProps.shouldShow,
-  users: stateProps.users.toSet().subtract([stateProps._you]),
+  users: stateProps.users.filter(u => u !== stateProps._you).toArray(),
 })
 
 class NewChooser extends React.PureComponent<Props> {
@@ -52,7 +51,7 @@ class NewChooser extends React.PureComponent<Props> {
       this.props.shouldShow && (
         <NewConversation
           isSelected={this.props.isSelected}
-          users={this.props.users.toArray()}
+          users={this.props.users}
           onClick={this.props.onClick}
           onCancel={this.props.onCancel}
         />
@@ -61,4 +60,8 @@ class NewChooser extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NewChooser)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(NewChooser)

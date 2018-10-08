@@ -251,6 +251,10 @@
             "items": "string"
           },
           "name": "provisionedUsernames"
+        },
+        {
+          "type": "boolean",
+          "name": "hasProvisionedUser"
         }
       ]
     },
@@ -384,6 +388,29 @@
         {
           "type": "long",
           "name": "criticalClockSkew"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UpdateInfoStatus",
+      "symbols": [
+        "UP_TO_DATE_0",
+        "NEED_UPDATE_1",
+        "CRITICALLY_OUT_OF_DATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateInfo",
+      "fields": [
+        {
+          "type": "UpdateInfoStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "message"
         }
       ]
     },
@@ -548,6 +575,14 @@
       "request": [],
       "response": "OutOfDateInfo",
       "doc": "Check whether the API server has told us we're out of date."
+    },
+    "getUpdateInfo": {
+      "request": [],
+      "response": "UpdateInfo"
+    },
+    "startUpdateIfNeeded": {
+      "request": [],
+      "response": null
     },
     "waitForClient": {
       "request": [

@@ -45,7 +45,7 @@ const Editing = (props: EditingProps) => (
       />
     </Box>
     <Box key="right" style={rowStyles.rightBox}>
-      {props.status === 'failed' && <Text type="BodyError">Failed</Text>}
+      {props.status === 'failed' && <Text type="BodySmallError">Failed</Text>}
       <Button
         key="create"
         style={stylesButton}

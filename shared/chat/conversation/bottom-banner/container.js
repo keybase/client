@@ -23,6 +23,7 @@ class BannerContainer extends React.PureComponent<Props> {
       case 'none':
         return null
     }
+    return null
   }
 }
 
@@ -74,4 +75,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BannerContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BannerContainer)

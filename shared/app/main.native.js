@@ -46,7 +46,7 @@ class Main extends React.Component<Props> {
         />
         <GatewayDest
           name="popup-root"
-          component={View}
+          component={ViewForGatewayDest}
           pointerEvents="box-none"
           style={globalStyles.fillAbsolute}
         />
@@ -54,6 +54,7 @@ class Main extends React.Component<Props> {
     )
   }
 }
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const mapStateToProps = (state: TypedState) => ({
   routeDef: state.routeTree.routeDef,
@@ -61,9 +62,14 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Main)
+const Connected = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Main)
+export default Connected

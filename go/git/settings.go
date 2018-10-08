@@ -96,9 +96,14 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		}
 		convID := convs[0].Info.Id
 		apiArg.Args["chat_conv_id"] = libkb.HexArg(convID)
+		apiArg.AppStatusCodes = []int{libkb.SCOk, libkb.SCTeamWritePermDenied}
 	}
 
-	_, err = g.GetAPI().Post(*apiArg)
+	apiRes, err := g.GetAPI().Post(*apiArg)
+	switch apiRes.AppStatus.Code {
+	case libkb.SCTeamWritePermDenied:
+		return libkb.TeamWritePermDeniedError{}
+	}
 	return err
 }
 

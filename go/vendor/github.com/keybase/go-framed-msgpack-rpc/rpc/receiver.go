@@ -13,7 +13,7 @@ type receiver interface {
 }
 
 type receiveHandler struct {
-	writer      encoder
+	writer      *framedMsgpackEncoder
 	protHandler *protocolHandler
 
 	tasks map[int]context.CancelFunc
@@ -31,7 +31,7 @@ type receiveHandler struct {
 	log LogInterface
 }
 
-func newReceiveHandler(enc encoder, protHandler *protocolHandler, l LogInterface) *receiveHandler {
+func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler, l LogInterface) *receiveHandler {
 	r := &receiveHandler{
 		writer:      enc,
 		protHandler: protHandler,

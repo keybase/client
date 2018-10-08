@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
 
@@ -112,9 +113,9 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
 	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx.G(), tlfname, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -122,7 +123,7 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, time.Hour*24, 10*time.Second,
+	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
 		true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {
@@ -166,10 +167,10 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
-func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(name, public)
+func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(g, name, public)
 	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
-		return kbfs.SplitAndNormalizeTLFName(retryErr.NameToTry, public)
+		return kbfs.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -350,16 +351,8 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-func VisibleChatMessageTypes() []chat1.MessageType {
-	return []chat1.MessageType{
-		chat1.MessageType_TEXT,
-		chat1.MessageType_ATTACHMENT,
-		chat1.MessageType_SYSTEM,
-	}
-}
-
 func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	for _, mt := range VisibleChatMessageTypes() {
+	for _, mt := range chat1.VisibleChatMessageTypes() {
 		if messageType == mt {
 			return true
 		}
@@ -725,7 +718,7 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 
 func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	var summaries []chat1.MessageSummary
-	for _, typ := range VisibleChatMessageTypes() {
+	for _, typ := range chat1.VisibleChatMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
@@ -736,6 +729,25 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	}
 	sort.Sort(ByMsgSummaryCtime(summaries))
 	return summaries[len(summaries)-1].Ctime
+}
+
+func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
+	// nil means all
+	if typs == nil {
+		for typ := range chat1.MessageTypeRevMap {
+			typs = append(typs, typ)
+		}
+	}
+	for _, typ := range typs {
+		msg, err := conv.GetMaxMessage(typ)
+		if err == nil && msg.Ctime.After(res.Ctime) {
+			res = msg
+		}
+	}
+	if res.GetMessageID() == 0 {
+		return res, errors.New("no message summary found")
+	}
+	return res, nil
 }
 
 // PickLatestMessageUnboxed gets the latest message with one `typs`.
@@ -756,7 +768,7 @@ func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.Message
 }
 
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
@@ -764,7 +776,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return "", ""
 	}
@@ -845,9 +857,29 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
+	case chat1.MessageType_REQUESTPAYMENT:
+		return "🚀 payment request", ""
+	case chat1.MessageType_SENDPAYMENT:
+		return "🚀 payment sent", ""
 	}
 	return "", ""
 }
@@ -857,7 +889,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if conv == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(*conv, chat1.VisibleChatMessageTypes())
 	if err != nil || !msg.IsValid() {
 		return ""
 	}
@@ -880,10 +912,17 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	var tlfName string
 	rawConv := rc.Conv
+	latest, err := PickLatestMessageSummary(rawConv, nil)
+	if err != nil {
+		tlfName = ""
+	} else {
+		tlfName = latest.TlfName
+	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
-	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
 	res.Visibility = rawConv.Metadata.Visibility
@@ -906,6 +945,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
+		res.Name = rc.LocalMetadata.Name
 	}
 	return res
 }
@@ -987,7 +1027,7 @@ func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
 	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
 }
 
-func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
+func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
@@ -1096,6 +1136,36 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	return nil
 }
 
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+	}
+	return nil
+}
+
+func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIRequestInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_REQUESTPAYMENT:
+		body := msg.MessageBody.Requestpayment()
+		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+	}
+	return nil
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1143,7 +1213,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Superseded:            valid.ServerHeader.SupersededBy != 0,
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
-			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
+			ChannelNameMentions:   PresentChannelNameMentions(ctx, valid.ChannelNameMentions),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
@@ -1151,9 +1221,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1163,6 +1235,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1172,6 +1250,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1272,6 +1352,12 @@ func (c ByMsgUnboxedMsgID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ByMsgUnboxedMsgID) Less(i, j int) bool {
 	return c[i].GetMessageID() > c[j].GetMessageID()
 }
+
+type ByMsgID []chat1.MessageID
+
+func (m ByMsgID) Len() int           { return len(m) }
+func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByMsgID) Less(i, j int) bool { return m[i] > m[j] }
 
 func GetTopicName(conv chat1.ConversationLocal) string {
 	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
@@ -1441,4 +1527,45 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 			MessageID: msgID,
 			Hidden:    true,
 		})
+}
+
+func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
+	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
+	// Get session token
+	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
+		return conn, token, libkb.LoggedInError{}
+	}
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to get logged in session: %s", err.Error())
+		return conn, token, err
+	}
+	token = gregor1.SessionToken(nist.Token().String())
+
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(g.Env.GetGregorURI())
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to parse chat server UR: %s", err.Error())
+		return conn, token, err
+	}
+
+	if uri.UseTLS() {
+		rawCA := g.Env.GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			return conn, token, err
+		}
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log},
+			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
+		conn = rpc.NewConnectionWithTransport(handler(nist), t,
+			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	}
+	return conn, token, nil
 }

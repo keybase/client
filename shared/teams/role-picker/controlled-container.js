@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
 import {RoleOptions} from '.'
-import {connect} from 'react-redux'
-import {compose, withHandlers, withStateHandlers} from '../../util/container'
+import {connect, compose, withHandlers, withStateHandlers} from '../../util/container'
 import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
 import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/types/teams'
@@ -55,7 +54,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
 })
 
@@ -66,7 +65,11 @@ const ControlledRolePicker = props => (
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

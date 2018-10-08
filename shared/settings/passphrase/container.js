@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onChangeShowPassphrase: () => dispatch(SettingsGen.createOnChangeShowPassphrase()),
   onSave: (passphrase: string, passphraseConfirm: string) => {
@@ -30,7 +30,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onUpdatePGPSettings()

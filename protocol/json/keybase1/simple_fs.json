@@ -262,7 +262,8 @@
       "name": "ListFilter",
       "symbols": [
         "NO_FILTER_0",
-        "FILTER_ALL_HIDDEN_1"
+        "FILTER_ALL_HIDDEN_1",
+        "FILTER_SYSTEM_HIDDEN_2"
       ]
     },
     {
@@ -827,6 +828,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "Dirent",
@@ -951,15 +959,6 @@
       ],
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
-    },
-    "simpleFSSuppressNotifications": {
-      "request": [
-        {
-          "name": "suppressDurationSec",
-          "type": "int"
-        }
-      ],
-      "response": null
     },
     "simpleFSGetUserQuotaUsage": {
       "request": [],

@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import {compose, connect, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, type TypedState} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 import VideoFullscreen from './'
 
@@ -18,7 +18,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
   onClose: () => {
     dispatch(navigateUp())
   },
@@ -34,4 +34,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(VideoFullscreen)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(VideoFullscreen)

@@ -2,7 +2,9 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {Badge, Box, Icon, iconCastPlatformStyles} from '.'
+import Badge from './badge'
+import Box from './box'
+import Icon, {castPlatformStyles as iconCastPlatformStyles} from './icon'
 import * as Styles from '../styles'
 import type {Props} from './back-button'
 

@@ -45,7 +45,7 @@ const getStillRows = (
   names: Array<string>
 ): Array<SortableStillRowItem> =>
   names.reduce((items, name) => {
-    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name}))
+    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.unknownPathItem)
     return [
       ...items,
       {
@@ -170,7 +170,10 @@ const getItemsFromStateProps = (stateProps, path: Types.Path) => {
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
   const {tlfList} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
   const elems = Types.getPathElements(path)
-  const resetParticipants = tlfList.get(elems[2], Constants.makeTlf()).resetParticipants.map(i => i.username)
+  const resetParticipants = tlfList
+    .get(elems[2], Constants.makeTlf())
+    .resetParticipants.map(i => i.username)
+    .toArray()
   const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
   const items = getItemsFromStateProps(stateProps, path)
   return {isUserReset, items, path, resetParticipants, routePath}
@@ -179,6 +182,11 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
 export default compose(
   SecurityPrefsPromptingHoc,
   FilesLoadingHoc,
-  connect(mapStateToProps, undefined, mergeProps),
+  // $FlowIssue @jzila lots of exposed flow issues here
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('Files')
 )(Files)

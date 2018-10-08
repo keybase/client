@@ -47,7 +47,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   return {
     _loadChannelInfo: (teamname: string, conversationIDKey: ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({teamname, conversationIDKey})),
@@ -96,7 +96,11 @@ const ConnectedEditChannel: React.ComponentType<{
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
 }> = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       if (this.props.waitingForGetInfo) {

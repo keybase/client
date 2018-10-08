@@ -85,10 +85,15 @@ const styles = Styles.styleSheetCreate({
   teamAvatar: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  icon: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-  },
+  icon: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      verticalAlign: 'bottom',
+    },
+  }),
   breadcrumbNonLastItemBox: Styles.platformStyles({
     isElectron: {
       maxWidth: 120,

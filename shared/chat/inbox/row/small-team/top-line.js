@@ -46,15 +46,12 @@ class _SimpleTopLine extends React.Component<Props> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          flexGrow: 1,
-          height: isMobile ? 21 : 17,
-          maxHeight: isMobile ? 21 : 17,
         }}
       >
         {this.props.showGear && (
           <TeamMenu
             visible={this.props.showingMenu}
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             onHidden={this.props.toggleShowingMenu}
             isSmallTeam={true}
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
@@ -64,15 +61,15 @@ class _SimpleTopLine extends React.Component<Props> {
           style={{
             ...globalStyles.flexBoxRow,
             flexGrow: 1,
-            height: '100%',
+            height: isMobile ? 21 : 17,
             position: 'relative',
           }}
         >
           <Box
             style={{
-              ...globalStyles.flexBoxColumn,
+              ...globalStyles.flexBoxRow,
               ...globalStyles.fillAbsolute,
-              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             {this.props.teamname && this.props.channelname ? (
@@ -122,7 +119,7 @@ class _SimpleTopLine extends React.Component<Props> {
           style={platformStyles({
             common: {
               ...boldOverride,
-              color: this.props.subColor,
+              color: this.props.hasBadge ? globalColors.blue : this.props.subColor,
             },
           })}
         >
@@ -136,6 +133,7 @@ class _SimpleTopLine extends React.Component<Props> {
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
+            fontSize={14}
             style={{position: 'relative', right: globalMargins.xtiny}}
           />
         )}

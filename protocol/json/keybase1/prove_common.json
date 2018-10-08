@@ -79,10 +79,144 @@
         "COINBASE_5",
         "HACKERNEWS_6",
         "FACEBOOK_8",
+        "GENERIC_SOCIAL_9",
         "GENERIC_WEB_SITE_1000",
         "DNS_1001",
         "PGP_1002",
         "ROOTER_100001"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofServiceGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SelectorEntry",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isIndex"
+        },
+        {
+          "type": "int",
+          "name": "index"
+        },
+        {
+          "type": "boolean",
+          "name": "isKey"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "boolean",
+          "name": "isAll"
+        },
+        {
+          "type": "boolean",
+          "name": "isContents"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ParamProofJSON",
+      "fields": [
+        {
+          "type": "SigID",
+          "name": "sigHash",
+          "jsonkey": "sig_hash"
+        },
+        {
+          "type": "string",
+          "name": "kbUsername",
+          "jsonkey": "kb_username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ParamProofUsernameConfig",
+      "fields": [
+        {
+          "type": "string",
+          "name": "re"
+        },
+        {
+          "type": "int",
+          "name": "min"
+        },
+        {
+          "type": "int",
+          "name": "max"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ParamProofServiceConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "domain"
+        },
+        {
+          "type": "string",
+          "name": "displayName",
+          "jsonkey": "display_name"
+        },
+        {
+          "type": [
+            null,
+            "ProofServiceGroup"
+          ],
+          "name": "group"
+        },
+        {
+          "type": "ParamProofUsernameConfig",
+          "name": "usernameConfig",
+          "jsonkey": "username"
+        },
+        {
+          "type": "string",
+          "name": "brandColor",
+          "jsonkey": "brand_color"
+        },
+        {
+          "type": "string",
+          "name": "prefillUrl",
+          "jsonkey": "prefill_url"
+        },
+        {
+          "type": "string",
+          "name": "profileUrl",
+          "jsonkey": "profile_url"
+        },
+        {
+          "type": "string",
+          "name": "checkUrl",
+          "jsonkey": "check_url"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SelectorEntry"
+          },
+          "name": "checkPath",
+          "jsonkey": "check_path"
+        }
       ]
     }
   ],

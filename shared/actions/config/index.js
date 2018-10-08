@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
@@ -17,35 +18,37 @@ import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
+import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
 const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyTracking.trackingChanged',
-    ({isTracking, username}) => [ConfigGen.createUpdateFollowing({isTracking, username})]
-  )
-
   getEngine().actionOnDisconnect('daemonError', () => {
     logger.flush()
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifySession.loggedIn',
-    ({username}, response, _, getState) => {
-      response && response.result()
-      // only send this if we think we're not logged in
-      if (!getState().config.loggedIn) {
-        return [ConfigGen.createLoggedIn({causedByStartup: false})]
-      }
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
-    // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-    if (getState().config.loggedIn) {
-      return [ConfigGen.createLoggedOut()]
-    }
+  getEngine().setIncomingCallMap({
+    'keybase.1.logUi.log': param => {
+      log(param)
+    },
+    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
+      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
+    'keybase.1.NotifySession.loggedOut': () =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+        if (state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedOut())
+        }
+      }),
+    'keybase.1.NotifySession.loggedIn': ({username}) =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're not logged in
+        if (!state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+        }
+      }),
   })
 }
 
@@ -64,8 +67,8 @@ const loadDaemonBootstrapStatus = (
         ConfigGen.createBootstrapStatusLoaded({
           deviceID: s.deviceID,
           deviceName: s.deviceName,
-          followers: s.followers || [],
-          following: s.following || [],
+          followers: s.followers ?? [],
+          following: s.following ?? [],
           loggedIn: s.loggedIn,
           registered: s.registered,
           uid: s.uid,
@@ -78,7 +81,13 @@ const loadDaemonBootstrapStatus = (
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
       const newState = yield Saga.select()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: getAccountsWaitKey}))
+        yield Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            increment: false,
+            name: getAccountsWaitKey,
+            version: action.payload.version,
+          })
+        )
       }
     }
   })
@@ -86,9 +95,21 @@ const loadDaemonBootstrapStatus = (
   switch (action.type) {
     case ConfigGen.daemonHandshake:
       return Saga.sequentially([
-        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'config.getBootstrapStatus'})),
+        Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            increment: true,
+            name: 'config.getBootstrapStatus',
+            version: action.payload.version,
+          })
+        ),
         makeCall,
-        Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'config.getBootstrapStatus'})),
+        Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            increment: false,
+            name: 'config.getBootstrapStatus',
+            version: action.payload.version,
+          })
+        ),
       ])
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
@@ -112,13 +133,23 @@ const dispatchSetupEngineListeners = () => {
 }
 
 let _firstTimeConnecting = true
-const startHandshake = () => {
+const startHandshake = (state: TypedState) => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
-  return Saga.put(ConfigGen.createDaemonHandshake({firstTimeConnecting}))
+  if (firstTimeConnecting) {
+    logger.info('First bootstrap started')
+  }
+  return Saga.put(
+    ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
+  )
 }
 
-const maybeDoneWithDaemonHandshake = (state: TypedState) => {
+let _firstTimeBootstrapDone = true
+const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+  if (action.payload.version !== state.config.daemonHandshakeVersion) {
+    // ignore out of date actions
+    return
+  }
   if (state.config.daemonHandshakeWaiters.size > 0) {
     // still waiting for things to finish
   } else {
@@ -127,6 +158,10 @@ const maybeDoneWithDaemonHandshake = (state: TypedState) => {
         return Saga.put(ConfigGen.createRestartHandshake())
       }
     } else {
+      if (_firstTimeBootstrapDone) {
+        _firstTimeBootstrapDone = false
+        logger.info('First bootstrap ended')
+      }
       return Saga.put(ConfigGen.createDaemonHandshakeDone())
     }
   }
@@ -141,8 +176,10 @@ const loadDaemonAccounts = (
   action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload
 ) => {
   let handshakeWait = false
+  let handshakeVersion = 0
 
   if (action.type === ConfigGen.daemonHandshake) {
+    handshakeVersion = action.payload.version
     // did we beat getBootstrapStatus?
     if (!state.config.loggedIn) {
       handshakeWait = true
@@ -152,7 +189,13 @@ const loadDaemonAccounts = (
   return Saga.call(function*() {
     try {
       if (handshakeWait) {
-        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: getAccountsWaitKey}))
+        yield Saga.put(
+          ConfigGen.createDaemonHandshakeWait({
+            increment: true,
+            name: getAccountsWaitKey,
+            version: handshakeVersion,
+          })
+        )
       }
       const loadedAction = yield RPCTypes.configGetAllProvisionedUsernamesRpcPromise().then(result => {
         let usernames = result.provisionedUsernames || []
@@ -165,7 +208,13 @@ const loadDaemonAccounts = (
         // someone dismissed this already?
         const newState: TypedState = yield Saga.select()
         if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-          yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: getAccountsWaitKey}))
+          yield Saga.put(
+            ConfigGen.createDaemonHandshakeWait({
+              increment: false,
+              name: getAccountsWaitKey,
+              version: handshakeVersion,
+            })
+          )
         }
       }
     } catch (error) {
@@ -178,6 +227,7 @@ const loadDaemonAccounts = (
               failedReason: "Can't get accounts",
               increment: false,
               name: getAccountsWaitKey,
+              version: handshakeVersion,
             })
           )
         }
@@ -208,7 +258,8 @@ const switchRouteDef = (
 
 const resetGlobalStore = () => Saga.put({payload: undefined, type: ConfigGen.resetStore})
 
-const startLogoutHandshake = () => Saga.put(ConfigGen.createLogoutHandshake())
+const startLogoutHandshake = (state: TypedState) =>
+  Saga.put(ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1}))
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
 // stuff to trigger this due to a timeout if there's no listeners or something
@@ -261,7 +312,7 @@ const routeToInitialScreen = (state: TypedState) => {
             Saga.put(ProfileGen.createShowUserProfile({username})),
           ])
         }
-      } catch (e) {
+      } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
     }
@@ -291,12 +342,49 @@ const handleAppLink = (_: any, action: ConfigGen.LinkPayload) => {
 const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && Saga.put(ConfigGen.createLoggedIn({causedByStartup: true}))
 
-const allowLogoutWaiters = () =>
+const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
   Saga.sequentially([
-    Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: 'nullhandshake'})),
+    Saga.put(
+      ConfigGen.createLogoutHandshakeWait({
+        increment: true,
+        name: 'nullhandshake',
+        version: action.payload.version,
+      })
+    ),
     Saga.call(Saga.delay, 10),
-    Saga.put(ConfigGen.createLogoutHandshakeWait({increment: false, name: 'nullhandshake'})),
+    Saga.put(
+      ConfigGen.createLogoutHandshakeWait({
+        increment: false,
+        name: 'nullhandshake',
+        version: action.payload.version,
+      })
+    ),
   ])
+
+const updateServerConfig = (state: TypedState) =>
+  Saga.call(function*() {
+    try {
+      const str = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'user/features',
+      })
+
+      const obj = JSON.parse(str.body)
+      const features = Object.keys(obj.features).reduce((map, key) => {
+        map[key] = obj.features[key].value
+        return map
+      }, {})
+
+      const serverConfig = {
+        printRPCStats: !!features.admin,
+        walletsEnabled: !!features.stellar,
+      }
+
+      logger.info('updateServerConfig', serverConfig)
+      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+    } catch (e) {
+      logger.info('updateServerConfig fail', e)
+    }
+  })
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
@@ -330,6 +418,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+  // Store per user server config info
+  yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
 
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 

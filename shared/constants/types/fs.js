@@ -3,10 +3,11 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
-import {type Actions} from '../../actions/fs-gen'
+// lets not create cycles in flow, lets discuss how to fix this
+// import {type Actions} from '../../actions/fs-gen'
 
 export opaque type Path = ?string
 
@@ -17,8 +18,8 @@ export type ProgressType = 'favorite' | 'pending' | 'loaded'
 export type _FsError = {
   time: number,
   error: string,
-  erroredAction: Actions,
-  retriableAction?: Actions,
+  erroredAction: any, // Actions,
+  retriableAction?: any, // Actions,
 }
 export type FsError = I.RecordOf<_FsError>
 
@@ -86,9 +87,15 @@ export type _SymlinkPathItem = {
 } & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
+export type _Mime = {
+  mimeType: string,
+  displayPreview: boolean,
+}
+export type Mime = I.RecordOf<_Mime>
+
 export type _FilePathItem = {
   type: 'file',
-  mimeType: string,
+  mimeType: ?Mime,
 } & PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
@@ -130,8 +137,7 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type DownloadIntentMobile = 'camera-roll' | 'share'
-export type DownloadIntentWebview = 'web-view-text' | 'web-view'
-export type DownloadIntent = 'none' | DownloadIntentMobile | DownloadIntentWebview
+export type DownloadIntent = 'none' | DownloadIntentMobile
 
 export type _DownloadMeta = {
   entryType: PathType,
@@ -169,6 +175,7 @@ export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
+export type MobilePickType = 'photo' | 'video' | 'mixed'
 
 export type _Flags = {
   kbfsOpening: boolean,
@@ -177,7 +184,6 @@ export type _Flags = {
   kextPermissionError: boolean,
   securityPrefsPropmted: boolean,
   showBanner: boolean,
-  syncing: boolean,
 }
 
 export type Flags = I.RecordOf<_Flags>
@@ -188,18 +194,44 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
+export type FileEditType = 'created' | 'modified' | 'deleted' | 'renamed' | 'unknown'
+
+export type _TlfEdit = {
+  filename: string,
+  serverTime: number,
+  editType: FileEditType,
+}
+
+export type TlfEdit = I.RecordOf<_TlfEdit>
+
+export type _TlfUpdate = {
+  path: Path,
+  writer: string,
+  serverTime: number,
+  history: I.List<TlfEdit>,
+}
+
+export type TlfUpdate = I.RecordOf<_TlfUpdate>
+
+export type UserTlfUpdates = I.List<TlfUpdate>
+
+export type PathItems = I.Map<Path, PathItem>
+
+export type Edits = I.Map<EditID, Edit>
+
 export type _State = {
-  pathItems: I.Map<Path, PathItem>,
+  pathItems: PathItems,
   tlfs: Tlfs,
-  edits: I.Map<EditID, Edit>,
+  edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Set<Path>,
+  loadingPaths: I.Map<Path, I.Set<string>>,
   downloads: I.Map<string, Download>,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
+  tlfUpdates: UserTlfUpdates,
 }
 export type State = I.RecordOf<_State>
 
@@ -239,6 +271,7 @@ export const getPathParent = (p: Path): Path =>
         .slice(0, -1)
         .join('/')
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
   const visibility = elems[1]
@@ -253,9 +286,29 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
+export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
+  const strPath = pathToString(path)
+  const strTlfPath = pathToString(tlfPath)
+  return (
+    strPath.startsWith(strTlfPath) &&
+    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
+  )
+}
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]
+}
+export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
+  switch (folderType) {
+    case RPCTypes.favoriteFolderType.private:
+      return 'private'
+    case RPCTypes.favoriteFolderType.public:
+      return 'public'
+    case RPCTypes.favoriteFolderType.team:
+      return 'team'
+    default:
+      return null
+  }
 }
 export const getPathVisibility = (p: Path): Visibility => {
   const elems = getPathElements(p)

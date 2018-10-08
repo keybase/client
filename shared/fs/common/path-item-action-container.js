@@ -1,19 +1,12 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type TypedState,
-  type Dispatch,
-} from '../../util/container'
+import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../util/container'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
-import {copyToClipboard} from '../../util/clipboard'
 
 type OwnProps = {
   path: Types.Path,
@@ -26,33 +19,33 @@ const mapStateToProps = (state: TypedState) => ({
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
-  _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+  _fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
-  copyPath: () => copyToClipboard(Types.pathToString(path)),
+  copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   ...(isMobile
     ? {
-        _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
-        _shareNative: () => dispatch(FsGen.createShareNative({path})),
+        _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
+        _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
       }
     : {
-        _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+        _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
       }),
 
   ...(!isIOS
     ? {
-        _download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
+        _download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
       }
     : {}),
 })
 
 type actions = {
-  showInFileUI?: () => void,
+  showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
   saveMedia?: (() => void) | 'disabled',
   shareNative?: (() => void) | 'disabled',
@@ -68,7 +61,7 @@ type MenuItemAppender = (
 
 const aShowIn: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   if (!isMobile && stateProps._fileUIEnabled) {
-    menuActions.showInFileUI = dispatchProps._showInFileUI
+    menuActions.showInSystemFileManager = dispatchProps._showInSystemFileManager
   }
 }
 
@@ -175,7 +168,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         )
   const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,
@@ -188,7 +181,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     lastWriter: pathItem.lastWriter.username,
     name: pathElements[pathElements.length - 1],
     size: pathItem.size,
-    needLoadMimeType: type === 'file' && pathItem.mimeType === '',
+    // The file content could change, resulting in a mime type change. So just
+    // request it regardless whether we have it or not. The FS saga takes care
+    // of preventing the RPC if it's already subscribed.
+    needLoadMimeType: type === 'file',
     needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
@@ -201,7 +197,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     actionIconFontSize,
     actionIconWhite,
     // menu actions
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,
@@ -211,7 +207,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedPathItemAction'),
   OverlayParentHOC,
   lifecycle({
@@ -219,7 +219,6 @@ export default compose(
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
         return
       }
-      // TODO: get rid of these when we have notifications in place.
       this.props.needFolderList && this.props.loadFolderList()
       this.props.needLoadMimeType && this.props.loadMimeType()
     },

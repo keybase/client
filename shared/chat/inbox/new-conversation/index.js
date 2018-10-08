@@ -101,7 +101,7 @@ const container3Style = {
 }
 
 const textStyle = {
-  color: globalColors.darkBlue,
+  color: globalColors.black_75,
 }
 const textSelectedStyle = {
   ...textStyle,

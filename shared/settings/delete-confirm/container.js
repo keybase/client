@@ -40,4 +40,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), HOCTimers)(DeleteConfirmContainer)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
+  HOCTimers
+)(DeleteConfirmContainer)

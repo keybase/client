@@ -42,10 +42,10 @@ const setupEngineListeners = () => {
     })
   })
 
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyBadges.badgeState',
-    ({badgeState}, _: any, getState) => [NotificationsGen.createReceivedBadgeState({badgeState})]
-  )
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
+      Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
+  })
 }
 
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {

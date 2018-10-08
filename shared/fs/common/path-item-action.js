@@ -5,21 +5,21 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {fileUIName} from '../../constants/platform'
 import {
-  Box,
   Box2,
+  Box,
   ClickableBox,
+  ProgressIndicator,
   Icon,
-  iconCastPlatformStyles,
   Text,
   FloatingMenu,
-  ProgressIndicator,
+  iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import PathItemIcon from './path-item-icon'
-import PathItemInfo from './path-item-info'
-import StaticBreadcrumb from './static-breadcrumb'
+import PathItemIcon from '../common/path-item-icon'
+import PathItemInfo from '../common/path-item-info'
+import StaticBreadcrumb from '../common/static-breadcrumb'
+import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
-import {memoize} from 'lodash'
 
 type Props = {
   name: string,
@@ -36,7 +36,7 @@ type Props = {
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
-  showInFileUI?: () => void,
+  showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
   saveMedia?: (() => void) | 'disabled',
   shareNative?: (() => void) | 'disabled',
@@ -85,24 +85,6 @@ const Save = DownloadTrackingHoc(
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => {
   return [
-    ...(props.showInFileUI
-      ? [
-          {
-            title: 'Show in ' + fileUIName,
-            onClick: hideMenuOnClick(props.showInFileUI, hideMenu),
-          },
-        ]
-      : []),
-    ...(props.ignoreFolder
-      ? [
-          {
-            title: 'Ignore this folder',
-            onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
-            subTitle: 'The folder will no longer appear in your folders list.',
-            danger: true,
-          },
-        ]
-      : []),
     ...(props.saveMedia
       ? [
           {
@@ -130,11 +112,11 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           },
         ]
       : []),
-    ...(props.download
+    ...(props.showInSystemFileManager
       ? [
           {
-            title: 'Download a copy',
-            onClick: hideMenuOnClick(props.download, hideMenu),
+            title: 'Show in ' + fileUIName,
+            onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
           },
         ]
       : []),
@@ -143,6 +125,24 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           {
             title: 'Copy path',
             onClick: hideMenuOnClick(props.copyPath, hideMenu),
+          },
+        ]
+      : []),
+    ...(props.download
+      ? [
+          {
+            title: 'Download a copy',
+            onClick: hideMenuOnClick(props.download, hideMenu),
+          },
+        ]
+      : []),
+    ...(props.ignoreFolder
+      ? [
+          {
+            title: 'Ignore this folder',
+            onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
+            subTitle: 'The folder will no longer appear in your folders list.',
+            danger: true,
           },
         ]
       : []),
@@ -201,8 +201,9 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
         />
       </ClickableBox>
       <FloatingMenu
+        closeOnSelect={false}
         containerStyle={styles.floatingContainer}
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         onHidden={hideMenuOnce}
         position="bottom right"

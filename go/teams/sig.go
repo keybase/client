@@ -284,7 +284,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		state = state.DeepCopyToPtr()
 	}
 
-	signer := signerX{
+	signer := SignerX{
 		signer:        me,
 		implicitAdmin: !isAdmin,
 	}

@@ -6,7 +6,7 @@ import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 
-import type {StatResult} from './file'
+import type {StatResult, WriteStream} from './file'
 
 export function tmpDir(): string {
   return cacheRoot
@@ -28,8 +28,9 @@ export function tmpRandFile(suffix: string): Promise<string> {
   })
 }
 
-// TODO make this a user setting
-export const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
+export const downloadFolder = __STORYBOOK__
+  ? ''
+  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
   return path.join(downloadFolder, filename)
@@ -93,6 +94,25 @@ export function unlink(filepath: string): Promise<void> {
   return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
-export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<void> {
-  return Promise.reject(new Error('not implemented'))
+export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {
+  const ws = fs.createWriteStream(filepath, {encoding, flags: append ? 'a' : 'w'})
+  return Promise.resolve({
+    close: () => ws.end(),
+    write: d => {
+      ws.write(d)
+    },
+  })
+}
+
+export function readFile(filepath: string, encoding: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    // $FlowIssue
+    fs.readFile(filepath, {encoding}, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data)
+      }
+    })
+  })
 }

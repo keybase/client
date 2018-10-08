@@ -22,15 +22,15 @@ const Header = (props: HeaderProps) => (
       <Kb.Icon
         type={
           Styles.isMobile
-            ? 'icon-fancy-stellar-sending-desktop-98-86'
-            : 'icon-fancy-stellar-sending-mobile-149-129'
+            ? 'icon-fancy-stellar-sending-mobile-149-129'
+            : 'icon-fancy-stellar-sending-desktop-98-86'
         }
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
-      <Kb.Text type="BodySmall" style={styles.headerText}>
-        {`Sending${props.assetConversion ? ' ' + props.assetType + ' worth' : ''}`.toUpperCase()}
+      <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+        {'Sending Lumens worth'.toUpperCase()}
       </Kb.Text>
-      <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
+      <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}
       </Kb.Text>
     </Kb.Box2>
@@ -62,7 +62,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   headerIcon: {
-    width: 100,
     marginBottom: Styles.globalMargins.small,
   },
   backButton: Styles.platformStyles({

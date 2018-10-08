@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -405,7 +406,7 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	if libkb.NewNormalizedUsername(assertion).CheckValid() == nil {
+	if kbun.NewNormalizedUsername(assertion).IsValid() {
 		upak, err := engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			return "", uv, false, err
@@ -625,7 +626,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	}
 
 	// Get admin permission, we will use the same one for all sigs.
-	admin, err := team.getAdminPermission(mctx.Ctx(), true)
+	admin, err := team.getAdminPermission(mctx.Ctx())
 	if err != nil {
 		return err
 	}

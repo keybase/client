@@ -1,5 +1,5 @@
-// @flow
-import type {IconType} from '../../common-adapters'
+// @flow strict
+import type {IconType} from '../../common-adapters/icon.constants'
 export type Service = 'Facebook' | 'GitHub' | 'Hacker News' | 'Keybase' | 'Reddit' | 'Twitter'
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'

@@ -25,7 +25,10 @@ const load = () => {
           </Box>
           <Box style={{width: '50%'}}>
             <Text type="BodySmall">{size}: </Text>
-            <Text type="BodySmall">{globalMargins[size]}px</Text>
+            <Text type="BodySmall">
+              {globalMargins[size]}
+              px
+            </Text>
           </Box>
         </Box>
       ))

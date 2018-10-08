@@ -21,13 +21,16 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
     return <Loading navigateAppend={navigateAppend} />
   }
   if (showRelogin) {
-    // $FlowIssue not sure
     return <Relogin navigateAppend={navigateAppend} />
   }
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
-const RootLogin = connect(mapStateToProps)(_RootLogin)
+const RootLogin = connect(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(_RootLogin)
 
 const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
 

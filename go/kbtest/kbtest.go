@@ -124,9 +124,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)
 	err := libkb.ResetAccount(m, u.NormalizedUsername(), u.Passphrase)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
+	require.NoError(tc.T, err)
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
 }
@@ -134,10 +132,8 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)
 	err := libkb.DeleteAccount(m, u.NormalizedUsername(), u.Passphrase)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
-	tc.T.Logf("Account reset for user %s", u.Username)
+	require.NoError(tc.T, err)
+	tc.T.Logf("Account deleted for user %s", u.Username)
 	Logout(tc)
 }
 
@@ -205,11 +201,8 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, FakeSalt())
-			if err := engine.RunEngine2(m, provisionee); err != nil {
-				return err
-			}
-			return nil
+			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
+			return engine.RunEngine2(m, provisionee)
 		})()
 		require.NoError(t, err, "kex2 provisionee")
 	}()

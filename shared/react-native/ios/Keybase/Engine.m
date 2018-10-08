@@ -9,7 +9,7 @@
 #import "Engine.h"
 
 #import <keybase/keybase.h>
-#import "RCTEventDispatcher.h"
+#import <React/RCTEventDispatcher.h>
 #import "AppDelegate.h"
 #import "Utils.h"
 
@@ -52,7 +52,7 @@ static NSString *const eventName = @"objc-engine-event";
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  KeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
 }
 
 - (void)setupQueues {
@@ -112,6 +112,7 @@ static NSString *const eventName = @"objc-engine-event";
 #pragma mark - Engine exposed to react
 
 @interface KeybaseEngine ()
+@property (strong) NSString * serverConfig;
 @end
 
 @implementation KeybaseEngine
@@ -140,7 +141,17 @@ RCT_EXPORT_METHOD(start) {
   [sharedEngine start: self];
 }
 
+- (void) setupServerConfig
+{
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+  NSString *cachePath = [paths objectAtIndex:0];
+  NSString *filePath = [cachePath stringByAppendingPathComponent:@"/Keybase/keybase.app.serverConfig"];
+  NSError * err;
+  self.serverConfig = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:&err];
+}
+
 - (NSDictionary *)constantsToExport {
+  [self setupServerConfig];
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
   NSString * simulatorVal =
 #if TARGET_IPHONE_SIMULATOR
@@ -152,12 +163,12 @@ RCT_EXPORT_METHOD(start) {
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
 
-
   return @{ @"eventName": eventName,
             @"test": testVal,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
             @"usingSimulator": simulatorVal,
+            @"serverConfig": self.serverConfig ? self.serverConfig : @"",
             @"version": KeybaseVersion()};
 }
 

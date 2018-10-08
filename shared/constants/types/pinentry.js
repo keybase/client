@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 

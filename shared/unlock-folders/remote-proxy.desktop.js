@@ -3,6 +3,7 @@ import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose} from '../util/container'
+import {serialize} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
@@ -34,9 +35,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 // Actions are handled by remote-container
 const UnlockFolder = compose(
-  connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
+  connect(
+    unlockFolderMapPropsToState,
+    () => ({}),
+    mergeProps
+  ),
   SyncBrowserWindow,
-  SyncProps
+  SyncProps(serialize)
 )(NullComponent)
 
 type Props = {
@@ -52,4 +57,8 @@ const mapStateToProps = (state: TypedState) => ({
   show: state.unlockFolders.popupOpen,
 })
 
-export default connect(mapStateToProps, () => ({}))(UnlockFolders)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(UnlockFolders)

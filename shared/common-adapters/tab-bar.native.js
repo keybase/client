@@ -3,12 +3,15 @@ import * as React from 'react'
 import {get} from 'lodash-es'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
-import {Badge, Box, Icon, Text} from '.'
+import Badge from './badge'
+import Box from './box'
+import Icon from './icon'
+import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 
