@@ -943,10 +943,10 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				case cmp == -1:
 					// Send amount is more than the available to send.
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLM)
+					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
 					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
 					if err == nil {
-						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLMFmt)
+						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
 					}
 					if arg.Currency != nil && amountX.rate != nil {
 						// If the user entered an amount in outside currency and an exchange
@@ -959,7 +959,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 							if err != nil {
 								log("error formatting available-to-send", err)
 							} else {
-								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*", formattedATS)
+								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
 							}
 						}
 					}

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import Available from '../available/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 
 type Props = {
@@ -16,7 +15,7 @@ const Footer = (props: Props) => (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
       {!!props.worthDescription && (
         <Kb.Text style={styles.worthDescription} type="BodySmall">
-          This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>
+          This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
         </Kb.Text>
       )}
       <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
@@ -53,7 +52,6 @@ const Footer = (props: Props) => (
           }
         />
       </Kb.Box2>
-      <Available />
     </Kb.Box2>
   </Kb.Box2>
 )

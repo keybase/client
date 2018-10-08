@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import Available from '../available/container'
 
 type Props = {|
   bottomLabel: string,
@@ -9,7 +10,6 @@ type Props = {|
   inputPlaceholder: string,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
-  onClickInfo: () => void,
   topLabel: string,
   value: string,
   warningAsset?: string,
@@ -48,16 +48,7 @@ const AssetInput = (props: Props) => (
       error={!!props.warningAsset}
       value={props.value}
     />
-    {props.warningAsset &&
-      !props.warningPayee && (
-        <Kb.Text type="BodySmallError">
-          Your available to send is{' '}
-          <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
-            {props.warningAsset}
-          </Kb.Text>
-          .
-        </Kb.Text>
-      )}
+    <Available />
     {!!props.warningPayee && (
       <Kb.Text type="BodySmallError">
         {props.warningPayee} doesn't accept{' '}
@@ -71,12 +62,6 @@ const AssetInput = (props: Props) => (
       <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
         {props.bottomLabel}
       </Kb.Text>
-      <Kb.Icon
-        type="iconfont-question-mark"
-        color={Styles.globalColors.black_40}
-        fontSize={12}
-        onClick={props.onClickInfo}
-      />
     </Kb.Box2>
   </Kb.Box2>
 )
