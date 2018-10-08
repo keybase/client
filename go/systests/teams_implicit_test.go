@@ -2,6 +2,7 @@ package systests
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"testing"
@@ -349,4 +350,37 @@ func TestImplicitSBSPukless(t *testing.T) {
 	teamID3, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID3)
+}
+
+func generateTestPhoneNumber() string {
+	ret := make([]byte, 10)
+	for i := range ret {
+		ret[i] = "0123456789"[rand.Intn(10)]
+	}
+	return fmt.Sprintf("4%s", string(ret))
+}
+
+func TestTeamWithPhoneNumber(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+
+	phone := generateTestPhoneNumber()
+	impteamName := fmt.Sprintf("%s@phone,%s", phone, ann.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	t.Logf("Created team %s -> %s", impteamName, teamID)
+
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	require.Equal(t, 1, teamObj.NumActiveInvites())
+	var invite keybase1.TeamInvite
+	for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+		// Get first invite to local var
+	}
+	require.EqualValues(t, phone, invite.Name)
+	invCat, err := invite.Type.C()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamInviteCategory_PHONE, invCat)
 }
