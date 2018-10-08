@@ -45,6 +45,24 @@ export const conversationsToSend = (state: TypedState) => {
   )
 }
 
+export const changeAffectsWidget = (
+  oldConv: ChatTypes.ConversationMeta,
+  newConv: ChatTypes.ConversationMeta
+) =>
+  oldConv !== newConv &&
+  !(
+    oldConv.rekeyers === newConv.rekeyers &&
+    oldConv.channelname === newConv.channelname &&
+    oldConv.conversationIDKey === newConv.conversationIDKey &&
+    oldConv.resetParticipants === newConv.resetParticipants &&
+    oldConv.wasFinalizedBy === newConv.wasFinalizedBy &&
+    oldConv.isMuted === newConv.isMuted &&
+    oldConv.teamname === newConv.teamname &&
+    oldConv.snippet === newConv.snippet &&
+    oldConv.snippetDecoration === newConv.snippetDecoration &&
+    oldConv.membershipType === newConv.membershipType
+  )
+
 export const serialize = ({
   hasBadge,
   hasUnread,

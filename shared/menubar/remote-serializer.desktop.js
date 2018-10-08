@@ -1,6 +1,9 @@
 // @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
-import {serialize as conversationSerialize} from '../chat/inbox/container/remote'
+import {
+  serialize as conversationSerialize,
+  changeAffectsWidget as conversationChangeAffectsWidget,
+} from '../chat/inbox/container/remote'
 import GetRowsFromTlfUpdate from '../fs/remote-container'
 
 export const serialize = {
@@ -21,8 +24,13 @@ export const serialize = {
   conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
   conversationMap: (v, o) =>
     v.reduce((map, toSend) => {
-      const oldConv = o && o.find(oldElem => oldElem.conversation === toSend.conversation)
-      return oldConv && oldConv.hasBadge === toSend.hasBadge && oldConv.hasUnread === toSend.hasUnread
+      const oldConv =
+        o &&
+        o.find(oldElem => oldElem.conversation.conversationIDKey === toSend.conversation.conversationIDKey)
+      return oldConv &&
+        oldConv.hasBadge === toSend.hasBadge &&
+        oldConv.hasUnread === toSend.hasUnread &&
+        conversationChangeAffectsWidget(oldConv.conversation, toSend.conversation)
         ? map
         : {
             ...map,
