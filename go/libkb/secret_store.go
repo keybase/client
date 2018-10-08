@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type SecretRetriever interface {
@@ -51,6 +52,7 @@ func (s *SecretStoreImp) RetrieveSecret(m MetaContext) (LKSecFullSecret, error) 
 	}
 	sec, err := s.store.RetrieveSecret(m, s.username)
 	if err != nil {
+		MobileKeychainPermissionDeniedCheck(m.G(), err)
 		return sec, err
 	}
 	s.secret = sec
