@@ -55,6 +55,12 @@ const (
 	// By default, this will be the block type given to all blocks
 	// that aren't explicitly some other type.
 	defaultBlockTypeDefault = keybase1.BlockType_DATA
+
+	// By default, allow 10% of the free bytes on disk to be used in the disk block cache.
+	defaultDiskBlockCacheFraction = 0.10
+
+	// By default, allow 15% of the free bytes on disk to be used in the sync block cache.
+	defaultSyncBlockCacheFraction = 0.10
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -97,10 +103,12 @@ type ConfigLocal struct {
 	kbCtx            Context
 	rootNodeWrappers []func(Node) Node
 
-	maxNameBytes  uint32
-	rekeyQueue    RekeyQueue
-	storageRoot   string
-	diskCacheMode DiskCacheMode
+	maxNameBytes           uint32
+	rekeyQueue             RekeyQueue
+	storageRoot            string
+	diskCacheMode          DiskCacheMode
+	diskBlockCacheFraction float64
+	syncBlockCacheFraction float64
 
 	traceLock    sync.RWMutex
 	traceEnabled bool
@@ -436,6 +444,8 @@ func NewConfigLocal(mode InitMode,
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 	config.rekeyFSMLimiter = NewOngoingWorkLimiter(config.Mode().RekeyWorkers())
+	config.diskBlockCacheFraction = defaultDiskBlockCacheFraction
+	config.syncBlockCacheFraction = defaultSyncBlockCacheFraction
 
 	return config
 }
@@ -571,6 +581,20 @@ func (c *ConfigLocal) DiskBlockCache() DiskBlockCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.diskBlockCache
+}
+
+// SetDiskBlockCacheFraction implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetDiskBlockCacheFraction(fraction float64) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.diskBlockCacheFraction = fraction
+}
+
+// SetSyncBlockCacheFraction implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetSyncBlockCacheFraction(fraction float64) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.syncBlockCacheFraction = fraction
 }
 
 // DiskLimiter implements the Config interface for ConfigLocal.
@@ -1244,7 +1268,7 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	}
 
 	params := makeDefaultBackpressureDiskLimiterParams(
-		configRoot, c.getQuotaUsage)
+		configRoot, c.getQuotaUsage, c.diskBlockCacheFraction, c.syncBlockCacheFraction)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)

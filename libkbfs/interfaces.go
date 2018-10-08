@@ -75,6 +75,14 @@ type diskBlockCacheSetter interface {
 	MakeDiskBlockCacheIfNotExists() error
 }
 
+type diskBlockCacheFractionSetter interface {
+	SetDiskBlockCacheFraction(float64)
+}
+
+type syncBlockCacheFractionSetter interface {
+	SetSyncBlockCacheFraction(float64)
+}
+
 type clockGetter interface {
 	Clock() Clock
 }
@@ -2054,6 +2062,8 @@ type Config interface {
 	currentSessionGetterGetter
 	diskBlockCacheGetter
 	diskBlockCacheSetter
+	diskBlockCacheFractionSetter
+	syncBlockCacheFractionSetter
 	clockGetter
 	diskLimiterGetter
 	syncedTlfGetterSetter

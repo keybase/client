@@ -478,6 +478,72 @@ func (mr *MockdiskBlockCacheSetterMockRecorder) MakeDiskBlockCacheIfNotExists() 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskBlockCacheIfNotExists", reflect.TypeOf((*MockdiskBlockCacheSetter)(nil).MakeDiskBlockCacheIfNotExists))
 }
 
+// MockdiskBlockCacheFractionSetter is a mock of diskBlockCacheFractionSetter interface
+type MockdiskBlockCacheFractionSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskBlockCacheFractionSetterMockRecorder
+}
+
+// MockdiskBlockCacheFractionSetterMockRecorder is the mock recorder for MockdiskBlockCacheFractionSetter
+type MockdiskBlockCacheFractionSetterMockRecorder struct {
+	mock *MockdiskBlockCacheFractionSetter
+}
+
+// NewMockdiskBlockCacheFractionSetter creates a new mock instance
+func NewMockdiskBlockCacheFractionSetter(ctrl *gomock.Controller) *MockdiskBlockCacheFractionSetter {
+	mock := &MockdiskBlockCacheFractionSetter{ctrl: ctrl}
+	mock.recorder = &MockdiskBlockCacheFractionSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskBlockCacheFractionSetter) EXPECT() *MockdiskBlockCacheFractionSetterMockRecorder {
+	return m.recorder
+}
+
+// SetDiskBlockCacheFraction mocks base method
+func (m *MockdiskBlockCacheFractionSetter) SetDiskBlockCacheFraction(arg0 float64) {
+	m.ctrl.Call(m, "SetDiskBlockCacheFraction", arg0)
+}
+
+// SetDiskBlockCacheFraction indicates an expected call of SetDiskBlockCacheFraction
+func (mr *MockdiskBlockCacheFractionSetterMockRecorder) SetDiskBlockCacheFraction(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDiskBlockCacheFraction", reflect.TypeOf((*MockdiskBlockCacheFractionSetter)(nil).SetDiskBlockCacheFraction), arg0)
+}
+
+// MocksyncBlockCacheFractionSetter is a mock of syncBlockCacheFractionSetter interface
+type MocksyncBlockCacheFractionSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MocksyncBlockCacheFractionSetterMockRecorder
+}
+
+// MocksyncBlockCacheFractionSetterMockRecorder is the mock recorder for MocksyncBlockCacheFractionSetter
+type MocksyncBlockCacheFractionSetterMockRecorder struct {
+	mock *MocksyncBlockCacheFractionSetter
+}
+
+// NewMocksyncBlockCacheFractionSetter creates a new mock instance
+func NewMocksyncBlockCacheFractionSetter(ctrl *gomock.Controller) *MocksyncBlockCacheFractionSetter {
+	mock := &MocksyncBlockCacheFractionSetter{ctrl: ctrl}
+	mock.recorder = &MocksyncBlockCacheFractionSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MocksyncBlockCacheFractionSetter) EXPECT() *MocksyncBlockCacheFractionSetterMockRecorder {
+	return m.recorder
+}
+
+// SetSyncBlockCacheFraction mocks base method
+func (m *MocksyncBlockCacheFractionSetter) SetSyncBlockCacheFraction(arg0 float64) {
+	m.ctrl.Call(m, "SetSyncBlockCacheFraction", arg0)
+}
+
+// SetSyncBlockCacheFraction indicates an expected call of SetSyncBlockCacheFraction
+func (mr *MocksyncBlockCacheFractionSetterMockRecorder) SetSyncBlockCacheFraction(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncBlockCacheFraction", reflect.TypeOf((*MocksyncBlockCacheFractionSetter)(nil).SetSyncBlockCacheFraction), arg0)
+}
+
 // MockclockGetter is a mock of clockGetter interface
 type MockclockGetter struct {
 	ctrl     *gomock.Controller
@@ -7093,6 +7159,26 @@ func (m *MockConfig) MakeDiskBlockCacheIfNotExists() error {
 // MakeDiskBlockCacheIfNotExists indicates an expected call of MakeDiskBlockCacheIfNotExists
 func (mr *MockConfigMockRecorder) MakeDiskBlockCacheIfNotExists() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskBlockCacheIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskBlockCacheIfNotExists))
+}
+
+// SetDiskBlockCacheFraction mocks base method
+func (m *MockConfig) SetDiskBlockCacheFraction(arg0 float64) {
+	m.ctrl.Call(m, "SetDiskBlockCacheFraction", arg0)
+}
+
+// SetDiskBlockCacheFraction indicates an expected call of SetDiskBlockCacheFraction
+func (mr *MockConfigMockRecorder) SetDiskBlockCacheFraction(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDiskBlockCacheFraction", reflect.TypeOf((*MockConfig)(nil).SetDiskBlockCacheFraction), arg0)
+}
+
+// SetSyncBlockCacheFraction mocks base method
+func (m *MockConfig) SetSyncBlockCacheFraction(arg0 float64) {
+	m.ctrl.Call(m, "SetSyncBlockCacheFraction", arg0)
+}
+
+// SetSyncBlockCacheFraction indicates an expected call of SetSyncBlockCacheFraction
+func (mr *MockConfigMockRecorder) SetSyncBlockCacheFraction(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncBlockCacheFraction", reflect.TypeOf((*MockConfig)(nil).SetSyncBlockCacheFraction), arg0)
 }
 
 // Clock mocks base method
