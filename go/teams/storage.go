@@ -50,6 +50,10 @@ func (d *DiskStorageItem) setValue(v teamDataGeneric) error {
 }
 
 func NewStorage(g *libkb.GlobalContext) *Storage {
+	// Note(maxtaco) 2018.10.08 --- Note a bug here, that we used the `libkb.DBChatInbox` type here.
+	// That's a copy-paste bug, but we get away with it since we have a `tid:` prefix that
+	// disambiguates these entries from true Chat entries. We're not going to fix it now
+	// since it would kill the team cache, but sometime in the future we should fix it.
 	s := newStorageGeneric(g, MemCacheLRUSize, diskStorageVersion, libkb.DBChatInbox, libkb.EncryptionReasonTeamsLocalStorage, func() diskItemGeneric { return &DiskStorageItem{} })
 	return &Storage{s}
 }
@@ -262,8 +266,8 @@ type memoryStorageGeneric struct {
 	lru *lru.Cache
 }
 
-func newMemoryStorageGeneric(g *libkb.GlobalContext, sz int) *memoryStorageGeneric {
-	nlru, err := lru.New(sz)
+func newMemoryStorageGeneric(g *libkb.GlobalContext, size int) *memoryStorageGeneric {
+	nlru, err := lru.New(size)
 	if err != nil {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
