@@ -18,7 +18,13 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize((...vals) => vals.map(v => v))
+const valuesCached = memoize((badgeMap, unreadMap, ...vals) =>
+  vals.map(v => ({
+    hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+    hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
+    conversation: v,
+  }))
+)
 
 const metaMapToFirstValues = memoize(metaMap =>
   metaMap
@@ -28,42 +34,72 @@ const metaMapToFirstValues = memoize(metaMap =>
     .toArray()
 )
 
-// A hack to store the state so we can convert at the last possible minute. This is a lot simpler than plumbing this all the way through
-let _lastState: TypedState
+// A hack to store the username to avoid plumbing.
+let _username: string
 export const conversationsToSend = (state: TypedState) => {
-  _lastState = state
-  return valuesCached(...metaMapToFirstValues(state.chat2.metaMap))
+  _username = state.config.username
+  return valuesCached(
+    state.chat2.badgeMap,
+    state.chat2.unreadMap,
+    ...metaMapToFirstValues(state.chat2.metaMap)
+  )
 }
 
-export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
-  const hasUnread = Constants.getHasUnread(_lastState, m.conversationIDKey)
-  const styles = Constants.getRowStyles(m, false, hasUnread)
-  const participantNeedToRekey = m.rekeyers.size > 0
-  const _username = _lastState.config.username || ''
-  const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
+export const changeAffectsWidget = (
+  oldConv: ChatTypes.ConversationMeta,
+  newConv: ChatTypes.ConversationMeta
+) =>
+  oldConv !== newConv &&
+  !(
+    oldConv.rekeyers === newConv.rekeyers &&
+    oldConv.channelname === newConv.channelname &&
+    oldConv.conversationIDKey === newConv.conversationIDKey &&
+    oldConv.resetParticipants === newConv.resetParticipants &&
+    oldConv.wasFinalizedBy === newConv.wasFinalizedBy &&
+    oldConv.isMuted === newConv.isMuted &&
+    oldConv.teamname === newConv.teamname &&
+    oldConv.snippet === newConv.snippet &&
+    oldConv.snippetDecoration === newConv.snippetDecoration &&
+    oldConv.membershipType === newConv.membershipType
+  )
+
+export const serialize = ({
+  hasBadge,
+  hasUnread,
+  conversation,
+}: {
+  hasBadge: boolean,
+  hasUnread: boolean,
+  conversation: ChatTypes.ConversationMeta,
+}): RemoteConvMeta => {
+  const styles = Constants.getRowStyles(conversation, false, hasUnread)
+  const participantNeedToRekey = conversation.rekeyers.size > 0
+  const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)
   return {
     backgroundColor: Styles.globalColors.white,
-    channelname: m.channelname,
-    conversationIDKey: m.conversationIDKey,
-    hasBadge: Constants.getHasBadge(_lastState, m.conversationIDKey),
-    hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
+    channelname: conversation.channelname,
+    conversationIDKey: conversation.conversationIDKey,
+    hasBadge,
+    hasResetUsers: !!conversation.resetParticipants && conversation.resetParticipants.size > 0,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
-    isFinalized: !!m.wasFinalizedBy,
+    isFinalized: !!conversation.wasFinalizedBy,
     isInWidget: true,
-    isMuted: m.isMuted,
+    isMuted: conversation.isMuted,
     isSelected: false,
     // excluding onSelectConversation
     participantNeedToRekey,
-    participants: m.teamname ? [] : Constants.getRowParticipants(m, _username).toArray(),
+    participants: conversation.teamname
+      ? []
+      : Constants.getRowParticipants(conversation, _username).toArray(),
     showBold: styles.showBold,
-    snippet: m.snippet,
-    snippetDecoration: m.snippetDecoration,
+    snippet: conversation.snippet,
+    snippetDecoration: conversation.snippetDecoration,
     subColor: styles.subColor,
-    teamname: m.teamname,
-    timestamp: Constants.timestampToString(m),
+    teamname: conversation.teamname,
+    timestamp: Constants.timestampToString(conversation),
     usernameColor: styles.usernameColor,
-    youAreReset: m.membershipType === 'youAreReset',
+    youAreReset: conversation.membershipType === 'youAreReset',
     youNeedToRekey,
   }
 }
