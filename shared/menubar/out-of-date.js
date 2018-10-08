@@ -23,20 +23,20 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
     >
       <Kb.Text
         backgroundMode="Information"
-        type="BodySemibold"
+        type="BodySmallSemibold"
         style={outOfDate.critical ? styles.textCritical : undefined}
       >
         {getOutOfDateText(outOfDate)}
       </Kb.Text>
       <Kb.Text
         backgroundMode="Information"
-        type="BodySemibold"
+        type="BodySmallSemibold"
         style={outOfDate.critical ? styles.textCritical : undefined}
       >
         Please{' '}
         <Kb.Text
           backgroundMode="Information"
-          type="BodySemibold"
+          type="BodySmallSemibold"
           underline={!!updateNow}
           style={outOfDate.critical ? styles.textCritical : undefined}
           onClick={updateNow}
@@ -60,7 +60,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.yellow,
     padding: Styles.globalMargins.tiny,
   },
-  textNonCritical: {},
 })
 
 export default OutOfDate
