@@ -436,7 +436,7 @@ const addNewDevice = (state: TypedState) =>
     } catch (e) {
       ProvisioningManager.getSingleton().done(e.message)
       // If we're canceling then ignore the error
-      if (e.desc !== Constants.cancelDesc) {
+      if (!errorCausedByUsCanceling(e)) {
         logger.error(`Provision -> Add device error: ${e.message}`)
         yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
         // show black bar
@@ -484,7 +484,7 @@ const showPaperkeyPage = (state: TypedState) =>
   Saga.put(RouteTreeGen.createNavigateAppend({path: ['paperkey'], parentPath: [Tabs.loginTab]}))
 
 const showFinalErrorPage = (state: TypedState) => {
-  if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
+  if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     return Saga.put(RouteTreeGen.createNavigateTo({path: ['error'], parentPath: [Tabs.loginTab]}))
   } else {
     return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.loginTab]}))
