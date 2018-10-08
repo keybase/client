@@ -27,8 +27,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/keybase/go-keychain"
-
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
@@ -785,17 +783,6 @@ func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
 		return
 	}
 	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
-	os.Exit(4)
-}
-
-func MobileKeychainPermissionDeniedCheck(g *GlobalContext, err error) {
-	if !isIOS || g.GetAppType() != MobileAppType || g.AppState.State() == keybase1.AppState_FOREGROUND {
-		return
-	}
-	if err != keychain.ErrorInteractionNotAllowed {
-		return
-	}
-	g.Log.Warning("keychain permission denied on mobile: %s", err)
 	os.Exit(4)
 }
 
