@@ -35,7 +35,7 @@ class FilterSmallTeam extends PureComponent<Props, State> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Box
-          className="hover_background_color_blueGrey2"
+          className={this.props.isSelected ? 'background_color_blue' : 'hover_background_color_blueGrey2'}
           style={styles.rowContainer}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}

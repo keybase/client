@@ -2,7 +2,6 @@
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {
-  collapseStyles,
   globalStyles,
   globalColors,
   globalMargins,
@@ -41,11 +40,8 @@ class BigTeamChannel extends PureComponent<Props, State> {
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Box style={styles.rowContainer}>
           <Box
-            className="hover_background_color_blueGrey2"
-            style={collapseStyles([
-              styles.channelBackground,
-              this.props.isSelected && styles.selectedChannelBackground,
-            ])}
+            className={this.props.isSelected ? 'background_color_blue' : 'hover_background_color_blueGrey2'}
+            style={styles.channelBackground}
             onMouseLeave={this._onMouseLeave}
             onMouseOver={this._onMouseOver}
           >
@@ -125,9 +121,6 @@ const styles = styleSheetCreate({
     },
     isElectron: desktopStyles.clickable,
   }),
-  selectedChannelBackground: {
-    backgroundColor: globalColors.blue,
-  },
   textError: {
     color: globalColors.red,
   },
