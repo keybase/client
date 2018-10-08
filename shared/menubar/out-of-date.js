@@ -21,15 +21,24 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
       centerChildren={true}
       direction="vertical"
     >
-      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
+      <Kb.Text
+        backgroundMode="Information"
+        type="BodySemibold"
+        style={outOfDate.critical ? styles.textCritical : undefined}
+      >
         {getOutOfDateText(outOfDate)}
       </Kb.Text>
-      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
+      <Kb.Text
+        backgroundMode="Information"
+        type="BodySemibold"
+        style={outOfDate.critical ? styles.textCritical : undefined}
+      >
         Please{' '}
         <Kb.Text
+          backgroundMode="Information"
           type="BodySemibold"
           underline={!!updateNow}
-          style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
+          style={outOfDate.critical ? styles.textCritical : undefined}
           onClick={updateNow}
         >
           update now
@@ -48,12 +57,10 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   boxNonCritical: {
-    backgroundColor: Styles.globalColors.lightGrey,
+    backgroundColor: Styles.globalColors.yellow,
     padding: Styles.globalMargins.tiny,
   },
-  textNonCritical: {
-    color: Styles.globalColors.black,
-  },
+  textNonCritical: {},
 })
 
 export default OutOfDate
