@@ -80,7 +80,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
             type="text"
             onChangeText={this._onChangeRecipient}
             textType="BodySemibold"
-            placeholder={'Stellar address\nG12345... or you*example.com'}
+            placeholder={'Stellar address\nEx: G12345... or you*example.com'}
             placeholderColor={Styles.globalColors.black_20}
             hideBorder={true}
             containerStyle={styles.input}
