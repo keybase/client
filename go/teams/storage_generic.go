@@ -62,7 +62,7 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 		return res
 	}
 	if err != nil {
-		mctx.CDebugf("teams.Storage#Get disk err: %v", err)
+		mctx.CDebugf("teams.Storage#Get(%v) disk err: %v", teamID, err)
 	}
 	mctx.VLogf(libkb.VLog0, "teams.Storage#Get(%v) missed (%s)", teamID, s.description)
 	return nil
