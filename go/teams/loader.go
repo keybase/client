@@ -116,16 +116,17 @@ func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err er
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
+	return l.storage.Delete(libkb.NewMetaContext(ctx, l.G()), teamID, teamID.IsPublic())
 }
 
 func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID, seqno keybase1.Seqno) error {
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
+	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	// Load from the cache
-	td := l.storage.Get(ctx, teamID, teamID.IsPublic())
+	td := l.storage.Get(mctx, teamID, teamID.IsPublic())
 	if td == nil {
 		// Nothing to store the hint on.
 		return nil
@@ -137,7 +138,7 @@ func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID
 	}
 
 	td.LatestSeqnoHint = seqno
-	l.storage.Put(ctx, td)
+	l.storage.Put(mctx, td)
 	return nil
 }
 
@@ -434,6 +435,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	tracer := l.G().CTimeTracer(ctx, "TeamLoader.load2ILR", teamEnv.Profile)
 	defer tracer.Finish()
+	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	defer tbs.LogIfNonZero(ctx, "API.request")
 
@@ -446,7 +448,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var ret *keybase1.TeamData
 	if !arg.forceFullReload {
 		// Load from cache
-		ret = l.storage.Get(ctx, arg.teamID, arg.public)
+		ret = l.storage.Get(mctx, arg.teamID, arg.public)
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -773,7 +775,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Cache the validated result
 	tracer.Stage("put")
-	l.storage.Put(ctx, ret)
+	l.storage.Put(mctx, ret)
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
