@@ -50,6 +50,7 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
 
 const styles = Styles.styleSheetCreate({
   boxCritical: {
+    minHeight: 40,
     backgroundColor: Styles.globalColors.red,
     padding: Styles.globalMargins.tiny,
   },
@@ -57,6 +58,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   boxNonCritical: {
+    minHeight: 40,
     backgroundColor: Styles.globalColors.yellow,
     padding: Styles.globalMargins.tiny,
   },
