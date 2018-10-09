@@ -3,11 +3,12 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 
-type Props = {|
+export type Props = {|
   amountErrMsg: string,
 |}
 
 const Available = (props: Props) => {
+  // This will only work to apply one custom style.
   const splitText = props.amountErrMsg.split('*')
   if (splitText.length === 0) {
     return null

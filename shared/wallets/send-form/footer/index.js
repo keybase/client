@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 
 type Props = {
   disabled?: boolean,
@@ -86,9 +86,15 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.tiny,
   },
   icon: {marginRight: globalMargins.tiny},
-  background: {
-    backgroundColor: globalColors.blue5,
-  },
+  background: platformStyles({
+    common: {
+      backgroundColor: globalColors.blue5,
+    },
+    isElectron: {
+      borderBottomLeftRadius: '4px',
+      borderBottomRightRadius: '4px',
+    },
+  }),
   questionIcon: {
     marginLeft: 1,
   },
