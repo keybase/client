@@ -2,8 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
 	"time"
 
 	"sort"
@@ -17,10 +15,15 @@ import (
 	"github.com/keybase/clockwork"
 )
 
+type outboxStorage interface {
+	readStorage(ctx context.Context) (diskOutbox, Error)
+	writeStorage(ctx context.Context, do diskOutbox) Error
+}
+
 type Outbox struct {
 	globals.Contextified
-	*baseBox
 	utils.DebugLabeler
+	outboxStorage
 
 	clock clockwork.Clock
 	uid   gregor1.UID
@@ -43,78 +46,28 @@ func NewOutboxID() (chat1.OutboxID, error) {
 	return chat1.OutboxID(rbs), nil
 }
 
+func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
+	typ := g.GetEnv().GetChatOutboxStorageEngine()
+	switch typ {
+	case "db":
+		return newOutboxBaseboxStorage(g, uid)
+	default:
+		return newOutboxBaseboxStorage(g, uid)
+	}
+}
+
 func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 	return &Outbox{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
-		baseBox:      newBaseBox(g),
-		uid:          uid,
-		clock:        clockwork.NewRealClock(),
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
+		outboxStorage: createOutboxStorage(g, uid),
+		uid:           uid,
+		clock:         clockwork.NewRealClock(),
 	}
 }
 
 func (o *Outbox) GetUID() gregor1.UID {
 	return o.uid
-}
-
-func (o *Outbox) dbKey() libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatOutbox,
-		Key: fmt.Sprintf("ob:%s", o.uid),
-	}
-}
-
-func (o *Outbox) ingestMobileSharedOutboxLocked(ctx context.Context) {
-	dir := o.G().GetEnv().GetChatMobileSharedOutboxDir()
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		o.Debug(ctx, "ingestMobileSharedOutbox: failed reading shared dir:err: %s", err)
-		return
-	}
-	for _, fi := range files {
-		dat, err := ioutil.ReadFile(fi.Name())
-		if err != nil {
-			o.Debug(ctx, "ingestMobileSharedOutbox: failed reading file: %s err: %s", fi.Name(), err)
-			continue
-		}
-		var rec chat1.OutboxRecord
-		if err = decode(dat, &rec); err != nil {
-			o.Debug(ctx, "ingestMobileSharedOutbox: failed to decode file: %s err: %s", fi.Name(), err)
-			continue
-		}
-		if _, err = o.pushMessageLocked(ctx, rec.ConvID, rec.Msg, &rec.OutboxID, rec.IdentifyBehavior); err != nil {
-			o.Debug(ctx, "ingestMobileSharedOutbox: failed to push rec: %s", err)
-			continue
-		}
-	}
-}
-
-func (o *Outbox) readDiskOutbox(ctx context.Context) (res diskOutbox, err Error) {
-	found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
-	if ierr != nil {
-		return res, NewInternalError(ctx, o.DebugLabeler, "failure to read chat outbox: %s", ierr)
-	}
-	if !found {
-		return res, MissError{}
-	}
-	if res.Version != outboxVersion {
-		o.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
-			res.Version, outboxVersion)
-		if cerr := o.clear(ctx); cerr != nil {
-			return res, cerr
-		}
-		return diskOutbox{Version: outboxVersion}, nil
-	}
-	return res, nil
-}
-
-func (o *Outbox) clear(ctx context.Context) Error {
-	err := o.G().LocalChatDb.Delete(o.dbKey())
-	if err != nil {
-		return NewInternalError(ctx, o.DebugLabeler, "error clearing outbox: uid: %s err: %s", o.uid,
-			err.Error())
-	}
-	return nil
 }
 
 type ByCtimeOrder []chat1.OutboxRecord
@@ -129,15 +82,15 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 	o.clock = cl
 }
 
-func (o *Outbox) pushMessageLocked(ctx context.Context, convID chat1.ConversationID,
+func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		if _, ok := err.(MissError); !ok {
-			return rec, o.maybeNuke(err, o.dbKey())
-		}
 		obox = diskOutbox{
 			Version: outboxVersion,
 			Records: []chat1.OutboxRecord{},
@@ -150,8 +103,7 @@ func (o *Outbox) pushMessageLocked(ctx context.Context, convID chat1.Conversatio
 		var ierr error
 		outboxID, ierr = NewOutboxID()
 		if ierr != nil {
-			return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-				"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
+			return rec, NewInternalError(ctx, o.DebugLabeler, "error getting outboxID: err: %s", ierr)
 		}
 	} else {
 		outboxID = *suppliedOutboxID
@@ -181,20 +133,11 @@ func (o *Outbox) pushMessageLocked(ctx context.Context, convID chat1.Conversatio
 
 	// Write out diskbox
 	obox.Version = outboxVersion
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err = o.writeStorage(ctx, obox); err != nil {
+		return rec, err
 	}
 
 	return rec, nil
-}
-
-func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, Error) {
-	locks.Outbox.Lock()
-	defer locks.Outbox.Unlock()
-	return o.pushMessageLocked(ctx, convID, msg, suppliedOutboxID, identifyBehavior)
 }
 
 // PullAllConversations grabs all outbox entries for the current outbox, and optionally deletes them
@@ -203,13 +146,10 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
-	// bring in any records from the mobile shared outbox
-	o.ingestMobileSharedOutbox(ctx)
-
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return nil, o.maybeNuke(err, o.dbKey())
+		return nil, err
 	}
 
 	var res, errors []chat1.OutboxRecord
@@ -233,11 +173,9 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 		// Write out diskbox
 		obox.Records = errors
 		obox.Version = outboxVersion
-		if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-			return nil, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-				"error writing outbox: err: %s", err.Error()), o.dbKey())
+		if err := o.writeStorage(ctx, obox); err != nil {
+			return nil, err
 		}
-
 	}
 
 	return res, nil
@@ -250,11 +188,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		if _, ok := err.(MissError); !ok {
-			return o.maybeNuke(err, o.dbKey())
-		}
 		obox = diskOutbox{
 			Version: outboxVersion,
 			Records: []chat1.OutboxRecord{},
@@ -291,20 +226,18 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 
 	// Write out diskbox
 	obox.Records = recs
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return err
 	}
-
 	return nil
 }
 
 func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
-	obox, serr := o.readDiskOutbox(ctx)
-	if serr != nil {
-		return res, o.maybeNuke(serr, o.dbKey())
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return res, err
 	}
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
@@ -321,9 +254,8 @@ func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateErr
 		recs = append(recs, obr)
 	}
 	obox.Records = recs
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return res, err
 	}
 	return res, nil
 }
@@ -335,9 +267,9 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, serr := o.readDiskOutbox(ctx)
-	if serr != nil {
-		return res, o.maybeNuke(serr, o.dbKey())
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return res, err
 	}
 
 	// Loop through and find record
@@ -360,11 +292,9 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 
 	// Write out diskbox
 	obox.Records = recs
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return res, err
 	}
-
 	return res, nil
 }
 
@@ -374,9 +304,9 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, ierr := o.readDiskOutbox(ctx)
-	if ierr != nil {
-		return res, o.maybeNuke(ierr, o.dbKey())
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return res, err
 	}
 
 	// Loop through and find record
@@ -396,20 +326,18 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 
 	// Write out diskbox
 	obox.Records = recs
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return res, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return res, err
 	}
-
 	return res, nil
 }
 
 func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecord) error {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+		return err
 	}
 	// Scan to find the message and replace it
 	var recs []chat1.OutboxRecord
@@ -421,9 +349,8 @@ func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecor
 		}
 	}
 	obox.Records = recs
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return err
 	}
 	return nil
 }
@@ -433,11 +360,9 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		if _, ok := err.(MissError); !ok {
-			return 0, o.maybeNuke(err, o.dbKey())
-		}
+		return 0, err
 	}
 
 	// Remove any records that match the predicate
@@ -453,11 +378,9 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	obox.Records = recs
 
 	// Write out box
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return 0, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return 0, err
 	}
-
 	return numCancelled, nil
 }
 
@@ -466,9 +389,9 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+		return err
 	}
 
 	// Scan to find the message and don't include it
@@ -481,11 +404,9 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -538,9 +459,9 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
+	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
+		return err
 	}
 
 	// Sprinkle each outbox message in
@@ -588,9 +509,9 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
-	obox, rerr := o.readDiskOutbox(ctx)
-	if rerr != nil {
-		return ephemeralPurged, o.maybeNuke(rerr, o.dbKey())
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return ephemeralPurged, err
 	}
 
 	var recs []chat1.OutboxRecord
@@ -620,10 +541,8 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	obox.Records = recs
 
 	// Write out diskbox
-	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
-		return ephemeralPurged, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	if err := o.writeStorage(ctx, obox); err != nil {
+		return ephemeralPurged, err
 	}
-
 	return ephemeralPurged, nil
 }

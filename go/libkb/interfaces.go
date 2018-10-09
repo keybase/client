@@ -95,6 +95,7 @@ type configGetter interface {
 	GetRememberPassphrase() (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
+	GetChatOutboxStorageEngine() string
 }
 
 type CommandLine interface {

@@ -654,7 +654,6 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 		return nil, err
 	}
 
-	t.loader.loadTeam(ctx, tlfID,
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      public,
