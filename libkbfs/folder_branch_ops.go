@@ -6928,7 +6928,7 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 		return err
 	}
 
-	isWriter := true // getMDForWriteLockedForFilename already checked this.
+	isWriter := true // getMDForMigrationLocked already checked this.
 	newMD, err := md.MakeSuccessorWithNewHandle(
 		ctx, newHandle, fbo.config.MetadataVersion(), fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),

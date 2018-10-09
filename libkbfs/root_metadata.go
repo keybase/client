@@ -307,6 +307,11 @@ func (md *RootMetadata) MakeSuccessorWithNewHandle(
 	mdCopy.extra = nil
 	mdCopy.tlfHandle = newHandle.deepCopy()
 	mdCopy.SetWriters(newHandle.ResolvedWriters())
+	// Readers are not tracked explicitly in the MD, but their key
+	// bundles are cleared out with the `ClearForV4Migration()` call
+	// below.
+	mdCopy.SetUnresolvedWriters(newHandle.UnresolvedWriters())
+	mdCopy.SetUnresolvedReaders(newHandle.UnresolvedReaders())
 	mdCopy.bareMd.ClearForV4Migration()
 
 	return mdCopy.MakeSuccessor(

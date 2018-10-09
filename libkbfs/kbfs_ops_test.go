@@ -3608,7 +3608,7 @@ func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
 }
 
 func testKBFSOpsMigrateToImplicitTeam(
-	t *testing.T, ty tlf.Type, initialMDVer kbfsmd.MetadataVer) {
+	t *testing.T, ty tlf.Type, name string, initialMDVer kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
@@ -3619,7 +3619,6 @@ func testKBFSOpsMigrateToImplicitTeam(
 	config2.SetMetadataVersion(initialMDVer)
 
 	t.Log("Create the folder before implicit teams are enabled.")
-	name := "u1,u2"
 	h, err := ParseTlfHandle(
 		ctx, config1.KBPKI(), config1.MDOps(), string(name), ty)
 	require.NoError(t, err)
@@ -3689,22 +3688,32 @@ func testKBFSOpsMigrateToImplicitTeam(
 
 func TestKBFSOpsMigratePrivateToImplicitTeam(t *testing.T) {
 	testKBFSOpsMigrateToImplicitTeam(
-		t, tlf.Private, kbfsmd.SegregatedKeyBundlesVer)
+		t, tlf.Private, "u1,u2", kbfsmd.SegregatedKeyBundlesVer)
+}
+
+func TestKBFSOpsMigratePrivateWithReaderToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Private, "u1#u2", kbfsmd.SegregatedKeyBundlesVer)
+}
+
+func TestKBFSOpsMigratePrivateWithSBSToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Private, "u1,u2,zzz@twitter", kbfsmd.SegregatedKeyBundlesVer)
 }
 
 func TestKBFSOpsMigratePublicToImplicitTeam(t *testing.T) {
 	testKBFSOpsMigrateToImplicitTeam(
-		t, tlf.Public, kbfsmd.SegregatedKeyBundlesVer)
+		t, tlf.Public, "u1,u2", kbfsmd.SegregatedKeyBundlesVer)
 }
 
 func TestKBFSOpsMigratePrivateV2ToImplicitTeam(t *testing.T) {
 	testKBFSOpsMigrateToImplicitTeam(
-		t, tlf.Private, kbfsmd.InitialExtraMetadataVer)
+		t, tlf.Private, "u1,u2", kbfsmd.InitialExtraMetadataVer)
 }
 
 func TestKBFSOpsMigratePublicV2ToImplicitTeam(t *testing.T) {
 	testKBFSOpsMigrateToImplicitTeam(
-		t, tlf.Public, kbfsmd.InitialExtraMetadataVer)
+		t, tlf.Public, "u1,u2", kbfsmd.InitialExtraMetadataVer)
 }
 
 func TestKBFSOpsArchiveBranchType(t *testing.T) {
