@@ -4,12 +4,14 @@ import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTree from '../actions/route-tree'
 import * as Constants from '../constants/devices'
+import * as I from 'immutable'
 import {compose, connect, setDisplayName, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
   waiting: Constants.isWaiting(state),
+  newlyChangedItemIds: state.devices.getIn(['isNew'], []),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -40,15 +42,19 @@ type OwnProps = void
 
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
+  const revokedItems = revoked.map(deviceToItem)
+  const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(
+    I.Set(stateProps.newlyChangedItemIds || [])
+  )
   return {
-    _stateOverride: null,
+    _stateOverride: newlyRevokedIds.size > 0 ? {revokedExpanded: true} : null,
     addNewComputer: dispatchProps.addNewComputer,
     addNewPaperKey: dispatchProps.addNewPaperKey,
     addNewPhone: dispatchProps.addNewPhone,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
     onBack: dispatchProps.onBack,
-    revokedItems: revoked.map(deviceToItem),
+    revokedItems: revokedItems,
     title: 'Devices',
     waiting: stateProps.waiting,
   }
