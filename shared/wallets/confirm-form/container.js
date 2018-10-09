@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState) => {
     waitingKey: Constants.sendPaymentWaitingKey,
     yourUsername: state.config.username,
     worthDescription: built.worthDescription,
-    amountFormatted: build.amountFormatted,
+    amountFormatted: built.amountFormatted,
   }
 }
 

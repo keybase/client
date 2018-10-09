@@ -31,6 +31,7 @@ const confirmProps = {
   onSendClick: Sb.action('onSendClick'),
   sendFailed: false,
   waiting: false,
+  amountFormatted: '1.234 XLM',
 }
 
 const publicMemo = "Here's some Lumens!"
