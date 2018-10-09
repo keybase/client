@@ -6,7 +6,8 @@ export type FeatureFlags = {|
   plansEnabled: boolean,
   walletsEnabled: boolean,
   newTeamBuildingForChat: boolean,
-  fileWidgetEnabled?: boolean,
+  fileWidgetEnabled: boolean,
+  chatIndexProfilingEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

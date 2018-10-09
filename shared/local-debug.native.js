@@ -103,6 +103,9 @@ if (nativeBridge.serverConfig) {
       if (userConfig.printRPCStats) {
         config.printRPCStats = true
       }
+      if (userConfig.chatIndexProfilingEnabled) {
+        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',chatIndexProfilingEnabled'
+      }
     }
   } catch (e) {}
 }
