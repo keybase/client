@@ -353,7 +353,7 @@ func (s *ServedRequestInfo) wrapResponseWriter(
 	return statusCodePeekingResponseWriter{w: w, code: &s.HTTPStatus}
 }
 
-func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
+func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string, err *error) {
 	s.config.Logger.Info("ReqIn",
 		zap.String("host", sri.Host),
 		zap.String("path", requestPath),
@@ -363,6 +363,7 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string) {
 		zap.Bool("authenticated", sri.Authenticated),
 		zap.Bool("cloning_shown", sri.CloningShown),
 		zap.Bool("invalid_config", sri.InvalidConfig),
+		zap.NamedError("pre_FileServer_error", *err),
 	)
 }
 
@@ -390,9 +391,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if s.config.StatsReporter != nil {
 		defer s.config.StatsReporter.ReportServedRequest(sri)
 	}
-	defer s.logRequest(sri, r.URL.Path)
 
-	if err := s.config.checkDomainLists(r.Host); err != nil {
+	var err error
+	defer s.logRequest(sri, r.URL.Path, &err)
+
+	if err = s.config.checkDomainLists(r.Host); err != nil {
 		s.handleError(w, err)
 		return
 	}
