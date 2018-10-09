@@ -208,7 +208,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
-    isMobile: {},
   }),
   dropdownContainer: {
     alignItems: 'center',
