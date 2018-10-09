@@ -217,6 +217,10 @@
       "_description": "Set building from",
       "from": "string"
     },
+    "setBuildingIsRequest": {
+      "_description": "Set building isRequest",
+      "isRequest": "boolean"
+    },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",
       "publicMemo": "HiddenString"

@@ -10,6 +10,7 @@ type Props = {
   isDefaultWallet: boolean,
   onReceive: () => void,
   onBack: ?() => void,
+  onRequest: () => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
@@ -57,6 +58,7 @@ const Header = (props: Props) => (
         onSendToAnotherAccount={props.onSendToAnotherAccount}
         disabled={!props.walletName}
       />
+      <Kb.Button type="Wallet" onClick={props.onRequest} label="Request" disabled={!props.walletName} />
       <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
       <DropdownButton
         onSettings={props.onSettings}

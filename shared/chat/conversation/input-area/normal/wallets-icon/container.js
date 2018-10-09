@@ -15,19 +15,20 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onClick: (to: string, wasNew: boolean) => {
+  _onClick: (to: string, wasNew: boolean, isRequest: boolean) => {
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {isRequest: true},
+            props: {},
             selected: WalletConstants.sendReceiveFormRouteKey,
           },
         ],
@@ -48,7 +49,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
   return {
     isNew: stateProps.isNew,
-    onClick: () => dispatchProps._onClick(to, stateProps.isNew),
+    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
+    onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
     shouldRender: true,
     size: ownProps.size,
     style: ownProps.style,

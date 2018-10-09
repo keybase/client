@@ -28,7 +28,8 @@ type Props = {|
   onFollow: () => void,
   onOpenPrivateFolder: () => void,
   onRefresh: () => void,
-  onSendOrRequestLumens: () => void,
+  onSendLumens: () => void,
+  onRequestLumens: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   waiting: boolean,
@@ -44,11 +45,13 @@ function UserActions({
   onFollow,
   onOpenPrivateFolder,
   onRefresh,
-  onSendOrRequestLumens,
+  onSendLumens,
+  onRequestLumens,
   onUnfollow,
   onAcceptProofs,
   waiting,
 }: Props) {
+  console.log({onSendLumens, onRequestLumens})
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
@@ -61,7 +64,8 @@ function UserActions({
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
-            onSendOrRequestLumens={onSendOrRequestLumens}
+            onSendLumens={onSendLumens}
+            onRequestLumens={onRequestLumens}
           />
         </ButtonBar>
       )
@@ -75,7 +79,8 @@ function UserActions({
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
             onUnfollow={onUnfollow}
-            onSendOrRequestLumens={onSendOrRequestLumens}
+            onSendLumens={onSendLumens}
+            onRequestLumens={onRequestLumens}
           />
         </ButtonBar>
       )
@@ -91,7 +96,8 @@ function UserActions({
           onAddToTeam={onAddToTeam}
           onOpenPrivateFolder={onOpenPrivateFolder}
           onBrowsePublicFolder={onBrowsePublicFolder}
-          onSendOrRequestLumens={onSendOrRequestLumens}
+          onSendLumens={onSendLumens}
+          onRequestLumens={onRequestLumens}
         />
       </ButtonBar>
     )
@@ -102,7 +108,8 @@ type DropdownProps = {
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
   onOpenPrivateFolder: () => void,
-  onSendOrRequestLumens: () => void,
+  onSendLumens: () => void,
+  onRequestLumens: () => void,
   onUnfollow?: () => void,
 }
 
@@ -117,12 +124,32 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
   componentDidMount() {
     if (flags.walletsEnabled) {
       this._menuItems.push({
-        onClick: () => this.props.onSendOrRequestLumens(),
-        title: 'Send or request Lumens (XLM)',
+        onClick: this.props.onSendLumens,
+        title: 'Send Lumens (XLM)',
         view: (
-          <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-            <Text type="Body">Send or request Lumens (XLM)</Text>
-            <Meta title="New" backgroundColor={globalColors.blue} style={{alignSelf: undefined}} />
+          <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+            <Text type="Body">Send Lumens (XLM)</Text>
+            <Meta
+              title="New"
+              size="Small"
+              backgroundColor={globalColors.blue}
+              style={{alignSelf: undefined}}
+            />
+          </Box2>
+        ),
+      })
+      this._menuItems.push({
+        onClick: this.props.onRequestLumens,
+        title: 'Request Lumens (XLM)',
+        view: (
+          <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+            <Text type="Body">Request Lumens (XLM)</Text>
+            <Meta
+              title="New"
+              size="Small"
+              backgroundColor={globalColors.blue}
+              style={{alignSelf: undefined}}
+            />
           </Box2>
         ),
       })
@@ -203,6 +230,10 @@ const iconButton = platformStyles({
 const styles = styleSheetCreate({
   floatingMenu: {
     marginTop: 4,
+    width: 250,
+  },
+  menuItemBox: {
+    justifyContent: 'space-between',
   },
 })
 

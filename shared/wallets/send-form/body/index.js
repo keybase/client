@@ -5,16 +5,20 @@ import {globalStyles, styleSheetCreate} from '../../../styles'
 import AssetInput from '../asset-input/container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
-import NoteAndMemo from '../note-and-memo/container'
+import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import type {Banner as BannerType} from '../../../constants/types/wallets'
 
-type Props = {
-  isRequest: boolean,
+type SendBodyProps = {
   banners: Array<BannerType>,
   isProcessing?: boolean,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
+}
+
+type RequestBodyProps = {
+  banners: Array<BannerType>,
+  isProcessing?: boolean,
 }
 
 const Spinner = () => (
@@ -23,7 +27,7 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = (props: Props) => (
+export const SendBody = (props: SendBodyProps) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {props.isProcessing && <Spinner />}
     {props.banners.map(banner => (
@@ -32,13 +36,28 @@ const Body = (props: Props) => (
     <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
     <AssetInput />
     <Divider />
-    <NoteAndMemo />
-    <Footer isRequest={props.isRequest} />
+    <SecretNote />
+    <PublicMemo />
+    <Footer />
+  </Box2>
+)
+
+// TODO songgao : split footer as well maybe?
+
+export const RequestBody = (props: RequestBodyProps) => (
+  <Box2 fullWidth={true} fullHeight={true} direction="vertical">
+    {props.isProcessing && <Spinner />}
+    {props.banners.map(banner => (
+      <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+    ))}
+    <Participants />
+    <AssetInput />
+    <Divider />
+    <SecretNote />
+    <Footer />
   </Box2>
 )
 
 const styles = styleSheetCreate({
   spinnerContainer: {...globalStyles.fillAbsolute},
 })
-
-export default Body

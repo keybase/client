@@ -63,6 +63,7 @@ export const setAccountAsDefault = 'wallets:setAccountAsDefault'
 export const setBuildingAmount = 'wallets:setBuildingAmount'
 export const setBuildingCurrency = 'wallets:setBuildingCurrency'
 export const setBuildingFrom = 'wallets:setBuildingFrom'
+export const setBuildingIsRequest = 'wallets:setBuildingIsRequest'
 export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
 export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
@@ -196,6 +197,7 @@ type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
 type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
+type _SetBuildingIsRequestPayload = $ReadOnly<{|isRequest: boolean|}>
 type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
@@ -364,6 +366,10 @@ export const createSetBuildingCurrency = (payload: _SetBuildingCurrencyPayload) 
  */
 export const createSetBuildingFrom = (payload: _SetBuildingFromPayload) => ({error: false, payload, type: setBuildingFrom})
 /**
+ * Set building isRequest
+ */
+export const createSetBuildingIsRequest = (payload: _SetBuildingIsRequestPayload) => ({error: false, payload, type: setBuildingIsRequest})
+/**
  * Set building public memo
  */
 export const createSetBuildingPublicMemo = (payload: _SetBuildingPublicMemoPayload) => ({error: false, payload, type: setBuildingPublicMemo})
@@ -511,6 +517,7 @@ export type SetAccountAsDefaultPayload = $Call<typeof createSetAccountAsDefault,
 export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
 export type SetBuildingCurrencyPayload = $Call<typeof createSetBuildingCurrency, _SetBuildingCurrencyPayload>
 export type SetBuildingFromPayload = $Call<typeof createSetBuildingFrom, _SetBuildingFromPayload>
+export type SetBuildingIsRequestPayload = $Call<typeof createSetBuildingIsRequest, _SetBuildingIsRequestPayload>
 export type SetBuildingPublicMemoPayload = $Call<typeof createSetBuildingPublicMemo, _SetBuildingPublicMemoPayload>
 export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingRecipientType, _SetBuildingRecipientTypePayload>
 export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
@@ -579,6 +586,7 @@ export type Actions =
   | SetBuildingAmountPayload
   | SetBuildingCurrencyPayload
   | SetBuildingFromPayload
+  | SetBuildingIsRequestPayload
   | SetBuildingPublicMemoPayload
   | SetBuildingRecipientTypePayload
   | SetBuildingSecretNotePayload

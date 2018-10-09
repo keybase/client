@@ -20,7 +20,7 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
 
 export type MessageTypes = {|
   'stellar.1.local.buildPaymentLocal': {|
-    inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String|}>,
+    inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, isRequest: Boolean, secretNote: String, publicMemo: String|}>,
     outParam: BuildPaymentResLocal,
   |},
   'stellar.1.local.buildRequestLocal': {|

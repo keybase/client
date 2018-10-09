@@ -404,7 +404,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onRefresh={this.props.refresh}
-                    onSendOrRequestLumens={this.props.onSendOrRequestLumens}
+                    onSendLumens={this.props.onSendLumens}
+                    onRequestLumens={this.props.onRequestLumens}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}

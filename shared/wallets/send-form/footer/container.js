@@ -6,16 +6,15 @@ import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
 const mapStateToProps = state => ({
+  isRequest: state.wallets.buildingPayment.isRequest,
   disabled: !state.wallets.builtPayment.readyToSend,
   worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClickRequest:
-    ownProps.isRequest &&
-    (() => {
-      dispatch(WalletsGen.createRequestPayment())
-    }),
+const mapDispatchToProps = dispatch => ({
+  onClickRequest: () => {
+    dispatch(WalletsGen.createRequestPayment())
+  },
   onClickSend: () => {
     dispatch(
       Route.navigateAppend([
@@ -28,11 +27,18 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
+const mergeProps = (s, d, o) => ({
+  disabled: s.disabled,
+  worthDescription: s.worthDescription,
+  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
+  onClickSend: s.isRequest ? undefined : d.onClickSend,
+})
+
 export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    mergeProps
   ),
   setDisplayName('Footer')
 )(Footer)

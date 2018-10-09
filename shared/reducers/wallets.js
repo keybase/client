@@ -73,6 +73,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setBuildingFrom:
       const {from} = action.payload
       return state.set('buildingPayment', state.get('buildingPayment').merge({from}))
+    case WalletsGen.setBuildingIsRequest:
+      const {isRequest} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({isRequest}))
     case WalletsGen.setBuildingPublicMemo:
       const {publicMemo} = action.payload
       return state.set('buildingPayment', state.get('buildingPayment').merge({publicMemo}))
