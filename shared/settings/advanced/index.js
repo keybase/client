@@ -10,9 +10,11 @@ type Props = {
   onChangeLockdownMode: boolean => void,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
+  onBuildInboxSearchIndex: () => void,
   onTrace: (durationSeconds: number) => void,
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
+  inboxSearchIndexInProgress: boolean,
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
 }
@@ -109,6 +111,11 @@ class Developer extends React.Component<Props, DeveloperState> {
         />
         {this._showPprofControls() && (
           <React.Fragment>
+            <StartButton
+              label="Build Inbox Search Index"
+              onStart={props.onBuildInboxSearchIndex}
+              inProgress={props.inboxSearchIndexInProgress}
+            />
             <StartButton
               label={`Trace (${traceDurationSeconds}s)`}
               onStart={() => props.onTrace(traceDurationSeconds)}

@@ -220,6 +220,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.onChangeLockdownMode:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
+    case SettingsGen.buildInboxSearchIndex:
       return state
     default:
       /*::
