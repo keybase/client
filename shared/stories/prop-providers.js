@@ -105,7 +105,7 @@ const Mention = ({username, key, style}) => ({
   username,
   key,
   style,
-  theme: usernameToTheme[username] || isSpecialMention(username) ? 'highlight' : 'none',
+  theme: usernameToTheme[username] || (isSpecialMention(username) ? 'highlight' : 'none'),
   onClick: action('onClick Mention'),
 })
 

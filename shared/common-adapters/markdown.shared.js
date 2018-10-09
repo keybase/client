@@ -41,7 +41,7 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
-function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
+export function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   if (!meta || !meta.mentionsAt || !meta.mentionsChannel) {
     return false
   }
@@ -54,7 +54,7 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
   return isSpecialMention(mention) || mentionsAt.has(mention)
 }
 
-function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
+export function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
   return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
 

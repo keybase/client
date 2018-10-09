@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from './index'
-import Markdown, {parser} from './markdown'
+import Markdown, {parserFromMeta, MarkdownMeta} from './markdown'
 import OriginalParser from '../markdown/parser'
 
 const cases = {
@@ -121,7 +121,7 @@ this is a code block with two newline above\`\`\`
   bigemoji: ':thumbsup::100:',
 }
 
-const dummyMeta = {
+const mockMeta = {
   mentionsChannelName: I.Map({
     general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
   }),
@@ -132,37 +132,79 @@ const dummyMeta = {
 const mocksWithMeta = {
   'Channel Name Mention': {
     text: 'Hey! I *just* posted a video of my sick jump on #general',
-    meta: dummyMeta,
+    meta: mockMeta,
   },
   'User mention - Following': {
     text: 'Hey @following, are you still there?',
-    meta: dummyMeta,
+    meta: mockMeta,
   },
   'User mention - Not Following': {
     text: 'Hey @notFollowing, are you still there?',
-    meta: dummyMeta,
+    meta: mockMeta,
   },
   'User mention - You': {
     text: 'Hey @myUsername, are you still there?',
-    meta: dummyMeta,
+    meta: mockMeta,
   },
   'User mention - No Theme': {
     text: 'Hey @noTheme, are you still there?',
-    meta: dummyMeta,
+    meta: mockMeta,
+  },
+  'User mention - Edge cases': {
+    text: `hi @you, I hope you're doing well.
+
+this is @valid_
+
+this is @_not
+
+this isn't@either
+
+@this_is though
+
+and @this!
+
+this is the smallest username @aa and @a_ this is too small @a 
+
+this is a @long_username
+
+this is too long: @01234567890abcdef`,
+    meta: {
+      ...mockMeta,
+      // This is here to test that the regex is properly not picking up some of these
+      mentionsAt: I.Set([
+        'valid_',
+        '_not',
+        'either',
+        'this_is',
+        'this',
+        'aa',
+        'a_',
+        'a',
+        'long_username',
+        '01234567890abcdef',
+        'you',
+      ]),
+    },
   },
   'Channel Mention': {
     text: `Hey @channel, theres *FREE* pizza in the kitchen!`,
-    meta: dummyMeta,
+    meta: mockMeta,
   },
 }
 
 const provider = Sb.createPropProviderWithCommon({})
 
-class ShowAST extends React.Component<{text: string, simple: boolean}, {visible: boolean}> {
+class ShowAST extends React.Component<
+  {text: string, simple: boolean, meta: ?MarkdownMeta},
+  {visible: boolean}
+> {
   state = {visible: false}
   render = () => {
     const parsed = this.props.simple
-      ? parser((this.props.text || '') + '\n', {inline: false, disableAutoBlockNewlines: true})
+      ? parserFromMeta(this.props.meta)((this.props.text || '') + '\n', {
+          inline: false,
+          disableAutoBlockNewlines: true,
+        })
       : OriginalParser.parse(this.props.text, {
           channelNameToConvID: (channel: string) => null,
           isValidMention: (mention: string) => false,
@@ -181,7 +223,10 @@ class ShowAST extends React.Component<{text: string, simple: boolean}, {visible:
   }
 }
 
-class ShowPreview extends React.Component<{text: string, simple: boolean}, {visible: boolean}> {
+class ShowPreview extends React.Component<
+  {text: string, simple: boolean, meta: ?MarkdownMeta},
+  {visible: boolean}
+> {
   state = {visible: true}
   render = () => {
     return (
@@ -192,7 +237,7 @@ class ShowPreview extends React.Component<{text: string, simple: boolean}, {visi
           type="Primary"
         />
         {this.state.visible && (
-          <Markdown simple={this.props.simple} preview={true}>
+          <Markdown simple={this.props.simple} preview={true} meta={this.props.meta}>
             {this.props.text}
           </Markdown>
         )}
@@ -206,8 +251,8 @@ const MarkdownWithAst = ({children, simple, meta}) => (
     <Markdown simple={simple} meta={meta}>
       {children}
     </Markdown>
-    <ShowAST text={children} simple={simple} />
-    <ShowPreview text={children} simple={simple} />
+    <ShowAST text={children} simple={simple} meta={meta} />
+    <ShowPreview text={children} simple={simple} meta={meta} />
   </Kb.Box2>
 )
 

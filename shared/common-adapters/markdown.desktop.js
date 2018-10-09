@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React, {PureComponent} from 'react'
 import Text from './text'
 import * as Styles from '../styles'
@@ -8,11 +9,11 @@ import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
 import {tldExp} from '../markdown/regex'
-import {parseMarkdown, EmojiIfExists} from './markdown.shared'
+import {parseMarkdown, EmojiIfExists, channelNameToConvID, isValidMention} from './markdown.shared'
 import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
 
-import type {Props} from './markdown'
+import type {Props, MarkdownMeta} from './markdown'
 
 const wrapStyle = Styles.platformStyles({
   isElectron: {
@@ -192,6 +193,8 @@ function messageCreateComponent(type, key, children, options) {
 
 const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
+const mentionMatch = SimpleMarkdown.inlineRegex(/^\B@((?:[a-z]|[A-Z]|[0-9])(?:[a-z]|[A-Z]|[0-9]|_){1,15})\b/)
+const channelMatch = SimpleMarkdown.inlineRegex(/^\B#((?:[a-z]|[A-Z]|[0-9])+_?)+\b/)
 
 var debugAnyScopeRegex = function(name, regex) {
   var match = function(source, state) {
@@ -202,7 +205,7 @@ var debugAnyScopeRegex = function(name, regex) {
   return match
 }
 
-const rules = {
+const rules = (markdownMeta: ?MarkdownMeta) => ({
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
     ...SimpleMarkdown.defaultRules.newline,
@@ -277,7 +280,7 @@ const rules = {
     // original:
     // match: blockRegex(/^(?:    [^\n]+\n*)+(?:\n *)+\n/),
     // ours: we only want code blocks from fences (```) and not from spaces
-    match: () => false,
+    match: () => null,
     react: (node, output, state) => {
       return (
         <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
@@ -359,6 +362,52 @@ const rules = {
       )
     },
   },
+  mention: {
+    // A decent enough starting template
+    // We'll change most of the stuff here anyways
+    ...SimpleMarkdown.defaultRules.autolink,
+    match: (source, state, lookBehind) => {
+      const matches = mentionMatch(source, state, lookBehind)
+      // Also check that the lookBehind is not text
+      if (matches && isValidMention(markdownMeta, matches[1]) && (!lookBehind || lookBehind.match(/\B$/))) {
+        return matches
+      }
+      return null
+    },
+    parse: capture => ({
+      type: 'mention',
+      content: capture[1],
+    }),
+    react: (node, output, state) => {
+      return <Mention username={node.content} key={state.key} style={wrapStyle} />
+    },
+  },
+  channel: {
+    // Just needs to be a higher order than mentions
+    order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
+    match: (source, state, lookBehind) => {
+      const matches = channelMatch(source, state, lookBehind)
+      if (matches && channelNameToConvID(markdownMeta, matches[1])) {
+        return matches
+      }
+      return null
+    },
+    parse: capture => ({
+      type: 'channel',
+      content: capture[1],
+      convID: channelNameToConvID(markdownMeta, capture[1]),
+    }),
+    react: (node, output, state) => {
+      return (
+        <Channel
+          name={node.condent}
+          convID={Types.stringToConversationIDKey(node.convID)}
+          key={state.key}
+          style={linkStyle}
+        />
+      )
+    },
+  },
   text: {
     ...SimpleMarkdown.defaultRules.text,
     // original:
@@ -408,14 +457,16 @@ const rules = {
       )
     },
   },
-}
+})
 
-const parser = SimpleMarkdown.parserFor(rules)
-const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 'react'))
+const parserFromMeta = (meta: ?MarkdownMeta) => SimpleMarkdown.parserFor(rules(meta))
+
+// Use emptyMeta for these because they don't rely on the MarkdownMeta for rendering
+const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules(null), 'react'))
 const bigEmojiOutput = SimpleMarkdown.reactFor(
   SimpleMarkdown.ruleOutput(
     {
-      ...rules,
+      ...rules(null),
       emoji: {
         react: (node, output, state) => {
           return <EmojiIfExists emojiName={String(node.content)} size={32} key={state.key} />
@@ -458,6 +509,7 @@ const isAllEmoji = ast => {
 
 class SimpleMarkdownComponent extends PureComponent<Props> {
   render() {
+    const parser = parserFromMeta(this.props.meta)
     const parseTree = parser((this.props.children || '') + '\n', {
       inline: false,
       // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
@@ -514,6 +566,6 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {parser}
+export {parserFromMeta}
 
 export default Markdown
