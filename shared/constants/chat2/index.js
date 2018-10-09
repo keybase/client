@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as TeamBuildingConstants from '../../constants/team-building'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -43,6 +44,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
+
+  // Team Building
+  ...TeamBuildingConstants.makeSubState(),
 })
 
 // We stash the resolved pending conversation idkey into the meta itself
@@ -266,6 +270,7 @@ export {
   uiPaymentInfoToChatPaymentInfo,
   uiRequestInfoToChatRequestInfo,
   upgradeMessage,
+  mergeMessage,
 } from './message'
 
 export {

@@ -35,26 +35,27 @@ class WithTooltip extends React.Component<Props, State> {
   }
   render() {
     return (
-      <Box
-        style={this.props.containerStyle}
-        ref={this._setAttachmentRef}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
-      >
-        {this.props.children}
-        {this.state.mouseIn && (
-          <Toast
-            containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
-            visible={this.state.visible}
-            attachTo={() => this._attachmentRef}
-            position={this.props.position || 'top center'}
-          >
-            <Text type="BodySmall" style={styles.text}>
-              {this.props.text}
-            </Text>
-          </Toast>
-        )}
-      </Box>
+      <>
+        <Box
+          style={this.props.containerStyle}
+          ref={this._setAttachmentRef}
+          onMouseEnter={this._onMouseEnter}
+          onMouseLeave={this._onMouseLeave}
+          className={this.props.className}
+        >
+          {this.props.children}
+        </Box>
+        <Toast
+          containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
+          visible={!!this.props.text && this.state.visible}
+          attachTo={() => this._attachmentRef}
+          position={this.props.position || 'top center'}
+        >
+          <Text type="BodySmall" style={Styles.collapseStyles([styles.text, this.props.textStyle])}>
+            {this.props.text}
+          </Text>
+        </Toast>
+      </>
     )
   }
 }
@@ -72,6 +73,7 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.white,
+      textAlign: 'center',
       wordBreak: 'break-all',
     },
   }),

@@ -159,6 +159,14 @@
           "name": "worthCurrency"
         },
         {
+          "type": "string",
+          "name": "currentWorth"
+        },
+        {
+          "type": "string",
+          "name": "currentWorthCurrency"
+        },
+        {
           "type": "ParticipantType",
           "name": "fromType"
         },
@@ -305,6 +313,14 @@
         {
           "type": "string",
           "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "currentWorth"
+        },
+        {
+          "type": "string",
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",
@@ -669,6 +685,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -1256,6 +1276,19 @@
         }
       ],
       "response": "boolean"
+    },
+    "cancelPaymentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "paymentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": "RelayClaimResult"
     },
     "balancesLocal": {
       "request": [

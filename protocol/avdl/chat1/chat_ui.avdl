@@ -113,12 +113,14 @@ protocol chatUi {
   }
 
   record UIPaymentInfo {
-    string amountDescription;       // "1,323.1234567 XLM"
-    string worth;                   // "$123.23"
-    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string note;                    // secret note
-    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
-    string statusDescription;       // "pending", "completed", "error"
+    union { null, stellar1.AccountID } accountID; // "GXXXXXXX..."
+    string amountDescription;                     // "1,323.1234567 XLM"
+    string worth;                                 // "$123.23"
+    stellar1.BalanceDelta delta;                  // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                                  // secret note
+    stellar1.PaymentID paymentID;                 // opaque paymentID
+    stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;                     // "pending", "completed", "error"
   }
 
   record UIRequestInfo {
@@ -205,13 +207,17 @@ protocol chatUi {
     array<string>  matches;
   }
 
-  record ChatConvSearchHit {
+  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
+  void chatSearchDone(int sessionID, int numHits);
+
+  record ChatInboxSearchHit {
     ConversationID convID;
+    string convName;
     array<ChatSearchHit> hits;
   }
 
-  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
-  void chatSearchDone(int sessionID, int numHits);
+  void chatInboxSearchHit(int sessionID, ChatInboxSearchHit searchHit);
+  void chatInboxSearchDone(int sessionID, int numHits, int numConvs);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

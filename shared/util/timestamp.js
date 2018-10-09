@@ -100,6 +100,36 @@ export function daysToLabel(days: number): string {
   return label
 }
 
+// $FlowIssue - locale with no args returns the locale
+const defaultLocale = moment.locale()
+moment.defineLocale('people', {
+  parentLocale: 'en',
+  relativeTime: {
+    future: 'in %s',
+    past: '%s ago',
+    s: 'now',
+    ss: '%ds',
+    m: '1m',
+    mm: '%dm',
+    h: '1h',
+    hh: '%dh',
+    d: '1d',
+    dd: '%dd',
+    M: '1mo',
+    MM: '%dmo',
+    y: '1y',
+    yy: '%dy',
+  },
+})
+// When we define a locale, moment uses it. So reset it to use the default
+moment.locale(defaultLocale)
+
+const peopleItemFormatter = moment().locale('people')
+
+export function formatTimeForPeopleItem(time: number): string {
+  return peopleItemFormatter.set(moment(time)).fromNow(true)
+}
+
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24

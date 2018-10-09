@@ -1,13 +1,9 @@
 // @flow
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
-import * as WalletTypes from '../../../../constants/types/wallets'
-import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as Route from '../../../../actions/route-tree-gen'
-import * as Styles from '../../../../styles'
-import HiddenString from '../../../../util/hidden-string'
+import * as Types from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -34,16 +30,20 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
+      const pending = paymentInfo.status !== 'completed'
+      const verb = pending ? 'sending' : 'sent'
       return {
-        action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
+        action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
-        balanceChangeColor:
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+        balanceChange: `${WalletConstants.balanceChangeSign(
+          paymentInfo.delta,
+          paymentInfo.amountDescription
+        )}`,
+        balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
-        pending: paymentInfo.status === 'pending',
+        pending,
         sendButtonLabel: '',
       }
     }
@@ -58,20 +58,20 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         message.author === state.config.username
           ? {}
           : {
-              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' lumens worth ' : ' '}${
+              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
                 requestInfo.amountDescription
               }`,
             }
 
       return {
         ...sendProps,
-        action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
+        action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: message.note,
+        memo: message.note.stringValue(),
         pending: false,
       }
     }
@@ -80,25 +80,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onSend: () => {
-    if (ownProps.message.type !== 'requestPayment') {
-      throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
-    }
-    const {requestInfo} = ownProps.message
-    if (requestInfo && ownProps.message.type === 'requestPayment') {
-      const message = ownProps.message
-      if (requestInfo.currencyCode) {
-        dispatch(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode}))
-      }
-      dispatch(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}))
-      dispatch(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID})) // Meaning default account
-      dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-      dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
-      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)}))
-      dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
-    }
-  },
+const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
+  onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -114,7 +97,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
 
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  AccountPayment
-)
+const ConnectedAccountPayment = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(AccountPayment)
 export default ConnectedAccountPayment

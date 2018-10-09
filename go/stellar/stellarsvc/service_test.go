@@ -25,7 +25,7 @@ import (
 
 func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 	tc = externalstest.SetupTest(t, name, depth+1)
-	stellar.ServiceInit(tc.G, nil)
+	stellar.ServiceInit(tc.G, nil, nil)
 	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
@@ -298,7 +298,7 @@ func TestGetWalletAccountsCLILocal(t *testing.T) {
 	require.Equal(t, account.Balance[0].Amount, "0")
 	require.True(t, account.IsPrimary)
 	require.NotNil(t, account.ExchangeRate)
-	require.EqualValues(t, defaultOutsideCurrency, account.ExchangeRate.Currency)
+	require.EqualValues(t, stellar.DefaultCurrencySetting, account.ExchangeRate.Currency)
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
@@ -653,10 +653,10 @@ func TestGetAvailableCurrencies(t *testing.T) {
 }
 
 func TestDefaultCurrency(t *testing.T) {
-	// Initial account should be created with display currency set
-	// according to system locale/region. Additional accounts display
-	// currencies should be set to primary account currency (and can
-	// later be changed by the user).
+	// Initial account are created without display currency. When an account
+	// has no currency selected, default "USD" is used. Additional accounts
+	// display currencies should be set to primary account currency or NULL as
+	// well (and can later be changed by the user).
 
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
@@ -668,7 +668,13 @@ func TestDefaultCurrency(t *testing.T) {
 	primary := getPrimaryAccountID(tcs[0])
 	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
 	require.NoError(t, err)
-	require.EqualValues(t, "USD", currency)
+	require.EqualValues(t, "", currency)
+
+	// stellar.GetAccountDisplayCurrency also checks for NULLs and returns
+	// default currency code.
+	codeStr, err := stellar.GetAccountDisplayCurrency(tcs[0].MetaContext(), primary)
+	require.NoError(t, err)
+	require.Equal(t, "USD", codeStr)
 
 	err = tcs[0].Srv.SetDisplayCurrency(context.Background(), stellar1.SetDisplayCurrencyArg{
 		AccountID: primary,
@@ -806,7 +812,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
 		tc2.Srv = New(tc.G, newTestUISource(), rcm)
-		stellar.ServiceInit(tc.G, rcm)
+		stellar.ServiceInit(tc.G, rcm, nil)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

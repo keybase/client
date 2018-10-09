@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
+import * as Styles from '../styles'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
@@ -26,7 +27,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   publicMemo: new HiddenString(''),
-  recipientType: null,
+  recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
   to: '',
 })
@@ -45,7 +46,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
-  accountMap: I.Map(),
+  accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
@@ -53,19 +54,21 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   buildingPayment: makeBuildingPayment(),
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
+  currencies: I.List(),
+  currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
+  paymentCursorMap: I.Map(),
+  paymentLoadingMoreMap: I.Map(),
   paymentsMap: I.Map(),
-  pendingMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
-  currencies: I.List(),
-  currencyMap: I.Map(),
+  sentPaymentError: '',
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -88,6 +91,8 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   isDefault: false,
   name: '',
 })
+
+const unknownAccount = makeAccount()
 
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
@@ -143,7 +148,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: {txID: ''},
+  id: Types.noPaymentID,
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
@@ -190,7 +195,18 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  const p = w.payment
+  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+}
+
+const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
+  makePayment({
+    ...rpcPaymentToPaymentCommon(p),
+    publicMemo: new HiddenString(p.publicNote),
+    publicMemoType: p.publicNoteType,
+    txID: p.txID,
+  })
+
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
@@ -201,11 +217,12 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     p.toAccountName,
     p.toAccountID || ''
   )
-  return makePayment({
+  const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
+  return {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
-    id: p.id,
+    id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
     source,
@@ -213,14 +230,14 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
-    statusSimplified: statusSimplifiedToString[p.statusSimplified],
+    statusSimplified: serviceStatusSimplfied === 'claimable' ? 'cancelable' : serviceStatusSimplfied,
     target,
     targetAccountID: p.toAccountID,
     targetType,
     time: p.time,
     worth: p.worth,
     worthCurrency: p.worthCurrency,
-  })
+  }
 }
 
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
@@ -269,6 +286,18 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     sender: r.fromAssertion,
     status: requestStatusToString[r.status],
   })
+}
+
+const bannerLevelToBackground = (level: string) => {
+  switch (level) {
+    case 'info':
+      return 'Announcements'
+    case 'error':
+      return 'HighRisk'
+    default:
+      console.warn('Unexpected banner level', level)
+      return 'Information'
+  }
 }
 
 const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
@@ -326,6 +355,35 @@ const paymentToYourRoleAndCounterparty = (
   }
 }
 
+// Update payment, take all new fields except any that contain the default value
+const emptyPayment = makePayment()
+// $FlowIssue thinks toSeq() has something to do with the `payment.delta` type
+const keys = emptyPayment
+  .toSeq()
+  .keySeq()
+  .toArray()
+const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
+  const res = oldPayment.withMutations(paymentMutable => {
+    keys.forEach(
+      key =>
+        newPayment.get(key) === emptyPayment.get(key) ? null : paymentMutable.set(key, newPayment.get(key))
+    )
+  })
+  return res
+}
+const updatePaymentMap = (
+  map: I.Map<Types.PaymentID, Types.Payment>,
+  newPayments: Array<Types.Payment>,
+  clearExisting: boolean = false
+) => {
+  const baseMap = clearExisting ? map.clear() : map
+  return baseMap.withMutations(mapMutable =>
+    newPayments.forEach(newPayment =>
+      mapMutable.update(newPayment.id, makePayment(), oldPayment => updatePayment(oldPayment, newPayment))
+    )
+  )
+}
+
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
@@ -337,8 +395,12 @@ const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 const deleteAccountWaitingKey = 'wallets:deleteAccount'
 const searchKey = 'walletSearch'
 const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
+const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
+  `wallets:cancelPayment:${Types.paymentIDToString(id)}`
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
+
+const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
@@ -348,24 +410,16 @@ const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state))
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
 
-const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.pendingMap.get(accountID || getSelectedAccount(state))
-
-const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
-  makePayment()
-
-const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
-  makePayment()
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
+  state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
 
 const getAccountName = (account: Types.Account) =>
   account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
@@ -379,7 +433,7 @@ const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
 const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
@@ -394,9 +448,34 @@ const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + i
 const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
+const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
+
+const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+  let balanceChangeColor = Styles.globalColors.black
+  if (delta !== 'none') {
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
+  }
+  if (status !== 'completed') {
+    balanceChangeColor = Styles.globalColors.black_20
+  }
+  return balanceChangeColor
+}
+
+const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
+  let sign = ''
+  if (delta !== 'none') {
+    sign = delta === 'increase' ? '+' : '-'
+  }
+  return sign + balanceChange
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  bannerLevelToBackground,
+  balanceChangeColor,
+  balanceChangeSign,
+  cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   changeAccountNameWaitingKey,
@@ -406,6 +485,7 @@ export {
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
   getAccountIDs,
+  getAccounts,
   getAccountName,
   getAccount,
   getAssets,
@@ -415,12 +495,11 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
-  getPendingPayment,
-  getPendingPayments,
   getRequest,
   getSecretKey,
   getSelectedAccount,
   isAccountLoaded,
+  isFederatedAddress,
   linkExistingWaitingKey,
   loadAccountWaitingKey,
   loadEverythingWaitingKey,
@@ -434,6 +513,7 @@ export {
   makeRequest,
   makeReserve,
   makeState,
+  paymentDetailResultToPayment,
   paymentResultToPayment,
   paymentToYourRoleAndCounterparty,
   requestResultToRequest,
@@ -445,4 +525,7 @@ export {
   searchKey,
   shortenAccountID,
   statusSimplifiedToString,
+  unknownAccount,
+  updatePayment,
+  updatePaymentMap,
 }

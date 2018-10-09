@@ -166,7 +166,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 			pathString = path.KbfsArchived().Path
 		}
 		// See if the dest is a path or file
-		destEnt, err := cli.SimpleFSStat(ctx, path)
+		destEnt, err := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: path})
 		if err != nil {
 			return false, "", err
 		}
@@ -203,7 +203,7 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 	// Check for overwriting
 	if destType == keybase1.PathType_KBFS {
 		// See if the dest file exists
-		_, err2 := cli.SimpleFSStat(ctx, dest)
+		_, err2 := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: dest})
 		if err2 == nil {
 			err = ErrTargetFileExists
 		}

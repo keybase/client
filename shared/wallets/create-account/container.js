@@ -13,24 +13,32 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps, fromSendForm}) => ({
   _onCreateAccount: (name: string) =>
-    dispatch(WalletsGen.createCreateNewAccount({name, showOnCreation: routeProps.get('showOnCreation')})),
+    dispatch(
+      WalletsGen.createCreateNewAccount({
+        name,
+        showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
+        setBuildingTo: fromSendForm,
+      })
+    ),
   _onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: () => navigateUp && dispatch(navigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
   ...stateProps,
-  ...dispatchProps,
+  name: ownProps.name,
   error: capitalize(stateProps.error),
+  onNameChange: ownProps.onNameChange,
+  onClearErrors: dispatchProps.onClearErrors,
   onCreateAccount: () => dispatchProps._onCreateAccount(ownProps.name),
   onDone: () => dispatchProps._onDone(ownProps.name),
-  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
+  onCancel: ownProps.onCancel || dispatchProps.onCancel,
+  onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
 })
 
 export default compose(
@@ -40,5 +48,9 @@ export default compose(
       onNameChange: () => name => ({name}),
     }
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
 )(CreateAccount)

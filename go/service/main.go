@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
@@ -63,6 +64,7 @@ type Service struct {
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 }
 
@@ -85,6 +87,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
 }
@@ -103,7 +106,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
-		keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
@@ -145,8 +147,10 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
-		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
+	walletHandler := newWalletHandler(xp, g)
+	protocols = append(protocols, stellar1.LocalProtocol(walletHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
@@ -156,7 +160,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()))
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
 
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
@@ -318,7 +322,7 @@ func (d *Service) setupTeams() error {
 }
 
 func (d *Service) setupStellar() error {
-	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()))
+	stellar.ServiceInit(d.G(), remote.NewRemoteNet(d.G()), d.badger)
 	return nil
 }
 
@@ -352,6 +356,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletInit()
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
+	d.runTeamUpgrader(ctx)
 	go d.identifySelf()
 }
 
@@ -406,6 +411,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.Searcher = chat.NewSearcher(g)
+	g.Indexer = search.NewIndexer(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
 	// Syncer and retriers
@@ -504,6 +510,11 @@ func (d *Service) identifySelf() {
 
 func (d *Service) runTLFUpgrade() {
 	d.tlfUpgrader.Run()
+}
+
+func (d *Service) runTeamUpgrader(ctx context.Context) {
+	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
 }
 
 func (d *Service) runBackgroundIdentifier() {

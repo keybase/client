@@ -28,8 +28,10 @@ func NewFacebookChecker(p libkb.RemoteProofChainLink) (*FacebookChecker, libkb.P
 
 func (rc *FacebookChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *FacebookChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
-	return CheckProofPvl(m, keybase1.ProofType_FACEBOOK, rc.proof, h, pvlU)
+func (rc *FacebookChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode,
+	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
+	return nil, CheckProofPvl(mctx, keybase1.ProofType_FACEBOOK, rc.proof, h, pvlU)
 }
 
 //
@@ -50,7 +52,7 @@ func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t FacebookServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (string, error) {
+func (t FacebookServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	if !facebookUsernameRegexp.MatchString(s) {

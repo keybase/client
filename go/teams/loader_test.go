@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"bytes"
 	"encoding/hex"
 	"testing"
 
@@ -66,11 +67,12 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
-	team = st.Get(context.TODO(), teamID, public)
+	mctx := libkb.NewMetaContextForTest(tc)
+	team = st.Get(mctx, teamID, public)
 	require.NotNil(t, team)
 	t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
 	team.CachedAt = keybase1.ToTime(tc.G.Clock().Now().Add(freshnessLimit * -2))
-	st.Put(context.TODO(), team)
+	st.Put(mctx, team)
 	t.Logf("cache post-set cachedAt:%v", team.CachedAt.Time())
 
 	t.Logf("load the team again")
@@ -215,6 +217,57 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	requireGen(team.Data, 2)
+}
+
+func TestLoaderKBFSKeyGenOffset(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	displayName := fus[0].Username + "," + fus[1].Username
+	team, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false)
+	require.NoError(t, err)
+
+	tlfID := newImplicitTLFID(false)
+	key1 := [32]byte{0, 1}
+	key2 := [32]byte{0, 2}
+	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+		KeyGeneration: 1,
+		Key:           key1,
+	}, keybase1.CryptKey{
+		KeyGeneration: 2,
+		Key:           key2,
+	}}
+	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
+		keybase1.TeamApplication_KBFS))
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+	})
+	require.NoError(t, err)
+	keys, err := team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keys))
+	require.Equal(t, 1, keys[0].Generation())
+	key3 := keys[0].Key
+	team, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: team.ID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				3: []keybase1.TeamApplication{keybase1.TeamApplication_KBFS},
+			},
+		},
+	})
+	require.NoError(t, err)
+	keys, err = team.AllApplicationKeysWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(keys))
+	key, err := team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, key.Generation())
+	require.True(t, bytes.Equal(key1[:], key.Key[:]))
+	key, err = team.ApplicationKeyAtGenerationWithKBFS(context.TODO(), keybase1.TeamApplication_KBFS, 3)
+	require.NoError(t, err)
+	require.Equal(t, 3, key.Generation())
+	require.True(t, bytes.Equal(key3[:], key.Key[:]))
 }
 
 // Test loading a team with WantMembers set.
@@ -772,7 +825,8 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NoError(t, err, "load team chitchat")
 
 	t.Logf("check that the link is stubbed in storage")
-	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(context.Background(), rootID, rootID.IsPublic())
+	mctx := libkb.NewMetaContextForTest(*tcs[2])
+	rootData := tcs[2].G.GetTeamLoader().(*TeamLoader).storage.Get(mctx, rootID, rootID.IsPublic())
 	require.NotNil(t, rootData, "root team should be cached")
 	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 

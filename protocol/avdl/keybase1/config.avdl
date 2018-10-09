@@ -147,6 +147,21 @@ protocol config {
     */
   OutOfDateInfo checkAPIServerOutOfDateWarning();
 
+  enum UpdateInfoStatus {
+    UP_TO_DATE_0,
+    NEED_UPDATE_1,
+    CRITICALLY_OUT_OF_DATE_2
+  }
+  record UpdateInfo {
+    UpdateInfoStatus status;
+    string message;
+  }
+  UpdateInfo getUpdateInfo();
+
+  // Same as running `keybase update check` in CLI.
+  void startUpdateIfNeeded();
+
+
   /**
     Wait for client type to connect to service.
     */

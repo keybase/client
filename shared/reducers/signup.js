@@ -71,8 +71,8 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passphraseError = new HiddenString('Fields cannot be blank')
       } else if (p1 !== p2) {
         passphraseError = new HiddenString('Passphrases must match')
-      } else if (p1.length < 6) {
-        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
+      } else if (p1.length < 8) {
+        passphraseError = new HiddenString('Passphrase must be at least 8 characters long')
       }
       return state.merge({
         passphrase: action.payload.pass1,

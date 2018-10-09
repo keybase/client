@@ -9,6 +9,8 @@ export type Props = {
   containerStyle?: StylesCrossPlatform,
   children: React.Node,
   position?: Position,
+  className?: string,
+  textStyle?: StylesCrossPlatform,
 }
 
 declare export default class WithTooltip extends React.Component<Props> {}

@@ -10,6 +10,7 @@ import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
+import {isWindows, isDarwin} from '../constants/platform'
 
 const closeWindow = () => {
   SafeElectron.getRemote()
@@ -35,6 +36,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
+  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
   quit: () => {
     closeWindow()
     dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
@@ -57,6 +59,7 @@ const mapDispatchToProps = dispatch => ({
     link && openUrl(link)
     closeWindow()
   },
+  updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

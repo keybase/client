@@ -176,6 +176,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBFTLStorage               = 0xcd
 	DBTeamAuditor              = 0xce
 	DBAttachmentUploader       = 0xcf
 	DBDiskLRUEntries           = 0xda
@@ -196,6 +197,7 @@ const (
 	DBChatActive               = 0xea
 	DBUserEKBox                = 0xeb
 	DBTeamEKBox                = 0xec
+	DBChatIndex                = 0xed
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2

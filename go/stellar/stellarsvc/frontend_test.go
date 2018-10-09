@@ -683,6 +683,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Len(t, sendRes.KbTxID, 32)
 	require.False(t, sendRes.Pending)
 
+	// simulate exchange rate changing
+	tcs[0].Backend.UseAlternateExchangeRate()
+
 	checkPayment := func(p stellar1.PaymentLocal, sender bool) {
 		require.NotEmpty(t, p.Id)
 		require.NotZero(t, p.Time)
@@ -698,6 +701,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, "$214.49", p.CurrentWorth, "CurrentWorth")
+		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -800,6 +805,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
+		require.Equal(t, "$214.49", p.CurrentWorth, "CurrentWorth")
+		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 		require.Equal(t, accountIDSender, p.FromAccountID)
@@ -837,6 +844,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, false)
+
+	// use default exchange rate again since about to send new payments.
+	tcs[0].Backend.UseDefaultExchangeRate()
 
 	// Send again with FromSeqno set.
 	// Does not test whether it has any effect.
@@ -1107,6 +1117,8 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
 	require.Equal(t, "$160.93", detailsRes.Worth)
 	require.Equal(t, "USD", detailsRes.WorthCurrency)
+	require.Empty(t, detailsRes.CurrentWorth)
+	require.Empty(t, detailsRes.CurrentWorthCurrency)
 	require.Equal(t, secretNote, detailsRes.Note)
 	require.Equal(t, "", detailsRes.NoteErr)
 }

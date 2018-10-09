@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as ConfigTypes from '../constants/types/config'
 import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
@@ -9,14 +10,18 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
+import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 
 export type Props = {
   logIn: () => void,
   loggedIn: boolean,
+  updateNow: () => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
+  outOfDate?: ConfigTypes.OutOfDate,
+  showInFinder: (tab: ?string) => void,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
@@ -85,6 +90,7 @@ class MenubarRender extends React.Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
@@ -151,7 +157,7 @@ class MenubarRender extends React.Component<Props, State> {
       },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open files', onClick: () => this.props.openApp(Tabs.fsTab)},
+      {title: `Open folders in ${Styles.fileUIName}`, onClick: () => this.props.showInFinder('/')},
       'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
@@ -221,6 +227,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         {Flags.fileWidgetEnabled ? (
           <Kb.ScrollView>
             <ChatContainer convLimit={3} />
@@ -275,13 +282,11 @@ const BadgeIcon = ({
   }
 
   return (
-    <Kb.Box
-      style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
-      onClick={() => openApp(tab)}
-    >
+    <Kb.Box style={{...Styles.desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}>
       <Kb.Icon
         color={Styles.globalColors.darkBlue4}
-        hoverColor={Styles.globalColors.black_75}
+        hoverColor={Styles.globalColors.white}
+        onClick={() => openApp(tab)}
         fontSize={22}
         type={iconType}
       />

@@ -279,6 +279,16 @@ func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar
 	return err
 }
 
+func (s *stellarRetryClient) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.CancelPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) BalancesLocal(ctx context.Context, arg stellar1.AccountID) (res []stellar1.Balance, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.BalancesLocal(ctx, arg)

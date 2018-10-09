@@ -215,7 +215,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
 
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
-  note: '',
+  note: new HiddenString(''),
   reactions: I.Map(),
   requestID: '',
   requestInfo: null,
@@ -223,9 +223,11 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
 })
 
 export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+  accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
   note: new HiddenString(''),
+  paymentID: WalletTypes.noPaymentID,
   status: 'none',
   statusDescription: '',
   type: 'paymentInfo',
@@ -355,9 +357,11 @@ export const uiPaymentInfoToChatPaymentInfo = (
     return null
   }
   return makeChatPaymentInfo({
+    accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
+    paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
     status: WalletConstants.statusSimplifiedToString[p.status],
     statusDescription: p.statusDescription,
     worth: p.worth,
@@ -525,10 +529,10 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
   height > width
     ? {
         height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-        width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
+        width: (clamp(height || 0, 0, maxAttachmentPreviewSize) * width) / (height || 1),
       }
     : {
-        height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+        height: (clamp(width || 0, 0, maxAttachmentPreviewSize) * height) / (width || 1),
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
@@ -596,7 +600,7 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
-      const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
+      const rawText: string = m.messageBody.text?.body ?? ''
       return makeMessageText({
         ...common,
         ...explodable,
@@ -700,7 +704,7 @@ const validUIMessagetoMessage = (
       return m.messageBody.requestpayment
         ? makeMessageRequestPayment({
             ...common,
-            note: m.messageBody.requestpayment.note,
+            note: new HiddenString(m.messageBody.requestpayment.note),
             requestID: m.messageBody.requestpayment.requestID,
             requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
           })
@@ -973,25 +977,23 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
-export const upgradeMessage = (_old: ?Types.Message, m: Types.Message, merge: boolean) => {
-  if (merge) {
-    if (_old) {
-      // $FlowIssue doens't understand mergeWith
-      return _old.mergeWith((oldVal, newVal, key) => {
-        if (key === 'mentionsAt' || key === 'reactions') {
-          return shallowEqual(oldVal, newVal) ? oldVal : newVal
-        } else if (key === 'text') {
-          return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
-        }
-        return newVal === oldVal ? oldVal : newVal
-      }, m)
-    }
+export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
+  if (!old) {
     return m
   }
-  if (!_old) {
-    throw new Error('Upgrademessage no merge w/ null')
-  }
-  const old = _old
+
+  // $FlowIssue doens't understand mergeWith
+  return old.mergeWith((oldVal, newVal, key) => {
+    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+      return oldVal.equals(newVal) ? oldVal : newVal
+    } else if (key === 'text') {
+      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+    }
+    return newVal === oldVal ? oldVal : newVal
+  }, m)
+}
+
+export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'text' && m.type === 'text') {
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)

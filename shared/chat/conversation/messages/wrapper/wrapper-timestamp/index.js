@@ -38,24 +38,15 @@ export type Props = {|
   orangeLineAbove: boolean,
 |}
 
-const HoverBox = Styles.isMobile
-  ? LongPressable
-  : Styles.glamorous(Box2)(props => ({
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-      '&.active, &:hover': props.decorate
-        ? {
-            backgroundColor: Styles.globalColors.blue5,
-          }
-        : {},
-    }))
+// TODO flow gets confused since the props are ambiguous
+const HoverBox: any = Styles.isMobile ? LongPressable : Box2
 
 type State = {
   showingPicker: boolean,
-  showingMenuButton: boolean,
+  showMenuButton: boolean,
 }
 class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
-  state = {showingPicker: false, showingMenuButton: false}
+  state = {showingPicker: false, showMenuButton: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -66,14 +57,13 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
       }
     }
   }
-  _onMouseLeave = () => {
-    this.setState(o => (o.showingMenuButton ? {showingMenuButton: false} : null))
-  }
   _onMouseOver = () => {
-    this.setState(o => (o.showingMenuButton ? null : {showingMenuButton: true}))
+    this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   }
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+
+  _dismissKeyboard = () => dismissKeyboard()
 
   render() {
     const props = this.props
@@ -82,10 +72,16 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
+          className={[
+            'WrapperTimestamp-hoverBox',
+            props.showingMenu || this.state.showingPicker ? 'active' : '',
+            props.decorate && 'WrapperTimestamp-decorated',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           {...(Styles.isMobile && props.decorate
             ? {
-                onPress: () => dismissKeyboard(),
+                onPress: this._dismissKeyboard,
                 onLongPress: props.toggleShowingMenu,
                 underlayColor: Styles.globalColors.blue5,
               }
@@ -93,12 +89,9 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
           {...(Styles.isMobile
             ? {}
             : {
-                onMouseLeave: this._onMouseLeave,
                 onMouseOver: this._onMouseOver,
-                onMouseOut: this._onMouseLeave,
               })}
           direction="vertical"
-          decorate={props.decorate}
           fullWidth={true}
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
@@ -120,22 +113,23 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   />
                 )}
               {props.decorate &&
-                this.state.showingMenuButton && (
-                  <MenuButtons
-                    conversationIDKey={props.conversationIDKey}
-                    exploded={props.exploded}
-                    isRevoked={props.isRevoked}
-                    message={props.message}
-                    ordinal={props.ordinal}
-                    setAttachmentRef={props.setAttachmentRef}
-                    setShowingPicker={this._setShowingPicker}
-                    toggleShowingMenu={props.toggleShowingMenu}
-                  />
-                )}
-              {props.decorate &&
-                !this.state.showingMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
+                menuButtons({
+                  conversationIDKey: props.conversationIDKey,
+                  exploded: props.exploded,
+                  isRevoked: props.isRevoked,
+                  message: props.message,
+                  ordinal: props.ordinal,
+                  setAttachmentRef: props.setAttachmentRef,
+                  setShowingPicker: this._setShowingPicker,
+                  toggleShowingMenu: props.toggleShowingMenu,
+                  showMenuButton: this.state.showMenuButton,
+                })}
             </Box2>
-            <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+            {// $FlowIssue doesn't like us not reducing the type here, but its faster
+            props.message.reactions &&
+              !props.message.reactions.isEmpty() && (
+                <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+              )}
           </Box>
         </HoverBox>
         {(props.message.type === 'text' ||
@@ -165,8 +159,9 @@ type MenuButtonsProps = {
   setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
   toggleShowingMenu: () => void,
+  showMenuButton: boolean,
 }
-const MenuButtons = (props: MenuButtonsProps) => (
+const menuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
     {!props.exploded && (
       <Box2 direction="horizontal" centerChildren={true}>
@@ -175,29 +170,34 @@ const MenuButtons = (props: MenuButtonsProps) => (
             <Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
           </Box>
         )}
-        {!Styles.isMobile && (
-          <Box className="menu-button" style={styles.menuButtons}>
-            <ReactButton
-              conversationIDKey={props.conversationIDKey}
-              ordinal={props.ordinal}
-              onShowPicker={props.setShowingPicker}
-              showBorder={false}
-              style={styles.reactButton}
-            />
-            <Box ref={props.setAttachmentRef}>
-              {popupableMessageTypes.includes(props.message.type) && (
-                <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
-              )}
+        {!Styles.isMobile &&
+          props.showMenuButton && (
+            <Box className="menu-button" style={styles.menuButtons}>
+              <ReactButton
+                conversationIDKey={props.conversationIDKey}
+                ordinal={props.ordinal}
+                onShowPicker={props.setShowingPicker}
+                showBorder={false}
+                style={styles.reactButton}
+              />
+              <Box ref={props.setAttachmentRef}>
+                {popupableMessageTypes.includes(props.message.type) && (
+                  <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
+                )}
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
+        {!Styles.isMobile && !props.showMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
       </Box2>
     )}
-    <ExplodingMeta
-      conversationIDKey={props.conversationIDKey}
-      onClick={props.toggleShowingMenu}
-      ordinal={props.ordinal}
-    />
+    {// $FlowIssue exploding isn't on all types
+    props.message.exploding && (
+      <ExplodingMeta
+        conversationIDKey={props.conversationIDKey}
+        onClick={props.toggleShowingMenu}
+        ordinal={props.ordinal}
+      />
+    )}
   </Box2>
 )
 
@@ -216,7 +216,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
     },
   }),
-  menuButtonsPlaceholder: {flexShrink: 0, minHeight: 19, minWidth: 69},
+  menuButtonsPlaceholder: {flexShrink: 0, minHeight: 17, minWidth: 53},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   reactButton: {
     marginTop: -3,

@@ -14,7 +14,9 @@ const Downloads = (props: DownloadsProps) =>
   !!props.downloadKeys.length && (
     <Box2 direction="horizontal" fullWidth={true} style={styles.box}>
       <Box style={styles.downloadsBox}>
-        {props.downloadKeys.map(key => <Download downloadKey={key} key={key} />)}
+        {props.downloadKeys.map(key => (
+          <Download downloadKey={key} key={key} />
+        ))}
       </Box>
       <Box style={styles.buttonsBox}>
         {props.thereAreMore ? (

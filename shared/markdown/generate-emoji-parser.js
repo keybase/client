@@ -161,5 +161,5 @@ export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndex
 }
 
 // TODO deprecate this one
-// buildParser()
+buildParser()
 buildEmojiFile()

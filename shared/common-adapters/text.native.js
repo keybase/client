@@ -42,6 +42,10 @@ class Text extends Component<Props> {
   }
   _nativeText: any
 
+  highlightText() {
+    // ignored
+  }
+
   focus() {
     if (this._nativeText) {
       this._nativeText.focus()
@@ -143,3 +147,4 @@ function getStyle(
 export default Text
 export {getStyle}
 export {Text as TextMixed}
+export {allTextTypes} from './text.shared'

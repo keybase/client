@@ -13,7 +13,7 @@ type dispatcher interface {
 }
 
 type dispatch struct {
-	writer encoder
+	writer *framedMsgpackEncoder
 	calls  *callContainer
 
 	// Stops all loops when closed
@@ -24,7 +24,7 @@ type dispatch struct {
 	log LogInterface
 }
 
-func newDispatch(enc encoder, calls *callContainer, l LogInterface) *dispatch {
+func newDispatch(enc *framedMsgpackEncoder, calls *callContainer, l LogInterface) *dispatch {
 	d := &dispatch{
 		writer:   enc,
 		calls:    calls,

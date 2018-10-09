@@ -105,7 +105,11 @@ function SyncAvatarProps(ComposedComponent: any) {
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
-    connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))
+    connect(
+      mapStateToProps,
+      () => ({}),
+      (s, d, o) => ({...o, ...s, ...d})
+    )
   )(RemoteAvatarConnected)
 }
 

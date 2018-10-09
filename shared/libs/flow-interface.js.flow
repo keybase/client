@@ -10,6 +10,9 @@ declare var module: {
     decline: any,
   },
 }
+declare module 'react-window' {
+  declare module.exports: any
+}
 declare module 'memoize-one' {
   declare export default function memoize<R, A1, A2, A3, A4, A5, A6>(
     func: (A1, A2, A3, A4, A5, A6) => R,

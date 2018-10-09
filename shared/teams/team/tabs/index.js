@@ -98,7 +98,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     }
   }
 
-  const selected = tabs.find(tab => tab.key === props.selectedTab)
+  const selected = tabs.find(tab => tab.key === props.selectedTab) || null
   return (
     <Box style={styles.container}>
       <Tabs

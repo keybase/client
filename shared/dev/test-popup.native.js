@@ -17,4 +17,8 @@ const mapDispatchToProps = dispatch => ({
   onClose: () => dispatch(navigateUp()),
 })
 
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(TestPopup)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(TestPopup)

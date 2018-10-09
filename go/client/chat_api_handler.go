@@ -343,6 +343,8 @@ type searchRegexpOptionsV1 struct {
 	Query          string `json:"query"`
 	IsRegex        bool   `json:"is_regex"`
 	SentBy         string `json:"sent_by"`
+	SentBefore     string `json:"sent_before"`
+	SentAfter      string `json:"sent_after"`
 	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
 	BeforeContext  int    `json:"before_context"`

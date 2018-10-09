@@ -20,6 +20,9 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		dui.Printf(format+"\n", args...)
 	}
 	timeStr := p.Time.Time().Format("2006/01/02 15:04")
+	if p.Unread {
+		timeStr += " *"
+	}
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
 	amount := fmt.Sprintf("%v XLM", libkb.StellarSimplifyAmount(p.Amount))
 	if !p.Asset.IsNativeXLM() {

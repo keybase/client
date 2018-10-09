@@ -402,12 +402,12 @@ func (e DuplicateTopicNameError) Error() string {
 
 //=============================================================================
 
-type ImpteamUpgradeBadteamError struct {
+type ImpteamBadteamError struct {
 	Msg string
 }
 
-func (e ImpteamUpgradeBadteamError) Error() string {
-	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+func (e ImpteamBadteamError) Error() string {
+	return fmt.Sprintf("bad iteam found in conv: %s", e.Msg)
 }
 
 //=============================================================================

@@ -158,6 +158,9 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
+// SigVersion describes how the signature is computed. In signatures v1, the payload is a JSON
+// blob. In Signature V2, it's a Msgpack wrapper that points via SHA256 to the V1 blob.
+// V2 sigs allow for bandwidth-saving eliding of signature bodies that aren't relevant to clients.
 type SigVersion int
 
 const (
@@ -505,7 +508,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 6
+const MinPassphraseLength = 8
 
 const TrackingRateLimitSeconds = 50
 
@@ -548,6 +551,7 @@ const (
 	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
 	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonTeamsFTLLocalStorage   EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 )
 

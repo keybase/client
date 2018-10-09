@@ -1,6 +1,9 @@
 // @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
-import {serialize as conversationSerialize} from '../chat/inbox/container/remote'
+import {
+  serialize as conversationSerialize,
+  changeAffectsWidget as conversationChangeAffectsWidget,
+} from '../chat/inbox/container/remote'
 import GetRowsFromTlfUpdate from '../fs/remote-container'
 
 export const serialize = {
@@ -18,13 +21,21 @@ export const serialize = {
       }, {}),
   broken: v => v,
   clearCacheTrigger: v => undefined,
-  conversationIDs: v => v.map(v => v.conversationIDKey),
+  conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
   conversationMap: (v, o) =>
     v.reduce((map, toSend) => {
-      if (!o || o.indexOf(toSend) === -1) {
-        map[toSend.conversationIDKey] = conversationSerialize(toSend)
-      }
-      return map
+      const oldConv =
+        o &&
+        o.find(oldElem => oldElem.conversation.conversationIDKey === toSend.conversation.conversationIDKey)
+      return oldConv &&
+        oldConv.hasBadge === toSend.hasBadge &&
+        oldConv.hasUnread === toSend.hasUnread &&
+        conversationChangeAffectsWidget(oldConv.conversation, toSend.conversation)
+        ? map
+        : {
+            ...map,
+            [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
+          }
     }, {}),
   endEstimate: v => v,
   externalRemoteWindow: v => v,
@@ -36,6 +47,7 @@ export const serialize = {
   files: v => v,
   loggedIn: v => v,
   totalSyncingBytes: v => v,
+  outOfDate: v => v,
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,

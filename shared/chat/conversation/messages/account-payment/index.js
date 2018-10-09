@@ -1,15 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  Divider,
-  Icon,
-  Markdown,
-  ProgressIndicator,
-  Text,
-  type IconType,
-} from '../../../../common-adapters'
+import {Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '../../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
@@ -17,6 +8,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
+import {MarkdownMemo} from '../../../../wallets/common'
 
 export type Props = {|
   action: string,
@@ -62,10 +54,7 @@ const AccountPayment = (props: Props) => {
           </Box2>
         )}
       </Box2>
-      <Box2 direction="horizontal" gap="small" fullWidth={true}>
-        <Divider vertical={true} style={styles.quoteMarker} />
-        <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-      </Box2>
+      <MarkdownMemo memo={props.memo} />
       {!!props.sendButtonLabel &&
         !!props.onSend && (
           <Button
@@ -102,7 +91,6 @@ const styles = styleSheetCreate({
     },
   }),
   purple: {color: globalColors.purple2},
-  quoteMarker: {maxWidth: 3, minWidth: 3},
 })
 
 export default AccountPayment
