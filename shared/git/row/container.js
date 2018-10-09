@@ -4,7 +4,7 @@ import * as Constants from '../../constants/git'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
-import {connect, type TypedState, compose, withHandlers, isMobile} from '../../util/container'
+import {connect, type TypedState, compose, withHandlers, isMobile, setDisplayName} from '../../util/container'
 import * as TrackerGen from '../../actions/tracker-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
@@ -82,11 +82,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const ConnectedRow = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('GitRow'),
   withHandlers({
     onChannelClick: ({chatDisabled, _onOpenChannelSelection}) => e => {
       if (chatDisabled) {

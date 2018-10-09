@@ -16,7 +16,12 @@ const mapStateToProps = (state: TypedState, {name}: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, {name, routePath}: OwnProps) => {
   const badgeCount = stateProps._tlfList.reduce(
-    (reduction, {isNew}) => (isNew ? reduction + 1 : reduction),
+    (reduction, tlf) =>
+      tlf.isNew ||
+      tlf.needsRekey ||
+      (tlf.waitingForParticipantUnlock && tlf.waitingForParticipantUnlock.size && tlf.youCanUnlock)
+        ? reduction + 1
+        : reduction,
     0
   )
   const path = Types.stringToPath(`/keybase/${name}`)

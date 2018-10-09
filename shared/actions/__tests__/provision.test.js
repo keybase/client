@@ -89,7 +89,7 @@ describe('provisioningManagerProvisioning', () => {
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
         code: RPCTypes.constantsStatusCode.scinputcanceled,
-        desc: Constants.cancelDesc,
+        desc: 'Input canceled',
       })
     })
   })
@@ -610,7 +610,7 @@ describe('canceling provision', () => {
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
       code: RPCTypes.constantsStatusCode.scinputcanceled,
-      desc: Constants.cancelDesc,
+      desc: 'Input canceled',
     })
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
@@ -667,7 +667,7 @@ describe('final errors show', () => {
 
   it('ignore cancel', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
-    const error = new RPCError(Constants.cancelDesc, RPCTypes.constantsStatusCode.scinputcanceled)
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
     expect(getState().provision.finalError).toEqual(null)
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))

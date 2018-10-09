@@ -27,7 +27,7 @@ export class AssetInput extends React.Component<Props> {
           </Kb.Text>
         )}
         <Kb.NewInput
-          type="number"
+          type="text"
           decoration={
             <Kb.Box2 direction="vertical" style={styles.flexEnd}>
               <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
@@ -40,7 +40,11 @@ export class AssetInput extends React.Component<Props> {
           }
           containerStyle={styles.inputContainer}
           style={styles.input}
-          onChangeText={this.props.onChangeAmount}
+          onChangeText={t => {
+            if (!isNaN(+t) || t === '.') {
+              this.props.onChangeAmount(t)
+            }
+          }}
           textType="HeaderBigExtrabold"
           placeholder={this.props.inputPlaceholder}
           placeholderColor={Styles.globalColors.purple2_40}
@@ -80,7 +84,6 @@ export class AssetInput extends React.Component<Props> {
       </Kb.Box2>
     )
   }
-
   componentDidMount() {
     this.props.refresh()
   }

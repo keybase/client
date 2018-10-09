@@ -34,7 +34,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         className="hover_background_color_blueGrey2"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Text type="BodySemibold" style={{color: globalColors.purple2}}>
+        <Kb.Text type="BodySemibold" style={{color: globalColors.purple}}>
           Add an account
         </Kb.Text>
       </Kb.Box2>

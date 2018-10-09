@@ -735,6 +735,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			Asset:       p.Asset,
 			FromStellar: p.From,
 			ToStellar:   &p.To,
+			Unread:      p.Unread,
 		}, nil
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()
@@ -1357,4 +1358,15 @@ func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account
 	}
 
 	return remoter.ExchangeRate(mctx.Ctx(), string(currency.Code))
+}
+
+func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
+	s := getGlobal(g)
+	ctx := context.Background()
+	details, err := s.remoter.Details(ctx, accountID)
+	if err != nil {
+		return // details, err
+	}
+
+	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
 }

@@ -28,14 +28,14 @@ const Header = (props: HeaderProps) => (
         }
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
-      <Kb.Text selectable={true} type="BodySmall" style={styles.headerText}>
+      <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
         {(props.assetType === 'XLM' ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
       </Kb.Text>
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}
       </Kb.Text>
       {props.assetType === 'XLM' && (
-        <Kb.Text selectable={true} type="BodySmall" style={styles.headerText}>
+        <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
           {'(Approximately'.toUpperCase() + ' ' + props.worthDescription + ')'}
         </Kb.Text>
       )}

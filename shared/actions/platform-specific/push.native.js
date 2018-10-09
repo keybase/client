@@ -278,7 +278,7 @@ const requestPermissions = () =>
       logger.info('[PushRequesting] asking native')
       const permissions = yield Saga.call(requestPermissionsFromNative)
       logger.info('[PushRequesting] after prompt:', permissions)
-      if (permissions.alert || permissions.badge) {
+      if (permissions?.alert || permissions?.badge) {
         logger.info('[PushRequesting] enabled')
         yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
       } else {

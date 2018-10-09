@@ -107,10 +107,12 @@ type _ClearErrorsPayload = void
 type _CreateNewAccountPayload = $ReadOnly<{|
   name: string,
   showOnCreation?: boolean,
+  setBuildingTo?: boolean,
 |}>
 type _CreatedNewAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   showOnCreation?: boolean,
+  setBuildingTo?: boolean,
 |}>
 type _CreatedNewAccountPayloadError = $ReadOnly<{|
   name: string,
@@ -129,10 +131,12 @@ type _LinkExistingAccountPayload = $ReadOnly<{|
   name: string,
   secretKey: HiddenString,
   showOnCreation?: boolean,
+  setBuildingTo?: boolean,
 |}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   showOnCreation?: boolean,
+  setBuildingTo?: boolean,
 |}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|
   name: string,
