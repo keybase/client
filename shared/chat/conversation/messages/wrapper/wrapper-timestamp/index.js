@@ -25,6 +25,7 @@ export type Props = {|
   decorate: boolean,
   exploded: boolean,
   isRevoked: boolean,
+  isShowingUsername: boolean,
   ordinal: Types.Ordinal,
   measure: null | (() => void),
   message: Types.Message,
@@ -117,12 +118,13 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   conversationIDKey: props.conversationIDKey,
                   exploded: props.exploded,
                   isRevoked: props.isRevoked,
+                  isShowingUsername: props.isShowingUsername,
                   message: props.message,
                   ordinal: props.ordinal,
                   setAttachmentRef: props.setAttachmentRef,
                   setShowingPicker: this._setShowingPicker,
-                  toggleShowingMenu: props.toggleShowingMenu,
                   showMenuButton: this.state.showMenuButton,
+                  toggleShowingMenu: props.toggleShowingMenu,
                 })}
             </Box2>
             {// $FlowIssue doesn't like us not reducing the type here, but its faster
@@ -154,6 +156,7 @@ type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
   isRevoked: boolean,
+  isShowingUsername: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
   setAttachmentRef: (ref: ?React.Component<any>) => void,
@@ -162,7 +165,12 @@ type MenuButtonsProps = {
   showMenuButton: boolean,
 }
 const menuButtons = (props: MenuButtonsProps) => (
-  <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
+  <Box2
+    direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+    gap={Styles.isMobile ? 'tiny' : undefined}
+    gapEnd={!Styles.isMobile}
+    style={styles.controls}
+  >
     {!props.exploded && (
       <Box2 direction="horizontal" centerChildren={true}>
         {props.isRevoked && (
@@ -172,7 +180,14 @@ const menuButtons = (props: MenuButtonsProps) => (
         )}
         {!Styles.isMobile &&
           props.showMenuButton && (
-            <Box className="menu-button" style={styles.menuButtons}>
+            <Box
+              className="menu-button"
+              style={Styles.collapseStyles([
+                styles.menuButtons,
+                // $FlowIssue exploding isn't on all types
+                props.isShowingUsername && props.message.exploding && styles.menuButtonsPosition,
+              ])}
+            >
               <ReactButton
                 conversationIDKey={props.conversationIDKey}
                 ordinal={props.ordinal}
@@ -196,18 +211,36 @@ const menuButtons = (props: MenuButtonsProps) => (
         conversationIDKey={props.conversationIDKey}
         onClick={props.toggleShowingMenu}
         ordinal={props.ordinal}
+        style={props.isShowingUsername ? styles.explodingMetaPosition : undefined}
       />
     )}
   </Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {...Styles.globalStyles.flexBoxColumn, width: '100%'},
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    position: 'relative',
+    width: '100%',
+  },
   controls: Styles.platformStyles({
     common: {
       alignItems: 'center',
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
       alignSelf: 'flex-start',
       marginTop: 2,
+    },
+    isMobile: {
+      alignSelf: 'flex-end',
+    },
+  }),
+  explodingMetaPosition: Styles.platformStyles({
+    isElectron: {
+      bottom: 0,
+      position: 'absolute',
+      right: Styles.globalMargins.small,
     },
   }),
   menuButtons: Styles.platformStyles({
@@ -217,6 +250,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   menuButtonsPlaceholder: {flexShrink: 0, minHeight: 17, minWidth: 53},
+  menuButtonsPosition: {
+    left: Styles.globalMargins.tiny,
+    position: 'relative',
+  },
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   reactButton: {
     marginTop: -3,
