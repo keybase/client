@@ -14,9 +14,21 @@ const Footer = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
       {!!props.worthDescription && (
-        <Kb.Text style={styles.worthDescription} type="BodySmall">
-          This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text style={styles.worthDescription} type="BodySmall">
+            This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+          </Kb.Text>
+          <Kb.Icon
+            type="iconfont-question-mark"
+            color={globalColors.black_20}
+            hoverColor={globalColors.black_40}
+            fontSize={12}
+            style={Kb.iconCastPlatformStyles(styles.questionIcon)}
+            onClick={() => {
+              /* TODO */
+            }}
+          />
+        </Kb.Box2>
       )}
       <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
         {!!props.onClickRequest && (
@@ -76,6 +88,9 @@ const styles = styleSheetCreate({
   icon: {marginRight: globalMargins.tiny},
   background: {
     backgroundColor: globalColors.blue5,
+  },
+  questionIcon: {
+    marginLeft: 1,
   },
   worthDescription: {
     textAlign: 'center',
