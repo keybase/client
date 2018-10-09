@@ -36,7 +36,7 @@ class Row extends React.Component<Props> {
 
   render() {
     return (
-      <Kb.Box>
+      <Kb.Box style={{width: '100%'}}>
         <Kb.Box
           style={{
             ...(this.props.expanded
@@ -98,7 +98,7 @@ class Row extends React.Component<Props> {
               >
                 <Kb.Text type="Body">Clone:</Kb.Text>
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <Kb.CopyText text={this.props.url} />
+                  <Kb.CopyText text={this.props.url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
                 {!Styles.isMobile &&
                   this.props.canDelete && (
