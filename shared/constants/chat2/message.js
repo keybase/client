@@ -981,6 +981,11 @@ export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
     return m
   }
 
+  // only merge if its the same id and type
+  if (old.id !== m.id || old.type !== m.type) {
+    return m
+  }
+
   // $FlowIssue doens't understand mergeWith
   return old.mergeWith((oldVal, newVal, key) => {
     if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
