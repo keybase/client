@@ -106,6 +106,7 @@ type ToOtherAccountProps = {|
   onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
+  showSpinner: boolean,
 |}
 
 class ToOtherAccount extends React.Component<ToOtherAccountProps> {
@@ -143,8 +144,12 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     // accounts. Show a dropdown list of other accounts, in addition
     // to the link existing and create new actions.
     let items = [
-      <DropdownText key="link-existing" text="Link an existing Stellar account" />,
-      <DropdownText key="create-new" text="Create a new account" />,
+      <DropdownText
+        spinner={this.props.showSpinner}
+        key="link-existing"
+        text="Link an existing Stellar account"
+      />,
+      <DropdownText spinner={this.props.showSpinner} key="create-new" text="Create a new account" />,
     ]
 
     if (this.props.allAccounts.length > 0) {
@@ -163,9 +168,17 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
           selectedBoxStyle={styles.dropdownSelectedBox}
           selected={
             this.props.toAccount ? (
-              <SelectedEntry account={this.props.toAccount} user={this.props.user} />
+              <SelectedEntry
+                spinner={this.props.showSpinner}
+                account={this.props.toAccount}
+                user={this.props.user}
+              />
             ) : (
-              <DropdownText key="placeholder-select" text="Pick another account" />
+              <DropdownText
+                spinner={this.props.showSpinner}
+                key="placeholder-select"
+                text="Pick another account"
+              />
             )
           }
         />

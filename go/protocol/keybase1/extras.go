@@ -2629,3 +2629,19 @@ func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
 func (p PhoneNumber) String() string {
 	return string(p)
 }
+
+func (d TeamData) ID() TeamID {
+	return d.Chain.Id
+}
+
+func (d TeamData) IsPublic() bool {
+	return d.Chain.Public
+}
+
+func (d FastTeamData) ID() TeamID {
+	return d.Chain.ID
+}
+
+func (d FastTeamData) IsPublic() bool {
+	return d.Chain.Public
+}

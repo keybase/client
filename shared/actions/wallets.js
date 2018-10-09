@@ -54,7 +54,11 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
   return RPCStellarTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
     .then(accountID =>
-      WalletsGen.createCreatedNewAccount({accountID, showOnCreation: action.payload.showOnCreation})
+      WalletsGen.createCreatedNewAccount({
+        accountID,
+        showOnCreation: action.payload.showOnCreation,
+        setBuildingTo: action.payload.setBuildingTo,
+      })
     )
     .catch(err => {
       logger.warn(`Error creating new account: ${err.desc}`)
@@ -92,7 +96,7 @@ const requestPayment = (state: TypedState) =>
       asset: {type: 'native', code: '', issuer: ''},
       recipient: state.wallets.buildingPayment.to,
       // TODO -- support currency
-      note: state.wallets.buildingPayment.publicMemo.stringValue(),
+      note: state.wallets.buildingPayment.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
@@ -261,7 +265,11 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
     .then(accountID =>
-      WalletsGen.createLinkedExistingAccount({accountID, showOnCreation: action.payload.showOnCreation})
+      WalletsGen.createLinkedExistingAccount({
+        accountID,
+        showOnCreation: action.payload.showOnCreation,
+        setBuildingTo: action.payload.setBuildingTo,
+      })
     )
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
@@ -307,6 +315,9 @@ const createdOrLinkedAccount = (
   }
   if (action.payload.showOnCreation) {
     return Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true}))
+  }
+  if (action.payload.setBuildingTo) {
+    return Saga.put(WalletsGen.createSetBuildingTo({to: action.payload.accountID}))
   }
   return Saga.put(Route.navigateUp())
 }

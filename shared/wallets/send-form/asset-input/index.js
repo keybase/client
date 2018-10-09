@@ -24,7 +24,7 @@ const AssetInput = (props: Props) => (
       </Kb.Text>
     )}
     <Kb.NewInput
-      type="number"
+      type="text"
       decoration={
         <Kb.Box2 direction="vertical" style={styles.flexEnd}>
           <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
@@ -37,7 +37,11 @@ const AssetInput = (props: Props) => (
       }
       containerStyle={styles.inputContainer}
       style={styles.input}
-      onChangeText={props.onChangeAmount}
+      onChangeText={t => {
+        if (!isNaN(+t) || t === '.') {
+          props.onChangeAmount(t)
+        }
+      }}
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
       placeholderColor={Styles.globalColors.purple2_40}
