@@ -87,6 +87,11 @@
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"
     },
+    "markAsRead": {
+      "_description": "Mark the given payment ID and anything older as read.",
+      "accountID": "Types.AccountID",
+      "mostRecentID": "Types.PaymentID"
+    },
     "displayCurrenciesReceived": {
       "_description": "Update valid display currencies to choose from",
       "currencies": "Array<Types.Currency>"

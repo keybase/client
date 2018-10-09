@@ -258,6 +258,12 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
     })
   )
 
+const markAsRead = (state: TypedState, action: WalletsGen.MarkAsReadPayload) =>
+  RPCStellarTypes.localMarkAsReadLocalRpcPromise({
+    accountID: action.payload.accountID,
+    mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
+  })
+
 const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
   return RPCStellarTypes.localLinkNewWalletAccountLocalRpcPromise(
@@ -474,6 +480,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
+  yield Saga.actionToPromise(WalletsGen.markAsRead, markAsRead)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
