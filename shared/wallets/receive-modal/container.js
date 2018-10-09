@@ -10,10 +10,11 @@ export type OwnProps = {
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
+  const account = Constants.getAccount(state, accountID)
   return {
+    accountName: account.name || `${state.config.username}'s account`,
     federatedAddress: Constants.getFederatedAddress(state, accountID),
     stellarAddress: accountID,
-    username: state.config.username,
   }
 }
 
@@ -26,8 +27,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onClose: dispatchProps.navigateUp,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Receive)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)

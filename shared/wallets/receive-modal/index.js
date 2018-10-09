@@ -1,27 +1,35 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  CopyText,
+  Divider,
+  Icon,
+  InfoNote,
+  Text,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
 type Props = {
+  accountName: string,
   federatedAddress?: string,
   onClose: () => void,
   stellarAddress: string,
-  username: string,
 }
 
 const ReceiveModal = (props: Props) => {
   const header = (
-    <React.Fragment>
-      <Text type="BodySmallSemibold">
-        {props.username}
-        ’s account
+    <>
+      <Text type="BodySmallSemibold" style={styles.accountNameText}>
+        {props.accountName}
       </Text>
       <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
         Receive
       </Text>
-    </React.Fragment>
+    </>
   )
 
   const mobileHeaderWrapper = (
@@ -42,21 +50,36 @@ const ReceiveModal = (props: Props) => {
         style={iconCastPlatformStyles(styles.icon)}
       />
       {!Styles.isMobile && header}
+      <Button type="Wallet" label="Request from a Keybase user" fullWidth={true}>
+        <Icon
+          type="iconfont-stellar-request"
+          fontSize={Styles.isMobile ? 22 : 16}
+          color={Styles.globalColors.white}
+          style={iconCastPlatformStyles(styles.requestIcon)}
+        />
+      </Button>
+      <Divider
+        style={{
+          marginBottom: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.medium,
+          width: '100%',
+        }}
+      />
       <Text type="Body" style={styles.instructionText}>
-        To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
+        People outside Keybase can send to your public Stellar address:
       </Text>
       <Box2 direction="vertical" style={styles.stellarAddressContainer}>
         <CopyText text={props.stellarAddress} />
       </Box2>
       {!!props.federatedAddress && (
-        <React.Fragment>
+        <>
           <Text type="Body" style={styles.orText}>
             or
           </Text>
           <Box2 direction="vertical" style={styles.federatedAddressContainer}>
             <CopyText text={props.federatedAddress} />
           </Box2>
-        </React.Fragment>
+        </>
       )}
       <InfoNote>
         <Text type="BodySmall" style={styles.infoNoteText}>
@@ -69,6 +92,9 @@ const ReceiveModal = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  accountNameText: {
+    textAlign: 'center',
+  },
   container: Styles.platformStyles({
     isMobile: {
       paddingTop: Styles.globalMargins.medium,
@@ -113,6 +139,7 @@ const styles = Styles.styleSheetCreate({
   orText: {
     marginBottom: Styles.globalMargins.tiny,
   },
+  requestIcon: {marginRight: Styles.globalMargins.tiny},
   stellarAddressContainer: {
     marginBottom: Styles.globalMargins.tiny,
     width: '100%',
