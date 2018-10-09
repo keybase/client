@@ -158,6 +158,14 @@ func TestAutogitRepoNode(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "hello3", string(data4))
 
+	t.Logf("Check non-normalized repo name")
+	f5, err := rootFS.Open(".kbfs_autogit/test.git/foo")
+	require.NoError(t, err)
+	defer f5.Close()
+	data5, err := ioutil.ReadAll(f5)
+	require.NoError(t, err)
+	require.Equal(t, "hello", string(data5))
+
 	err = dotgitFS.SyncAll()
 	require.NoError(t, err)
 }

@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"context"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -183,6 +184,18 @@ func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	}
 }
 
+type wrappedRepoList struct {
+	*libfs.FS
+}
+
+func (wrl *wrappedRepoList) Stat(repoName string) (os.FileInfo, error) {
+	return wrl.FS.Stat(normalizeRepoName(repoName))
+}
+
+func (wrl *wrappedRepoList) Lstat(repoName string) (os.FileInfo, error) {
+	return wrl.FS.Lstat(normalizeRepoName(repoName))
+}
+
 // autogitRootNode represents the .kbfs_autogit folder, and lists all
 // the git repos associated with the member Node's TLF.
 type autogitRootNode struct {
@@ -196,13 +209,13 @@ var _ libkbfs.Node = (*autogitRootNode)(nil)
 func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
 	ctx = libkbfs.CtxWithRandomIDReplayable(
 		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
-	return arn.fs.WithContext(ctx)
+	return &wrappedRepoList{arn.fs.WithContext(ctx)}
 }
 
 // WrapChild implements the Node interface for autogitRootNode.
 func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = arn.Node.WrapChild(child)
-	repo := child.GetBasename()
+	repo := normalizeRepoName(child.GetBasename())
 	rdn := &repoDirNode{
 		Node:      child,
 		am:        arn.am,

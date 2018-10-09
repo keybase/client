@@ -289,6 +289,7 @@ func (am *AutogitManager) TlfHandleChange(
 func (am *AutogitManager) getBrowserForRepoLocked(
 	ctx context.Context, gitFS *libfs.FS, repoName string,
 	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
+	repoName = normalizeRepoName(repoName)
 	key := browserCacheKey{gitFS, repoName, branch, subdir}
 	tmp, ok := am.browserCache.Get(key)
 	if ok {
