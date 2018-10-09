@@ -11,6 +11,7 @@ const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) =>
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   return {
+    hasBadge: state.wallets.unreadPaymentsMap.get(ownProps.accountID) > 0,
     isSelected: getSelectedAccount(state) === ownProps.accountID,
     name,
     keybaseUser,
@@ -25,6 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+  hasBadge: stateProps.hasBadge,
   isSelected: !isMobile && stateProps.isSelected,
   name: stateProps.name,
   keybaseUser: stateProps.keybaseUser,

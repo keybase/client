@@ -176,6 +176,8 @@ export type _State = {
   buildingPayment: BuildingPayment,
   builtPayment: BuiltPayment,
   createNewAccountError: string,
+  currencies: I.List<Currency>,
+  currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
   linkExistingAccountError: string,
@@ -191,8 +193,7 @@ export type _State = {
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
-  currencies: I.List<Currency>,
-  currencyMap: I.Map<AccountID, Currency>,
+  unreadPaymentsMap: I.Map<AccountID, boolean>,
 }
 
 export type State = I.RecordOf<_State>

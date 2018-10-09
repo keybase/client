@@ -17,6 +17,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     newTeamAccessRequests,
     teamsWithResetUsers,
     inboxVers,
+    unreadWalletAccounts,
   } = bs
 
   if (state.notifications.badgeVersion >= inboxVers) {
@@ -28,6 +29,8 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
     0
   )
+  const totalPayments = (unreadWalletAccounts || []).reduce((total, a) => total + parseInt(a.numUnread), 0)
+
   const newGit = (newGitRepoGlobalUniqueIDs || []).length
   const newTeams =
     (newTeamNames || []).length + (newTeamAccessRequests || []).length + (teamsWithResetUsers || []).length
@@ -39,12 +42,13 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     [Tabs.gitTab, newGit],
     [Tabs.teamsTab, newTeams],
     [Tabs.peopleTab, homeTodoItems],
+    [Tabs.walletsTab, totalPayments],
   ])
 
   return {
     desktopAppBadgeCount: navBadges.reduce((total, val) => total + val, 0),
     mobileAppBadgeCount: totalMessages,
-    navBadges: navBadges,
+    navBadges,
   }
 }
 
