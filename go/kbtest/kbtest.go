@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	mathrand "math/rand"
 	"sync"
 	"time"
 
@@ -365,4 +366,12 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	err = engine.RunEngine2(m, eng)
 	them = eng.User()
 	return them, err
+}
+
+func GenerateTestPhoneNumber() string {
+	ret := make([]byte, 10)
+	for i := range ret {
+		ret[i] = "0123456789"[mathrand.Intn(10)]
+	}
+	return fmt.Sprintf("4%s", string(ret))
 }

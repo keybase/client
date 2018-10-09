@@ -2,7 +2,6 @@ package systests
 
 import (
 	"fmt"
-	"math/rand"
 	"sort"
 	"strings"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -352,21 +352,13 @@ func TestImplicitSBSPukless(t *testing.T) {
 	require.Equal(t, teamID, teamID3)
 }
 
-func generateTestPhoneNumber() string {
-	ret := make([]byte, 10)
-	for i := range ret {
-		ret[i] = "0123456789"[rand.Intn(10)]
-	}
-	return fmt.Sprintf("4%s", string(ret))
-}
-
 func TestTeamWithPhoneNumber(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
 	ann := tt.addUser("ann")
 
-	phone := generateTestPhoneNumber()
+	phone := kbtest.GenerateTestPhoneNumber()
 	impteamName := fmt.Sprintf("%s@phone,%s", phone, ann.username)
 	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
 	require.NoError(t, err)
@@ -383,4 +375,10 @@ func TestTeamWithPhoneNumber(t *testing.T) {
 	invCat, err := invite.Type.C()
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamInviteCategory_PHONE, invCat)
+
+	name, err := teamObj.ImplicitTeamDisplayName(context.Background())
+	require.NoError(t, err)
+	require.Len(t, name.Writers.KeybaseUsers, 1)
+	require.Len(t, name.Writers.UnresolvedUsers, 1)
+	require.Equal(t, impteamName, name.String())
 }
