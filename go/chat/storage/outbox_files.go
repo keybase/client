@@ -4,9 +4,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -35,6 +37,13 @@ func (s *outboxFilesStorage) getDir() string {
 	return filepath.Join(base, "fileoutbox", s.uid.String())
 }
 
+func (s *outboxFilesStorage) getFile(ctx context.Context, path string) *encrypteddb.EncryptedFile {
+	return encrypteddb.NewFile(s.G().ExternalG(), path,
+		func(ctx context.Context) ([32]byte, error) {
+			return GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+		})
+}
+
 func (s *outboxFilesStorage) readStorage(ctx context.Context) (res diskOutbox, err Error) {
 	dir := s.getDir()
 	res.Version = 1
@@ -45,17 +54,13 @@ func (s *outboxFilesStorage) readStorage(ctx context.Context) (res diskOutbox, e
 	}
 	for _, fi := range fis {
 		var rec chat1.OutboxRecord
-		dat, err := ioutil.ReadFile(filepath.Join(dir, fi.Name()))
-		if err != nil {
-			s.Debug(ctx, "readStorage: failed to read file: %s err: %s", fi.Name(), err)
-			continue
-		}
-		if err := decode(dat, &rec); err != nil {
-			s.Debug(ctx, "readStorage: failed to decode file: %s err: %s", fi.Name(), err)
+		if ierr := s.getFile(ctx, filepath.Join(dir, fi.Name())).Get(ctx, &rec); ierr != nil {
+			s.Debug(ctx, "readStorage: failed to read file: %s err: %s", fi.Name(), ierr)
 			continue
 		}
 		res.Records = append(res.Records, rec)
 	}
+	sort.Sort(ByCtimeOrder(res.Records))
 	return res, nil
 }
 
@@ -68,12 +73,7 @@ func (s *outboxFilesStorage) writeStorage(ctx context.Context, do diskOutbox) (e
 		return NewInternalError(ctx, s.DebugLabeler, "failed to make dir: %s", ierr)
 	}
 	for _, rec := range do.Records {
-		dat, ierr := encode(rec)
-		if ierr != nil {
-			s.Debug(ctx, "writeStorage: failed to encode dat: %s", ierr)
-			continue
-		}
-		if ierr := ioutil.WriteFile(filepath.Join(dir, rec.OutboxID.String()), dat, 0644); ierr != nil {
+		if ierr := s.getFile(ctx, filepath.Join(dir, rec.OutboxID.String())).Put(ctx, rec); ierr != nil {
 			s.Debug(ctx, "writeStorage: failed to write file: %s", ierr)
 			continue
 		}
