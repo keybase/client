@@ -11,7 +11,6 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
-import type {CommonResponseHandler} from '../engine/types'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
@@ -29,9 +28,6 @@ type ValidCallback =
   | 'keybase.1.provisionUi.switchToGPGSignOK'
   | 'keybase.1.secretUi.getPassphrase'
 
-const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: Constants.cancelDesc})
-}
 const ignoreCallback = (_: any) => {}
 
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
@@ -327,8 +323,8 @@ class ProvisioningManager {
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
         }
       : {
-          'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+          'keybase.1.gpgUi.selectKey': Constants.cancelOnCallback,
+          'keybase.1.loginUi.getEmailOrUsername': Constants.cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
           'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
@@ -365,7 +361,7 @@ class ProvisioningManager {
       // cancel if we're waiting on anything
       const response = this._stashedResponse
       if (response) {
-        cancelOnCallback(null, response)
+        Constants.cancelOnCallback(null, response)
       }
       this._stashedResponse = null
       this._stashedResponseKey = null
@@ -436,7 +432,7 @@ const addNewDevice = (state: TypedState) =>
     } catch (e) {
       ProvisioningManager.getSingleton().done(e.message)
       // If we're canceling then ignore the error
-      if (!errorCausedByUsCanceling(e)) {
+      if (!Constants.errorCausedByUsCanceling(e)) {
         logger.error(`Provision -> Add device error: ${e.message}`)
         yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
         // show black bar
