@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
     }))
   )
   return {
-    amount: build.amount,
+    amount: built.amountFormatted || build.amount + ' ' + build.currency,
     assetConversion: built.worthDescription,
     assetType: build.currency,
     symbol: currency ? currency.symbol : null,
@@ -33,6 +33,8 @@ const mapStateToProps = (state: TypedState) => {
     sendFailed: !!state.wallets.sentPaymentError,
     waitingKey: Constants.sendPaymentWaitingKey,
     yourUsername: state.config.username,
+    worthDescription: built.worthDescription,
+    amountFormatted: build.amountFormatted,
   }
 }
 

@@ -45,6 +45,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   toUsername: '',
   worthDescription: '',
   worthInfo: '',
+  amountFormatted: '',
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -85,6 +86,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     toUsername: b.toUsername,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
+    amountFormatted: b.amountFormatted,
   })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({

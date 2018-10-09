@@ -95,6 +95,7 @@ export type _BuiltPayment = {
   toUsername: string,
   worthDescription: string,
   worthInfo: string,
+  amountFormatted: string,
 }
 
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
