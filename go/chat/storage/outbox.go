@@ -51,6 +51,8 @@ func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
 	switch typ {
 	case "db":
 		return newOutboxBaseboxStorage(g, uid)
+	case "files":
+		return newOutboxFilesStorage(g, uid)
 	default:
 		return newOutboxBaseboxStorage(g, uid)
 	}
@@ -91,6 +93,9 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return rec, err
+		}
 		obox = diskOutbox{
 			Version: outboxVersion,
 			Records: []chat1.OutboxRecord{},
@@ -190,6 +195,9 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return err
+		}
 		obox = diskOutbox{
 			Version: outboxVersion,
 			Records: []chat1.OutboxRecord{},
