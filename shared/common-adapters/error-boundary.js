@@ -4,6 +4,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
+import logger from '../logger'
 import {globalStyles, globalColors, isMobile, globalMargins, platformStyles} from '../styles'
 
 // Although not mentioned in
@@ -124,7 +125,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
       stack: error.stack,
       componentStack: info.componentStack,
     }
-    console.log('Got boundary error:', allInfo)
+    logger.error('Got boundary error:', allInfo)
     this.setState({info: allInfo})
   }
 
