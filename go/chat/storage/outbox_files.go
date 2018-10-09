@@ -36,14 +36,16 @@ func (s *outboxFilesStorage) getDir() string {
 }
 
 func (s *outboxFilesStorage) readStorage(ctx context.Context) (res diskOutbox, err Error) {
-	fis, ierr := ioutil.ReadDir(s.getDir())
-	if ierr != nil {
-		return res, NewInternalError(ctx, s.DebugLabeler, "failed to read dir: %s", ierr)
-	}
+	dir := s.getDir()
 	res.Version = 1
+	fis, ierr := ioutil.ReadDir(dir)
+	if ierr != nil {
+		s.Debug(ctx, "readStorage: failed to read directory: %s", ierr)
+		return res, nil
+	}
 	for _, fi := range fis {
 		var rec chat1.OutboxRecord
-		dat, err := ioutil.ReadFile(fi.Name())
+		dat, err := ioutil.ReadFile(filepath.Join(dir, fi.Name()))
 		if err != nil {
 			s.Debug(ctx, "readStorage: failed to read file: %s err: %s", fi.Name(), err)
 			continue
