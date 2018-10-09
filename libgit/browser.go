@@ -21,6 +21,18 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage"
 )
 
+func translateGitError(err *error) {
+	if *err == nil {
+		return
+	}
+	switch *err {
+	case object.ErrEntryNotFound:
+		*err = os.ErrNotExist
+	default:
+		return
+	}
+}
+
 // Browser presents the contents of a git repo as a read-only file
 // system, using only the dotgit directory of the repo.
 type Browser struct {
@@ -135,7 +147,8 @@ func (b *Browser) followSymlink(filename string) (string, error) {
 }
 
 // Open implements the billy.Filesystem interface for Browser.
-func (b *Browser) Open(filename string) (billy.File, error) {
+func (b *Browser) Open(filename string) (f billy.File, err error) {
+	defer translateGitError(&err)
 	for i := 0; i < maxSymlinkLevels; i++ {
 		fi, err := b.Lstat(filename)
 		if err != nil {
@@ -171,6 +184,7 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 // Lstat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
+	defer translateGitError(&err)
 	entry, err := b.tree.FindEntry(filename)
 	if err != nil {
 		return nil, err
@@ -201,6 +215,7 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 
 // Stat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Stat(filename string) (fi os.FileInfo, err error) {
+	defer translateGitError(&err)
 	for i := 0; i < maxSymlinkLevels; i++ {
 		fi, err := b.Lstat(filename)
 		if err != nil {
@@ -226,6 +241,7 @@ func (b *Browser) Join(elem ...string) string {
 
 // ReadDir implements the billy.Filesystem interface for Browser.
 func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
+	defer translateGitError(&err)
 	var dirTree *object.Tree
 	if p == "" || p == "." {
 		dirTree = b.tree
@@ -248,6 +264,7 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 
 // Readlink implements the billy.Filesystem interface for Browser.
 func (b *Browser) Readlink(link string) (target string, err error) {
+	defer translateGitError(&err)
 	fi, err := b.Lstat(link)
 	if err != nil {
 		return "", err
@@ -262,6 +279,7 @@ func (b *Browser) Readlink(link string) (target string, err error) {
 
 // Chroot implements the billy.Filesystem interface for Browser.
 func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
+	defer translateGitError(&err)
 	newTree, err := b.tree.Tree(p)
 	if err != nil {
 		return nil, err
