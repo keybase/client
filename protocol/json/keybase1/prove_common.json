@@ -88,16 +88,6 @@
     },
     {
       "type": "record",
-      "name": "ProofServiceGroup",
-      "fields": [
-        {
-          "type": "string",
-          "name": "id"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "SelectorEntry",
       "fields": [
         {
@@ -180,9 +170,18 @@
         {
           "type": [
             null,
-            "ProofServiceGroup"
+            "string"
           ],
           "name": "group"
+        },
+        {
+          "type": "string",
+          "name": "logoUrl",
+          "jsonkey": "logo_url"
+        },
+        {
+          "type": "string",
+          "name": "description"
         },
         {
           "type": "ParamProofUsernameConfig",
