@@ -7,6 +7,7 @@ import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
+import {tldExp} from '../markdown/regex'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
@@ -189,7 +190,8 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-const linkRegex = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 
 var debugAnyScopeRegex = function(name, regex) {
   var match = function(source, state) {
@@ -226,6 +228,31 @@ const rules = {
         content: capture[1],
         lang: undefined,
         type: 'codeBlock',
+      }
+    },
+  },
+  quotedFence: {
+    // The ``` code blocks in a quote block >
+    // i.e.
+    // > They wrote ```
+    //  foo = true
+    // ```
+    // It's much easier and cleaner to make this a separate rule
+    ...SimpleMarkdown.defaultRules.fence,
+    order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
+    // Example: https://regex101.com/r/ZiDBsO/6
+    match: SimpleMarkdown.anyScopeRegex(/^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n?/),
+
+    parse: function(capture, parse, state) {
+      return {
+        content: [
+          ...SimpleMarkdown.parseInline(parse, capture[1], state),
+          {
+            content: capture[2],
+            type: 'codeBlock',
+          },
+        ],
+        type: 'blockQuote',
       }
     },
   },
@@ -315,6 +342,13 @@ const rules = {
   },
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
+    // match: blockRegex(/^( *>[^\n]+(\n[^\n]+)*\n*)+\n{2,}/),
+    // Original: A quote block only needs to start with > and everything in the same paragraph will be a quote
+    // e.g. https://regex101.com/r/ZiDBsO/2
+    // ours: Everything in the quote has to be preceded by >
+    // unless it has the start of a fence
+    // e.g. https://regex101.com/r/ZiDBsO/7
+    match: SimpleMarkdown.blockRegex(/^( *>(?:[^\n](?!```))*\n)+/),
     react: (node, output, state) => {
       return (
         <Box key={state.key} style={quoteStyle}>
@@ -343,7 +377,14 @@ const rules = {
   },
   link: {
     order: SimpleMarkdown.defaultRules.newline.order + 0.5,
-    match: SimpleMarkdown.inlineRegex(linkRegex),
+    match: (source, state, lookBehind) => {
+      const matches = inlineLinkMatch(source, state, lookBehind)
+      // If there is a match, let's also check if it's a valid tld
+      if (matches && tldExp.exec(matches.groups.tld)) {
+        return matches
+      }
+      return null
+    },
     parse: function(capture, parse, state) {
       return {spaceInFront: capture[1], content: capture[2]}
     },
@@ -383,10 +424,28 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
   )
 )
 
+const previewOutput = SimpleMarkdown.reactFor((ast: any, output: Function, state: any): any => {
+  // leaf node is just the raw value, so it has no ast.type
+  if (typeof ast !== 'object') {
+    return ast
+  }
+
+  switch (ast.type) {
+    case 'emoji':
+      return rules.emoji.react(ast, output, state)
+    case 'newline':
+      return ' '
+    case 'codeBlock':
+      return ' ' + output(ast.content, state)
+    default:
+      return output(ast.content, state)
+  }
+})
+
 const isAllEmoji = ast => {
   const trimmed = ast.filter(n => n.type !== 'newline')
   // Only 1 paragraph
-  if (trimmed.length === 1) {
+  if (trimmed.length === 1 && trimmed[0].content && trimmed[0].content.some) {
     // Is something in the content not an emoji?
     return !trimmed[0].content.some(n => n.type !== 'emoji')
   }
@@ -395,10 +454,22 @@ const isAllEmoji = ast => {
 
 class SimpleMarkdownComponent extends PureComponent<Props> {
   render() {
-    const parseTree = parser(this.props.children || '', {inline: false})
+    const parseTree = parser((this.props.children || '') + '\n', {
+      inline: false,
+      disableAutoBlockNewlines: true,
+    })
+
     return (
       <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
-        {isAllEmoji(parseTree) ? bigEmojiOutput(parseTree) : reactOutput(parseTree)}
+        {this.props.preview ? (
+          <Text type="BodySmall" style={neutralPreviewStyle}>
+            {previewOutput(parseTree)}
+          </Text>
+        ) : isAllEmoji(parseTree) ? (
+          bigEmojiOutput(parseTree)
+        ) : (
+          reactOutput(parseTree)
+        )}
       </Text>
     )
   }
@@ -436,5 +507,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
+
+export {parser}
 
 export default Markdown

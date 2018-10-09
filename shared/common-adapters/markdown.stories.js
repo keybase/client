@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
-import Markdown from './markdown'
+import * as Kb from './index'
+import Markdown, {parser} from './markdown'
+import OriginalParser from '../markdown/parser'
 
 const cases = {
   debugging: `
@@ -77,6 +79,22 @@ line
 code in quote
 \`\`\`
 `,
+  'Quotes 2': `> this is quoted
+> this is _italics_ inside of a quote. This is *bold* inside of a quote.
+> outside code: \`This is an inline block of code in a quote\` outside again
+
+
+
+
+something unrelated
+
+> Separate paragraph
+`,
+  'Quotes 3': `> _foo_ and *bar*! \`\`\`
+a = 1
+\`\`\`
+`,
+  'Quotes 4': `> one _line_ *quote*`,
   'NOJIMACode block': `\`\`\`
 
 this is a code block with two newline above\`\`\``,
@@ -102,12 +120,63 @@ this is a code block with two newline above\`\`\`
   bigemoji: ':thumbsup::100:',
 }
 
+class ShowAST extends React.Component<{text: string, simple: boolean}, {visible: boolean}> {
+  state = {visible: false}
+  render = () => {
+    const parsed = this.props.simple
+      ? parser((this.props.text || '') + '\n', {inline: false, disableAutoBlockNewlines: true})
+      : OriginalParser.parse(this.props.text, {
+          channelNameToConvID: (channel: string) => null,
+          isValidMention: (mention: string) => false,
+        })
+
+    return (
+      <Kb.Box2 direction="vertical">
+        <Kb.Button
+          onClick={() => this.setState({visible: !this.state.visible})}
+          label={`${this.state.visible ? 'Hide' : 'Show'} AST`}
+          type="Primary"
+        />
+        {this.state.visible && <Markdown>{'```\n' + JSON.stringify(parsed, null, 2) + '\n```'}</Markdown>}
+      </Kb.Box2>
+    )
+  }
+}
+
+class ShowPreview extends React.Component<{text: string, simple: boolean}, {visible: boolean}> {
+  state = {visible: true}
+  render = () => {
+    return (
+      <Kb.Box2 direction="vertical">
+        <Kb.Button
+          onClick={() => this.setState({visible: !this.state.visible})}
+          label={`${this.state.visible ? 'Hide' : 'Show'} Preview`}
+          type="Primary"
+        />
+        {this.state.visible && (
+          <Markdown simple={this.props.simple} preview={true}>
+            {this.props.text}
+          </Markdown>
+        )}
+      </Kb.Box2>
+    )
+  }
+}
+
+const MarkdownWithAst = ({children, simple}) => (
+  <Kb.Box2 direction="vertical">
+    <Markdown simple={simple}>{children}</Markdown>
+    <ShowAST text={children} simple={simple} />
+    <ShowPreview text={children} simple={simple} />
+  </Kb.Box2>
+)
+
 const load = () => {
   let s = Sb.storiesOf('Common/Markdown', module).addDecorator(Sb.scrollViewDecorator)
 
   Object.keys(cases).forEach(k => {
-    s = s.add(k + '[s]', () => <Markdown simple={true}>{cases[k]}</Markdown>)
-    s = s.add(k + '[o]', () => <Markdown simple={false}>{cases[k]}</Markdown>)
+    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{cases[k]}</MarkdownWithAst>)
+    s = s.add(k + '[o]', () => <MarkdownWithAst simple={false}>{cases[k]}</MarkdownWithAst>)
   })
 }
 
