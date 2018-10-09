@@ -12,7 +12,14 @@ type Props = {
 
 const Footer = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
+    <Kb.Box2
+      direction="vertical"
+      gap="tiny"
+      gapEnd={true}
+      gapStart={true}
+      fullWidth={true}
+      style={styles.background}
+    >
       {!!props.worthDescription && (
         <Kb.Box2 direction="horizontal">
           <Kb.Text style={styles.worthDescription} type="BodySmall">
@@ -30,7 +37,7 @@ const Footer = (props: Props) => (
           />
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
+      <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
         {!!props.onClickRequest && (
           <Kb.Button
             type="Wallet"
@@ -63,12 +70,15 @@ const Footer = (props: Props) => (
             />
           }
         />
-      </Kb.Box2>
+      </Kb.ButtonBar>
     </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = styleSheetCreate({
+  button: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     flexShrink: 0,
@@ -76,14 +86,11 @@ const styles = styleSheetCreate({
   },
   buttonBox: {
     flex: 1,
-    alignItems: 'stretch',
     justifyContent: 'center',
-  },
-  button: {
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.tiny,
+    minHeight: 0,
+    paddingBottom: globalMargins.tiny, // total bottom padding (this + box2 gapEnd) = globalMargins.small = 16
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
   icon: {marginRight: globalMargins.tiny},
   background: platformStyles({
