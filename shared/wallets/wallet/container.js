@@ -74,6 +74,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     navigateAppend: dispatchProps.navigateAppend,
     navigateUp: dispatchProps.navigateUp,
     onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
+    // TODO: Fill in.
+    onMarkRead: () => {},
     sections,
   }
 }
