@@ -55,6 +55,12 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	}
 	b.state.InboxVers = int(b.inboxVers)
 
+	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
+	for accountID, count := range b.walletUnreadMap {
+		info := keybase1.WalletAccountInfo{AccountID: string(accountID), NumUnread: count}
+		b.state.UnreadWalletAccounts = append(b.state.UnreadWalletAccounts, info)
+	}
+
 	return b.state, nil
 }
 

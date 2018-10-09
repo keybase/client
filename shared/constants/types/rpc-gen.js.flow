@@ -1720,7 +1720,7 @@ export type AvatarClearCacheMsg = $ReadOnly<{name: String, formats?: ?Array<Avat
 export type AvatarFormat = String
 export type AvatarUrl = String
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
-export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>}>
+export type BadgeState = $ReadOnly<{newTlfs: Int, rekeysNeeded: Int, newFollowers: Int, inboxVers: Int, homeTodoItems: Int, conversations?: ?Array<BadgeConversationInfo>, newGitRepoGlobalUniqueIDs?: ?Array<String>, newTeamNames?: ?Array<String>, newTeamAccessRequests?: ?Array<String>, teamsWithResetUsers?: ?Array<TeamMemberOutReset>, unreadWalletAccounts?: ?Array<WalletAccountInfo>}>
 export type BinaryKID = Bytes
 export type BlockIdCombo = $ReadOnly<{blockHash: String, chargedTo: UserOrTeamID, blockType: BlockType}>
 export type BlockPingResponse = $ReadOnly<{}>
@@ -2779,6 +2779,7 @@ export type UserVersion = $ReadOnly<{uid: UID, eldestSeqno: Seqno}>
 export type UserVersionPercentForm = String
 export type UserVersionVector = $ReadOnly<{id: Long, sigHints: Int, sigChain: Long, cachedAt: Time}>
 export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int, lifetime: Int}>
+export type WalletAccountInfo = $ReadOnly<{accountID: String, numUnread: Int}>
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 export type WriteArgs = $ReadOnly<{opID: OpID, path: Path, offset: Long}>
 

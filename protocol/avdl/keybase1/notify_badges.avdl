@@ -12,6 +12,11 @@ protocol NotifyBadges {
     gregor1.MsgID id;
   }
 
+  record WalletAccountInfo {
+    string accountID;
+    int numUnread;
+  }
+
   record BadgeState {
     @lint("ignore")
     int newTlfs;
@@ -25,6 +30,7 @@ protocol NotifyBadges {
     array<string> newTeamNames;
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
+    array<WalletAccountInfo> unreadWalletAccounts;
   }
 
   record BadgeConversationInfo {
