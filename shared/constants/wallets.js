@@ -213,6 +213,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
     ...rpcPaymentToPaymentCommon(p),
+    // Payment details have no unread field.
     readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
