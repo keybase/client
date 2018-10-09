@@ -212,13 +212,12 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		branch:    "",
 	}
 
-	ctx := libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
-	repoFS, _, err := arn.am.GetBrowserForRepo(ctx, arn.fs, repo, "", "")
+	billyFS, err := arn.fs.Chroot(repo)
 	if err != nil {
-		arn.am.log.CDebugf(ctx, "Error getting browser: %+v", err)
+		arn.am.log.CDebugf(nil, "Error getting repo FS: %+v", err)
 		return child
 	}
+	repoFS := billyFS.(*libfs.FS)
 
 	arn.am.registerRepoNode(repoFS.RootNode(), rdn)
 	return rdn
