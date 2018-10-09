@@ -735,6 +735,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			Asset:       p.Asset,
 			FromStellar: p.From,
 			ToStellar:   &p.To,
+			Unread:      p.Unread,
 		}, nil
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()
