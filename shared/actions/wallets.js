@@ -96,7 +96,7 @@ const requestPayment = (state: TypedState) =>
       asset: {type: 'native', code: '', issuer: ''},
       recipient: state.wallets.buildingPayment.to,
       // TODO -- support currency
-      note: state.wallets.buildingPayment.publicMemo.stringValue(),
+      note: state.wallets.buildingPayment.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
