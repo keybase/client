@@ -26,7 +26,7 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate = (prevProps: Props) => {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()
     }
