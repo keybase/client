@@ -19,8 +19,9 @@ protocol local {
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
     string assetCode;               // "XLM", "BTC"
-    string issuerName;              // "Stellar network" for native. Blank or like "stronghold.com" for non-native.
+    string issuerName;              // "Stellar network" for native. Blank or like "Stronghold" for non-native.  Note that for non-native this is just whatever they want to put in the stellar.toml file so shouldn't be trusted.
     string issuerAccountID;         // "" for native. Like "GCKLHXC22222252UOISFKYZQX7YIVDBPSZ7UUYDFK6URTG6VDRANPC5K" for non-native.
+    string issuerVerifiedDomain;    // "" for native.  Like "stronghold.co" for non-native.  This is a verified value and can be trusted.
 
     string balanceTotal;            // "280.9192933"
     string balanceAvailableToSend;  // Available to send. Like "279.9192933". Same as balanceTotal for non-native.

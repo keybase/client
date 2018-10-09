@@ -31,6 +31,7 @@ type AccountAssetLocal struct {
 	AssetCode              string           `codec:"assetCode" json:"assetCode"`
 	IssuerName             string           `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	IssuerVerifiedDomain   string           `codec:"issuerVerifiedDomain" json:"issuerVerifiedDomain"`
 	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
 	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
@@ -45,6 +46,7 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
+		IssuerVerifiedDomain:   o.IssuerVerifiedDomain,
 		BalanceTotal:           o.BalanceTotal,
 		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
