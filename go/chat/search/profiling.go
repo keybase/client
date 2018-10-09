@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const defaultPageSize = 500
+const defaultPageSize = 300
 
 func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.IndexSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
