@@ -456,6 +456,8 @@ class SimpleMarkdownComponent extends PureComponent<Props> {
   render() {
     const parseTree = parser((this.props.children || '') + '\n', {
       inline: false,
+      // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
+      // So we add our own new line
       disableAutoBlockNewlines: true,
     })
 
