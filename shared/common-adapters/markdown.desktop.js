@@ -241,7 +241,9 @@ const rules = {
     ...SimpleMarkdown.defaultRules.fence,
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     // Example: https://regex101.com/r/ZiDBsO/6
-    match: SimpleMarkdown.anyScopeRegex(/^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n?/),
+    match: SimpleMarkdown.anyScopeRegex(
+      /^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n{0,2}/
+    ),
 
     parse: function(capture, parse, state) {
       return {
@@ -424,23 +426,25 @@ const bigEmojiOutput = SimpleMarkdown.reactFor(
   )
 )
 
-const previewOutput = SimpleMarkdown.reactFor((ast: any, output: Function, state: any): any => {
-  // leaf node is just the raw value, so it has no ast.type
-  if (typeof ast !== 'object') {
-    return ast
-  }
+const previewOutput = SimpleMarkdown.reactFor(
+  (ast: any, output: Function, state: any): any => {
+    // leaf node is just the raw value, so it has no ast.type
+    if (typeof ast !== 'object') {
+      return ast
+    }
 
-  switch (ast.type) {
-    case 'emoji':
-      return rules.emoji.react(ast, output, state)
-    case 'newline':
-      return ' '
-    case 'codeBlock':
-      return ' ' + output(ast.content, state)
-    default:
-      return output(ast.content, state)
+    switch (ast.type) {
+      case 'emoji':
+        return rules.emoji.react(ast, output, state)
+      case 'newline':
+        return ' '
+      case 'codeBlock':
+        return ' ' + output(ast.content, state)
+      default:
+        return output(ast.content, state)
+    }
   }
-})
+)
 
 const isAllEmoji = ast => {
   const trimmed = ast.filter(n => n.type !== 'newline')

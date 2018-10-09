@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from './index'
@@ -120,6 +121,43 @@ this is a code block with two newline above\`\`\`
   bigemoji: ':thumbsup::100:',
 }
 
+const dummyMeta = {
+  mentionsChannelName: I.Map({
+    general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
+  }),
+  mentionsChannel: 'all',
+  mentionsAt: I.Set(['following', 'notFollowing', 'myUsername', 'noTheme']),
+}
+
+const mocksWithMeta = {
+  'Channel Name Mention': {
+    text: 'Hey! I *just* posted a video of my sick jump on #general',
+    meta: dummyMeta,
+  },
+  'User mention - Following': {
+    text: 'Hey @following, are you still there?',
+    meta: dummyMeta,
+  },
+  'User mention - Not Following': {
+    text: 'Hey @notFollowing, are you still there?',
+    meta: dummyMeta,
+  },
+  'User mention - You': {
+    text: 'Hey @myUsername, are you still there?',
+    meta: dummyMeta,
+  },
+  'User mention - No Theme': {
+    text: 'Hey @noTheme, are you still there?',
+    meta: dummyMeta,
+  },
+  'Channel Mention': {
+    text: `Hey @channel, theres *FREE* pizza in the kitchen!`,
+    meta: dummyMeta,
+  },
+}
+
+const provider = Sb.createPropProviderWithCommon({})
+
 class ShowAST extends React.Component<{text: string, simple: boolean}, {visible: boolean}> {
   state = {visible: false}
   render = () => {
@@ -163,20 +201,37 @@ class ShowPreview extends React.Component<{text: string, simple: boolean}, {visi
   }
 }
 
-const MarkdownWithAst = ({children, simple}) => (
+const MarkdownWithAst = ({children, simple, meta}) => (
   <Kb.Box2 direction="vertical">
-    <Markdown simple={simple}>{children}</Markdown>
+    <Markdown simple={simple} meta={meta}>
+      {children}
+    </Markdown>
     <ShowAST text={children} simple={simple} />
     <ShowPreview text={children} simple={simple} />
   </Kb.Box2>
 )
 
 const load = () => {
-  let s = Sb.storiesOf('Common/Markdown', module).addDecorator(Sb.scrollViewDecorator)
+  let s = Sb.storiesOf('Common/Markdown', module)
+    .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
 
   Object.keys(cases).forEach(k => {
     s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{cases[k]}</MarkdownWithAst>)
     s = s.add(k + '[o]', () => <MarkdownWithAst simple={false}>{cases[k]}</MarkdownWithAst>)
+  })
+
+  Object.keys(mocksWithMeta).forEach(k => {
+    s = s.add(k + '[s]', () => (
+      <MarkdownWithAst simple={true} meta={mocksWithMeta[k].meta}>
+        {mocksWithMeta[k].text}
+      </MarkdownWithAst>
+    ))
+    s = s.add(k + '[o]', () => (
+      <MarkdownWithAst simple={false} meta={mocksWithMeta[k].meta}>
+        {mocksWithMeta[k].text}
+      </MarkdownWithAst>
+    ))
   })
 }
 
