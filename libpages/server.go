@@ -353,8 +353,8 @@ func (s *ServedRequestInfo) wrapResponseWriter(
 	return statusCodePeekingResponseWriter{w: w, code: &s.HTTPStatus}
 }
 
-func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string, err *error) {
-	s.config.Logger.Info("ReqIn",
+func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string, startTime time.Time, err *error) {
+	s.config.Logger.Info("ReqProcessed",
 		zap.String("host", sri.Host),
 		zap.String("path", requestPath),
 		zap.String("proto", sri.Proto),
@@ -363,6 +363,7 @@ func (s *Server) logRequest(sri *ServedRequestInfo, requestPath string, err *err
 		zap.Bool("authenticated", sri.Authenticated),
 		zap.Bool("cloning_shown", sri.CloningShown),
 		zap.Bool("invalid_config", sri.InvalidConfig),
+		zap.Duration("duration", time.Since(startTime)),
 		zap.NamedError("pre_FileServer_error", *err),
 	)
 }
@@ -383,6 +384,7 @@ func (s *Server) setCommonResponseHeaders(w http.ResponseWriter) {
 
 // ServeHTTP implements the http.Handler interface.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
 	sri := &ServedRequestInfo{
 		Proto: r.Proto,
 		Host:  r.Host,
@@ -393,7 +395,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err error
-	defer s.logRequest(sri, r.URL.Path, &err)
+	defer s.logRequest(sri, r.URL.Path, startTime, &err)
 
 	if err = s.config.checkDomainLists(r.Host); err != nil {
 		s.handleError(w, err)
