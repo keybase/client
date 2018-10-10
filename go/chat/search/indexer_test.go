@@ -30,7 +30,7 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func TestIndexAdd(t *testing.T) {
+func TestIndexer(t *testing.T) {
 	world := kbtest.NewChatMockWorld(t, "indexer", 1)
 	defer world.Cleanup()
 
@@ -40,10 +40,6 @@ func TestIndexAdd(t *testing.T) {
 	g := globals.NewContext(tc.G, tc.ChatG)
 	indexer := NewIndexer(g)
 	ctx := context.TODO()
-	testMsgMetadata := msgMetadata{
-		SenderUsername: testSenderUsername,
-		Ctime:          testCtime,
-	}
 
 	convID1 := chat1.ConversationID("conv1")
 	dbKey1 := indexer.dbKey(convID1, uid)
@@ -51,51 +47,87 @@ func TestIndexAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, convIndex{}, convIdx)
 
+	// add first message
 	msg1 := makeText(5, "The quick brown fox jumps over the lazy dog.")
 	err = indexer.Add(ctx, convID1, uid, msg1)
 	require.NoError(t, err)
 
 	expectedConvIdx := convIndex{
-		"the":   msgMetadataIndex{5: testMsgMetadata},
-		"quick": msgMetadataIndex{5: testMsgMetadata},
-		"brown": msgMetadataIndex{5: testMsgMetadata},
-		"fox":   msgMetadataIndex{5: testMsgMetadata},
-		"jumps": msgMetadataIndex{5: testMsgMetadata},
-		"over":  msgMetadataIndex{5: testMsgMetadata},
-		"lazy":  msgMetadataIndex{5: testMsgMetadata},
-		"dog":   msgMetadataIndex{5: testMsgMetadata},
+		"the":   map[chat1.MessageID]bool{5: true},
+		"quick": map[chat1.MessageID]bool{5: true},
+		"brown": map[chat1.MessageID]bool{5: true},
+		"fox":   map[chat1.MessageID]bool{5: true},
+		"jumps": map[chat1.MessageID]bool{5: true},
+		"over":  map[chat1.MessageID]bool{5: true},
+		"lazy":  map[chat1.MessageID]bool{5: true},
+		"dog":   map[chat1.MessageID]bool{5: true},
 	}
 
 	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx, convIdx)
 
+	// add second message with overlapping keys
 	msg2 := makeText(6, "> The quick brown fox jumps over the lazy dog.\n cool.")
 	err = indexer.Add(ctx, convID1, uid, msg2)
 	require.NoError(t, err)
 
 	expectedConvIdx2 := convIndex{
-		"the":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"quick": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"brown": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"fox":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"jumps": msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"over":  msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"lazy":  msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"dog":   msgMetadataIndex{5: testMsgMetadata, 6: testMsgMetadata},
-		"cool":  msgMetadataIndex{6: testMsgMetadata},
+		"the":   map[chat1.MessageID]bool{5: true, 6: true},
+		"quick": map[chat1.MessageID]bool{5: true, 6: true},
+		"brown": map[chat1.MessageID]bool{5: true, 6: true},
+		"fox":   map[chat1.MessageID]bool{5: true, 6: true},
+		"jumps": map[chat1.MessageID]bool{5: true, 6: true},
+		"over":  map[chat1.MessageID]bool{5: true, 6: true},
+		"lazy":  map[chat1.MessageID]bool{5: true, 6: true},
+		"dog":   map[chat1.MessageID]bool{5: true, 6: true},
+		"cool":  map[chat1.MessageID]bool{6: true},
 	}
 
 	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx2, convIdx)
 
+	// add first message to conv2
 	convID2 := chat1.ConversationID("conv2")
 	dbKey2 := indexer.dbKey(convID2, uid)
 	err = indexer.Add(ctx, convID2, uid, msg1)
 	require.NoError(t, err)
-
 	convIdx, err = indexer.getConvIndex(ctx, dbKey2)
 	require.NoError(t, err)
 	require.Equal(t, expectedConvIdx, convIdx)
+
+	// remove from conv2
+	err = indexer.Remove(ctx, convID2, uid, msg1)
+	require.NoError(t, err)
+	convIdx, err = indexer.getConvIndex(ctx, dbKey2)
+	require.NoError(t, err)
+	require.Equal(t, convIndex{}, convIdx)
+
+	// remove msg1 from conv1
+	err = indexer.Remove(ctx, convID1, uid, msg1)
+	require.NoError(t, err)
+
+	expectedConvIdx3 := convIndex{
+		"the":   map[chat1.MessageID]bool{6: true},
+		"quick": map[chat1.MessageID]bool{6: true},
+		"brown": map[chat1.MessageID]bool{6: true},
+		"fox":   map[chat1.MessageID]bool{6: true},
+		"jumps": map[chat1.MessageID]bool{6: true},
+		"over":  map[chat1.MessageID]bool{6: true},
+		"lazy":  map[chat1.MessageID]bool{6: true},
+		"dog":   map[chat1.MessageID]bool{6: true},
+		"cool":  map[chat1.MessageID]bool{6: true},
+	}
+	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
+	require.NoError(t, err)
+	require.Equal(t, expectedConvIdx3, convIdx)
+
+	// remove msg2 from conv2
+	err = indexer.Remove(ctx, convID1, uid, msg2)
+	require.NoError(t, err)
+
+	convIdx, err = indexer.getConvIndex(ctx, dbKey1)
+	require.NoError(t, err)
+	require.Equal(t, convIndex{}, convIdx)
 }

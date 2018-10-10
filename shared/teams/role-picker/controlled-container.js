@@ -65,7 +65,11 @@ const ControlledRolePicker = props => (
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

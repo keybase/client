@@ -122,7 +122,13 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
 }
 
 function LoadingProofs() {
-  return <Box>{[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} />)}</Box>
+  return (
+    <Box>
+      {[117, 147, 97].map((width, idx) => (
+        <LoadingProofRow key={idx} width={width} />
+      ))}
+    </Box>
+  )
 }
 
 class ProofsRender extends React.Component<Props> {

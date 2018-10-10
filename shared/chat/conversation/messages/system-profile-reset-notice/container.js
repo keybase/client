@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   username: stateProps.username,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileResetNotice)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ProfileResetNotice)

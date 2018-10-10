@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1461,18 +1463,16 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
-type discardWriterCloser struct{}
-
-func (discardWriterCloser) Write(b []byte) (int, error) {
-	return len(b), nil
-}
-
-func (discardWriterCloser) Close() error {
-	return nil
+func (h *Server) getDownloadTempDir(basename string) (string, error) {
+	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(p, basename), nil
 }
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
-func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
@@ -1489,19 +1489,49 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	var sink io.WriteCloser
-	if h.G().GetAppType() == libkb.MobileAppType {
-		// We never want to actually download anything on mobile, just get it in our cache
-		sink = discardWriterCloser{}
-	} else {
-		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	filename := arg.Filename
+	if filename == "" {
+		// No filename means we will create one in the OS temp dir
+		// Get the sent file name first
+		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
+			[]chat1.MessageID{arg.MessageID}, true)
 		if err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
+			return res, err
+		}
+		if !unboxed[0].IsValid() {
+			return res, errors.New("unable to download attachment from invalid message")
+		}
+		body := unboxed[0].Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil || typ != chat1.MessageType_ATTACHMENT {
+			return res, fmt.Errorf("invalid message type for download: %v", typ)
+		}
+		basepath := body.Attachment().Object.Filename
+		basename := path.Base(basepath)
+		fullpath, err := h.getDownloadTempDir(basename)
+		if err != nil {
+			return res, err
+		}
+		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			return res, err
+		}
+		filename = f.Name()
+		darg.Sink = f
+	} else {
+		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+			return res, err
 		}
 	}
-	darg.Sink = sink
 
-	return h.downloadAttachmentLocal(ctx, uid, darg)
+	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
+	if err != nil {
+		return res, err
+	}
+	return chat1.DownloadFileAttachmentLocalRes{
+		Filename:         filename,
+		IdentifyFailures: ires.IdentifyFailures,
+	}, nil
 }
 
 type downloadAttachmentArg struct {
@@ -2087,10 +2117,10 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
@@ -2116,7 +2146,8 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 
@@ -2144,7 +2175,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.Opts)
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
 	if err != nil {
 		return res, err
 	}
@@ -2158,6 +2189,70 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
 	}, nil
+}
+
+func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res chat1.InboxSearchRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "InboxSearch")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	chatUI := h.getChatUI(arg.SessionID)
+	uiCh := make(chan chat1.ChatInboxSearchHit)
+	ch := make(chan struct{})
+	numHits := 0
+	go func() {
+		for searchHit := range uiCh {
+			numHits += len(searchHit.Hits)
+			chatUI.ChatInboxSearchHit(ctx, chat1.ChatInboxSearchHitArg{
+				SessionID: arg.SessionID,
+				SearchHit: searchHit,
+			})
+		}
+		close(ch)
+	}()
+
+	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
+	if err != nil {
+		return res, err
+	}
+	<-ch
+	chatUI.ChatInboxSearchDone(ctx, chat1.ChatInboxSearchDoneArg{
+		SessionID: arg.SessionID,
+		NumHits:   numHits,
+		NumConvs:  len(hits),
+	})
+	return chat1.InboxSearchRes{
+		Hits:             hits,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
+func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchArg) (res map[string]chat1.IndexSearchConvStats, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "IndexSearch")()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if arg.ConvID == nil {
+		res, err = h.G().Indexer.IndexInbox(ctx, uid)
+	} else {
+		convStats, err := h.G().Indexer.IndexConv(ctx, uid, *arg.ConvID)
+		if err != nil {
+			return nil, err
+		}
+		res = map[string]chat1.IndexSearchConvStats{
+			arg.ConvID.String(): convStats,
+		}
+	}
+	return res, err
 }
 
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {

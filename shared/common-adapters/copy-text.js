@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import {Box2} from './box'
+import {Box, Box2} from './box'
 import Icon from './icon'
 import Button from './button'
-import ButtonBar from './button-bar'
 import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
@@ -78,30 +77,30 @@ class _CopyText extends React.Component<Props, State> {
       >
         {/* $FlowIssue innerRef not typed yet */}
         <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
-        <Text
-          lineClamp={1}
-          type="Body"
-          selectable={true}
-          style={Styles.collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
-          allowHighlightText={true}
-          ref={r => (this._textRef = r)}
-        >
-          {this._isRevealed() ? this.props.text : '••••••••••••'}
-        </Text>
-        {!this._isRevealed() && (
-          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
-            Reveal
+        <Box style={{flexDirection: 'column', flexGrow: 1, flexShrink: 1, position: 'relative'}}>
+          <Text
+            lineClamp={this._isRevealed() ? 1 : null}
+            type="Body"
+            selectable={true}
+            style={styles.text}
+            allowHighlightText={true}
+            ref={r => (this._textRef = r)}
+          >
+            {this._isRevealed() ? this.props.text : '••••••••••••'}
           </Text>
-        )}
-        <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
-          <Button type="Primary" style={styles.button} onClick={this.copy}>
-            <Icon
-              type="iconfont-clipboard"
-              color={Styles.globalColors.white}
-              fontSize={Styles.isMobile ? 20 : 16}
-            />
-          </Button>
-        </ButtonBar>
+          {!this._isRevealed() && (
+            <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+              Reveal
+            </Text>
+          )}
+        </Box>
+        <Button type="Primary" style={styles.button} onClick={this.copy}>
+          <Icon
+            type="iconfont-clipboard"
+            color={Styles.globalColors.white}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
+        </Button>
       </Box2>
     )
   }
@@ -112,23 +111,21 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('CopyText'),
   HOCTimers
 )(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = Styles.styleSheetCreate({
-  buttonContainer: {
-    flexGrow: 1,
-    minHeight: 0,
-    width: 'auto',
-  },
   button: Styles.platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
-      height: '100%',
     },
     isElectron: {
       paddingBottom: 6,
@@ -143,9 +140,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.blue4,
-      borderRadius: 100,
+      borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: 16,
+      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {
@@ -165,6 +162,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.blue,
       fontSize: Styles.isMobile ? 15 : 13,
+      minWidth: 0,
       textAlign: 'left',
     },
     isAndroid: {
@@ -173,6 +171,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       userSelect: 'all',
+      wordBreak: 'break-all',
     },
     isMobile: {
       height: 15,

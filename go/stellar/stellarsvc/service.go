@@ -9,11 +9,11 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/slotctx"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/amount"
 )
 
 type UISource interface {
@@ -23,15 +23,17 @@ type UISource interface {
 
 type Server struct {
 	libkb.Contextified
-	uiSource UISource
-	remoter  remote.Remoter
+	uiSource         UISource
+	remoter          remote.Remoter
+	buildPaymentSlot *slotctx.PrioritySlot
 }
 
 func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
 	return &Server{
-		Contextified: libkb.NewContextified(g),
-		uiSource:     uiSource,
-		remoter:      remoter,
+		Contextified:     libkb.NewContextified(g),
+		uiSource:         uiSource,
+		remoter:          remoter,
+		buildPaymentSlot: slotctx.NewPriority(),
 	}
 }
 
@@ -366,7 +368,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		ret = append(ret, acc)
 	}
 
-	// Put the primary account first
+	// Put the primary account first, then sort by name, then by account ID
 	sort.SliceStable(ret, func(i, j int) bool {
 		if ret[i].IsPrimary {
 			return true
@@ -374,7 +376,10 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 		if ret[j].IsPrimary {
 			return false
 		}
-		return i < j
+		if ret[i].Name == ret[j].Name {
+			return ret[i].AccountID < ret[j].AccountID
+		}
+		return ret[i].Name < ret[j].Name
 	})
 
 	return ret, accountError
@@ -442,12 +447,12 @@ func (s *Server) checkDisplayAmount(ctx context.Context, arg stellar1.SendCLILoc
 		return err
 	}
 
-	currentAmt, err := amount.ParseInt64(xlmAmount)
+	currentAmt, err := stellarnet.ParseStellarAmount(xlmAmount)
 	if err != nil {
 		return err
 	}
 
-	argAmt, err := amount.ParseInt64(arg.Amount)
+	argAmt, err := stellarnet.ParseStellarAmount(arg.Amount)
 	if err != nil {
 		return err
 	}

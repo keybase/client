@@ -18,6 +18,7 @@ import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
+import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -34,6 +35,7 @@ const setupEngineListeners = () => {
       Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
     'keybase.1.NotifySession.loggedOut': () =>
       Saga.call(function*() {
+        logger.info('keybase.1.NotifySession.loggedOut')
         const state: TypedState = yield Saga.select()
         // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
         if (state.config.loggedIn) {
@@ -42,6 +44,7 @@ const setupEngineListeners = () => {
       }),
     'keybase.1.NotifySession.loggedIn': ({username}) =>
       Saga.call(function*() {
+        logger.info('keybase.1.NotifySession.loggedIn')
         const state: TypedState = yield Saga.select()
         // only send this if we think we're not logged in
         if (!state.config.loggedIn) {
@@ -66,14 +69,15 @@ const loadDaemonBootstrapStatus = (
         ConfigGen.createBootstrapStatusLoaded({
           deviceID: s.deviceID,
           deviceName: s.deviceName,
-          followers: s.followers || [],
-          following: s.following || [],
+          followers: s.followers ?? [],
+          following: s.following ?? [],
           loggedIn: s.loggedIn,
           registered: s.registered,
           uid: s.uid,
           username: s.username,
         })
     )
+    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn}`)
     yield Saga.put(loadedAction)
 
     // if we're logged in act like getAccounts is done already
@@ -311,7 +315,7 @@ const routeToInitialScreen = (state: TypedState) => {
             Saga.put(ProfileGen.createShowUserProfile({username})),
           ])
         }
-      } catch (e) {
+      } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
     }
@@ -360,6 +364,31 @@ const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
     ),
   ])
 
+const updateServerConfig = (state: TypedState) =>
+  Saga.call(function*() {
+    try {
+      const str = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'user/features',
+      })
+
+      const obj = JSON.parse(str.body)
+      const features = Object.keys(obj.features).reduce((map, key) => {
+        map[key] = obj.features[key].value
+        return map
+      }, {})
+
+      const serverConfig = {
+        printRPCStats: !!features.admin,
+        walletsEnabled: !!features.stellar,
+      }
+
+      logger.info('updateServerConfig', serverConfig)
+      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+    } catch (e) {
+      logger.info('updateServerConfig fail', e)
+    }
+  })
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -392,6 +421,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   yield Saga.actionToAction(ConfigGen.loggedOut, resetGlobalStore)
+  // Store per user server config info
+  yield Saga.actionToAction(ConfigGen.loggedIn, updateServerConfig)
 
   yield Saga.actionToAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 

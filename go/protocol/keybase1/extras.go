@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -2595,4 +2596,52 @@ func (path Path) String() string {
 	default:
 		return ""
 	}
+}
+
+func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, &se.Index); err == nil {
+		se.IsIndex = true
+		return nil
+	}
+
+	if err := json.Unmarshal(b, &se.Key); err == nil {
+		se.IsKey = true
+		return nil
+	}
+
+	m := make(map[string]bool)
+	if err := json.Unmarshal(b, &m); err != nil {
+		return fmt.Errorf("invalid selector (not dict)")
+	}
+	ok1, ok2 := m["all"]
+	if ok1 && ok2 {
+		se.IsAll = true
+		return nil
+	}
+	ok1, ok2 = m["contents"]
+	if ok1 && ok2 {
+		se.IsContents = true
+		return nil
+	}
+	return fmt.Errorf("invalid selector (not recognized)")
+}
+
+func (p PhoneNumber) String() string {
+	return string(p)
+}
+
+func (d TeamData) ID() TeamID {
+	return d.Chain.Id
+}
+
+func (d TeamData) IsPublic() bool {
+	return d.Chain.Public
+}
+
+func (d FastTeamData) ID() TeamID {
+	return d.Chain.ID
+}
+
+func (d FastTeamData) IsPublic() bool {
+	return d.Chain.Public
 }

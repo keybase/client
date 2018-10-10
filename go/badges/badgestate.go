@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -29,14 +30,17 @@ type BadgeState struct {
 	inboxVers chat1.InboxVers
 	// Map from ConversationID.String to BadgeConversationInfo.
 	chatUnreadMap map[string]keybase1.BadgeConversationInfo
+
+	walletUnreadMap map[stellar1.AccountID]int
 }
 
 // NewBadgeState creates a new empty BadgeState.
 func NewBadgeState(log logger.Logger) *BadgeState {
 	return &BadgeState{
-		log:           log,
-		inboxVers:     chat1.InboxVers(0),
-		chatUnreadMap: make(map[string]keybase1.BadgeConversationInfo),
+		log:             log,
+		inboxVers:       chat1.InboxVers(0),
+		chatUnreadMap:   make(map[string]keybase1.BadgeConversationInfo),
+		walletUnreadMap: make(map[stellar1.AccountID]int),
 	}
 }
 
@@ -50,6 +54,12 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
 	b.state.InboxVers = int(b.inboxVers)
+
+	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
+	for accountID, count := range b.walletUnreadMap {
+		info := keybase1.WalletAccountInfo{AccountID: string(accountID), NumUnread: count}
+		b.state.UnreadWalletAccounts = append(b.state.UnreadWalletAccounts, info)
+	}
 
 	return b.state, nil
 }
@@ -260,6 +270,7 @@ func (b *BadgeState) Clear() {
 	b.state = keybase1.BadgeState{}
 	b.inboxVers = chat1.InboxVers(0)
 	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	b.walletUnreadMap = make(map[stellar1.AccountID]int)
 }
 
 func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate) {
@@ -296,4 +307,11 @@ func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.T
 	}
 
 	return badges
+}
+
+// SetWalletAccountUnreadCount sets the unread count for a wallet account.
+func (b *BadgeState) SetWalletAccountUnreadCount(accountID stellar1.AccountID, unreadCount int) {
+	b.Lock()
+	b.walletUnreadMap[accountID] = unreadCount
+	b.Unlock()
 }

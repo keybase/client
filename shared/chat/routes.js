@@ -14,6 +14,7 @@ import ManageChannels from './manage-channels/container'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import InboxAndConversation from './inbox-and-conversation'
+import TeamBuilding from '../team-building/container'
 import {MaybePopupHoc, TODORoute} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
@@ -94,6 +95,11 @@ const chatChildren = {
   },
   enterPaperkey: {
     component: EnterPaperkey,
+  },
+  newChat: {
+    component: TeamBuilding,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: key => makeRouteDefNode(chatChildren[key]),
   },
   [WalletConstants.sendReceiveFormRouteKey]: {
     children: {

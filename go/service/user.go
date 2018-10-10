@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -339,6 +340,19 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	return ret, err
 }
 
+func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UPKLiteV1AllIncarnations, err error) {
+	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional().ForUPAKLite()
+	upakLite, err := h.G().GetUPAKLoader().LoadLite(arg)
+	if err != nil {
+		return ret, err
+	}
+	if upakLite == nil {
+		return ret, libkb.UserNotFoundError{UID: uid, Msg: "upak load failed"}
+	}
+	ret = *upakLite
+	return ret, nil
+}
+
 func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "US")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()
@@ -359,4 +373,22 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	m = m.WithLogTag("FNMR")
 	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
+}
+
+func (h *UserHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#AddPhoneNumber", func() error { return err })()
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
+}
+
+func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#VerifyPhoneNumber", func() error { return err })()
+	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
+}
+
+func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#GetPhoneNumbers", func() error { return err })()
+	return phonenumbers.GetPhoneNumbers(mctx)
 }

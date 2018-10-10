@@ -21,8 +21,7 @@ const commonProps = {
 
 class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
   state = {value: ''}
-  // prettier-ignore
-  _input = React.createRef<typeof PlainInput>()
+  _input: {current: React$ElementRef<typeof PlainInput> | null} = React.createRef()
 
   _insertText = (t: string) => {
     const input = this._input.current
@@ -119,13 +118,6 @@ class ControlledInputPlayground extends React.Component<{multiline: boolean}, Co
           type="password"
           placeholder={`type="password"`}
         />
-        <PlainInput
-          {...common}
-          value={this.state.value3 || ''}
-          onChangeText={this._onChangeText('value3')}
-          type="number"
-          placeholder={`type="number" (desktop only)`}
-        />
         <Box2 direction="vertical" fullWidth={true} gap="small">
           <Text type="Body">Live mutations</Text>
           <PlainInput
@@ -157,7 +149,6 @@ const load = () => {
     .add('Basic', () => <PlainInput {...commonProps} />)
     .add('Different text type', () => <PlainInput {...commonProps} textType="BodyExtrabold" />)
     .add('Larger text type', () => <PlainInput {...commonProps} textType="HeaderBig" />)
-    .add('Number', () => <PlainInput {...commonProps} type="number" />)
     .add('Password', () => <PlainInput {...commonProps} type="password" />)
     .add('Multiline', () => <PlainInput {...commonProps} multiline={true} />)
     .add('Multiline with row constraints', () => (

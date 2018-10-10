@@ -141,7 +141,7 @@ const handleLoudMessage = notification => {
   return Saga.call(function*() {
     yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
     yield Saga.put(Chat2Gen.createNavigateToThread())
-    if (unboxPayload && membersType) {
+    if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
         yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
@@ -278,7 +278,7 @@ const requestPermissions = () =>
       logger.info('[PushRequesting] asking native')
       const permissions = yield Saga.call(requestPermissionsFromNative)
       logger.info('[PushRequesting] after prompt:', permissions)
-      if (permissions.alert || permissions.badge) {
+      if (permissions?.alert || permissions?.badge) {
         logger.info('[PushRequesting] enabled')
         yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
       } else {

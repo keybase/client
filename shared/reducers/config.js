@@ -194,6 +194,14 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({touchIDEnabled: action.payload.enabled})
     case ConfigGen.touchIDAllowedBySystem:
       return state.merge({touchIDAllowedBySystem: action.payload.allowed})
+    case ConfigGen.outOfDate:
+      return state.set(
+        'outOfDate',
+        Constants.makeOutOfDate({
+          critical: action.payload.critical,
+          message: action.payload.message,
+        })
+      )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -206,6 +214,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
+    case ConfigGen.updateNow:
       return state
     default:
       /*::

@@ -19,7 +19,7 @@ const provider = Sb.createPropProviderWithCommon({
   Available: props => ({}),
   Banner: props => ({}),
   Body: props => ({
-    bannerInfo: props.bannerInfo,
+    banners: [],
     isProcessing: props.isProcessing,
     isRequest: props.isRequest,
   }),
@@ -33,6 +33,13 @@ const provider = Sb.createPropProviderWithCommon({
   Participants: props => ({
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
+  }),
+  Root: props => ({
+    onClose: Sb.action('onClose'),
+    onLinkAccount: Sb.action('onLinkAccount'),
+    onCreateNewAccount: Sb.action('onCreateNewAccount'),
+    isProcessing: props.isProcessing,
+    isRequest: props.isRequest,
   }),
   ...participantProviderProperties,
 })

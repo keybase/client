@@ -292,8 +292,17 @@
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "forShare?": "boolean"
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -306,8 +315,7 @@
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "path?": "string",
-      "forShare?": "boolean"
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {

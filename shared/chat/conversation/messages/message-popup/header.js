@@ -42,13 +42,13 @@ const MessagePopupHeader = (props: {
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           ENCRYPTED
         </Kb.Text>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
         >
           &nbsp;& SIGNED
         </Kb.Text>
@@ -71,7 +71,8 @@ const MessagePopupHeader = (props: {
       </Kb.Box2>
       <Kb.Box style={styles.headerDetailsContainer}>
         <Kb.Text type="BodySmall">
-          from device&nbsp;<Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
+          from device&nbsp;
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
       <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>

@@ -46,7 +46,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ChatFilterRow'),
   withProps(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),

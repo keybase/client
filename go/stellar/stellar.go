@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
-	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -153,7 +152,38 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		return remote.PostWithChainlink(ctx, g, nextBundle)
 	}
-	return remote.Post(ctx, g, nextBundle)
+	err = remote.Post(ctx, g, nextBundle)
+	if err != nil {
+		return err
+	}
+
+	// after import, mark all the transactions in this account as "read"
+	// any errors in this process are not fatal, since the important task
+	// has been accomplished.
+	_, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, failed to parse secret key after import: %s", err)
+		return nil
+	}
+	page, err := remote.RecentPayments(ctx, g, accountID, nil, 0, true)
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, RecentPayments error: %s", err)
+		return nil
+	}
+	if len(page.Payments) == 0 {
+		return nil
+	}
+	mostRecentID, err := page.Payments[0].TransactionID()
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, tx id from most recent payment error: %s", err)
+		return nil
+	}
+	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
+		return nil
+	}
+
+	return nil
 }
 
 func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -657,7 +687,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	}
 	for _, b := range balances {
 		if b.Asset.IsNativeXLM() {
-			a, err := amount.ParseInt64(b.Amount)
+			a, err := stellarnet.ParseStellarAmount(b.Amount)
 			if err != nil {
 				return false, err
 			}
@@ -736,6 +766,7 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 			Asset:       p.Asset,
 			FromStellar: p.From,
 			ToStellar:   &p.To,
+			Unread:      p.Unread,
 		}, nil
 	case stellar1.PaymentSummaryType_DIRECT:
 		p := p.Direct()
@@ -916,24 +947,33 @@ func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stell
 	return fmt.Sprintf("%s (%s)", code, currency.Symbol.Symbol), nil
 }
 
-func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string, error) {
-	desc, err := FormatAmountXLM(amount)
+// Example: "157.5000000 XLM"
+// Example: "12.9000000 USD/GB...VTUK"
+func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(amount)
+	}
+	switch asset.Type {
+	case "credit_alphanum4", "credit_alphanum12":
+	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
+	default:
+		return "", fmt.Errorf("unrecognized asset type: %v", asset.Type)
+	}
+	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
+	if len(asset.Code) <= 0 || len(asset.Code) >= 20 {
+		return "", fmt.Errorf("invalid asset code: %v", asset.Code)
+	}
+	// Sanity check asset issuer.
+	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-
-	switch delta {
-	case stellar1.BalanceDelta_DECREASE:
-		desc = "- " + desc
-	case stellar1.BalanceDelta_INCREASE:
-		desc = "+ " + desc
-	}
-
-	return desc, nil
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false, /* simplify */
+		fmt.Sprintf("%v/%v", asset.Code, issuerAccountID.LossyAbbreviation()))
 }
 
 // Example: "157.5000000 XLM"
-func FormatAmountXLM(amount string) (string, error) {
+func FormatAmountDescriptionXLM(amount string) (string, error) {
 	// Do not simplify XLM amounts, all zeroes are important because
 	// that's the exact number of digits that Stellar protocol
 	// supports.
@@ -955,7 +995,7 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
-	x, err := stellarnet.ParseDecimalStrict(amount)
+	x, err := stellarnet.ParseAmount(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
@@ -1171,7 +1211,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		PaymentID: stellar1.PaymentID{TxID: txID},
+		PaymentID: stellar1.NewPaymentID(txID),
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
@@ -1210,7 +1250,7 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	if arg.Asset != nil {
-		a, err := amount.ParseInt64(arg.Amount)
+		a, err := stellarnet.ParseStellarAmount(arg.Amount)
 		if err != nil {
 			return ret, err
 		}
@@ -1349,4 +1389,15 @@ func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account
 	}
 
 	return remoter.ExchangeRate(mctx.Ctx(), string(currency.Code))
+}
+
+func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
+	s := getGlobal(g)
+	ctx := context.Background()
+	details, err := s.remoter.Details(ctx, accountID)
+	if err != nil {
+		return // details, err
+	}
+
+	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
 }

@@ -8,6 +8,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(SignupGen.createRestartSignup()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  RequestInviteSuccess
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(RequestInviteSuccess)

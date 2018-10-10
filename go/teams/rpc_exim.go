@@ -11,7 +11,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time, application keybase1.TeamApplication) (ret keybase1.TeamPlusApplicationKeys, err error) {
+func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time,
+	application keybase1.TeamApplication, includeKBFSKeys bool) (ret keybase1.TeamPlusApplicationKeys, err error) {
 	loadKeys := true
 	if t.IsPublic() {
 		// If it's a public team, only try to load application keys if
@@ -23,7 +24,11 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 
 	var applicationKeys []keybase1.TeamApplicationKey
 	if loadKeys {
-		applicationKeys, err = t.AllApplicationKeysWithKBFS(ctx, application)
+		keyFunc := t.AllApplicationKeys
+		if includeKBFSKeys {
+			keyFunc = t.AllApplicationKeysWithKBFS
+		}
+		applicationKeys, err = keyFunc(ctx, application)
 		if err != nil {
 			return ret, err
 		}

@@ -24,6 +24,7 @@ import (
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	pkgErrors "github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -67,7 +68,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt
@@ -150,22 +151,25 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
-	if e == nil {
+	switch e {
+	case nil:
 		return nil
-	}
-
-	if e == io.EOF {
+	case io.EOF:
 		return &keybase1.Status{
 			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
-	}
-
-	if e == pgpErrors.ErrKeyIncorrect {
+	case pgpErrors.ErrKeyIncorrect:
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
+		}
+	case context.Canceled:
+		return &keybase1.Status{
+			Code: SCCanceled,
+			Name: "SC_CANCELED",
+			Desc: "Canceled",
 		}
 	}
 

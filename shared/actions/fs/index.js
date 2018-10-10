@@ -66,6 +66,7 @@ const filePreview = (state: TypedState, action) =>
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
+    ...(action.payload.identifyBehavior ? {identifyBehavior: action.payload.identifyBehavior} : {}),
   })
     .then(dirent =>
       FsGen.createFilePreviewLoaded({
@@ -461,29 +462,36 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+// Return a header till first semicolon in lower case.
+const headerTillSemiLower = (header: string): string => {
+  const idx = header.indexOf(';')
+  return (idx > -1 ? header.slice(0, idx) : header).toLowerCase()
+}
+
 // Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
 //   text/html;charset=utf-8
 //   text/html;charset=UTF-8
 //   Text/HTML;Charset="utf-8"
 //   text/html; charset="utf-8"
 // The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeTypeFromContentType = (contentType: string): string => {
-  const ind = contentType.indexOf(';')
-  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
+  const mimeType = headerTillSemiLower(contentType)
+  const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
+  return Constants.makeMime({mimeType, displayPreview})
 }
 
 const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: Types.Path) =>
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
-      ({error, statusCode, contentType}) => {
+      ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
           return
         }
         switch (statusCode) {
           case 200:
-            resolve(extractMimeTypeFromContentType(contentType || ''))
+            resolve(extractMimeFromContentType(contentType || '', disposition || ''))
             return
           case 403:
             reject(Constants.invalidTokenError)
@@ -647,7 +655,7 @@ const openPathItem = (
     let selected = 'preview'
     if (pathItem.type === 'file') {
       let mimeType = pathItem.mimeType
-      if (mimeType === '') {
+      if (mimeType === null) {
         mimeType = yield Saga.call(_loadMimeType, path)
       }
       if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {

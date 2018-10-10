@@ -18,6 +18,11 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
+export const makeOutOfDate: I.RecordFactory<Types._OutOfDate> = I.Record({
+  critical: false,
+  message: undefined,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
@@ -44,6 +49,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   mobileAppState: 'active',
   notifySound: false,
   openAtLogin: true,
+  outOfDate: undefined,
   pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,

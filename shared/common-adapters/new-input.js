@@ -12,6 +12,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
+import {forwardRef} from '../util/react'
 
 export type _Props = {
   containerStyle?: StylesCrossPlatform,
@@ -88,8 +89,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
-// $FlowIssue doesn't know about forwardRef (https://github.com/facebook/flow/issues/6103)
-const NewInput = React.forwardRef((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
+const NewInput = forwardRef((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({
   container: platformStyles({

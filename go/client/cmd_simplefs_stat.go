@@ -103,7 +103,7 @@ func (c *CmdSimpleFSStat) Run() (err error) {
 				e.Size, e.Name, e.LastWriterUnverified.Username)
 		}
 	} else {
-		e, err := cli.SimpleFSStat(ctx, c.path)
+		e, err := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: c.path})
 		if err != nil {
 			return err
 		}

@@ -35,6 +35,7 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
@@ -387,6 +388,8 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
+	ChatInboxSearchHit(context.Context, chat1.ChatInboxSearchHitArg) error
+	ChatInboxSearchDone(context.Context, chat1.ChatInboxSearchDoneArg) error
 }
 
 type PromptDefault int
@@ -536,7 +539,10 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
+	// `h` is the server provided sigHint. If the client can provide validated
+	// information it returns this. The verifiedSigHint is preferred over the
+	// server-trust one when displaying to users.
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 
@@ -632,6 +638,7 @@ type FastTeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
+	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
 	OnLogout()
 }
 
@@ -647,6 +654,7 @@ type Stellar interface {
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
+	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 }
 
 type DeviceEKStorage interface {

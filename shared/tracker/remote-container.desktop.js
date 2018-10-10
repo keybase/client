@@ -7,14 +7,7 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
-import {
-  branch,
-  remoteConnect,
-  compose,
-  lifecycle,
-  renderNothing,
-  withStateHandlers,
-} from '../util/container'
+import {branch, remoteConnect, compose, lifecycle, renderNothing, withStateHandlers} from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch, {teamname}) => ({

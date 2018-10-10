@@ -198,6 +198,9 @@ func (p CommandLine) IsMobileExtension() (bool, bool) {
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
 }
+func (p CommandLine) GetReadDeletedSigChain() (bool, bool) {
+	return p.GetBool("read-deleted-sigchain", true)
+}
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
 }
@@ -589,6 +592,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "slow-gregor-conn",
 			Usage: "Slow responses from gregor for testing",
+		},
+		cli.BoolFlag{
+			Name:  "read-deleted-sigchain",
+			Usage: "Allow admins to read deleted sigchains for debugging.",
 		},
 		cli.StringFlag{
 			Name:  "socket-file",

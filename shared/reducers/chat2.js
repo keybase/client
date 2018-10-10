@@ -1,10 +1,12 @@
 // @flow
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/chat2'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
+import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -240,10 +242,21 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', 0).set('transferState', null)
       })
+    case Chat2Gen.attachmentMobileSave:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', 'mobileSaving')
+      })
+    case Chat2Gen.attachmentMobileSaved:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', null)
+      })
     case Chat2Gen.attachmentDownload:
-      if (!action.payload.forShare) {
-        return messageMap
-      }
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
@@ -254,9 +267,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
-        }
-        if (action.payload.forShare) {
-          return message.set('transferState', null)
         }
         const path = action.error ? '' : action.payload.path
         return message
@@ -324,7 +334,10 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
 
 const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop)
 
-const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions): Types.State => {
+const rootReducer = (
+  state: Types.State = initialState,
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions
+): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
@@ -449,6 +462,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
       let oldMessageMap = state.messageMap
 
+      // so we can keep messages if they haven't mutated
+      const previousMessageMap = state.messageMap
+
       // first group into convoid
       const convoToMessages: {[cid: string]: Array<Types.Message>} = messages.reduce((map, m) => {
         const key = String(m.conversationIDKey)
@@ -487,7 +503,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
       )
 
-      const findExisting = (
+      const findExistingSentOrPending = (
         conversationIDKey: Types.ConversationIDKey,
         m: Types.MessageText | Types.MessageAttachment
       ) => {
@@ -520,7 +536,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
               const m = canSendType(message)
               if (m) {
                 // Sendable so we might have an existing message
-                if (!findExisting(conversationIDKey, m)) {
+                if (!findExistingSentOrPending(conversationIDKey, m)) {
                   arr.push(m.ordinal)
                 }
               } else if (message.type === 'placeholder') {
@@ -558,8 +574,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             const messages = convoToMessages[cid]
             messages.forEach(message => {
               const m = canSendType(message)
-              const old = m ? findExisting(conversationIDKey, m) : null
-              const toSet = old ? Constants.upgradeMessage(old, message) : message
+              const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
+              let toSet
+              if (oldSentOrPending) {
+                toSet = Constants.upgradeMessage(oldSentOrPending, message)
+              } else {
+                toSet = Constants.mergeMessage(
+                  m ? previousMessageMap.getIn([conversationIDKey, m.ordinal]) : null,
+                  message
+                )
+              }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
           })
@@ -568,7 +592,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
-        s.set('messageOrdinals', messageOrdinals)
+        // only if different
+        if (!state.messageOrdinals.equals(messageOrdinals)) {
+          s.set('messageOrdinals', messageOrdinals)
+        }
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
@@ -799,6 +826,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
+    case Chat2Gen.attachmentMobileSave:
+    case Chat2Gen.attachmentMobileSaved:
     case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
@@ -814,6 +843,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
+    case TeamBuildingGen.resetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
+    case TeamBuildingGen.addUsersToTeamSoFar:
+    case TeamBuildingGen.removeUsersFromTeamSoFar:
+    case TeamBuildingGen.searchResultsLoaded:
+    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.search:
+      return teamBuildingReducer(state, action)
+
     // Saga only actions
     case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:

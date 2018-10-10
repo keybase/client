@@ -38,6 +38,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   emojis: getOrderedReactions(stateProps._reactions),
 })
 
-export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('ReactionsRow'))(
-  ReactionsRow
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
+  setDisplayName('ReactionsRow')
+)(ReactionsRow)

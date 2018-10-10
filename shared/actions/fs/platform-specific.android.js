@@ -7,7 +7,7 @@ import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 import {pickAndUploadToPromise} from './common.native'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
 function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
@@ -55,7 +55,7 @@ const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSucces
       ])
     case 'share':
       return Saga.sequentially([
-        Saga.call(showShareActionSheet, {url: localPath, mimeType}),
+        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
         Saga.put(FsGen.createDismissDownload({key})),
       ])
     case 'none':

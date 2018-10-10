@@ -1,9 +1,11 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
 import * as LoginGen from './login-gen'
+import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {niceError} from '../util/errors'
@@ -69,6 +71,8 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         },
         waitingKey: Constants.waitingKey,
       })
+      logger.info('login call succeeded')
+      yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== cancelDesc) {

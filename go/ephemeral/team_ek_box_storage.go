@@ -11,6 +11,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const teamEKBoxStorageDBVersion = 3
+
 type teamEKBoxCacheItem struct {
 	TeamEKBoxed keybase1.TeamEkBoxed
 	ErrMsg      string
@@ -41,8 +43,6 @@ func (c teamEKBoxCacheItem) Error() error {
 type teamEKBoxCache map[keybase1.EkGeneration]teamEKBoxCacheItem
 type TeamEKBoxMap map[keybase1.EkGeneration]keybase1.TeamEkBoxed
 type TeamEKMap map[keybase1.EkGeneration]keybase1.TeamEk
-
-const teamEKBoxStorageDBVersion = 2
 
 func teamKey(teamID keybase1.TeamID, g *libkb.GlobalContext) string {
 	return fmt.Sprintf("teamEphemeralKeyBox-%s-%s", teamID, g.Env.GetUsername())
@@ -94,6 +94,7 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 		s.Unlock() // release the lock while we fetch
 		return s.fetchAndStore(ctx, teamID, generation)
 	}
+
 	defer s.Unlock() // release the lock after we unbox
 	if cacheItem.HasError() {
 		return teamEK, cacheItem.Error()
@@ -215,7 +216,11 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "unable to get from userEKStorage %v", err)
-		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
+		switch err.(type) {
+		case EphemeralKeyError:
+			return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
+		}
+		return teamEK, err
 	}
 
 	userSeed := UserEKSeed(userEK.Seed)

@@ -125,7 +125,6 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           )
         )
         .catch(err => {
-          console.log({'songgao-msg': 'catch', err})
           return makeRetriableErrorHandler(action)(err)
         })
     : new Promise((resolve, reject) =>
@@ -344,7 +343,14 @@ const loadUserFileEdits = (state: TypedState, action) =>
         // TODO (songgao): make a new action that accepts an array of updates,
         // so that we only need to trigger one update through store/rpc/widget
         // for all these each time.
-        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
+        ...updateSet.map(path =>
+          Saga.put(
+            FsGen.createFilePreviewLoad({
+              path,
+              identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+            })
+          )
+        ),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
     } catch (ex) {
@@ -356,19 +362,21 @@ const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.O
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
     ...(path
-      ? [Saga.put(
-          navigateTo([
-            Tabs.fsTab,
-            {
-              props: {path: Types.getPathParent(path)},
-              selected: 'folder',
-            },
-            {
-              props: {path},
-              selected: type === 'folder' ? 'folder' : 'preview',
-            },
-          ])
-        )]
+      ? [
+          Saga.put(
+            navigateTo([
+              Tabs.fsTab,
+              {
+                props: {path: Types.getPathParent(path)},
+                selected: 'folder',
+              },
+              {
+                props: {path},
+                selected: type === 'folder' ? 'folder' : 'preview',
+              },
+            ])
+          ),
+        ]
       : [Saga.put(switchTo([Tabs.fsTab]))]),
   ])
 

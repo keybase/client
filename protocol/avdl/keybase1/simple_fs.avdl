@@ -299,7 +299,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get revision info for a directory entry

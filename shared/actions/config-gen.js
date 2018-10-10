@@ -36,6 +36,7 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
+export const outOfDate = 'config:outOfDate'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
@@ -51,6 +52,7 @@ export const touchIDEnabled = 'config:touchIDEnabled'
 export const touchIDState = 'config:touchIDState'
 export const updateFollowing = 'config:updateFollowing'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
+export const updateNow = 'config:updateNow'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = $ReadOnly<{|
@@ -98,6 +100,10 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
+type _OutOfDatePayload = $ReadOnly<{|
+  critical: boolean,
+  message?: string,
+|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|
@@ -134,6 +140,7 @@ type _UpdateFollowingPayload = $ReadOnly<{|
   isTracking: boolean,
 |}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
+type _UpdateNowPayload = void
 type __avatarQueuePayload = void
 
 // Action Creators
@@ -196,6 +203,7 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: 
 export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
+export const createOutOfDate = (payload: _OutOfDatePayload) => ({error: false, payload, type: outOfDate})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({error: false, payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
@@ -208,6 +216,7 @@ export const createTouchIDEnabled = (payload: _TouchIDEnabledPayload) => ({error
 export const createTouchIDState = (payload: _TouchIDStatePayload) => ({error: false, payload, type: touchIDState})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
+export const createUpdateNow = (payload: _UpdateNowPayload) => ({error: false, payload, type: updateNow})
 export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: false, payload, type: _avatarQueue})
 
 // Action Payloads
@@ -234,6 +243,7 @@ export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait,
 export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
+export type OutOfDatePayload = $Call<typeof createOutOfDate, _OutOfDatePayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
@@ -249,6 +259,7 @@ export type TouchIDEnabledPayload = $Call<typeof createTouchIDEnabled, _TouchIDE
 export type TouchIDStatePayload = $Call<typeof createTouchIDState, _TouchIDStatePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
 export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
+export type UpdateNowPayload = $Call<typeof createUpdateNow, _UpdateNowPayload>
 export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
 
 // All Actions
@@ -277,6 +288,7 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
+  | OutOfDatePayload
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
@@ -292,5 +304,6 @@ export type Actions =
   | TouchIDStatePayload
   | UpdateFollowingPayload
   | UpdateMenubarWindowIDPayload
+  | UpdateNowPayload
   | _avatarQueuePayload
   | {type: 'common:resetStore', payload: void}

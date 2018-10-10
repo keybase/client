@@ -21,6 +21,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletConstants from '../../constants/wallets'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -30,7 +31,7 @@ import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {switchTo} from '../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
+import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
@@ -1465,7 +1466,8 @@ const changeSelectedConversation = (
   const selected = Constants.getSelectedConversation(state)
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
-      if (action.payload.pendingMode !== 'none') {
+      if (action.payload.pendingMode === 'newChat') {
+      } else if (action.payload.pendingMode !== 'none') {
         return Saga.sequentially([
           Saga.put(
             Chat2Gen.createSelectConversation({
@@ -1670,34 +1672,32 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
       }
     }
 
-    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
-        'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
-        'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
-      },
-      params: {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        filename: fileName,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        messageID: message.id,
-        preview: false,
-      },
-    })
+    const rpcRes: RPCChatTypes.DownloadFileAttachmentLocalRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga(
+      {
+        incomingCallMap: {
+          'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
+          'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
+          'chat.1.chatUi.chatAttachmentDownloadStart': () => {},
+        },
+        params: {
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          filename: fileName,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          messageID: message.id,
+          preview: false,
+        },
+      }
+    )
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    return rpcRes.filename
   } catch (e) {}
+  return fileName
 }
 
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
-  const {conversationIDKey, forShare, ordinal} = action.payload
-  if (forShare) {
-    // We are sharing an attachment on mobile,
-    // the reducer handles setting the appropriate
-    // flags in this case
-    // TODO DESKTOP-6562 refactor this logic
-    return
-  }
+  const {conversationIDKey, ordinal} = action.payload
+
   const state: TypedState = yield Saga.select()
   let message = Constants.getMessage(state, conversationIDKey, ordinal)
 
@@ -2053,19 +2053,12 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.fileURLCached) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  try {
+    yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
+  } catch (e) {
+    logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
-  yield Saga.sequentially([
-    Saga.put(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal, forShare: true})),
-    Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType),
-    Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, forShare: true})),
-  ])
 }
 
 // Native save to camera roll
@@ -2076,21 +2069,26 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.fileURLCached) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  }
+  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSave({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
+    yield Saga.call(saveAttachmentToCameraRoll, fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
   }
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSaved({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>
@@ -2476,6 +2474,16 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
+  if (action.payload.pendingMode === 'newChat') {
+    return Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{selected: 'newChat', props: {}}],
+      })
+    )
+  }
+}
+
 const openChatFromWidget = (
   state: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -2723,6 +2731,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
+  if (flags.newTeamBuildingForChat) {
+    yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
+  }
+  yield Saga.fork(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 

@@ -38,10 +38,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Uploading'
-        : message.transferState === 'remoteUploading'
-          ? 'waiting...'
-          : ''
-  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+        : message.transferState === 'mobileSaving'
+          ? 'Saving...'
+          : message.transferState === 'remoteUploading'
+            ? 'waiting...'
+            : ''
+  const hasProgress =
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
   return {
     arrowColor,
     hasProgress,
@@ -53,4 +58,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(File)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(File)

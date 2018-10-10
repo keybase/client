@@ -238,7 +238,6 @@ type PaymentSummaryStellar struct {
 	To          AccountID     `codec:"to" json:"to"`
 	Amount      string        `codec:"amount" json:"amount"`
 	Asset       Asset         `codec:"asset" json:"asset"`
-	OperationID uint64        `codec:"operationID" json:"operationID"`
 	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
 	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
 	Unread      bool          `codec:"unread" json:"unread"`
@@ -251,7 +250,6 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		To:          o.To.DeepCopy(),
 		Amount:      o.Amount,
 		Asset:       o.Asset.DeepCopy(),
-		OperationID: o.OperationID,
 		Ctime:       o.Ctime.DeepCopy(),
 		CursorToken: o.CursorToken,
 		Unread:      o.Unread,
@@ -430,6 +428,7 @@ type AccountDetails struct {
 	Available         string           `codec:"available" json:"available"`
 	Reserves          []AccountReserve `codec:"reserves" json:"reserves"`
 	ReadTransactionID *TransactionID   `codec:"readTransactionID,omitempty" json:"readTransactionID,omitempty"`
+	UnreadPayments    int              `codec:"unreadPayments" json:"unreadPayments"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -467,6 +466,7 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReadTransactionID),
+		UnreadPayments: o.UnreadPayments,
 	}
 }
 

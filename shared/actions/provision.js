@@ -11,7 +11,6 @@ import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
-import type {CommonResponseHandler} from '../engine/types'
 
 const devicesRoot = isMobile ? [Tabs.settingsTab, settingsDevicesTab] : [Tabs.devicesTab]
 
@@ -29,9 +28,6 @@ type ValidCallback =
   | 'keybase.1.provisionUi.switchToGPGSignOK'
   | 'keybase.1.secretUi.getPassphrase'
 
-const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: Constants.cancelDesc})
-}
 const ignoreCallback = (_: any) => {}
 
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
@@ -327,8 +323,8 @@ class ProvisioningManager {
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
         }
       : {
-          'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+          'keybase.1.gpgUi.selectKey': Constants.cancelOnCallback,
+          'keybase.1.loginUi.getEmailOrUsername': Constants.cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
           'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
@@ -357,23 +353,28 @@ class ProvisioningManager {
       : Saga.put(RouteTreeGen.createNavigateAppend({path: ['codePage'], parentPath: [Tabs.loginTab]}))
 
   maybeCancelProvision = (state: TypedState) => {
-    // We're not waiting on anything
-    if (!this._stashedResponse) {
-      return
-    }
-
     const root = state.routeTree.routeState && state.routeTree.routeState.selected
-    const response = this._stashedResponse
 
-    if (
-      (this._addingANewDevice && root === devicesRoot[0]) ||
-      (!this._addingANewDevice && root === Tabs.loginTab)
-    ) {
-      cancelOnCallback(null, response)
+    const doingDeviceAdd = this._addingANewDevice && root === devicesRoot[0]
+    const doingProvision = !this._addingANewDevice && root === Tabs.loginTab
+    if (doingDeviceAdd || doingProvision) {
+      // cancel if we're waiting on anything
+      const response = this._stashedResponse
+      if (response) {
+        Constants.cancelOnCallback(null, response)
+      }
       this._stashedResponse = null
       this._stashedResponseKey = null
-      // clear errors
-      return Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')}))
+      // clear errors and nav to root always
+      return Saga.sequentially([
+        Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')})),
+        Saga.put(
+          RouteTreeGen.createNavigateTo({
+            parentPath: [],
+            path: doingDeviceAdd ? devicesRoot : [Tabs.loginTab],
+          })
+        ),
+      ])
     }
   }
 }
@@ -404,7 +405,11 @@ const startProvisioning = (state: TypedState) =>
         },
         waitingKey: Constants.waitingKey,
       })
+      ProvisioningManager.getSingleton().done('provision call done w/ success')
     } catch (finalError) {
+      ProvisioningManager.getSingleton().done(
+        'provision call done w/ error' + finalError ? finalError.message : ' unknown error'
+      )
       yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError}))
     }
   })
@@ -420,14 +425,14 @@ const addNewDevice = (state: TypedState) =>
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
-      ProvisioningManager.getSingleton().done('success')
+      ProvisioningManager.getSingleton().done('add device success')
       // Now refresh and nav back
       yield Saga.put(DevicesGen.createLoad())
       yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
     } catch (e) {
       ProvisioningManager.getSingleton().done(e.message)
       // If we're canceling then ignore the error
-      if (e.desc !== Constants.cancelDesc) {
+      if (!Constants.errorCausedByUsCanceling(e)) {
         logger.error(`Provision -> Add device error: ${e.message}`)
         yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
         // show black bar
@@ -475,8 +480,8 @@ const showPaperkeyPage = (state: TypedState) =>
   Saga.put(RouteTreeGen.createNavigateAppend({path: ['paperkey'], parentPath: [Tabs.loginTab]}))
 
 const showFinalErrorPage = (state: TypedState) => {
-  if (state.provision.finalError && state.provision.finalError.desc !== Constants.cancelDesc) {
-    return Saga.put(RouteTreeGen.createNavigateAppend({path: ['error'], parentPath: [Tabs.loginTab]}))
+  if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
+    return Saga.put(RouteTreeGen.createNavigateTo({path: ['error'], parentPath: [Tabs.loginTab]}))
   } else {
     return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.loginTab]}))
   }

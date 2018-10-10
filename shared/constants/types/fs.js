@@ -87,9 +87,15 @@ export type _SymlinkPathItem = {
 } & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
+export type _Mime = {
+  mimeType: string,
+  displayPreview: boolean,
+}
+export type Mime = I.RecordOf<_Mime>
+
 export type _FilePathItem = {
   type: 'file',
-  mimeType: string,
+  mimeType: ?Mime,
 } & PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 

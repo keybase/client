@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 	"golang.org/x/net/context"
 )
 
@@ -115,7 +114,7 @@ func (c *CmdWalletSend) Run() error {
 		displayCurrency = c.LocalCurrency
 	}
 
-	_, err = stellaramount.ParseInt64(amount)
+	_, err = stellarnet.ParseStellarAmount(amount)
 	if err != nil {
 		return fmt.Errorf("invalid amount of XLM: %q", amount)
 	}

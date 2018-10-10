@@ -96,7 +96,6 @@ $1
 
   const linkExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))(((\/)|(\?))[a-z0-9.()\-_~:?#[\]@!$&'%*+,;=]*)*$/i
   const tldPuncExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))([)\].,;:"']+$)/i
-  const tldExp = /^(?:(http(s)?):\/\/)?([a-z0-9-]+\.)+([a-z]{2,63})/i
   const plaintextExp = /^([A-Za-z0-9!?=+$%^&[\],'"\s]|\.\B)*$/
   const phoneExp = /[0-9]{3}\s?[0-9]{3}\s?[0-9]{4}/
 
@@ -106,10 +105,10 @@ $1
   //
   // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
-    const tlds = ${JSON.stringify(tlds)}
+    const tldExp = new RegExp(/\.(${tlds.join('|')})\b/)
+    const ipExp = new RegExp(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
     const linkExp = ${linkExp}
     const tldPuncExp = ${tldPuncExp}
-    const tldExp = ${tldExp}
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
     const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
