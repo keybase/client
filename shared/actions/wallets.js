@@ -66,12 +66,14 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
     })
 }
 
+const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
+
 const sendPayment = (state: TypedState) =>
   RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
-      asset: {type: 'native', code: '', issuer: ''},
+      asset: emptyAsset,
       from: state.wallets.builtPayment.from,
       fromSeqno: '',
       publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
@@ -93,7 +95,7 @@ const requestPayment = (state: TypedState) =>
     {
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
-      asset: {type: 'native', code: '', issuer: ''},
+      asset: emptyAsset,
       recipient: state.wallets.buildingPayment.to,
       // TODO -- support currency
       note: state.wallets.buildingPayment.secretNote.stringValue(),
