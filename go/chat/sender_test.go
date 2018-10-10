@@ -740,6 +740,9 @@ func TestDisconnectedFailure(t *testing.T) {
 		break
 	}
 	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	sort.Slice(obids, func(i, j int) bool {
+		return j < i
+	})
 	require.Equal(t, listener.obidsRemote, obids)
 }
 
