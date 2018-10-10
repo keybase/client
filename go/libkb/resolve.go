@@ -208,7 +208,11 @@ func (r *ResolverImpl) getFromDiskCache(m MetaContext, key string, au AssertionU
 }
 
 func isMutable(au AssertionURL) bool {
-	return !(au.IsUID() || au.IsKeybase())
+	isStatic := au.IsUID() ||
+		au.IsKeybase() ||
+		(au.IsTeamID() && !au.ToTeamID().IsSubTeam()) ||
+		(au.IsTeamName() && au.ToTeamName().IsRootTeam())
+	return !isStatic
 }
 
 func (r *ResolverImpl) getFromUPAKLoader(m MetaContext, uid keybase1.UID) (ret *ResolveResult) {
@@ -544,6 +548,19 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 	res.cachedAt = m.G().Clock().Now()
 	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
+}
+
+func (r *ResolverImpl) CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName) {
+	m.VLogf(VLog0, "ResolverImpl#CacheTeamResolution: %s <-> %s", id, name)
+	res := ResolveResult{
+		teamID:           id,
+		queriedByTeamID:  true,
+		resolvedTeamName: name,
+		mutable:          id.IsSubTeam(),
+	}
+	r.putToMemCache(m, fmt.Sprintf("tid:%s", id), res)
+	res.queriedByTeamID = false
+	r.putToMemCache(m, fmt.Sprintf("team:%s", name.String()), res)
 }
 
 func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error) {

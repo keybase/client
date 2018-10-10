@@ -38,6 +38,12 @@
           "name": "created"
         },
         {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id",
+          "mpackkey": "team_id"
+        },
+        {
           "type": "FolderType",
           "name": "folderType"
         }

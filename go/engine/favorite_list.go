@@ -54,12 +54,35 @@ func (f *FavoritesAPIResult) GetAppStatus() *libkb.AppStatus {
 	return &f.Status
 }
 
+func (e *FavoriteList) cacheFolder(m libkb.MetaContext, folder keybase1.Folder) {
+	name, err := keybase1.TeamNameFromString(folder.Name)
+	if err != nil {
+		m.CDebugf("cannot cache folder %+v: %s", folder, err)
+		return
+	}
+	m.G().Resolver.CacheTeamResolution(m, folder.TeamID, name)
+}
+
+func (e *FavoriteList) cacheFolders(m libkb.MetaContext, folders []keybase1.Folder) {
+	for _, f := range folders {
+		if !f.TeamID.IsNil() {
+			e.cacheFolder(m, f)
+		}
+	}
+}
+
 // Run starts the engine.
 func (e *FavoriteList) Run(m libkb.MetaContext) error {
 	arg := libkb.NewRetryAPIArg("kbfs/favorite/list")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.NetContext = m.Ctx()
-	return m.G().API.GetDecode(arg, &e.result)
+	err := m.G().API.GetDecode(arg, &e.result)
+	if err != nil {
+		return err
+	}
+	e.cacheFolders(m, e.result.Favorites)
+	e.cacheFolders(m, e.result.New)
+	return nil
 }
 
 // Favorites returns the list of favorites that Run generated.

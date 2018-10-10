@@ -48,6 +48,7 @@ type Folder struct {
 	Private         bool       `codec:"private" json:"private"`
 	NotificationsOn bool       `codec:"notificationsOn" json:"notificationsOn"`
 	Created         bool       `codec:"created" json:"created"`
+	TeamID          TeamID     `codec:"team_id" json:"team_id"`
 	FolderType      FolderType `codec:"folderType" json:"folderType"`
 }
 
@@ -57,6 +58,7 @@ func (o Folder) DeepCopy() Folder {
 		Private:         o.Private,
 		NotificationsOn: o.NotificationsOn,
 		Created:         o.Created,
+		TeamID:          o.TeamID.DeepCopy(),
 		FolderType:      o.FolderType.DeepCopy(),
 	}
 }

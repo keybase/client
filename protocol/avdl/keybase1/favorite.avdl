@@ -21,6 +21,8 @@ protocol favorite {
     boolean private;          // (DEPRECATED) in /keybase/private or /keybase/public?
     boolean notificationsOn;  // user wants to be notified when this folder changes
     boolean created;          // this folder was just created by this user
+    @jsonkey("team_id") @mpackkey("team_id")
+    TeamID teamID;            // supply the team ID of the underlying team if known
     FolderType folderType;    // what type of folder is this?
   }
 
