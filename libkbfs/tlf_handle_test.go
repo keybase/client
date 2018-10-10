@@ -115,7 +115,8 @@ func TestParseTlfHandleSingleTeam(t *testing.T) {
 		},
 	}
 
-	h, err := ParseTlfHandle(ctx, kbpki, nil, "t1", tlf.SingleTeam)
+	h, err := ParseTlfHandle(
+		ctx, kbpki, constIDGetter{tlfID}, "t1", tlf.SingleTeam)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.NoError(t, err)
 	require.Equal(t, tlfID, h.tlfID)

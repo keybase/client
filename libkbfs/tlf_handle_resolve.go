@@ -269,6 +269,7 @@ func makeTlfHandleHelper(
 
 type resolvableID struct {
 	resolver resolver
+	idGetter tlfIDGetter
 	nug      normalizedUsernameGetter
 	id       keybase1.UserOrTeamID
 	tlfType  tlf.Type
@@ -301,9 +302,8 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	}
 	var tlfID tlf.ID
-	if ruid.id.IsTeamOrSubteam() {
-		// If no TLF ID has been set yet, we'll get a nil err with a
-		// null TLF ID.
+	// Only get a team TLF ID if the caller expects to use it.
+	if ruid.idGetter != nil && ruid.id.IsTeamOrSubteam() {
 		tlfID, err = ruid.resolver.ResolveTeamTLFID(ctx, ruid.id.AsTeamOrBust())
 		if err != nil {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
@@ -332,7 +332,7 @@ func MakeTlfHandle(
 	*TlfHandle, error) {
 	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
 	for _, w := range bareHandle.Writers {
-		writers = append(writers, resolvableID{resolver, nug, w, t})
+		writers = append(writers, resolvableID{resolver, idGetter, nug, w, t})
 	}
 	for _, uw := range bareHandle.UnresolvedWriters {
 		writers = append(writers, resolvableSocialAssertion(uw))
@@ -342,7 +342,8 @@ func MakeTlfHandle(
 	if bareHandle.Type() == tlf.Private {
 		readers = make([]resolvableUser, 0, len(bareHandle.Readers)+len(bareHandle.UnresolvedReaders))
 		for _, r := range bareHandle.Readers {
-			readers = append(readers, resolvableID{resolver, nug, r, t})
+			readers = append(
+				readers, resolvableID{resolver, idGetter, nug, r, t})
 		}
 		for _, ur := range bareHandle.UnresolvedReaders {
 			readers = append(readers, resolvableSocialAssertion(ur))
@@ -389,8 +390,8 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
 	for _, uw := range h.unresolvedWriters {
-		writers = append(writers, resolvableAssertion{resolver, nil,
-			uw.String(), uid})
+		writers = append(writers, resolvableAssertion{
+			resolver, nil, idGetter, uw.String(), uid})
 	}
 
 	var readers []resolvableUser
@@ -400,8 +401,8 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
 		for _, ur := range h.unresolvedReaders {
-			readers = append(readers, resolvableAssertion{resolver, nil,
-				ur.String(), uid})
+			readers = append(readers, resolvableAssertion{
+				resolver, nil, idGetter, ur.String(), uid})
 		}
 	}
 
@@ -598,6 +599,7 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 type resolvableAssertion struct {
 	resolver   resolver
 	identifier identifier // only needed until KBFS-2022 is fixed
+	idGetter   tlfIDGetter
 	assertion  string
 	mustBeUser keybase1.UID
 }
@@ -644,9 +646,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 		return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 	case nil:
 		var tlfID tlf.ID
-		if id.IsTeamOrSubteam() {
-			// If no TLF ID has been set yet, we'll get a nil err with
-			// a null TLF ID.
+		// Only get a team TLF ID if the caller expects to use it.
+		if ra.idGetter != nil && id.IsTeamOrSubteam() {
 			tlfID, err = ra.resolver.ResolveTeamTLFID(ctx, id.AsTeamOrBust())
 			if err != nil {
 				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
@@ -774,13 +775,13 @@ func parseTlfHandleLoose(
 		if t == tlf.SingleTeam {
 			w = "team:" + w
 		}
-		writers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, kbpki, w, keybase1.UID("")}, changesCh}
+		writers[i] = resolvableAssertionWithChangeReport{resolvableAssertion{
+			kbpki, kbpki, idGetter, w, keybase1.UID("")}, changesCh}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
-		readers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, kbpki, r, keybase1.UID("")}, changesCh}
+		readers[i] = resolvableAssertionWithChangeReport{resolvableAssertion{
+			kbpki, kbpki, idGetter, r, keybase1.UID("")}, changesCh}
 	}
 
 	h, err := makeTlfHandleHelper(
