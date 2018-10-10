@@ -13,6 +13,7 @@ type Props = {
   navigateAppend: (...Array<any>) => any,
   navigateUp: () => any,
   onLoadMore: () => void,
+  onMarkAsRead: () => void,
   sections: any[],
 }
 
@@ -25,6 +26,16 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.accountID !== this.props.accountID) {
+      prevProps.onMarkAsRead()
+    }
+  }
+
+  componentWillUnmount = () => {
+    this.props.onMarkAsRead()
+  }
+
   _renderItem = ({item, index, section}) => {
     const children = []
     if (item === 'notLoadedYet') {

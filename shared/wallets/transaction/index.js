@@ -288,6 +288,7 @@ export type Props = {|
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
+  readState: Types.ReadState,
   selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
@@ -300,12 +301,10 @@ export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
     props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
+  const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
+  const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
   return (
-    <Box2
-      direction="vertical"
-      fullWidth={true}
-      style={{backgroundColor: pending ? globalColors.blue4 : globalColors.white}}
-    >
+    <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
         <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           <CounterpartyIcon
@@ -357,6 +356,9 @@ export const Transaction = (props: Props) => {
             </Box2>
           </Box2>
         </Box2>
+        {props.readState === 'oldestUnread' && (
+          <Box2 direction="horizontal" fullWidth={true} style={styles.orangeLine} />
+        )}
       </ClickableBox>
     </Box2>
   )
@@ -374,6 +376,7 @@ const styles = styleSheetCreate({
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },
+  orangeLine: {backgroundColor: globalColors.orange, height: 1},
   pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   rightContainer: {
     flex: 1,

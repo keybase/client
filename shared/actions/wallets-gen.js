@@ -44,6 +44,7 @@ export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
+export const markAsRead = 'wallets:markAsRead'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
@@ -154,6 +155,10 @@ type _LoadPaymentDetailPayload = $ReadOnly<{|
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
+type _MarkAsReadPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  mostRecentID: Types.PaymentID,
+|}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   payment: Types.Payment,
@@ -299,6 +304,10 @@ export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => (
  * Load valid display currencies to choose from
  */
 export const createLoadDisplayCurrencies = (payload: _LoadDisplayCurrenciesPayload) => ({error: false, payload, type: loadDisplayCurrencies})
+/**
+ * Mark the given payment ID and anything older as read.
+ */
+export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({error: false, payload, type: markAsRead})
 /**
  * Perform sending a payment
  */
@@ -468,6 +477,7 @@ export type LoadMorePaymentsPayload = $Call<typeof createLoadMorePayments, _Load
 export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
+export type MarkAsReadPayload = $Call<typeof createMarkAsRead, _MarkAsReadPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
@@ -533,6 +543,7 @@ export type Actions =
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
+  | MarkAsReadPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
   | RefreshPaymentsPayload

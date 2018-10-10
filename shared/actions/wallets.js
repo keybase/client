@@ -169,8 +169,12 @@ const loadPayments = (
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
       paymentCursor: payments.cursor,
-      payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
-      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      payments: (payments.payments || [])
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .filter(Boolean),
+      pending: (pending || [])
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .filter(Boolean),
     })
   )
 
@@ -184,7 +188,7 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
           accountID: action.payload.accountID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem))
+            .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
             .filter(Boolean),
           pending: [],
         })
@@ -254,6 +258,12 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
       payment: Constants.paymentDetailResultToPayment(res),
     })
   )
+
+const markAsRead = (state: TypedState, action: WalletsGen.MarkAsReadPayload) =>
+  RPCStellarTypes.localMarkAsReadLocalRpcPromise({
+    accountID: action.payload.accountID,
+    mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
+  })
 
 const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingAccountPayload) => {
   const {name, secretKey} = action.payload
@@ -474,6 +484,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
+  yield Saga.actionToPromise(WalletsGen.markAsRead, markAsRead)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
