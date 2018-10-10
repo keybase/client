@@ -52,7 +52,7 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
 
 let middleWare
 function create(crashHandler: (err: any) => void) {
-  if (middleWare) {
+  if (!__DEV__ && middleWare) {
     throw new Error('Only create one saga middleware!')
   }
   middleWare = createSagaMiddleware({
