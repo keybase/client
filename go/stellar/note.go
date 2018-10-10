@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -141,9 +140,9 @@ func noteMixPukNonce() (res [24]byte) {
 }
 
 func NoteEncryptB64(ctx context.Context, g *libkb.GlobalContext, note stellar1.NoteContents, other *keybase1.UserVersion) (noteB64 string, err error) {
-	if len(note.Note) > msgchecker.PaymentTextMaxLength {
+	if len(note.Note) > libkb.MaxStellarPaymentNoteLength {
 		return "", fmt.Errorf("Note of size %d bytes exceeds the maximum length of %d bytes",
-			len(note.Note), msgchecker.PaymentTextMaxLength)
+			len(note.Note), libkb.MaxStellarPaymentNoteLength)
 	}
 	obj, err := noteEncrypt(ctx, g, note, other)
 	if err != nil {
@@ -154,9 +153,9 @@ func NoteEncryptB64(ctx context.Context, g *libkb.GlobalContext, note stellar1.N
 		return "", err
 	}
 	noteB64 = base64.StdEncoding.EncodeToString(pack)
-	if len(noteB64) > msgchecker.BoxedRequestPaymentMessageBodyMaxLength {
+	if len(noteB64) > libkb.MaxStellarPaymentBoxedNoteLength {
 		return "", fmt.Errorf("Encrypted note of size %d bytes exceeds the maximum length of %d bytes",
-			len(noteB64), msgchecker.BoxedRequestPaymentMessageBodyMaxLength)
+			len(noteB64), libkb.MaxStellarPaymentBoxedNoteLength)
 	}
 	return noteB64, nil
 }

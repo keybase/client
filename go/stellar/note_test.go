@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -68,7 +67,7 @@ func TestNoteLengthLimit(t *testing.T) {
 
 	// verify we can encrypt content with max length
 	pre := sampleNote()
-	pre.Note = strings.Repeat(".", msgchecker.PaymentTextMaxLength)
+	pre.Note = strings.Repeat(".", libkb.MaxStellarPaymentNoteLength)
 	expect := pre.DeepCopy()
 	encNote, err := NoteEncryptB64(ctx, tc.G, pre, &uv2)
 	require.NoError(t, err)
