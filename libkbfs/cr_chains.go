@@ -1133,6 +1133,50 @@ func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
 	}
 }
 
+func (ccs *crChains) findPathForCreated(mostRecent BlockPointer) path {
+	// Find the parent chain that deleted this one.
+	for ptr, chain := range ccs.byMostRecent {
+		for _, op := range chain.ops {
+			co, ok := op.(*createOp)
+			if !ok {
+				continue
+			}
+			for _, ref := range co.Refs() {
+				if ref == mostRecent {
+					// If the path isn't set yet, recurse.
+					p := co.getFinalPath()
+					if !p.isValid() {
+						p = ccs.findPathForCreated(ptr)
+					}
+					return p.ChildPath(co.NewName, mostRecent)
+				}
+			}
+		}
+	}
+	// We can get here if the entry in question was also deleted
+	// during the chain period, in which case `mostRecent` doesn't
+	// need to be unreferenced explicitly.  There's nothing easy we
+	// can do here.  But the path isn't very important; for the most
+	// part, it's just informational for log messages and journal
+	// status.  So if we are stuck, just pick use the root directory
+	// and a fake name.
+	var rootMostRecent BlockPointer
+	if ccs.mostRecentChainMDInfo != nil {
+		rootMostRecent =
+			ccs.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
+	}
+	return path{
+		FolderBranch: FolderBranch{
+			Tlf:    ccs.mostRecentChainMDInfo.TlfID(),
+			Branch: MasterBranch,
+		},
+		path: []pathNode{{
+			BlockPointer: rootMostRecent,
+			Name:         mostRecent.String(),
+		}},
+	}
+}
+
 // getPaths returns a sorted slice of most recent paths to all the
 // nodes in the given CR chains that were directly modified during a
 // branch, and which existed at both the start and the end of the
@@ -1206,13 +1250,32 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	}
 
 	// Fill in the paths for any deleted entries.
-	for ptr, chain := range ccs.byMostRecent {
-		if !ccs.isDeleted(chain.original) {
+	for original := range ccs.deletedOriginals {
+		chain, ok := ccs.byOriginal[original]
+		if !ok {
 			continue
 		}
-		p := ccs.findPathForDeleted(ptr)
+		p := ccs.findPathForDeleted(chain.mostRecent)
 		for _, op := range chain.ops {
 			op.setFinalPath(p)
+		}
+	}
+
+	// Even if `includeCreates` is false, we still might need to have
+	// the final paths set on all the ops, later during conflict
+	// resolution.  For example, in the case where the same directory
+	// is created in both the unmerged and merged branches, and the
+	// child entries need to be compared for conflicts
+	if !includeCreates {
+		for original := range ccs.createdOriginals {
+			chain, ok := ccs.byOriginal[original]
+			if !ok {
+				continue
+			}
+			p := ccs.findPathForCreated(chain.mostRecent)
+			for _, op := range chain.ops {
+				op.setFinalPath(p)
+			}
 		}
 	}
 
