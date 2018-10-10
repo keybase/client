@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -798,6 +799,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		HomeDir:             tc.Context().GetEnv().GetHome(),
 		MobileSharedHomeDir: "x",
 	}, nil, tc.Context().GetLog)
+	require.NoError(t, os.MkdirAll(tc.G.Env.GetConfigDir(), os.ModePerm))
 	numConvs := 10
 	var convs []types.RemoteConversation
 	for i := numConvs - 1; i >= 0; i-- {

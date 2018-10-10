@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import Available from '../available/container'
 
 type Props = {|
   bottomLabel: string,
@@ -9,7 +10,6 @@ type Props = {|
   inputPlaceholder: string,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
-  onClickInfo: () => void,
   topLabel: string,
   value: string,
   warningAsset?: string,
@@ -51,16 +51,7 @@ export class AssetInput extends React.Component<Props> {
           error={!!this.props.warningAsset}
           value={this.props.value}
         />
-        {this.props.warningAsset &&
-          !this.props.warningPayee && (
-            <Kb.Text type="BodySmallError">
-              Your available to send is{' '}
-              <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
-                {this.props.warningAsset}
-              </Kb.Text>
-              .
-            </Kb.Text>
-          )}
+        <Available />
         {!!this.props.warningPayee && (
           <Kb.Text type="BodySmallError">
             {this.props.warningPayee} doesn't accept{' '}
@@ -74,16 +65,11 @@ export class AssetInput extends React.Component<Props> {
           <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
             {this.props.bottomLabel}
           </Kb.Text>
-          <Kb.Icon
-            type="iconfont-question-mark"
-            color={Styles.globalColors.black_40}
-            fontSize={12}
-            onClick={this.props.onClickInfo}
-          />
         </Kb.Box2>
       </Kb.Box2>
     )
   }
+
   componentDidMount() {
     this.props.refresh()
   }

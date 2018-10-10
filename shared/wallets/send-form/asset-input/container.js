@@ -28,7 +28,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
-  onClickInfo: () => {}, // TODO
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 

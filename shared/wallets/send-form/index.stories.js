@@ -6,6 +6,7 @@ import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
 import participants, {participantProviderProperties} from './participants/index.stories'
+import type {Props as AvailableProps} from './available'
 
 import SendForm from '.'
 
@@ -16,7 +17,7 @@ import SendForm from '.'
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   AssetInput: props => assetInputProps,
-  Available: props => ({}),
+  Available: props => ({amountErrMsg: ''}: AvailableProps),
   Banner: props => ({}),
   Body: props => ({
     banners: [],
