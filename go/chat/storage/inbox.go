@@ -148,11 +148,11 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID) (inboxDiskDa
 }
 
 func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypteddb.EncryptedFile, error) {
-	path := filepath.Join(i.G().GetEnv().GetSharedDataDir(), "sharedinbox", uid.String(), "inbox.mpack")
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+	dir := filepath.Join(i.G().GetEnv().GetSharedDataDir(), "sharedinbox", uid.String())
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	return encrypteddb.NewFile(i.G().ExternalG(), path,
+	return encrypteddb.NewFile(i.G().ExternalG(), filepath.Join(dir, "flatinbox.mpack"),
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
 		}), nil

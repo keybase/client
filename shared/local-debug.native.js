@@ -52,13 +52,13 @@ let config = {
 }
 
 // Developer settings
+config.isDevApplePushToken = true
 if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
-  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
