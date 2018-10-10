@@ -55,6 +55,7 @@ func makeMsgPlaintextEphemeral(body string, uid gregor1.UID, ephemeralMetadata *
 func runOutboxTest(test func(engine string)) {
 	test("db")
 	test("files")
+	test("combined")
 }
 
 func TestChatOutbox(t *testing.T) {
