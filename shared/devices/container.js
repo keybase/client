@@ -11,7 +11,7 @@ import {partition} from 'lodash-es'
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
   waiting: Constants.isWaiting(state),
-  newlyChangedItemIds: state.devices.getIn(['isNew'], []),
+  _newlyChangedItemIds: state.devices.isNew,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -43,9 +43,7 @@ type OwnProps = void
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   const revokedItems = revoked.map(deviceToItem)
-  const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(
-    I.Set(stateProps.newlyChangedItemIds || [])
-  )
+  const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
   return {
     _stateOverride: null,
     addNewComputer: dispatchProps.addNewComputer,
