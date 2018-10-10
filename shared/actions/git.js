@@ -34,7 +34,6 @@ const loadGitRepo = (state: TypedState, action: GitGen.LoadGitRepoPayload) =>
         name: action.payload.teamname || action.payload.username || '',
         notificationsOn: false,
         private: true,
-        team_id: ''
       },
     },
     Constants.loadingWaitingKey
@@ -103,7 +102,6 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
       private: true,
       created: false,
       notificationsOn: false,
-      team_id: ''
     },
     repoID: action.payload.repoID,
     channelName: action.payload.channelName,
