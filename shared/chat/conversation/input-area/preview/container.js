@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onLeaveChannel: () => dispatchProps._onLeaveChannel(stateProps._conversationIDKey),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ChannelPreview)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ChannelPreview)

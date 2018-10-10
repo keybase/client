@@ -55,7 +55,11 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 }
 
 const Connected = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('Devices'),
   safeSubmitPerMount(['onBack'])
 )(Devices)

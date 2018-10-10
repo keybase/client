@@ -55,6 +55,10 @@
         },
         {
           "type": "string",
+          "name": "issuerVerifiedDomain"
+        },
+        {
+          "type": "string",
           "name": "balanceTotal"
         },
         {
@@ -685,6 +689,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },

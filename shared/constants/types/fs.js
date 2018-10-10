@@ -89,7 +89,7 @@ export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
 export type _Mime = {
   mimeType: string,
-  displayPreview: bool,
+  displayPreview: boolean,
 }
 export type Mime = I.RecordOf<_Mime>
 

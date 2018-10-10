@@ -8,6 +8,7 @@ import type {CounterpartyType} from '../../../constants/types/wallets'
 export type ParticipantsProps = {|
   recipientType: CounterpartyType,
   yourUsername: string,
+  fromAccountIsDefault: boolean,
   fromAccountName: string,
   fromAccountAssets: string,
   // Must have a recipient user, stellar address, or account
@@ -15,6 +16,7 @@ export type ParticipantsProps = {|
   recipientFullName?: string,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
+  recipientAccountIsDefault?: boolean,
   recipientAccountAssets?: string,
 |}
 
@@ -42,12 +44,12 @@ const Participants = (props: ParticipantsProps) => {
         throw new Error('Recipient type stellarPublicKey requires prop recipientStellarAddress')
       }
       toFieldContent = (
-        <React.Fragment>
+        <Kb.Box2 direction="horizontal" gap="xtiny">
           <Kb.Icon type="icon-stellar-logo-16" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
           <Kb.Text type="BodySemibold" style={styles.stellarAddressConfirmText}>
             {props.recipientStellarAddress}
           </Kb.Text>
-        </React.Fragment>
+        </Kb.Box2>
       )
       break
     case 'otherAccount':
@@ -58,9 +60,10 @@ const Participants = (props: ParticipantsProps) => {
       }
       toFieldContent = (
         <AccountEntry
+          contents={props.recipientAccountAssets}
+          isDefault={props.recipientAccountIsDefault}
           keybaseUser={props.yourUsername}
           name={props.recipientAccountName}
-          contents={props.recipientAccountAssets}
         />
       )
       break
@@ -70,9 +73,10 @@ const Participants = (props: ParticipantsProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <ParticipantsRow heading="From">
         <AccountEntry
+          contents={props.fromAccountAssets}
+          isDefault={props.fromAccountIsDefault}
           keybaseUser={props.yourUsername}
           name={props.fromAccountName}
-          contents={props.fromAccountAssets}
         />
       </ParticipantsRow>
       <ParticipantsRow heading="To" bottomDivider={false}>

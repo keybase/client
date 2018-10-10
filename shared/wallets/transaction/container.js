@@ -48,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps._onShowProfile,
+    readState: tx.readState,
     selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
@@ -55,4 +56,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Transaction)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Transaction)

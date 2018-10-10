@@ -1,12 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {
-  compose,
-  connect,
-  lifecycle,
-  type TypedState,
-  setDisplayName,
-} from '../../util/container'
+import {compose, connect, lifecycle, type TypedState, setDisplayName} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -35,11 +29,7 @@ const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = (
-  {_serverInfo, _pathItem},
-  {loadMimeType},
-  {path, routePath, onLoadingStateChange}
-) => ({
+const mergeProps = ({_serverInfo, _pathItem}, {loadMimeType}, {path, routePath, onLoadingStateChange}) => ({
   url: Constants.generateFileURL(path, _serverInfo),
   mimeType: _pathItem.type === 'file' ? _pathItem.mimeType : null,
   isSymlink: _pathItem.type === 'symlink',
@@ -97,7 +87,11 @@ const stylesLoadingText = platformStyles({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ViewContainer'),
   lifecycle({
     componentDidMount() {

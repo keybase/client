@@ -551,6 +551,7 @@ const (
 	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
 	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonTeamsFTLLocalStorage   EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 )
 
@@ -652,3 +653,6 @@ const EphemeralKeyGenInterval = time.Hour * 24 // one day
 const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100
+
+const MaxStellarPaymentNoteLength = 500
+const MaxStellarPaymentBoxedNoteLength = 1000

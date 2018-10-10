@@ -3,6 +3,7 @@
 import buildCommands from './build'
 import electronComands from './electron'
 import fontCommands from './font'
+import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 
 const [, , command, ...rest] = process.argv
@@ -11,6 +12,7 @@ const commands = {
   ...buildCommands,
   ...fontCommands,
   ...electronComands,
+  ...prettierCommands,
   help: {
     code: () => {
       console.log(

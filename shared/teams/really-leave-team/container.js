@@ -36,7 +36,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   Container.safeSubmit(['onLeave'], ['_leaving']),
   branch(props => props._lastOwner, renderComponent(LastOwnerDialog))
 )(ReallyLeaveTeam)

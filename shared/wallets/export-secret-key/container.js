@@ -35,4 +35,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ExportSecretKey)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ExportSecretKey)

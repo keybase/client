@@ -9,6 +9,7 @@ export type Props = {
   containerStyle?: StylesCrossPlatform,
   children: React.Node,
   position?: Position,
+  className?: string,
   textStyle?: StylesCrossPlatform,
 }
 

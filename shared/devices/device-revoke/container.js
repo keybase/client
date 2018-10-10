@@ -26,4 +26,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(DeviceRevoke)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(DeviceRevoke)

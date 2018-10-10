@@ -24,8 +24,11 @@ const provider = Sb.createPropProviderWithCommon({
 
 const props = {
   accountID: stringToAccountID('fakeAccountID'),
+  loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
   navigateUp: Sb.action('navigateUp'),
+  onLoadMore: Sb.action('onLoadMore'),
+  onMarkAsRead: Sb.action('onMarkRead'),
   sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['noPayments']}],
 }
 

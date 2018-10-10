@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
+	"github.com/keybase/client/go/jsonparserw"
+	pkgerrors "github.com/pkg/errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -216,18 +219,19 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent           *SigChain
-	id               LinkID
-	hashVerified     bool
-	sigVerified      bool
-	payloadVerified  bool
-	chainVerified    bool
-	storedLocally    bool
-	revoked          bool
-	unsigned         bool
-	dirty            bool
-	revocationsCache *[]keybase1.SigID
-	computedHighSkip *HighSkip
+	parent            *SigChain
+	id                LinkID
+	hashVerified      bool
+	sigVerified       bool
+	payloadVerified   bool
+	chainVerified     bool
+	highChainVerified bool
+	storedLocally     bool
+	revoked           bool
+	unsigned          bool
+	dirty             bool
+	revocationsCache  *[]keybase1.SigID
+	computedHighSkip  *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -413,16 +417,16 @@ func (c *ChainLink) HasRevocations() bool {
 }
 
 func (tmp *ChainLinkUnpacked) HasRevocations(payload []byte) bool {
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "sig_id"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "sig_id"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "sig_ids", "[0]"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "sig_ids", "[0]"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "kid"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "kid"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "kids", "[0]"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "kids", "[0]"); err == nil {
 		return true
 	}
 	return false
@@ -444,13 +448,13 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		c.revocationsCache = &ret
 		return nil
 	}
-	if s, err := jsonparser.GetString(payload, "body", "revoke", "sig_id"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "revoke", "sig_id"); err == nil {
 		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
 			ret = append(ret, sigID)
 		}
 	}
 
-	jsonparser.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		if s, err := keybase1.SigIDFromString(string(value), true); err == nil {
 			ret = append(ret, s)
 		}
@@ -470,11 +474,11 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		return nil
 	}
 	var ret []keybase1.KID
-	if s, err := jsonparser.GetString(payload, "body", "revoke", "kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "revoke", "kid"); err == nil {
 		ret = append(ret, keybase1.KIDFromString(s))
 	}
 
-	jsonparser.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		ret = append(ret, keybase1.KIDFromString(string(value)))
 	}, "body", "revoke", "kids")
 
@@ -499,27 +503,29 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 func getSigVersionFromPayload(payload []byte) (SigVersion, error) {
 	var err error
 	var i int64
-	if i, err = jsonparser.GetInt(payload, "body", "version"); err != nil {
+	if i, err = jsonparserw.GetInt(payload, "body", "version"); err != nil {
 		return KeybaseNullSigVersion, ChainLinkError{"link is missing a version field"}
 	}
 	return SigVersion(int(i)), nil
 }
 
 func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSkip, error) {
-	hs, dataType, _, err := jsonparser.Get(payload, "high_skip")
+	hs, dataType, _, err := jsonparserw.Get(payload, "high_skip")
 	// high_skip is optional, but must be an object if it exists
 	if err != nil {
-		if err == jsonparser.KeyPathNotFoundError {
+		switch pkgerrors.Cause(err) {
+		case jsonparser.KeyPathNotFoundError:
 			return nil, nil
+		default:
+			return nil, err
 		}
-		return nil, err
 	}
 
 	if dataType != jsonparser.Object {
 		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
 	}
 
-	highSkipSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
+	highSkipSeqnoInt, err := jsonparserw.GetInt(hs, "seqno")
 	if err != nil {
 		return nil, err
 	}
@@ -527,11 +533,11 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 	// highSkipHash can either be null (zero-value of a LinkID) or a hexstring.
 	// We call GetString first instead of Get so we only parse the value
 	// twice for the first link.
-	highSkipHashStr, err := jsonparser.GetString(hs, "hash")
+	highSkipHashStr, err := jsonparserw.GetString(hs, "hash")
 	var highSkipHash LinkID
 	if err != nil {
 		// If there was an error parsing as a string, make sure the value is null.
-		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
+		_, dataType, _, getErr := jsonparserw.Get(hs, "hash")
 		if getErr != nil {
 			return nil, getErr
 		}
@@ -557,24 +563,24 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
 	}
 
-	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
 			return err
 		}
 	}
-	if s, err := jsonparser.GetString(payload, "body", "key", "kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "key", "kid"); err == nil {
 		tmp.kid = keybase1.KIDFromString(s)
 	}
-	if s, err := jsonparser.GetString(payload, "body", "key", "eldest_kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "key", "eldest_kid"); err == nil {
 		tmp.eldestKID = keybase1.KIDFromString(s)
 	}
 
 	var err error
-	tmp.username, err = jsonparser.GetString(payload, "body", "key", "username")
+	tmp.username, err = jsonparserw.GetString(payload, "body", "key", "username")
 	if err != nil {
 		return err
 	}
-	suid, err := jsonparser.GetString(payload, "body", "key", "uid")
+	suid, err := jsonparserw.GetString(payload, "body", "key", "uid")
 	if err != nil {
 		return err
 	}
@@ -582,7 +588,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		return err
 	}
 
-	if prev, err := jsonparser.GetString(payload, "prev"); err == nil {
+	if prev, err := jsonparserw.GetString(payload, "prev"); err == nil {
 		tmp.prev, err = LinkIDFromHex(prev)
 		if err != nil {
 			return err
@@ -595,17 +601,17 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 	}
 	tmp.highSkip = highSkip
 
-	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
+	tmp.typ, err = jsonparserw.GetString(payload, "body", "type")
 	if err != nil {
 		return err
 	}
 
-	tmp.ctime, err = jsonparser.GetInt(payload, "ctime")
+	tmp.ctime, err = jsonparserw.GetInt(payload, "ctime")
 	if err != nil {
 		return err
 	}
 
-	seqno, err := jsonparser.GetInt(payload, "seqno")
+	seqno, err := jsonparserw.GetInt(payload, "seqno")
 	if err != nil {
 		return err
 	}
@@ -617,33 +623,33 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 	// Assume public unless its a number
 	tmp.seqType = keybase1.SeqType_PUBLIC
-	if seqTypeInt, err := jsonparser.GetInt(payload, "seq_type"); err == nil {
+	if seqTypeInt, err := jsonparserw.GetInt(payload, "seq_type"); err == nil {
 		tmp.seqType = keybase1.SeqType(seqTypeInt)
 	}
 
 	// Assume false if unsupported
 	tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(false)
-	if ignore, err := jsonparser.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
+	if ignore, err := jsonparserw.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
 		tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(ignore)
 	}
 
 	// Due to an earlier error, it's possible for the merkle root that we signed over
 	// to be in one of two places, so check both.
-	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
+	if i, err := jsonparserw.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
-	} else if i, err := jsonparser.GetInt(payload, "merkle_root", "seqno"); err == nil {
+	} else if i, err := jsonparserw.GetInt(payload, "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
 	}
 
 	// Hash meta was only ever in the correct place (within body)
-	if s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
 		tmp.merkleHashMeta, err = keybase1.HashMetaFromString(s)
 		if err != nil {
 			return err
 		}
 	}
 
-	ei, err := jsonparser.GetInt(payload, "expire_in")
+	ei, err := jsonparserw.GetInt(payload, "expire_in")
 	if err != nil {
 		return err
 	}
@@ -733,12 +739,12 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 }
 
 func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, packed []byte) error {
-	if s, err := jsonparser.GetString(packed, "s2"); err == nil {
+	if s, err := jsonparserw.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
 	}
 
 	tmp := ChainLinkUnpacked{}
-	s, err := jsonparser.GetString(packed, "sig_id")
+	s, err := jsonparserw.GetString(packed, "sig_id")
 	if err != nil {
 		return err
 	}
@@ -746,7 +752,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	if err != nil {
 		return err
 	}
-	tmp.sig, err = jsonparser.GetString(packed, "sig")
+	tmp.sig, err = jsonparserw.GetString(packed, "sig")
 	if err != nil {
 		return err
 	}
@@ -754,14 +760,14 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	// Beware that this is server-untrusted data at this point. We'll have to check it
 	// before we can exit without error (see below).
 	tmp.sigVersion = KeybaseSignatureV1
-	if sv, err := jsonparser.GetInt(packed, "sig_version"); err == nil {
+	if sv, err := jsonparserw.GetInt(packed, "sig_version"); err == nil {
 		tmp.sigVersion = SigVersion(int(sv))
 		if tmp.sigVersion != KeybaseSignatureV1 && tmp.sigVersion != KeybaseSignatureV2 {
 			return ChainLinkError{fmt.Sprintf("Bad sig_version: expected 1 or 2 but got %d", tmp.sigVersion)}
 		}
 	}
 
-	if i, err := jsonparser.GetInt(packed, "merkle_seqno"); err == nil {
+	if i, err := jsonparserw.GetInt(packed, "merkle_seqno"); err == nil {
 		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
 	}
 
@@ -774,7 +780,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		}
 	} else {
 		// use the payload in payload_json
-		data, _, _, err := jsonparser.Get(packed, "payload_json")
+		data, _, _, err := jsonparserw.Get(packed, "payload_json")
 		if err != nil {
 			return err
 		}
@@ -835,7 +841,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 
 	payloadKID = tmp.kid
 
-	if kid, err := jsonparser.GetString(packed, "kid"); err == nil {
+	if kid, err := jsonparserw.GetString(packed, "kid"); err == nil {
 		serverKID = keybase1.KIDFromString(kid)
 	}
 
@@ -867,12 +873,12 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		tmp.kid = serverKID
 	}
 
-	// Note, we can still can in a situation in which don't know any kids!
+	// Note, we can still be in a situation in which don't know any kids!
 	// That would be bad *if* we need to verify the signature for this link.
 
 	// only unpack the proof_text_full if owner of this link
 	if tmp.uid.Equal(selfUID) {
-		if pt, err := jsonparser.GetString(packed, "proof_text_full"); err == nil {
+		if pt, err := jsonparserw.GetString(packed, "proof_text_full"); err == nil {
 			tmp.proofText = pt
 		}
 	}
@@ -882,19 +888,19 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	// IF we're loaded from *trusted* storage, like our local
 	// DB, then we can skip verification later
 	if trusted {
-		if b, err := jsonparser.GetBoolean(packed, "sig_verified"); err == nil && b {
+		if b, err := jsonparserw.GetBoolean(packed, "sig_verified"); err == nil && b {
 			c.sigVerified = true
 			m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
-			if ckidata, _, _, err := jsonparser.Get(packed, "computed_key_infos"); err == nil {
+			if ckidata, _, _, err := jsonparserw.Get(packed, "computed_key_infos"); err == nil {
 				if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
 					m.CWarningf("Problem unpacking computed key infos: %s", uerr)
 				}
 			}
 		}
-		if b, err := jsonparser.GetBoolean(packed, "hash_verified"); err == nil && b {
+		if b, err := jsonparserw.GetBoolean(packed, "hash_verified"); err == nil && b {
 			c.hashVerified = true
 		}
-		if b, err := jsonparser.GetBoolean(packed, "chain_verified"); err == nil && b {
+		if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
 			c.chainVerified = true
 		}
 	}
@@ -1230,7 +1236,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkID
 
-	if ph, err := jsonparser.GetString(data, "payload_hash"); err == nil {
+	if ph, err := jsonparserw.GetString(data, "payload_hash"); err == nil {
 		id, err = LinkIDFromHex(ph)
 		if err != nil {
 			return nil, err

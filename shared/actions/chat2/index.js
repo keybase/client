@@ -21,6 +21,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletConstants from '../../constants/wallets'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1465,7 +1466,8 @@ const changeSelectedConversation = (
   const selected = Constants.getSelectedConversation(state)
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
-      if (action.payload.pendingMode !== 'none') {
+      if (action.payload.pendingMode === 'newChat') {
+      } else if (action.payload.pendingMode !== 'none') {
         return Saga.sequentially([
           Saga.put(
             Chat2Gen.createSelectConversation({
@@ -2472,6 +2474,16 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
+  if (action.payload.pendingMode === 'newChat') {
+    return Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{selected: 'newChat', props: {}}],
+      })
+    )
+  }
+}
+
 const openChatFromWidget = (
   state: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -2719,6 +2731,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
+  if (flags.newTeamBuildingForChat) {
+    yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
+  }
+  yield Saga.fork(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 

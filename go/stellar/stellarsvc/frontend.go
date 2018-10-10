@@ -209,8 +209,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			assets = append(assets, stellar1.AccountAssetLocal{
 				Name:                   d.Asset.Code,
 				AssetCode:              d.Asset.Code,
-				IssuerName:             "", // TODO get verified asset names
+				IssuerName:             d.Asset.IssuerName,
 				IssuerAccountID:        d.Asset.Issuer,
+				IssuerVerifiedDomain:   d.Asset.VerifiedDomain,
 				BalanceTotal:           fmtAmount,
 				BalanceAvailableToSend: fmtAmount,
 				WorthCurrency:          "",
@@ -770,6 +771,12 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	tracer := s.G().CTimeTracer(ctx, "BuildPaymentLocal", true)
 	defer tracer.Finish()
 
+	ctx = s.buildPaymentSlot.Use(ctx, arg.SessionID)
+
+	if err := ctx.Err(); err != nil {
+		return res, err
+	}
+
 	readyChecklist := struct {
 		from       bool
 		to         bool
@@ -781,7 +788,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		s.G().Log.CDebugf(ctx, "bpl: "+format, args...)
 	}
 
-	bpc := stellar.GetBuildPaymentCache(s.mctx(ctx), s.remoter)
+	bpc := stellar.GetBuildPaymentCache(s.mctx(ctx))
 	if bpc == nil {
 		return res, fmt.Errorf("missing build payment cache")
 	}
@@ -937,10 +944,10 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				case cmp == -1:
 					// Send amount is more than the available to send.
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLM)
+					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
 					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
 					if err == nil {
-						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*", availableToSendXLMFmt)
+						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
 					}
 					if arg.Currency != nil && amountX.rate != nil {
 						// If the user entered an amount in outside currency and an exchange
@@ -953,7 +960,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 							if err != nil {
 								log("error formatting available-to-send", err)
 							} else {
-								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*", formattedATS)
+								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
 							}
 						}
 					}
@@ -998,7 +1005,11 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	if readyChecklist.from && readyChecklist.to && readyChecklist.amount && readyChecklist.secretNote && readyChecklist.publicMemo {
 		res.ReadyToSend = true
 	}
-	return res, nil
+	// Return the context's error.
+	// If just `nil` were returned then in the event of a cancellation
+	// resilient parts of this function could hide it, causing
+	// a bogus return value.
+	return res, ctx.Err()
 }
 
 type buildPaymentAmountArg struct {
@@ -1302,7 +1313,14 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 		return err
 	}
 
-	return s.remoter.MarkAsRead(ctx, arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.MostRecentID))
+	err = s.remoter.MarkAsRead(ctx, arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.MostRecentID))
+	if err != nil {
+		return err
+	}
+
+	go stellar.RefreshUnreadCount(s.G(), arg.AccountID)
+
+	return nil
 }
 
 func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAccountMobileOnlyLocalArg) (mobileOnly bool, err error) {

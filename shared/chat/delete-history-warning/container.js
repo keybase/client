@@ -26,4 +26,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onDeleteHistory: dispatchProps.onDeleteHistory,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(DeleteHistoryWarning)

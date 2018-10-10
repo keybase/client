@@ -3,23 +3,27 @@
     "import * as Types from '../constants/types/wallets'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
-    "import HiddenString from '../util/hidden-string'",
+    "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "abandonPayment": {
-      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states.",
+      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
-      "accounts": "Array<Types.Account>",
+      "accounts": "Array<Types.Account>"
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
-      "assets": "Array<Types.Assets>",
+      "assets": "Array<Types.Assets>"
+    },
+    "badgesUpdated": {
+      "_description": "Update badges in the nav",
+      "accounts": "Types.BadgesUpdate"
     },
     "buildPayment": {
-      "_description": "Prepare a payment for sending",
+      "_description": "Prepare a payment for sending"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
@@ -27,227 +31,243 @@
       "forBuildingPayment": "Types.BuildingPayment"
     },
     "clearBuildingPayment": {
-      "_description": "Clear a payment that was being prepared",
+      "_description": "Clear a payment that was being prepared"
     },
     "clearBuiltPayment": {
-      "_description": "Clear a prepared payment once it has been sent or canceled",
+      "_description": "Clear a prepared payment once it has been sent or canceled"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
       "conversationIDKey?": "ChatTypes.ConversationIDKey",
       "ordinal?": "ChatTypes.Ordinal",
-      "requestID": "StellarRPCTypes.KeybaseRequestID",
+      "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "cancelPayment": {
       "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
-      "paymentID": "Types.PaymentID",
+      "paymentID": "Types.PaymentID"
     },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
       "showOnCreation?": "boolean",
+      "setBuildingTo?": "boolean"
     },
     "createdNewAccount": {
-      "_description":
-        "The service responded with an error or that the create new account operation succeeded",
+      "_description": "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
+      "setBuildingTo?": "boolean",
       "canError": {
         "name": "string",
-        "error": "string",
+        "error": "string"
       }
     },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts",
+      "_description": "Refresh our list of accounts"
+    },
+    "loadMorePayments": {
+      "_description": "Scrolled down the list of payments for a given account",
+      "accountID": "Types.AccountID"
     },
     "loadPayments": {
       "_description": "Refresh our list of payments for a given account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "loadPaymentDetail": {
       "_description": "Load extra detail for one given payment",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID",
+      "paymentID": "Types.PaymentID"
     },
     "loadDisplayCurrencies": {
-      "_description": "Load valid display currencies to choose from",
+      "_description": "Load valid display currencies to choose from"
+    },
+    "markAsRead": {
+      "_description": "Mark the given payment ID and anything older as read.",
+      "accountID": "Types.AccountID",
+      "mostRecentID": "Types.PaymentID"
     },
     "displayCurrenciesReceived": {
       "_description": "Update valid display currencies to choose from",
-      "currencies": "Array<Types.Currency>",
+      "currencies": "Array<Types.Currency>"
     },
     "changeAccountName": {
       "_description": "Change the name of an account",
       "accountID": "Types.AccountID",
-      "name": "string",
+      "name": "string"
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
       "accountID": "Types.AccountID",
       "canError": {
         "name": "string",
-        "error": "string",
+        "error": "string"
       }
     },
     "setAccountAsDefault": {
       "_description": "Change the default account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "didSetAccountAsDefault": {
       "_description": "A response from the service after an account is set as the default",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "deleteAccount": {
       "_description": "Delete an account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "deletedAccount": {
-      "_description": "A response from the service after an account is deleted.",
+      "_description": "A response from the service after an account is deleted."
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
       "accountID": "Types.AccountID",
-      "currency": "Types.Currency",
+      "currency": "Types.Currency"
     },
     "changeDisplayCurrency": {
       "_description": "Change display currency for an account",
       "accountID": "Types.AccountID",
-      "code": "Types.CurrencyCode",
+      "code": "Types.CurrencyCode"
     },
     "loadRequestDetail": {
       "_description": "Load a request's details",
-      "requestID": "StellarRPCTypes.KeybaseRequestID",
+      "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "requestPayment": {
-      "_description": "Request payment",
+      "_description": "Request payment"
     },
     "requestedPayment": {
       "_description": "Successfully request payment",
-      "kbRqID": "HiddenString",
+      "kbRqID": "HiddenString"
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "payment": "Types.Payment",
+      "payment": "Types.Payment"
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
+      "paymentCursor": "?StellarRPCTypes.PageCursor",
       "payments": "Array<Types.Payment>",
-      "pending": "Array<Types.Payment>",
+      "pending": "Array<Types.Payment>"
     },
     "requestDetailReceived": {
       "_description": "Store a request's details",
-      "request": "StellarRPCTypes.RequestDetailsLocal",
+      "request": "StellarRPCTypes.RequestDetailsLocal"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
       "accountID": "Types.AccountID",
-      "secretKey": "HiddenString",
+      "secretKey": "HiddenString"
     },
     "secretKeySeen": {
       "_description": "Clear exported secret keys from our store once they've been seen",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean",
+      "show?": "boolean"
     },
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID",
+      "accountID": "Types.AccountID"
     },
     "sendPayment": {
-      "_description": "Perform sending a payment",
+      "_description": "Perform sending a payment"
     },
     "sentPayment": {
       "_description": "Successfully sent a payment",
-      "kbTxID": "HiddenString",
+      "kbTxID": "HiddenString"
+    },
+    "sentPaymentError": {
+      "_description": "Failed to send a payment",
+      "error": "string"
     },
     "setBuildingAmount": {
       "_description": "Set building amount",
-      "amount": "string",
+      "amount": "string"
     },
     "setBuildingCurrency": {
       "_description": "Set building currency",
-      "currency": "string",
+      "currency": "string"
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string",
+      "from": "string"
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",
-      "publicMemo": "HiddenString",
+      "publicMemo": "HiddenString"
     },
     "setBuildingRecipientType": {
       "_description": "Set building recipient type",
-      "recipientType": "Types.CounterpartyType",
+      "recipientType": "Types.CounterpartyType"
     },
     "setBuildingSecretNote": {
       "_description": "Set building secret note",
-      "secretNote": "HiddenString",
+      "secretNote": "HiddenString"
     },
     "setBuildingTo": {
       "_description": "Set building to -- depends on recipientType",
-      "to": "string",
+      "to": "string"
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString",
       "showOnCreation?": "boolean",
+      "setBuildingTo?": "boolean"
     },
     "linkedExistingAccount": {
-      "_description":
-        "The service responded with an error or that the link existing operation succeeded",
+      "_description": "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
+      "setBuildingTo?": "boolean",
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",
-        "error": "string",
+        "error": "string"
       }
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
-      "name": "string",
+      "name": "string"
     },
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
       "canError": {
         "name": "string",
-        "error": "string",
+        "error": "string"
       }
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
-      "secretKey": "HiddenString",
+      "secretKey": "HiddenString"
     },
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
       "canError": {
         "secretKey": "HiddenString",
-        "error": "string",
+        "error": "string"
       }
     },
     "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog.",
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
     }
   }
 }

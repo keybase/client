@@ -41,6 +41,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])
 )(CodePage2)

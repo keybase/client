@@ -95,6 +95,7 @@ type configGetter interface {
 	GetRememberPassphrase() (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
+	GetChatOutboxStorageEngine() string
 }
 
 type CommandLine interface {
@@ -388,6 +389,8 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
+	ChatInboxSearchHit(context.Context, chat1.ChatInboxSearchHitArg) error
+	ChatInboxSearchDone(context.Context, chat1.ChatInboxSearchDoneArg) error
 }
 
 type PromptDefault int

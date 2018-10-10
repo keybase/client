@@ -103,7 +103,7 @@ func (s Service) Start(wait time.Duration) error {
 	}
 
 	if wait > 0 {
-		status, waitErr := s.WaitForStatus(wait, 500*time.Millisecond)
+		status, waitErr := s.WaitForStatus(wait, 100*time.Millisecond)
 		if waitErr != nil {
 			return waitErr
 		}

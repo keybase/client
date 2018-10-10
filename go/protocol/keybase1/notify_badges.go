@@ -36,6 +36,18 @@ func (o TeamMemberOutReset) DeepCopy() TeamMemberOutReset {
 	}
 }
 
+type WalletAccountInfo struct {
+	AccountID string `codec:"accountID" json:"accountID"`
+	NumUnread int    `codec:"numUnread" json:"numUnread"`
+}
+
+func (o WalletAccountInfo) DeepCopy() WalletAccountInfo {
+	return WalletAccountInfo{
+		AccountID: o.AccountID,
+		NumUnread: o.NumUnread,
+	}
+}
+
 type BadgeState struct {
 	NewTlfs                   int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
@@ -47,6 +59,7 @@ type BadgeState struct {
 	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
 	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
+	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -111,6 +124,17 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.TeamsWithResetUsers),
+		UnreadWalletAccounts: (func(x []WalletAccountInfo) []WalletAccountInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]WalletAccountInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UnreadWalletAccounts),
 	}
 }
 

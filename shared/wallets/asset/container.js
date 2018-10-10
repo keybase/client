@@ -22,10 +22,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     equivAvailableToSend: `${asset.availableToSendWorth} ${asset.worthCurrency}`,
     equivBalance: `${asset.worth} ${asset.worthCurrency}`,
     issuerAccountID: asset.issuerAccountID,
-    issuerName: asset.issuerName || 'Unknown',
+    issuerName: asset.issuerVerifiedDomain || 'Unknown',
     name: asset.name,
     reserves: asset.reserves.toArray(),
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Asset)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(Asset)

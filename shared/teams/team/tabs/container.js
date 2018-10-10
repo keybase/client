@@ -42,4 +42,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Tabs)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Tabs)

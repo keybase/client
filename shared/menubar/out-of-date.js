@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ConfigTypes from '../constants/types/config'
+import flags from '../util/feature-flags'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate,
@@ -14,6 +15,7 @@ const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
 const OutOfDate = ({outOfDate, updateNow}: Props) =>
+  flags.outOfDateBanner &&
   !!outOfDate && (
     <Kb.Box2
       style={outOfDate.critical ? styles.boxCritical : styles.boxNonCritical}
@@ -21,25 +23,36 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
       centerChildren={true}
       direction="vertical"
     >
-      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
+      <Kb.Text
+        backgroundMode="Information"
+        type="BodySmallSemibold"
+        style={outOfDate.critical ? styles.textCritical : undefined}
+      >
         {getOutOfDateText(outOfDate)}
       </Kb.Text>
-      <Kb.Text type="BodySemibold" style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}>
+      <Kb.Text
+        backgroundMode="Information"
+        type="BodySmallSemibold"
+        style={outOfDate.critical ? styles.textCritical : undefined}
+      >
         Please{' '}
         <Kb.Text
-          type="BodySemibold"
+          backgroundMode="Information"
+          type="BodySmallSemibold"
           underline={!!updateNow}
-          style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
+          style={outOfDate.critical ? styles.textCritical : undefined}
           onClick={updateNow}
         >
           update now
-        </Kb.Text>.
+        </Kb.Text>
+        .
       </Kb.Text>
     </Kb.Box2>
   )
 
 const styles = Styles.styleSheetCreate({
   boxCritical: {
+    minHeight: 40,
     backgroundColor: Styles.globalColors.red,
     padding: Styles.globalMargins.tiny,
   },
@@ -47,11 +60,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   boxNonCritical: {
-    backgroundColor: Styles.globalColors.lightGrey,
+    minHeight: 40,
+    backgroundColor: Styles.globalColors.yellow,
     padding: Styles.globalMargins.tiny,
-  },
-  textNonCritical: {
-    color: Styles.globalColors.black,
   },
 })
 

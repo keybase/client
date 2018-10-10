@@ -54,9 +54,13 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   buildingPayment: makeBuildingPayment(),
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
+  currencies: I.List(),
+  currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
+  paymentCursorMap: I.Map(),
+  paymentLoadingMoreMap: I.Map(),
   paymentsMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
@@ -64,8 +68,8 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
-  currencies: I.List(),
-  currencyMap: I.Map(),
+  sentPaymentError: '',
+  unreadPaymentsMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -89,6 +93,8 @@ const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   name: '',
 })
 
+const unknownAccount = makeAccount()
+
 const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
@@ -103,6 +109,7 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   balanceTotal: '',
   issuerAccountID: '',
   issuerName: '',
+  issuerVerifiedDomain: '',
   name: '',
   worth: '',
   worthCurrency: '',
@@ -117,6 +124,7 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     balanceTotal: w.balanceTotal,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
+    issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
@@ -148,6 +156,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
   publicMemoType: '',
+  readState: 'read',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -183,19 +192,32 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
+const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?RPCTypes.PaymentID) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+  let readState
+  if (w.payment.id === oldestUnread) {
+    readState = 'oldestUnread'
+  } else if (w.payment.unread) {
+    readState = 'unread'
+  } else {
+    readState = 'read'
+  }
+  return makePayment({
+    ...rpcPaymentToPaymentCommon(w.payment),
+    readState,
+  })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
     ...rpcPaymentToPaymentCommon(p),
+    // Payment details have no unread field.
+    readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
@@ -238,7 +260,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
-  issuerName: null,
+  issuerName: '',
+  issuerVerifiedDomain: '',
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
@@ -262,9 +285,12 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     logger.error('Received requestDetails with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: Types.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'
@@ -281,6 +307,18 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     sender: r.fromAssertion,
     status: requestStatusToString[r.status],
   })
+}
+
+const bannerLevelToBackground = (level: string) => {
+  switch (level) {
+    case 'info':
+      return 'Announcements'
+    case 'error':
+      return 'HighRisk'
+    default:
+      console.warn('Unexpected banner level', level)
+      return 'Information'
+  }
 }
 
 const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
@@ -402,7 +440,7 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
 
 const getAccountName = (account: Types.Account) =>
   account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
@@ -416,7 +454,7 @@ const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
 const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
@@ -433,7 +471,7 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
-const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
     balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.red
@@ -444,9 +482,20 @@ const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSi
   return balanceChangeColor
 }
 
+const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
+  let sign = ''
+  if (delta !== 'none') {
+    sign = delta === 'increase' ? '+' : '-'
+  }
+  return sign + balanceChange
+}
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  bannerLevelToBackground,
+  balanceChangeColor,
+  balanceChangeSign,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
@@ -461,7 +510,6 @@ export {
   getAccountName,
   getAccount,
   getAssets,
-  getBalanceChangeColor,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,
@@ -498,6 +546,7 @@ export {
   searchKey,
   shortenAccountID,
   statusSimplifiedToString,
+  unknownAccount,
   updatePayment,
   updatePaymentMap,
 }

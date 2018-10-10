@@ -176,7 +176,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
               />
               {!!proof.mTime && (
                 <Text type="BodySmall" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
-                  Posted on<br />
+                  Posted on
+                  <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>
               )}

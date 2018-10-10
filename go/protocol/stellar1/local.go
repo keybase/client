@@ -31,6 +31,7 @@ type AccountAssetLocal struct {
 	AssetCode              string           `codec:"assetCode" json:"assetCode"`
 	IssuerName             string           `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	IssuerVerifiedDomain   string           `codec:"issuerVerifiedDomain" json:"issuerVerifiedDomain"`
 	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
 	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
@@ -45,6 +46,7 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
+		IssuerVerifiedDomain:   o.IssuerVerifiedDomain,
 		BalanceTotal:           o.BalanceTotal,
 		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
@@ -554,6 +556,7 @@ type PaymentCLILocal struct {
 	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
+	Unread          bool          `codec:"unread" json:"unread"`
 }
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
@@ -609,6 +612,7 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 		})(o.ToAssertion),
 		Note:    o.Note,
 		NoteErr: o.NoteErr,
+		Unread:  o.Unread,
 	}
 }
 

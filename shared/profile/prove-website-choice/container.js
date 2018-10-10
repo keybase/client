@@ -10,6 +10,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOptionClick: choice => dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'web' : 'dns'})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  ProveWebsiteChoice
-)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ProveWebsiteChoice)

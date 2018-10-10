@@ -18,8 +18,9 @@ import (
 
 type cmdUPAK struct {
 	libkb.Contextified
-	uid keybase1.UID
-	kid keybase1.KID
+	uid  keybase1.UID
+	kid  keybase1.KID
+	lite bool
 }
 
 func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -31,6 +32,10 @@ func NewCmdUPAK(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			cli.StringFlag{
 				Name:  "k, kid",
 				Usage: "KID to query",
+			},
+			cli.BoolFlag{
+				Name:  "l, lite",
+				Usage: "Get a trimmed down UPAK",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -44,9 +49,21 @@ func (c *cmdUPAK) Run() error {
 	if err != nil {
 		return err
 	}
-
 	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
+	}
+
+	if c.lite {
+		upakLite, err := userClient.GetUPAKLite(context.Background(), c.uid)
+		if err != nil {
+			return err
+		}
+		jsonOut, err := json.MarshalIndent(upakLite, "", "  ")
+		if err != nil {
+			return err
+		}
+		c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+		return nil
 	}
 
 	res, err := userClient.GetUPAK(context.Background(), c.uid)
@@ -85,6 +102,7 @@ func (c *cmdUPAK) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	kid := ctx.String("kid")
+	c.lite = ctx.Bool("lite")
 	if len(kid) > 0 {
 		c.kid, err = keybase1.KIDFromStringChecked(kid)
 		if err != nil {

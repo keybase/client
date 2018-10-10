@@ -2,10 +2,10 @@
 import * as React from 'react'
 import type {Props} from './toast'
 import FloatingBox from './floating-box'
-import {collapseStyles, glamorous, globalColors, globalMargins, styleSheetCreate, transition} from '../styles'
+import * as Styles from '../styles'
 
-const FadeBox = glamorous.div({
-  ...transition('opacity'),
+const FadeBox = Styles.glamorous.div({
+  ...Styles.transition('opacity'),
   '&.visible': {
     opacity: 1,
   },
@@ -19,25 +19,25 @@ export default (props: Props) => (
   <FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
     <FadeBox
       className={props.visible ? 'visible' : null}
-      style={collapseStyles([styles.container, props.containerStyle])}
+      style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       {props.children}
     </FadeBox>
   </FloatingBox>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
     alignItems: 'center',
-    backgroundColor: globalColors.black_75,
-    borderRadius: 100,
+    backgroundColor: Styles.globalColors.black_75,
+    borderRadius: Styles.borderRadius,
     borderWidth: 0,
     display: 'flex',
     justifyContent: 'center',
-    margin: globalMargins.xtiny,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
+    margin: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
   },
 })

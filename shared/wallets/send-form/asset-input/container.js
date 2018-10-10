@@ -13,11 +13,14 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeDisplayUnit: () => {}, // TODO
-  onClickInfo: () => {}, // TODO
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('AssetInput')
 )(AssetInput)
