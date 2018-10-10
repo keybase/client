@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -98,6 +99,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		UPAKCacheSize:                  50,
 		PayloadCacheSize:               50,
 		ProofCacheSize:                 50,
+		OutboxStorageEngine:            "files",
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -134,6 +136,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
+	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	return nil
 }
 
@@ -345,6 +348,12 @@ func getOutboxID(strOutboxID string) *chat1.OutboxID {
 	return &obid
 }
 
+func extensionNewSender(g *globals.Context) types.Sender {
+	baseSender := chat.NewBlockingSender(g, chat.NewBoxer(g),
+		func() chat1.RemoteInterface { return extensionRi })
+	return chat.NewNonblockingSender(g, baseSender)
+}
+
 func ExtensionPostText(strConvID, strOutboxID, name string, public bool, membersType int,
 	body string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
@@ -365,8 +374,6 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 	if err != nil {
 		return err
 	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_TEXT,
@@ -378,7 +385,7 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 			Body: body,
 		}),
 	}
-	if _, _, err = sender.Send(ctx, convID, msg, 0, nil); err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, nil); err != nil {
 		return err
 	}
 	return nil
