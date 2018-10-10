@@ -25,16 +25,15 @@ const Footer = (props: Props) => (
           <Kb.Text style={styles.worthDescription} type="BodySmall">
             This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
           </Kb.Text>
-          <Kb.Icon
+          {/* <Kb.Icon
             type="iconfont-question-mark"
             color={globalColors.black_20}
             hoverColor={globalColors.black_40}
             fontSize={12}
             style={Kb.iconCastPlatformStyles(styles.questionIcon)}
             onClick={() => {
-              /* TODO */
-            }}
-          />
+              TODO
+          }/> */}
         </Kb.Box2>
       )}
       <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
