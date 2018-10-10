@@ -46,7 +46,10 @@ class WithTooltip extends React.Component<Props, State> {
           {this.props.children}
         </Box>
         <Toast
-          containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
+          containerStyle={Styles.collapseStyles([
+            styles.container,
+            this.props.multiline && styles.containerMultiline,
+          ])}
           visible={!!this.props.text && this.state.visible}
           attachTo={() => this._attachmentRef}
           position={this.props.position || 'top center'}
@@ -62,10 +65,9 @@ class WithTooltip extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    borderRadius: 20,
+    borderRadius: Styles.borderRadius,
   },
   containerMultiline: {
-    borderRadius: 4,
     width: 320,
     minWidth: 320,
     maxWidth: 320,
