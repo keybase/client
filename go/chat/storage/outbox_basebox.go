@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -59,6 +60,7 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 		}
 		return diskOutbox{Version: outboxVersion}, nil
 	}
+	sort.Sort(ByCtimeOrder(res.Records))
 	return res, nil
 }
 

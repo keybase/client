@@ -129,15 +129,16 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, 1, len(res), "wrong len")
 
 		// Retry the error
+		t.Logf("retrying the error: %s", obrs[2].OutboxID)
 		_, err = ob.RetryMessage(context.TODO(), obrs[2].OutboxID, nil)
 		require.NoError(t, err)
 		res, err = ob.PullAllConversations(context.TODO(), true, false)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(res), "wrong len")
-		state, err = res[0].State.State()
+		state, err = res[1].State.State()
 		require.NoError(t, err)
 		require.Equal(t, chat1.OutboxStateType_SENDING, state, "wrong state")
-		require.Equal(t, 0, res[0].State.Sending(), "wrong attempts")
+		require.Equal(t, 0, res[1].State.Sending(), "wrong attempts")
 
 		// Remove 2
 		require.NoError(t, ob.RemoveMessage(context.TODO(), obrs[2].OutboxID))
