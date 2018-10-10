@@ -165,24 +165,6 @@ func rawPathFromKbfsPath(path keybase1.Path) (string, error) {
 	}
 }
 
-func rawPathFromPath(path keybase1.Path) (string, error) {
-	pt, err := path.PathType()
-	if err != nil {
-		return "", err
-	}
-
-	switch pt {
-	case keybase1.PathType_KBFS:
-		return stdpath.Clean(path.Kbfs()), nil
-	case keybase1.PathType_KBFS_ARCHIVED:
-		return stdpath.Clean(path.KbfsArchived().Path), nil
-	case keybase1.PathType_LOCAL:
-		return stdpath.Clean(path.Local()), nil
-	default:
-		return "", errInvalidPathType
-	}
-}
-
 // remoteTlfAndPath decodes a remote path for us.
 func remoteTlfAndPath(path keybase1.Path) (
 	t tlf.Type, tlfName, middlePath, finalElem string, err error) {
@@ -989,30 +971,12 @@ func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSym
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	// Get root FS of dst
-	t, tlfName, restOfDstPath, finalDstElem, err := remoteTlfAndPath(arg.Dest)
-	if err != nil {
-		return err
-	}
-	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
-	if err != nil {
-		return err
-	}
-	fs, err := libfs.NewFS(
-		ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
-		keybase1.MDPriorityNormal)
-	if err != nil {
-		return err
-	}
-	srcRawPath, err := rawPathFromPath(arg.Src)
+	dstFS, finalDstElem, err := k.getFS(ctx, arg.Link)
 	if err != nil {
 		return err
 	}
 
-	err = fs.Symlink(
-		stdpath.Clean(srcRawPath),
-		stdpath.Join(restOfDstPath, finalDstElem))
+	err = dstFS.Symlink(arg.Target, finalDstElem)
 	return err
 }
 
