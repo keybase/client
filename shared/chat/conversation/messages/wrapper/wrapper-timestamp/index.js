@@ -167,7 +167,7 @@ type MenuButtonsProps = {
 const menuButtons = (props: MenuButtonsProps) => (
   <Box2
     direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-    gap={Styles.isMobile ? 'tiny' : undefined}
+    gap={!Styles.isMobile ? 'tiny' : undefined}
     gapEnd={!Styles.isMobile}
     style={styles.controls}
   >
