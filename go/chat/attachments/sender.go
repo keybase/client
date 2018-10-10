@@ -76,11 +76,11 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 }
 
 func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sender,
-	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, filename, title string,
-	md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
+	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, inOutboxID *chat1.OutboxID,
+	filename, title string, md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PostFileAttachmentMessage")()
 	var msg chat1.MessagePlaintext
-	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, nil, filename, title, md,
+	if msg, outboxID, err = s.makeBaseAttachmentMessage(ctx, tlfName, vis, inOutboxID, filename, title, md,
 		ephemeralLifetime); err != nil {
 		return outboxID, msgID, err
 	}

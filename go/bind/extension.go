@@ -451,9 +451,6 @@ func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, member
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
@@ -505,9 +502,6 @@ func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, member
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
@@ -548,9 +542,6 @@ func ExtensionPostFile(strConvID, strOutboxID, name string, public bool, members
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
@@ -578,10 +569,14 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 	if public {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
-	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis,
-		getOutboxID(strOutboxID), filename, caption, nil, 0, nil, callerPreview); err != nil {
+	sender := extensionNewSender(gc)
+	outboxID, _, err := attachments.NewSender(gc).PostFileAttachmentMessage(ctx, sender, convID, name, vis,
+		getOutboxID(strOutboxID), filename, caption, nil, 0, nil)
+	if err != nil {
+		return err
+	}
+	if _, err = gc.AttachmentUploader.Register(ctx, uid, convID, outboxID, caption,
+		filename, nil, callerPreview); err != nil {
 		return err
 	}
 	return nil

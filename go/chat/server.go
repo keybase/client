@@ -1386,7 +1386,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
+		arg.ConvID, arg.TlfName, arg.Visibility, nil, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
 		arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
