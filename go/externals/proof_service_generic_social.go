@@ -236,10 +236,9 @@ func NewGenericSocialProofServiceType(config *GenericSocialProofConfig) GenericS
 func (t GenericSocialProofServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t GenericSocialProofServiceType) NormalizeUsername(s string) (string, error) {
-	if !t.config.usernameRe.MatchString(s) {
-		return "", libkb.NewBadUsernameError(s)
+	if err := t.config.validateRemoteUsername(s); err != nil {
+		return "", err
 	}
-	// TODO always normalize ToLower? See CORE-8984
 	return strings.ToLower(s), nil
 }
 

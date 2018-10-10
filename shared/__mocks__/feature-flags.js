@@ -10,6 +10,7 @@ const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
+  outOfDateBanner: true,
   plansEnabled: false,
   walletsEnabled: true,
   newTeamBuildingForChat: false,
