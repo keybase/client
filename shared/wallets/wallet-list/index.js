@@ -19,7 +19,6 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
       title: 'Create a new account',
     },
     {
-      disabled: isMobile,
       onClick: () => props.onLinkExisting(),
       title: 'Link an existing Stellar account',
     },

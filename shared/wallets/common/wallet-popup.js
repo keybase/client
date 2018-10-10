@@ -30,7 +30,7 @@ const WalletPopup = (props: WalletModalProps) => (
         props.containerStyle,
       ])}
     >
-      {props.children}
+      <Kb.ScrollView style={styles.scrollView}>{props.children}</Kb.ScrollView>
       {props.bottomButtons &&
         props.bottomButtons.length > 0 && (
           <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
@@ -75,10 +75,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xlarge,
       textAlign: 'center',
     },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.xlarge,
-    },
+    isMobile: {},
   }),
   buttonBarContainer: {
     flex: 1,
@@ -89,6 +86,10 @@ const styles = Styles.styleSheetCreate({
       minHeight: 0,
     },
   }),
+  scrollView: {
+    width: '100%',
+    flexGrow: 1,
+  },
 })
 
 export default compose(
