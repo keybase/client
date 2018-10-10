@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Button from './button'
 import Text from './text'
