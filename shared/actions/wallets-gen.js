@@ -15,6 +15,7 @@ export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
+export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const cancelPayment = 'wallets:cancelPayment'
@@ -75,6 +76,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
+type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<any>|}>
 type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|
   build: Types.BuiltPayment,
@@ -398,6 +400,10 @@ export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloa
  */
 export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({error: false, payload, type: paymentDetailReceived})
 /**
+ * Update badges in the nav
+ */
+export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
+/**
  * Update display currency for a certain account
  */
 export const createDisplayCurrencyReceived = (payload: _DisplayCurrencyReceivedPayload) => ({error: false, payload, type: displayCurrencyReceived})
@@ -430,6 +436,7 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
 export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
+export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
 export type CancelPaymentPayload = $Call<typeof createCancelPayment, _CancelPaymentPayload>
@@ -494,6 +501,7 @@ export type Actions =
   | AbandonPaymentPayload
   | AccountsReceivedPayload
   | AssetsReceivedPayload
+  | BadgesUpdatedPayload
   | BuildPaymentPayload
   | BuiltPaymentReceivedPayload
   | CancelPaymentPayload
