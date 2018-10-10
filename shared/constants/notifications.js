@@ -29,7 +29,7 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
     0
   )
-  const totalPayments = (unreadWalletAccounts || []).reduce((total, a) => total + parseInt(a.numUnread), 0)
+  const totalPayments = (unreadWalletAccounts || []).reduce((total, a) => total + a.numUnread, 0)
 
   const newGit = (newGitRepoGlobalUniqueIDs || []).length
   const newTeams =

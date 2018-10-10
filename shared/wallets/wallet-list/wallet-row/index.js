@@ -108,7 +108,7 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
-        {props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
+        {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
       </HoverBox>
       <Kb.Divider />
     </Kb.ClickableBox>
