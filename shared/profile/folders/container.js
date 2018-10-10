@@ -1,10 +1,9 @@
 // @flow
-import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as FsTypes from '../../constants/types/fs'
 import flags from '../../util/feature-flags'
 import {compose, connect, setDisplayName} from '../../util/container'
-import Folders from './index'
+import Folders from '.'
 
 const mapStateToProps = state => ({
   _tlfs: state.fs.tlfs,
@@ -101,20 +100,17 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
   loadTlfs: dispatchProps.loadTlfs,
 })
 
-const TlfsLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<{loadTlfs: () => void}> {
-    componentDidMount() {
-      this.props.loadTlfs()
-    }
-    render() {
-      return <ComposedComponent {...this.props} />
-    }
-  }
-
 export default compose(
   flags.admin
-    ? connect(mapStateToProps, mapDispatchToProps, mergeProps)
-    : connect(() => ({}), () => ({}), () => ({tlfs: [], loadTlfs: () => {}})),
-  setDisplayName('ConnectedFolders'),
-  TlfsLoadingHoc
+    ? connect(
+        mapStateToProps,
+        mapDispatchToProps,
+        mergeProps
+      )
+    : connect(
+        () => ({}),
+        () => ({}),
+        () => ({tlfs: [], loadTlfs: () => {}})
+      ),
+  setDisplayName('ConnectedFolders')
 )(Folders)

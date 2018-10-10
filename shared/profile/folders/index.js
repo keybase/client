@@ -24,6 +24,7 @@ const Tlf = (props: TlfProps) => (
 
 export type Props = {
   tlfs: Array<TlfProps>,
+  loadTlfs: () => void,
 }
 
 export type State = {
@@ -37,6 +38,9 @@ class Folders extends React.PureComponent<Props, State> {
     expanded: false,
   }
   expand = () => this.setState({expanded: true})
+  componentDidMount() {
+    this.props.loadTlfs()
+  }
   render() {
     return (
       <React.Fragment>

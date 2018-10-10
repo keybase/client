@@ -22,6 +22,7 @@ const load = () =>
             {...commonProps, isPublic: false, isSelf: true, text: `private/meatball`},
             {...commonProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
           ]}
+          loadTlfs={Sb.action('loadTlfs')}
         />
         <Kb.Text type="Header">more items</Kb.Text>
         <Folders
@@ -32,6 +33,7 @@ const load = () =>
             {...commonProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
             {...commonProps, isPublic: false, isSelf: false, text: `private/meatball,songgao,petco`},
           ]}
+          loadTlfs={Sb.action('loadTlfs')}
         />
       </Kb.Box2>
     ))
