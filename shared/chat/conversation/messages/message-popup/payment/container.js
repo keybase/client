@@ -150,7 +150,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
 
   let bottomLine = ''
   if (requestInfo.asset !== 'native' && requestInfo.asset !== 'currency') {
-    bottomLine = requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
+    bottomLine = requestInfo.asset.issuerVerifiedDomain || requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${

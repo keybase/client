@@ -109,6 +109,7 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   balanceTotal: '',
   issuerAccountID: '',
   issuerName: '',
+  issuerVerifiedDomain: '',
   name: '',
   worth: '',
   worthCurrency: '',
@@ -123,6 +124,7 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     balanceTotal: w.balanceTotal,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
+    issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
@@ -258,7 +260,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
-  issuerName: null,
+  issuerName: '',
+  issuerVerifiedDomain: '',
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
@@ -282,9 +285,12 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     logger.error('Received requestDetails with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: Types.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'
