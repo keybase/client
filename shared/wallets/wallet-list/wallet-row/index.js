@@ -108,20 +108,21 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
-        {props.unreadPayments && (
-          <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
-            {Styles.isMobile ? (
-              <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
-            ) : (
-              <Kb.Box2 direction="vertical" style={styles.unread} />
-            )}
-          </Kb.Box2>
-        )}
+        {props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
       </HoverBox>
       <Kb.Divider />
     </Kb.ClickableBox>
   )
 }
 
+const UnreadIcon = (props: {unreadPayments: number}) => (
+  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
+    {Styles.isMobile ? (
+      <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
+    ) : (
+      <Kb.Box2 direction="vertical" style={styles.unread} />
+    )}
+  </Kb.Box2>
+)
 export type {Props}
 export {WalletRow}
