@@ -27,28 +27,14 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
-      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
-      <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
-
-
-    <Property Id="Setup">Setup</Property>
-    <Property Id="ButtonText_No">&amp;No</Property>
-    <Property Id="ButtonText_Yes">&amp;Yes</Property>
-    <Property Id="ButtonText_Install">&amp;Install</Property>
-    <Property Id="ButtonText_Cancel">Cancel</Property>
-    <Property Id="BannerBitmap">bannrbmp</Property>
-    <Property Id="Wizard">Setup Wizard</Property>
-    <Property Id="InfoIcon">info</Property>
-
     <Binary Id="info" SourceFile="Binary\Info.ico" />
     <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
   </Product>
@@ -56,6 +42,8 @@
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
+          <Directory Id="UPDATEFOLDER" Name="update">
+          </Directory>
         </Directory>
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
@@ -65,7 +53,7 @@
   </Fragment>
   
 	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+		<ComponentGroup Id="ProductComponents" Directory="UPDATEFOLDER">
 			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
         <CreateFolder />
         <RemoveFolder Id="RemoveMyApp" On="uninstall" />
@@ -102,7 +90,7 @@
           <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
         <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
-        <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
+        <Environment Id="PATH" Name="PATH" Value="[UPDATEFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
       </Component>
       
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
@@ -151,7 +139,7 @@
   </Fragment>
   
   <Fragment>
-    <ComponentGroup Id="BrowserExtensionKbnm" Directory="INSTALLFOLDER">
+    <ComponentGroup Id="BrowserExtensionKbnm" Directory="UPDATEFOLDER">
       
       <Component Id="kbnm.exe" Guid="{FE0C96E0-FFC8-4256-A600-50FFFCF58349}">
         <CreateFolder />
@@ -256,15 +244,6 @@
         oReg.DeleteValue HKCU,strKeyPath,strValueName
       ]]>
     </CustomAction>
-  </Fragment>
-  <Fragment>
-    <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
-    which is harmless. -->
-    <CustomAction Id="RemoveLegacyBundle"
-              Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{2db7fc7d-8c3f-43a3-bfd9-dfa625366b99}\Keybase_2.1.0-20180607152232+f31e011ea5.386.exe /quiet /uninstall"
-              Execute="immediate"
-              Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="LogoutUser"
