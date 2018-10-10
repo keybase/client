@@ -7,6 +7,7 @@ import {WalletPopup} from '../common'
 type Props = {
   accountName: string,
   federatedAddress?: string,
+  isDefaultAccount: boolean,
   onClose: () => void,
   onRequest: () => void,
   stellarAddress: string,
@@ -43,44 +44,48 @@ const ReceiveModal = (props: Props) => {
           style={iconCastPlatformStyles(styles.icon)}
         />
         {!Styles.isMobile && header}
-        <Button
-          type="Wallet"
-          label="Request from a Keybase user"
-          onClick={props.onRequest}
-          style={styles.requestButton}
-          fullWidth={true}
-        >
-          <Icon
-            type="iconfont-stellar-request"
-            fontSize={Styles.isMobile ? 22 : 16}
-            color={Styles.globalColors.white}
-            style={iconCastPlatformStyles(styles.requestIcon)}
-          />
-        </Button>
+        {props.isDefaultAccount && (
+          <Button
+            type="Wallet"
+            label="Request from a Keybase user"
+            onClick={props.onRequest}
+            style={styles.requestButton}
+            fullWidth={true}
+          >
+            <Icon
+              type="iconfont-stellar-request"
+              fontSize={Styles.isMobile ? 22 : 16}
+              color={Styles.globalColors.white}
+              style={iconCastPlatformStyles(styles.requestIcon)}
+            />
+          </Button>
+        )}
       </Box2>
-      <Divider
-        style={{
-          marginBottom: 14,
-          marginTop: 10,
-          width: '100%',
-        }}
-      />
+      {props.isDefaultAccount && (
+        <Divider
+          style={{
+            marginBottom: 14,
+            marginTop: 10,
+            width: '100%',
+          }}
+        />
+      )}
       <Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
         <Text type="Body" style={styles.instructionText}>
           People outside Keybase can send to:
         </Text>
         {/* Address section */}
         <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-          <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-            <Text type="BodyTinySemibold">Your public Stellar address:</Text>
-            <CopyText buttonType="Wallet" text={props.stellarAddress} />
-          </Box2>
           {!!props.federatedAddress && (
             <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
               <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
               <CopyText buttonType="Wallet" text={props.federatedAddress} />
             </Box2>
           )}
+          <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+            <Text type="BodyTinySemibold">Your public Stellar address:</Text>
+            <CopyText buttonType="Wallet" text={props.stellarAddress} />
+          </Box2>
           {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
         </Box2>
       </Box2>

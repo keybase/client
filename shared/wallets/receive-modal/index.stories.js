@@ -8,6 +8,7 @@ const load = () => {
     .add('Receive to primary', () => (
       <ReceiveModal
         accountName="cecileb's primary account"
+        isDefaultAccount={true}
         federatedAddress="cecile*keybase.io"
         onClose={Sb.action('onClose')}
         onRequest={Sb.action('onRequest')}
@@ -17,6 +18,7 @@ const load = () => {
     .add('Receive to secondary', () => (
       <ReceiveModal
         accountName="cecileb's secondary account"
+        isDefaultAccount={false}
         onClose={Sb.action('onClose')}
         onRequest={Sb.action('onRequest')}
         stellarAddress="G33T5671ASCZZX09235678ASQ511U12O91AQ"
