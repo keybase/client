@@ -1583,7 +1583,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
+	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
