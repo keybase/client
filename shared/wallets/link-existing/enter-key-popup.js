@@ -21,49 +21,54 @@ const EnterKey = (props: EnterKeyProps) => {
   ]
 
   return (
-    <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
-      <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
-      <Kb.Text type="Header" style={styles.headerText}>
-        Link an existing account
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
-          Paste your secret key
+    <WalletPopup
+      bottomButtons={buttons}
+      onClose={props.onCancel}
+      onBack={props.onBack}
+      buttonBarDirection="row"
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+        <Kb.Text type="Header" style={styles.headerText}>
+          Link an existing account
         </Kb.Text>
-        <Kb.Input
-          hideLabel={true}
-          multiline={true}
-          rowsMin={2}
-          rowsMax={2}
-          hideUnderline={true}
-          inputStyle={styles.inputElement}
-          style={styles.input}
-          onChangeText={props.onKeyChange}
-          value={props.secretKey}
-          autoFocus={true}
-        />
-        {!!props.error && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {props.error}
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
+          <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
+            Paste your secret key
           </Kb.Text>
-        )}
-      </Kb.Box2>
-      <Kb.InfoNote containerStyle={styles.infoNote}>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="xtiny">
+          <Kb.Input
+            hideLabel={true}
+            multiline={true}
+            rowsMin={2}
+            rowsMax={2}
+            hideUnderline={true}
+            inputStyle={styles.inputElement}
+            style={styles.input}
+            onChangeText={props.onKeyChange}
+            value={props.secretKey}
+            autoFocus={true}
+          />
+          {!!props.error && (
+            <Kb.Text type="BodySmall" style={styles.error}>
+              {props.error}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        <Kb.InfoNote containerStyle={styles.infoNote}>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
               Example:
+              <Kb.Text type="BodySmall" lineClamp={1} ellipsizeMode="middle">
+                SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
+              </Kb.Text>
             </Kb.Text>
-            <Kb.Text type="BodySmall" lineClamp={1} ellipsizeMode="middle">
-              SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
+            <Kb.Text type="BodySmall" style={styles.textCenter}>
+              This imports a Stellar secret key so you can also use it in Keybase. You can continue to use
+              this Stellar account in other wallet apps.
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodySmall" style={styles.textCenter}>
-            This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
-            Stellar account in other wallet apps.
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.InfoNote>
+        </Kb.InfoNote>
+      </Kb.Box2>
     </WalletPopup>
   )
 }

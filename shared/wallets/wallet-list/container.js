@@ -11,7 +11,11 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddNew: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'createNewAccount'}]))
+    dispatch(
+      RouteTree.navigateAppend([
+        {props: {showOnCreation: true, backButton: isMobile}, selected: 'createNewAccount'},
+      ])
+    )
   },
   onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {
