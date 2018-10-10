@@ -37,7 +37,8 @@ const BOOL isSimulator = NO;
     BOOL skipLogFile = NO;
     NSError* error = nil;
     NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
+    PushNotifier* pusher = [[PushNotifier alloc] init];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, pusher, &error);
     if (error != nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
         // If Init failed, then let's throw up our error screen.
@@ -234,13 +235,12 @@ const BOOL isSimulator = NO;
 // function to send the contents at that URL. 
 - (void)handleFileURL:(NSURL*)url item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   NSError* error;
-  PushNotifier* pusher = [[PushNotifier alloc] init];
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSString* filePath = [url relativePath];
   
-  NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+  NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
   if (error != nil) {
     NSLog(@"failed to register send: %@", error);
     [self maybeCompleteRequest:lastItem];
@@ -253,7 +253,7 @@ const BOOL isSimulator = NO;
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
       KeybaseExtensionPostVideo(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+                                duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     // Generate image preview here, since it runs out of memory easy in Go
@@ -261,37 +261,36 @@ const BOOL isSimulator = NO;
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
       KeybaseExtensionPostImage(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+                                baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else {
     NSError* error = NULL;
-    KeybaseExtensionPostFile(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
+    KeybaseExtensionPostFile(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, &error);
   }
   [self maybeCompleteRequest:lastItem];
 };
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
-  PushNotifier* pusher = [[PushNotifier alloc] init];
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
     if (error != nil) {
       NSLog(@"failed to register send: %@", error);
     } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, pusher, &error);
+      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, &error);
     }
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
     if (error != nil) {
       NSLog(@"failed to register send: %@", error);
     } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, pusher, &error);
+      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, &error);
     }
     [self maybeCompleteRequest:lastItem];
   };
@@ -341,8 +340,8 @@ const BOOL isSimulator = NO;
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [pusher localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
-                   badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
+    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
+                                        badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
     [self maybeCompleteRequest:lastItem];
   }
 }
