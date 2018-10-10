@@ -1,9 +1,7 @@
 // @flow
-import AccountEntry from './account-entry'
-import EnterNamePopup from './enter-name-popup'
-import MarkdownMemo from './markdown-memo'
-import ParticipantsRow from './participants-row'
-import SmallAccountID from './small-account-id'
-import WalletPopup from './wallet-popup'
-
-export {AccountEntry, EnterNamePopup, MarkdownMemo, ParticipantsRow, SmallAccountID, WalletPopup}
+export {default as AccountEntry} from './account-entry'
+export {default as EnterNamePopup} from './enter-name-popup'
+export {default as MarkdownMemo} from './markdown-memo'
+export {default as ParticipantsRow} from './participants-row'
+export {default as SmallAccountID} from './small-account-id'
+export {default as WalletPopup} from './wallet-popup'
