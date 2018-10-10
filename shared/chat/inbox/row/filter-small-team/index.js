@@ -18,39 +18,28 @@ type Props = {
   usernameColor: string,
 }
 
-type State = {
-  isHovered: boolean,
-}
-
-class FilterSmallTeam extends PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
+class FilterSmallTeam extends PureComponent<Props> {
   render() {
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Box
-          className={this.props.isSelected ? 'background_color_blue' : 'hover_background_color_blueGrey2'}
+          className={`channel_name ${
+            this.props.isSelected
+              ? 'active background_color_blue'
+              : 'inactive hover_background_color_blueGrey2'
+          }`}
           style={styles.rowContainer}
-          onMouseLeave={this._onMouseLeave}
-          onMouseOver={this._onMouseOver}
         >
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
-              isHovered={this.state.isHovered}
               isMuted={this.props.isMuted}
               isSelected={this.props.isSelected}
             />
           ) : (
             <Avatars
               backgroundColor={props.backgroundColor}
-              isHovered={this.state.isHovered}
               isMuted={props.isMuted}
               isSelected={props.isSelected}
               isLocked={props.isLocked}
