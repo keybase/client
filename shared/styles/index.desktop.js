@@ -133,6 +133,14 @@ export const initDesktopStyles = () => {
     }
   }, '')
   style.appendChild(document.createTextNode(css))
+  style.appendChild(
+    document.createTextNode(`
+      .channel_name.active .locked_icon, .channel_name.active .locked_icon_hover, .channel_name.inactive .locked_icon_active, .channel_name.inactive .locked_icon_hover, .channel_name.inactive:hover .locked_icon {display: none;},
+      .channel_name.active .locked_icon_active, .channel_name.inactive:hover .locked_icon_hover {display: block;}
+      .channel_name.active .muted_icon, .channel_name.active .muted_icon_hover, .channel_name.inactive .muted_icon_active, .channel_name.inactive .muted_icon_hover, .channel_name.inactive:hover .muted_icon {display: none;}
+      .channel_name.active .muted_icon_active, .channel_name.inactive:hover .muted_icon_hover {display: block;}
+    `)
+  )
   head.appendChild(style)
 }
 

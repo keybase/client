@@ -75,10 +75,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
     const props = this.props
     return (
       <SmallTeamBox
-        className={this.props.isSelected ? 'background_color_blue' : 'hover_background_color_blueGrey2'}
+        className={`channel_name ${
+          this.props.isSelected ? 'active background_color_blue' : 'inactive hover_background_color_blueGrey2'
+        }`}
         onClick={props.onSelectConversation}
-        onMouseLeave={this._onMouseLeave}
-        onMouseOver={this._onMouseOver}
         style={styles.container}
       >
         <Box style={collapseStyles([styles.rowContainer, styles.fastBlank])}>
@@ -87,12 +87,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
               teamname={props.teamname}
               isMuted={props.isMuted}
               isSelected={this.props.isSelected}
-              isHovered={this.state.isHovered}
             />
           ) : (
             <Avatars
               backgroundColor={this._backgroundColor()}
-              isHovered={this.state.isHovered}
               isMuted={props.isMuted}
               isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}
