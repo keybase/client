@@ -482,7 +482,7 @@ func TestLoadAfterAcctResetCORE6943(t *testing.T) {
 	fu.LoginOrBust(tc)
 
 	// Make sure that we can load the eldest key from the previous subchain
-	_, _, _, err = tc.G.GetUPAKLoader().LoadKey(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID, false)
+	_, _, _, err = tc.G.GetUPAKLoader().LoadKey(context.TODO(), fu.UID(), upak1.Base.DeviceKeys[0].KID, true)
 
 	if err != nil {
 		t.Fatal("Failed to load a UID/KID combo from first incarnation")
