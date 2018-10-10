@@ -56,9 +56,9 @@ const HoverText = Styles.isMobile
 
 const AccountSettings = (props: SettingsProps) => {
   return (
-    <Kb.ScrollView style={styles.scrollView}>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
+      <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
           <Kb.ClickableBox onClick={props.onEditName} style={styles.nameBox}>
@@ -138,8 +138,8 @@ const AccountSettings = (props: SettingsProps) => {
             )}
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    </Kb.ScrollView>
+      </Kb.ScrollView>
+    </Kb.Box2>
   )
 }
 
@@ -170,7 +170,7 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderBottomColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
-    marginBottom: Styles.globalMargins.xsmall,
+    marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
   },
   itemSelected: {
     color: Styles.globalColors.blue,
@@ -207,6 +207,8 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
+      paddingBottom: Styles.globalMargins.small,
     },
   }),
   dropdownContainer: {
@@ -223,7 +225,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   scrollView: {
-    height: '100%',
+    flexGrow: 1,
     width: '100%',
   },
 })
