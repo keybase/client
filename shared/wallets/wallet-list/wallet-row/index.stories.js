@@ -15,42 +15,42 @@ const load = () => {
     ))
     .add('Default', () => (
       <WalletRow
-        hasBadge={false}
-        keybaseUser="cecileb"
-        name="cecileb's account"
         contents="280.0871234 XLM + more"
         isSelected={true}
+        keybaseUser="cecileb"
+        name="cecileb's account"
         onSelect={onSelect}
+        unreadPayments={0}
       />
     ))
     .add('Secondary', () => (
       <WalletRow
-        hasBadge={false}
-        keybaseUser=""
-        name="Second account"
         contents="56.9618203 XLM"
         isSelected={false}
+        keybaseUser=""
+        name="Second account"
         onSelect={onSelect}
+        unreadPayments={0}
       />
     ))
     .add('Badged', () => (
       <WalletRow
-        hasBadge={true}
-        keybaseUser=""
-        name="Second account"
         contents="56.9618203 XLM"
         isSelected={false}
+        keybaseUser=""
+        name="Second account"
         onSelect={onSelect}
+        unreadPayments={2}
       />
     ))
     .add('Long', () => (
       <WalletRow
-        hasBadge={false}
-        keybaseUser=""
-        name="G43289XXXXX34OPMG43289XXXXX34OPM"
         contents="56.9618203 XLM"
         isSelected={false}
+        keybaseUser=""
+        name="G43289XXXXX34OPMG43289XXXXX34OPM"
         onSelect={onSelect}
+        unreadPayments={0}
       />
     ))
 }

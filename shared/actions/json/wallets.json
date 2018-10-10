@@ -20,7 +20,7 @@
     },
     "badgesUpdated": {
       "_description": "Update badges in the nav",
-      "accounts": "Array<any>"
+      "accounts": "Types.BadgesUpdate"
     },
     "buildPayment": {
       "_description": "Prepare a payment for sending"

@@ -11,11 +11,11 @@ const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) =>
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   return {
-    hasBadge: state.wallets.unreadPaymentsMap.get(ownProps.accountID) > 0,
-    isSelected: getSelectedAccount(state) === ownProps.accountID,
-    name,
-    keybaseUser,
     contents: account.balanceDescription,
+    isSelected: getSelectedAccount(state) === ownProps.accountID,
+    keybaseUser,
+    name,
+    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID, 0),
   }
 }
 
@@ -26,12 +26,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  hasBadge: stateProps.hasBadge,
-  isSelected: !isMobile && stateProps.isSelected,
-  name: stateProps.name,
-  keybaseUser: stateProps.keybaseUser,
   contents: stateProps.contents,
+  isSelected: !isMobile && stateProps.isSelected,
+  keybaseUser: stateProps.keybaseUser,
+  name: stateProps.name,
   onSelect: () => dispatchProps._onSelectAccount(ownProps.accountID),
+  unreadPayments: stateProps.unreadPayments,
 })
 
 export default connect(

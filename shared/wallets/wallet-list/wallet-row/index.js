@@ -5,11 +5,11 @@ import * as Styles from '../../../styles'
 
 type Props = {|
   contents: string,
-  hasBadge: boolean,
   isSelected: boolean,
   keybaseUser: string,
   name: string,
   onSelect: () => void,
+  unreadPayments: number,
 |}
 
 const rightColumnStyle = Styles.platformStyles({
@@ -29,6 +29,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
+  badge: {
+    marginLeft: 6,
+  },
   containerBox: {
     height: Styles.isMobile ? 56 : 48,
   },
@@ -105,18 +108,20 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
-        {props.hasBadge && <UnreadIcon />}
+        {props.unreadPayments && (
+          <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
+            {Styles.isMobile ? (
+              <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
+            ) : (
+              <Kb.Box2 direction="vertical" style={styles.unread} />
+            )}
+          </Kb.Box2>
+        )}
       </HoverBox>
       <Kb.Divider />
     </Kb.ClickableBox>
   )
 }
-
-const UnreadIcon = () => (
-  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
-    <Kb.Box2 direction="vertical" style={styles.unread} />
-  </Kb.Box2>
-)
 
 export type {Props}
 export {WalletRow}
