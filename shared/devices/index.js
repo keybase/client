@@ -1,6 +1,7 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
@@ -23,6 +24,7 @@ type Props = {|
   loadDevices: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
+  newlyChangedItemIds: I.Set<Types.DeviceID>,
   hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
@@ -42,16 +44,20 @@ class Devices extends React.PureComponent<Props, State> {
 
   _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded, toggledExplicitly: true}))
 
-  _renderRow = (index, item) =>
-    item.type === 'revokedHeader' ? (
-      <RevokedHeader
-        key="revokedHeader"
-        expanded={this.state.revokedExpanded}
-        onToggleExpanded={this._toggleExpanded}
-      />
-    ) : (
-      <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
-    )
+  _renderRow = (index, item) => {
+    if (item.type === 'revokedHeader') {
+      return (
+        <RevokedHeader
+          key="revokedHeader"
+          expanded={this.state.revokedExpanded}
+          onToggleExpanded={this._toggleExpanded}
+        />
+      )
+    } else {
+      const newItem = this.props.newlyChangedItemIds.has(item.id)
+      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} isNew={newItem} />
+    }
+  }
 
   render() {
     if (this.props.hasNewlyRevoked && !this.state.toggledExplicitly) {
