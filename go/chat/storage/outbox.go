@@ -381,7 +381,9 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return 0, err
+		if _, ok := err.(MissError); !ok {
+			return 0, err
+		}
 	}
 
 	// Remove any records that match the predicate
