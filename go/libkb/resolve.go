@@ -284,7 +284,6 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 		r.putToDiskCache(m, ck, res)
 	}
 
-	res.isServerTrust = au.IsServerTrust()
 	return res
 }
 
@@ -293,6 +292,15 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 
 	if au.IsTeamID() || au.IsTeamName() {
 		return r.resolveTeamViaServerLookup(m, au)
+	}
+
+	if au.IsServerTrust() {
+		if _, ok := au.(AssertionPhoneNumber); ok {
+			return r.resolvePhoneNumberViaServerLookup(m, au, input)
+		} else {
+			res.err = ResolutionError{Input: input, Msg: "don't know how to resolve", Kind: ResolutionErrorNotFound}
+		}
+		return
 	}
 
 	var key, val string
@@ -414,6 +422,57 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 
 	res.resolvedTeamName = lookup.Name
 	res.teamID = lookup.ID
+
+	return res
+}
+
+type phoneNumberLookup struct {
+	AppStatusEmbed
+	Users []keybase1.PhoneLookupResult `json:"users"`
+}
+
+func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
+	m.CDebugf("resolvePhoneNumberViaServerLookup")
+
+	key, val, err := au.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	if key != "phone" {
+		res.err = fmt.Errorf("expected 'phone' assertion")
+		return res
+	}
+
+	// TODO: Do this in ToLookup() ? Or do not do this at all, since the server
+	// might as well deal with it.
+	val = fmt.Sprintf("+%s", val)
+
+	arg := NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = make(HTTPArgs)
+	arg.Args["phone_number"] = S{Val: val}
+
+	var lookup phoneNumberLookup
+	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+
+	l := len(lookup.Users)
+	if l == 0 {
+		res.err = ResolutionError{Input: input, Msg: "No resolution found", Kind: ResolutionErrorNotFound}
+		return res
+	} else if l > 1 {
+		res.err = ResolutionError{Input: input, Msg: "Identify is ambiguous", Kind: ResolutionErrorAmbiguous}
+		return res
+	}
+
+	user := lookup.Users[0]
+	res.resolvedKbUsername = user.Username
+	res.uid = user.Uid
+	res.isServerTrust = true
 
 	return res
 }

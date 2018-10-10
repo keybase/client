@@ -333,4 +333,10 @@ protocol Common {
     int x1;
     int y1;
   }
+
+  record PhoneLookupResult {
+    UID uid;
+    string username;
+    UnixTime ctime;
+  }
 }

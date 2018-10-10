@@ -742,6 +742,24 @@
           "name": "y1"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PhoneLookupResult",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime"
+        }
+      ]
     }
   ],
   "messages": {},
