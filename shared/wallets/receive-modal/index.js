@@ -60,8 +60,8 @@ const ReceiveModal = (props: Props) => {
       </Box2>
       <Divider
         style={{
-          marginBottom: Styles.globalMargins.tiny,
-          marginTop: Styles.globalMargins.tiny,
+          marginBottom: 14,
+          marginTop: 10,
           width: '100%',
         }}
       />
@@ -113,15 +113,15 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: Styles.globalMargins.medium,
+      marginBottom: Styles.globalMargins.small,
     },
   }),
   icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.small,
+      marginBottom: Styles.globalMargins.tiny,
     },
     isMobile: {
-      marginBottom: 50,
+      marginBottom: Styles.globalMargins.medium,
     },
   }),
   infoNoteText: {
