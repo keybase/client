@@ -23,7 +23,7 @@ const (
 	BoxedSystemMessageBodyMaxLength         = 5000
 	BoxedDeleteHistoryMessageBodyMaxLength  = 200
 	BoxedSendPaymentMessageBodyMaxLength    = 200
-	BoxedRequestPaymentMessageBodyMaxLength = 500
+	BoxedRequestPaymentMessageBodyMaxLength = 600
 )
 
 func getMaxTextLength(topicType chat1.TopicType) (textMsgLength int) {

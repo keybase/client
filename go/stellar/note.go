@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -140,6 +141,10 @@ func noteMixPukNonce() (res [24]byte) {
 }
 
 func NoteEncryptB64(ctx context.Context, g *libkb.GlobalContext, note stellar1.NoteContents, other *keybase1.UserVersion) (noteB64 string, err error) {
+	if len(note.Note) > msgchecker.PaymentTextMaxLength {
+		return "", fmt.Errorf("Note of size %d bytes exceeds the maximum length of %d bytes",
+			len(note.Note), msgchecker.PaymentTextMaxLength)
+	}
 	obj, err := noteEncrypt(ctx, g, note, other)
 	if err != nil {
 		return "", err
@@ -148,7 +153,12 @@ func NoteEncryptB64(ctx context.Context, g *libkb.GlobalContext, note stellar1.N
 	if err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(pack), nil
+	noteB64 = base64.StdEncoding.EncodeToString(pack)
+	if len(noteB64) > msgchecker.BoxedRequestPaymentMessageBodyMaxLength {
+		return "", fmt.Errorf("Encrypted note of size %d bytes exceeds the maximum length of %d bytes",
+			len(noteB64), msgchecker.BoxedRequestPaymentMessageBodyMaxLength)
+	}
+	return noteB64, nil
 }
 
 // noteEncrypt encrypts a note for the logged-in user as well as optionally for `other`.
