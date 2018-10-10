@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"sort"
+	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -269,6 +271,24 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
 }
 
+// TODO: rename these structs
+// structs used for passing data to and from GetBlocksForOffsetRange tasks
+type task struct {
+	ptr        BlockPointer
+	pblock     *BlockWithPtrs
+	pathPrefix []parentBlockAndChildIndex
+	startOff   Offset
+	endOff     Offset
+	prefixOk   bool
+	getDirect  bool
+}
+type result struct {
+	pathFromRoot    []parentBlockAndChildIndex
+	ptr             *BlockPointer
+	block           Block
+	nextBlockOffset Offset
+}
+
 // getBlocksForOffsetRange fetches all the blocks making up paths down
 // the block tree to leaf ("direct") blocks that encompass the given
 // offset range (half-inclusive) in the data.  If `endOff` is nil, it
@@ -291,159 +311,214 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]Block, nextBlockOffset Offset,
 	err error) {
-	nextBlockOffset = pblock.FirstOffset()
-	if !pblock.IsIndirect() {
-		// Return a single empty path, under the assumption that the
-		// caller already checked the range for this block.
-		if getDirect {
-			// Return a child map with only this block in it.
-			return [][]parentBlockAndChildIndex{nil},
-				map[BlockPointer]Block{ptr: pblock}, nil, nil
-		}
-		// Return an empty child map with no blocks in it (since
-		// getDirect is false).
-		return [][]parentBlockAndChildIndex{nil}, nil, nil, nil
-	}
 
-	type resp struct {
-		pathsFromRoot   [][]parentBlockAndChildIndex
-		blocks          map[BlockPointer]Block
-		nextBlockOffset Offset
-	}
+	// Make a queue for tasks and one for results. Queue for results is big to prevent workers from blocking on
+	// sending back their results.
+	jobs := make(chan task, 2)
+	results := make(chan result, 400)
 
-	// Search all of the in-range child blocks, and their child
-	// blocks, etc, in parallel.
-	respChans := make([]<-chan resp, 0, pblock.NumIndirectPtrs())
+	// make a WaitGroup to keep track of whether there's still work to be done.
+	// TODO: simplify this so we don't need both the errgroup and the WaitGroup
+	var wg sync.WaitGroup
+
+	// enqueue the top-level task. Increment the task counter by one.
+	jobs <- task{
+		ptr:        ptr,
+		pblock:     &pblock,
+		pathPrefix: nil,
+		startOff:   startOff,
+		endOff:     endOff,
+		prefixOk:   prefixOk,
+		getDirect:  getDirect,
+	}
+	wg.Add(1)
+
+	// make an errgroup to cancel everything if anything goes wrong.
 	eg, groupCtx := errgroup.WithContext(ctx)
-	var nextBlockOffsetThisLevel Offset
-	for i := 0; i < pblock.NumIndirectPtrs(); i++ {
-		info, iptrOff := pblock.IndirectPtr(i)
-		// Some byte of this block is included in the left side of the
-		// range if `startOff` is less than the largest byte offset in
-		// the block.
-		inRangeLeft := true
-		if i < pblock.NumIndirectPtrs()-1 {
-			_, off := pblock.IndirectPtr(i + 1)
-			inRangeLeft = startOff.Less(off)
-		}
-		if !inRangeLeft {
-			continue
-		}
-		// Some byte of this block is included in the right side of
-		// the range if `endOff` is bigger than the smallest byte
-		// offset in the block (or if we're explicitly reading all the
-		// data to the end).
-		inRangeRight := endOff == nil || iptrOff.Less(endOff)
-		if !inRangeRight {
-			// This block is the first one past the offset range
-			// amount the children.
-			nextBlockOffsetThisLevel = iptrOff
-			break
-		}
 
-		childPtr := info.BlockPointer
-		childIndex := i
-		respCh := make(chan resp, 1)
-		respChans = append(respChans, respCh)
-		// Don't reference the uncaptured `i` variable below.
+	// start 16 goroutines to each pick up tasks and put subtasks back in the queue.
+	for w := 1; w <= 16; w++ {
 		eg.Go(func() error {
-			var pfr [][]parentBlockAndChildIndex
-			var blocks map[BlockPointer]Block
-			var nextBlockOffset Offset
-			// We only need to fetch direct blocks if we've been asked
-			// to do so.  If the direct type of the pointer is
-			// unknown, we can assume all the children are direct
-			// blocks, since there weren't multiple levels of
-			// indirection before the introduction of the flag.
-			if getDirect || childPtr.DirectType == IndirectBlock {
-				block, _, err := bt.getter(
-					groupCtx, bt.kmd, childPtr, bt.file, blockReadParallel)
-				if err != nil {
-					return err
-				}
-
-				// Recurse down to the level of the child.
-				pfr, blocks, nextBlockOffset, err = bt.getBlocksForOffsetRange(
-					groupCtx, childPtr, block, startOff, endOff, prefixOk,
-					getDirect)
-				if err != nil {
-					return err
-				}
-			} else {
-				// We don't care about direct blocks, so leave the
-				// `blocks` map `nil`.
-				pfr = [][]parentBlockAndChildIndex{nil}
-				nextBlockOffset = nil
-			}
-
-			// Append self to the front of every path.
-			var r resp
-			for _, p := range pfr {
-				newPath := append([]parentBlockAndChildIndex{{
-					pblock:     pblock,
-					childIndex: childIndex,
-				}}, p...)
-				r.pathsFromRoot = append(r.pathsFromRoot, newPath)
-			}
-			r.blocks = blocks
-			r.nextBlockOffset = nextBlockOffset
-			respCh <- r
-			return nil
+			return bt.getBlocksForOffsetRangeWorker(groupCtx, &wg, jobs, results)
 		})
 	}
 
+	// start a goroutine to reduce all the results coming in over the results channel.
+	// TODO: if this is a bottleneck, we could spawn several goroutines to reduce at once, but that seems inefficient.
+	eg.Go(func() error {
+		var minNextBlockOffset Offset
+		blocks = make(map[BlockPointer]Block)
+		pathsFromRoot = [][]parentBlockAndChildIndex{}
+		for res := range results {
+			if res.pathFromRoot != nil {
+				pathsFromRoot = append(pathsFromRoot, res.pathFromRoot)
+			}
+			if res.ptr != nil {
+				blocks[*res.ptr] = res.block
+			}
+			if res.nextBlockOffset != nil &&
+				(minNextBlockOffset == nil ||
+					res.nextBlockOffset.Less(minNextBlockOffset)) {
+				minNextBlockOffset = res.nextBlockOffset
+			}
+		}
+		nextBlockOffset = minNextBlockOffset
+		return nil
+	})
+
+	// Once all the work is done, close the channels so that the goroutines return
+	go func() {
+		wg.Wait()
+		close(jobs)
+		close(results)
+	}()
+
 	err = eg.Wait()
+
 	// If we are ok with just getting the prefix, don't treat a
 	// deadline exceeded error as fatal.
 	if prefixOk && err == context.DeadlineExceeded {
-		err = nil
+		err = nil //TODO: determine that this is correct
 	}
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	blocks = make(map[BlockPointer]Block)
-	var minNextBlockOffsetChild Offset
-outer:
-	for _, respCh := range respChans {
-		select {
-		case r := <-respCh:
-			pathsFromRoot = append(pathsFromRoot, r.pathsFromRoot...)
-			for ptr, block := range r.blocks {
-				blocks[ptr] = block
+	// Out-of-order traversal means the paths come back from workers unsorted.
+	// Sort them before returning them to the caller.
+	// TODO: if this is slow, sort in parallel as the paths come in
+	sort.Slice(pathsFromRoot, func(i, j int) bool {
+		pathI := pathsFromRoot[i]
+		pathJ := pathsFromRoot[j]
+		lastChildI := pathI[len(pathI)-1]
+		lastChildJ := pathJ[len(pathJ)-1]
+
+		_, offsetI := lastChildI.pblock.IndirectPtr(lastChildI.childIndex)
+		_, offsetJ := lastChildJ.pblock.IndirectPtr(lastChildJ.childIndex)
+
+		return offsetI.Less(offsetJ)
+	})
+
+	return pathsFromRoot, blocks, nextBlockOffset, nil
+}
+
+// processGetBlocksTask examines the block it is passed, enqueueing any children in range into jobs, and passing
+// data back through results.
+func (bt *blockTree) processGetBlocksTask(ctx context.Context, wg *sync.WaitGroup, job task, jobs chan task, results chan result) error {
+	var pblock BlockWithPtrs
+	// we may have been passed just a pointer and need to fetch the block ourselves
+	if job.pblock == nil {
+		var err error
+		pblock, _, err = bt.getter(ctx, bt.kmd, job.ptr, bt.file, blockReadParallel)
+		if err != nil {
+			return err
+		}
+	} else {
+		pblock = *job.pblock
+	}
+
+	if !pblock.IsIndirect() {
+		// Return this block, under the assumption that the
+		// caller already checked the range for this block.
+		if job.getDirect {
+			results <- result{
+				pathFromRoot:    job.pathPrefix,
+				ptr:             &job.ptr,
+				block:           pblock,
+				nextBlockOffset: nil,
 			}
-			// We want to find the leftmost block offset that's to the
-			// right of the range, the one immediately following the
-			// end of the range.
-			if r.nextBlockOffset != nil &&
-				(minNextBlockOffsetChild == nil ||
-					r.nextBlockOffset.Less(minNextBlockOffsetChild)) {
-				minNextBlockOffsetChild = r.nextBlockOffset
+		}
+		return nil
+	}
+
+	// Search all of the in-range child blocks, and their child
+	// blocks, etc, in parallel.
+	for i := 0; i < pblock.NumIndirectPtrs(); i++ {
+		info, iptrOff := pblock.IndirectPtr(i)
+		// Some byte of this block is included in the left side of the
+		// range if `job.startOff` is less than the largest byte offset in
+		// the block.
+		inRangeLeft := true
+		if i < pblock.NumIndirectPtrs()-1 {
+			_, off := pblock.IndirectPtr(i + 1)
+			inRangeLeft = job.startOff.Less(off)
+		}
+		if !inRangeLeft {
+			continue
+		}
+		// Some byte of this block is included in the right side of
+		// the range if `job.endOff` is bigger than the smallest byte
+		// offset in the block (or if we're explicitly reading all the
+		// data to the end).
+		inRangeRight := job.endOff == nil || iptrOff.Less(job.endOff)
+		if !inRangeRight {
+			// This block is the first one past the offset range
+			// amount the children.
+			results <- result{nextBlockOffset: iptrOff}
+			return nil
+		}
+
+		childPtr := info.BlockPointer
+		childIndex := i
+
+		childPath := make([]parentBlockAndChildIndex, len(job.pathPrefix)+1)
+		copy(childPath, job.pathPrefix)
+		childPath[len(childPath)-1] = parentBlockAndChildIndex{
+			pblock:     pblock,
+			childIndex: childIndex,
+		}
+
+		// We only need to fetch direct blocks if we've been asked
+		// to do so.  If the direct type of the pointer is
+		// unknown, we can assume all the children are direct
+		// blocks, since there weren't multiple levels of
+		// indirection before the introduction of the flag.
+		if job.getDirect || childPtr.DirectType == IndirectBlock {
+			// Create a task for the child, and either enqueue it or recurse to it.
+
+			subTask := task{
+				ptr:        childPtr,
+				pblock:     nil,
+				pathPrefix: childPath,
+				startOff:   job.startOff,
+				endOff:     job.endOff,
+				prefixOk:   job.prefixOk,
+				getDirect:  job.getDirect,
 			}
-		default:
-			// There should always be a response ready in every
-			// channel, unless prefixOk is true.
-			if prefixOk {
-				break outer
-			} else {
-				panic("No response ready when !prefixOk")
+
+			// process the subtask by passing it to another goroutine; if they're all occupied, recurse instead.
+			select {
+			case jobs <- subTask:
+				wg.Add(1)
+			default:
+				bt.processGetBlocksTask(ctx, wg, subTask, jobs, results)
+			}
+		} else {
+			results <- result{
+				pathFromRoot: childPath,
 			}
 		}
 	}
+	return nil
+}
 
-	// If this level has no offset, or one of the children has an
-	// offset that's smaller than the one at this level, use the child
-	// offset instead.
-	if nextBlockOffsetThisLevel == nil {
-		nextBlockOffset = minNextBlockOffsetChild
-	} else if minNextBlockOffsetChild != nil &&
-		minNextBlockOffsetChild.Less(nextBlockOffsetThisLevel) {
-		nextBlockOffset = minNextBlockOffsetChild
-	} else {
-		nextBlockOffset = nextBlockOffsetThisLevel
+// getBlocksForOffsetRangeWorker
+func (bt *blockTree) getBlocksForOffsetRangeWorker(ctx context.Context, wg *sync.WaitGroup, jobs chan task,
+	results chan result) error {
+
+	for job := range jobs {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		err := bt.processGetBlocksTask(ctx, wg, job, jobs, results)
+		if err != nil {
+			return err
+		}
+		wg.Done()
 	}
-
-	return pathsFromRoot, blocks, nextBlockOffset, nil
+	return nil
 }
 
 type createTopBlockFn func(context.Context, DataVer) (BlockWithPtrs, error)
