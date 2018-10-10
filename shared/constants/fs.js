@@ -637,7 +637,6 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
     private: isPrivate,
     notificationsOn: false,
     created: false,
-    team_id: '',
   }
 }
 
