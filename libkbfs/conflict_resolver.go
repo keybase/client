@@ -1240,7 +1240,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	// chain of unmerged operations, and which was not created or
 	// deleted within in the unmerged branch.
 	unmergedPaths, err = unmergedChains.getPaths(ctx, &cr.fbo.blocks,
-		cr.log, cr.fbo.nodeCache, false)
+		cr.log, cr.fbo.nodeCache, false, cr.config.Mode().IsTestMode())
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, merged, err
 	}
@@ -1500,7 +1500,7 @@ func (cr *ConflictResolver) getSingleUnmergedPath(
 	}
 	newChains.mostRecentChainMDInfo = unmergedChains.mostRecentChainMDInfo
 	unmergedPaths, err := newChains.getPaths(ctx, &cr.fbo.blocks,
-		cr.log, cr.fbo.nodeCache, false)
+		cr.log, cr.fbo.nodeCache, false, cr.config.Mode().IsTestMode())
 	if err != nil {
 		return path{}, err
 	}

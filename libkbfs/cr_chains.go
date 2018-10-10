@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -317,7 +318,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 		case Exec:
 			cc.file = true
 		default:
-			return fmt.Errorf("Unexpected chain type: %s", entry.Type)
+			return errors.Errorf("Unexpected chain type: %s", entry.Type)
 		}
 		found = true
 		break
@@ -433,7 +434,7 @@ type crChains struct {
 func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
 	currChain, ok := ccs.byMostRecent[ptr]
 	if !ok {
-		return fmt.Errorf("Could not find chain for most recent ptr %v", ptr)
+		return errors.Errorf("Could not find chain for most recent ptr %v", ptr)
 	}
 
 	currChain.ops = append(currChain.ops, op)
@@ -532,7 +533,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			// the CR code.
 			chain, ok := ccs.byMostRecent[realOp.Dir.Ref]
 			if !ok {
-				return fmt.Errorf("No chain for rmOp dir %v", realOp.Dir.Ref)
+				return errors.Errorf("No chain for rmOp dir %v", realOp.Dir.Ref)
 			}
 			for original, ri := range ccs.renamedOriginals {
 				if ri.originalNewParent == chain.original &&
@@ -613,12 +614,12 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if realOp.Renamed.IsInitialized() {
 			newParentChain, ok := ccs.byMostRecent[ndr]
 			if !ok {
-				return fmt.Errorf("While renaming, couldn't find the chain "+
+				return errors.Errorf("While renaming, couldn't find the chain "+
 					"for the new parent %v", ndr)
 			}
 			oldParentChain, ok := ccs.byMostRecent[realOp.OldDir.Ref]
 			if !ok {
-				return fmt.Errorf("While renaming, couldn't find the chain "+
+				return errors.Errorf("While renaming, couldn't find the chain "+
 					"for the old parent %v", ndr)
 			}
 
@@ -721,11 +722,11 @@ func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 		}
 		chain, ok := ccs.byMostRecent[targetPtr]
 		if !ok {
-			return fmt.Errorf("Couldn't find chain for %v after making it",
+			return errors.Errorf("Couldn't find chain for %v after making it",
 				targetPtr)
 		}
 		if len(chain.ops) != 1 {
-			return fmt.Errorf("Chain of unexpected length for %v after "+
+			return errors.Errorf("Chain of unexpected length for %v after "+
 				"making it", targetPtr)
 		}
 		chain.ops[0] = realOp
@@ -735,7 +736,7 @@ func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 	case *syncOp:
 		return ccs.makeChainForNewOpWithUpdate(targetPtr, newOp, &realOp.File)
 	default:
-		return fmt.Errorf("Couldn't make chain with unknown operation %s",
+		return errors.Errorf("Couldn't make chain with unknown operation %s",
 			newOp)
 	}
 }
@@ -1064,7 +1065,7 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 		return NoChainFoundError{oldOriginal}
 	}
 	if _, ok := ccs.byOriginal[newOriginal]; ok {
-		return fmt.Errorf("crChains.changeOriginal: New original %v "+
+		return errors.Errorf("crChains.changeOriginal: New original %v "+
 			"already exists", newOriginal)
 	}
 
@@ -1188,8 +1189,8 @@ func (ccs *crChains) findPathForCreated(mostRecent BlockPointer) path {
 // the set of CR chains.  Set includeCreates to true if the returned
 // paths should include the paths of newly-created nodes.
 func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
-	log logger.Logger, nodeCache NodeCache, includeCreates bool) (
-	[]path, error) {
+	log logger.Logger, nodeCache NodeCache, includeCreates bool,
+	checkOpFinalPaths bool) ([]path, error) {
 	newPtrs := make(map[BlockPointer]bool)
 	var ptrs []BlockPointer
 	renameOps := make(map[BlockPointer][]*renameOp)
@@ -1218,6 +1219,15 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 					}
 					renameOps[oldDirPtr] = append(renameOps[oldDirPtr], ro)
 				}
+			}
+		}
+	}
+
+	if checkOpFinalPaths {
+		// If we plans to check all the paths, clear them out first.
+		for _, chain := range ccs.byMostRecent {
+			for _, op := range chain.ops {
+				op.setFinalPath(path{})
 			}
 		}
 	}
@@ -1275,6 +1285,17 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 			p := ccs.findPathForCreated(chain.mostRecent)
 			for _, op := range chain.ops {
 				op.setFinalPath(p)
+			}
+		}
+	}
+
+	if checkOpFinalPaths {
+		for _, chain := range ccs.byMostRecent {
+			for _, op := range chain.ops {
+				if !op.getFinalPath().isValid() {
+					return nil, errors.Errorf(
+						"Op %s doesn't have final path", op)
+				}
 			}
 		}
 	}

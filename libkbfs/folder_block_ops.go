@@ -3624,7 +3624,9 @@ type chainsPathPopulator interface {
 // `chains`, using the main nodeCache.
 func (fbo *folderBlockOps) populateChainPaths(ctx context.Context,
 	log logger.Logger, chains *crChains, includeCreates bool) error {
-	_, err := chains.getPaths(ctx, fbo, log, fbo.nodeCache, includeCreates)
+	_, err := chains.getPaths(
+		ctx, fbo, log, fbo.nodeCache, includeCreates,
+		fbo.config.Mode().IsTestMode())
 	return err
 }
 
