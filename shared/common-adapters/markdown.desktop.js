@@ -9,7 +9,13 @@ import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
 import {tldExp} from '../markdown/regex'
-import {parseMarkdown, EmojiIfExists, channelNameToConvID, isValidMention} from './markdown.shared'
+import {
+  parseMarkdown,
+  EmojiIfExists,
+  channelNameToConvID,
+  createMentionRegex,
+  createChannelRegex,
+} from './markdown.shared'
 import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
 
@@ -193,8 +199,6 @@ function messageCreateComponent(type, key, children, options) {
 
 const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
-const mentionMatch = SimpleMarkdown.inlineRegex(/^\B@((?:[a-z]|[A-Z]|[0-9])(?:[a-z]|[A-Z]|[0-9]|_){1,15})\b/)
-const channelMatch = SimpleMarkdown.inlineRegex(/^\B#((?:[a-z]|[A-Z]|[0-9])+_?)+\b/)
 
 var debugAnyScopeRegex = function(name, regex) {
   var match = function(source, state) {
@@ -244,9 +248,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.fence,
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     // Example: https://regex101.com/r/ZiDBsO/6
-    match: SimpleMarkdown.anyScopeRegex(
-      /^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n{0,2}/
-    ),
+    match: SimpleMarkdown.anyScopeRegex(/^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n?/),
 
     parse: function(capture, parse, state) {
       return {
@@ -367,9 +369,14 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // We'll change most of the stuff here anyways
     ...SimpleMarkdown.defaultRules.autolink,
     match: (source, state, lookBehind) => {
-      const matches = mentionMatch(source, state, lookBehind)
+      const mentionRegex = createMentionRegex(markdownMeta)
+      if (!mentionRegex) {
+        return null
+      }
+
+      const matches = SimpleMarkdown.inlineRegex(mentionRegex)(source, state, lookBehind)
       // Also check that the lookBehind is not text
-      if (matches && isValidMention(markdownMeta, matches[1]) && (!lookBehind || lookBehind.match(/\B$/))) {
+      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
       }
       return null
@@ -386,10 +393,17 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // Just needs to be a higher order than mentions
     order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
     match: (source, state, lookBehind) => {
-      const matches = channelMatch(source, state, lookBehind)
-      if (matches && channelNameToConvID(markdownMeta, matches[1])) {
+      const channelRegex = createChannelRegex(markdownMeta)
+      if (!channelRegex) {
+        return null
+      }
+
+      const matches = SimpleMarkdown.inlineRegex(channelRegex)(source, state, lookBehind)
+      // Also check that the lookBehind is not text
+      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
       }
+
       return null
     },
     parse: capture => ({
@@ -400,7 +414,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     react: (node, output, state) => {
       return (
         <Channel
-          name={node.condent}
+          name={node.content}
           convID={Types.stringToConversationIDKey(node.convID)}
           key={state.key}
           style={linkStyle}
@@ -461,12 +475,13 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
 
 const parserFromMeta = (meta: ?MarkdownMeta) => SimpleMarkdown.parserFor(rules(meta))
 
-// Use emptyMeta for these because they don't rely on the MarkdownMeta for rendering
-const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules(null), 'react'))
+// These cases use just the react properties so the meta doesn't matter
+const rulesWithNoMeta = rules(null)
+const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rulesWithNoMeta, 'react'))
 const bigEmojiOutput = SimpleMarkdown.reactFor(
   SimpleMarkdown.ruleOutput(
     {
-      ...rules(null),
+      ...rulesWithNoMeta,
       emoji: {
         react: (node, output, state) => {
           return <EmojiIfExists emojiName={String(node.content)} size={32} key={state.key} />
@@ -486,7 +501,7 @@ const previewOutput = SimpleMarkdown.reactFor(
 
     switch (ast.type) {
       case 'emoji':
-        return rules.emoji.react(ast, output, state)
+        return rulesWithNoMeta.emoji.react(ast, output, state)
       case 'newline':
         return ' '
       case 'codeBlock':

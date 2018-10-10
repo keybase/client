@@ -265,6 +265,7 @@ export {
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   showAuthorMessageTypes,
+  specialMentions,
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,

@@ -977,6 +977,8 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
+export const specialMentions = ['here', 'channel', 'everyone']
+
 export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
   if (!old) {
     return m
