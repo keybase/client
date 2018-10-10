@@ -53,8 +53,10 @@ func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
 		return newOutboxBaseboxStorage(g, uid)
 	case "files":
 		return newOutboxFilesStorage(g, uid)
+	case "combined":
+		return newOutboxCombinedStorage(g, uid)
 	default:
-		return newOutboxBaseboxStorage(g, uid)
+		return newOutboxCombinedStorage(g, uid)
 	}
 }
 
