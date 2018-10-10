@@ -1,4 +1,5 @@
 // @flow
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import logger from '../logger'
 import rootReducer from '../reducers'
 import {actionLogger} from './action-logger'
@@ -9,7 +10,6 @@ import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../loca
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import * as LocalConsole from '../util/local-console'
 
 let theStore: Store
@@ -87,7 +87,9 @@ const errorCatching = store => next => action => {
   }
 }
 
-export const sagaMiddleware = createSagaMiddleware(crashHandler)
+export const sagaMiddleware = global._sagaMiddleware || createSagaMiddleware(crashHandler)
+// don't overwrite this on HMR
+global._sagaMiddleware = sagaMiddleware
 
 const middlewares = [
   errorCatching,

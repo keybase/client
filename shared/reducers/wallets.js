@@ -167,6 +167,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.paymentCursorMap.get(action.payload.accountID)
         ? state.setIn(['paymentLoadingMoreMap', action.payload.accountID], true)
         : state
+    case WalletsGen.badgesUpdated:
+      return state.set(
+        'unreadPaymentsMap',
+        I.Map(action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread]))
+      )
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
@@ -179,6 +184,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadDisplayCurrencies:
+    case WalletsGen.markAsRead:
     case WalletsGen.loadDisplayCurrency:
     case WalletsGen.changeDisplayCurrency:
     case WalletsGen.changeAccountName:
