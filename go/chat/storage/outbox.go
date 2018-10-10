@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"sort"
@@ -18,6 +19,7 @@ import (
 type outboxStorage interface {
 	readStorage(ctx context.Context) (diskOutbox, Error)
 	writeStorage(ctx context.Context, do diskOutbox) Error
+	name() string
 }
 
 type Outbox struct {
@@ -60,14 +62,21 @@ func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {
 	}
 }
 
+var storageReportOnce sync.Once
+
 func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
-	return &Outbox{
+	st := createOutboxStorage(g, uid)
+	o := &Outbox{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
-		outboxStorage: createOutboxStorage(g, uid),
+		outboxStorage: st,
 		uid:           uid,
 		clock:         clockwork.NewRealClock(),
 	}
+	storageReportOnce.Do(func() {
+		o.Debug(context.Background(), "NewOutbox: using storage engine: %s", st.name())
+	})
+	return o
 }
 
 func (o *Outbox) GetUID() gregor1.UID {

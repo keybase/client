@@ -71,3 +71,7 @@ func (s *outboxBaseboxStorage) writeStorage(ctx context.Context, do diskOutbox) 
 	}
 	return nil
 }
+
+func (s *outboxBaseboxStorage) name() string {
+	return "db"
+}

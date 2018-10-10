@@ -80,3 +80,7 @@ func (s *outboxFilesStorage) writeStorage(ctx context.Context, do diskOutbox) (e
 	}
 	return nil
 }
+
+func (s *outboxFilesStorage) name() string {
+	return "files"
+}

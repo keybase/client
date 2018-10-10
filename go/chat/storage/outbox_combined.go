@@ -51,3 +51,7 @@ func (s *outboxCombinedStorage) readStorage(ctx context.Context) (res diskOutbox
 func (s *outboxCombinedStorage) writeStorage(ctx context.Context, do diskOutbox) Error {
 	return s.baseStorage.writeStorage(ctx, do)
 }
+
+func (s *outboxCombinedStorage) name() string {
+	return "combined"
+}
