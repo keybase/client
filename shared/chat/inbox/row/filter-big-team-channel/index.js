@@ -1,14 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, ClickableBox} from '../../../../common-adapters'
-import {
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import {globalStyles, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
 import {TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
@@ -19,52 +12,31 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-type State = {
-  isHovered: boolean,
-}
-
-class FilterBigTeamChannel extends PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
+class FilterBigTeamChannel extends PureComponent<Props> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box
-          className="hover_background_color_blueGrey2"
-          style={collapseStyles([
-            styles.filteredRow,
-            this.props.isSelected && {backgroundColor: globalColors.blue},
-          ])}
-          onMouseLeave={this._onMouseLeave}
-          onMouseOver={this._onMouseOver}
+          className={`channel_name ${
+            this.props.isSelected
+              ? 'active background_color_blue'
+              : 'inactive hover_background_color_blueGrey2'
+          }`}
+          style={styles.filteredRow}
         >
-          <TeamAvatar
-            teamname={this.props.teamname}
-            isMuted={false}
-            isSelected={false}
-            isHovered={this.state.isHovered}
-          />
+          <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
           <Text
+            className={this.props.isSelected ? 'color_white' : 'color_black_75'}
             type="BodySemibold"
-            style={collapseStyles([
-              styles.teamname,
-              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
-            ])}
+            style={styles.teamname}
             title={this.props.teamname}
           >
             {this.props.teamname}
           </Text>
           <Text
+            className={this.props.isSelected ? 'color_white' : 'color_black_75'}
             type="Body"
-            style={collapseStyles([
-              styles.channelname,
-              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
-            ])}
+            style={styles.channelname}
             title={`#${this.props.channelname}`}
           >
             &nbsp;#
@@ -94,7 +66,6 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   teamname: platformStyles({
-    common: {color: globalColors.black_75},
     isElectron: {
       overflow: 'hidden',
       textOverflow: 'ellipsis',

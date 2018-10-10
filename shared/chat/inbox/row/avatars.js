@@ -19,37 +19,33 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 
 type AvatarProps = {
   participants: Array<string>,
-  isHovered: boolean,
   isLocked: boolean,
   isMuted: boolean,
   isSelected: boolean,
   backgroundColor: string,
 }
 
-const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {
-  let icon = null
-  let type
-  if (isMuted) {
-    if (isMobile) {
-      type = isSelected ? 'icon-shh-active-24' : 'icon-shh-24'
-    } else {
-      type = isSelected ? 'icon-shh-active-16' : isHovered ? 'icon-shh-hover-16' : 'icon-shh-16'
-    }
-    icon = <Icon type={type} style={avatarIconStyle} />
-  } else if (isLocked) {
-    if (isMobile) {
-      type = isSelected ? 'icon-addon-lock-active-22' : 'icon-addon-lock-22'
-    } else {
-      type = isSelected
-        ? 'icon-addon-lock-active-16'
-        : isHovered
-          ? 'icon-addon-lock-hover-16'
-          : 'icon-addon-lock-16'
-    }
-    icon = <Icon type={type} style={avatarIconStyle} />
-  }
-  return icon
-}
+const MutedIconMobile = ({isLocked, isMuted, isSelected}) =>
+  isMuted ? (
+    <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarIconStyle} />
+  ) : isLocked ? (
+    <Icon type={isSelected ? 'icon-addon-lock-active-22' : 'icon-addon-lock-22'} style={avatarIconStyle} />
+  ) : null
+
+const MutedIcon = ({isLocked, isMuted}) =>
+  isMuted ? (
+    <>
+      <Icon className="muted_icon" type="icon-shh-16" style={avatarIconStyle} />
+      <Icon className="muted_icon_active" type="icon-shh-active-16" style={avatarIconStyle} />
+      <Icon className="muted_icon_hover" type="icon-shh-hover-16" style={avatarIconStyle} />
+    </>
+  ) : isLocked ? (
+    <>
+      <Icon className="locked_icon" type="icon-addon-lock-16" style={avatarIconStyle} />
+      <Icon className="locked_icon_active" type="icon-addon-lock-active-16" style={avatarIconStyle} />
+      <Icon className="locked_icon_hover" type="icon-addon-lock-hover-16" style={avatarIconStyle} />
+    </>
+  ) : null
 
 class Avatars extends React.Component<AvatarProps> {
   shouldComponentUpdate(nextProps: AvatarProps) {
@@ -63,7 +59,7 @@ class Avatars extends React.Component<AvatarProps> {
   }
 
   render() {
-    const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor} = this.props
+    const {participants, isLocked, isMuted, isSelected, backgroundColor} = this.props
 
     const avatarCount = Math.min(2, participants.length)
     const opacity = isLocked ? 0.4 : 1
@@ -86,7 +82,11 @@ class Avatars extends React.Component<AvatarProps> {
             multiPadding={isMobile ? 2 : 0}
             style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
           />
-          <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+          {isMobile ? (
+            <MutedIconMobile isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+          ) : (
+            <MutedIcon isMuted={isMuted} isLocked={isLocked} />
+          )}
         </Box>
       </Box>
     )
@@ -123,7 +123,6 @@ const avatarInnerBoxStyle = {
 
 class TeamAvatar extends React.Component<{
   teamname: string,
-  isHovered: boolean,
   isMuted: boolean,
   isSelected: boolean,
 }> {
@@ -131,12 +130,11 @@ class TeamAvatar extends React.Component<{
     return (
       <Box style={avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={48} />
-        <MutedIcon
-          isSelected={this.props.isSelected}
-          isMuted={this.props.isMuted}
-          isHovered={this.props.isHovered}
-          isLocked={false}
-        />
+        {isMobile ? (
+          <MutedIconMobile isSelected={this.props.isSelected} isMuted={this.props.isMuted} isLocked={false} />
+        ) : (
+          <MutedIcon isMuted={this.props.isMuted} isLocked={false} />
+        )}
       </Box>
     )
   }

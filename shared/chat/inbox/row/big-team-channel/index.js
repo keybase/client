@@ -2,7 +2,6 @@
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {
-  collapseStyles,
   globalStyles,
   globalColors,
   globalMargins,
@@ -24,30 +23,18 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-type State = {
-  isHovered: boolean,
-}
-
-class BigTeamChannel extends PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
+class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Box style={styles.rowContainer}>
           <Box
-            className="hover_background_color_blueGrey2"
-            style={collapseStyles([
-              styles.channelBackground,
-              this.props.isSelected && styles.selectedChannelBackground,
-            ])}
-            onMouseLeave={this._onMouseLeave}
-            onMouseOver={this._onMouseOver}
+            className={`channel_name ${
+              this.props.isSelected
+                ? 'active background_color_blue'
+                : 'inactive hover_background_color_blueGrey2'
+            }`}
+            style={styles.channelBackground}
           >
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
@@ -65,9 +52,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
             >
               #{this.props.channelname}
             </Text>
-            {this.props.isMuted && (
-              <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
-            )}
+            {this.props.isMuted && <MutedIcon />}
             {this.props.hasBadge && <UnreadIcon />}
           </Box>
         </Box>
@@ -76,21 +61,12 @@ class BigTeamChannel extends PureComponent<Props, State> {
   }
 }
 
-const MutedIcon = ({isHovered, isSelected}) => (
-  <Icon
-    type={
-      isMobile
-        ? isSelected
-          ? 'icon-shh-active-24'
-          : 'icon-shh-24'
-        : isSelected
-          ? 'icon-shh-active-16'
-          : isHovered
-            ? 'icon-shh-hover-16'
-            : 'icon-shh-16'
-    }
-    style={mutedStyle}
-  />
+const MutedIcon = () => (
+  <>
+    <Icon className="muted_icon" type="icon-shh-16" style={mutedStyle} />
+    <Icon className="muted_icon_active" type="icon-shh-active-16" style={mutedStyle} />
+    <Icon className="muted_icon_hover" type="icon-shh-hover-16" style={mutedStyle} />
+  </>
 )
 
 const mutedStyle = {
@@ -125,9 +101,6 @@ const styles = styleSheetCreate({
     },
     isElectron: desktopStyles.clickable,
   }),
-  selectedChannelBackground: {
-    backgroundColor: globalColors.blue,
-  },
   textError: {
     color: globalColors.red,
   },
