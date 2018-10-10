@@ -47,7 +47,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     I.Set(stateProps.newlyChangedItemIds || [])
   )
   return {
-    _stateOverride: newlyRevokedIds.size > 0 ? {revokedExpanded: true} : null,
+    _stateOverride: null,
     addNewComputer: dispatchProps.addNewComputer,
     addNewPaperKey: dispatchProps.addNewPaperKey,
     addNewPhone: dispatchProps.addNewPhone,
@@ -55,17 +55,14 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     loadDevices: dispatchProps.loadDevices,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
+    hasNewlyRevoked: newlyRevokedIds.size > 0,
     title: 'Devices',
     waiting: stateProps.waiting,
   }
 }
 
 const Connected = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('Devices'),
   safeSubmitPerMount(['onBack'])
 )(Devices)

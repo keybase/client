@@ -10,6 +10,7 @@ type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, ty
 
 type State = {
   revokedExpanded: boolean,
+  toggledExplicitly: boolean,
 }
 
 type Props = {|
@@ -22,6 +23,7 @@ type Props = {|
   loadDevices: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
+  hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
   ...$Exact<Kb.OverlayParentProps>,
@@ -29,13 +31,16 @@ type Props = {|
 
 class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
-  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
+  state = {
+    toggledExplicitly: false,
+    revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false,
+  }
 
   componentDidMount() {
     this.props.loadDevices()
   }
 
-  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded, toggledExplicitly: true}))
 
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
@@ -49,6 +54,10 @@ class Devices extends React.PureComponent<Props, State> {
     )
 
   render() {
+    if (this.props.hasNewlyRevoked && !this.state.toggledExplicitly) {
+      this.setState({revokedExpanded: true})
+    }
+
     const items = [
       ...this.props.items,
       ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
@@ -155,7 +164,4 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default compose(
-  Kb.OverlayParentHOC,
-  Kb.HeaderOnMobile
-)(Devices)
+export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)

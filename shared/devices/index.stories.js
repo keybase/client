@@ -50,6 +50,7 @@ const provider = Sb.createPropProviderWithCommon({
       {id: stringToDeviceID('4'), key: '4', type: 'device'},
       {id: stringToDeviceID('5'), key: '5', type: 'device'},
     ],
+    hasNewlyRevoked: false,
     showMenu: Sb.action('showMenu'),
     showingMenu: false,
     waiting: !!p.waiting,
