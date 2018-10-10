@@ -79,6 +79,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
           this.props.isSelected ? 'active background_color_blue' : 'inactive hover_background_color_blueGrey2'
         }`}
         onClick={props.onSelectConversation}
+        onMouseLeave={this._onMouseLeave}
+        onMouseOver={this._onMouseOver}
         style={styles.container}
       >
         <Box style={collapseStyles([styles.rowContainer, styles.fastBlank])}>
