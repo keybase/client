@@ -29,12 +29,13 @@ func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	ty := strings.ToLower(mimeType)
 	switch {
 	// First anything textual as text/plain.
-	// Includes javascript, html, xml. (note that the type may be e.g. application/xhtml+xml)
+	case strings.HasPrefix(ty, "text/"):
+		return "text/plain", "inline"
+	// Rest of javascript, html, xml. (note that the type may be e.g. application/xhtml+xml)
 	case strings.Contains(ty, "javascript") ||
 		strings.Contains(ty, "xml") ||
-		strings.Contains(ty, "html") ||
-		strings.HasPrefix(ty, "text/"):
-		return "text/plain", "inline"
+		strings.Contains(ty, "html"):
+		return "text/plain", "attachment"
 	// Pass multimedia types through, and pdf too.
 	case strings.HasPrefix(ty, "audio/") ||
 		strings.HasPrefix(ty, "image/") ||
