@@ -3,6 +3,7 @@ export type FeatureFlags = {|
   admin: boolean,
   avatarUploadsEnabled: boolean,
   explodingMessagesEnabled: boolean,
+  outOfDateBanner: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
   newTeamBuildingForChat: boolean,
