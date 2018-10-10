@@ -372,7 +372,7 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 // phone number, there's a chance it's allocated to a real subscriber. This
 // function generates one of 9e7 total numbers.
 func GenerateTestPhoneNumber() string {
-	ret := make([]byte, 8)
+	ret := make([]byte, 7)
 	rand.Read(ret)
 	for i := range ret {
 		ret[i] = "0123456789"[int(ret[i])%10]
@@ -382,4 +382,25 @@ func GenerateTestPhoneNumber() string {
 		ret[0] = '1'
 	}
 	return fmt.Sprintf("487%s", string(ret))
+}
+
+type getCodeResponse struct {
+	libkb.AppStatusEmbed
+	VerificationCode string `json:"verification_code"`
+}
+
+func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "test/phone_number_code",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"phone_number": libkb.S{Val: phoneNumber.String()},
+		},
+	}
+	var resp getCodeResponse
+	err = mctx.G().API.GetDecode(arg, &resp)
+	if err != nil {
+		return "", err
+	}
+	return resp.VerificationCode, nil
 }
