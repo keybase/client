@@ -219,18 +219,19 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent           *SigChain
-	id               LinkID
-	hashVerified     bool
-	sigVerified      bool
-	payloadVerified  bool
-	chainVerified    bool
-	storedLocally    bool
-	revoked          bool
-	unsigned         bool
-	dirty            bool
-	revocationsCache *[]keybase1.SigID
-	computedHighSkip *HighSkip
+	parent            *SigChain
+	id                LinkID
+	hashVerified      bool
+	sigVerified       bool
+	payloadVerified   bool
+	chainVerified     bool
+	highChainVerified bool
+	storedLocally     bool
+	revoked           bool
+	unsigned          bool
+	dirty             bool
+	revocationsCache  *[]keybase1.SigID
+	computedHighSkip  *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -872,7 +873,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		tmp.kid = serverKID
 	}
 
-	// Note, we can still can in a situation in which don't know any kids!
+	// Note, we can still be in a situation in which don't know any kids!
 	// That would be bad *if* we need to verify the signature for this link.
 
 	// only unpack the proof_text_full if owner of this link

@@ -1320,25 +1320,30 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		dev = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV,
 			mt, ctc.as(t, users[1]).user())
 
+		// text msg
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
 		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
 		require.Error(t, err)
-		_, err = postLocalForTest(t, ctc, users[0], dev,
-			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
-		require.NoError(t, err)
+
+		// dev text
 		maxDevTextBody := strings.Repeat(".", msgchecker.DevTextMessageMaxLength)
+		_, err = postLocalForTest(t, ctc, users[0], dev,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxDevTextBody}))
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], dev,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxDevTextBody + "!"}))
 		require.Error(t, err)
 
+		// headline
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody}))
 		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody + "!"}))
 		require.Error(t, err)
 
+		// topic
 		maxTopicBody := strings.Repeat("a", msgchecker.TopicMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody}))
 		require.NoError(t, err)
@@ -1347,6 +1352,21 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "#mike"}))
 		require.Error(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "mii.ke"}))
+		require.Error(t, err)
+
+		// request payment
+		maxPaymentNote := strings.Repeat(".", msgchecker.PaymentTextMaxLength)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithRequestpayment(
+			chat1.MessageRequestPayment{
+				RequestID: stellar1.KeybaseRequestID("dummy id"),
+				Note:      maxPaymentNote,
+			}))
+		require.NoError(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithRequestpayment(
+			chat1.MessageRequestPayment{
+				RequestID: stellar1.KeybaseRequestID("dummy id"),
+				Note:      maxPaymentNote + "!",
+			}))
 		require.Error(t, err)
 	})
 }

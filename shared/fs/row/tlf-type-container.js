@@ -19,8 +19,7 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath}: OwnProps) => {
     (reduction, tlf) =>
       tlf.isNew ||
       tlf.needsRekey ||
-      tlf.waitingForParticipantUnlock ||
-      (tlf.waitingForParticipantUnlock && tlf.waitingForParticipantUnlock.length && tlf.youCanUnlock)
+      (tlf.waitingForParticipantUnlock && tlf.waitingForParticipantUnlock.size && tlf.youCanUnlock)
         ? reduction + 1
         : reduction,
     0

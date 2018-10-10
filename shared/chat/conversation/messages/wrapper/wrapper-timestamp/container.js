@@ -51,6 +51,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
+  const sequentialUserMessages =
+    previous &&
+    previous.author === message.author &&
+    Constants.authorIsCollapsible(message) &&
+    Constants.authorIsCollapsible(previous)
+  const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
+
   let type = 'children'
   if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
     type = 'wrapper-author'
@@ -65,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+    isShowingUsername,
     measure: ownProps.measure,
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,

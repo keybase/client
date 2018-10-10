@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import Available from '../available/container'
-import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 
 type Props = {
   disabled?: boolean,
@@ -13,13 +12,31 @@ type Props = {
 
 const Footer = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
+    <Kb.Box2
+      direction="vertical"
+      gap="tiny"
+      gapEnd={true}
+      gapStart={true}
+      fullWidth={true}
+      style={styles.background}
+    >
       {!!props.worthDescription && (
-        <Kb.Text style={styles.worthDescription} type="BodySmall">
-          This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text style={styles.worthDescription} type="BodySmall">
+            This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+          </Kb.Text>
+          {/* <Kb.Icon
+            type="iconfont-question-mark"
+            color={globalColors.black_20}
+            hoverColor={globalColors.black_40}
+            fontSize={12}
+            style={Kb.iconCastPlatformStyles(styles.questionIcon)}
+            onClick={() => {
+              TODO
+          }/> */}
+        </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
+      <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
         {!!props.onClickRequest && (
           <Kb.Button
             type="Wallet"
@@ -52,13 +69,15 @@ const Footer = (props: Props) => (
             />
           }
         />
-      </Kb.Box2>
-      <Available />
+      </Kb.ButtonBar>
     </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = styleSheetCreate({
+  button: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     flexShrink: 0,
@@ -66,18 +85,24 @@ const styles = styleSheetCreate({
   },
   buttonBox: {
     flex: 1,
-    alignItems: 'stretch',
     justifyContent: 'center',
-  },
-  button: {
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.tiny,
+    minHeight: 0,
+    paddingBottom: globalMargins.tiny, // total bottom padding (this + box2 gapEnd) = globalMargins.small = 16
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
   },
   icon: {marginRight: globalMargins.tiny},
-  background: {
-    backgroundColor: globalColors.blue5,
+  background: platformStyles({
+    common: {
+      backgroundColor: globalColors.blue5,
+    },
+    isElectron: {
+      borderBottomLeftRadius: '4px',
+      borderBottomRightRadius: '4px',
+    },
+  }),
+  questionIcon: {
+    marginLeft: 1,
   },
   worthDescription: {
     textAlign: 'center',

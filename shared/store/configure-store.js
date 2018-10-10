@@ -90,7 +90,6 @@ const errorCatching = store => next => action => {
 export const sagaMiddleware = global._sagaMiddleware || createSagaMiddleware(crashHandler)
 // don't overwrite this on HMR
 global._sagaMiddleware = sagaMiddleware
-// export const getSagaMiddleware = () => sagaMiddleware
 
 const middlewares = [
   errorCatching,

@@ -69,6 +69,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  unreadPaymentsMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -153,6 +154,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
   publicMemoType: '',
+  readState: 'read',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -188,19 +190,32 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
+const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?RPCTypes.PaymentID) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+  let readState
+  if (w.payment.id === oldestUnread) {
+    readState = 'oldestUnread'
+  } else if (w.payment.unread) {
+    readState = 'unread'
+  } else {
+    readState = 'read'
+  }
+  return makePayment({
+    ...rpcPaymentToPaymentCommon(w.payment),
+    readState,
+  })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
     ...rpcPaymentToPaymentCommon(p),
+    // Payment details have no unread field.
+    readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
