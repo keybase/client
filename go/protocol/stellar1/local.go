@@ -797,6 +797,7 @@ type BuildPaymentLocalArg struct {
 	Amount             string               `codec:"amount" json:"amount"`
 	Currency           *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	Asset              *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	IsRequest          bool                 `codec:"isRequest" json:"isRequest"`
 	SecretNote         string               `codec:"secretNote" json:"secretNote"`
 	PublicMemo         string               `codec:"publicMemo" json:"publicMemo"`
 }

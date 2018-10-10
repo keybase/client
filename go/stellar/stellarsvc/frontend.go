@@ -879,29 +879,31 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			skipRecipient = true
 		} else {
 			readyChecklist.to = true
-			addMinBanner := func(them, amount string) {
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "info",
-					Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
-				})
-			}
-			bannerThem := "their"
-			if recipient.User != nil {
-				res.ToUsername = recipient.User.Username.String()
-				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
-			}
-			if recipient.AccountID == nil {
-				// Sending a payment to a target with no account. (relay)
-				minAmountXLM = "2.01"
-				addMinBanner(bannerThem, minAmountXLM)
-			} else {
-				isFunded, err := bpc.IsAccountFunded(s.mctx(ctx), stellar1.AccountID(recipient.AccountID.String()))
-				if err != nil {
-					log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
-				} else if !isFunded {
-					// Sending to a non-funded stellar account.
-					minAmountXLM = "1"
+			if !arg.IsRequest { // No need to bother with minimum amount banners for requests.
+				addMinBanner := func(them, amount string) {
+					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+						Level:   "info",
+						Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
+					})
+				}
+				bannerThem := "their"
+				if recipient.User != nil {
+					res.ToUsername = recipient.User.Username.String()
+					bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
+				}
+				if recipient.AccountID == nil {
+					// Sending a payment to a target with no account. (relay)
+					minAmountXLM = "2.01"
 					addMinBanner(bannerThem, minAmountXLM)
+				} else {
+					isFunded, err := bpc.IsAccountFunded(s.mctx(ctx), stellar1.AccountID(recipient.AccountID.String()))
+					if err != nil {
+						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
+					} else if !isFunded {
+						// Sending to a non-funded stellar account.
+						minAmountXLM = "1"
+						addMinBanner(bannerThem, minAmountXLM)
+					}
 				}
 			}
 		}
@@ -929,60 +931,62 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		}
 		readyChecklist.amount = true
 
-		if fromInfo.available {
-			// Check that the sender has enough asset available.
-			// Note: When adding support for sending non-XLM assets, check the asset instead of XLM here.
-			availableToSendXLM, err := bpc.AvailableXLMToSend(s.mctx(ctx), fromInfo.from)
-			availableToSendXLM = subtractFeeSoft(s.mctx(ctx), availableToSendXLM)
-			if err != nil {
-				log("error getting available balance: %v", err)
-			} else {
-				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
+		if !arg.IsRequest { // No need to check amount for requests.
+			if fromInfo.available {
+				// Check that the sender has enough asset available.
+				// Note: When adding support for sending non-XLM assets, check the asset instead of XLM here.
+				availableToSendXLM, err := bpc.AvailableXLMToSend(s.mctx(ctx), fromInfo.from)
+				availableToSendXLM = subtractFeeSoft(s.mctx(ctx), availableToSendXLM)
+				if err != nil {
+					log("error getting available balance: %v", err)
+				} else {
+					cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
+					switch {
+					case err != nil:
+						log("error comparing amounts", err)
+					case cmp == -1:
+						// Send amount is more than the available to send.
+						readyChecklist.amount = false // block sending
+						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
+						availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
+						if err == nil {
+							res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
+						}
+						if arg.Currency != nil && amountX.rate != nil {
+							// If the user entered an amount in outside currency and an exchange
+							// rate is available, attempt to show them available balance in that currency.
+							availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
+							if err != nil {
+								log("error converting available-to-send", err)
+							} else {
+								formattedATS, err := stellar.FormatCurrency(ctx, s.G(), availableToSendOutside, amountX.rate.Currency)
+								if err != nil {
+									log("error formatting available-to-send", err)
+								} else {
+									res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
+								}
+							}
+						}
+					default:
+						// Welcome back. How was your stay at the error handling hotel?
+					}
+				}
+			}
+
+			if minAmountXLM != "" {
+				cmp, err := stellarnet.CompareStellarAmounts(amountX.amountOfAsset, minAmountXLM)
 				switch {
 				case err != nil:
 					log("error comparing amounts", err)
 				case cmp == -1:
-					// Send amount is more than the available to send.
+					// amount is less than minAmountXLM
 					readyChecklist.amount = false // block sending
-					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
-					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
-					if err == nil {
-						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
-					}
-					if arg.Currency != nil && amountX.rate != nil {
-						// If the user entered an amount in outside currency and an exchange
-						// rate is available, attempt to show them available balance in that currency.
-						availableToSendOutside, err := stellarnet.ConvertXLMToOutside(availableToSendXLM, amountX.rate.Rate)
-						if err != nil {
-							log("error converting available-to-send", err)
-						} else {
-							formattedATS, err := stellar.FormatCurrency(ctx, s.G(), availableToSendOutside, amountX.rate.Currency)
-							if err != nil {
-								log("error formatting available-to-send", err)
-							} else {
-								res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s*.", formattedATS)
-							}
-						}
-					}
-				default:
-					// Welcome back. How was your stay at the error handling hotel?
+					res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
 				}
 			}
-		}
 
-		if minAmountXLM != "" {
-			cmp, err := stellarnet.CompareStellarAmounts(amountX.amountOfAsset, minAmountXLM)
-			switch {
-			case err != nil:
-				log("error comparing amounts", err)
-			case cmp == -1:
-				// amount is less than minAmountXLM
-				readyChecklist.amount = false // block sending
-				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
-			}
+			// Note: When adding support for sending non-XLM assets, check here that the recipient accepts the asset.
 		}
-
-		// Note: When adding support for sending non-XLM assets, check here that the recipient accepts the asset.
 	}
 
 	// -------------------- note + memo --------------------
@@ -994,7 +998,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		res.SecretNoteErrMsg = "Note is too long."
 	}
 
-	if len(arg.PublicMemo) <= 28 {
+	if arg.IsRequest || len(arg.PublicMemo) <= 28 { // Requests don't have public memo.
 		readyChecklist.publicMemo = true
 	} else {
 		res.PublicMemoErrMsg = "Memo is too long."
