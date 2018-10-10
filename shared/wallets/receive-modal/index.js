@@ -1,15 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  CopyText,
-  Divider,
-  Icon,
-  InfoNote,
-  Text,
-  iconCastPlatformStyles,
-} from '../../common-adapters'
+import {Box2, Button, CopyText, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
@@ -17,6 +8,7 @@ type Props = {
   accountName: string,
   federatedAddress?: string,
   onClose: () => void,
+  onRequest: () => void,
   stellarAddress: string,
 }
 
@@ -50,7 +42,7 @@ const ReceiveModal = (props: Props) => {
         style={iconCastPlatformStyles(styles.icon)}
       />
       {!Styles.isMobile && header}
-      <Button type="Wallet" label="Request from a Keybase user" fullWidth={true}>
+      <Button type="Wallet" label="Request from a Keybase user" onClick={props.onRequest} fullWidth={true}>
         <Icon
           type="iconfont-stellar-request"
           fontSize={Styles.isMobile ? 22 : 16}
@@ -66,27 +58,22 @@ const ReceiveModal = (props: Props) => {
         }}
       />
       <Text type="Body" style={styles.instructionText}>
-        People outside Keybase can send to your public Stellar address:
+        People outside Keybase can send to:
       </Text>
-      <Box2 direction="vertical" style={styles.stellarAddressContainer}>
-        <CopyText text={props.stellarAddress} />
-      </Box2>
-      {!!props.federatedAddress && (
-        <>
-          <Text type="Body" style={styles.orText}>
-            or
-          </Text>
-          <Box2 direction="vertical" style={styles.federatedAddressContainer}>
+      {/* Address section */}
+      <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+        <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+          <Text type="BodyTinySemibold">Your public Stellar address:</Text>
+          <CopyText text={props.stellarAddress} />
+        </Box2>
+        {!!props.federatedAddress && (
+          <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+            <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
             <CopyText text={props.federatedAddress} />
           </Box2>
-        </>
-      )}
-      <InfoNote>
-        <Text type="BodySmall" style={styles.infoNoteText}>
-          Use the chat interface to request Lumens from a Keybase user.
-        </Text>
-      </InfoNote>
-      {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
+        )}
+        {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
+      </Box2>
     </WalletPopup>
   )
 }
@@ -127,26 +114,16 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.medium,
     textAlign: 'center',
   },
-  instructionText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.medium,
-    },
-    isMobile: {marginBottom: Styles.globalMargins.small},
-  }),
+  instructionText: {
+    marginBottom: Styles.globalMargins.small,
+    textAlign: 'center',
+  },
   orText: {
     marginBottom: Styles.globalMargins.tiny,
   },
   requestIcon: {marginRight: Styles.globalMargins.tiny},
-  stellarAddressContainer: {
-    marginBottom: Styles.globalMargins.tiny,
-    width: '100%',
-  },
-  federatedAddressContainer: {
-    marginBottom: Styles.globalMargins.medium,
-    width: '100%',
+  stellarAddressesContainer: {
+    alignItems: 'flex-start',
   },
 })
 

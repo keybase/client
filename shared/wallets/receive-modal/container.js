@@ -25,6 +25,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   onClose: dispatchProps.navigateUp,
+  onRequest: () => {}, // TODO
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Receive)
