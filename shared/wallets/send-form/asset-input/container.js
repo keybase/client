@@ -7,7 +7,7 @@ import * as Constants from '../../../constants/wallets'
 
 const mapStateToProps = (state: TypedState) => {
   const currency = state.wallets.buildingPayment.currency
-  const displayUnit = Constants.getCurrencyAndSymbol(state, currency) 
+  const displayUnit = Constants.getCurrencyAndSymbol(state, currency)
   return {
     displayUnit,
     inputPlaceholder: currency && currency !== 'XLM' ? '0.00' : '0.0000000',

@@ -7,7 +7,6 @@ import {connect, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
-  const currency = state.wallets.currencies.find(c => c.code === build.currency)
   const banners = (state.wallets.sentPaymentError
     ? [
         {

@@ -103,7 +103,7 @@ const profileRoute = makeRouteDefNode({
           children: {},
           component: ChooseAsset,
           tags: makeLeafTags({layerOnTop: !isMobile}),
-        },  
+        },
       },
       component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),
