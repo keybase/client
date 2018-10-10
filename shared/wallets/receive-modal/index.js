@@ -37,42 +37,52 @@ const ReceiveModal = (props: Props) => {
       customComponent={Styles.isMobile && mobileHeaderWrapper}
       containerStyle={styles.container}
     >
-      <Icon
-        type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-        style={iconCastPlatformStyles(styles.icon)}
-      />
-      {!Styles.isMobile && header}
-      <Button type="Wallet" label="Request from a Keybase user" onClick={props.onRequest} fullWidth={true}>
+      <Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
         <Icon
-          type="iconfont-stellar-request"
-          fontSize={Styles.isMobile ? 22 : 16}
-          color={Styles.globalColors.white}
-          style={iconCastPlatformStyles(styles.requestIcon)}
+          type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+          style={iconCastPlatformStyles(styles.icon)}
         />
-      </Button>
+        {!Styles.isMobile && header}
+        <Button
+          type="Wallet"
+          label="Request from a Keybase user"
+          onClick={props.onRequest}
+          style={styles.requestButton}
+          fullWidth={true}
+        >
+          <Icon
+            type="iconfont-stellar-request"
+            fontSize={Styles.isMobile ? 22 : 16}
+            color={Styles.globalColors.white}
+            style={iconCastPlatformStyles(styles.requestIcon)}
+          />
+        </Button>
+      </Box2>
       <Divider
         style={{
-          marginBottom: Styles.globalMargins.medium,
-          marginTop: Styles.globalMargins.medium,
+          marginBottom: Styles.globalMargins.tiny,
+          marginTop: Styles.globalMargins.tiny,
           width: '100%',
         }}
       />
-      <Text type="Body" style={styles.instructionText}>
-        People outside Keybase can send to:
-      </Text>
-      {/* Address section */}
-      <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-        <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-          <Text type="BodyTinySemibold">Your public Stellar address:</Text>
-          <CopyText text={props.stellarAddress} />
-        </Box2>
-        {!!props.federatedAddress && (
+      <Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
+        <Text type="Body" style={styles.instructionText}>
+          People outside Keybase can send to:
+        </Text>
+        {/* Address section */}
+        <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
           <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-            <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
-            <CopyText text={props.federatedAddress} />
+            <Text type="BodyTinySemibold">Your public Stellar address:</Text>
+            <CopyText buttonType="Wallet" text={props.stellarAddress} />
           </Box2>
-        )}
-        {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
+          {!!props.federatedAddress && (
+            <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+              <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
+              <CopyText buttonType="Wallet" text={props.federatedAddress} />
+            </Box2>
+          )}
+          {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
+        </Box2>
       </Box2>
     </WalletPopup>
   )
@@ -83,9 +93,13 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'center',
   },
   container: Styles.platformStyles({
+    common: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
     isMobile: {
-      paddingTop: Styles.globalMargins.medium,
       paddingBottom: Styles.globalMargins.xlarge,
+      paddingTop: Styles.globalMargins.medium,
     },
   }),
   header: Styles.platformStyles({
@@ -121,7 +135,15 @@ const styles = Styles.styleSheetCreate({
   orText: {
     marginBottom: Styles.globalMargins.tiny,
   },
+  requestButton: {
+    flex: 0,
+    width: '100%',
+  },
   requestIcon: {marginRight: Styles.globalMargins.tiny},
+  sidePaddings: {
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
   stellarAddressesContainer: {
     alignItems: 'flex-start',
   },
