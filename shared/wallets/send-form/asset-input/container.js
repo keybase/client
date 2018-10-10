@@ -6,10 +6,11 @@ import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 
 const mapStateToProps = (state: TypedState) => {
-  const displayUnit = Constants.getCurrencyAndSymbol(state, state.wallets.buildingPayment.currency)
+  const currency = state.wallets.buildingPayment.currency
+  const displayUnit = Constants.getCurrencyAndSymbol(state, currency) 
   return {
     displayUnit,
-    inputPlaceholder: '0.00',
+    inputPlaceholder: currency && currency !== 'XLM' ? '0.00' : '0.0000000',
     bottomLabel: '', // TODO
     topLabel: '', // TODO
     value: state.wallets.buildingPayment.amount,

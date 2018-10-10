@@ -83,8 +83,8 @@ export type _BuildingPayment = {
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
-  to: string,
   sendAssetChoices: ?Array<StellarRPCTypes.SendAssetChoiceLocal>,
+  to: string,
 }
 
 export type _BuiltPayment = {

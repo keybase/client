@@ -9,27 +9,14 @@ import * as Types from '../../../constants/types/wallets'
 const mapStateToProps = (state: TypedState) => {
   const accountID = state.wallets.selectedAccount
   const to = state.wallets.buildingPayment.to
-  const currencies = Constants.getDisplayCurrencies(state).toArray()
   const selected = state.wallets.buildingPayment.currency
-  const sendAssets = state.wallets.buildingPayment.sendAssetChoices
 
   return {
-    displayChoices: (currencies || []).map(c => ({
-      currencyCode: c.code,
-      selected: c.code === selected,
-      symbol: c.symbol,
-      type: 'display choice',
-      })),
-    otherChoices: (sendAssets || []).map(a => ({
-      currencyCode: a.asset.code,
-      selected: a.asset.code === selected,
-      disabledExplanation: a.subtext || 'Support for other assets coming soon',
-      issuer: a.asset.issuer,
-      type: 'other choice',
-      })),
     accountID,
     to,
     selected,
+    currencies: Constants.getDisplayCurrencies(state).toArray(),
+    sendAssets: state.wallets.buildingPayment.sendAssetChoices,
     }
 }
 
@@ -50,6 +37,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...ownProps,
+  displayChoices: (stateProps.currencies || []).map(c => ({
+    currencyCode: c.code,
+    selected: c.code === stateProps.selected,
+    symbol: c.symbol,
+    type: 'display choice',
+    })),
+  otherChoices: (stateProps.sendAssets || []).map(a => ({
+    currencyCode: a.asset.code,
+    selected: a.asset.code === stateProps.selected,
+    disabledExplanation: a.subtext || 'Support for other assets coming soon',
+    issuer: a.asset.issuer,
+    type: 'other choice',
+    })),
   refresh: () => dispatchProps._refresh(stateProps.accountID, stateProps.to),
   onBack: () => dispatchProps._onClose(),
   onClose: () => dispatchProps._onClose(),

@@ -21,7 +21,6 @@ type ConfirmSendProps = {|
   banners?: Array<BannerType>,
   sendFailed: boolean,
   waitingKey?: string,
-  symbol?: string,
   worthDescription?: string,
   amountFormatted: string,
 |}

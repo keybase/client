@@ -38,9 +38,9 @@ type ExpanderItem = {
 
 export type Props = {
   displayChoices: Array<DisplayItem>,
+  otherChoices: Array<OtherItem>,
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
-  otherChoices: Array<OtherItem>,
   selected: string,
 }
 

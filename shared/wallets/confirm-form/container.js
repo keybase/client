@@ -26,7 +26,6 @@ const mapStateToProps = (state: TypedState) => {
     amount: built.amountFormatted || build.amount + ' ' + build.currency,
     assetConversion: built.worthDescription,
     assetType: build.currency,
-    symbol: currency ? currency.symbol : null,
     banners,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
