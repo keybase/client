@@ -335,6 +335,7 @@ type AttachmentUploader interface {
 	Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error)
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (string, error)
 }
 
 type NativeVideoHelper interface {

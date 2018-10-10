@@ -443,6 +443,22 @@ func extensionPushResult(err error, strConvID, typ string) {
 	extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
+func ExtensionGetUploadTempFile(strOutboxID string) (res string, err error) {
+	defer kbCtx.Trace("ExtensionGetUploadTempFile", func() error { return err })()
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	defer func() { err = flattenError(err) }()
+	if _, err := assertLoggedInUID(ctx, gc); err != nil {
+		return res, err
+	}
+	obid, err := chat1.MakeOutboxID(strOutboxID)
+	if err != nil {
+		return res, err
+	}
+	return gc.AttachmentUploader.GetUploadTempFile(ctx, obid)
+}
+
 func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, membersType int,
 	caption string, filename string, mimeType string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {

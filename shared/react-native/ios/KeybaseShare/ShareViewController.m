@@ -233,18 +233,21 @@ const BOOL isSimulator = NO;
 
 // handleFileURL will take a given file URL and run it through the proper backend
 // function to send the contents at that URL. 
-- (void)handleFileURL:(NSURL*)url item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
+- (void)handleFileURL:(NSURL*)url outboxID:(NSString*)outboxID item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   NSError* error;
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSString* filePath = [url relativePath];
   
-  NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
-  if (error != nil) {
-    NSLog(@"failed to register send: %@", error);
-    [self maybeCompleteRequest:lastItem];
-    return;
+  // If we don't already have an outboxID, then let's get one
+  if (outboxID == nil) {
+    outboxID = KeybaseExtensionRegisterSend(convID, &error);
+    if (error != nil) {
+      NSLog(@"failed to register send: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
   }
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
@@ -298,18 +301,23 @@ const BOOL isSimulator = NO;
   // If we get an image in the form of a UIImage, we first write it to a temp file
   // and run it through the normal file sharing code path.
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
-    NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
-    NSString* filename = [NSString stringWithFormat:@"%@upload_%@", NSTemporaryDirectory(), guid];
-    NSURL* url = [NSURL fileURLWithPath:filename];
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
+    if (error != nil) {
+      NSLog(@"failed to register send: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
+    NSString* filename = KeybaseExtensionGetUploadTempFile(outboxID, &error);
+    if (error != nil) {
+      NSLog(@"failed to get upload temp file %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
     
+    NSURL* url = [NSURL fileURLWithPath:filename];
     NSData* imageData = UIImageJPEGRepresentation(image, 0.7);
     [imageData writeToFile:filename atomically:YES];
-    [self handleFileURL:url item:item lastItem:lastItem];
-    
-    [[NSFileManager defaultManager] removeItemAtPath:filename error:&error];
-    if (error != nil) {
-      NSLog(@"unable to remove temp file: %@", error);
-    }
+    [self handleFileURL:url outboxID:outboxID item:item lastItem:lastItem];
   };
   
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
@@ -326,7 +334,7 @@ const BOOL isSimulator = NO;
       }
       return;
     }
-    [self handleFileURL:url item:item lastItem:lastItem];
+    [self handleFileURL:url outboxID:nil item:item lastItem:lastItem];
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {

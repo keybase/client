@@ -204,6 +204,10 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	}
 	u.taskStorage.completeTask(ctx, outboxID)
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
+	// just always attempts to remove the upload temp file for this outbox ID, even if it might not be there
+	if utf, err := u.GetUploadTempFile(ctx, outboxID); err == nil {
+		os.Remove(utf)
+	}
 }
 
 func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
@@ -553,4 +557,12 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.doneUploading(outboxID)
 	}()
 	return upload.uploadResult, nil
+}
+
+func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (string, error) {
+	dir := filepath.Join(u.G().GetSharedCacheDir(), "uploadtemps")
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, outboxID.String()), nil
 }
