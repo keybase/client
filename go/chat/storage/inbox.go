@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -146,15 +147,18 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID) (inboxDiskDa
 	return ibox, nil
 }
 
-func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
-	path := filepath.Join(i.G().GetEnv().GetConfigDir(), "inbox.mpack")
+func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypteddb.EncryptedFile, error) {
+	path := filepath.Join(i.G().GetEnv().GetSharedDataDir(), "sharedinbox", uid.String(), "inbox.mpack")
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		return nil, err
+	}
 	return encrypteddb.NewFile(i.G().ExternalG(), path,
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
-		})
+		}), nil
 }
 
-func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
+func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, uid gregor1.UID) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
 		i.G().GetAppType() != libkb.MobileAppType {
@@ -183,7 +187,12 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 			MembersType: rc.Conv.GetMembersType(),
 		})
 	}
-	if err := i.sharedInboxFile(ctx).Put(ctx, writable); err != nil {
+	sif, err := i.sharedInboxFile(ctx, uid)
+	if err != nil {
+		i.Debug(ctx, "writeMobileSharedInbox: failed to get shared inbox file: %s", err)
+		return
+	}
+	if err := sif.Put(ctx, writable); err != nil {
 		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
 	}
 }
@@ -205,7 +214,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
 	}
-	i.writeMobileSharedInbox(ctx, ibox)
+	i.writeMobileSharedInbox(ctx, ibox, uid)
 	return nil
 }
 
@@ -693,7 +702,11 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 func (i *Inbox) ReadShared(ctx context.Context, uid gregor1.UID) (res []SharedInboxItem, err Error) {
 	// no lock required here since we are just reading from a separate file
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("ReadShared(%s)", uid))()
-	if ierr := i.sharedInboxFile(ctx).Get(ctx, &res); ierr != nil {
+	sif, ierr := i.sharedInboxFile(ctx, uid)
+	if ierr != nil {
+		return res, NewInternalError(ctx, i.DebugLabeler, "error getting shared inbox: %s", ierr)
+	}
+	if ierr := sif.Get(ctx, &res); ierr != nil {
 		return res, NewInternalError(ctx, i.DebugLabeler, "error reading shared inbox: %s", ierr)
 	}
 	return res, nil

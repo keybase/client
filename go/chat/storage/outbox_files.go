@@ -30,7 +30,7 @@ func newOutboxFilesStorage(g *globals.Context, uid gregor1.UID) *outboxFilesStor
 }
 
 func (s *outboxFilesStorage) getDir() string {
-	base := s.G().GetEnv().GetConfigDir()
+	base := s.G().GetEnv().GetSharedDataDir()
 	return filepath.Join(base, "fileoutbox", s.uid.String())
 }
 
