@@ -55,19 +55,20 @@ func (f *FavoritesAPIResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func (e *FavoriteList) cacheFolder(m libkb.MetaContext, folder keybase1.Folder) {
+	if folder.TeamID == nil || folder.TeamID.IsNil() {
+		return
+	}
 	name, err := keybase1.TeamNameFromString(folder.Name)
 	if err != nil {
 		m.CDebugf("cannot cache folder %+v: %s", folder, err)
 		return
 	}
-	m.G().Resolver.CacheTeamResolution(m, folder.TeamID, name)
+	m.G().Resolver.CacheTeamResolution(m, *folder.TeamID, name)
 }
 
 func (e *FavoriteList) cacheFolders(m libkb.MetaContext, folders []keybase1.Folder) {
 	for _, f := range folders {
-		if !f.TeamID.IsNil() {
-			e.cacheFolder(m, f)
-		}
+		e.cacheFolder(m, f)
 	}
 }
 

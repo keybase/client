@@ -38,14 +38,17 @@
           "name": "created"
         },
         {
-          "type": "TeamID",
+          "type": "FolderType",
+          "name": "folderType"
+        },
+        {
+          "type": [
+            null,
+            "TeamID"
+          ],
           "name": "teamID",
           "jsonkey": "team_id",
           "mpackkey": "team_id"
-        },
-        {
-          "type": "FolderType",
-          "name": "folderType"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."
