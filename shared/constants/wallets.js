@@ -195,7 +195,7 @@ const partyToDescription = (type, username, assertion, name, id): string => {
 
 const paymentResultToPayment = (
   w: RPCTypes.PaymentOrErrorLocal,
-  pending: boolean,
+  section: Types.PaymentSection,
   oldestUnread: ?RPCTypes.PaymentID
 ) => {
   if (!w) {
@@ -213,15 +213,14 @@ const paymentResultToPayment = (
     readState = 'read'
   }
   return makePayment({
-    ...rpcPaymentToPaymentCommon(w.payment),
+    ...rpcPaymentToPaymentCommon(w.payment, section),
     readState,
-    section: pending ? 'pending' : 'history',
   })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
-    ...rpcPaymentToPaymentCommon(p),
+    ...rpcPaymentToPaymentCommon(p, 'history'),
     // Payment details have no unread field.
     readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
@@ -229,7 +228,10 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
     txID: p.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (
+  p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
+  section: Types.PaymentSection
+) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
@@ -248,6 +250,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
+    section,
     source,
     sourceAccountID: p.fromAccountID,
     sourceType,
