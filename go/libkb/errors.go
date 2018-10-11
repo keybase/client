@@ -1642,6 +1642,7 @@ const (
 	ResolutionErrorNotFound
 	ResolutionErrorAmbiguous
 	ResolutionErrorRateLimited
+	ResolutionErrorInvalidInput
 )
 
 type ResolutionError struct {

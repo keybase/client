@@ -100,6 +100,7 @@ func TestInvalidPhoneNumberResolve(t *testing.T) {
 	ann := tt.addUser("ann")
 	_, _, err := ann.tc.G.Resolver.ResolveUser(ann.MetaContext(), "111@phone")
 	require.Error(t, err)
-	// TODO: figure out better type for this error.
-	require.IsType(t, libkb.AppStatusError{}, err)
+	require.IsType(t, libkb.ResolutionError{}, err)
+	resErr := err.(libkb.ResolutionError)
+	require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
 }

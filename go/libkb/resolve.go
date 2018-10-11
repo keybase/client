@@ -297,9 +297,8 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	if au.IsServerTrust() {
 		if _, ok := au.(AssertionPhoneNumber); ok {
 			return r.resolvePhoneNumberViaServerLookup(m, au, input)
-		} else {
-			res.err = ResolutionError{Input: input, Msg: "don't know how to resolve", Kind: ResolutionErrorNotFound}
 		}
+		res.err = ResolutionError{Input: input, Msg: "don't know how to resolve", Kind: ResolutionErrorNotFound}
 		return
 	}
 
@@ -445,17 +444,20 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 		return res
 	}
 
-	// TODO: Do this in ToLookup() ? Or do not do this at all, since the server
-	// might as well deal with it.
-	val = fmt.Sprintf("+%s", val)
-
 	arg := NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = make(HTTPArgs)
 	arg.Args["phone_number"] = S{Val: val}
+	arg.AppStatusCodes = []int{SCOk}
 
 	var lookup phoneNumberLookup
 	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
+		if appErr, ok := err.(AppStatusError); ok {
+			switch appErr.Code {
+			case SCInputError:
+				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
+			}
+		}
 		res.err = err
 		return res
 	}
