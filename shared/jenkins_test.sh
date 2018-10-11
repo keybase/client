@@ -53,7 +53,7 @@ js_tests() {
 
     echo 'checking no mutated yarn.lock file'
     git diff --exit-code yarn.lock
-    check_rc $? 'unexpected yarn.lock changes, did you forget to commit it?' 1
+    check_rc $? 'unexpected yarn.lock changes, did you forget to commit it? Do you have an inexact semver?' 1
 
     echo 'yarn build-actions'
     yarn build-actions
