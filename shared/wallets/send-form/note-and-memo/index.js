@@ -55,6 +55,7 @@ class NoteAndMemo extends React.Component<Props, State> {
       const secretNote =
         this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
       const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
+      this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
         const noteInput = this._note.current
         if (noteInput) {
