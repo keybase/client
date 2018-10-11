@@ -111,14 +111,19 @@ protocol proveCommon {
     int max;
   }
 
+  record ParamProofLogoConfig {
+    string url;
+    @jsonkey("fa_icon")
+    string faIcon;
+  }
+
   record ParamProofServiceConfig {
     int version;
     string domain;
     @jsonkey("display_name")
     string displayName;
     union { null, string } group;
-    @jsonkey("logo_url")
-    string logoUrl;
+    union { null, ParamProofLogoConfig} logo;
     string description;
     @jsonkey("username")
     ParamProofUsernameConfig usernameConfig;

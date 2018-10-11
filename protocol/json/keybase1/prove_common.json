@@ -152,6 +152,21 @@
     },
     {
       "type": "record",
+      "name": "ParamProofLogoConfig",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "faIcon",
+          "jsonkey": "fa_icon"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ParamProofServiceConfig",
       "fields": [
         {
@@ -175,9 +190,11 @@
           "name": "group"
         },
         {
-          "type": "string",
-          "name": "logoUrl",
-          "jsonkey": "logo_url"
+          "type": [
+            null,
+            "ParamProofLogoConfig"
+          ],
+          "name": "logo"
         },
         {
           "type": "string",
