@@ -47,7 +47,7 @@ func TestResolvePhoneToUser(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.addUser("ann")
+	ann := tt.addUser("ann")
 	bob := tt.addUser("bob")
 	tt.logUserNames()
 
@@ -91,6 +91,12 @@ func TestResolvePhoneToUser(t *testing.T) {
 		require.Equal(t, bob.uid, usr.Uid)
 		require.True(t, res.IsServerTrust())
 	}
+
+	// Try to create impteam with now-resolvable phone number.
+	impteamName := fmt.Sprintf("%s,%s", assertion, ann.username)
+	lookupRes, err := ann.lookupImplicitTeam2(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, fmt.Sprintf("%s,%s", ann.username, bob.username), lookupRes.DisplayName.String())
 }
 
 func TestInvalidPhoneNumberResolve(t *testing.T) {
