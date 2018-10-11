@@ -464,6 +464,40 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 	}
 }
 
+type BuildRequestResLocal struct {
+	ReadyToRequest   bool              `codec:"readyToRequest" json:"readyToRequest"`
+	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
+	ToUsername       string            `codec:"toUsername" json:"toUsername"`
+	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
+	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
+	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
+	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
+	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+}
+
+func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
+	return BuildRequestResLocal{
+		ReadyToRequest:   o.ReadyToRequest,
+		ToErrMsg:         o.ToErrMsg,
+		ToUsername:       o.ToUsername,
+		AmountErrMsg:     o.AmountErrMsg,
+		SecretNoteErrMsg: o.SecretNoteErrMsg,
+		WorthDescription: o.WorthDescription,
+		WorthInfo:        o.WorthInfo,
+		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SendBannerLocal, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Banners),
+	}
+}
+
 type RequestDetailsLocal struct {
 	Id                KeybaseRequestID     `codec:"id" json:"id"`
 	FromAssertion     string               `codec:"fromAssertion" json:"fromAssertion"`
@@ -816,6 +850,16 @@ type SendPaymentLocalArg struct {
 	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
 }
 
+type BuildRequestLocalArg struct {
+	SessionID     int                  `codec:"sessionID" json:"sessionID"`
+	To            string               `codec:"to" json:"to"`
+	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
+	Amount        string               `codec:"amount" json:"amount"`
+	Currency      *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Asset         *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	SecretNote    string               `codec:"secretNote" json:"secretNote"`
+}
+
 type GetRequestDetailsLocalArg struct {
 	SessionID int              `codec:"sessionID" json:"sessionID"`
 	ReqID     KeybaseRequestID `codec:"reqID" json:"reqID"`
@@ -957,6 +1001,7 @@ type LocalInterface interface {
 	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	BuildRequestLocal(context.Context, BuildRequestLocalArg) (BuildRequestResLocal, error)
 	GetRequestDetailsLocal(context.Context, GetRequestDetailsLocalArg) (RequestDetailsLocal, error)
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
@@ -1382,6 +1427,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"buildRequestLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]BuildRequestLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BuildRequestLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BuildRequestLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.BuildRequestLocal(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1868,6 +1929,11 @@ func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLo
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) BuildRequestLocal(ctx context.Context, __arg BuildRequestLocalArg) (res BuildRequestResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res)
 	return
 }
 
