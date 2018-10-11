@@ -13,7 +13,7 @@ import {
 } from '../common-adapters/mobile.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {chatTab, loginTab} from '../constants/tabs'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles'
 import {addSizeListener} from '../styles/status-bar'
 import * as I from 'immutable'
@@ -360,7 +360,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   }
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _me: state.config.username,
   hideNav: ownProps.routeSelected === loginTab,
 })

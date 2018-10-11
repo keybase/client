@@ -9,7 +9,6 @@ import {
   connect,
   compose,
   lifecycle,
-  type TypedState,
   withHandlers,
   withStateHandlers,
   withPropsOnChange,
@@ -18,7 +17,7 @@ import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
+const mapStateToProps = (state, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)

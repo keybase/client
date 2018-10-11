@@ -5,14 +5,14 @@ import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Route from '../../../../actions/route-tree'
 import {getMeta} from '../../../../constants/chat2/'
 import {teamsTab} from '../../../../constants/tabs'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, ownProps) => ({
+const mapStateToProps = (state, ownProps) => ({
   teamname: getMeta(state, ownProps.message.conversationIDKey).teamname,
   you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onClickUserAvatar: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

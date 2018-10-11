@@ -1,12 +1,12 @@
 // @flow
 import ChooseAsset, {type DisplayItem, type OtherItem} from '.'
-import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, lifecycle, setDisplayName} from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {navigateUp} from '../../../actions/route-tree'
 import * as Types from '../../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const to = state.wallets.buildingPayment.to
   const selected = state.wallets.buildingPayment.currency
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
     }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _refresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))

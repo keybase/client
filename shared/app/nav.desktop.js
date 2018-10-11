@@ -9,7 +9,7 @@ import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
 import * as Tabs from '../constants/tabs'
 import {switchTo} from '../actions/route-tree'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {globalStyles} from '../styles'
 import flags from '../util/feature-flags'
 import RpcStats from './rpc-stats'
@@ -73,7 +73,7 @@ const stylesTabsContainer = {
   flex: 1,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _username: state.config.username,
 })
 

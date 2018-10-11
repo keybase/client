@@ -8,13 +8,12 @@ import {
   lifecycle,
   withStateHandlers,
   withHandlers,
-  type TypedState,
 } from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<void, void>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamJoinError),
   success: state.teams.teamJoinSuccess,
   successTeamName: state.teams.teamJoinSuccessTeamName,

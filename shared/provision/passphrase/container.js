@@ -5,7 +5,7 @@ import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import * as WaitingConstants from '../../constants/waiting'
 
@@ -61,7 +61,7 @@ class _Passphrase extends Component<Props, State> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })

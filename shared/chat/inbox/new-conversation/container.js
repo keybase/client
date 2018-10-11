@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import NewConversation from '.'
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
   users: Array<string>,
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const _you = state.config.username
   const conversationIDKey = Constants.getSelectedConversation(state)
   const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
   onClick: () =>
     dispatch(

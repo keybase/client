@@ -1,11 +1,11 @@
 // @flow
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const currency = state.wallets.buildingPayment.currency
   const displayUnit = Constants.getCurrencyAndSymbol(state, currency)
   return {
@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   refresh: () => dispatch(WalletsGen.createLoadDisplayCurrencies()),
   onChangeDisplayUnit: () => {
     dispatch(
@@ -29,6 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
+
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 

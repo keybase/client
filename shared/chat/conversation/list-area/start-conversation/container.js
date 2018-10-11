@@ -3,16 +3,16 @@ import * as Constants from '../../../../constants/chat2'
 import * as WaitingConstants from '../../../../constants/waiting'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import StartConversation from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
+const mapStateToProps = (state, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
   isLoading: WaitingConstants.anyWaiting(state, Constants.waitingKeyCreating),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
   isError: state.chat2.pendingStatus === 'failed',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onStart: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
 })
 

@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../util/container'
+import {compose, connect, isMobile, setDisplayName} from '../../../../util/container'
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
@@ -29,7 +29,7 @@ const emptyStateProps = {
   _usersInfo: I.Map(),
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
     return emptyStateProps

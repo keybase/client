@@ -100,7 +100,6 @@ export function daysToLabel(days: number): string {
   return label
 }
 
-// $FlowIssue - locale with no args returns the locale
 const defaultLocale = moment.locale()
 moment.defineLocale('people', {
   parentLocale: 'en',

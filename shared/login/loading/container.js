@@ -2,9 +2,9 @@
 import * as Constants from '../../constants/config'
 import * as ConfigGen from '../../actions/config-gen'
 import Splash from '.'
-import {connect, type TypedState, isMobile} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _failedReason: state.config.daemonHandshakeFailedReason,
   _retriesLeft: state.config.daemonHandshakeRetriesLeft,
 })

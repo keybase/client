@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
+import {compose, connect, setDisplayName} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -61,7 +61,7 @@ const noEmoji = {
   emoji: '',
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const me = state.config.username || ''
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {

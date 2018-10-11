@@ -268,16 +268,6 @@ func (e ProofType) String() string {
 	return ""
 }
 
-type ProofServiceGroup struct {
-	Id string `codec:"id" json:"id"`
-}
-
-func (o ProofServiceGroup) DeepCopy() ProofServiceGroup {
-	return ProofServiceGroup{
-		Id: o.Id,
-	}
-}
-
 type SelectorEntry struct {
 	IsIndex    bool   `codec:"isIndex" json:"isIndex"`
 	Index      int    `codec:"index" json:"index"`
@@ -324,11 +314,25 @@ func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
 	}
 }
 
+type ParamProofLogoConfig struct {
+	Url    string `codec:"url" json:"url"`
+	FaIcon string `codec:"faIcon" json:"fa_icon"`
+}
+
+func (o ParamProofLogoConfig) DeepCopy() ParamProofLogoConfig {
+	return ParamProofLogoConfig{
+		Url:    o.Url,
+		FaIcon: o.FaIcon,
+	}
+}
+
 type ParamProofServiceConfig struct {
 	Version        int                      `codec:"version" json:"version"`
 	Domain         string                   `codec:"domain" json:"domain"`
 	DisplayName    string                   `codec:"displayName" json:"display_name"`
-	Group          *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
+	Group          *string                  `codec:"group,omitempty" json:"group,omitempty"`
+	Logo           *ParamProofLogoConfig    `codec:"logo,omitempty" json:"logo,omitempty"`
+	Description    string                   `codec:"description" json:"description"`
 	UsernameConfig ParamProofUsernameConfig `codec:"usernameConfig" json:"username"`
 	BrandColor     string                   `codec:"brandColor" json:"brand_color"`
 	PrefillUrl     string                   `codec:"prefillUrl" json:"prefill_url"`
@@ -342,13 +346,21 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 		Version:     o.Version,
 		Domain:      o.Domain,
 		DisplayName: o.DisplayName,
-		Group: (func(x *ProofServiceGroup) *ProofServiceGroup {
+		Group: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Group),
+		Logo: (func(x *ParamProofLogoConfig) *ParamProofLogoConfig {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Group),
+		})(o.Logo),
+		Description:    o.Description,
 		UsernameConfig: o.UsernameConfig.DeepCopy(),
 		BrandColor:     o.BrandColor,
 		PrefillUrl:     o.PrefillUrl,
