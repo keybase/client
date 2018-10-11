@@ -2252,6 +2252,11 @@ func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchA
 			arg.ConvID.String(): convStats,
 		}
 	}
+	b, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	h.Debug(ctx, "%s\n", string(b))
 	return res, err
 }
 
