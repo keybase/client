@@ -1128,6 +1128,10 @@
           ]
         },
         {
+          "name": "isRequest",
+          "type": "boolean"
+        },
+        {
           "name": "secretNote",
           "type": "string"
         },

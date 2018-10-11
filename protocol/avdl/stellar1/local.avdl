@@ -255,6 +255,8 @@ protocol local {
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
 
+    boolean isRequest, // Whether this is for requesting Lumens. TODO: do we want a buildRequestLocal instead?
+
     string secretNote,   // Encrypted for the sender, and recipient if possible.
     string publicMemo    // Public stellar memo field.
   );
