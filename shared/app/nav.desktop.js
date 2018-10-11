@@ -21,7 +21,6 @@ type Props = {
   routePath: I.List<string>,
 }
 
-
 const hotkeyTabMap = Tabs.desktopTabOrder.reduce((tabMap, tab, index) => {
   tabMap[index + 1] = tab
   return tabMap
