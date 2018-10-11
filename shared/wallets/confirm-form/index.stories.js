@@ -24,6 +24,7 @@ const provider = Sb.createPropProviderWithCommon({
 
 const confirmProps = {
   amount: '1.234 XLM',
+  amountFormatted: '1.234 XLM',
   assetConversion: '$3',
   assetType: 'Lumens',
   onBack: Sb.action('onBack'),
@@ -31,7 +32,6 @@ const confirmProps = {
   onSendClick: Sb.action('onSendClick'),
   sendFailed: false,
   waiting: false,
-  amountFormatted: '1.234 XLM',
 }
 
 const publicMemo = "Here's some Lumens!"
