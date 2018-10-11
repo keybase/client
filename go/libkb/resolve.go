@@ -427,7 +427,7 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 
 type phoneNumberLookup struct {
 	AppStatusEmbed
-	Users []keybase1.PhoneLookupResult `json:"users"`
+	User *keybase1.PhoneLookupResult `json:"user"`
 }
 
 func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
@@ -465,19 +465,18 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 		return res
 	}
 
-	l := len(lookup.Users)
-	if l == 0 {
+	if lookup.User == nil {
 		res.err = ResolutionError{Input: input, Msg: "No resolution found", Kind: ResolutionErrorNotFound}
-		return res
-	} else if l > 1 {
-		res.err = ResolutionError{Input: input, Msg: "Identify is ambiguous", Kind: ResolutionErrorAmbiguous}
 		return res
 	}
 
-	user := lookup.Users[0]
+	user := *lookup.User
 	res.resolvedKbUsername = user.Username
 	res.uid = user.Uid
 	res.isServerTrust = true
+	// TODO: We should ensure these are never cached, because phone numbers are
+	// entirely server trust, and one number can be deleted or reassigned easily.
+	res.mutable = true
 
 	return res
 }
