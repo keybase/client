@@ -5,7 +5,6 @@ import * as Constants from '../../../constants/chat2'
 import Normal from './normal/container'
 import Preview from './preview/container'
 import {connect} from '../../../util/container'
-import type {TypedState} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -18,7 +17,7 @@ type Props = {|
   noInput: boolean,
 |}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
   let conversationIDKeyToShow = conversationIDKey

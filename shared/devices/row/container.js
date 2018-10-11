@@ -2,12 +2,12 @@
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
-import {connect, compose, type TypedState, setDisplayName} from '../../util/container'
+import {connect, compose, setDisplayName} from '../../util/container'
 import DeviceRow from '.'
 
 type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean}
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
   return {
     isCurrentDevice: device.currentDevice,
@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _showExistingDevicePage: (deviceID: Types.DeviceID) =>
     dispatch(DevicesGen.createShowDevicePage({deviceID})),
 })

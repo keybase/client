@@ -2,10 +2,10 @@
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTree from '../../actions/route-tree'
-import {connect, type TypedState, isMobile} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   accounts: getAccountIDs(state),
 })
 

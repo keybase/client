@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {navigateAppend, navigateUp} from '../../../actions/route-tree'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createOpenPopup} from '../../../actions/unlock-folders-gen'
@@ -17,12 +17,12 @@ type Props = {
   youRekey: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
+const mapStateToProps = (state, {conversationIDKey}) => ({
   _you: state.config.username || '',
   rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(createOpenPopup()),

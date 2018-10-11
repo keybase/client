@@ -1,10 +1,10 @@
 // @flow
 import NoteAndMemo from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const recipientType = state.wallets.buildingPayment.recipientType
   const built = state.wallets.builtPayment
   const building = state.wallets.buildingPayment

@@ -6,7 +6,6 @@ import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import {todoTypes} from '../../constants/people'
 import {connect, branch, compose, renderNothing} from '../../util/container'
-import {type TypedState} from '../../constants/reducer'
 import {createGetMyProfile} from '../../actions/tracker-gen'
 import {navigateAppend, switchTo, navigateTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
@@ -17,7 +16,7 @@ const installLinkURL = 'https://keybase.io/download'
 
 const onSkipTodo = (type: Types.TodoType, dispatch) => () => dispatch(PeopleGen.createSkipTodo({type}))
 
-const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username || ''})
+const mapStateToProps = state => ({myUsername: state.config.username || ''})
 
 // ----- AVATAR TEAM ----- //
 const avatarTeamConnector = connect(
@@ -177,7 +176,7 @@ const gitRepoConnector = connect(
 // ----- TEAMSHOWCASE ----- //
 const teamShowcaseConnector = connect(
   () => ({}),
-  (dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       // TODO find a team that the current user is an admin of and nav there?
       dispatch(navigateTo([], [Tabs.teamsTab]))

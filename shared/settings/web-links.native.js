@@ -1,8 +1,8 @@
 // @flow
 import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
-import {connect, compose, defaultProps, type TypedState} from '../util/container'
+import {connect, compose, defaultProps} from '../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state, {routeProps}) => ({
   source: routeProps.get('source'),
   title: routeProps.get('title'),
 })

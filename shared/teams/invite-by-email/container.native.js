@@ -14,7 +14,6 @@ import {
   withPropsOnChange,
   withStateHandlers,
   lifecycle,
-  type TypedState,
 } from '../../util/container'
 import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
@@ -30,7 +29,7 @@ const extractPhoneNumber: string => ?string = (name: string) => {
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+const mapStateToProps = (state, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {

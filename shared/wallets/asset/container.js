@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import Asset from '.'
 
 type OwnProps = {
@@ -9,7 +9,7 @@ type OwnProps = {
   index: number,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 

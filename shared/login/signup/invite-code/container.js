@@ -1,10 +1,10 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
 import InviteCode from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.signup.inviteCodeError,
   inviteCode: state.signup.inviteCode,
 })

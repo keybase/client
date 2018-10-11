@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Tlf from './tlf'
 
@@ -10,7 +10,7 @@ type OwnProps = $Diff<Types.TlfRowItem, {rowType: 'tlf'}> & {
   routePath: I.List<string>,
 }
 
-const mapStateToProps = (state: TypedState, {tlfType, name}: OwnProps) => ({
+const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _tlf: Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name),
   _username: state.config.username,
 })

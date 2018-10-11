@@ -1,11 +1,11 @@
 // @flow
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import InstallSecurityPrefs from './security-prefs.desktop'
 import {navigateUp} from '../../actions/route-tree'
 import {isLinux} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
     appFocusedCount: state.config.appFocusedCount,
@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   back: () => dispatch(navigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
   _getFuseStatus: () => dispatch(FsGen.createFuseStatus()),

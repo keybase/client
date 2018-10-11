@@ -22,7 +22,7 @@ type OwnProps = {
   actionIconWhite?: boolean,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,

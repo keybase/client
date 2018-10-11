@@ -4,7 +4,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
 import {HeaderHoc} from '../../common-adapters'
-import {connect, lifecycle, compose, type TypedState} from '../../util/container'
+import {connect, lifecycle, compose} from '../../util/container'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
@@ -12,7 +12,7 @@ import type {RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{teamname: string}, {selectedTab: ?string}>
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState}: OwnProps) => {
+const mapStateToProps = (state, {routeProps, routeState}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')

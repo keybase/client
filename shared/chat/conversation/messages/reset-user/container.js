@@ -4,9 +4,9 @@ import * as Constants from '../../../../constants/chat2'
 import * as TrackerGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
-import {compose, connect, type TypedState} from '../../../../util/container'
+import {compose, connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const username = meta.resetParticipants.first() || ''
   const nonResetUsers = meta.participants.toSet().subtract(meta.resetParticipants)

@@ -50,7 +50,7 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => ({
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
   paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -111,7 +111,7 @@ const SendPaymentPopup = Container.connect(
 )(PaymentPopup)
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
+const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
   requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })

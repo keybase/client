@@ -4,7 +4,7 @@ import * as React from 'react'
 import Render from './avatar.render'
 import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
-import {setDisplayName, connect, type TypedState, compose} from '../util/container'
+import {setDisplayName, connect, compose} from '../util/container'
 import {
   platformStyles,
   desktopStyles,
@@ -164,7 +164,7 @@ class SharedAskForUserData {
 }
 const _sharedAskForUserData = new SharedAskForUserData()
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   _sharedAskForUserData._checkLoggedIn(state.config.username)
   return {

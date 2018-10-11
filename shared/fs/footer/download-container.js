@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Download, {type DownloadProps} from './download'
 import * as FsGen from '../../actions/fs-gen'
 import {formatDurationFromNowTo} from '../../util/timestamp'
@@ -10,7 +10,7 @@ type OwnProps = {
   downloadKey: string,
 }
 
-const mapStateToProps = (state: TypedState, {downloadKey}: OwnProps) => ({
+const mapStateToProps = (state, {downloadKey}: OwnProps) => ({
   _download: state.fs.downloads.get(downloadKey, Constants.makeDownload()),
 })
 

@@ -11,9 +11,9 @@ import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import {compose} from 'recompose'
 import Advanced from './index'
-import {connect, lifecycle, type TypedState} from '../../util/container'
+import {connect, lifecycle} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
   processorProfileInProgress: Constants.processorProfileInProgress(state),

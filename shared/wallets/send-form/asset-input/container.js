@@ -1,9 +1,9 @@
 // @flow
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   displayUnit: state.wallets.buildingPayment.currency,
   inputPlaceholder: '0.00',
   bottomLabel: '', // TODO

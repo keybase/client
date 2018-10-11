@@ -1,11 +1,11 @@
 // @flow
 import {WalletRow, type Props} from '.'
-import {connect, type TypedState, isMobile} from '../../../util/container'
+import {connect, isMobile} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import {createSelectAccount} from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) => {
+const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
   const account = getAccount(state, ownProps.accountID)
   const name = account.name
   const me = state.config.username || ''

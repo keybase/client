@@ -1,10 +1,10 @@
 // @flow
 import ConfirmSend from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 

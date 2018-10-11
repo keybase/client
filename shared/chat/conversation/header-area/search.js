@@ -8,10 +8,9 @@ import {
   withStateHandlers,
   lifecycle,
   withProps,
-  type TypedState,
 } from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   pendingConversationUsers: Constants.getMeta(state, Constants.pendingConversationIDKey).participants,
 })
 

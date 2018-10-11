@@ -1,12 +1,12 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
   _uploads: state.fs.uploads,

@@ -2,10 +2,10 @@
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import Tabs from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
-const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedTab}) => {
+const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedT
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {

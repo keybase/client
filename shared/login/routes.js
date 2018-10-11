@@ -7,10 +7,10 @@ import Loading from './loading/container'
 import Relogin from './relogin/container'
 import provisonRoutes from '../provision/routes'
 import signupRoutes from './signup/routes'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const showLoading = state.config.daemonHandshakeState !== 'done'
   const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
   return {showLoading, showRelogin}

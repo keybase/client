@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -12,7 +12,7 @@ export type OwnProps = {
   paymentID: Types.PaymentID,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })

@@ -6,10 +6,10 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTree from '../../../actions/route-tree'
 import Normal from '.'
-import {compose, connect, withStateHandlers, type TypedState} from '../../../util/container'
+import {compose, connect, withStateHandlers} from '../../../util/container'
 import {chatTab} from '../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   return {conversationIDKey, infoPanelOpen, isSearching, showLoader, threadLoadedOffline: meta.offline}
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
     dispatch(
       RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])

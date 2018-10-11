@@ -1,6 +1,5 @@
 // @flow
 import {compose, connect, setDisplayName} from '../../util/container'
-import {type TypedState} from '../../constants/reducer'
 import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
@@ -60,7 +59,7 @@ export const connectedPropsToProps = (
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const _following = state.config.following
   const _broken = state.tracker.userTrackers
   const _you = state.config.username
