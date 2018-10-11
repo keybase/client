@@ -26,12 +26,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: WalletConstants.sendReceiveFormRouteKey,
-          },
-        ],
+        path: [WalletConstants.sendReceiveFormRouteKey],
       })
     )
   },

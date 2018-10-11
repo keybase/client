@@ -51,7 +51,6 @@ function UserActions({
   onAcceptProofs,
   waiting,
 }: Props) {
-  console.log({onSendLumens, onRequestLumens})
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (

@@ -42,8 +42,6 @@ export const SendBody = (props: SendBodyProps) => (
   </Box2>
 )
 
-// TODO songgao : split footer as well maybe?
-
 export const RequestBody = (props: RequestBodyProps) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {props.isProcessing && <Spinner />}
