@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   onSave: email => {
     dispatch(SettingsGen.createOnChangeNewEmail({email}))

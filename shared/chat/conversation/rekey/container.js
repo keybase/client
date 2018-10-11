@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(createOpenPopup()),

@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     showSuperseded,
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
 export default compose(

@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   _onLeaveChannel: (conversationIDKey: Types.ConversationIDKey) =>

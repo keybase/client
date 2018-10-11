@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createSecretKeySeen({accountID}))
     dispatch(navigateUp())

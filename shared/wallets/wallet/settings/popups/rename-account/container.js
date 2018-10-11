@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
     dispatch(WalletsGen.createChangeAccountName({accountID, name})),
   _onDone: (name: string) => {

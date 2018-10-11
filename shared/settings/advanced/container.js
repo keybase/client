@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => ({
   traceInProgress: Constants.traceInProgress(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   onBack: () => dispatch(navigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),

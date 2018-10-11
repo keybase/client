@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState) => ({
   inviteCode: state.signup.inviteCode,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onRequestInvite: () => dispatch(navigateAppend(['requestInvite'])),
   onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),

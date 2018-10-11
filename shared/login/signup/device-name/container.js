@@ -8,7 +8,7 @@ const mapStateToProps = (state: TypedState) => ({
   error: state.signup.devicenameError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })

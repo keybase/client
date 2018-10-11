@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),

@@ -103,7 +103,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     showTeamOffer,
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,

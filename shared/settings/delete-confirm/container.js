@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(navigateUp()),
   onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
   setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),

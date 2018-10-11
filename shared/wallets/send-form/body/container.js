@@ -7,7 +7,7 @@ const mapStateToProps = (state: TypedState) => ({
   banners: state.wallets.builtPayment.banners,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,

@@ -4,7 +4,7 @@ import RequestInviteSuccess from '.'
 import {connect} from '../../../util/container'
 
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createRestartSignup()),
 })
 

@@ -3,7 +3,14 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
-import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../util/container'
+import {
+  compose,
+  connect,
+  lifecycle,
+  setDisplayName,
+  type TypedState,
+  type Dispatch,
+} from '../../util/container'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'

@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => ({
   worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onClickRequest:
     ownProps.isRequest &&
     (() => {

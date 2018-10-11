@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),

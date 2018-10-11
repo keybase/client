@@ -14,7 +14,7 @@ import {
 } from '../../../constants/wallets'
 import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = (state: TypedState) => {
   const build = state.wallets.buildingPayment
@@ -26,7 +26,7 @@ const mapStateToPropsKeybaseUser = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
+const mapDispatchToPropsKeybaseUser = dispatch => ({
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
@@ -56,7 +56,7 @@ const mapStateToPropsStellarPublicKey = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsStellarPublicKey = (dispatch: Dispatch) => ({
+const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
@@ -105,7 +105,7 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
+const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: string) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },

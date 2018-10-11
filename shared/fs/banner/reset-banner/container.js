@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, {path}) => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
     dispatch(FsGen.createLetResetUserBackIn({id, username})),
   _onOpenWithoutResetUsers: (currPath: Types.Path, users: {[string]: boolean}) => {

@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   paths: routeProps.get('paths'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
     const paths = Object.keys(pathToInfo)
     const titles = paths.map(p => pathToInfo[p].title)

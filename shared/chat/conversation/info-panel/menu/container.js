@@ -22,9 +22,9 @@ export type OwnProps = {
 }
 
 const moreThanOneSubscribedChannel = createCachedSelector(
-  (state, _) => state.chat2.metaMap,
-  (_, teamname) => teamname,
-  (metaMap, teamname) => {
+  (state, _: any) => state.chat2.metaMap,
+  (_: any, teamname: string) => teamname,
+  (metaMap, teamname: string) => {
     let found = 0
     return metaMap.some(c => {
       found += c.teamname === teamname ? 1 : 0
@@ -35,7 +35,7 @@ const moreThanOneSubscribedChannel = createCachedSelector(
       return false
     })
   }
-)((_, teamname) => teamname)
+)((_: any, teamname: string) => teamname)
 
 const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)

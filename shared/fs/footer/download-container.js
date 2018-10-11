@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState, {downloadKey}: OwnProps) => ({
   _download: state.fs.downloads.get(downloadKey, Constants.makeDownload()),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
   _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
   _canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),

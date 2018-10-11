@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {teamname, id}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onCancelInvite: ({email, teamname, username, inviteID}) => {
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, inviteID, teamname, username}))
   },

@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedT
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {

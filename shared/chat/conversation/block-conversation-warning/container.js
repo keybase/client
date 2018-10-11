@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) =>
     dispatch(
       Chat2Gen.createBlockConversation({

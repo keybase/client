@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => ({
   device: Constants.getDevice(state, state.devices.selectedDeviceID),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _showRevokeDevicePage: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createShowRevokePage({deviceID})),
   onBack: () => dispatch(navigateUp()),
 })

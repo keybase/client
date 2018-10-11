@@ -38,7 +38,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClick: isMobile
     ? (username: string) => dispatch(createShowUserProfile({username}))
     : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),

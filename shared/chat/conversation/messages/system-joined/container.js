@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {message}) => ({
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onManageChannels: (teamname: string) =>
     isMobile
       ? dispatch(RouteTree.navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))

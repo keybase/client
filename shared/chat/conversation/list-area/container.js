@@ -100,7 +100,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onShowTracker: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

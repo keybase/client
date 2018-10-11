@@ -32,7 +32,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
       Route.navigateAppend([

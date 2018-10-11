@@ -33,7 +33,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>

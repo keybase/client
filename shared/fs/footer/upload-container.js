@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false
 
-const getDebugToggleShow = (dispatch: Dispatch) => {
+const getDebugToggleShow = dispatch => {
   if (!(__DEV__ && enableDebugUploadBanner)) {
     return undefined
   }
@@ -32,7 +32,7 @@ const getDebugToggleShow = (dispatch: Dispatch) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 

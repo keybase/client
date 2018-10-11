@@ -13,7 +13,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onAccept: (name: string, username: string) =>
     dispatch(
       navigateAppend([

@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState) => ({
   passphrase: state.signup.passphrase.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (pass1: string, pass2: string) =>
     dispatch(

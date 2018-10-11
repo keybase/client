@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   isError: state.chat2.pendingStatus === 'failed',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onStart: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
 })
 

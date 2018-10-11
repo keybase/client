@@ -5,7 +5,7 @@ import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onOptionClick: choice => dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'web' : 'dns'})),
 })

@@ -15,15 +15,14 @@ import {isMobile} from '../../constants/platform'
 
 const installLinkURL = 'https://keybase.io/download'
 
-const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
-  dispatch(PeopleGen.createSkipTodo({type}))
+const onSkipTodo = (type: Types.TodoType, dispatch) => () => dispatch(PeopleGen.createSkipTodo({type}))
 
 const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username || ''})
 
 // ----- AVATAR TEAM ----- //
 const avatarTeamConnector = connect(
   mapStateToProps,
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
     onDismiss: () => {},
   }),
@@ -37,7 +36,7 @@ const avatarTeamConnector = connect(
 // ----- AVATAR USER ----- //
 const avatarUserConnector = connect(
   mapStateToProps,
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
@@ -55,7 +54,7 @@ const avatarUserConnector = connect(
 // ----- BIO ----- //
 const bioConnector = connect(
   mapStateToProps,
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     _onConfirm: (username: string) => {
       // make sure we have tracker state & profile is up to date
       dispatch(createGetMyProfile({}))
@@ -73,7 +72,7 @@ const bioConnector = connect(
 // ----- PROOF ----- //
 const proofConnector = connect(
   mapStateToProps,
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
     onDismiss: onSkipTodo('proof', dispatch),
   }),
@@ -87,7 +86,7 @@ const proofConnector = connect(
 // ----- DEVICE ----- //
 const deviceConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => openURL(installLinkURL),
     onDismiss: onSkipTodo('device', dispatch),
   }),
@@ -97,7 +96,7 @@ const deviceConnector = connect(
 // ----- FOLLOW ----- //
 const followConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
@@ -107,7 +106,7 @@ const followConnector = connect(
 // ----- CHAT ----- //
 const chatConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
@@ -117,7 +116,7 @@ const chatConnector = connect(
 // ----- PAPERKEY ----- //
 const paperKeyConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       if (!isMobile) {
         dispatch(switchTo([Tabs.devicesTab]))
@@ -134,7 +133,7 @@ const paperKeyConnector = connect(
 // ----- TEAM ----- //
 const teamConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       dispatch(navigateAppend(['showNewTeamDialog'], [Tabs.teamsTab]))
       dispatch(switchTo([Tabs.teamsTab]))
@@ -147,7 +146,7 @@ const teamConnector = connect(
 // ----- FOLDER ----- //
 const folderConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       if (!isMobile) {
         dispatch(navigateTo(['private'], [Tabs.folderTab]))
@@ -165,7 +164,7 @@ const folderConnector = connect(
 // ----- GITREPO ----- //
 const gitRepoConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onConfirm: () => {
       dispatch(navigateTo([{selected: 'newRepo', props: {isTeam: false}}], [Tabs.gitTab]))
       dispatch(switchTo([Tabs.gitTab]))
@@ -178,7 +177,7 @@ const gitRepoConnector = connect(
 // ----- TEAMSHOWCASE ----- //
 const teamShowcaseConnector = connect(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  (dispatch) => ({
     onConfirm: () => {
       // TODO find a team that the current user is an admin of and nav there?
       dispatch(navigateTo([], [Tabs.teamsTab]))

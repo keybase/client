@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
   _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>

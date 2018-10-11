@@ -6,7 +6,7 @@ const mapStateToProps = (state: TypedState) => ({
   amountErrMsg: state.wallets.builtPayment.amountErrMsg,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 
 export default compose(
   connect(

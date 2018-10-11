@@ -18,7 +18,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onAck: () => dispatch(navigateUp()),
 })
 

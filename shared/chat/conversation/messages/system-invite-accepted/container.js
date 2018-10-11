@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, ownProps) => ({
   you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onClickUserAvatar: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

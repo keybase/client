@@ -7,7 +7,6 @@ import {
   setDisplayName,
   safeSubmit,
   type TypedState,
-  type Dispatch,
 } from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
@@ -35,7 +34,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(navigateUp())
     dispatch(WalletsGen.createRefreshPayments({accountID}))

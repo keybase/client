@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _loadParticipants: conversationIDKey =>
     dispatch(
       Chat2Gen.createMetaRequestTrusted({

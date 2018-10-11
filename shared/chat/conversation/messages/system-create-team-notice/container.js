@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([

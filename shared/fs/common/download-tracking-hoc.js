@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })
 

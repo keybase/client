@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   back: () => dispatch(navigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
   _getFuseStatus: () => dispatch(FsGen.createFuseStatus()),

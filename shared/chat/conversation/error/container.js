@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
   text: Constants.getMeta(state, conversationIDKey).snippet,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(Route.navigateUp()),
 })
 

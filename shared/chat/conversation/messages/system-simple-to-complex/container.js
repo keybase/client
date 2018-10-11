@@ -8,7 +8,7 @@ const mapStateToProps = (state: TypedState) => ({
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onManageChannels: (teamname: string) =>
     dispatch(Route.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onViewTeam: (teamname: string) => {

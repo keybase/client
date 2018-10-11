@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState) => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   openDownloadFolder: isMobile
     ? undefined
     : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: downloadFolder})),

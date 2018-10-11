@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState) => ({
   accounts: getAccountIDs(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onAddNew: () => {
     dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'createNewAccount'}]))
   },

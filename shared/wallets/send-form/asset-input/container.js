@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => ({
   value: state.wallets.buildingPayment.amount,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onChangeDisplayUnit: () => {}, // TODO
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })

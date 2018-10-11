@@ -1,5 +1,6 @@
 // @flow
 import del from 'del'
+// $FlowIssue flow-typed assumes there's no default export, but there is
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'

@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _showExistingDevicePage: (deviceID: Types.DeviceID) =>
     dispatch(DevicesGen.createShowDevicePage({deviceID})),
 })

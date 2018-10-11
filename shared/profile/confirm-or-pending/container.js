@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 

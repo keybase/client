@@ -14,7 +14,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({

@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState) => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _navigateTo: (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
 })
 

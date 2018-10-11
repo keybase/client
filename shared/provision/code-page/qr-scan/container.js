@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),

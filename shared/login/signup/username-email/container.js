@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => ({
   usernameError: state.signup.usernameError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createRestartSignup()),
   onSubmit: (username: string, email: string) =>
     dispatch(SignupGen.createCheckUsernameEmail({email, username})),

@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClearError: () => dispatch(SettingsGen.createInvitesClearError()),
   onGenerateInvitation: (email: string, message: string) =>
     dispatch(SettingsGen.createInvitesSend({email, message})),

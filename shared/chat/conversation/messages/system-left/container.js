@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState, {message}) => ({
   you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onUsernameClicked: (username: string) => {
     isMobile
       ? dispatch(createShowUserProfile({username}))

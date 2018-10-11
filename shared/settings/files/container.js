@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onInstall: () => dispatch(FsGen.createInstallFuse()),

@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onManageChannels: (teamname: string) =>
     dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onViewTeam: (teamname: string) => {

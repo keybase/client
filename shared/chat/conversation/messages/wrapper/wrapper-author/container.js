@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

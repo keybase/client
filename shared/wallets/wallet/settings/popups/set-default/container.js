@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     waiting: anyWaiting(state, Constants.setAccountAsDefaultWaitingKey),
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: () => dispatch(navigateUp()),
   _onAccept: (accountID: Types.AccountID) =>
     dispatch(

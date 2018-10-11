@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onChangePublicMemo: (publicMemo: string) =>
     dispatch(
       WalletsGen.createSetBuildingPublicMemo({

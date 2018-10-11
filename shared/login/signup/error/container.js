@@ -7,7 +7,7 @@ const mapStateToProps = (state: TypedState) => ({
   error: state.signup.signupError.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onRestart: () => dispatch(SignupGen.createRestartSignup()),
 })

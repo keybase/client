@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     _onClose: () => dispatch(ownProps.navigateUp()),
     _onDelete: (accountID: Types.AccountID) => {

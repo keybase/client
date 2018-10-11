@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onOpenOlderConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpToReset'})),
 })
