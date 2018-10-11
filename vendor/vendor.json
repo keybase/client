@@ -1103,280 +1103,281 @@
 			"checksumSHA1": "mhvhIlp5MhrHWtwJ1jhqpltXBJY=",
 			"origin": "github.com/keybase/go-git",
 			"path": "gopkg.in/src-d/go-git.v4",
-			"revision": "39bf28be7d67dd9ac87c520c551ba6d3e2f02226",
-			"revisionTime": "2018-09-14T16:37:04Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "j8WJ/k3pubPRZduu4zJGahxMRtA=",
 			"origin": "github.com/keybase/go-git/config",
 			"path": "gopkg.in/src-d/go-git.v4/config",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "B2OLPJ4wnJIM2TMjTyzusYluUeI=",
 			"origin": "github.com/keybase/go-git/internal/revision",
 			"path": "gopkg.in/src-d/go-git.v4/internal/revision",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "USNOTGZ1ZvaKFkpTYhFK+sDhx5k=",
 			"origin": "github.com/keybase/go-git/plumbing",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "qgD8lc3kJk3DHI2M/lpZ16a564Q=",
 			"origin": "github.com/keybase/go-git/plumbing/cache",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/cache",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "pHPMiAzXG/TJqTLEKj2SHjxX4zs=",
 			"origin": "github.com/keybase/go-git/plumbing/filemode",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/filemode",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "UGIM9BX7w3MhiadsuN6f8Bx0VZU=",
 			"origin": "github.com/keybase/go-git/plumbing/format/config",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/config",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "+/I2CoHryMC9CJisfFEaZu5/m+0=",
 			"origin": "github.com/keybase/go-git/plumbing/format/diff",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/diff",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "jLwrOiP/b1uMMGNDlRFLltWrj9Y=",
 			"origin": "github.com/keybase/go-git/plumbing/format/gitignore",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/gitignore",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "eij9VZVJ8JsfFposIbuVt+Pm/A4=",
 			"origin": "github.com/keybase/go-git/plumbing/format/idxfile",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/idxfile",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "r7qhwDt+nPtNaZKp+hLd36vdkGo=",
 			"origin": "github.com/keybase/go-git/plumbing/format/index",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/index",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "0IxJpGMfdnr3cuuVE59u+1B5n9o=",
 			"origin": "github.com/keybase/go-git/plumbing/format/objfile",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/objfile",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "JK3+x1h6j1F0NH012Fw+FgH8FbM=",
+			"checksumSHA1": "CiVqywIy/F+pvCs7Vwc6mKjc/XE=",
 			"origin": "github.com/keybase/go-git/plumbing/format/packfile",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/packfile",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "07LwJZ9qvq98nM+KABN1BZxWkjU=",
 			"origin": "github.com/keybase/go-git/plumbing/format/pktline",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/pktline",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "+OAxKkzLHKxorj5nLMEACitAlLY=",
+			"checksumSHA1": "W1AJ28OoJOEs58yPYBqWYjyepLg=",
 			"origin": "github.com/keybase/go-git/plumbing/object",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/object",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "ohangTYhsr3E1GG5YfA+uobJ+aQ=",
 			"origin": "github.com/keybase/go-git/plumbing/protocol/packp",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/protocol/packp",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "JjHHYoWDYf0H//nP2FIS05ZLgj8=",
 			"origin": "github.com/keybase/go-git/plumbing/protocol/packp/capability",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "wVfbzV5BNhjW/HFFJuTCjkPSJ5M=",
 			"origin": "github.com/keybase/go-git/plumbing/protocol/packp/sideband",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "eEZ5nFvBguv43DME9TmS4pFTFys=",
 			"origin": "github.com/keybase/go-git/plumbing/revlist",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/revlist",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "bRdcgsbpPSoZrFPUAokDtRjICWE=",
+			"checksumSHA1": "i74+JK7U+XjJi0SIowfp9qpvbkc=",
 			"origin": "github.com/keybase/go-git/plumbing/storer",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/storer",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "5veyzqkhQi9f5kyDzQbed1i8Nbs=",
 			"origin": "github.com/keybase/go-git/plumbing/transport",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "cmOntUALmiRvvblEXAQXNO4Oous=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/client",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/client",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "gaKy+c/OjPQFLhENnSAFEZUngok=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/file",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/file",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "chcAwbm6J5uXXn6IV58+G6RKCjU=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/git",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/git",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "pmYusibMSF+myZrLJ2D6OpXRH84=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/http",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/http",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "zRPQ2Yggm0JfbH4Qj5JEu1LmJLE=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/internal/common",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/internal/common",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "GqIaSPbI7M4EHTCCWlPZe8e15QE=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/server",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/server",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "DpyrTAx3JCTPFocec83fQ/BLlAo=",
 			"origin": "github.com/keybase/go-git/plumbing/transport/ssh",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "FlVLBdu4cjlXj9zjRRNDurRLABU=",
 			"origin": "github.com/keybase/go-git/storage",
 			"path": "gopkg.in/src-d/go-git.v4/storage",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "B6t6c1rvShnklxqVq79ZC1sbwX0=",
+			"checksumSHA1": "g0PV0w1ZXXFYJNH81NcgIMxZiZA=",
 			"origin": "github.com/keybase/go-git/storage/filesystem",
 			"path": "gopkg.in/src-d/go-git.v4/storage/filesystem",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "kqdRKFSqBAPJ7/+E6IBgV0J3vJ8=",
+			"origin": "github.com/keybase/go-git/storage/filesystem/dotgit",
 			"path": "gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "BQFTCO+LlD1JoSdxkTWGAgyGDbA=",
+			"checksumSHA1": "/ZSEKNlCQavBBy9cytcG4sxIWn0=",
 			"origin": "github.com/keybase/go-git/storage/memory",
 			"path": "gopkg.in/src-d/go-git.v4/storage/memory",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "AzdUpuGqSNnNK6DgdNjWrn99i3o=",
 			"origin": "github.com/keybase/go-git/utils/binary",
 			"path": "gopkg.in/src-d/go-git.v4/utils/binary",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "B3pXUrmG3dk+8VWQ7t9MBpfBTHc=",
 			"origin": "github.com/keybase/go-git/utils/diff",
 			"path": "gopkg.in/src-d/go-git.v4/utils/diff",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "cspCXRxvzvoNOEUB7wRgOKYrVjQ=",
 			"origin": "github.com/keybase/go-git/utils/ioutil",
 			"path": "gopkg.in/src-d/go-git.v4/utils/ioutil",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "Fg0ylIGonlNCoSOdduW1N1+e5A8=",
 			"origin": "github.com/keybase/go-git/utils/merkletrie",
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "QiHHx1Qb/Vv4W6uQb+mJU2zMqLo=",
 			"origin": "github.com/keybase/go-git/utils/merkletrie/filesystem",
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie/filesystem",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "M+6y9mdBFksksEGBceBh9Se3W7Y=",
 			"origin": "github.com/keybase/go-git/utils/merkletrie/index",
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie/index",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "7eEw/xsSrFLfSppRf/JIt9u7lbU=",
 			"origin": "github.com/keybase/go-git/utils/merkletrie/internal/frame",
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie/internal/frame",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"checksumSHA1": "qCb9d3cwnPHVLqS/U9NAzK+1Ptg=",
 			"origin": "github.com/keybase/go-git/utils/merkletrie/noder",
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie/noder",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
+			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
 			"path": "gopkg.in/warnings.v0",

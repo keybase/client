@@ -153,6 +153,79 @@ func (s *ObjectStorage) HasEncodedObject(h plumbing.Hash) (err error) {
 	return nil
 }
 
+func (s *ObjectStorage) encodedObjectSizeFromUnpacked(h plumbing.Hash) (
+	size int64, err error) {
+	f, err := s.dir.Object(h)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, plumbing.ErrObjectNotFound
+		}
+
+		return 0, err
+	}
+
+	r, err := objfile.NewReader(f)
+	if err != nil {
+		return 0, err
+	}
+	defer ioutil.CheckClose(r, &err)
+
+	_, size, err = r.Header()
+	return size, err
+}
+
+func (s *ObjectStorage) encodedObjectSizeFromPackfile(h plumbing.Hash) (
+	size int64, err error) {
+	if err := s.requireIndex(); err != nil {
+		return 0, err
+	}
+
+	pack, _, offset := s.findObjectInPackfile(h)
+	if offset == -1 {
+		return 0, plumbing.ErrObjectNotFound
+	}
+
+	f, err := s.dir.ObjectPack(pack)
+	if err != nil {
+		return 0, err
+	}
+	defer ioutil.CheckClose(f, &err)
+
+	idx := s.index[pack]
+	hash, err := idx.FindHash(offset)
+	if err == nil {
+		obj, ok := s.deltaBaseCache.Get(hash)
+		if ok {
+			return obj.Size(), nil
+		}
+	} else if err != nil && err != plumbing.ErrObjectNotFound {
+		return 0, err
+	}
+
+	var p *packfile.Packfile
+	if s.deltaBaseCache != nil {
+		p = packfile.NewPackfileWithCache(idx, s.dir.Fs(), f, s.deltaBaseCache)
+	} else {
+		p = packfile.NewPackfile(idx, s.dir.Fs(), f)
+	}
+
+	return p.GetSizeByOffset(offset)
+}
+
+// EncodedObjectSize returns the plaintext size of the given object,
+// without actually reading the full object data from storage.
+func (s *ObjectStorage) EncodedObjectSize(h plumbing.Hash) (
+	size int64, err error) {
+	size, err = s.encodedObjectSizeFromUnpacked(h)
+	if err != nil && err != plumbing.ErrObjectNotFound {
+		return 0, err
+	} else if err == nil {
+		return size, nil
+	}
+
+	return s.encodedObjectSizeFromPackfile(h)
+}
+
 // EncodedObject returns the object with the given hash, by searching for it in
 // the packfile and the git object directories.
 func (s *ObjectStorage) EncodedObject(t plumbing.ObjectType, h plumbing.Hash) (plumbing.EncodedObject, error) {

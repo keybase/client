@@ -90,6 +90,22 @@ func (p *Packfile) GetByOffset(o int64) (plumbing.EncodedObject, error) {
 	return p.nextObject()
 }
 
+func (p *Packfile) GetSizeByOffset(o int64) (size int64, err error) {
+	if _, err := p.s.SeekFromStart(o); err != nil {
+		if err == io.EOF || isInvalid(err) {
+			return 0, plumbing.ErrObjectNotFound
+		}
+
+		return 0, err
+	}
+
+	h, err := p.nextObjectHeader()
+	if err != nil {
+		return 0, err
+	}
+	return h.Length, nil
+}
+
 func (p *Packfile) nextObjectHeader() (*ObjectHeader, error) {
 	h, err := p.s.NextObjectHeader()
 	p.s.pendingObject = nil
