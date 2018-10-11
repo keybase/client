@@ -36,6 +36,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
+  amountFormatted: '',
   banners: null,
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
@@ -45,7 +46,6 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   toUsername: '',
   worthDescription: '',
   worthInfo: '',
-  amountFormatted: '',
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -78,6 +78,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
+    amountFormatted: b.amountFormatted,
     banners: b.banners,
     from: b.from,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
@@ -87,7 +88,6 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     toUsername: b.toUsername,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
-    amountFormatted: b.amountFormatted,
   })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
