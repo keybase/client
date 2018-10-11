@@ -11,7 +11,6 @@ type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, ty
 
 type State = {
   revokedExpanded: boolean,
-  toggledExplicitly: boolean,
 }
 
 type Props = {|
@@ -33,16 +32,19 @@ type Props = {|
 
 class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
-  state = {
-    toggledExplicitly: false,
-    revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false,
-  }
+  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
 
   componentDidMount() {
     this.props.loadDevices()
   }
 
-  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded, toggledExplicitly: true}))
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
+      this.setState({revokedExpanded: true})
+    }
+  }
+
+  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
 
   _renderRow = (index, item) => {
     if (item.type === 'revokedHeader') {
@@ -60,10 +62,6 @@ class Devices extends React.PureComponent<Props, State> {
   }
 
   render() {
-    if (this.props.hasNewlyRevoked && !this.state.toggledExplicitly) {
-      this.setState({revokedExpanded: true})
-    }
-
     const items = [
       ...this.props.items,
       ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
