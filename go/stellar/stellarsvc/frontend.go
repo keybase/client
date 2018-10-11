@@ -1318,10 +1318,24 @@ func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildReques
 		Currency: arg.Currency,
 		Asset:    arg.Asset,
 	}
+
+	// For requests From is always the primary account.
+	primaryAccountID, err := bpc.PrimaryAccount(s.mctx(ctx))
+	if err != nil {
+		log("PrimaryAccount -> err:%v", err)
+		res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+			Level:   "error",
+			Message: "Could not find primary account.",
+		})
+	} else {
+		bpaArg.From = &primaryAccountID
+	}
+
 	amountX := s.buildPaymentAmountHelper(ctx, bpc, bpaArg)
 	res.AmountErrMsg = amountX.amountErrMsg
 	res.WorthDescription = amountX.worthDescription
 	res.WorthInfo = amountX.worthInfo
+	readyChecklist.amount = amountX.haveAmount
 
 	// -------------------- note --------------------
 
