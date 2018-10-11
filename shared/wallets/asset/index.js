@@ -140,7 +140,6 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Text type="Body">Issuer:</Text>
     <Text type="Body" selectable={true}>
-      {/* TODO (DA) make the full address copyable */}
       {props.issuerAccountID}
     </Text>
   </Box2>
