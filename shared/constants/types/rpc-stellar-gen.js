@@ -60,6 +60,7 @@ export const localPaymentStatus = {
   completed: 3,
   error: 4,
   unknown: 5,
+  canceled: 6,
 }
 
 export const remotePaymentSummaryType = {
