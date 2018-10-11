@@ -456,6 +456,9 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 			switch appErr.Code {
 			case SCInputError:
 				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
+			// TODO: Phone number search rate limiting code goes here.
+			case SCChatRateLimit: // with different error const!
+				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
 			}
 		}
 		res.err = err

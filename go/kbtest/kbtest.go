@@ -372,7 +372,7 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 // phone number, there's a chance it's allocated to a real subscriber. This
 // function generates one of 9e7 total numbers.
 func GenerateTestPhoneNumber() string {
-	ret := make([]byte, 7)
+	ret := make([]byte, 8)
 	rand.Read(ret)
 	for i := range ret {
 		ret[i] = "0123456789"[int(ret[i])%10]
