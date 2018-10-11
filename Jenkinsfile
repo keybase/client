@@ -242,7 +242,7 @@ helpers.rootLinuxNode(env, {
 
 def runNixTest(prefix) {
     retry(5) {
-        sh 'go get -u github.com/golang/lint/golint github.com/golang/mock/gomock github.com/golang/mock/mockgen'
+        sh 'go get -u golang.org/x/lint/golint github.com/golang/mock/gomock github.com/golang/mock/mockgen'
     }
 
     // Avoid build specific errors by compiling for production.
