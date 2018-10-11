@@ -124,3 +124,83 @@ func TestLoadLiteBasicUser(t *testing.T) {
 	Logout(tc)
 	assertUPAKLiteMatchesUPAK(t, tc, uid)
 }
+
+func kidsForDeviceType(tc libkb.TestContext, fu *FakeUser, typ string) (did keybase1.DeviceID, sibkeyKID keybase1.KID, subkeyKID keybase1.KID) {
+	t := tc.T
+	devices, _ := getActiveDevicesAndKeys(tc, fu)
+	var needle *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			needle = device
+		}
+	}
+	require.NotNil(t, needle, "no device found")
+
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
+	u, err := libkb.LoadUser(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(needle.ID)
+	require.NoError(t, err)
+	subkey, err := u.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(needle.ID)
+	require.NoError(t, err)
+	return needle.ID, sibkey.GetKID(), subkey.GetKID()
+
+}
+
+func testLoadKeyCorrectness(tc libkb.TestContext, loader libkb.UPAKLoader, fu *FakeUser, sibkeyKID keybase1.KID, subkeyKID keybase1.KID) {
+	t := tc.T
+
+	upakLite, _, keyLite, err := loader.LoadKey(context.TODO(), fu.UID(), sibkeyKID, false)
+	require.NoError(t, err, "got a sibkey from a lite load")
+	upakFull, _, keyFull, err := loader.LoadKey(context.TODO(), fu.UID(), sibkeyKID, true)
+	require.NoError(t, err)
+	require.Equal(t, keyLite, keyFull, "got same key back from lite and regular load")
+	require.Equal(t, (*upakLite).GetEldestSeqno(), (*upakFull).GetEldestSeqno(), "got same upak incarnation back from lite and regular load")
+	_, _, _, err = loader.LoadKey(context.TODO(), fu.UID(), subkeyKID, false)
+	require.Error(t, err, "didn't get subkey back from lite load")
+	_, _, _, err = loader.LoadKey(context.TODO(), fu.UID(), subkeyKID, true)
+	require.NoError(t, err)
+}
+
+// We want to make sure we're
+//	1) getting high keys, even across resets, but in the correct incarnation, even right after a reset
+//  2) not getting low keys, regardless of which incarnation they appeared in
+//  3) getting low keys includeLowKeys=true
+func TestLoadKeyFromLite(t *testing.T) {
+	tc := SetupEngineTest(t, "loadkey")
+	defer tc.Cleanup()
+
+	// basic new user
+	shinji := CreateAndSignupFakeUser(tc, "kubo")
+	uid := shinji.UID()
+	t.Logf("create new user %s, %s", shinji.Username, uid)
+
+	// make loader
+	loader := tc.G.GetUPAKLoader()
+
+	// add paper key
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), NewPaperKey(tc.G))
+	require.NoError(t, err)
+
+	// Spacer link so we don't trivially pull the last link which is a subkey
+	trackAlice(tc, shinji, libkb.GetDefaultSigVersion(tc.G))
+
+	did, sibkeyKID, subkeyKID := kidsForDeviceType(tc, shinji, libkb.DeviceTypePaper)
+	testLoadKeyCorrectness(tc, loader, shinji, sibkeyKID, subkeyKID)
+
+	// revoke key and test
+	require.NoError(t, doRevokeDevice(tc, shinji, did, false, false))
+	testLoadKeyCorrectness(tc, loader, shinji, sibkeyKID, subkeyKID)
+
+	// reset the user and test
+	ResetAccountNoLogout(tc, shinji)
+	testLoadKeyCorrectness(tc, loader, shinji, sibkeyKID, subkeyKID)
+}
