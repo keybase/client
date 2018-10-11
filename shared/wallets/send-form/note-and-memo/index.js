@@ -47,16 +47,30 @@ class NoteAndMemo extends React.Component<Props, State> {
 
   _insertEmoji = (emoji: string) => {
     if (this._note.current) {
-      this._note.current.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start) + emoji + text.slice(selection.end)
-        const pos = selection.start + 1
-        return {text: newText, selection: {start: pos, end: pos}}
-      }, true)
+      const noteInput = this._note.current
+      const selection = noteInput.getSelection()
+      if (!selection) {
+        return
+      }
+      const secretNote =
+        this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
+      const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
+      this.setState({secretNote}, () => {
+        const noteInput = this._note.current
+        if (noteInput) {
+          noteInput.setSelection(newSelection)
+        }
+      })
     }
   }
 
   _emojiPickerToggle = () => {
-    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+    this.setState(({emojiPickerOpen}) => {
+      if (emojiPickerOpen && this._note.current) {
+        this._note.current.focus()
+      }
+      return {emojiPickerOpen: !emojiPickerOpen}
+    })
   }
 
   _emojiPickerOnClick = emoji => {
