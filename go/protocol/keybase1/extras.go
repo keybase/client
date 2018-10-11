@@ -2633,6 +2633,7 @@ func (d FastTeamData) IsPublic() bool {
 
 type UPKLiteInterface interface {
 	GetUID() UID
+	GetEldestSeqno() Seqno
 	GetDeviceKeys() map[KID]PublicKeyV2NaCl
 	ToUserVersion() UserVersion
 }
@@ -2663,8 +2664,16 @@ func (u UPKLiteV1) GetUID() UID {
 	return u.Uid
 }
 
+func (u UPKLiteV1) GetEldestSeqno() Seqno {
+	return u.EldestSeqno
+}
+
 func (u UPKLiteV1AllIncarnations) GetSeqnoLinkIDs() map[Seqno]LinkID {
 	return u.SeqnoLinkIDs
+}
+
+func (u UserPlusKeysV2) GetEldestSeqno() Seqno {
+	return u.EldestSeqno
 }
 
 func (u UserPlusKeysV2) GetDeviceKeys() map[KID]PublicKeyV2NaCl {
