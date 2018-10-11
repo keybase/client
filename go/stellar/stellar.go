@@ -1392,12 +1392,16 @@ func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account
 }
 
 func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
+	g.Log.Debug("RefreshUnreadCount for stellar account %s", accountID)
 	s := getGlobal(g)
 	ctx := context.Background()
 	details, err := s.remoter.Details(ctx, accountID)
 	if err != nil {
-		return // details, err
+		return
 	}
+	g.Log.Debug("RefreshUnreadCount got details for stellar account %s", accountID)
 
 	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
+
+	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
 }
