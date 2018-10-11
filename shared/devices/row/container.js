@@ -32,6 +32,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('DeviceRow'))(
-  DeviceRow
-)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('DeviceRow')
+)(DeviceRow)
