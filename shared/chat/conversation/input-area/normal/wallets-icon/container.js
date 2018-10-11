@@ -43,8 +43,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     return renderNothingProps
   }
   const to = stateProps._meta.participants.find(u => u !== stateProps._you)
-  if (!to || to.indexOf('@') !== -1) {
-    // Send to SBS assertion not currently supported in the GUI
+  if (!to) {
     return renderNothingProps
   }
   return {
