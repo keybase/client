@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, setDisplayName, type TypedState} from '../util/container'
+import {compose, connect, setDisplayName} from '../util/container'
 import Files from '.'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -14,7 +14,7 @@ import {
 import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 import FilesLoadingHoc from './files-loading-hoc'
 
-const mapStateToProps = (state: TypedState, {path}) => ({
+const mapStateToProps = (state, {path}) => ({
   _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
   _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),

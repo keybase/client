@@ -1,8 +1,8 @@
 // @flow
 import Offline from '.'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   appFocused: state.config.appFocused,
   reachable: state.gregor.reachable,
 })

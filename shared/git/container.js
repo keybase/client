@@ -5,7 +5,7 @@ import * as GitGen from '../actions/git-gen'
 import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect, type TypedState} from '../util/container'
+import {compose, lifecycle, connect} from '../util/container'
 import {createSelector} from 'reselect'
 import {sortBy, partition} from 'lodash-es'
 
@@ -26,7 +26,7 @@ const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Typ
   }
 })
 
-const mapStateToProps = (state: TypedState, {routeState}) => {
+const mapStateToProps = (state, {routeState}) => {
   return {
     ...getRepos(state),
     expandedSet: routeState.get('expandedSet'),

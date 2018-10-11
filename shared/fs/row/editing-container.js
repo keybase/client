@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Editing from './editing'
 
 type OwnProps = {
@@ -11,7 +11,7 @@ type OwnProps = {
   routePath: I.List<string>,
 }
 
-const mapStateToProps = (state: TypedState, {editID}: OwnProps) => {
+const mapStateToProps = (state, {editID}: OwnProps) => {
   const _edit = state.fs.edits.get(editID, Constants.makeNewFolder()) // TODO make missing get better
   const _username = state.config.username
   return {

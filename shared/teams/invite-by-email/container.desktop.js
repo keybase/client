@@ -4,10 +4,10 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 import {navigateAppend} from '../../actions/route-tree'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+const mapStateToProps = (state, {routeProps}: OwnProps) => {
   const inviteError = Constants.getEmailInviteError(state)
   return {
     errorMessage: inviteError.message,

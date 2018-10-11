@@ -1,11 +1,11 @@
 // @flow
 import * as ProfileGen from '../../actions/profile-gen'
 import ProveWebsiteChoice from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onOptionClick: choice => dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'web' : 'dns'})),
 })

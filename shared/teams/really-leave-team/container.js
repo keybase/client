@@ -7,7 +7,7 @@ import LastOwnerDialog from './last-owner'
 import {getTeamMemberCount, isSubteam, leaveTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-const mapStateToProps = (state: Container.TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const name = routeProps.get('teamname')
   const memberCount = getTeamMemberCount(state, name)
   const _lastOwner = memberCount <= 1 && !isSubteam(name)

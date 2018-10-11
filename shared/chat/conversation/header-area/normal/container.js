@@ -4,10 +4,10 @@ import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
-import {branch, compose, renderComponent, connect, type TypedState} from '../../../../util/container'
+import {branch, compose, renderComponent, connect} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 
-const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
+const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
   const _isPending = conversationIDKey === Constants.pendingConversationIDKey
   let meta = Constants.getMeta(state, conversationIDKey)
   if (_isPending) {

@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import SortBar from './sortbar'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
@@ -10,7 +10,7 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
+const mapStateToProps = (state, {path}: OwnProps) => ({
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   _loadingPaths: state.fs.loadingPaths,
 })

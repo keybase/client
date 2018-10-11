@@ -5,13 +5,12 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Inbox from '..'
 import {connect, compose, setDisplayName} from '../../../util/container'
-import type {TypedState} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 import ff from '../../../util/feature-flags'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _metaMap: state.chat2.metaMap,
   _selectedConversationIDKey: Constants.getSelectedConversation(state),
   _smallTeamsExpanded: state.chat2.smallTeamsExpanded,

@@ -13,7 +13,7 @@ import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
 import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
-import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
+import {setDisplayName, connect, compose, lifecycle} from '../../../util/container'
 
 type Props = {
   message: Types.Message,
@@ -118,7 +118,7 @@ class MessageFactory extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
+const mapStateToProps = (state, {ordinal, previous, conversationIDKey}) => {
   const message: ?Types.Message = Constants.getMessage(state, conversationIDKey, ordinal)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const isEditing = !!(message && editInfo && editInfo.ordinal === message.ordinal)

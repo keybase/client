@@ -3,14 +3,14 @@ import Footer from '.'
 import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   disabled: !state.wallets.builtPayment.readyToSend,
   worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onClickRequest:
     ownProps.isRequest &&
     (() => {

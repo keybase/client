@@ -2,13 +2,13 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Types from '../constants/types/settings'
 import SettingsContainer from './render'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnProps) => ({
+const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   badgeNotifications: !state.push.hasPermissions,
   isModal: routeLeafTags.modal,

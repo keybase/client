@@ -119,7 +119,7 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-const mapStateToProps = (state: TypedState, {searchKey, showServiceFilter}: OwnProps) => {
+const mapStateToProps = (state, {searchKey, showServiceFilter}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
