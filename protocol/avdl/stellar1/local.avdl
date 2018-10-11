@@ -336,6 +336,59 @@ protocol local {
     boolean pending;
   }
 
+  // Check but do not send a request.
+  // Arguments are optional unless marked [required] or otherwise described.
+  // However, a coherent payment is required in order for res.readyToSend to returned as true.
+  BuildRequestResLocal buildRequestLocal(
+    int sessionID,
+
+    // Recipient username, acctID, or assertion.
+    // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
+    string to,
+    boolean toIsAccountID, // [required]
+
+    string amount, // Amount of the asset OR outside currency being sent. Example: "3.005"
+    // Zero or one of `asset` and `currency` should be set.
+    // If both are null or `asset` is native then XLM are being sent.
+    // If `currency` is set then XLM is being sent after converting `amount`.
+    // Note: Sending non-XLM assets is not yet supported.
+    union { null, OutsideCurrencyCode } currency,
+    union { null, Asset } asset,
+
+    string secretNote   // Encrypted for the sender, and recipient if possible.
+  );
+
+  record BuildRequestResLocal {
+    boolean readyToRequest;
+
+    // Optional. Error to show with the To field.
+    // All errMsg fields are in 'keybase chat language' markdown.
+    // Example: "This stellar address is incorrect"
+    string toErrMsg;
+
+    // Optional. `arg.to` may be an account ID that resolves to a user.
+    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
+    string toUsername;
+
+    // Optional. Error to show with the amount field.
+    // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
+    // Example: "Your available to send is *128.4567890 XLM*."
+    string amountErrMsg;
+
+    // Optional. Error to show with the encrypted note field.
+    // Example: "Note is too long"
+    string secretNoteErrMsg;
+
+    // Optional. Blank if non-native assets are being sent or if there is a global error.
+    // Example: "96.5634762 XLM"
+    // Example: "$246.47"
+    string worthDescription;
+    // Set with `worthDescription`
+    // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
+    string worthInfo;
+    array<SendBannerLocal> banners;
+  }
+
   record RequestDetailsLocal {
     KeybaseRequestID id;
 

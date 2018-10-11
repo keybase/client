@@ -1253,6 +1253,97 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
 }
 
+func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "BuildRequestLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	tracer := s.G().CTimeTracer(ctx, "BuildRequestLocal", true)
+	defer tracer.Finish()
+
+	ctx = s.buildPaymentSlot.Use(ctx, arg.SessionID)
+	if err := ctx.Err(); err != nil {
+		return res, err
+	}
+
+	readyChecklist := struct {
+		to         bool
+		amount     bool
+		secretNote bool
+	}{}
+	log := func(format string, args ...interface{}) {
+		s.G().Log.CDebugf(ctx, "brl: "+format, args...)
+	}
+
+	bpc := stellar.GetBuildPaymentCache(s.mctx(ctx))
+	if bpc == nil {
+		return res, fmt.Errorf("missing build payment cache")
+	}
+
+	// -------------------- to --------------------
+
+	tracer.Stage("to")
+	skipRecipient := len(arg.To) == 0
+	if !skipRecipient && arg.ToIsAccountID {
+		_, err := libkb.ParseStellarAccountID(arg.To)
+		if err != nil {
+			res.ToErrMsg = err.Error()
+			skipRecipient = true
+		} else {
+			readyChecklist.to = true
+		}
+	}
+	if !skipRecipient {
+		_, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
+		if err != nil {
+			log("error with recipient field %v: %v", arg.To, err)
+			res.ToErrMsg = "recipient not found"
+			skipRecipient = true
+		} else {
+			readyChecklist.to = true
+		}
+	}
+
+	// -------------------- amount + asset --------------------
+
+	tracer.Stage("amount + asset")
+	bpaArg := buildPaymentAmountArg{
+		Amount:   arg.Amount,
+		Currency: arg.Currency,
+		Asset:    arg.Asset,
+	}
+	amountX := s.buildPaymentAmountHelper(ctx, bpc, bpaArg)
+	res.AmountErrMsg = amountX.amountErrMsg
+	res.WorthDescription = amountX.worthDescription
+	res.WorthInfo = amountX.worthInfo
+
+	// -------------------- note --------------------
+
+	tracer.Stage("note")
+	if len(arg.SecretNote) <= 500 {
+		readyChecklist.secretNote = true
+	} else {
+		res.SecretNoteErrMsg = "Note is too long."
+	}
+
+	// -------------------- end --------------------
+
+	if readyChecklist.to && readyChecklist.amount && readyChecklist.secretNote {
+		res.ReadyToRequest = true
+	}
+	// Return the context's error.
+	// If just `nil` were returned then in the event of a cancellation
+	// resilient parts of this function could hide it, causing
+	// a bogus return value.
+	return res, ctx.Err()
+}
+
 func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetRequestDetailsLocalArg) (res stellar1.RequestDetailsLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "GetRequestDetailsLocal",
