@@ -44,6 +44,8 @@
         <Directory Id="INSTALLFOLDER" Name="Keybase">
           <Directory Id="UPDATEFOLDER" Name="update">
           </Directory>
+          <Directory Id="GuiDir" Name="Gui">
+          </Directory>
         </Directory>
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
