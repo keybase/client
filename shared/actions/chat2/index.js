@@ -2659,7 +2659,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
-  yield Saga.safeTakeEveryPure(ConfigGen.daemonHandshakeDone, startupInboxLoad)
+  yield Saga.safeTakeEveryPure(ConfigGen.loggedIn, startupInboxLoad)
 
   // Search handling
   yield Saga.safeTakeEveryPure(
