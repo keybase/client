@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 
@@ -24,7 +25,7 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
     return (
       <Kb.Text
         type="BodySmall"
-        className={this.state.expanded ? '' : 'hover-underline'}
+        className={Styles.classNames({'hover-underline': this.state.expanded})}
         selectable={this.state.expanded}
         onClick={this._expand}
       >

@@ -126,7 +126,7 @@ const AccountSettings = (props: SettingsProps) => {
               <Kb.Text
                 type="BodySemibold"
                 style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-                className={props.isDefault ? '' : 'hover-underline'}
+                className={Styles.classNames({'hover-underline': !props.isDefault})}
               >
                 Remove account
               </Kb.Text>
