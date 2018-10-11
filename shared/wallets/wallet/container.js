@@ -20,6 +20,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
   navigateUp,
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
+  _onMarkAsRead: (accountID, mostRecentID) => dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -36,6 +37,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   // split into pending & history
   let pending
   let history
+  let mostRecentID
   stateProps.payments &&
     stateProps.payments.forEach(p => {
       if (p.statusSimplified === 'completed') {
@@ -50,10 +52,9 @@ const mergeProps = (stateProps, dispatchProps) => {
         pending.push({paymentID: p.id, timestamp: p.time})
       }
     })
-  if (!history) {
-    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
-  } else {
+  if (history) {
     history = sortAndStripTimestamps(history)
+    mostRecentID = history.length ? history[0].paymentID : null
   }
 
   if (pending) {
@@ -63,8 +64,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     })
   }
 
+  const historyData = history || [stateProps.payments ? 'noPayments' : 'notLoadedYet']
   sections.push({
-    data: history,
+    data: historyData,
     title: 'History',
   })
 
@@ -74,6 +76,11 @@ const mergeProps = (stateProps, dispatchProps) => {
     navigateAppend: dispatchProps.navigateAppend,
     navigateUp: dispatchProps.navigateUp,
     onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
+    onMarkAsRead: () => {
+      if (mostRecentID) {
+        dispatchProps._onMarkAsRead(stateProps.accountID, mostRecentID)
+      }
+    },
     sections,
   }
 }

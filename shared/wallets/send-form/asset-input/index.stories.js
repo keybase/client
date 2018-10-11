@@ -1,14 +1,18 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../../../stories/storybook'
+import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import {withStateHandlers} from '../../../util/container'
 import AssetInput from '.'
+import type {Props as AvailableProps} from '../available'
+
+const provider = Sb.createPropProvider({
+  Available: () => ({amountErrMsg: ''}: AvailableProps),
+})
 
 const common = {
-  onChangeAmount: action('onChangeAmount'),
-  onChangeDisplayUnit: action('onChangeDisplayUnit'),
-  onClickInfo: action('onClickInfo'),
+  onChangeAmount: Sb.action('onChangeAmount'),
+  onChangeDisplayUnit: Sb.action('onChangeDisplayUnit'),
   topLabel: '',
   value: '',
 }
@@ -72,7 +76,8 @@ const StatefulAssetInput: any = withStateHandlers(
 )(AssetInput)
 
 const load = () => {
-  storiesOf('Wallets/SendForm/Asset input', module)
+  Sb.storiesOf('Wallets/SendForm/Asset input', module)
+    .addDecorator(provider)
     .addDecorator(story => <Box style={{maxWidth: 500, padding: 20}}>{story()}</Box>)
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props2} />)

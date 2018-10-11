@@ -194,6 +194,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
         onCancelPayment={null}
         onCancelPaymentWaitingKey=""
         onShowProfile={props.onShowProfile}
+        // Don't render unread state in detail view.
+        readState="read"
         selectableText={true}
         status={props.status}
         statusDetail={props.statusDetail}

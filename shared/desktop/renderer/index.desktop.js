@@ -26,6 +26,11 @@ import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
+// Top level HMR accept
+if (module.hot) {
+  module.hot.accept()
+}
+
 let _store
 function setupStore() {
   if (!_store) {

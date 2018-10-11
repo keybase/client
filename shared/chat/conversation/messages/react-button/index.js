@@ -286,7 +286,7 @@ const styles = Styles.styleSheetCreate({
       width: 37,
     },
     isElectron: {
-      minHeight: 16,
+      minHeight: 18,
       overflow: 'hidden',
     },
   }),
