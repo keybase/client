@@ -25,7 +25,7 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
     return (
       <Kb.Text
         type="BodySmall"
-        className={Styles.classNames({'hover-underline': this.state.expanded})}
+        className={Styles.classNames({'hover-underline': !this.state.expanded})}
         selectable={this.state.expanded}
         onClick={this._expand}
       >
