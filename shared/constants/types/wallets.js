@@ -89,6 +89,7 @@ export type _BuildingPayment = {
 
 export type _BuiltPayment = {
   amountErrMsg: string,
+  amountFormatted: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: string,
   publicMemoErrMsg: HiddenString,
@@ -98,7 +99,6 @@ export type _BuiltPayment = {
   toUsername: string,
   worthDescription: string,
   worthInfo: string,
-  amountFormatted: string,
 }
 
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'

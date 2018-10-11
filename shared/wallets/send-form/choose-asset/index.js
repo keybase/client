@@ -25,9 +25,9 @@ const unexpandedNumDisplayOptions = 4
 export type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
 export type OtherItem = {
   currencyCode: string,
-  selected: boolean,
   disabledExplanation: string,
   issuer: string,
+  selected: boolean,
   type: 'other choice',
 }
 type ExpanderItem = {
@@ -38,9 +38,9 @@ type ExpanderItem = {
 
 export type Props = {
   displayChoices: Array<DisplayItem>,
-  otherChoices: Array<OtherItem>,
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
+  otherChoices: Array<OtherItem>,
   selected: string,
 }
 
