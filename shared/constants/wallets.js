@@ -23,7 +23,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
-const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
+const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
@@ -49,14 +49,26 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   worthInfo: '',
 })
 
+const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  readyToRequest: false,
+  secretNoteErrMsg: new HiddenString(''),
+  toErrMsg: '',
+  toUsername: '',
+  worthDescription: '',
+  worthInfo: '',
+})
+
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
-  buildingPayment: makeBuildingPayment(),
+  building: makeBuilding(),
   builtPayment: makeBuiltPayment(),
+  builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
   currencyMap: I.Map(),
@@ -84,6 +96,18 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     from: b.from,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
+    secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    toErrMsg: b.toErrMsg,
+    toUsername: b.toUsername,
+    worthDescription: b.worthDescription,
+    worthInfo: b.worthInfo,
+  })
+
+const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
+  makeBuiltRequest({
+    amountErrMsg: b.amountErrMsg,
+    banners: b.banners,
+    readyToRequest: b.readyToRequest,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
     toUsername: b.toUsername,
@@ -521,6 +545,7 @@ export {
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
+  buildRequestResultToBuiltRequest,
   chooseAssetFormRouteKey,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
@@ -548,8 +573,9 @@ export {
   makeAssetDescription,
   makeAssets,
   makeCurrencies,
-  makeBuildingPayment,
+  makeBuilding,
   makeBuiltPayment,
+  makeBuiltRequest,
   makePayment,
   makeRequest,
   makeReserve,

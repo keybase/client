@@ -5,11 +5,18 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToProps = state => ({
-  isRequest: state.wallets.buildingPayment.isRequest,
-  disabled: !state.wallets.builtPayment.readyToSend,
-  worthDescription: state.wallets.builtPayment.worthDescription,
-})
+const mapStateToProps = state => {
+  const {isRequest} = state.wallets.building
+  return {
+    isRequest,
+    disabled: !(isRequest
+      ? state.wallets.builtRequest.readyToRequest
+      : state.wallets.builtPayment.readyToSend),
+    worthDescription: isRequest
+      ? state.wallets.builtRequest.worthDescription
+      : state.wallets.builtPayment.worthDescription,
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   onClickRequest: () => {

@@ -6,9 +6,9 @@ import HiddenString from '../../../util/hidden-string'
 
 const secretNoteConnector = {
   mapStateToProps: state => {
-    const recipientType = state.wallets.buildingPayment.recipientType
-    const built = state.wallets.builtPayment
-    const building = state.wallets.buildingPayment
+    const recipientType = state.wallets.building.recipientType
+    const building = state.wallets.building
+    const built = building.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
     return {
       secretNote: building.secretNote.stringValue(),
       secretNoteError: built.secretNoteErrMsg.stringValue(),
@@ -23,8 +23,8 @@ const secretNoteConnector = {
 
 const publicMemoConnector = {
   mapStateToProps: state => {
+    const building = state.wallets.building
     const built = state.wallets.builtPayment
-    const building = state.wallets.buildingPayment
     return {
       publicMemo: building.publicMemo.stringValue(),
       publicMemoError: built.publicMemoErrMsg.stringValue(),

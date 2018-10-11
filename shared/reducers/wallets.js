@@ -17,16 +17,25 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.builtPaymentReceived:
-      return action.payload.forBuildingPayment === state.buildingPayment
+      return action.payload.forBuilding === state.building
         ? state.set(
             'builtPayment',
             state.builtPayment.merge(Constants.makeBuiltPayment(action.payload.build))
           )
         : state
-    case WalletsGen.clearBuildingPayment:
-      return state.set('buildingPayment', Constants.makeBuildingPayment())
+    case WalletsGen.builtRequestReceived:
+      return action.payload.forBuilding === state.building
+        ? state.set(
+            'builtRequest',
+            state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build))
+          )
+        : state
+    case WalletsGen.clearBuilding:
+      return state.set('building', Constants.makeBuilding())
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
+    case WalletsGen.clearBuiltRequest:
+      return state.set('builtRequest', Constants.makeBuiltRequest())
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
         Constants.updatePaymentMap(payments, [action.payload.payment])
@@ -66,31 +75,31 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     }
     case WalletsGen.setBuildingAmount:
       const {amount} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({amount}))
+      return state.set('building', state.get('building').merge({amount}))
     case WalletsGen.setBuildingCurrency:
       const {currency} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({currency}))
+      return state.set('building', state.get('building').merge({currency}))
     case WalletsGen.setBuildingFrom:
       const {from} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({from}))
+      return state.set('building', state.get('building').merge({from}))
     case WalletsGen.setBuildingIsRequest:
       const {isRequest} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({isRequest}))
+      return state.set('building', state.get('building').merge({isRequest}))
     case WalletsGen.setBuildingPublicMemo:
       const {publicMemo} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({publicMemo}))
+      return state.set('building', state.get('building').merge({publicMemo}))
     case WalletsGen.setBuildingRecipientType:
       const {recipientType} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({recipientType}))
+      return state.set('building', state.get('building').merge({recipientType}))
     case WalletsGen.setBuildingSecretNote:
       const {secretNote} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({secretNote}))
+      return state.set('building', state.get('building').merge({secretNote}))
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
+      return state.set('building', state.get('building').merge({to}))
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
-      return state.set('buildingPayment', state.get('buildingPayment').merge({sendAssetChoices}))
+      return state.set('building', state.get('building').merge({sendAssetChoices}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
@@ -177,7 +186,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
-    case WalletsGen.buildPayment:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:

@@ -5,7 +5,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
 
 const mapStateToProps = state => {
-  const build = state.wallets.buildingPayment
+  const build = state.wallets.building
   const built = state.wallets.builtPayment
   const banners = (state.wallets.sentPaymentError
     ? [

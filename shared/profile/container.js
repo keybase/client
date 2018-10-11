@@ -117,8 +117,8 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
       )
     ),
   _onSendOrRequestLumens: (to: string, isRequest) => {
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createClearBuilding())
+    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createClearErrors())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))

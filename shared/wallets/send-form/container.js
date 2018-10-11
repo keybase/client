@@ -5,7 +5,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
 
 const mapStateToProps = state => ({
-  isRequest: state.wallets.buildingPayment.isRequest,
+  isRequest: state.wallets.building.isRequest,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({

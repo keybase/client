@@ -4,7 +4,9 @@ import {compose, connect, setDisplayName} from '../../../util/container'
 import {bannerLevelToBackground} from '../../../constants/wallets'
 
 const mapStateToProps = state => ({
-  banners: state.wallets.builtPayment.banners,
+  banners: state.wallets.building.isRequest
+    ? state.wallets.builtRequest.banners
+    : state.wallets.builtPayment.banners,
 })
 
 const mapDispatchToProps = dispatch => ({})
