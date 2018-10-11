@@ -132,6 +132,10 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 
 func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stellar1.AccountID, unreadCount int) {
 	b.badgeState.SetWalletAccountUnreadCount(accountID, unreadCount)
+	err := b.Send(ctx)
+	if err != nil {
+		b.G().Log.CDebugf(ctx, "Badger send (SetWalletAccountUnreadCount) failed: %s", err)
+	}
 }
 
 func (b *Badger) Clear(ctx context.Context) {

@@ -302,7 +302,7 @@ def testGo(prefix) {
 
         println "Running lint and vet"
         retry(5) {
-            sh 'go get -u github.com/golang/lint/golint'
+            sh 'go get -u golang.org/x/lint/golint'
         }
         retry(5) {
             timeout(activity: true, time: 30, unit: 'SECONDS') {

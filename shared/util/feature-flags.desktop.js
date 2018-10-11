@@ -30,7 +30,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
 
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && inAdmin[k])
+  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && !!inAdmin[k])
 })
 
 if (__DEV__) {

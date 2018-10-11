@@ -1119,7 +1119,7 @@ func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
 		return err
 	}
 	if kbfs.Generation > gen {
-		return fmt.Errorf("KBFS key generation too low: %v < %v", gen, kbfs.Generation)
+		return NewKBFSKeyGenerationError(kbfs.Generation, gen)
 	}
 	return nil
 }

@@ -15,7 +15,7 @@ import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import InboxAndConversation from './inbox-and-conversation'
 import TeamBuilding from '../team-building/container'
-import {MaybePopupHoc, TODORoute} from '../common-adapters'
+import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
@@ -109,7 +109,7 @@ const chatChildren = {
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
     },
-    component: isMobile ? TODORoute : SendForm,
+    component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
 }
