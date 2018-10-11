@@ -20,7 +20,8 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
   navigateUp,
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
-  _onMarkAsRead: (accountID, mostRecentID) => dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
+  _onMarkAsRead: (accountID, mostRecentID) =>
+    dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -40,12 +41,12 @@ const mergeProps = (stateProps, dispatchProps) => {
   let mostRecentID
   stateProps.payments &&
     stateProps.payments.forEach(p => {
-      if (p.statusSimplified === 'completed') {
+      if (p.section === 'history') {
         if (!history) {
           history = []
         }
         history.push({paymentID: p.id, timestamp: p.time})
-      } else {
+      } else if (p.section === 'pending') {
         if (!pending) {
           pending = []
         }

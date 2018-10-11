@@ -157,6 +157,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   readState: 'read',
+  section: 'pending',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -192,7 +193,11 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?RPCTypes.PaymentID) => {
+const paymentResultToPayment = (
+  w: RPCTypes.PaymentOrErrorLocal,
+  pending: boolean,
+  oldestUnread: ?RPCTypes.PaymentID
+) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
@@ -210,6 +215,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?
   return makePayment({
     ...rpcPaymentToPaymentCommon(w.payment),
     readState,
+    section: pending ? 'pending' : 'history',
   })
 }
 
