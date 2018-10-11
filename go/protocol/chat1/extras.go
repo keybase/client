@@ -598,6 +598,29 @@ func (m UIMessage) GetMessageID() MessageID {
 	return 0
 }
 
+func (m UIMessage) GetOutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			strOutboxID := m.Valid().OutboxID
+			if strOutboxID != nil {
+				outboxID, err := MakeOutboxID(*strOutboxID)
+				if err != nil {
+					return nil
+				}
+				return &outboxID
+			}
+			return nil
+		}
+		if state == MessageUnboxedState_ERROR {
+			return nil
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return nil
+		}
+	}
+	return nil
+}
+
 func (m UIMessage) GetMessageType() MessageType {
 	if state, err := m.State(); err == nil {
 		if state == MessageUnboxedState_VALID {

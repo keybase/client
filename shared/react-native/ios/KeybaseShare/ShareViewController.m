@@ -34,7 +34,7 @@ const BOOL isSimulator = NO;
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    BOOL skipLogFile = NO;
+    BOOL skipLogFile = YES;
     NSError* error = nil;
     NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
     PushNotifier* pusher = [[PushNotifier alloc] init];
