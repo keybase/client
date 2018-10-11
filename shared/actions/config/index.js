@@ -35,6 +35,7 @@ const setupEngineListeners = () => {
       Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
     'keybase.1.NotifySession.loggedOut': () =>
       Saga.call(function*() {
+        logger.info('keybase.1.NotifySession.loggedOut')
         const state: TypedState = yield Saga.select()
         // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
         if (state.config.loggedIn) {
@@ -43,6 +44,7 @@ const setupEngineListeners = () => {
       }),
     'keybase.1.NotifySession.loggedIn': ({username}) =>
       Saga.call(function*() {
+        logger.info('keybase.1.NotifySession.loggedIn')
         const state: TypedState = yield Saga.select()
         // only send this if we think we're not logged in
         if (!state.config.loggedIn) {
@@ -75,6 +77,7 @@ const loadDaemonBootstrapStatus = (
           username: s.username,
         })
     )
+    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn}`)
     yield Saga.put(loadedAction)
 
     // if we're logged in act like getAccounts is done already

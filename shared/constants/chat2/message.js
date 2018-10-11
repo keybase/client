@@ -333,9 +333,12 @@ export const uiRequestInfoToChatRequestInfo = (
     logger.error('Received UIRequestInfo with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = WalletConstants.makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: WalletTypes.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: WalletTypes.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'
@@ -978,6 +981,11 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
   if (!old) {
+    return m
+  }
+
+  // only merge if its the same id and type
+  if (old.id !== m.id || old.type !== m.type) {
     return m
   }
 

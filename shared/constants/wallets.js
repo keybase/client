@@ -69,6 +69,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  unreadPaymentsMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -108,6 +109,7 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   balanceTotal: '',
   issuerAccountID: '',
   issuerName: '',
+  issuerVerifiedDomain: '',
   name: '',
   worth: '',
   worthCurrency: '',
@@ -122,6 +124,7 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     balanceTotal: w.balanceTotal,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
+    issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
@@ -153,6 +156,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
   publicMemoType: '',
+  readState: 'read',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -188,19 +192,32 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
+const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?RPCTypes.PaymentID) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+  let readState
+  if (w.payment.id === oldestUnread) {
+    readState = 'oldestUnread'
+  } else if (w.payment.unread) {
+    readState = 'unread'
+  } else {
+    readState = 'read'
+  }
+  return makePayment({
+    ...rpcPaymentToPaymentCommon(w.payment),
+    readState,
+  })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
     ...rpcPaymentToPaymentCommon(p),
+    // Payment details have no unread field.
+    readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
@@ -243,7 +260,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
-  issuerName: null,
+  issuerName: '',
+  issuerVerifiedDomain: '',
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
@@ -267,9 +285,12 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     logger.error('Received requestDetails with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: Types.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'

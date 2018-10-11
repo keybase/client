@@ -95,6 +95,7 @@ type configGetter interface {
 	GetRememberPassphrase() (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
+	GetChatOutboxStorageEngine() string
 }
 
 type CommandLine interface {
@@ -837,6 +838,7 @@ type Resolver interface {
 	ResolveWithBody(m MetaContext, input string) ResolveResult
 	Resolve(m MetaContext, input string) ResolveResult
 	PurgeResolveCache(m MetaContext, input string) error
+	CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName)
 }
 
 type EnginePrereqs struct {

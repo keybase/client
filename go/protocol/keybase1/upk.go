@@ -524,6 +524,103 @@ func (o UPAKVersioned) DeepCopy() UPAKVersioned {
 	}
 }
 
+type UPKLiteMinorVersion int
+
+const (
+	UPKLiteMinorVersion_V0 UPKLiteMinorVersion = 0
+)
+
+func (o UPKLiteMinorVersion) DeepCopy() UPKLiteMinorVersion { return o }
+
+var UPKLiteMinorVersionMap = map[string]UPKLiteMinorVersion{
+	"V0": 0,
+}
+
+var UPKLiteMinorVersionRevMap = map[UPKLiteMinorVersion]string{
+	0: "V0",
+}
+
+func (e UPKLiteMinorVersion) String() string {
+	if v, ok := UPKLiteMinorVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UPKLiteV1 struct {
+	Uid         UID                     `codec:"uid" json:"uid"`
+	Username    string                  `codec:"username" json:"username"`
+	EldestSeqno Seqno                   `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status      StatusCode              `codec:"status" json:"status"`
+	DeviceKeys  map[KID]PublicKeyV2NaCl `codec:"deviceKeys" json:"deviceKeys"`
+	Reset       *ResetSummary           `codec:"reset,omitempty" json:"reset,omitempty"`
+}
+
+func (o UPKLiteV1) DeepCopy() UPKLiteV1 {
+	return UPKLiteV1{
+		Uid:         o.Uid.DeepCopy(),
+		Username:    o.Username,
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
+		DeviceKeys: (func(x map[KID]PublicKeyV2NaCl) map[KID]PublicKeyV2NaCl {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[KID]PublicKeyV2NaCl, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.DeviceKeys),
+		Reset: (func(x *ResetSummary) *ResetSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Reset),
+	}
+}
+
+type UPKLiteV1AllIncarnations struct {
+	Current          UPKLiteV1           `codec:"current" json:"current"`
+	PastIncarnations []UPKLiteV1         `codec:"pastIncarnations" json:"pastIncarnations"`
+	SeqnoLinkIDs     map[Seqno]LinkID    `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
+	MinorVersion     UPKLiteMinorVersion `codec:"minorVersion" json:"minorVersion"`
+}
+
+func (o UPKLiteV1AllIncarnations) DeepCopy() UPKLiteV1AllIncarnations {
+	return UPKLiteV1AllIncarnations{
+		Current: o.Current.DeepCopy(),
+		PastIncarnations: (func(x []UPKLiteV1) []UPKLiteV1 {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UPKLiteV1, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PastIncarnations),
+		SeqnoLinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]LinkID, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SeqnoLinkIDs),
+		MinorVersion: o.MinorVersion.DeepCopy(),
+	}
+}
+
 type UPKInterface interface {
 }
 

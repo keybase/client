@@ -152,7 +152,38 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		return remote.PostWithChainlink(ctx, g, nextBundle)
 	}
-	return remote.Post(ctx, g, nextBundle)
+	err = remote.Post(ctx, g, nextBundle)
+	if err != nil {
+		return err
+	}
+
+	// after import, mark all the transactions in this account as "read"
+	// any errors in this process are not fatal, since the important task
+	// has been accomplished.
+	_, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, failed to parse secret key after import: %s", err)
+		return nil
+	}
+	page, err := remote.RecentPayments(ctx, g, accountID, nil, 0, true)
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, RecentPayments error: %s", err)
+		return nil
+	}
+	if len(page.Payments) == 0 {
+		return nil
+	}
+	mostRecentID, err := page.Payments[0].TransactionID()
+	if err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, tx id from most recent payment error: %s", err)
+		return nil
+	}
+	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
+		return nil
+	}
+
+	return nil
 }
 
 func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -1358,4 +1389,19 @@ func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, account
 	}
 
 	return remoter.ExchangeRate(mctx.Ctx(), string(currency.Code))
+}
+
+func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
+	g.Log.Debug("RefreshUnreadCount for stellar account %s", accountID)
+	s := getGlobal(g)
+	ctx := context.Background()
+	details, err := s.remoter.Details(ctx, accountID)
+	if err != nil {
+		return
+	}
+	g.Log.Debug("RefreshUnreadCount got details for stellar account %s", accountID)
+
+	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
+
+	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
 }

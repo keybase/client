@@ -6,6 +6,7 @@ export type FeatureFlags = {|
   explodingMessagesEnabled: boolean,
   fileWidgetEnabled: boolean,
   newTeamBuildingForChat: boolean,
+  outOfDateBanner: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
 |}

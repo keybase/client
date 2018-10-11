@@ -13,6 +13,7 @@ const ff: FeatureFlags = {
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
   newTeamBuildingForChat: false,
+  outOfDateBanner: true,
   plansEnabled: false,
   walletsEnabled: true,
 }
