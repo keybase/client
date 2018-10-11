@@ -18,7 +18,8 @@ const mapStateToProps = (state: TypedState) => {
   const recipientStellarAddress = build.to
 
   if (recipientType === 'keybaseUser' && build.to.includes('@')) {
-    // this is an sbs assertion, we should show build.to
+    // this is an sbs assertion, which does not get stowed in `built`.
+    // `build.to` has the assertion
     recipientUsername = build.to
   }
 
