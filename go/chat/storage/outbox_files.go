@@ -49,7 +49,9 @@ func (s *outboxFilesStorage) readStorage(ctx context.Context) (res diskOutbox, e
 	res.Version = 1
 	fis, ierr := ioutil.ReadDir(dir)
 	if ierr != nil {
-		s.Debug(ctx, "readStorage: failed to read directory: %s", ierr)
+		if !os.IsNotExist(ierr) {
+			s.Debug(ctx, "readStorage: failed to read directory: %s", ierr)
+		}
 		return res, nil
 	}
 	for _, fi := range fis {

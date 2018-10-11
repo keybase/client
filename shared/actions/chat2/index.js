@@ -1180,23 +1180,32 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
     const outboxID = Constants.generateOutboxID()
-    return Saga.call(
-      RPCChatTypes.localPostEditNonblockRpcPromise,
-      {
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-        outboxID,
-        target: {
-          messageID: message.id,
-          outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+    const target = {
+      messageID: message.id,
+      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+    }
+    let actions = [
+      Saga.call(
+        RPCChatTypes.localPostEditNonblockRpcPromise,
+        {
+          body: text.stringValue(),
+          clientPrev,
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+          outboxID,
+          target,
+          tlfName,
+          tlfPublic: false,
         },
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyEditPost
-    )
+        Constants.waitingKeyEditPost
+      ),
+    ]
+    if (!message.id) {
+      actions = actions.concat(
+        Saga.put(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
+      )
+    }
+    return Saga.sequentially(actions)
   } else {
     logger.warn('Editing non-text message')
   }

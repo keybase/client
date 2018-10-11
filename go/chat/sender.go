@@ -804,6 +804,10 @@ type Deliverer struct {
 	notifyFailureChsMu sync.Mutex
 	notifyFailureChs   map[string]chan []chat1.OutboxRecord
 
+	activeSendMu     sync.Mutex
+	activeSendCtx    context.Context
+	activeSendCancel context.CancelFunc
+
 	// Testing
 	testingNameInfoSource types.NameInfoSource
 }
@@ -973,6 +977,44 @@ func (s *Deliverer) NextFailure() (chan []chat1.OutboxRecord, func()) {
 	}
 }
 
+func (s *Deliverer) UpdateInFlight(ctx context.Context, obr chat1.OutboxRecord) (updated bool, err error) {
+	s.activeSendMu.Lock()
+	defer s.activeSendMu.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "UpdateInFlight(%s)", obr.OutboxID)()
+	// Take out any active send so our update can be realized
+	s.clearActiveSendLocked()
+	updated, err = s.outbox.UpdateMessage(ctx, obr)
+	if err != nil {
+		return false, err
+	}
+
+	return updated, nil
+}
+
+func (s *Deliverer) setActiveSend(ctx context.Context, cancelFunc context.CancelFunc) {
+	s.activeSendMu.Lock()
+	defer s.activeSendMu.Unlock()
+	if s.activeSendCancel != nil {
+		s.activeSendCancel()
+	}
+	s.activeSendCtx = ctx
+	s.activeSendCancel = cancelFunc
+}
+
+func (s *Deliverer) clearActiveSend() {
+	s.activeSendMu.Lock()
+	defer s.activeSendMu.Unlock()
+	s.clearActiveSendLocked()
+}
+
+func (s *Deliverer) clearActiveSendLocked() {
+	if s.activeSendCancel != nil {
+		s.activeSendCancel()
+	}
+	s.activeSendCtx = nil
+	s.activeSendCancel = nil
+}
+
 func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
 	s.notifyFailureChsMu.Lock()
 	defer s.notifyFailureChsMu.Unlock()
@@ -1070,7 +1112,7 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 			att.Previews = []chat1.Asset{*res.Preview}
 		}
 		obr.Msg.MessageBody = chat1.NewMessageBodyWithAttachment(att)
-		if err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {
 			return obr, err
 		}
 	case types.AttachmentUploaderTaskStatusFailed:
@@ -1185,11 +1227,14 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
+			var cancelFn context.CancelFunc
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
 				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
+			bctx, cancelFn = context.WithCancel(bctx)
+			s.setActiveSend(bctx, cancelFn)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
@@ -1248,6 +1293,7 @@ func (s *Deliverer) deliverLoop() {
 				}
 			}
 		}
+		s.clearActiveSend()
 	}
 }
 
