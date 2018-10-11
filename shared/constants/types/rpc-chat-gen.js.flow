@@ -248,7 +248,7 @@ export type MessageTypes = {|
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postEditNonblock': {|
-    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, target: EditTarget, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postFileAttachmentMessageLocalNonblock': {|
@@ -696,6 +696,7 @@ export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type EditTarget = $ReadOnly<{messageID?: ?MessageID, outboxID?: ?OutboxID}>
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type EphemeralPurgeInfo = $ReadOnly<{c /* convID */: ConversationID, a /* isActive */: Boolean, n /* nextPurgeTime */: Gregor1.Time, e /* minUnexplodedID */: MessageID}>
 export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>, conv?: ?InboxUIItem}>

@@ -1138,22 +1138,29 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
-	var parg chat1.PostLocalNonblockArg
-	parg.ClientPrev = arg.ClientPrev
-	parg.ConversationID = arg.ConversationID
-	parg.IdentifyBehavior = arg.IdentifyBehavior
-	parg.OutboxID = arg.OutboxID
-	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
-	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
-	parg.Msg.ClientHeader.TlfName = arg.TlfName
-	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
-	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-		MessageID: arg.Supersedes,
-		Body:      arg.Body,
-	})
+func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	if arg.Target.MessageID != nil {
+		// We got a real message ID to supersede, so generate the edit message
+		var parg chat1.PostLocalNonblockArg
+		parg.ClientPrev = arg.ClientPrev
+		parg.ConversationID = arg.ConversationID
+		parg.IdentifyBehavior = arg.IdentifyBehavior
+		parg.OutboxID = arg.OutboxID
+		parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
+		parg.Msg.ClientHeader.Supersedes = *arg.Target.MessageID
+		parg.Msg.ClientHeader.TlfName = arg.TlfName
+		parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+		parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: *arg.Target.MessageID,
+			Body:      arg.Body,
+		})
 
-	return h.PostLocalNonblock(ctx, parg)
+		return h.PostLocalNonblock(ctx, parg)
+	}
+	if arg.Target.OutboxID == nil {
+		return res, errors.New("must specify a messageID or outboxID for edit")
+	}
+	return res, nil
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {

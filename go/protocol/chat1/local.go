@@ -3545,6 +3545,30 @@ func (o PostLocalNonblockRes) DeepCopy() PostLocalNonblockRes {
 	}
 }
 
+type EditTarget struct {
+	MessageID *MessageID `codec:"messageID,omitempty" json:"messageID,omitempty"`
+	OutboxID  *OutboxID  `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+}
+
+func (o EditTarget) DeepCopy() EditTarget {
+	return EditTarget{
+		MessageID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageID),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+	}
+}
+
 type SetConversationStatusLocalRes struct {
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4491,7 +4515,7 @@ type PostEditNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
-	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
+	Target           EditTarget                   `codec:"target" json:"target"`
 	Body             string                       `codec:"body" json:"body"`
 	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`

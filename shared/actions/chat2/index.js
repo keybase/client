@@ -1179,43 +1179,24 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-    // Editing a normal message
-    if (message.id) {
-      const supersedes = message.id
-      const outboxID = Constants.generateOutboxID()
-
-      return Saga.call(
-        RPCChatTypes.localPostEditNonblockRpcPromise,
-        {
-          body: text.stringValue(),
-          clientPrev,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
-          outboxID,
-          supersedes,
-          tlfName,
-          tlfPublic: false,
+    const outboxID = Constants.generateOutboxID()
+    return Saga.call(
+      RPCChatTypes.localPostEditNonblockRpcPromise,
+      {
+        body: text.stringValue(),
+        clientPrev,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
+        outboxID,
+        target: {
+          messageID: message.id,
+          outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
         },
-        Constants.waitingKeyEditPost
-      )
-    } else {
-      // Pending messages need to be cancelled and resent
-      if (message.outboxID) {
-        return Saga.sequentially([
-          Saga.call(
-            RPCChatTypes.localCancelPostRpcPromise,
-            {
-              outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-            },
-            Constants.waitingKeyCancelPost
-          ),
-          Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-          Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
-        ])
-      } else {
-        logger.warn('Editing no id and no outboxid')
-      }
-    }
+        tlfName,
+        tlfPublic: false,
+      },
+      Constants.waitingKeyEditPost
+    )
   } else {
     logger.warn('Editing non-text message')
   }
