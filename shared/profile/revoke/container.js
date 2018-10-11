@@ -1,9 +1,9 @@
 // @flow
 import * as ProfileGen from '../../actions/profile-gen'
 import Revoke from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,
   isWaiting: state.profile.revoke.waiting,
   platform: routeProps.get('platform'),

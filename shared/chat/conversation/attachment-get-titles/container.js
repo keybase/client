@@ -4,14 +4,14 @@ import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
 
 type OwnProps = RouteProps<{paths: Array<string>, conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
+const mapStateToProps = (state, {routeProps}: OwnProps) => ({
   _conversationIDKey: routeProps.get('conversationIDKey'),
   paths: routeProps.get('paths'),
 })

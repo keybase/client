@@ -1,12 +1,12 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 
 import Wallet from '.'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   return {
     accountID,

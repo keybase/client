@@ -1,9 +1,9 @@
 // @flow
 import Error from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import * as SignupGen from '../../../actions/signup-gen'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.signup.signupError.stringValue(),
 })
 

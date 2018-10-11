@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
-import {compose, connect, type TypedState} from '../util/container'
+import {compose, connect} from '../util/container'
 import {
   isAndroid,
   appVersionName,
@@ -122,7 +122,7 @@ class FeedbackContainer extends Component<Props, State> {
   }
 }
 
-const extraChatLogs = (state: TypedState) => {
+const extraChatLogs = state => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
@@ -176,7 +176,7 @@ const extraChatLogs = (state: TypedState) => {
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   return {
     chat: extraChatLogs(state),
     heading: routeProps.get('heading') || 'Your feedback is welcomed!',

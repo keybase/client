@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
+import {compose, connect, setDisplayName} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -7,7 +7,7 @@ import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
 

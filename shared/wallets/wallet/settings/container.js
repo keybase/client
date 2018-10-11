@@ -6,14 +6,13 @@ import {
   lifecycle,
   setDisplayName,
   safeSubmit,
-  type TypedState,
 } from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
   const name = account.name || Constants.getAccountName(account) || accountID || account.accountID

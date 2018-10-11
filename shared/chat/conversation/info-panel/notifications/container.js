@@ -9,14 +9,13 @@ import {
   lifecycle,
   setDisplayName,
   withStateHandlers,
-  type TypedState,
 } from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   return {

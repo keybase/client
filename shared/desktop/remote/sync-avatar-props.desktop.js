@@ -5,7 +5,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
+import {compose, connect, withStateHandlers} from '../../util/container'
 import memoize from 'memoize-one'
 
 type Props = {
@@ -93,7 +93,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
   }
 
-  const mapStateToProps = (state: TypedState, ownProps) => ({
+  const mapStateToProps = (state, ownProps) => ({
     avatars: getRemoteAvatars(state.config.avatars, ownProps.usernames),
     followers: getRemoteFollowers(state.config.followers, ownProps.usernames),
     following: getRemoteFollowing(state.config.following, ownProps.usernames),

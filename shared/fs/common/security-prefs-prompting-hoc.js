@@ -1,5 +1,5 @@
 // @flow
-import {branch, compose, connect, renderNothing, type TypedState} from '../../util/container'
+import {branch, compose, connect, renderNothing} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
 import * as FsGen from '../../actions/fs-gen'
 import {navigateAppend} from '../../actions/route-tree'
@@ -12,7 +12,7 @@ import {navigateAppend} from '../../actions/route-tree'
 // spamming the user.  We have a link in the Settings page so if the user wants
 // they can still find the instructions.
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const {securityPrefsPropmted, kextPermissionError} = state.fs.flags
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {

@@ -1,9 +1,9 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
 import DeviceName from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   devicename: state.signup.devicename,
   error: state.signup.devicenameError,
 })

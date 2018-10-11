@@ -11,11 +11,10 @@ import {
   withStateHandlers,
   connect,
   safeSubmit,
-  type TypedState,
 } from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })

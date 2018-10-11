@@ -1,10 +1,10 @@
 // @flow
-import {connect, isMobile, type TypedState} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
 import SetDescription from '.'
 
-const mapStateToProps = (state: TypedState, {message}) => ({
+const mapStateToProps = (state, {message}) => ({
   author: message.author,
   description: message.newDescription.stringValue(),
   setUsernameBlack: message.author === state.config.username,

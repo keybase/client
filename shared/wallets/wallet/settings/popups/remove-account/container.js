@@ -4,13 +4,12 @@ import {
   connect,
   setDisplayName,
   safeSubmitPerMount,
-  type TypedState,
 } from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import RemoveAccountPopup from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
 

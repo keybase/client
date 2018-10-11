@@ -7,8 +7,6 @@ import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
 
-import type {TypedState} from '../../constants/reducer'
-
 type StateProps = {
   _memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
@@ -17,7 +15,7 @@ type StateProps = {
   yourRole: Types.MaybeTeamRoleType,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
+const mapStateToProps = (state, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
   const username = routeProps.get('username')
   return {

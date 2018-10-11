@@ -14,9 +14,9 @@ import {
 } from '../../../constants/wallets'
 import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToPropsKeybaseUser = (state: TypedState) => {
+const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
@@ -46,7 +46,7 @@ const ConnectedParticipantsKeybaseUser = compose(
   setDisplayName('ParticipantsKeybaseUser')
 )(ParticipantsKeybaseUser)
 
-const mapStateToPropsStellarPublicKey = (state: TypedState) => {
+const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
@@ -83,7 +83,7 @@ const makeAccount = (stateAccount: StateAccount) => ({
   unknown: stateAccount === unknownAccount,
 })
 
-const mapStateToPropsOtherAccount = (state: TypedState) => {
+const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.buildingPayment
 
   const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
@@ -123,7 +123,7 @@ const ConnectedParticipantsOtherAccount = compose(
   setDisplayName('ParticipantsOtherAccount')
 )(ParticipantsOtherAccount)
 
-const mapStateToPropsChooser = (state: TypedState) => {
+const mapStateToPropsChooser = state => {
   const recipientType = state.wallets.buildingPayment.recipientType
   return {recipientType}
 }

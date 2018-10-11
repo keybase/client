@@ -8,10 +8,9 @@ import {
   lifecycle,
   withStateHandlers,
   withHandlers,
-  type TypedState,
 } from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
   pending: state.teams.teamCreationPending,
 })

@@ -2,9 +2,9 @@
 import * as Route from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import SystemSimpleToComplex from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   you: state.config.username || '',
 })
 

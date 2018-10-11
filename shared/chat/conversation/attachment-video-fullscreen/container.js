@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import {compose, connect, type TypedState} from '../../../util/container'
+import {compose, connect} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 import VideoFullscreen from './'
 
@@ -9,7 +9,7 @@ type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal:
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   const ordinal = ownProps.routeProps.get('ordinal')
   const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage

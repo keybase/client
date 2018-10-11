@@ -1,9 +1,9 @@
 // @flow
 import Body from '.'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 import {bannerLevelToBackground} from '../../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   banners: state.wallets.builtPayment.banners,
 })
 

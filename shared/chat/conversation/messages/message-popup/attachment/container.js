@@ -6,7 +6,7 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
-import {connect, type TypedState} from '../../../../../util/container'
+import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Attachment from '.'
@@ -19,7 +19,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)

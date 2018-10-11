@@ -1,10 +1,10 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 import Passphrase from '.'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.signup.passphraseError.stringValue(),
   passphrase: state.signup.passphrase.stringValue(),
 })

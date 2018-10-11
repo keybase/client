@@ -1,11 +1,11 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import Downloads, {type DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
 import {downloadFolder} from '../../util/file'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 

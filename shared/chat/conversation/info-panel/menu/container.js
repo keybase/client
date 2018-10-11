@@ -6,7 +6,6 @@ import {
   compose,
   connect,
   setDisplayName,
-  type TypedState,
   createCachedSelector,
 } from '../../../../util/container'
 import {InfoPanelMenu} from '.'
@@ -37,7 +36,7 @@ const moreThanOneSubscribedChannel = createCachedSelector(
   }
 )((_: any, teamname: string) => teamname)
 
-const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
+const mapStateToProps = (state, {teamname, isSmallTeam}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const hasCanPerform = Constants.hasCanPerform(state, teamname)
