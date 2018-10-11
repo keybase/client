@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	mathrand "math/rand"
 	"sync"
 	"time"
 
@@ -368,10 +367,19 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	return them, err
 }
 
+// GenerateTestPhoneNumber generates a random, valid, phone number in Poland.
+// It passes serverside "strict phone number" verification. It's not an example
+// phone number, there's a chance it's allocated to a real subscriber. This
+// function generates one of 9e7 total numbers.
 func GenerateTestPhoneNumber() string {
-	ret := make([]byte, 10)
+	ret := make([]byte, 8)
+	rand.Read(ret)
 	for i := range ret {
-		ret[i] = "0123456789"[mathrand.Intn(10)]
+		ret[i] = "0123456789"[int(ret[i])%10]
 	}
-	return fmt.Sprintf("4%s", string(ret))
+	if ret[0] == '0' {
+		// Do not generate "premium" numbers.
+		ret[0] = '1'
+	}
+	return fmt.Sprintf("487%s", string(ret))
 }
