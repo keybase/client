@@ -8,7 +8,7 @@
   "actions": {
     "setupEngineListeners": {
       "_description":
-        "TEMPwhen sagas should start creating their incoming handlers / onConnect handlers"
+        "when sagas should start creating their incoming handlers / onConnect handlers"
     },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
