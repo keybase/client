@@ -2,11 +2,13 @@
 export type FeatureFlags = {|
   admin: boolean,
   avatarUploadsEnabled: boolean,
+  chatIndexProfilingEnabled: boolean,
   explodingMessagesEnabled: boolean,
+  fileWidgetEnabled: boolean,
+  newTeamBuildingForChat: boolean,
+  outOfDateBanner: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
-  newTeamBuildingForChat: boolean,
-  fileWidgetEnabled?: boolean,
 |}
 
 declare var ff: FeatureFlags

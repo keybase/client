@@ -765,8 +765,8 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 		}
 	}
 
-	if newLinks[0].isStubbed() && canReadTeam {
-		return NewInvalidLink(newLinks[0], "expected first link to be unstubbed (if we can read the team)")
+	if newLinks[0].isStubbed() && newLinks[0].Seqno() == keybase1.Seqno(1) {
+		return NewInvalidLink(newLinks[0], "expected head link to be unstubbed")
 	}
 
 	return nil

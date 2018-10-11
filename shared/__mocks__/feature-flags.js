@@ -9,10 +9,13 @@ if (!__STORYBOOK__) {
 const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
+  chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
+  fileWidgetEnabled: false,
+  newTeamBuildingForChat: false,
+  outOfDateBanner: true,
   plansEnabled: false,
   walletsEnabled: true,
-  newTeamBuildingForChat: false,
 }
 
 console.warn('feature flag mock in effect')

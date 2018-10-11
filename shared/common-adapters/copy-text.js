@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import {Box, Box2} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Button from './button'
 import Text from './text'
@@ -77,23 +77,21 @@ class _CopyText extends React.Component<Props, State> {
       >
         {/* $FlowIssue innerRef not typed yet */}
         <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
-        <Box style={{flexDirection: 'column', flexGrow: 1, flexShrink: 1, position: 'relative'}}>
-          <Text
-            lineClamp={this._isRevealed() ? 1 : null}
-            type="Body"
-            selectable={true}
-            style={styles.text}
-            allowHighlightText={true}
-            ref={r => (this._textRef = r)}
-          >
-            {this._isRevealed() ? this.props.text : '••••••••••••'}
-          </Text>
+        <Text
+          lineClamp={this._isRevealed() ? 1 : null}
+          type="Body"
+          selectable={true}
+          style={styles.text}
+          allowHighlightText={true}
+          ref={r => (this._textRef = r)}
+        >
+          {this._isRevealed() ? this.props.text : '•••••••••••• '}
           {!this._isRevealed() && (
             <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
               Reveal
             </Text>
           )}
-        </Box>
+        </Text>
         <Button type="Primary" style={styles.button} onClick={this.copy}>
           <Icon
             type="iconfont-clipboard"
@@ -161,6 +159,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.blue,
+      flexGrow: 1,
+      flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
       minWidth: 0,
       textAlign: 'left',

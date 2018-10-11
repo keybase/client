@@ -1887,7 +1887,7 @@ export type FileType =
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType}>
+export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID}>
 export type FolderType =
   | 0 // UNKNOWN_0
   | 1 // PRIVATE_1

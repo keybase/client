@@ -60,6 +60,7 @@ export type _Assets = {
   balanceTotal: string,
   issuerAccountID: string,
   issuerName: string,
+  issuerVerifiedDomain: string,
   name: string,
   worth: string,
   worthCurrency: string,
@@ -132,7 +133,8 @@ export type _Payment = {
 export type _AssetDescription = {
   code: string,
   issuerAccountID: AccountID,
-  issuerName: ?string,
+  issuerName: string,
+  issuerVerifiedDomain: string,
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
@@ -156,8 +158,6 @@ export type _Request = {
 export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
-
-export type BadgesUpdate = Array<{accountID: AccountID, numUnread: number}>
 
 export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 
@@ -201,7 +201,7 @@ export type _State = {
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
   sentPaymentError: string,
-  unreadPaymentsMap: I.Map<AccountID, number>,
+  unreadPaymentsMap: I.Map<string, number>,
 }
 
 export type State = I.RecordOf<_State>

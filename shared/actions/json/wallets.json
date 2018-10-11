@@ -20,7 +20,7 @@
     },
     "badgesUpdated": {
       "_description": "Update badges in the nav",
-      "accounts": "Types.BadgesUpdate"
+      "accounts": "Array<RPCTypes.WalletAccountInfo>"
     },
     "buildPayment": {
       "_description": "Prepare a payment for sending"
