@@ -22,7 +22,6 @@ type ConfirmSendProps = {|
   sendFailed: boolean,
   waitingKey?: string,
   worthDescription?: string,
-  amountFormatted: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
