@@ -64,7 +64,6 @@ var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported 
 var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
 var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
-var errInvalidPathType = simpleFSError{"Invalid path type"}
 
 type newFSFunc func(
 	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
