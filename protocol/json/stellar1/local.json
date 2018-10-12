@@ -212,6 +212,10 @@
         },
         {
           "type": "string",
+          "name": "originalToAssertion"
+        },
+        {
+          "type": "string",
           "name": "note"
         },
         {
