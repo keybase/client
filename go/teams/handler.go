@@ -330,7 +330,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			if err := engine.RunEngine2(m, eng); err != nil {
 				return err
 			}
-		case keybase1.TeamInviteCategory_EMAIL:
+		case keybase1.TeamInviteCategory_EMAIL, keybase1.TeamInviteCategory_PHONE:
 			// nothing to verify, need to trust the server
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// Check if UV in `untrustedInviteeFromGregor` is the same
