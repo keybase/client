@@ -1018,8 +1018,9 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 		return res, err
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	reason := chat1.GetThreadReason_GENERAL
 	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID, arg.MessageIDs,
-		!arg.DisableResolveSupersedes)
+		!arg.DisableResolveSupersedes, &reason)
 	if err != nil {
 		return res, err
 	}
@@ -1506,8 +1507,9 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	if filename == "" {
 		// No filename means we will create one in the OS temp dir
 		// Get the sent file name first
+		reason := chat1.GetThreadReason_GENERAL
 		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
-			[]chat1.MessageID{arg.MessageID}, true)
+			[]chat1.MessageID{arg.MessageID}, true, &reason)
 		if err != nil {
 			return res, err
 		}

@@ -110,24 +110,9 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 			}
 		}
 	}
-	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData */, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(inbox.ConvsUnverified) == 0 || !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return nil, nil, nil
-	}
-	conv := inbox.ConvsUnverified[0].Conv
-
 	msgIDSlice := msgIDsFromSet(idSetWithContext)
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, msgIDSlice, &reason)
-	if err != nil {
-		return nil, nil, err
-	}
-	msgs, err = idx.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice, true /* resolveSupersedes*/, &reason)
 	if err != nil {
 		return nil, nil, err
 	}

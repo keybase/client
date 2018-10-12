@@ -16,8 +16,8 @@ import (
 
 func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, preview bool) (res chat1.Asset, err error) {
-
-	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true)
+	reason := chat1.GetThreadReason_GENERAL
+	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true, &reason)
 	if err != nil {
 		return res, err
 	}

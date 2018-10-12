@@ -164,17 +164,8 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 			return nil
 		}
 		reason := chat1.GetThreadReason_INDEXED_SEARCH
-		if conv == nil {
-			inbox, err := s.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData */, &chat1.GetInboxQuery{
-				ConvIDs: []chat1.ConversationID{convID},
-			}, nil)
-			if err != nil || len(inbox.ConvsUnverified) != 1 {
-				s.G().Log.CDebugf(ctx, "unable to read inbox: %v", err)
-				return nil
-			}
-			conv = &inbox.ConvsUnverified[0].Conv
-		}
-		supersededMsgs, err := s.G().ConvSource.GetMessages(ctx, conv, uid, superIDs, &reason)
+		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, uid, convID, superIDs,
+			false /* resolveSupersedes*/, &reason)
 		if err != nil {
 			// Log but ignore error
 			s.G().Log.CDebugf(ctx, "unable to get fetch messages: %v", err)
