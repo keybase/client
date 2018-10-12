@@ -487,6 +487,10 @@
             "items": "SendBannerLocal"
           },
           "name": "banners"
+        },
+        {
+          "type": "string",
+          "name": "amountFormatted"
         }
       ]
     },

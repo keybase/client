@@ -76,6 +76,7 @@ export type _LocalCurrency = {
   symbol: string,
   name: string,
 }
+
 export type _BuildingPayment = {
   amount: string,
   currency: string,
@@ -83,11 +84,13 @@ export type _BuildingPayment = {
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
+  sendAssetChoices: ?Array<StellarRPCTypes.SendAssetChoiceLocal>,
   to: string,
 }
 
 export type _BuiltPayment = {
   amountErrMsg: string,
+  amountFormatted: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: string,
   publicMemoErrMsg: HiddenString,

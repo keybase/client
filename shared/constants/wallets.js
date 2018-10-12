@@ -14,6 +14,7 @@ const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
+const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
 const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
 
@@ -30,10 +31,12 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
   to: '',
+  sendAssetChoices: null,
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
+  amountFormatted: '',
   banners: null,
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
@@ -75,6 +78,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
+    amountFormatted: b.amountFormatted,
     banners: b.banners,
     from: b.from,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
@@ -471,6 +475,14 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
+const getCurrencyAndSymbol = (state: TypedState, code: string) => {
+  if (!state.wallets.currencies || !code) {
+    return 'XLM'
+  }
+  const currency = state.wallets.currencies.find(c => c.code === code)
+    return currency ? currency.description : code
+}
+
 const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
@@ -502,6 +514,7 @@ export {
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
+  chooseAssetFormRouteKey,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
@@ -510,6 +523,7 @@ export {
   getAccountName,
   getAccount,
   getAssets,
+  getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,

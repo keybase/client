@@ -294,6 +294,8 @@ protocol local {
     // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
     string worthInfo;
     array<SendBannerLocal> banners;
+    // Optional. Formatted input amount, if local currency is selected.
+    string amountFormatted;
   }
   record SendBannerLocal {
     string level; // One of: "info", "warning", "error"

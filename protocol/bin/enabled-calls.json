@@ -167,6 +167,7 @@
   "keybase.1.user.profileEdit": {"promise": true},
   "keybase.1.user.uploadUserAvatar": {"promise": true},
   "stellar.1.local.buildPaymentLocal": {"promise": true},
+  "stellar.1.local.getSendAssetChoicesLocal": {"promise": true},
   "stellar.1.local.cancelPaymentLocal": {"promise": true},
   "stellar.1.local.cancelRequestLocal": {"promise": true},
   "stellar.1.local.createWalletAccountLocal": {"promise": true},

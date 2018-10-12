@@ -6,6 +6,7 @@ import {
   Divider,
   Icon,
   iconCastPlatformStyles,
+  MaybePopup,
   SectionList,
   Text,
 } from '../../../common-adapters'
@@ -21,12 +22,12 @@ import Header from '../header'
 
 const unexpandedNumDisplayOptions = 4
 
-type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
-type OtherItem = {
-  code: string,
-  selected: boolean,
+export type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
+export type OtherItem = {
+  currencyCode: string,
   disabledExplanation: string,
   issuer: string,
+  selected: boolean,
   type: 'other choice',
 }
 type ExpanderItem = {
@@ -35,11 +36,12 @@ type ExpanderItem = {
   type: 'expander',
 }
 
-type Props = {
+export type Props = {
   displayChoices: Array<DisplayItem>,
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
   otherChoices: Array<OtherItem>,
+  selected: string,
 }
 
 type State = {
@@ -69,7 +71,7 @@ class ChooseAsset extends React.Component<Props, State> {
         return (
           <OtherChoice
             key={item.key}
-            code={item.code}
+            currencyCode={item.currencyCode}
             disabledExplanation={item.disabledExplanation}
             issuer={item.issuer}
             onClick={() => this.props.onChoose(item)}
@@ -112,15 +114,26 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 
   render() {
-    const displayChoicesData = this.props.displayChoices
-      .slice(0, this.state.expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
+    const expanded = this.state.expanded || !this.props.otherChoices || this.props.otherChoices.length === 0
+    const displayChoicesData = this.props.displayChoices && this.props.displayChoices
+      .slice(0, expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
       .map(dc => ({...dc, key: dc.currencyCode}))
-    if (!this.state.expanded) {
+    if (this.props.displayChoices && !expanded) {
       displayChoicesData.push({
         key: 'expander',
+        currencyCode: 'expander',
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
         type: 'expander',
+      })
+    }
+    if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
+      displayChoicesData.unshift({
+        key: 'XLM',
+        currencyCode: 'XLM',
+        selected: !this.props.selected,
+        symbol: 'XLM',
+        type: 'display choice',
       })
     }
     const sections = [
@@ -135,23 +148,25 @@ class ChooseAsset extends React.Component<Props, State> {
             {
               data: this.props.otherChoices.map(oc => ({
                 ...oc,
-                key: `${oc.code}:${oc.issuer}`,
+                key: `${oc.currencyCode}:${oc.issuer}`,
               })),
               key: 'other choices',
             },
           ]),
     ]
     return (
-      <Box2 direction="vertical" style={styles.container}>
-        <Header onBack={this.props.onBack} whiteBackground={true} />
-        <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-          <SectionList
-            sections={sections}
-            renderItem={this._renderItem}
-            renderSectionHeader={this._renderSectionHeader}
-          />
+      <MaybePopup onClose={this.props.onBack}>
+        <Box2 direction="vertical" style={styles.container}>
+          <Header onBack={this.props.onBack} whiteBackground={true} />
+          <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+            <SectionList
+              sections={sections}
+              renderItem={this._renderItem}
+              renderSectionHeader={this._renderSectionHeader}
+            />
+          </Box2>
         </Box2>
-      </Box2>
+      </MaybePopup>
     )
   }
 }
@@ -209,7 +224,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
 )
 
 type OtherChoiceProps = {
-  code: string,
+  currencyCode: string,
   disabledExplanation: string,
   issuer: string,
   onClick: () => void,
@@ -240,7 +255,7 @@ const OtherChoice = (props: OtherChoiceProps) => (
               !!props.disabledExplanation && styles.grey,
             ])}
           >
-            {props.code}
+            {props.currencyCode}
           </Text>
           /{props.issuer}
         </Text>
@@ -281,6 +296,7 @@ const styles = styleSheetCreate({
   },
   container: platformStyles({
     isElectron: {
+      height: 525,
       width: 360,
     },
     isMobile: {

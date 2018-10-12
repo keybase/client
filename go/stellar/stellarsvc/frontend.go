@@ -985,6 +985,16 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		// Note: When adding support for sending non-XLM assets, check here that the recipient accepts the asset.
 	}
 
+	// helper so the GUI doesn't have to call FormatCurrency separately
+	if arg.Currency != nil {
+		amountFormatted, err := stellar.FormatCurrency(ctx, s.G(), arg.Amount, *arg.Currency)
+		if err != nil {
+			log("error formatting converted outside amount: %v", err)
+		} else {
+			res.AmountFormatted = amountFormatted
+		}
+	}
+
 	// -------------------- note + memo --------------------
 
 	tracer.Stage("note + memo")
