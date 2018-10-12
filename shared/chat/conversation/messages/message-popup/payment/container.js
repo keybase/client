@@ -50,7 +50,7 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => ({
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
   paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -111,7 +111,7 @@ const SendPaymentPopup = Container.connect(
 )(PaymentPopup)
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
+const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
   requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -150,7 +150,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
 
   let bottomLine = ''
   if (requestInfo.asset !== 'native' && requestInfo.asset !== 'currency') {
-    bottomLine = requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
+    bottomLine = requestInfo.asset.issuerVerifiedDomain || requestInfo.asset.issuerAccountID || ''
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${

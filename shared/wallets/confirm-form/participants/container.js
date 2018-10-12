@@ -1,15 +1,15 @@
 // @flow
 import ConfirmSend from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
   const recipientType = build.recipientType || 'keybaseUser'
-  const recipientUsername = built.toUsername
+  let recipientUsername = built.toUsername
   const userInfo = state.users.infoMap.get(recipientUsername)
   const recipientFullName = userInfo ? userInfo.fullname : ''
   const fromAccount = getAccount(state, stringToAccountID(built.from))
@@ -17,14 +17,20 @@ const mapStateToProps = (state: TypedState) => {
   const recipientAccountIsDefault = recipientAccount.isDefault
   const recipientStellarAddress = build.to
 
+  if (recipientType === 'keybaseUser' && build.to.includes('@')) {
+    // this is an sbs assertion, which does not get stowed in `built`.
+    // `build.to` has the assertion
+    recipientUsername = build.to
+  }
+
   return {
     recipientType,
     yourUsername: state.config.username,
     fromAccountAssets: fromAccount.balanceDescription,
     fromAccountIsDefault: fromAccount.isDefault,
-    fromAccountName: fromAccount.name || fromAccount.accountID,
+    fromAccountName: fromAccount.name,
     recipientAccountAssets: recipientAccount.balanceDescription,
-    recipientAccountName: recipientAccount.name || recipientAccount.accountID,
+    recipientAccountName: recipientAccount.name,
     recipientAccountIsDefault,
     recipientFullName,
     recipientStellarAddress,
@@ -32,7 +38,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 
 export default connect(
   mapStateToProps,

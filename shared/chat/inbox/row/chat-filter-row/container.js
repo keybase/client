@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isDarwin} from '../../../../constants/platform'
 import {connect, compose, setDisplayName, withProps} from '../../../../util/container'
-import type {TypedState} from '../../../../util/container'
 import ChatFilterRow from '.'
 
 type OwnProps = {
@@ -14,7 +13,7 @@ type OwnProps = {
   onSelectDown: () => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const filter = state.chat2.inboxFilter
   return {
     filter,

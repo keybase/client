@@ -5,7 +5,7 @@ import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {type TypedState, compose, connect, setDisplayName} from '../util/container'
+import {compose, connect, setDisplayName} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
@@ -86,7 +86,7 @@ const deriveUserFromUserIdFn = memoizeOne((searchResults: ?Array<User>) => (user
   (searchResults || []).filter(u => u.id === userId)[0] || null
 )
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const userResults = state.chat2.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
@@ -227,7 +227,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const Connected = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('TeamBuilding'),
   PopupDialogHoc
 )(TeamBuilding)

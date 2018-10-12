@@ -359,6 +359,7 @@ protocol local {
   record MessagePlaintext {
     MessageClientHeader clientHeader;
     MessageBody messageBody;
+    union { null, OutboxID } supersedesOutboxID;
   }
 
   record MessageUnboxedValid {
@@ -678,7 +679,13 @@ protocol local {
 
   PostLocalNonblockRes postTextNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  record EditTarget {
+    union { null, MessageID } messageID;
+    union { null, OutboxID } outboxID;
+  }
+  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, EditTarget target, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+
   PostLocalNonblockRes postReactionNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalNonblockRes postHeadlineNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic,  string headline, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   PostLocalRes postHeadline(ConversationID conversationID, string tlfName, boolean tlfPublic, string headline, keybase1.TLFIdentifyBehavior identifyBehavior);

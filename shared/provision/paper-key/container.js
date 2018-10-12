@@ -1,13 +1,13 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import PaperKey from '.'
-import {compose, withStateHandlers, connect, type TypedState} from '../../util/container'
+import {compose, withStateHandlers, connect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = {paperKey: string} & RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   hint: `${state.provision.codePageOtherDeviceName || ''}...`,
 })

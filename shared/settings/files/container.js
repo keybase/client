@@ -2,11 +2,11 @@
 import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle} from '../../util/container'
 import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import {navigateAppend} from '../../actions/route-tree'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
     kbfsEnabled,
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = dispatch => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onInstall: () => dispatch(FsGen.createInstallFuse()),

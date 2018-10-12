@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Still from './still'
 
@@ -10,7 +10,7 @@ type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
   routePath: I.List<string>,
 }
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
+const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   _downloads: state.fs.downloads,

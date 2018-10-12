@@ -2,7 +2,7 @@
 import * as React from 'react'
 import PushPrompt from './push-prompt.native'
 import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
@@ -56,7 +56,7 @@ class Main extends React.Component<Props> {
 }
 const ViewForGatewayDest = (props: any) => <View {...props} />
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,

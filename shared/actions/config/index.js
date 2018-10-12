@@ -378,6 +378,7 @@ const updateServerConfig = (state: TypedState) =>
       }, {})
 
       const serverConfig = {
+        chatIndexProfilingEnabled: !!features.admin,
         printRPCStats: !!features.admin,
         walletsEnabled: !!features.stellar,
       }

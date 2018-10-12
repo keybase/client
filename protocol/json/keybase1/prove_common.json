@@ -88,16 +88,6 @@
     },
     {
       "type": "record",
-      "name": "ProofServiceGroup",
-      "fields": [
-        {
-          "type": "string",
-          "name": "id"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "SelectorEntry",
       "fields": [
         {
@@ -162,6 +152,21 @@
     },
     {
       "type": "record",
+      "name": "ParamProofLogoConfig",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "faIcon",
+          "jsonkey": "fa_icon"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ParamProofServiceConfig",
       "fields": [
         {
@@ -180,9 +185,20 @@
         {
           "type": [
             null,
-            "ProofServiceGroup"
+            "string"
           ],
           "name": "group"
+        },
+        {
+          "type": [
+            null,
+            "ParamProofLogoConfig"
+          ],
+          "name": "logo"
+        },
+        {
+          "type": "string",
+          "name": "description"
         },
         {
           "type": "ParamProofUsernameConfig",

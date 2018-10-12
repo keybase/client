@@ -1,11 +1,11 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import {type OpenInSystemFileManagerProps as OwnProps} from './open-in-system-file-manager-container'
 import OpenInSystemFileManager from './open-in-system-file-manager.desktop'
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
+const mapStateToProps = (state, {path}: OwnProps) => ({
   kbfsEnabled: Constants.kbfsEnabled(state),
 })
 

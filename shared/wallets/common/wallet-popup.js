@@ -67,7 +67,6 @@ const styles = Styles.styleSheetCreate({
   }),
   container: Styles.platformStyles({
     common: {
-      alignItems: 'center',
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },

@@ -1,16 +1,16 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
 import Joined from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
 
-const mapStateToProps = (state: TypedState, {message}) => ({
+const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
   you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onUsernameClicked: (username: string) => {
     isMobile
       ? dispatch(createShowUserProfile({username}))

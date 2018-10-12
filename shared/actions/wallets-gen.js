@@ -44,6 +44,7 @@ export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
+export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const markAsRead = 'wallets:markAsRead'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
@@ -54,6 +55,7 @@ export const requestedPayment = 'wallets:requestedPayment'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
+export const sendAssetChoicesReceived = 'wallets:sendAssetChoicesReceived'
 export const sendPayment = 'wallets:sendPayment'
 export const sentPayment = 'wallets:sentPayment'
 export const sentPaymentError = 'wallets:sentPaymentError'
@@ -77,7 +79,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
 |}>
-type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<any>|}>
+type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|
   build: Types.BuiltPayment,
@@ -155,6 +157,10 @@ type _LoadPaymentDetailPayload = $ReadOnly<{|
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
+type _LoadSendAssetChoicesPayload = $ReadOnly<{|
+  from: Types.AccountID,
+  to: string,
+|}>
 type _MarkAsReadPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   mostRecentID: Types.PaymentID,
@@ -182,6 +188,7 @@ type _SelectAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   show?: boolean,
 |}>
+type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
 type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
@@ -300,6 +307,10 @@ export const createLoadDisplayCurrency = (payload: _LoadDisplayCurrencyPayload) 
  * Load extra detail for one given payment
  */
 export const createLoadPaymentDetail = (payload: _LoadPaymentDetailPayload) => ({error: false, payload, type: loadPaymentDetail})
+/**
+ * Load valid assets for sending to user
+ */
+export const createLoadSendAssetChoices = (payload: _LoadSendAssetChoicesPayload) => ({error: false, payload, type: loadSendAssetChoices})
 /**
  * Load valid display currencies to choose from
  */
@@ -440,6 +451,10 @@ export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => (
  * Update valid display currencies to choose from
  */
 export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesReceivedPayload) => ({error: false, payload, type: displayCurrenciesReceived})
+/**
+ * Update valid send assets to choose from
+ */
+export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({error: false, payload, type: sendAssetChoicesReceived})
 
 // Action Payloads
 export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
@@ -477,6 +492,7 @@ export type LoadMorePaymentsPayload = $Call<typeof createLoadMorePayments, _Load
 export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
+export type LoadSendAssetChoicesPayload = $Call<typeof createLoadSendAssetChoices, _LoadSendAssetChoicesPayload>
 export type MarkAsReadPayload = $Call<typeof createMarkAsRead, _MarkAsReadPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
@@ -487,6 +503,7 @@ export type RequestedPaymentPayload = $Call<typeof createRequestedPayment, _Requ
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
+export type SendAssetChoicesReceivedPayload = $Call<typeof createSendAssetChoicesReceived, _SendAssetChoicesReceivedPayload>
 export type SendPaymentPayload = $Call<typeof createSendPayment, _SendPaymentPayload>
 export type SentPaymentErrorPayload = $Call<typeof createSentPaymentError, _SentPaymentErrorPayload>
 export type SentPaymentPayload = $Call<typeof createSentPayment, _SentPaymentPayload>
@@ -543,6 +560,7 @@ export type Actions =
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
+  | LoadSendAssetChoicesPayload
   | MarkAsReadPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
@@ -553,6 +571,7 @@ export type Actions =
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
+  | SendAssetChoicesReceivedPayload
   | SendPaymentPayload
   | SentPaymentErrorPayload
   | SentPaymentPayload

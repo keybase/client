@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
 import {isMobile} from '../../styles'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
@@ -53,7 +53,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   let conversationIDKey = Constants.getSelectedConversation(state)
   let _meta = Constants.getMeta(state, conversationIDKey)
 

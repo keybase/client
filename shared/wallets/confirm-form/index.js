@@ -21,6 +21,7 @@ type ConfirmSendProps = {|
   banners?: Array<BannerType>,
   sendFailed: boolean,
   waitingKey?: string,
+  worthDescription?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -29,8 +30,9 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Header
         amount={props.amount}
         assetType={props.assetType}
-        assetConversion={props.assetConversion}
+        assetConversion={props.amount}
         onBack={props.onBack}
+        worthDescription={props.worthDescription}
       />
       <Kb.ScrollView style={styles.scrollView}>
         {(props.banners || []).map(banner => (
@@ -67,7 +69,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.amount} {props.assetType}
+                  {props.assetType === 'XLM' ? props.amount : props.assetConversion}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>

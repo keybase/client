@@ -139,6 +139,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
 		}
 		return NewPermanentUnboxingError(err)
 	case teams.TeamDoesNotExistError,
+		teams.KBFSKeyGenerationError,
+		libkb.KeyMaskNotFoundError,
 		DecryptionKeyNotFoundError,
 		NotAuthenticatedForThisDeviceError,
 		InvalidMACError:

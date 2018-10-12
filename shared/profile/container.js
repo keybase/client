@@ -21,7 +21,7 @@ import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
@@ -54,7 +54,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
+const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {

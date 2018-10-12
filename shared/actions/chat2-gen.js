@@ -65,6 +65,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
+export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
@@ -281,6 +282,11 @@ type _PaymentInfoReceivedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageID: RPCChatTypes.MessageID,
   paymentInfo: Types.ChatPaymentInfo,
+|}>
+type _PendingMessageWasEditedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  text: HiddenString,
 |}>
 type _PrepareFulfillRequestFormPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -519,6 +525,7 @@ export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({e
 export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload) => ({error: false, payload, type: openChatFromWidget})
 export const createOpenFolder = (payload: _OpenFolderPayload) => ({error: false, payload, type: openFolder})
+export const createPendingMessageWasEdited = (payload: _PendingMessageWasEditedPayload) => ({error: false, payload, type: pendingMessageWasEdited})
 export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({error: false, payload, type: previewConversation})
 export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({error: false, payload, type: resetLetThemIn})
@@ -587,6 +594,7 @@ export type NotificationSettingsUpdatedPayload = $Call<typeof createNotification
 export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
+export type PendingMessageWasEditedPayload = $Call<typeof createPendingMessageWasEdited, _PendingMessageWasEditedPayload>
 export type PrepareFulfillRequestFormPayload = $Call<typeof createPrepareFulfillRequestForm, _PrepareFulfillRequestFormPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
@@ -674,6 +682,7 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
+  | PendingMessageWasEditedPayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RequestInfoReceivedPayload

@@ -4,7 +4,7 @@ import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
+import {NullComponent, connect, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
@@ -52,7 +52,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
   return RemoteWindowComponent
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _badgeInfo: state.notifications.navBadges,
   _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,

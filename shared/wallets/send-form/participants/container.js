@@ -14,9 +14,9 @@ import {
 } from '../../../constants/wallets'
 import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToPropsKeybaseUser = (state: TypedState) => {
+const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
@@ -26,7 +26,7 @@ const mapStateToPropsKeybaseUser = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
+const mapDispatchToPropsKeybaseUser = dispatch => ({
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
@@ -46,7 +46,7 @@ const ConnectedParticipantsKeybaseUser = compose(
   setDisplayName('ParticipantsKeybaseUser')
 )(ParticipantsKeybaseUser)
 
-const mapStateToPropsStellarPublicKey = (state: TypedState) => {
+const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
@@ -56,7 +56,7 @@ const mapStateToPropsStellarPublicKey = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsStellarPublicKey = (dispatch: Dispatch) => ({
+const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
@@ -79,11 +79,11 @@ const makeAccount = (stateAccount: StateAccount) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
   isDefault: stateAccount.isDefault,
-  name: stateAccount.name || stateAccount.accountID,
+  name: stateAccount.name,
   unknown: stateAccount === unknownAccount,
 })
 
-const mapStateToPropsOtherAccount = (state: TypedState) => {
+const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.buildingPayment
 
   const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
@@ -105,7 +105,7 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
+const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: string) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
@@ -123,7 +123,7 @@ const ConnectedParticipantsOtherAccount = compose(
   setDisplayName('ParticipantsOtherAccount')
 )(ParticipantsOtherAccount)
 
-const mapStateToPropsChooser = (state: TypedState) => {
+const mapStateToPropsChooser = state => {
   const recipientType = state.wallets.buildingPayment.recipientType
   return {recipientType}
 }
