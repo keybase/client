@@ -16,7 +16,7 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
+  _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType) => {
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createClearErrors())

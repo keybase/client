@@ -215,7 +215,7 @@
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string"
+      "from": "Types.AccountID"
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",

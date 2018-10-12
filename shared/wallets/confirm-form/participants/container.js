@@ -12,7 +12,7 @@ const mapStateToProps = state => {
   let recipientUsername = built.toUsername
   const userInfo = state.users.infoMap.get(recipientUsername)
   const recipientFullName = userInfo ? userInfo.fullname : ''
-  const fromAccount = getAccount(state, stringToAccountID(built.from))
+  const fromAccount = getAccount(state, built.from)
   const recipientAccount = getAccount(state, stringToAccountID(build.to))
   const recipientAccountIsDefault = recipientAccount.isDefault
   const recipientStellarAddress = build.to

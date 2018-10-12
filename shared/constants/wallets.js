@@ -80,7 +80,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     amountErrMsg: b.amountErrMsg,
     amountFormatted: b.amountFormatted,
     banners: b.banners,
-    from: b.from,
+    from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
