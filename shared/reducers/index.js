@@ -1,5 +1,4 @@
 // @flow
-import logger from '../logger'
 import chat2 from './chat2'
 import config from './config'
 import dev from './dev'

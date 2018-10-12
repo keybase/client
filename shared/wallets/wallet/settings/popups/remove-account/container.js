@@ -1,10 +1,5 @@
 // @flow
-import {
-  compose,
-  connect,
-  setDisplayName,
-  safeSubmitPerMount,
-} from '../../../../../util/container'
+import {compose, connect, setDisplayName, safeSubmitPerMount} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import RemoveAccountPopup from '.'
@@ -16,7 +11,7 @@ const mapStateToProps = (state, {routeProps}) => {
   return {
     accountID,
     balance: account.balanceDescription,
-    name: account.name || accountID,
+    name: account.name,
   }
 }
 
