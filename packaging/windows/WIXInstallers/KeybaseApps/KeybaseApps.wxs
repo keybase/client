@@ -63,6 +63,8 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
+          <RegistryValue Name="UpdatePath" Type="string" Value="[UPDATEFOLDER]" />
+          <RegistryValue Name="UpdateLaunchCommand" Type="string" Value="[UPDATEFOLDER]keybaserq.exe &quot;[UPDATEFOLDER]upd.exe&quot; -LaunchUpdate" />
         </RegistryKey>
         <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
 			</Component>
