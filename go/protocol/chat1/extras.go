@@ -114,6 +114,10 @@ func (mid MessageID) Min(mid2 MessageID) MessageID {
 	return mid2
 }
 
+func (mid MessageID) IsNil() bool {
+	return uint(mid) == 0
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {

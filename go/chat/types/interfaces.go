@@ -100,7 +100,6 @@ type MessageDeliverer interface {
 	ForceDeliverLoop(ctx context.Context)
 	ActiveDeliveries(ctx context.Context) ([]chat1.ConversationID, error)
 	NextFailure() (chan []chat1.OutboxRecord, func())
-	UpdateInFlight(ctx context.Context, ob chat1.OutboxRecord) (bool, error)
 }
 
 type Searcher interface {

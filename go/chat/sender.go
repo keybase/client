@@ -79,8 +79,9 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 	header.Sender = gregor1.UID(huid)
 	header.SenderDevice = gregor1.DeviceID(hdid)
 	updated := chat1.MessagePlaintext{
-		ClientHeader: header,
-		MessageBody:  msg.MessageBody,
+		ClientHeader:       header,
+		MessageBody:        msg.MessageBody,
+		SupersedesOutboxID: msg.SupersedesOutboxID,
 	}
 	return updated, gregor1.UID(huid), nil
 }
@@ -437,6 +438,44 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 	return topicNameState, nil
 }
 
+func (s *BlockingSender) resolveOutboxIDEdit(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg *chat1.MessagePlaintext) error {
+	if msg.SupersedesOutboxID == nil {
+		return nil
+	}
+	s.Debug(ctx, "resolveOutboxIDEdit: resolving edit: outboxID: %s", msg.SupersedesOutboxID)
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return err
+	}
+	if typ != chat1.MessageType_EDIT {
+		return errors.New("supersedes outboxID only valid for edit messages")
+	}
+	body := msg.MessageBody.Edit()
+	// try to find the message with the given outbox ID in the first 50 messages.
+	tv, err := s.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_PREPARE,
+		&chat1.GetThreadQuery{
+			MessageTypes:             []chat1.MessageType{chat1.MessageType_TEXT},
+			DisableResolveSupersedes: true,
+		}, &chat1.Pagination{Num: 50})
+	if err != nil {
+		return err
+	}
+	for _, m := range tv.Messages {
+		if msg.SupersedesOutboxID.Eq(m.GetOutboxID()) {
+			s.Debug(ctx, "resolveOutboxIDEdit: resolved edit: outboxID: %s messageID: %v",
+				msg.SupersedesOutboxID, m.GetMessageID())
+			msg.ClientHeader.Supersedes = m.GetMessageID()
+			msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+				MessageID: m.GetMessageID(),
+				Body:      body.Body,
+			})
+			return nil
+		}
+	}
+	return errors.New("failed to find message to edit")
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
@@ -450,15 +489,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
-	// convID will be nil in makeFirstMessage
-	if conv != nil {
-		msg.ClientHeader.Conv = conv.Metadata.IdTriple
-		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
-		if err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
-		}
-	}
-
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
@@ -468,9 +498,26 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
 		convID := (*conv).GetConvID()
+		msg.ClientHeader.Conv = conv.Metadata.IdTriple
+		s.Debug(ctx, "Prepare: performing convID based checks")
+
+		// Check for outboxID based edits
+		if err = s.resolveOutboxIDEdit(ctx, uid, convID, &msg); err != nil {
+			s.Debug(ctx, "Prepare: error resolving outboxID edit: %s", err)
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+
+		// Add and check prev pointers
+		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
+		if err != nil {
+			s.Debug(ctx, "Prepare: error adding prev pointers: %s", err)
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+
 		// First process the reactionMessage in case we convert it to a delete
 		header, body, err := s.processReactionMessage(ctx, uid, convID, msg)
 		if err != nil {
+			s.Debug(ctx, "Prepare: error processing reactions: %s", err)
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		msg.ClientHeader = header
@@ -479,11 +526,13 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
 		if err != nil {
+			s.Debug(ctx, "Prepare: error getting deleted edits: %s", err)
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 
 		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 		if err != nil {
+			s.Debug(ctx, "Prepare: error getting superdeder ephemeral metadata: %s", err)
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		msg.ClientHeader.EphemeralMetadata = metadata
@@ -493,12 +542,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// server
 	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
 	if err != nil {
+		s.Debug(ctx, "Prepare: error checking topic name state: %s", err)
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
+		s.Debug(ctx, "Prepare: error getting signing key pair: %s", err)
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
@@ -804,10 +855,6 @@ type Deliverer struct {
 	notifyFailureChsMu sync.Mutex
 	notifyFailureChs   map[string]chan []chat1.OutboxRecord
 
-	activeSendMu     sync.Mutex
-	activeSendCtx    context.Context
-	activeSendCancel context.CancelFunc
-
 	// Testing
 	testingNameInfoSource types.NameInfoSource
 }
@@ -975,44 +1022,6 @@ func (s *Deliverer) NextFailure() (chan []chat1.OutboxRecord, func()) {
 		defer s.notifyFailureChsMu.Unlock()
 		delete(s.notifyFailureChs, id)
 	}
-}
-
-func (s *Deliverer) UpdateInFlight(ctx context.Context, obr chat1.OutboxRecord) (updated bool, err error) {
-	s.activeSendMu.Lock()
-	defer s.activeSendMu.Unlock()
-	defer s.Trace(ctx, func() error { return err }, "UpdateInFlight(%s)", obr.OutboxID)()
-	// Take out any active send so our update can be realized
-	s.clearActiveSendLocked()
-	updated, err = s.outbox.UpdateMessage(ctx, obr)
-	if err != nil {
-		return false, err
-	}
-
-	return updated, nil
-}
-
-func (s *Deliverer) setActiveSend(ctx context.Context, cancelFunc context.CancelFunc) {
-	s.activeSendMu.Lock()
-	defer s.activeSendMu.Unlock()
-	if s.activeSendCancel != nil {
-		s.activeSendCancel()
-	}
-	s.activeSendCtx = ctx
-	s.activeSendCancel = cancelFunc
-}
-
-func (s *Deliverer) clearActiveSend() {
-	s.activeSendMu.Lock()
-	defer s.activeSendMu.Unlock()
-	s.clearActiveSendLocked()
-}
-
-func (s *Deliverer) clearActiveSendLocked() {
-	if s.activeSendCancel != nil {
-		s.activeSendCancel()
-	}
-	s.activeSendCtx = nil
-	s.activeSendCancel = nil
 }
 
 func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
@@ -1227,14 +1236,11 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
-			var cancelFn context.CancelFunc
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
 				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
-			bctx, cancelFn = context.WithCancel(bctx)
-			s.setActiveSend(bctx, cancelFn)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
@@ -1293,7 +1299,6 @@ func (s *Deliverer) deliverLoop() {
 				}
 			}
 		}
-		s.clearActiveSend()
 	}
 }
 

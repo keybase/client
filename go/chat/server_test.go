@@ -2339,27 +2339,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 	})
 }
 
-type gatedSendRemote struct {
-	chat1.RemoteInterface
-	gateCh chan struct{}
-}
-
-func newGatedSendRemote(ri chat1.RemoteInterface) *gatedSendRemote {
-	return &gatedSendRemote{
-		RemoteInterface: ri,
-		gateCh:          make(chan struct{}),
-	}
-}
-
-func (g *gatedSendRemote) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
-	select {
-	case <-g.gateCh:
-	case <-ctx.Done():
-		return res, ctx.Err()
-	}
-	return g.RemoteInterface.PostRemote(ctx, arg)
-}
-
 func TestChatSrvPostEditNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -2431,40 +2410,6 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 		checkMessage("hi!!", 1)
-
-		sender := tc.Context().MessageDeliverer.(*Deliverer).sender.(*BlockingSender)
-		ri := sender.getRi
-		gatedRi := newGatedSendRemote(ri())
-		gatedRiFn := func() chat1.RemoteInterface { return gatedRi }
-		tc.Context().MessageDeliverer.(*Deliverer).sender.(*BlockingSender).getRi = gatedRiFn
-
-		postNbRes, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx,
-			chat1.PostTextNonblockArg{
-				ConversationID: conv.Id,
-				TlfName:        conv.TlfName,
-				Body:           "gated",
-			})
-		require.NoError(t, err)
-		outboxID = postNbRes.OutboxID
-
-		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
-			ConversationID: conv.Id,
-			TlfName:        conv.TlfName,
-			Target: chat1.EditTarget{
-				OutboxID: &outboxID,
-			},
-			Body: "gated!",
-		})
-		require.NoError(t, err)
-		close(gatedRi.gateCh)
-		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
-		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		checkMessage("gated!", 2)
-		select {
-		case <-listener.newMessageRemote:
-			require.Fail(t, "no more messages")
-		default:
-		}
 	})
 }
 

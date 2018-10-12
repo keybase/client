@@ -1142,106 +1142,32 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostEditNonblock")()
-	uid, err := h.assertLoggedInUID(ctx)
-	if err != nil {
-		return res, err
-	}
-	// We got a real message ID to supersede, so generate the edit message
-	doSupersedesEdit := func(supersedes chat1.MessageID) (chat1.PostLocalNonblockRes, error) {
-		var parg chat1.PostLocalNonblockArg
-		parg.ClientPrev = arg.ClientPrev
-		parg.ConversationID = arg.ConversationID
-		parg.IdentifyBehavior = arg.IdentifyBehavior
-		parg.OutboxID = arg.OutboxID
-		parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
-		parg.Msg.ClientHeader.Supersedes = supersedes
-		parg.Msg.ClientHeader.TlfName = arg.TlfName
-		parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
-		parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-			MessageID: supersedes,
-			Body:      arg.Body,
-		})
 
-		return h.PostLocalNonblock(ctx, parg)
-	}
-	doFetchThreadEdit := func(target chat1.OutboxID) (res chat1.PostLocalNonblockRes, err error) {
-		// if we did not actually update this, then let's see if we can find the outbox ID in the first 50
-		// messages fetched now
-		tv, err := h.G().ConvSource.Pull(ctx, arg.ConversationID, uid, chat1.GetThreadReason_PREPARE,
-			&chat1.GetThreadQuery{
-				MessageTypes:             []chat1.MessageType{chat1.MessageType_TEXT},
-				DisableResolveSupersedes: true,
-			}, &chat1.Pagination{Num: 50})
-		if err != nil {
-			return res, err
-		}
-		for _, msg := range tv.Messages {
-			obid := msg.GetOutboxID()
-			if target.Eq(obid) {
-				return doSupersedesEdit(msg.GetMessageID())
-			}
-		}
-		return res, errors.New("failed to find message to edit")
-	}
-
+	var parg chat1.PostLocalNonblockArg
+	var supersedes chat1.MessageID
 	if arg.Target.MessageID != nil && *arg.Target.MessageID > 0 {
-		return doSupersedesEdit(*arg.Target.MessageID)
+		supersedes = *arg.Target.MessageID
 	}
-	if arg.Target.OutboxID == nil {
+	if supersedes.IsNil() && arg.Target.OutboxID == nil {
 		return res, errors.New("must specify a messageID or outboxID for edit")
 	}
-	h.Debug(ctx, "PostEditNonblock: editing via the outbox: %s", *arg.Target.OutboxID)
-
-	// We have been given an outboxID, so let's update the outbox entry for it
-	defer func() {
-		if err != nil {
-			// Throw up a failed message if we hit any errors after this point
-			act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-				OutboxRecords: []chat1.OutboxRecord{chat1.OutboxRecord{
-					ConvID:   arg.ConversationID,
-					OutboxID: *arg.Target.OutboxID,
-					State: chat1.NewOutboxStateWithError(chat1.OutboxStateError{
-						Message: err.Error(),
-						Typ:     chat1.OutboxErrorType_MISC,
-					}),
-				}},
-			})
-			h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_NONE, &act,
-				chat1.ChatActivitySource_LOCAL)
-			err = nil
-		}
-	}()
-	ob := storage.NewOutbox(h.G(), uid)
-	obr, err := ob.GetRecord(ctx, *arg.Target.OutboxID)
-	if err != nil {
-		if _, ok := err.(storage.MissError); !ok {
-			return res, err
-		}
-		// If we can't find the record, just try and fetch the thread to get it
-		h.Debug(ctx, "PostEditNonblock: no outbox item found, trying fetch: %s", *arg.Target.OutboxID)
-		return doFetchThreadEdit(*arg.Target.OutboxID)
-	}
-	typ, err := obr.Msg.MessageBody.MessageType()
-	if err != nil {
-		return res, err
-	}
-	if typ != chat1.MessageType_TEXT {
-		return res, errors.New("unable to edit non-text message")
-	}
-	obr.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: arg.Body,
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
+	parg.Msg.ClientHeader.Supersedes = supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+		MessageID: supersedes,
+		Body:      arg.Body,
 	})
-	updated, err := h.G().MessageDeliverer.UpdateInFlight(ctx, obr)
-	if err != nil {
-		return res, err
+	if supersedes.IsNil() {
+		h.Debug(ctx, "PostEditNonblock: setting supersedes outboxID: %s", arg.Target.OutboxID)
+		parg.Msg.SupersedesOutboxID = arg.Target.OutboxID
 	}
-	if updated {
-		// If we actually updated it in the outbox, then we are done, so let's just bail out
-		return res, nil
-	}
-	h.Debug(ctx, "PostEditNonblock: nothing was updated, trying fetch: %s", *arg.Target.OutboxID)
-	// Otherwise try to find it in the thread by outbox ID to edit it with a message
-	return doFetchThreadEdit(*arg.Target.OutboxID)
+	return h.PostLocalNonblock(ctx, parg)
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {

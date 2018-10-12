@@ -2314,14 +2314,22 @@ func (o BodyPlaintext) DeepCopy() BodyPlaintext {
 }
 
 type MessagePlaintext struct {
-	ClientHeader MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	MessageBody  MessageBody         `codec:"messageBody" json:"messageBody"`
+	ClientHeader       MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	MessageBody        MessageBody         `codec:"messageBody" json:"messageBody"`
+	SupersedesOutboxID *OutboxID           `codec:"supersedesOutboxID,omitempty" json:"supersedesOutboxID,omitempty"`
 }
 
 func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	return MessagePlaintext{
 		ClientHeader: o.ClientHeader.DeepCopy(),
 		MessageBody:  o.MessageBody.DeepCopy(),
+		SupersedesOutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SupersedesOutboxID),
 	}
 }
 

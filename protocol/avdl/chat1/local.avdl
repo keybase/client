@@ -359,6 +359,7 @@ protocol local {
   record MessagePlaintext {
     MessageClientHeader clientHeader;
     MessageBody messageBody;
+    union { null, OutboxID } supersedesOutboxID;
   }
 
   record MessageUnboxedValid {
