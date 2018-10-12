@@ -2,31 +2,11 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import * as Kb from '../../../common-adapters'
 import AddPeopleHow from './add-people-how/container'
-import {
-  iconCastPlatformStyles,
-  Box,
-  Button,
-  ButtonBar,
-  Icon,
-  InfoNote,
-  Meta,
-  Text,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../../common-adapters'
 import type {Response} from 'react-native-image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
-import {
-  desktopStyles,
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
+import * as Styles from '../../../styles'
 
 export type Props = {
   canChat: boolean,
@@ -44,16 +24,16 @@ export type Props = {
   onChat: () => void,
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
-  <Box style={styles.container}>
+  <Kb.Box style={styles.container}>
     {props.canJoinTeam && (
-      <Box key="add yourself" style={styles.addYourselfBanner}>
-        <Text type="BodySemibold" style={styles.addYourselfBannerText}>
+      <Kb.Box key="add yourself" style={styles.addYourselfBanner}>
+        <Kb.Text type="BodySemibold" style={styles.addYourselfBannerText}>
           You are not a member of this team.
-        </Text>
-        <Text
+        </Kb.Text>
+        <Kb.Text
           backgroundMode="Information"
           type="BodySemiboldLink"
           style={styles.addYourselfBannerText}
@@ -61,36 +41,38 @@ const _TeamHeader = (props: Props) => (
           underline={true}
         >
           Add yourself
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
     )}
-    <Box style={styles.teamHeader}>
+    <Kb.Box style={styles.teamHeader}>
       {/* Summary */}
       <NameWithIconWrapper
         canEditDescription={props.canEditDescription}
         onEditIcon={props.onEditIcon}
         teamname={props.teamname}
         metaOne={
-          <Box style={globalStyles.flexBoxRow}>
-            <Text type="BodySmall">TEAM</Text>
-            {props.openTeam && <Meta style={styles.meta} title="open" backgroundColor={globalColors.green} />}
-          </Box>
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Text type="BodySmall">TEAM</Kb.Text>
+            {props.openTeam && (
+              <Kb.Meta style={styles.meta} title="open" backgroundColor={Styles.globalColors.green} />
+            )}
+          </Kb.Box>
         }
         metaTwo={getTeamSubtitle(props.memberCount, props.role)}
       />
 
       {/* Description */}
       {props.canEditDescription || props.description ? (
-        <Text
-          className={props.description ? 'hover-underline' : ''}
-          style={collapseStyles([
+        <Kb.Text
+          className={Styles.classNames({'hover-underline': props.description})}
+          style={Styles.collapseStyles([
             styles.description,
-            platformStyles({
+            Styles.platformStyles({
               common: {
-                color: props.description ? globalColors.black_75 : globalColors.black_20,
+                color: props.description ? Styles.globalColors.black_75 : Styles.globalColors.black_20,
               },
               isElectron: {
-                ...(props.description ? desktopStyles.editable : desktopStyles.clickable),
+                ...(props.description ? Styles.desktopStyles.editable : Styles.desktopStyles.clickable),
               },
             }),
           ])}
@@ -98,32 +80,32 @@ const _TeamHeader = (props: Props) => (
           type={props.canEditDescription ? 'BodySecondaryLink' : 'Body'}
         >
           {props.description || (props.canEditDescription && 'Write a brief description')}
-        </Text>
+        </Kb.Text>
       ) : (
-        <Box />
+        <Kb.Box />
       )}
 
       {/* Actions */}
-      <ButtonBar direction="row" style={styles.buttonBar}>
+      <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
-          <Button type="Primary" label="Chat" onClick={props.onChat}>
-            <Icon
+          <Kb.Button type="Primary" label="Chat" onClick={props.onChat}>
+            <Kb.Icon
               type="iconfont-chat"
-              style={iconCastPlatformStyles(styles.chatIcon)}
-              color={globalColors.white}
+              style={Kb.iconCastPlatformStyles(styles.chatIcon)}
+              color={Styles.globalColors.white}
               size={22}
             />
-          </Button>
+          </Kb.Button>
         )}
         {props.canManageMembers && (
-          <Button
+          <Kb.Button
             type="Secondary"
             label={'Add people...'}
-            ref={isMobile ? undefined : props.setAttachmentRef}
+            ref={Styles.isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}
           />
         )}
-      </ButtonBar>
+      </Kb.ButtonBar>
 
       {/* Add people how dropdown */}
       <AddPeopleHow
@@ -134,19 +116,19 @@ const _TeamHeader = (props: Props) => (
       />
 
       {/* CLI hint */}
-      {!isMobile && (
-        <InfoNote>
-          <Text type="BodySmall">You can also manage teams from the terminal:</Text>
-          <Text type="TerminalInline" selectable={true} style={styles.cliTerminalText}>
+      {!Styles.isMobile && (
+        <Kb.InfoNote>
+          <Kb.Text type="BodySmall">You can also manage teams from the terminal:</Kb.Text>
+          <Kb.Text type="TerminalInline" selectable={true} style={styles.cliTerminalText}>
             keybase team --help
-          </Text>
-        </InfoNote>
+          </Kb.Text>
+        </Kb.InfoNote>
       )}
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
-const TeamHeader = OverlayParentHOC(_TeamHeader)
+const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
@@ -159,25 +141,25 @@ const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): st
   return res
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   addYourselfBanner: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     alignSelf: 'stretch',
-    backgroundColor: globalColors.blue,
+    backgroundColor: Styles.globalColors.blue,
     justifyContent: 'center',
-    marginBottom: globalMargins.tiny,
+    marginBottom: Styles.globalMargins.tiny,
     minHeight: 40,
-    paddingBottom: globalMargins.tiny,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-    paddingTop: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
   },
   addYourselfBannerText: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
-  buttonBar: platformStyles({
+  buttonBar: Styles.platformStyles({
     isMobile: {
       marginBottom: -8,
       width: 'auto',
@@ -187,11 +169,11 @@ const styles = styleSheetCreate({
     marginRight: 8,
   },
   cliTerminalText: {
-    marginLeft: globalMargins.xtiny,
-    marginTop: globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.xtiny,
   },
   container: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
     height: '100%',
@@ -200,23 +182,23 @@ const styles = styleSheetCreate({
   },
   description: {
     maxWidth: 560,
-    paddingTop: globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
     textAlign: 'center',
   },
   meta: {
     alignSelf: 'center',
-    marginLeft: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
-  teamHeader: platformStyles({
+  teamHeader: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-      paddingTop: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
-      paddingTop: globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
       textAlign: 'center',
     },
   }),

@@ -163,6 +163,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   readState: 'read',
+  section: 'pending',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -198,7 +199,11 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?RPCTypes.PaymentID) => {
+const paymentResultToPayment = (
+  w: RPCTypes.PaymentOrErrorLocal,
+  section: Types.PaymentSection,
+  oldestUnread: ?RPCTypes.PaymentID
+) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
@@ -214,14 +219,14 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, oldestUnread: ?
     readState = 'read'
   }
   return makePayment({
-    ...rpcPaymentToPaymentCommon(w.payment),
+    ...rpcPaymentToPaymentCommon(w.payment, section),
     readState,
   })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
-    ...rpcPaymentToPaymentCommon(p),
+    ...rpcPaymentToPaymentCommon(p, 'history'),
     // Payment details have no unread field.
     readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
@@ -229,7 +234,10 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
     txID: p.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (
+  p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
+  section: Types.PaymentSection
+) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
@@ -248,6 +256,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
+    section,
     source,
     sourceAccountID: p.fromAccountID,
     sourceType,

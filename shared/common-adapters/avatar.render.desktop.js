@@ -9,11 +9,17 @@ class AvatarRender extends React.PureComponent<Props> {
     const avatarSizeClasName = `avatar-${this.props.isTeam ? 'team' : 'user'}-size-${this.props.size}`
 
     return (
-      <div className={`avatar ${avatarSizeClasName}`} onClick={this.props.onClick} style={this.props.style}>
-        {!this.props.skipBackground && <div className={'avatar-background ' + avatarSizeClasName} />}
+      <div
+        className={Styles.classNames('avatar', avatarSizeClasName)}
+        onClick={this.props.onClick}
+        style={this.props.style}
+      >
+        {!this.props.skipBackground && (
+          <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
+        )}
         {!!this.props.url && (
           <div
-            className={'avatar-user-image ' + avatarSizeClasName}
+            className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
             style={{
               backgroundImage: this.props.url,
               opacity:
@@ -27,7 +33,13 @@ class AvatarRender extends React.PureComponent<Props> {
               boxShadow: `0px 0px 0px ${this.props.isTeam ? 1 : 2}px ${this.props.borderColor ||
                 Styles.globalColors.black_10} ${this.props.isTeam ? 'inset' : ''}`,
             }}
-            className={(this.props.isTeam ? 'avatar-border-team ' : 'avatar-border ') + avatarSizeClasName}
+            className={Styles.classNames(
+              {
+                'avatar-border-team': this.props.isTeam,
+                'avatar-border': !this.props.isTeam,
+              },
+              avatarSizeClasName
+            )}
           />
         )}
         {this.props.followIconType && (

@@ -158,7 +158,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             type="BodySmallPrimaryLink"
             onClick={this.props.onShowInFinder}
             style={styles.link}
-            className={!isMobile ? 'hover-underline' : undefined}
+            className={Styles.classNames({'hover-underline': !isMobile})}
           >
             Show in {Styles.fileUIName}
           </Kb.Text>
