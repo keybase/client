@@ -250,6 +250,12 @@ protocol SimpleFS {
    */
   void simpleFSCopy(OpID opID, Path src, Path dest);
 
+
+  /**
+   Make a symlink of file or directory
+   */
+  void simpleFSSymlink(string target, Path link);
+
   /**
    Begin recursive copy of directory 
    */
