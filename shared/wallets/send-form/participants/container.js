@@ -18,11 +18,10 @@ import {compose, connect, setDisplayName} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
-  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   // If build.to is set, assume it's a valid username.
   return {
-    recipientUsername: built.toUsername || build.to,
+    recipientUsername: (!build.isRequest && state.wallets.builtPayment.toUsername) || build.to,
   }
 }
 

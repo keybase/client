@@ -109,7 +109,6 @@ export type _BuiltRequest = {
   readyToRequest: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
-  toUsername: string,
   worthDescription: string,
   worthInfo: string,
 }

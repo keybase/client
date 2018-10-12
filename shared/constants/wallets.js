@@ -55,7 +55,6 @@ const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   readyToRequest: false,
   secretNoteErrMsg: new HiddenString(''),
   toErrMsg: '',
-  toUsername: '',
   worthDescription: '',
   worthInfo: '',
 })
@@ -110,7 +109,6 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
     readyToRequest: b.readyToRequest,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
-    toUsername: b.toUsername,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })
