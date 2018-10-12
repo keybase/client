@@ -26,10 +26,38 @@ const valuesCached = memoize((badgeMap, unreadMap, ...vals) =>
   }))
 )
 
-const metaMapToFirstValues = memoize(metaMap =>
+const metaMapToFirstValues = memoize((metaMap, _lastState) =>
   metaMap
+    .partialSort(maxShownConversations * 10, (a, b) => b.timestamp - a.timestamp)
     .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
-    .filter((_, id) => Constants.isValidConversationIDKey(id))
+    .filter((meta, id) => {
+      if (!Constants.isValidConversationIDKey(id)) {
+        return false
+      }
+      if (meta.teamType === 'adhoc') {
+        // DM's
+        return !meta.isMuted
+      }
+      if (!meta.teamType === 'big') {
+        return false
+      }
+      // channels
+      if (!meta.notificationsGlobalIgnoreMentions) {
+        // @here and @mention not ignored
+        if (meta.notificationsDesktop === 'onAnyActivity') {
+          return true
+        } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
+          // check if user has been mentioned in the message
+          let snippet = meta.snippet.toLowerCase()
+          return (
+            (!!_lastState.config.username && snippet.indexOf(`@${_lastState.config.username}`) === 0) ||
+            snippet.indexOf('you') === 0
+          )
+        }
+        return false
+      }
+    })
+    .slice(0, maxShownConversations)
     .valueSeq()
     .toArray()
 )
@@ -41,7 +69,7 @@ export const conversationsToSend = (state: TypedState) => {
   return valuesCached(
     state.chat2.badgeMap,
     state.chat2.unreadMap,
-    ...metaMapToFirstValues(state.chat2.metaMap)
+    ...metaMapToFirstValues(state.chat2.metaMap, _lastState)
   )
 }
 

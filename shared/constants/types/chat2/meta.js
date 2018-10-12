@@ -45,6 +45,7 @@ export type _ConversationMeta = {
   timestamp: number,
   tlfname: string, // just used for rpc calls
   trustedState: MetaTrustedState,
+  widgetTimestamp: number
 }
 
 export type ConversationMeta = I.RecordOf<_ConversationMeta>
