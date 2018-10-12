@@ -356,7 +356,7 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyIndexConsumption := func(consumeCh chan bool) {
 			select {
 			case <-consumeCh:
-			case <-time.After(5 * time.Minute):
+			case <-time.After(5 * time.Second):
 				require.Fail(t, "indexer didn't consume")
 			}
 		}

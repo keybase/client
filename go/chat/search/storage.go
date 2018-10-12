@@ -35,7 +35,8 @@ type store struct {
 //     ...       ->        ...
 // NOTE: as a performance optimization we may want to splice the metdata from
 // the index itself so we can quickly operate on the metadata separately from
-// the index.
+// the index and have less bytes to encrypt/decrypt on reads (metadata only
+// contains only msg ids and no user content).
 func newStore(g *globals.Context) *store {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
@@ -66,8 +67,8 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 			ret.Metadata.SeenIDs = map[chat1.MessageID]bool{}
 		}
 	}()
-	var entry chat1.ConversationIndex
 	dbKey := s.dbKey(convID, uid)
+	var entry chat1.ConversationIndex
 	found, err := s.encryptedDB.Get(ctx, dbKey, &entry)
 	if err != nil || !found {
 		return nil, err
@@ -100,6 +101,9 @@ func (s *store) getConvIndex(ctx context.Context, convID chat1.ConversationID, u
 	return s.getLocked(ctx, convID, uid)
 }
 
+// addTokensLocked add the given tokens to the index under the given message
+// id, when ingesting EDIT messages the msgID is of the superseded msg but the
+// tokens are from the EDIT itself.
 func (s *store) addTokensLocked(entry *chat1.ConversationIndex, tokens []string, msgID chat1.MessageID) {
 	for _, token := range tokens {
 		msgIDs, ok := entry.Index[token]
@@ -119,6 +123,7 @@ func (s *store) addMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUn
 func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.MessageUnboxed) {
 	tokens := tokensFromMsg(msg)
 
+	// find the msgID that the index stores
 	var msgID chat1.MessageID
 	switch msg.GetMessageType() {
 	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED:
@@ -142,10 +147,8 @@ func (s *store) removeMsgLocked(entry *chat1.ConversationIndex, msg chat1.Messag
 	}
 }
 
-// Add processes messages, updating the index as necessary.
 func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("indexStore.add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	s.Lock()
 	defer s.Unlock()
 
@@ -154,7 +157,6 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 		return err
 	}
 
-	var conv *chat1.Conversation
 	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
 		superIDs, err := utils.GetSupersedes(msg)
 		if err != nil {
@@ -219,7 +221,6 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 // Remove tokenizes the message content and updates/removes index keys for each token.
 func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	s.Lock()
 	defer s.Unlock()
 

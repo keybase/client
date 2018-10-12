@@ -213,22 +213,28 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	}, nil
 }
 
-func (idx *Indexer) consumeResultsForTest(msgs []chat1.MessageUnboxed) {
-	if idx.consumeCh != nil {
+func (idx *Indexer) consumeResultsForTest(msgs []chat1.MessageUnboxed, err error) {
+	if err == nil && idx.consumeCh != nil {
 		idx.consumeCh <- true
 	}
 }
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) error {
-	defer idx.consumeResultsForTest(msgs)
-	return idx.store.add(ctx, convID, uid, msgs)
+	msgs []chat1.MessageUnboxed) (err error) {
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(msgs, err)
+	err = idx.store.add(ctx, convID, uid, msgs)
+	return err
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) error {
-	defer idx.consumeResultsForTest(msgs)
-	return idx.store.remove(ctx, convID, uid, msgs)
+	msgs []chat1.MessageUnboxed) (err error) {
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(msgs, err)
+	err = idx.store.remove(ctx, convID, uid, msgs)
+	return err
 }
 
 // Search tokenizes the given query and finds the intersection of all matches
