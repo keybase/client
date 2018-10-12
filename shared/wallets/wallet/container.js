@@ -39,25 +39,27 @@ const mergeProps = (stateProps, dispatchProps) => {
   // split into pending & history
   let mostRecentID
   const paymentsList = stateProps.payments && stateProps.payments.toList().toArray()
-  const splitPayments = paymentsList && partition(paymentsList, p => p.section === 'history')
-  let history = splitPayments && splitPayments[0].map(p => ({paymentID: p.id, timestamp: p.time}))
-  const pending = splitPayments && splitPayments[1].map(p => ({paymentID: p.id, timestamp: p.time}))
+  const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
+  const mapItem = p => ({paymentID: p.id, timestamp: p.time})
+  let history = _history.map(mapItem)
+  const pending = _pending.map(mapItem)
 
-  if (history && history.length) {
+  if (history.length) {
     history = sortAndStripTimestamps(history)
     mostRecentID = history[0].paymentID
+  } else {
+    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
   }
 
-  if (pending && pending.length) {
+  if (pending.length) {
     sections.push({
       data: sortAndStripTimestamps(pending),
       title: 'Pending',
     })
   }
 
-  const historyData = history || [stateProps.payments ? 'noPayments' : 'notLoadedYet']
   sections.push({
-    data: historyData,
+    data: history,
     title: 'History',
   })
 
