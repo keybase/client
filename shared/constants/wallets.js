@@ -446,9 +446,6 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
 
-const getAccountName = (account: Types.Account) =>
-  account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
-
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
@@ -480,7 +477,7 @@ const getCurrencyAndSymbol = (state: TypedState, code: string) => {
     return 'XLM'
   }
   const currency = state.wallets.currencies.find(c => c.code === code)
-    return currency ? currency.description : code
+  return currency ? currency.description : code
 }
 
 const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
@@ -520,7 +517,6 @@ export {
   deleteAccountWaitingKey,
   getAccountIDs,
   getAccounts,
-  getAccountName,
   getAccount,
   getAssets,
   getCurrencyAndSymbol,
