@@ -67,6 +67,7 @@ const styles = Styles.styleSheetCreate({
   }),
   container: Styles.platformStyles({
     common: {
+      flexGrow: 1,
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },
@@ -88,12 +89,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   scrollView: {
-    width: '100%',
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
+    height: '100%',
+    width: '100%',
   },
-  scrollViewContentContainer: Styles.platformStyles({
-    isElectron: {height: 525},
-  }),
+  scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 })
 
 export default compose(
