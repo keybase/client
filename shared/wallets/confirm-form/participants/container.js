@@ -25,8 +25,8 @@ const mapStateToProps = state => {
       recipientUsername = build.to
     }
   } else {
-    recipientStellarAddress = build.to
-    const recipientAccount = getAccount(state, stringToAccountID(build.to))
+    recipientStellarAddress = stringToAccountID(build.to)
+    const recipientAccount = getAccount(state, recipientStellarAddress)
     recipientAccountName = recipientAccount.name || recipientAccount.accountID
     recipientAccountIsDefault = recipientAccount.isDefault
     recipientAccountAssets = recipientAccount.balanceDescription
