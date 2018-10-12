@@ -73,6 +73,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     title: 'Transaction details',
     transactionID: tx.txID,
     you: stateProps.you,
+    youWereWallet: tx.sourceType ? tx.source : '',
   }
 }
 

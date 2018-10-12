@@ -164,6 +164,33 @@ const load = () => {
         loading={false}
         amountXLM="545.2562704 XLM"
         yourRole="receiverOnly"
+        memo=""
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
+        onBack={Sb.action('onBack')}
+        title="Details"
+        timestamp={yesterday}
+        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
+        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
+        onViewTransaction={Sb.action('onViewTransaction')}
+        you="cjb"
+        status="completed"
+        statusDetail=""
+        selectableText={false}
+      />
+    ))
+    .add('Received from another account with note', () => (
+      <TransactionDetails
+        counterparty="Second account"
+        counterpartyType="otherAccount"
+        counterpartyMeta={null}
+        amountUser="$100"
+        loading={false}
+        amountXLM="545.2562704 XLM"
+        yourRole="receiverOnly"
         memo={memo}
         recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}

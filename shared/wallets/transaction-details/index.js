@@ -51,6 +51,8 @@ export type NotLoadingProps = {|
   transactionID?: string,
   you: string,
   yourRole: Types.Role,
+  // if 'you' is a wallet
+  youWereWallet: string,
 |}
 export type Props =
   | NotLoadingProps
@@ -84,7 +86,7 @@ const Counterparty = (props: CounterpartyProps) => {
       <CounterpartyIcon
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        large={false}
+        large={props.counterpartyType !== 'otherAccount'}
         onShowProfile={props.onShowProfile}
       />
       <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
@@ -141,17 +143,27 @@ const propsToParties = (props: NotLoadingProps) => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
-  const you = (
-    <NameWithIcon
-      colorFollowing={true}
-      horizontal={true}
-      onClick={() => props.onShowProfile(props.you)}
-      underline={true}
-      username={props.you}
-      metaOne="You"
-      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
-    />
-  )
+  const you =
+    props.counterpartyType === 'otherAccount' && props.youWereWallet ? (
+      <Counterparty
+        counterpartyType={props.counterpartyType}
+        counterparty={props.youWereWallet}
+        accountID={yourAccountID}
+        onShowProfile={() => {}}
+        counterpartyMeta=""
+      />
+    ) : (
+      <NameWithIcon
+        colorFollowing={true}
+        horizontal={true}
+        onClick={() => props.onShowProfile(props.you)}
+        underline={true}
+        username={props.you}
+        metaOne="You"
+        metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+      />
+    )
+
   const counterparty = (
     <Counterparty
       accountID={counterpartyAccountID}
@@ -189,7 +201,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
         amountXLM={props.amountXLM}
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        large={true}
+        large={props.counterpartyType !== 'otherAccount' || !!props.memo}
         memo={props.memo}
         onCancelPayment={null}
         onCancelPaymentWaitingKey=""
