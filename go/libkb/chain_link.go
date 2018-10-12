@@ -221,7 +221,7 @@ type ChainLink struct {
 	Contextified
 	parent            *SigChain
 	id                LinkID
-	diskVersion                        int
+	diskVersion       int
 	hashVerified      bool
 	sigVerified       bool
 	payloadVerified   bool
@@ -364,10 +364,10 @@ func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
 	}
 }
 
-const chainLinkDiskVersion = 2
+const chainLinkDiskVersion = 1
 
 func (c *ChainLink) canTrustID() bool {
-	return (c.hashVerified && c.chainVerified) || (c.storedLocally && c.diskVersion < 2)
+	return c.hashVerified || (c.storedLocally && c.diskVersion < 2)
 }
 
 func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
