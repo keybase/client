@@ -282,15 +282,10 @@ func (am *AutogitManager) TlfHandleChange(
 	// Do nothing.
 }
 
-// GetBrowserForRepo returns the root FS for the specified repo and a
-// `Browser` for the branch and subdir.
-func (am *AutogitManager) GetBrowserForRepo(
+func (am *AutogitManager) getBrowserForRepoLocked(
 	ctx context.Context, gitFS *libfs.FS, repoName string,
 	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
 	key := browserCacheKey{gitFS, repoName, branch, subdir}
-
-	am.browserLock.Lock()
-	defer am.browserLock.Unlock()
 	tmp, ok := am.browserCache.Get(key)
 	if ok {
 		b, ok := tmp.(browserCacheValue)
@@ -313,23 +308,22 @@ func (am *AutogitManager) GetBrowserForRepo(
 
 	// Shortcut if the root of the repo already has a browser.
 	if subdir != "" {
-		tmp, ok = am.browserCache.Get(rootKey)
-		if ok {
-			rootB, ok := tmp.(browserCacheValue)
-			if ok {
-				b, err := rootB.browser.Chroot(subdir)
-				if err != nil {
-					return nil, nil, err
-				}
-				browser, ok := b.(*Browser)
-				if !ok {
-					return nil, nil, errors.Errorf("Bad browser type: %T", b)
-				}
-				am.browserCache.Add(
-					key, browserCacheValue{rootB.repoFS, browser})
-				return rootB.repoFS, browser, nil
-			}
+		repoFS, rootB, err := am.getBrowserForRepoLocked(
+			ctx, gitFS, repoName, branch, "")
+		if err != nil {
+			return nil, nil, err
 		}
+
+		b, err := rootB.Chroot(subdir)
+		if err != nil {
+			return nil, nil, err
+		}
+		browser, ok := b.(*Browser)
+		if !ok {
+			return nil, nil, errors.Errorf("Bad browser type: %T", b)
+		}
+		am.browserCache.Add(key, browserCacheValue{repoFS, browser})
+		return repoFS, browser, nil
 	}
 
 	billyFS, err := gitFS.Chroot(repoName)
@@ -341,19 +335,18 @@ func (am *AutogitManager) GetBrowserForRepo(
 	if err != nil {
 		return nil, nil, err
 	}
-	if subdir != "" {
-		am.browserCache.Add(rootKey, browserCacheValue{repoFS, browser})
-		b, err := browser.Chroot(subdir)
-		if err != nil {
-			return nil, nil, err
-		}
-		browser, ok = b.(*Browser)
-		if !ok {
-			return nil, nil, errors.Errorf("Bad browser type: %T", b)
-		}
-	}
 	am.browserCache.Add(key, browserCacheValue{repoFS, browser})
 	return repoFS, browser, nil
+}
+
+// GetBrowserForRepo returns the root FS for the specified repo and a
+// `Browser` for the branch and subdir.
+func (am *AutogitManager) GetBrowserForRepo(
+	ctx context.Context, gitFS *libfs.FS, repoName string,
+	branch plumbing.ReferenceName, subdir string) (*libfs.FS, *Browser, error) {
+	am.browserLock.Lock()
+	defer am.browserLock.Unlock()
+	return am.getBrowserForRepoLocked(ctx, gitFS, repoName, branch, subdir)
 }
 
 // StartAutogit launches autogit, and returns a function that should
