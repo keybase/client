@@ -24,7 +24,7 @@ export type MessageTypes = {|
     outParam: BuildPaymentResLocal,
   |},
   'stellar.1.local.buildRequestLocal': {|
-    inParam: $ReadOnly<{|to: String, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String|}>,
+    inParam: $ReadOnly<{|to: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, secretNote: String|}>,
     outParam: BuildRequestResLocal,
   |},
   'stellar.1.local.cancelPaymentLocal': {|
@@ -217,7 +217,7 @@ export type BalanceDelta =
   | 2 // DECREASE_2
 
 export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>, amountFormatted: String}>
-export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
+export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64

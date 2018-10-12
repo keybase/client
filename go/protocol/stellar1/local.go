@@ -472,7 +472,6 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 type BuildRequestResLocal struct {
 	ReadyToRequest   bool              `codec:"readyToRequest" json:"readyToRequest"`
 	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
-	ToUsername       string            `codec:"toUsername" json:"toUsername"`
 	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
 	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
@@ -484,7 +483,6 @@ func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
 	return BuildRequestResLocal{
 		ReadyToRequest:   o.ReadyToRequest,
 		ToErrMsg:         o.ToErrMsg,
-		ToUsername:       o.ToUsername,
 		AmountErrMsg:     o.AmountErrMsg,
 		SecretNoteErrMsg: o.SecretNoteErrMsg,
 		WorthDescription: o.WorthDescription,
@@ -859,8 +857,8 @@ type BuildRequestLocalArg struct {
 	SessionID  int                  `codec:"sessionID" json:"sessionID"`
 	To         string               `codec:"to" json:"to"`
 	Amount     string               `codec:"amount" json:"amount"`
-	Currency   *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	Asset      *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency   *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
 	SecretNote string               `codec:"secretNote" json:"secretNote"`
 }
 

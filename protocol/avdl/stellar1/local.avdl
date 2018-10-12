@@ -337,22 +337,23 @@ protocol local {
   }
 
   // Check but do not send a request.
-  // Arguments are optional unless marked [required] or otherwise described.
-  // However, a coherent payment is required in order for res.readyToSend to returned as true.
+  //
+  // Arguments are optional unless otherwise described.  However, a coherent
+  // payment is required in order for res.readyToRequest to be returned as
+  // true.
   BuildRequestResLocal buildRequestLocal(
     int sessionID,
 
-    // Recipient username, acctID, or assertion.
-    // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
+    // Requestee username.  Examples: "russel", "t_alice"
     string to,
 
     string amount, // Amount of the asset OR outside currency being requested. Example: "3.005"
-    // Zero or one of `asset` and `currency` should be set.
-    // If both are null or `asset` is native then XLM are being requested.
-    // If `currency` is set then XLM is being requested after converting `amount`.
-    // Note: Sending non-XLM assets is not yet supported.
-    union { null, OutsideCurrencyCode } currency,
+
+    // Exactly one of `asset` and `currency` should be set.
     union { null, Asset } asset,
+    // Note: Requesting non-XLM assets is not yet supported. (Miles: It may
+    // actually be supported, but that would be a weird asymmetry)
+    union { null, OutsideCurrencyCode } currency,
 
     string secretNote   // Encrypted for the sender and recipient.
   );
@@ -362,12 +363,8 @@ protocol local {
 
     // Optional. Error to show with the To field.
     // All errMsg fields are in 'keybase chat language' markdown.
-    // Example: "This stellar address is incorrect"
+    // Example: "recipient not found"
     string toErrMsg;
-
-    // Optional. `arg.to` may be an account ID that resolves to a user.
-    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
-    string toUsername;
 
     // Optional. Error to show with the amount field.
     // Example: "Invalid amount."

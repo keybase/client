@@ -541,10 +541,6 @@
         },
         {
           "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -1255,17 +1251,17 @@
           "type": "string"
         },
         {
-          "name": "currency",
-          "type": [
-            null,
-            "OutsideCurrencyCode"
-          ]
-        },
-        {
           "name": "asset",
           "type": [
             null,
             "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
           ]
         },
         {
