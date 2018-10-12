@@ -4,14 +4,14 @@ import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
-import {compose, withStateHandlers, connect, type TypedState} from '../../../util/container'
+import {compose, withStateHandlers, connect} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   const ordinal = ownProps.routeProps.get('ordinal')
   const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage

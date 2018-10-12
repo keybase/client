@@ -1,13 +1,13 @@
 // @flow
 import Error from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import * as SignupGen from '../../../actions/signup-gen'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.signup.signupError.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onRestart: () => dispatch(SignupGen.createRestartSignup()),
 })

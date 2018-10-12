@@ -2,18 +2,18 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Route from '../../../actions/route-tree'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import Error from '.'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
 |}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   text: Constants.getMeta(state, conversationIDKey).snippet,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(Route.navigateUp()),
 })
 

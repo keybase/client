@@ -1,10 +1,10 @@
 // @flow
 import ConfirmSend from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
@@ -28,9 +28,9 @@ const mapStateToProps = (state: TypedState) => {
     yourUsername: state.config.username,
     fromAccountAssets: fromAccount.balanceDescription,
     fromAccountIsDefault: fromAccount.isDefault,
-    fromAccountName: fromAccount.name || fromAccount.accountID,
+    fromAccountName: fromAccount.name,
     recipientAccountAssets: recipientAccount.balanceDescription,
-    recipientAccountName: recipientAccount.name || recipientAccount.accountID,
+    recipientAccountName: recipientAccount.name,
     recipientAccountIsDefault,
     recipientFullName,
     recipientStellarAddress,
@@ -38,7 +38,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 
 export default connect(
   mapStateToProps,

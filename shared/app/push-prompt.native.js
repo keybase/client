@@ -72,7 +72,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onNoPermissions: () => dispatch(PushGen.createRejectPermissions()),
   onRequestPermissions: () => dispatch(PushGen.createRequestPermissions()),
 })

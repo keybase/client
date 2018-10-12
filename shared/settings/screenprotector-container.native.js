@@ -5,7 +5,7 @@ import * as Container from '../util/container'
 const mapStateToProps = () => ({
   title: 'Screen Protector',
 })
-const mapDispatchToProps = (dispatch: Container.Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 

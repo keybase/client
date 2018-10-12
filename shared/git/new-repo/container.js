@@ -3,12 +3,12 @@ import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import * as TeamsGen from '../../actions/teams-gen'
 import NewRepo from '.'
-import {compose, lifecycle, connect, type TypedState} from '../../util/container'
+import {compose, lifecycle, connect} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state, {routeProps}) => ({
   teams: getSortedTeamnames(state),
   error: Constants.getError(state),
   isTeam: routeProps.get('isTeam'),

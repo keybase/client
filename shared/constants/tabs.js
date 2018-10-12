@@ -1,5 +1,6 @@
 // @flow strict
 import {isMobile} from './platform'
+import flags from '../util/feature-flags'
 
 const chatTab = 'tabs:chatTab'
 const devicesTab = 'tabs:devicesTab'
@@ -41,6 +42,18 @@ export type Tab =
   | FsTab
   | WalletsTab
 
+// Canonical ordering for desktop tabs, used visually and for hotkeys
+const desktopTabOrder = [
+  peopleTab,
+  chatTab,
+  fsTab,
+  teamsTab,
+  flags.walletsEnabled ? walletsTab : null,
+  devicesTab,
+  gitTab,
+  settingsTab,
+].filter(Boolean)
+
 function isValidInitialTab(tab: ?Tab) {
   return isValidInitialTabString(tab)
 }
@@ -57,6 +70,7 @@ function isValidInitialTabString(tab: ?string) {
 
 export {
   chatTab,
+  desktopTabOrder,
   devicesTab,
   folderTab,
   fsTab,

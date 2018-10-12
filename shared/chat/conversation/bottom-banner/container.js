@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -27,7 +27,7 @@ class BannerContainer extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
@@ -38,7 +38,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClick: isMobile
     ? (username: string) => dispatch(createShowUserProfile({username}))
     : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),

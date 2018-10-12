@@ -4,7 +4,7 @@ import Delete from './index'
 import {connect} from '../../util/container'
 
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onDelete: () => dispatch(navigateAppend(['deleteConfirm'])),
 })
 

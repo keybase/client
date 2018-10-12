@@ -5,7 +5,7 @@ import {createDbNuke} from '../../actions/settings-gen'
 import {connect} from '../../util/container'
 
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => {
     dispatch(navigateUp())
   },

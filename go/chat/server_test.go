@@ -2213,11 +2213,14 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 
 			t.Logf("edit the message")
 			// An ephemeralLifetime is added if we are editing an ephemeral message
+			targetMsgID := textUnboxed.GetMessageID()
 			earg := chat1.PostEditNonblockArg{
-				ConversationID:   created.Id,
-				TlfName:          created.TlfName,
-				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-				Supersedes:       textUnboxed.GetMessageID(),
+				ConversationID: created.Id,
+				TlfName:        created.TlfName,
+				TlfPublic:      created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Target: chat1.EditTarget{
+					MessageID: &targetMsgID,
+				},
 				Body:             "hi2",
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
@@ -2333,6 +2336,83 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			consumeNewMsgLocal(t, listener, chat1.MessageType_METADATA)
 		})
+	})
+}
+
+func TestChatSrvPostEditNonblock(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			return
+		}
+		ctc := makeChatTestContext(t, "TestChatSrvPostEditNonblock", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+		tc := ctc.world.Tcs[users[0].Username]
+		tc.ChatG.Syncer.(*Syncer).isConnected = true
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		t.Logf("test convID: %x", conv.Id.DbShortForm())
+		checkMessage := func(intended string, num int) {
+			res, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: conv.Id,
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
+			require.NoError(t, err)
+			require.Equal(t, num, len(res.Thread.Messages))
+			require.True(t, res.Thread.Messages[0].IsValid())
+			require.Equal(t, intended, res.Thread.Messages[0].Valid().MessageBody.Text().Body)
+		}
+
+		outboxID, err := storage.NewOutboxID()
+		require.NoError(t, err)
+		postRes, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+					OutboxID:    &outboxID,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "hi",
+				}),
+			},
+		})
+		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Target: chat1.EditTarget{
+				MessageID: &postRes.MessageID,
+			},
+			Body: "hi!",
+		})
+		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
+		checkMessage("hi!", 1)
+
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Target: chat1.EditTarget{
+				OutboxID: &outboxID,
+			},
+			Body: "hi!!",
+		})
+		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
+		checkMessage("hi!!", 1)
 	})
 }
 

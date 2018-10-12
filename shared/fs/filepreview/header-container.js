@@ -1,12 +1,12 @@
 // @flow
-import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, lifecycle, setDisplayName} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {navigateUp} from '../../actions/route-tree'
 import Header from './header'
 
-const mapStateToProps = (state: TypedState, {path}) => {
+const mapStateToProps = (state, {path}) => {
   const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   return {
     path,

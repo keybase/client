@@ -1138,21 +1138,35 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
+func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostEditNonblock")()
+
 	var parg chat1.PostLocalNonblockArg
+	var supersedes chat1.MessageID
+	if arg.Target.MessageID != nil && *arg.Target.MessageID > 0 {
+		supersedes = *arg.Target.MessageID
+	}
+	if supersedes.IsNil() && arg.Target.OutboxID == nil {
+		return res, errors.New("must specify a messageID or outboxID for edit")
+	}
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
-	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.Supersedes = supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-		MessageID: arg.Supersedes,
+		MessageID: supersedes,
 		Body:      arg.Body,
 	})
-
+	if supersedes.IsNil() {
+		h.Debug(ctx, "PostEditNonblock: setting supersedes outboxID: %s", arg.Target.OutboxID)
+		parg.Msg.SupersedesOutboxID = arg.Target.OutboxID
+	}
 	return h.PostLocalNonblock(ctx, parg)
 }
 
@@ -1173,7 +1187,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 			Lifetime: *arg.EphemeralLifetime,
 		}
 	}
-
 	return h.PostLocalNonblock(ctx, parg)
 }
 
@@ -2252,6 +2265,11 @@ func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchA
 			arg.ConvID.String(): convStats,
 		}
 	}
+	b, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	h.Debug(ctx, "%s\n", string(b))
 	return res, err
 }
 

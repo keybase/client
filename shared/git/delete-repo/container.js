@@ -2,9 +2,9 @@
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
-import {compose, renderNothing, branch, connect, type TypedState} from '../../util/container'
+import {compose, renderNothing, branch, connect} from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
   const git = gitMap ? gitMap.get(routeProps.get('id')) : null
 

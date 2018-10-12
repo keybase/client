@@ -2,9 +2,9 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, ownProps) => {
+const mapStateToProps = (state, ownProps) => {
   const _conversationIDKey = ownProps.conversationIDKey
 
   return {

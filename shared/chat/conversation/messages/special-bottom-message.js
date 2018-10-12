@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
-import {compose, connect, type TypedState, setDisplayName} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
 type Props = {
   showResetParticipants: Types.ConversationIDKey | null,
@@ -38,7 +38,7 @@ type OwnProps = {
   measure: ?() => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
   const showResetParticipants = !meta.resetParticipants.isEmpty() ? ownProps.conversationIDKey : null
   const showSuperseded =
@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     showSuperseded,
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch) => ({})
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
 export default compose(

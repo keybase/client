@@ -1,12 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, connect, type TypedState} from '../util/container'
+import {compose, connect} from '../util/container'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   syncingPaths: state.fs.uploads.syncingPaths,
 })
 

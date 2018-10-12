@@ -9,12 +9,13 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 const ff: FeatureFlags = {
   admin: __DEV__,
   avatarUploadsEnabled: true,
+  chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
+  newTeamBuildingForChat: false,
   outOfDateBanner: false,
   plansEnabled: false,
   walletsEnabled: false,
-  newTeamBuildingForChat: false,
 }
 
 // load overrides

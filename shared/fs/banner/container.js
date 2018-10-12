@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Banner from '.'
 
-const mapStateToProps = (state: TypedState, {path}) => {
+const mapStateToProps = (state, {path}) => {
   const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   return {
     path,

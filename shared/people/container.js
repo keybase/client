@@ -2,7 +2,7 @@
 import * as React from 'react'
 import People from './'
 import * as PeopleGen from '../actions/people-gen'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
@@ -20,7 +20,7 @@ class LoadOnMount extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _newItems: state.people.newItems,
   _oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions,
