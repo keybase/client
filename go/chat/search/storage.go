@@ -220,7 +220,6 @@ func (s *store) remove(ctx context.Context, convID chat1.ConversationID, uid gre
 		return err
 	}
 
-	// walk through the messages in ascending order
 	seenIDs := entry.Metadata.SeenIDs
 	for _, msg := range msgs {
 		// Don't remove if we haven't seen
