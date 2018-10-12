@@ -1858,16 +1858,20 @@ func (e GetThreadReason) String() string {
 }
 
 type SearchOpts struct {
-	SentBy        string `codec:"sentBy" json:"sentBy"`
-	MaxHits       int    `codec:"maxHits" json:"maxHits"`
-	MaxMessages   int    `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext int    `codec:"beforeContext" json:"beforeContext"`
-	AfterContext  int    `codec:"afterContext" json:"afterContext"`
+	SentBy        string       `codec:"sentBy" json:"sentBy"`
+	SentBefore    gregor1.Time `codec:"sentBefore" json:"sentBefore"`
+	SentAfter     gregor1.Time `codec:"sentAfter" json:"sentAfter"`
+	MaxHits       int          `codec:"maxHits" json:"maxHits"`
+	MaxMessages   int          `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext int          `codec:"beforeContext" json:"beforeContext"`
+	AfterContext  int          `codec:"afterContext" json:"afterContext"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
 		SentBy:        o.SentBy,
+		SentBefore:    o.SentBefore.DeepCopy(),
+		SentAfter:     o.SentAfter.DeepCopy(),
 		MaxHits:       o.MaxHits,
 		MaxMessages:   o.MaxMessages,
 		BeforeContext: o.BeforeContext,

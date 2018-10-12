@@ -26,7 +26,7 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/sync/errgroup"
-	billy "gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -64,6 +64,7 @@ var errOnlyRemotePathSupported = simpleFSError{"Only remote paths are supported 
 var errInvalidRemotePath = simpleFSError{"Invalid remote path"}
 var errNoSuchHandle = simpleFSError{"No such handle"}
 var errNoResult = simpleFSError{"Async result not found"}
+var errInvalidPathType = simpleFSError{"Invalid path type"}
 
 type newFSFunc func(
 	context.Context, libkbfs.Config, *libkbfs.TlfHandle, libkbfs.BranchName,
@@ -959,6 +960,24 @@ func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyAr
 		func(ctx context.Context) (err error) {
 			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
+}
+
+// SimpleFSSymlink starts making a symlink of a file or directory
+func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) (err error) {
+	// This is not async.
+	ctx, err = k.startSyncOp(ctx, "Symlink", arg)
+	if err != nil {
+		return err
+	}
+	defer func() { k.doneSyncOp(ctx, err) }()
+
+	dstFS, finalDstElem, err := k.getFS(ctx, arg.Link)
+	if err != nil {
+		return err
+	}
+
+	err = dstFS.Symlink(arg.Target, finalDstElem)
+	return err
 }
 
 type pathPair struct {

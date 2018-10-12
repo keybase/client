@@ -31,6 +31,7 @@ type AccountAssetLocal struct {
 	AssetCode              string           `codec:"assetCode" json:"assetCode"`
 	IssuerName             string           `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	IssuerVerifiedDomain   string           `codec:"issuerVerifiedDomain" json:"issuerVerifiedDomain"`
 	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
 	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
@@ -45,6 +46,7 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
+		IssuerVerifiedDomain:   o.IssuerVerifiedDomain,
 		BalanceTotal:           o.BalanceTotal,
 		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
@@ -409,6 +411,7 @@ type BuildPaymentResLocal struct {
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
 	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
 }
 
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
@@ -433,6 +436,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 			}
 			return ret
 		})(o.Banners),
+		AmountFormatted: o.AmountFormatted,
 	}
 }
 
@@ -554,6 +558,7 @@ type PaymentCLILocal struct {
 	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
+	Unread          bool          `codec:"unread" json:"unread"`
 }
 
 func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
@@ -609,6 +614,7 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 		})(o.ToAssertion),
 		Note:    o.Note,
 		NoteErr: o.NoteErr,
+		Unread:  o.Unread,
 	}
 }
 
@@ -841,6 +847,11 @@ type IsAccountMobileOnlyLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type CancelPaymentLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -953,6 +964,7 @@ type LocalInterface interface {
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
 	SetAccountMobileOnlyLocal(context.Context, SetAccountMobileOnlyLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
+	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1456,6 +1468,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"cancelPaymentLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelPaymentLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelPaymentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelPaymentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.CancelPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -1867,6 +1895,11 @@ func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAcc
 
 func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccountMobileOnlyLocalArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
 	return
 }
 
