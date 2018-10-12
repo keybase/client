@@ -1224,7 +1224,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	}
 
 	if checkOpFinalPaths {
-		// If we plans to check all the paths, clear them out first.
+		// If we plan to check all the paths, clear them out first.
 		for _, chain := range ccs.byMostRecent {
 			for _, op := range chain.ops {
 				op.setFinalPath(path{})
