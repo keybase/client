@@ -937,8 +937,7 @@ const loadMoreMessages = (
 
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
       const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
-      // ignore deletes from a fresh load
-      if (message && message.type !== 'deleted') {
+      if (message) {
         arr.push(message)
       }
       return arr
