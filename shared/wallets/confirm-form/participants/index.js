@@ -26,19 +26,20 @@ const Participants = (props: ParticipantsProps) => {
 
   switch (props.recipientType) {
     case 'keybaseUser':
-      if (!props.recipientUsername) {
-        throw new Error('Recipient type keybaseUser requires prop recipientUsername')
+      // A blank recipientUsername is the empty state, which we might be
+      // in after a send, so just do nothing in that case.
+      if (props.recipientUsername) {
+        toFieldContent = (
+          <Kb.ConnectedNameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            username={props.recipientUsername}
+            metaOne={props.recipientFullName}
+            avatarStyle={styles.avatar}
+            onClick="tracker"
+          />
+        )
       }
-      toFieldContent = (
-        <Kb.ConnectedNameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          username={props.recipientUsername}
-          metaOne={props.recipientFullName}
-          avatarStyle={styles.avatar}
-          onClick="tracker"
-        />
-      )
       break
     case 'stellarPublicKey':
       if (!props.recipientStellarAddress) {
