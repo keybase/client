@@ -248,6 +248,10 @@ func (am *AutogitManager) clearInvalidatedBrowsers(
 			continue
 		}
 		rootNodeID := v.repoFS.RootNode().GetID()
+		// Note that in almost all cases, `repoNodeIDs` should only
+		// have one entry (since only one repo is updated in a single
+		// metadata update), so iterating here should be cheaper than
+		// making a map.
 		for _, nodeID := range repoNodeIDs {
 			if rootNodeID == nodeID {
 				am.log.CDebugf(
@@ -306,7 +310,7 @@ func (am *AutogitManager) getBrowserForRepoLocked(
 	rootKey := key
 	rootKey.subdir = ""
 
-	// Shortcut if the root of the repo already has a browser.
+	// Recurse to get the root browser, and then chroot to the subdir.
 	if subdir != "" {
 		repoFS, rootB, err := am.getBrowserForRepoLocked(
 			ctx, gitFS, repoName, branch, "")
