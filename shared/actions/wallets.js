@@ -84,7 +84,8 @@ const sendPayment = (state: TypedState) =>
       toIsAccountID:
         state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
         !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
-      worthAmount: '',
+      worthAmount: state.wallets.buildingPayment.currency !== 'XLM' ? state.wallets.buildingPayment.amount : state.wallets.builtPayment.worthDescription,
+      worthCurrency: state.wallets.buildingPayment.currency !== 'XLM' && state.wallets.buildingPayment.currency,
     },
     Constants.sendPaymentWaitingKey
   )

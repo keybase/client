@@ -98,6 +98,7 @@ export type _BuiltPayment = {
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
   toUsername: string,
+  worthAmount: string,
   worthDescription: string,
   worthInfo: string,
 }
