@@ -11,9 +11,10 @@ export type ParticipantsProps = {|
   fromAccountIsDefault: boolean,
   fromAccountName: string,
   fromAccountAssets: string,
-  // Must have a recipient user, stellar address, or account
-  recipientUsername?: string,
-  recipientFullName?: string,
+  recipientUsername: string,
+  recipientFullName: string,
+
+  // The below is needed only when recipientType !== 'keybaseUser'.
   recipientStellarAddress?: string,
   recipientAccountName?: string,
   recipientAccountIsDefault?: boolean,
