@@ -2562,6 +2562,11 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 16,
     charCode: 0xe96a,
+  },
+  'iconfont-contact-card': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96d,
   } /* eslint-enable */,
 }
 
