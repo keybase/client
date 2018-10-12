@@ -3058,9 +3058,9 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
 			confirmIsPlaceholder(t, editMsgID2, res.Thread.Messages[0], true)
-			confirmIsText(t, msgID2, res.Thread.Messages[1], "HI")
+			confirmIsText(t, msgID2, res.Thread.Messages[1], "edited")
 			confirmIsPlaceholder(t, editMsgID1, res.Thread.Messages[2], true)
-			confirmIsText(t, msgID1, res.Thread.Messages[3], "HI")
+			confirmIsText(t, msgID1, res.Thread.Messages[3], "edited")
 			confirmIsPlaceholder(t, 1, res.Thread.Messages[4], true)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")

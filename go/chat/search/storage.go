@@ -33,7 +33,7 @@ type store struct {
 //                ...
 //             },
 //     ...       ->        ...
-// NOTE: as a performance optimization we may want to splice the metdata from
+// NOTE: as a performance optimization we may want to split the metdata from
 // the index itself so we can quickly operate on the metadata separately from
 // the index and have less bytes to encrypt/decrypt on reads (metadata only
 // contains only msg ids and no user content).
