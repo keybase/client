@@ -2386,6 +2386,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
 			ConversationID: conv.Id,
@@ -2396,6 +2397,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 			Body: "hi!",
 		})
 		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 		checkMessage("hi!", 1)
 
@@ -2408,6 +2410,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 			Body: "hi!!",
 		})
 		require.NoError(t, err)
+		consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
 		checkMessage("hi!!", 1)
 	})
