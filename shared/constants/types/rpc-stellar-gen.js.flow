@@ -24,7 +24,7 @@ export type MessageTypes = {|
     outParam: BuildPaymentResLocal,
   |},
   'stellar.1.local.buildRequestLocal': {|
-    inParam: $ReadOnly<{|to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String|}>,
+    inParam: $ReadOnly<{|to: String, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String|}>,
     outParam: BuildRequestResLocal,
   |},
   'stellar.1.local.cancelPaymentLocal': {|

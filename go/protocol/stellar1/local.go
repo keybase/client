@@ -856,13 +856,12 @@ type SendPaymentLocalArg struct {
 }
 
 type BuildRequestLocalArg struct {
-	SessionID     int                  `codec:"sessionID" json:"sessionID"`
-	To            string               `codec:"to" json:"to"`
-	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
-	Amount        string               `codec:"amount" json:"amount"`
-	Currency      *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	Asset         *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	SecretNote    string               `codec:"secretNote" json:"secretNote"`
+	SessionID  int                  `codec:"sessionID" json:"sessionID"`
+	To         string               `codec:"to" json:"to"`
+	Amount     string               `codec:"amount" json:"amount"`
+	Currency   *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Asset      *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	SecretNote string               `codec:"secretNote" json:"secretNote"`
 }
 
 type GetRequestDetailsLocalArg struct {

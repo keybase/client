@@ -345,17 +345,16 @@ protocol local {
     // Recipient username, acctID, or assertion.
     // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     string to,
-    boolean toIsAccountID, // [required]
 
-    string amount, // Amount of the asset OR outside currency being sent. Example: "3.005"
+    string amount, // Amount of the asset OR outside currency being requested. Example: "3.005"
     // Zero or one of `asset` and `currency` should be set.
-    // If both are null or `asset` is native then XLM are being sent.
-    // If `currency` is set then XLM is being sent after converting `amount`.
+    // If both are null or `asset` is native then XLM are being requested.
+    // If `currency` is set then XLM is being requested after converting `amount`.
     // Note: Sending non-XLM assets is not yet supported.
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
 
-    string secretNote   // Encrypted for the sender, and recipient if possible.
+    string secretNote   // Encrypted for the sender and recipient.
   );
 
   record BuildRequestResLocal {
@@ -371,15 +370,14 @@ protocol local {
     string toUsername;
 
     // Optional. Error to show with the amount field.
-    // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."
-    // Example: "Your available to send is *128.4567890 XLM*."
+    // Example: "Invalid amount."
     string amountErrMsg;
 
     // Optional. Error to show with the encrypted note field.
     // Example: "Note is too long"
     string secretNoteErrMsg;
 
-    // Optional. Blank if non-native assets are being sent or if there is a global error.
+    // Optional. Blank if non-native assets are being requested or if there is a global error.
     // Example: "96.5634762 XLM"
     // Example: "$246.47"
     string worthDescription;

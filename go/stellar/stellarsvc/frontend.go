@@ -1290,15 +1290,6 @@ func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildReques
 
 	tracer.Stage("to")
 	skipRecipient := len(arg.To) == 0
-	if !skipRecipient && arg.ToIsAccountID {
-		_, err := libkb.ParseStellarAccountID(arg.To)
-		if err != nil {
-			res.ToErrMsg = err.Error()
-			skipRecipient = true
-		} else {
-			readyChecklist.to = true
-		}
-	}
 	if !skipRecipient {
 		_, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
