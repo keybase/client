@@ -489,11 +489,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
-	// Make sure it is a proper length
-	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
-	}
-
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
@@ -536,6 +531,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		msg.ClientHeader.EphemeralMetadata = metadata
+	}
+
+	// Make sure it is a proper length
+	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
