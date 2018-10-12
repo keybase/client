@@ -105,15 +105,7 @@ const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
   } else if (_wasOnDeviceTab) {
     _wasOnDeviceTab = false
     // clear badges
-    return RPCTypes.gregorDismissCategoryRpcPromise({
-      category: 'device.new',
-    })
-      .then(() => {
-        return RPCTypes.gregorDismissCategoryRpcPromise({
-          category: 'device.revoked',
-        })
-      })
-      .catch(logError)
+    return RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
   }
   return null
 }

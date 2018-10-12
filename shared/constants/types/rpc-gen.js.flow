@@ -303,6 +303,10 @@ export type MessageTypes = {|
     inParam: void,
     outParam: ?Array<DeviceDetail>,
   |},
+  'keybase.1.device.dismissDeviceChangeNotifications': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.favorite.favoriteAdd': {|
     inParam: $ReadOnly<{|folder: Folder|}>,
     outParam: void,
@@ -2838,6 +2842,7 @@ declare export function delegateUiCtlRegisterSecretUIRpcPromise(params: $Propert
 declare export function deviceCheckDeviceNameFormatRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.checkDeviceNameFormat'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.checkDeviceNameFormat'>, 'outParam'>>
 declare export function deviceDeviceAddRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceAdd'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
 declare export function deviceDeviceHistoryListRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceHistoryList'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.deviceHistoryList'>, 'outParam'>>
+declare export function deviceDismissDeviceChangeNotificationsRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.dismissDeviceChangeNotifications'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.device.dismissDeviceChangeNotifications'>, 'outParam'>>
 declare export function favoriteFavoriteAddRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteAdd'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteAdd'>, 'outParam'>>
 declare export function favoriteFavoriteIgnoreRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteIgnore'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.favorite.favoriteIgnore'>, 'outParam'>>
 declare export function gitCreatePersonalRepoRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.git.createPersonalRepo'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.git.createPersonalRepo'>, 'outParam'>>
