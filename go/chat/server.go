@@ -1261,7 +1261,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 			Lifetime: *arg.EphemeralLifetime,
 		}
 	}
-
 	return h.PostLocalNonblock(ctx, parg)
 }
 

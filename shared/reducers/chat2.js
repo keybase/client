@@ -218,12 +218,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       const {conversationIDKey, ordinal, text} = action.payload
       return messageMap.updateIn(
         [conversationIDKey, ordinal],
-        message =>
-          !message || message.type !== 'text'
-            ? message
-            : message.withMutations(m => {
-                m.set('text', text)
-              })
+        message => (!message || message.type !== 'text' ? message : message.set('text', text))
       )
     }
     case Chat2Gen.attachmentUploading:
