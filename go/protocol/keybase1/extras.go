@@ -2606,6 +2606,7 @@ func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
 	}
 	ok1, ok2 = m["contents"]
 	if ok1 && ok2 {
+		se.IsContents = true
 		return nil
 	}
 	return fmt.Errorf("invalid selector (not recognized)")
