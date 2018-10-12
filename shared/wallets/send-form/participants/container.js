@@ -90,7 +90,7 @@ const makeAccount = (stateAccount: StateAccount) => ({
 const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.buildingPayment
 
-  const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
+  const fromAccount = makeAccount(getAccount(state, build.from))
   const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
