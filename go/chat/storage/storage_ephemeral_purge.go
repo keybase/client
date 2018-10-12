@@ -103,6 +103,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	nextPurgeTime := gregor1.Time(0)
 	minUnexplodedID := msgs[0].GetMessageID()
 	var allAssets []chat1.Asset
+	var allPurged []chat1.MessageUnboxed
 	var hasExploding bool
 	debugPurge := func(logMsg string, msg chat1.MessageUnboxed, now time.Time) {
 		mvalid := msg.Valid()
@@ -135,6 +136,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				msgPurged, assets := s.purgeMessage(mvalid)
 				allAssets = append(allAssets, assets...)
 				explodedMsgs = append(explodedMsgs, msgPurged)
+				allPurged = append(allPurged, msg)
 				msgs[i] = msgPurged
 				debugPurge("purging ephemeral", msg, now)
 			}
@@ -143,6 +145,8 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	// queue search index update in the background
+	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
 
 	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
 	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {
