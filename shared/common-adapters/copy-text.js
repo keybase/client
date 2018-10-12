@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
-import Button from './button'
+import Button, {type Props as ButtonProps} from './button'
 import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
@@ -39,6 +39,7 @@ class _ToastContainer extends React.Component<TProps, TState> {
 const ToastContainer = HOCTimers(_ToastContainer)
 
 export type Props = PropsWithTimer<{
+  buttonType?: $PropertyType<ButtonProps, 'type'>,
   containerStyle?: Styles.StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
@@ -92,7 +93,7 @@ class _CopyText extends React.Component<Props, State> {
             </Text>
           )}
         </Text>
-        <Button type="Primary" style={styles.button} onClick={this.copy}>
+        <Button type={this.props.buttonType || 'Primary'} style={styles.button} onClick={this.copy}>
           <Icon
             type="iconfont-clipboard"
             color={Styles.globalColors.white}
@@ -109,11 +110,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  connect(
-    () => ({}),
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('CopyText'),
   HOCTimers
 )(_CopyText)
