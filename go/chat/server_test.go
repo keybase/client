@@ -2339,23 +2339,45 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 	})
 }
 
+type gatedSendRemote struct {
+	chat1.RemoteInterface
+	gateCh chan struct{}
+}
+
+func newGatedSendRemote(ri chat1.RemoteInterface) *gatedSendRemote {
+	return &gatedSendRemote{
+		RemoteInterface: ri,
+		gateCh:          make(chan struct{}),
+	}
+}
+
+func (g *gatedSendRemote) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
+	select {
+	case <-g.gateCh:
+	case <-ctx.Done():
+		return res, ctx.Err()
+	}
+	return g.RemoteInterface.PostRemote(ctx, arg)
+}
+
 func TestChatSrvPostEditNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_KBFS:
+		case chat1.ConversationMembersType_KBFS:
 			return
 		}
-		ctc := makeChatTestContext(t, "FindConversations", 3)
+		ctc := makeChatTestContext(t, "TestChatSrvPostEditNonblock", 1)
 		defer ctc.cleanup()
 		users := ctc.users()
 
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
-		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		tc := ctc.world.Tcs[users[0].Username]
+		tc.ChatG.Syncer.(*Syncer).isConnected = true
 		ctx := ctc.as(t, users[0]).startCtx
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		t.Logf("test convID: %x", conv.Id.DbShortForm())
-		checkMessage := func(intended string) {
+		checkMessage := func(intended string, num int) {
 			res, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 				ConversationID: conv.Id,
 				Query: &chat1.GetThreadQuery{
@@ -2363,7 +2385,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			require.Equal(t, 1, len(res.Thread.Messages))
+			require.Equal(t, num, len(res.Thread.Messages))
 			require.True(t, res.Thread.Messages[0].IsValid())
 			require.Equal(t, intended, res.Thread.Messages[0].Valid().MessageBody.Text().Body)
 		}
@@ -2396,7 +2418,7 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
-		checkMessage("hi!")
+		checkMessage("hi!", 1)
 
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
 			ConversationID: conv.Id,
@@ -2408,7 +2430,41 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_EDIT)
-		checkMessage("hi!!")
+		checkMessage("hi!!", 1)
+
+		sender := tc.Context().MessageDeliverer.(*Deliverer).sender.(*BlockingSender)
+		ri := sender.getRi
+		gatedRi := newGatedSendRemote(ri())
+		gatedRiFn := func() chat1.RemoteInterface { return gatedRi }
+		tc.Context().MessageDeliverer.(*Deliverer).sender.(*BlockingSender).getRi = gatedRiFn
+
+		postNbRes, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(ctx,
+			chat1.PostTextNonblockArg{
+				ConversationID: conv.Id,
+				TlfName:        conv.TlfName,
+				Body:           "gated",
+			})
+		require.NoError(t, err)
+		outboxID = postNbRes.OutboxID
+
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(ctx, chat1.PostEditNonblockArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Target: chat1.EditTarget{
+				OutboxID: &outboxID,
+			},
+			Body: "gated!",
+		})
+		require.NoError(t, err)
+		close(gatedRi.gateCh)
+		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		checkMessage("gated!", 2)
+		select {
+		case <-listener.newMessageRemote:
+			require.Fail(t, "no more messages")
+		default:
+		}
 	})
 }
 
