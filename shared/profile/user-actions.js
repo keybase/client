@@ -128,12 +128,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
         view: (
           <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
             <Text type="Body">Send Lumens (XLM)</Text>
-            <Meta
-              title="New"
-              size="Small"
-              backgroundColor={globalColors.blue}
-              style={{alignSelf: undefined}}
-            />
+            <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
           </Box2>
         ),
       })
@@ -143,12 +138,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
         view: (
           <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
             <Text type="Body">Request Lumens (XLM)</Text>
-            <Meta
-              title="New"
-              size="Small"
-              backgroundColor={globalColors.blue}
-              style={{alignSelf: undefined}}
-            />
+            <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
           </Box2>
         ),
       })
@@ -233,6 +223,9 @@ const styles = styleSheetCreate({
   },
   menuItemBox: {
     justifyContent: 'space-between',
+  },
+  badge: {
+    alignSelf: 'center',
   },
 })
 

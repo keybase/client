@@ -28,7 +28,14 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
           view: (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="small">
               <Kb.Text type="Body">Send Lumens (XLM)</Kb.Text>
-              {props.isNew && <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} />}
+              {props.isNew && (
+                <Kb.Meta
+                  title="New"
+                  size="Small"
+                  backgroundColor={Styles.globalColors.blue}
+                  style={styles.badge}
+                />
+              )}
             </Kb.Box2>
           ),
         },
@@ -38,7 +45,14 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
           view: (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="small">
               <Kb.Text type="Body">Request Lumens (XLM)</Kb.Text>
-              {props.isNew && <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} />}
+              {props.isNew && (
+                <Kb.Meta
+                  title="New"
+                  size="Small"
+                  backgroundColor={Styles.globalColors.blue}
+                  style={styles.badge}
+                />
+              )}
             </Kb.Box2>
           ),
         },
@@ -69,6 +83,9 @@ const styles = Styles.styleSheetCreate({
     right: -1,
     top: -2,
     width: radius * 2,
+  },
+  badge: {
+    alignSelf: 'center',
   },
 })
 
