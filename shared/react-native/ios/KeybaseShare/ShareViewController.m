@@ -329,6 +329,32 @@ const BOOL isSimulator = NO;
   }
 }
 
+- (void)showProgressView {
+  UIAlertController* alert = [UIAlertController
+                              alertControllerWithTitle:@"Sending"
+                              message:@"Sending your message."
+                              preferredStyle:UIAlertControllerStyleAlert];
+  UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  /*[spinner addConstraints:@[
+       [NSLayoutConstraint constraintWithItem:alert.view
+                                    attribute:NSLayoutAttributeCenterX
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:spinner
+                                    attribute:NSLayoutAttributeCenterX
+                                   multiplier:1 constant:0],
+       [NSLayoutConstraint constraintWithItem:alert.view
+                                    attribute:NSLayoutAttributeCenterY
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:spinner
+                                    attribute:NSLayoutAttributeCenterY
+                                   multiplier:1 constant:0]
+       ]
+   ];*/
+  [alert.view addSubview:spinner];
+  [spinner startAnimating];
+  [self presentViewController:alert animated:YES completion:nil];
+}
+
 - (void)didSelectPost {
   if (!self.convTarget) {
     // Just bail out of here if nothing was selected
@@ -340,6 +366,7 @@ const BOOL isSimulator = NO;
     [self maybeCompleteRequest:YES];
     return;
   }
+  [self showProgressView];
   for (int i = 0; i < [items count]; i++) {
     BOOL lastItem = (BOOL)(i == [items count]-1);
     [self processItem:items[i] lastItem:lastItem];

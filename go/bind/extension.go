@@ -538,7 +538,7 @@ func ExtensionPostImage(strConvID, name string, public bool, membersType int,
 }
 
 func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
-	caption string, filename string, mimeType string,
+	caption string, inFilename string, mimeType string,
 	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
@@ -550,6 +550,10 @@ func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 		return err
 	}
 	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	filename, err := extensionCreateUploadTemp(ctx, gc, outboxID, inFilename)
 	if err != nil {
 		return err
 	}
