@@ -3,6 +3,7 @@ import * as React from 'react'
 import {isMobile} from '../util/container'
 import HeaderHoc, {HeaderHocHeader} from './header-hoc'
 import PopupDialog from './popup-dialog'
+import * as Styles from '../styles'
 import type {Props} from './header-or-popup'
 
 // HeaderOrPopup replaces our common pattern of:
@@ -31,12 +32,16 @@ function Popup<P: {}>(Wrapped: React.ComponentType<P>) {
 
 function PopupWithHeader<P: {}>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
-    <PopupDialog onClose={props.onCancel}>
-      <HeaderHocHeader onBack={props.onBack} />
+    <PopupDialog onClose={props.onCancel} styleClipContainer={props.style}>
+      {props.onBack && <HeaderHocHeader onBack={props.onBack} headerStyle={headerStyle} />}
       <Wrapped {...(props: P)} />
     </PopupDialog>
   )
   return PopupWrapper
+}
+
+const headerStyle = {
+  backgroundColor: Styles.globalColors.transparent,
 }
 
 export default HeaderOrPopup

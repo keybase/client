@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {compose, renameProp} from 'recompose'
+import {compose, renameProp, withProps} from 'recompose'
 
 type WalletModalProps = {|
   children: React.Node,
@@ -98,5 +98,8 @@ const styles = Styles.styleSheetCreate({
 
 export default compose(
   renameProp('onClose', 'onCancel'),
+  withProps({
+    style: Styles.isMobile ? null : {height: 525},
+  }),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)
