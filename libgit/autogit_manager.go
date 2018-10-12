@@ -307,9 +307,6 @@ func (am *AutogitManager) getBrowserForRepoLocked(
 	am.log.CDebugf(ctx, "Making browser for repo=%s, branch=%s, subdir=%s",
 		repoName, branch, subdir)
 
-	rootKey := key
-	rootKey.subdir = ""
-
 	// Recurse to get the root browser, and then chroot to the subdir.
 	if subdir != "" {
 		repoFS, rootB, err := am.getBrowserForRepoLocked(
