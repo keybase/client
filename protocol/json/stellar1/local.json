@@ -104,7 +104,8 @@
         "CLAIMABLE_2",
         "COMPLETED_3",
         "ERROR_4",
-        "UNKNOWN_5"
+        "UNKNOWN_5",
+        "CANCELED_6"
       ]
     },
     {
