@@ -233,29 +233,19 @@ const BOOL isSimulator = NO;
 
 // handleFileURL will take a given file URL and run it through the proper backend
 // function to send the contents at that URL. 
-- (void)handleFileURL:(NSURL*)url outboxID:(NSString*)outboxID item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
+- (void)handleFileURL:(NSURL*)url item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   NSError* error;
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSString* filePath = [url relativePath];
   
-  // If we don't already have an outboxID, then let's get one
-  if (outboxID == nil) {
-    outboxID = KeybaseExtensionRegisterSend(convID, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-      [self maybeCompleteRequest:lastItem];
-      return;
-    }
-  }
-  
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     // Generate image preview here, since it runs out of memory easy in Go
     [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight,
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
-      KeybaseExtensionPostVideo(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+      KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
                                 duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
@@ -263,12 +253,12 @@ const BOOL isSimulator = NO;
     [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight,
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
-      KeybaseExtensionPostImage(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+      KeybaseExtensionPostImage(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else {
     NSError* error = NULL;
-    KeybaseExtensionPostFile(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, &error);
+    KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, &error);
   }
   [self maybeCompleteRequest:lastItem];
 };
@@ -279,45 +269,30 @@ const BOOL isSimulator = NO;
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-    } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, &error);
-    }
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-    } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, &error);
-    }
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], text, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
   // If we get an image in the form of a UIImage, we first write it to a temp file
   // and run it through the normal file sharing code path.
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-      [self maybeCompleteRequest:lastItem];
-      return;
-    }
-    NSString* filename = KeybaseExtensionGetUploadTempFile(outboxID, &error);
-    if (error != nil) {
-      NSLog(@"failed to get upload temp file %@", error);
-      [self maybeCompleteRequest:lastItem];
-      return;
-    }
-    
+    NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
+    NSString* filename = [NSString stringWithFormat:@"%@%@.jpg", NSTemporaryDirectory(), guid];
     NSURL* url = [NSURL fileURLWithPath:filename];
+    
     NSData* imageData = UIImageJPEGRepresentation(image, 0.7);
     [imageData writeToFile:filename atomically:YES];
-    [self handleFileURL:url outboxID:outboxID item:item lastItem:lastItem];
+    [self handleFileURL:url item:item lastItem:lastItem];
+    
+    [[NSFileManager defaultManager] removeItemAtPath:filename error:&error];
+    if (error != nil) {
+      NSLog(@"unable to remove temp file: %@", error);
+    }
   };
   
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
@@ -334,7 +309,7 @@ const BOOL isSimulator = NO;
       }
       return;
     }
-    [self handleFileURL:url outboxID:nil item:item lastItem:lastItem];
+    [self handleFileURL:url item:item lastItem:lastItem];
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {

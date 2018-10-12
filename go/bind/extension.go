@@ -276,40 +276,21 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	return gregor1.DeviceID(hdid), nil
 }
 
-func ExtensionRegisterSend(strConvID string) (res string, err error) {
-	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
-	defer func() { err = flattenError(err) }()
-	defer func() {
-		// We are going to abort if this doesn't work, so let the user know about it now
-		if err != nil {
-			extensionPushResult(err, strConvID, "message")
-		}
-	}()
-	outboxID, err := storage.NewOutboxID()
-	if err != nil {
-		return res, err
-	}
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+func extensionRegisterSend(ctx context.Context, gc *globals.Context, convID chat1.ConversationID,
+	outboxID chat1.OutboxID) {
 	deviceID, err := extensionGetDeviceID(ctx, gc)
 	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: failed to get deviceID: %s", err)
-		return res, err
-	}
-	convID, err := chat1.MakeConvID(strConvID)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: invalid convID: %s", err)
-		return res, err
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to get deviceID: %s", err)
+		return
 	}
 	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
 		ConvID:   convID,
 		OutboxID: outboxID,
 		DeviceID: deviceID,
 	}); err != nil {
-		return res, err
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to make RPC: %s", err)
+		return
 	}
-	return outboxID.String(), nil
 }
 
 func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err error, strConvID,
@@ -428,7 +409,7 @@ func extensionNewSender(g *globals.Context) types.Sender {
 	return chat.NewNonblockingSender(g, baseSender)
 }
 
-func ExtensionPostText(strConvID, strOutboxID, name string, public bool, membersType int, body string) (err error) {
+func ExtensionPostText(strConvID, name string, public bool, membersType int, body string) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -440,6 +421,10 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 		}
 	}()
 
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
@@ -449,16 +434,16 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 			MessageType: chat1.MessageType_TEXT,
 			TlfName:     restoreName(gc, name, chat1.ConversationMembersType(membersType)),
 			TlfPublic:   public,
-			OutboxID:    getOutboxID(strOutboxID),
+			OutboxID:    &outboxID,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: body,
 		}),
 	}
-	outboxID, _, err := extensionNewSender(gc).Send(ctx, convID, msg, 0, nil)
-	if err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, nil); err != nil {
 		return err
 	}
+	extensionRegisterSend(ctx, gc, convID, outboxID)
 	extensionWaitForResult(ctx, strConvID, extensionListener.listenFor(outboxID))
 	return nil
 }
@@ -473,29 +458,10 @@ func extensionPushResult(err error, strConvID, typ string) {
 	extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
-func ExtensionGetUploadTempFile(strOutboxID string) (res string, err error) {
-	defer kbCtx.Trace("ExtensionGetUploadTempFile", func() error { return err })()
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-	defer func() { err = flattenError(err) }()
-	if _, err := assertLoggedInUID(ctx, gc); err != nil {
-		return res, err
-	}
-	obid, err := chat1.MakeOutboxID(strOutboxID)
-	if err != nil {
-		return res, err
-	}
-	return gc.AttachmentUploader.GetUploadTempFile(ctx, obid)
-}
-
-func extensionCreateUploadTemp(ctx context.Context, gc *globals.Context, strOutboxID, inFilename string) (string, error) {
+func extensionCreateUploadTemp(ctx context.Context, gc *globals.Context, outboxID chat1.OutboxID,
+	inFilename string) (string, error) {
 	// move the file into out own storage, otherwise iOS is going to blow it away
-	obid, err := chat1.MakeOutboxID(strOutboxID)
-	if err != nil {
-		return "", err
-	}
-	filename, err := gc.AttachmentUploader.GetUploadTempFile(ctx, obid)
+	filename, err := gc.AttachmentUploader.GetUploadTempFile(ctx, outboxID, inFilename)
 	if err != nil {
 		return "", err
 	}
@@ -513,7 +479,7 @@ func extensionCreateUploadTemp(ctx context.Context, gc *globals.Context, strOutb
 	return filename, nil
 }
 
-func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, membersType int,
+func ExtensionPostImage(strConvID, name string, public bool, membersType int,
 	caption string, inFilename string, mimeType string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostImage", func() error { return err })()
@@ -525,8 +491,11 @@ func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, member
 	if err != nil {
 		return err
 	}
-
-	filename, err := extensionCreateUploadTemp(ctx, gc, strOutboxID, inFilename)
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	filename, err := extensionCreateUploadTemp(ctx, gc, outboxID, inFilename)
 	if err != nil {
 		return err
 	}
@@ -564,11 +533,11 @@ func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, member
 			})
 		}
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, callerPreview)
 }
 
-func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, membersType int,
+func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 	caption string, filename string, mimeType string,
 	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
@@ -577,6 +546,10 @@ func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, member
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
 	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
+	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
 	}
@@ -605,11 +578,11 @@ func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, member
 		Metadata:        &previewMD,
 		BaseMetadata:    &baseMD,
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, callerPreview)
 }
 
-func ExtensionPostFile(strConvID, strOutboxID, name string, public bool, membersType int,
+func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 	caption string, filename string) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
@@ -620,7 +593,11 @@ func ExtensionPostFile(strConvID, strOutboxID, name string, public bool, members
 	if err != nil {
 		return err
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, nil)
 }
 
@@ -636,8 +613,8 @@ func extensionWaitForResult(ctx context.Context, strConvID string, cb chan struc
 }
 
 func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UID,
-	strConvID, strOutboxID, name string, public bool, membersType int, filename, caption string,
-	callerPreview *chat1.MakePreviewRes) (err error) {
+	strConvID string, outboxID chat1.OutboxID, name string, public bool, membersType int, filename,
+	caption string, callerPreview *chat1.MakePreviewRes) (err error) {
 
 	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 	defer func() {
@@ -655,9 +632,8 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	sender := extensionNewSender(gc)
-	outboxID, _, err := attachments.NewSender(gc).PostFileAttachmentMessage(ctx, sender, convID, name, vis,
-		getOutboxID(strOutboxID), filename, caption, nil, 0, nil)
-	if err != nil {
+	if _, _, err = attachments.NewSender(gc).PostFileAttachmentMessage(ctx, sender, convID, name, vis,
+		&outboxID, filename, caption, nil, 0, nil); err != nil {
 		return err
 	}
 	cb := extensionListener.listenFor(outboxID)
@@ -665,6 +641,7 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 		filename, nil, callerPreview); err != nil {
 		return err
 	}
+	extensionRegisterSend(ctx, gc, convID, outboxID)
 	extensionWaitForResult(ctx, strConvID, cb)
 	return nil
 }
