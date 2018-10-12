@@ -2855,7 +2855,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			require.True(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			confirmIsPlaceholder(t, editMsgID1, res.Thread.Messages[0], true)
-			confirmIsText(t, msgID1, res.Thread.Messages[1], "HI")
+			confirmIsText(t, msgID1, res.Thread.Messages[1], "edited")
 			confirmIsPlaceholder(t, 1, res.Thread.Messages[2], true)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")

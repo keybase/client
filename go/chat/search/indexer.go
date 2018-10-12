@@ -206,6 +206,9 @@ func (idx *Indexer) consumeResultsForTest(msgs []chat1.MessageUnboxed, err error
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if len(msgs) == 0 {
+		return nil
+	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(msgs, err)
@@ -215,6 +218,9 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gr
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if len(msgs) == 0 {
+		return nil
+	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(msgs, err)
@@ -267,7 +273,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 			return nil, err
 		}
 		if len(msgIDs) != convHits.Size() {
-			idx.G().Log.CDebugf(ctx, "search hit mismatch, found %d msgIDs in index, %d hits in conv",
+			idx.Debug(ctx, "search hit mismatch, found %d msgIDs in index, %d hits in conv",
 				len(msgIDs), convHits.Size())
 		}
 		if convHits == nil {

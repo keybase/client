@@ -61,10 +61,15 @@ func (s *store) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey 
 func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (ret *chat1.ConversationIndex, err error) {
 	defer func() {
 		// return a blank index
-		if ret == nil {
+		if err == nil && ret == nil {
 			ret = &chat1.ConversationIndex{}
 			ret.Index = map[string]map[chat1.MessageID]bool{}
 			ret.Metadata.SeenIDs = map[chat1.MessageID]bool{}
+		}
+		if err != nil {
+			if derr := s.deleteLocked(ctx, convID, uid); derr != nil {
+				s.Debug(ctx, "unable to delete: %v", derr)
+			}
 		}
 	}()
 	dbKey := s.dbKey(convID, uid)
@@ -160,7 +165,7 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
 		superIDs, err := utils.GetSupersedes(msg)
 		if err != nil {
-			s.G().Log.CDebugf(ctx, "unable to get supersedes: %v", err)
+			s.Debug(ctx, "unable to get supersedes: %v", err)
 			return nil
 		}
 		reason := chat1.GetThreadReason_INDEXED_SEARCH
@@ -168,7 +173,7 @@ func (s *store) add(ctx context.Context, convID chat1.ConversationID, uid gregor
 			false /* resolveSupersedes*/, &reason)
 		if err != nil {
 			// Log but ignore error
-			s.G().Log.CDebugf(ctx, "unable to get fetch messages: %v", err)
+			s.Debug(ctx, "unable to get fetch messages: %v", err)
 			return nil
 		}
 		return supersededMsgs
