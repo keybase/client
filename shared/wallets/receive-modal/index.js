@@ -4,14 +4,18 @@ import {Box2, Button, CopyText, Divider, Icon, Text, iconCastPlatformStyles} fro
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
-type Props = {
-  accountName: string,
+type AddressesProps = {|
   federatedAddress?: string,
+  stellarAddress: string,
+|}
+
+type Props = {|
+  ...AddressesProps,
+  accountName: string,
   isDefaultAccount: boolean,
   onClose: () => void,
   onRequest: () => void,
-  stellarAddress: string,
-}
+|}
 
 const ReceiveModal = (props: Props) => {
   const header = (
@@ -74,24 +78,29 @@ const ReceiveModal = (props: Props) => {
         <Text type="Body" style={styles.instructionText}>
           People outside Keybase can send to:
         </Text>
-        {/* Address section */}
         <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-          {!!props.federatedAddress && (
-            <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-              <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
-              <CopyText buttonType="Wallet" text={props.federatedAddress} />
-            </Box2>
-          )}
-          <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-            <Text type="BodyTinySemibold">Your public Stellar address:</Text>
-            <CopyText buttonType="Wallet" text={props.stellarAddress} />
-          </Box2>
+          <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
           {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
         </Box2>
       </Box2>
     </WalletPopup>
   )
 }
+
+const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
+  <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+    {!!federatedAddress && (
+      <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+        <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
+        <CopyText buttonType="Wallet" text={federatedAddress} />
+      </Box2>
+    )}
+    <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+      <Text type="BodyTinySemibold">Your public Stellar address:</Text>
+      <CopyText buttonType="Wallet" text={stellarAddress} />
+    </Box2>
+  </Box2>
+)
 
 const styles = Styles.styleSheetCreate({
   accountNameText: {
