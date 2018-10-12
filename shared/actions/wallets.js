@@ -29,9 +29,6 @@ const build = (state: TypedState, action: any) =>
         currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
         secretNote: state.wallets.building.secretNote.stringValue(),
         to: state.wallets.building.to,
-        toIsAccountID:
-          state.wallets.building.recipientType !== 'keybaseUser' &&
-          !Constants.isFederatedAddress(state.wallets.building.to),
       }).then(build =>
         WalletsGen.createBuiltRequestReceived({
           build: Constants.buildRequestResultToBuiltRequest(build),
