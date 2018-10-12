@@ -25,6 +25,7 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  chatIndexProfilingEnabled: true,
   fileWidgetEnabled: true,
   walletsEnabled: true,
 }

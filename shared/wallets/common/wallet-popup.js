@@ -16,36 +16,46 @@ type WalletModalProps = {|
   bottomButtons?: Array<React.Node>,
 |}
 
-const WalletPopup = (props: WalletModalProps) => (
-  <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-    {props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      centerChildren={true}
-      style={Styles.collapseStyles([
-        styles.container,
-        props.onBack ? {paddingTop: Styles.globalMargins.small} : {},
-        props.containerStyle,
-      ])}
-    >
-      {props.children}
-      {props.bottomButtons &&
-        props.bottomButtons.length > 0 && (
-          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-            <Kb.ButtonBar
-              direction={Styles.isMobile ? 'column' : 'row'}
-              fullWidth={Styles.isMobile}
-              style={styles.buttonBar}
-            >
-              {props.bottomButtons}
-            </Kb.ButtonBar>
-          </Kb.Box2>
-        )}
+const WalletPopup = (props: WalletModalProps) => {
+  const contentContainerStyle = Styles.collapseStyles([
+    styles.container,
+    props.onBack ? {paddingTop: Styles.globalMargins.small} : {},
+    props.containerStyle,
+  ])
+  const ContentContainer = ({children}: {children: React.Node}) =>
+    Styles.isMobile ? (
+      <Kb.ScrollView contentContainerStyle={contentContainerStyle} children={children} />
+    ) : (
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+        style={contentContainerStyle}
+        children={children}
+      />
+    )
+  return (
+    <Kb.Box2 direction="vertical" style={styles.outerContainer}>
+      {props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
+      <ContentContainer>
+        {props.children}
+        {props.bottomButtons &&
+          props.bottomButtons.length > 0 && (
+            <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+              <Kb.ButtonBar
+                direction={Styles.isMobile ? 'column' : 'row'}
+                fullWidth={Styles.isMobile}
+                style={styles.buttonBar}
+              >
+                {props.bottomButtons}
+              </Kb.ButtonBar>
+            </Kb.Box2>
+          )}
+      </ContentContainer>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   outerContainer: Styles.platformStyles({
@@ -65,7 +75,6 @@ const styles = Styles.styleSheetCreate({
   }),
   container: Styles.platformStyles({
     common: {
-      alignItems: 'center',
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },
@@ -76,8 +85,11 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isMobile: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
       paddingBottom: Styles.globalMargins.medium,
       paddingTop: Styles.globalMargins.xlarge,
+      width: '100%',
     },
   }),
   buttonBarContainer: {
@@ -91,7 +103,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default compose(
-  renameProp('onClose', 'onCancel'),
-  Kb.HeaderOrPopup
-)(WalletPopup)
+export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletPopup)

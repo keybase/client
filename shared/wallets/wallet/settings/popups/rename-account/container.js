@@ -16,7 +16,7 @@ const mapStateToProps = (state, {routeProps}) => {
     nameValidationState: state.wallets.accountNameValidationState,
     renameAccountError: state.wallets.createNewAccountError,
     waiting: anyWaiting(state, Constants.changeAccountNameWaitingKey),
-    initialName: Constants.getAccountName(selectedAccount),
+    initialName: selectedAccount.name,
   }
 }
 

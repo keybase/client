@@ -79,7 +79,7 @@ const makeAccount = (stateAccount: StateAccount) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
   isDefault: stateAccount.isDefault,
-  name: stateAccount.name || stateAccount.accountID,
+  name: stateAccount.name,
   unknown: stateAccount === unknownAccount,
 })
 
