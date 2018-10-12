@@ -16,7 +16,7 @@ const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
   return {
-    accountName: account.name || `${state.config.username}'s account`,
+    accountName: account.name,
     federatedAddress: Constants.getFederatedAddress(state, accountID),
     isDefaultAccount: account.isDefault,
     stellarAddress: accountID,
@@ -44,4 +44,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onRequest: dispatchProps.onRequest,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Receive)
