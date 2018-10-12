@@ -76,6 +76,10 @@ protocol remote {
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
+    string fromDisplayAmount;
+    string fromDisplayCurrency;
+    string toDisplayAmount;
+    string toDisplayCurrency;
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
     string cursorToken;
