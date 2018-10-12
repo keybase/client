@@ -413,6 +413,7 @@ type BuildPaymentResLocal struct {
 	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
+	WorthAmount      string            `codec:"worthAmount" json:"worthAmount"`
 	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
 	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
 }
@@ -428,6 +429,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		PublicMemoErrMsg: o.PublicMemoErrMsg,
 		WorthDescription: o.WorthDescription,
 		WorthInfo:        o.WorthInfo,
+		WorthAmount:      o.WorthAmount,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil

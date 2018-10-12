@@ -69,10 +69,11 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
 
 const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
 
-const sendPayment = (state: TypedState) =>
+const sendPayment = (state: TypedState) => {
+  const notXLM = state.wallets.buildingPayment.currency && state.wallets.buildingPayment.currency !== 'XLM'
   RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
-      amount: state.wallets.buildingPayment.amount,
+      amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
@@ -84,13 +85,14 @@ const sendPayment = (state: TypedState) =>
       toIsAccountID:
         state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
         !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
-      worthAmount: state.wallets.buildingPayment.currency !== 'XLM' ? state.wallets.buildingPayment.amount : state.wallets.builtPayment.worthDescription,
-      worthCurrency: state.wallets.buildingPayment.currency !== 'XLM' && state.wallets.buildingPayment.currency,
+      worthAmount: notXLM ? state.wallets.buildingPayment.amount : state.wallets.builtPayment.worthAmount,
+      worthCurrency: notXLM && state.wallets.buildingPayment.currency,
     },
     Constants.sendPaymentWaitingKey
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
+  }
 
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(
@@ -173,10 +175,10 @@ const loadPayments = (
       accountID: action.payload.accountID,
       paymentCursor: payments.cursor,
       payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
         .filter(Boolean),
       pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'pending', payments.oldestUnread))
+        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
         .filter(Boolean),
     })
   )
@@ -191,7 +193,7 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
           accountID: action.payload.accountID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
+            .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
             .filter(Boolean),
           pending: [],
         })

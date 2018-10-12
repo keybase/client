@@ -993,7 +993,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		} else {
 			res.AmountFormatted = amountFormatted
 		}
-		res.worthAmount = amountX.amountOfAsset
+		res.WorthAmount = amountX.amountOfAsset
 	}
 
 	// -------------------- note + memo --------------------
