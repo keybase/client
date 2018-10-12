@@ -608,7 +608,8 @@ func extensionWaitForResult(ctx context.Context, strConvID string, cb chan struc
 	case <-cb:
 	case <-time.After(30 * time.Second):
 		kbCtx.Log.CDebugf(ctx, "extensionWaitForResult: timed out waiting for result, bailing out!")
-		extensionPushResult(errors.New("timed out"), strConvID, "message")
+		msg := "Your message is taking a long time to send, Keybase will be trying in the background. Open the Keybase app to make it go faster."
+		extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 	}
 }
 
