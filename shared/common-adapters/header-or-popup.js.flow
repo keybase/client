@@ -1,8 +1,11 @@
 // @flow
 import * as React from 'react'
 
-export type Props = {onCancel: () => void}
+export type Props = {onCancel: () => void, onBack?: ?() => void}
 
+declare export function HeaderOrPopupWithHeader<P: {}>(
+  WrappedComponent: React.ComponentType<P>
+): React.ComponentType<P & Props>
 declare export default function HeaderOrPopup<P: {}>(
   WrappedComponent: React.ComponentType<P>
 ): React.ComponentType<P & Props>

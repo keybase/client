@@ -98,5 +98,5 @@ const styles = Styles.styleSheetCreate({
 
 export default compose(
   renameProp('onClose', 'onCancel'),
-  Kb.HeaderOrPopup
+  Kb.HeaderOrPopupWithHeader
 )(WalletPopup)
