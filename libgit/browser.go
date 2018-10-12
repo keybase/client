@@ -190,22 +190,9 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, err
 	}
 
-	var size int64
-	if entry.Mode.IsFile() {
-		f, err := b.tree.File(filename)
-		if err != nil {
-			return nil, err
-		}
-		size = f.Size
-	} else {
-		// Estimate directory size by the number of entries.
-		dirTree, err := b.tree.Tree(filename)
-		if err != nil {
-			return nil, err
-		}
-		for _, e := range dirTree.Entries {
-			size += int64(len(e.Name))
-		}
+	size, err := b.tree.Size(filename)
+	if err != nil {
+		return nil, err
 	}
 
 	// Git doesn't keep track of the mtime of individual files
