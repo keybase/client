@@ -113,8 +113,18 @@ class AggregateLoggerImpl implements AggregateLogger {
 
 const devLoggers = () => ({
   action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
-  debug: new TeeLogger(new NativeLogger('e'), new ConsoleLogger('log', 'DEBUG:')),
-  error: new TeeLogger(new NativeLogger('e'), new ConsoleLogger('error')),
+  debug: new TeeLogger(
+    isMobile
+      ? new NativeLogger('e')
+      : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Info'),
+    new ConsoleLogger('log', 'DEBUG:')
+  ),
+  error: new TeeLogger(
+    isMobile
+      ? new NativeLogger('e')
+      : new DumpPeriodicallyLogger(new RingLogger(10000), 1 * 60e3, writeLogLinesToFile, 'Error'),
+    new ConsoleLogger('error')
+  ),
   info: new TeeLogger(new RingLogger(10000), new ConsoleLogger('log')),
   warn: new ConsoleLogger('warn'),
 })
