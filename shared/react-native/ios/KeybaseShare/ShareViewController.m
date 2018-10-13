@@ -332,24 +332,32 @@ const BOOL isSimulator = NO;
 - (void)showProgressView {
   UIAlertController* alert = [UIAlertController
                               alertControllerWithTitle:@"Sending"
-                              message:@"Sending your message."
+                              message:@"Encrypting and transmitting your message."
                               preferredStyle:UIAlertControllerStyleAlert];
   UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-  /*[spinner addConstraints:@[
-       [NSLayoutConstraint constraintWithItem:alert.view
+  [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
+  [alert.view addConstraints:@[
+       [NSLayoutConstraint constraintWithItem:spinner
                                     attribute:NSLayoutAttributeCenterX
                                     relatedBy:NSLayoutRelationEqual
-                                       toItem:spinner
+                                       toItem:alert.view
                                     attribute:NSLayoutAttributeCenterX
                                    multiplier:1 constant:0],
-       [NSLayoutConstraint constraintWithItem:alert.view
+       [NSLayoutConstraint constraintWithItem:spinner
                                     attribute:NSLayoutAttributeCenterY
                                     relatedBy:NSLayoutRelationEqual
-                                       toItem:spinner
+                                       toItem:alert.view
                                     attribute:NSLayoutAttributeCenterY
-                                   multiplier:1 constant:0]
+                                   multiplier:1 constant:40],
+       [NSLayoutConstraint constraintWithItem:alert.view
+                                    attribute:NSLayoutAttributeBottom
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:spinner
+                                    attribute:NSLayoutAttributeBottom
+                                   multiplier:1 constant:10]
        ]
-   ];*/
+   ];
+  
   [alert.view addSubview:spinner];
   [spinner startAnimating];
   [self presentViewController:alert animated:YES completion:nil];

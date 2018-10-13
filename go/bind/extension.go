@@ -276,21 +276,24 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	return gregor1.DeviceID(hdid), nil
 }
 
-func extensionRegisterSend(ctx context.Context, gc *globals.Context, convID chat1.ConversationID,
+func extensionRegisterSendNonblock(ctx context.Context, gc *globals.Context, convID chat1.ConversationID,
 	outboxID chat1.OutboxID) {
-	deviceID, err := extensionGetDeviceID(ctx, gc)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to get deviceID: %s", err)
-		return
-	}
-	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
-		ConvID:   convID,
-		OutboxID: outboxID,
-		DeviceID: deviceID,
-	}); err != nil {
-		kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to make RPC: %s", err)
-		return
-	}
+	bctx := chat.BackgroundContext(ctx, gc)
+	go func(ctx context.Context) {
+		deviceID, err := extensionGetDeviceID(ctx, gc)
+		if err != nil {
+			kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to get deviceID: %s", err)
+			return
+		}
+		if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
+			ConvID:   convID,
+			OutboxID: outboxID,
+			DeviceID: deviceID,
+		}); err != nil {
+			kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to make RPC: %s", err)
+			return
+		}
+	}(bctx)
 }
 
 func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err error, strConvID,
@@ -443,7 +446,7 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int, bod
 	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, nil); err != nil {
 		return err
 	}
-	extensionRegisterSend(ctx, gc, convID, outboxID)
+	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)
 	extensionWaitForResult(ctx, strConvID, extensionListener.listenFor(outboxID))
 	return nil
 }
@@ -612,7 +615,7 @@ func extensionWaitForResult(ctx context.Context, strConvID string, cb chan struc
 	case <-cb:
 	case <-time.After(30 * time.Second):
 		kbCtx.Log.CDebugf(ctx, "extensionWaitForResult: timed out waiting for result, bailing out!")
-		msg := "Your message is taking a long time to send, Keybase will be trying in the background. Open the Keybase app to make it go faster."
+		msg := "Your message is taking a long time to send, Keybase will be trying in the background."
 		extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 	}
 }
@@ -646,7 +649,7 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 		filename, nil, callerPreview); err != nil {
 		return err
 	}
-	extensionRegisterSend(ctx, gc, convID, outboxID)
+	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)
 	extensionWaitForResult(ctx, strConvID, cb)
 	return nil
 }
