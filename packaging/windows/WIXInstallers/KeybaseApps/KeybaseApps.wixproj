@@ -52,6 +52,12 @@
     <Compile Include="gui.wxs" />
     <Compile Include="KeybaseApps.wxs" />
   </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixNetFxExtension">
+      <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
+      <Name>WixNetFxExtension</Name>
+    </WixExtension>
+  </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /i "%25CERTISSUER%25" /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
