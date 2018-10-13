@@ -44,12 +44,14 @@ type extensionNotifyListener struct {
 	globals.Contextified
 	libkb.NoopNotifyListener
 	waiters map[string][]chan struct{}
+	sent    map[string]bool
 }
 
 func newExtensionNotifyListener(g *globals.Context) *extensionNotifyListener {
 	return &extensionNotifyListener{
 		Contextified: globals.NewContextified(g),
 		waiters:      make(map[string][]chan struct{}),
+		sent:         make(map[string]bool),
 	}
 }
 
@@ -57,13 +59,18 @@ func (n *extensionNotifyListener) listenFor(outboxID chat1.OutboxID) chan struct
 	n.Lock()
 	defer n.Unlock()
 	cb := make(chan struct{})
-	n.waiters[outboxID.String()] = append(n.waiters[outboxID.String()], cb)
+	if n.sent[outboxID.String()] {
+		close(cb)
+	} else {
+		n.waiters[outboxID.String()] = append(n.waiters[outboxID.String()], cb)
+	}
 	return cb
 }
 
 func (n *extensionNotifyListener) trigger(outboxID chat1.OutboxID) {
 	n.Lock()
 	defer n.Unlock()
+	n.sent[outboxID.String()] = true
 	for _, cb := range n.waiters[outboxID.String()] {
 		close(cb)
 	}
@@ -443,7 +450,7 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int, bod
 			Body: body,
 		}),
 	}
-	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, nil); err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID); err != nil {
 		return err
 	}
 	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)
