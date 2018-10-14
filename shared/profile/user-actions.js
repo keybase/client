@@ -112,96 +112,90 @@ type DropdownProps = {
   onUnfollow?: () => void,
 }
 
-class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentProps> {
-  _menuItems = [
-    {
-      onClick: () => this.props.onAddToTeam(),
-      title: 'Add to team...',
-    },
-  ]
+const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
+  {
+    onClick: props.onAddToTeam,
+    title: 'Add to team...',
+  },
 
-  componentDidMount() {
-    if (flags.walletsEnabled) {
-      this._menuItems.push({
-        // Note that we have to do `() => this.props.onSendLumens()` here
-        // instead of simply `this.props.onSendLumens`.  because we don't
-        // reconstruct or update them in either componentDidUpdate or render.
-        // Calling these functions in a closure makes sure we are always using
-        // the latest from the up-to-date this.props.
-        onClick: () => this.props.onSendLumens(),
-        title: 'Send Lumens (XLM)',
-        view: (
-          <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-            <Text type="Body">Send Lumens (XLM)</Text>
-            <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
-          </Box2>
-        ),
-      })
-      this._menuItems.push({
-        onClick: () => this.props.onRequestLumens(),
-        title: 'Request Lumens (XLM)',
-        view: (
-          <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-            <Text type="Body">Request Lumens (XLM)</Text>
-            <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
-          </Box2>
-        ),
-      })
-    }
-
-    if (!isMobile) {
-      this._menuItems = this._menuItems.concat([
+  ...(flags.walletsEnabled
+    ? [
         {
-          onClick: () => this.props.onOpenPrivateFolder(),
+          onClick: props.onSendLumens,
+          title: 'Send Lumens (XLM)',
+          view: (
+            <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+              <Text type="Body">Send Lumens (XLM)</Text>
+              <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
+            </Box2>
+          ),
+        },
+        {
+          onClick: props.onRequestLumens,
+          title: 'Request Lumens (XLM)',
+          view: (
+            <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+              <Text type="Body">Request Lumens (XLM)</Text>
+              <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
+            </Box2>
+          ),
+        },
+      ]
+    : []),
+
+  ...(!isMobile
+    ? [
+        {
+          onClick: props.onOpenPrivateFolder,
           title: 'Open private folder',
         },
         {
-          onClick: () => this.props.onBrowsePublicFolder(),
+          onClick: props.onBrowsePublicFolder,
           title: 'Browse public folder',
         },
-      ])
-    }
+      ]
+    : []),
 
-    this.props.onUnfollow &&
-      this._menuItems.push({
-        onClick: () => this.props.onUnfollow && this.props.onUnfollow(),
-        style: {
-          borderTopWidth: 0,
+  ...(props.onUnfollow
+    ? [
+        {
+          onClick: props.onUnfollow && props.onUnfollow,
+          style: {
+            borderTopWidth: 0,
+          },
+          title: 'Unfollow',
         },
-        title: 'Unfollow',
-      })
-  }
+      ]
+    : []),
+]
 
-  render() {
-    return (
-      <ClickableBox
-        onClick={this.props.toggleShowingMenu}
-        style={{backgroundColor: globalColors.white}}
-        ref={this.props.setAttachmentRef}
-      >
-        <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Button onClick={null} type="Secondary" style={iconButton}>
-            <Icon
-              color={globalColors.black_75}
-              fontSize={isMobile ? 21 : 16}
-              style={ellipsisIcon}
-              type="iconfont-ellipsis"
-            />
-          </Button>
-        </Box2>
-        <FloatingMenu
-          closeOnSelect={true}
-          attachTo={this.props.getAttachmentRef}
-          containerStyle={styles.floatingMenu}
-          items={this._menuItems}
-          onHidden={this.props.toggleShowingMenu}
-          position="bottom right"
-          visible={this.props.showingMenu}
+const _DropdownButton = (props: DropdownProps & OverlayParentProps) => (
+  <ClickableBox
+    onClick={props.toggleShowingMenu}
+    style={{backgroundColor: globalColors.white}}
+    ref={props.setAttachmentRef}
+  >
+    <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+      <Button onClick={null} type="Secondary" style={iconButton}>
+        <Icon
+          color={globalColors.black_75}
+          fontSize={isMobile ? 21 : 16}
+          style={ellipsisIcon}
+          type="iconfont-ellipsis"
         />
-      </ClickableBox>
-    )
-  }
-}
+      </Button>
+    </Box2>
+    <FloatingMenu
+      closeOnSelect={true}
+      attachTo={props.getAttachmentRef}
+      containerStyle={styles.floatingMenu}
+      items={_makeDropdownButtonMenuItems(props)}
+      onHidden={props.toggleShowingMenu}
+      position="bottom right"
+      visible={props.showingMenu}
+    />
+  </ClickableBox>
+)
 
 const ellipsisIcon = platformStyles({
   common: {
