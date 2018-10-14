@@ -101,7 +101,7 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
 })
 
 export default compose(
-  flags.admin
+  flags.foldersInProfileTab
     ? connect(
         mapStateToProps,
         mapDispatchToProps,
