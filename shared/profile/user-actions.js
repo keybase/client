@@ -123,7 +123,12 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
   componentDidMount() {
     if (flags.walletsEnabled) {
       this._menuItems.push({
-        onClick: () => this.props.onSendLumens(), // somehow this.props.onSendLumens doesn't work. Same below.
+        // Note that we have to do `() => this.props.onSendLumens()` here
+        // instead of simply `this.props.onSendLumens`.  because we don't
+        // reconstruct or update them in either componentDidUpdate or render.
+        // Calling these functions in a closure makes sure we are always using
+        // the latest from the up-to-date this.props.
+        onClick: () => this.props.onSendLumens(),
         title: 'Send Lumens (XLM)',
         view: (
           <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
