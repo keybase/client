@@ -78,68 +78,99 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           onMouseEnter={this._onMouseEnter}
           onMouseLeave={this._onMouseLeave}
         >
-          <Kb.Text type="BodySemibold" style={styles.title}>
-            {this.props.title}
-          </Kb.Text>
           <Kb.Box
             style={Kb.iconCastPlatformStyles(
               Styles.collapseStyles([
                 styles.loading,
                 !this.state.loaded && styles.spinner,
                 {
-                  height: this.props.height,
-                  width: this.props.width,
+                  width: this.props.width + 6,
+                  maxWidth: this.props.width + 6,
+                  minHeight: 200,
+                  borderRadius: 5,
+                  backgroundColor: Styles.globalColors.lightGrey,
                 },
               ])
             )}
           >
             {!!this.props.path && (
-              <ImageRender
-                ref={ref => {
-                  this.imageRef = ref
-                }}
-                src={this.props.path}
-                videoSrc={this.props.fullPath}
-                onLoad={this._setLoaded}
-                onLoadedVideo={this._setVideoLoaded}
-                loaded={this.state.loaded}
-                inlineVideoPlayable={this.props.inlineVideoPlayable}
+              <Kb.Box
                 style={Styles.collapseStyles([
                   styles.image,
                   {
-                    height: this.props.height,
                     opacity: this.state.loaded ? 1 : 0,
-                    width: this.props.width,
+                    width: this.props.width + 6,
+                    maxWidth: this.props.width + 6,
+                    minHeight: 200,
                   },
                 ])}
-              />
-            )}
-            {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-              <Kb.ProgressIndicator style={styles.progress} />
-            )}
-            {!!this.props.showButton &&
-              !this.state.playingVideo && (
-                <Kb.Icon
-                  type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                  style={Kb.iconCastPlatformStyles(styles.playButton)}
+              >
+                <ImageRender
+                  ref={ref => {
+                    this.imageRef = ref
+                  }}
+                  src={this.props.path}
+                  videoSrc={this.props.fullPath}
+                  onLoad={this._setLoaded}
+                  onLoadedVideo={this._setVideoLoaded}
+                  loaded={this.state.loaded}
+                  inlineVideoPlayable={this.props.inlineVideoPlayable}
+                  style={Styles.collapseStyles([
+                    styles.image,
+                    {
+                      position: 'relative',
+                      opacity: this.state.loaded ? 1 : 0,
+                      borderRadius: 5,
+                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
+                      margin: 3,
+                    },
+                  ])}
                 />
-              )}
-            {this.props.videoDuration.length > 0 &&
-              !this.state.playingVideo &&
-              this.state.loaded && (
-                <Kb.Box style={styles.durationContainer}>
-                  <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                    {this.props.videoDuration}
+                {this.props.title.length > 0 && (
+                  <Kb.Text type="Body" style={styles.title}>
+                    {this.props.title}
                   </Kb.Text>
+                )}
+                <Kb.Box
+                  style={Styles.collapseStyles([
+                    {
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: this.props.width,
+                      height: this.props.height,
+                    },
+                  ])}
+                >
+                  {!!this.props.showButton &&
+                    !this.state.playingVideo && (
+                      <Kb.Icon
+                        type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                        style={Kb.iconCastPlatformStyles(styles.playButton)}
+                      />
+                    )}
+                  {this.props.videoDuration.length > 0 &&
+                    !this.state.playingVideo &&
+                    this.state.loaded && (
+                      <Kb.Box style={styles.durationContainer}>
+                        <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                          {this.props.videoDuration}
+                        </Kb.Text>
+                      </Kb.Box>
+                    )}
+                  {!!this.props.arrowColor && (
+                    <Kb.Box style={styles.downloadedIconWrapper}>
+                      <Kb.Icon
+                        type="iconfont-download"
+                        style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                        color={this.props.arrowColor}
+                      />
+                    </Kb.Box>
+                  )}
+                  {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+                    <Kb.ProgressIndicator style={styles.progress} />
+                  )}
                 </Kb.Box>
-              )}
-            {!!this.props.arrowColor && (
-              <Kb.Box style={styles.downloadedIconWrapper}>
-                <Kb.Icon
-                  type="iconfont-download"
-                  style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                  color={this.props.arrowColor}
-                />
               </Kb.Box>
             )}
           </Kb.Box>
@@ -270,6 +301,8 @@ const styles = Styles.styleSheetCreate({
   title: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-word',
+      padding: 5,
+      display: 'block',
     },
   }),
 })
