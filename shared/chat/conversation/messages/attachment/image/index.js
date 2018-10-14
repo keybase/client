@@ -110,6 +110,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       opacity: this.state.loaded ? 1 : 0,
                       borderRadius: 5,
                       margin: 3,
+                      width: this.props.width,
+                      height: this.props.height,
+                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                     },
                   ])}
                 />
@@ -123,10 +126,8 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             )}
             <Kb.Box
               style={Styles.collapseStyles([
+                styles.absoluteContainer,
                 {
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
                   width: this.props.width,
                   height: this.props.height,
                 },
@@ -221,6 +222,11 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 320,
     position: 'relative',
   },
+  absoluteContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
   imageContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
@@ -247,25 +253,18 @@ const styles = Styles.styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  progress: Styles.platformStyles({
-    isElectron: {
-      bottom: '50%',
-      left: '50%',
-      marginBottom: -24,
-      marginLeft: -24,
-      marginRight: -24,
-      marginTop: -24,
-      position: 'absolute',
-      right: '50%',
-      top: '50%',
-      width: 48,
-    },
-    isMobile: {
-      margin: 'auto',
-      position: 'absolute',
-      width: 48,
-    },
-  }),
+  progress: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -24,
+    marginLeft: -24,
+    marginRight: -24,
+    marginTop: -24,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+    width: 48,
+  },
   progressContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -291,6 +290,9 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-word',
       padding: 5,
       display: 'block',
+    },
+    isMobile: {
+      padding: 5,
     },
   }),
 })
