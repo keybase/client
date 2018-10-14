@@ -81,8 +81,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           <Kb.Box
             style={Kb.iconCastPlatformStyles(
               Styles.collapseStyles([
-                styles.loading,
-                !this.state.loaded && styles.spinner,
+                styles.backgroundContainer,
                 {
                   width: this.props.width + 6,
                   minHeight: !this.state.loaded ? this.props.height : 0,
@@ -112,12 +111,19 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     },
                   ])}
                 />
-                {this.state.loaded &&
-                  this.props.title.length > 0 && (
-                    <Kb.Text type="Body" style={styles.title}>
-                      {this.props.title}
-                    </Kb.Text>
-                  )}
+                {this.props.title.length > 0 && (
+                  <Kb.Text
+                    type="Body"
+                    style={Styles.collapseStyles([
+                      styles.title,
+                      {
+                        marginTop: !this.state.loaded && !isMobile ? this.props.height : undefined,
+                      },
+                    ])}
+                  >
+                    {this.props.title}
+                  </Kb.Text>
+                )}
               </React.Fragment>
             )}
             <Kb.Box
@@ -228,13 +234,14 @@ const styles = Styles.styleSheetCreate({
   imageContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    padding: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
     width: '100%',
   },
   link: {
     color: Styles.globalColors.black_60,
   },
-  loading: {
+  backgroundContainer: {
     backgroundColor: Styles.globalColors.black_05,
     borderRadius: Styles.globalMargins.xtiny,
     maxWidth: 330,
@@ -271,18 +278,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_40,
     marginRight: Styles.globalMargins.tiny,
   },
-  spinner: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxCenter,
-      alignItems: 'center',
-      flex: 1,
-      margin: 'auto',
-    },
-  }),
   title: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-word',
