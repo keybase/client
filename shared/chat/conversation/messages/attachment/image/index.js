@@ -85,9 +85,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 !this.state.loaded && styles.spinner,
                 {
                   width: this.props.width + 6,
-                  minHeight: !this.state.loaded ? 200 : 0,
-                  borderRadius: 5,
-                  backgroundColor: Styles.globalColors.lightGrey,
+                  minHeight: !this.state.loaded ? this.props.height : 0,
                 },
               ])
             )}
@@ -108,8 +106,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     styles.image,
                     {
                       opacity: this.state.loaded ? 1 : 0,
-                      borderRadius: 5,
-                      margin: 3,
                       width: this.props.width,
                       height: this.props.height,
                       backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
@@ -221,6 +217,8 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
     maxWidth: 320,
     position: 'relative',
+    borderRadius: Styles.globalMargins.xtiny,
+    margin: 3,
   },
   absoluteContainer: {
     position: 'absolute',
@@ -239,7 +237,7 @@ const styles = Styles.styleSheetCreate({
   loading: {
     backgroundColor: Styles.globalColors.black_05,
     borderRadius: Styles.globalMargins.xtiny,
-    maxWidth: 320,
+    maxWidth: 330,
     position: 'relative',
   },
   playButton: {
