@@ -170,7 +170,7 @@ const BOOL isSimulator = NO;
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
   [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
-  [generateImg setMaximumSize:CGSizeMake(320, 320)];
+  [generateImg setMaximumSize:CGSizeMake(640, 640)];
   CGImageRef cgThumb = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
   int duration = CMTimeGetSeconds([asset duration]);
   UIImage* original = [UIImage imageWithCGImage:cgOriginal];
@@ -204,7 +204,7 @@ const BOOL isSimulator = NO;
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
                         (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
                         (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageAlways,
-                        [NSNumber numberWithInt:320], (id)kCGImageSourceThumbnailMaxPixelSize,
+                        [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
