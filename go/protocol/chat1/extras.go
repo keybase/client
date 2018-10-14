@@ -114,6 +114,10 @@ func (mid MessageID) Min(mid2 MessageID) MessageID {
 	return mid2
 }
 
+func (mid MessageID) IsNil() bool {
+	return uint(mid) == 0
+}
+
 func (t MessageType) String() string {
 	s, ok := MessageTypeRevMap[t]
 	if ok {
@@ -250,6 +254,25 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 		}
 	}
 	return 0
+}
+
+func (m MessageUnboxed) GetOutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().ClientHeader.OutboxID
+		case MessageUnboxedState_ERROR:
+			return nil
+		case MessageUnboxedState_PLACEHOLDER:
+			return nil
+		case MessageUnboxedState_OUTBOX:
+			obid := m.Outbox().OutboxID
+			return &obid
+		default:
+			return nil
+		}
+	}
+	return nil
 }
 
 func (m MessageUnboxed) GetMessageType() MessageType {
@@ -596,6 +619,29 @@ func (m UIMessage) GetMessageID() MessageID {
 		}
 	}
 	return 0
+}
+
+func (m UIMessage) GetOutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			strOutboxID := m.Valid().OutboxID
+			if strOutboxID != nil {
+				outboxID, err := MakeOutboxID(*strOutboxID)
+				if err != nil {
+					return nil
+				}
+				return &outboxID
+			}
+			return nil
+		}
+		if state == MessageUnboxedState_ERROR {
+			return nil
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return nil
+		}
+	}
+	return nil
 }
 
 func (m UIMessage) GetMessageType() MessageType {

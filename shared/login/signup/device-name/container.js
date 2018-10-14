@@ -1,14 +1,14 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
 import DeviceName from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   devicename: state.signup.devicename,
   error: state.signup.devicenameError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import ConversationHeader from './normal/container'
 import Search from './search'
 import CreateTeamHeader from '../create-team-header/container'
@@ -36,7 +36,7 @@ class HeaderArea extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const isSearching =
     state.chat2.pendingMode === 'searchingForUsers' &&
     conversationIDKey === Constants.pendingConversationIDKey

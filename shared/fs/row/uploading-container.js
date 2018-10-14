@@ -1,14 +1,14 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Uploading from './uploading'
 
 type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
+const mapStateToProps = (state, {path}: OwnProps) => {
   const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _uploads = state.fs.uploads
   const _username = state.config.username

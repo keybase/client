@@ -20,7 +20,7 @@
     },
     "badgesUpdated": {
       "_description": "Update badges in the nav",
-      "accounts": "Types.BadgesUpdate"
+      "accounts": "Array<RPCTypes.WalletAccountInfo>"
     },
     "buildPayment": {
       "_description": "Prepare a payment for sending"
@@ -97,6 +97,15 @@
     "displayCurrenciesReceived": {
       "_description": "Update valid display currencies to choose from",
       "currencies": "Array<Types.Currency>"
+    },
+    "loadSendAssetChoices": {
+      "_description": "Load valid assets for sending to user",
+      "from": "Types.AccountID",
+      "to": "string"
+    },
+    "sendAssetChoicesReceived": {
+      "_description": "Update valid send assets to choose from",
+      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>",
     },
     "changeAccountName": {
       "_description": "Change the name of an account",

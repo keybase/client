@@ -266,6 +266,17 @@ func (p *PaymentSummary) TransactionID() (TransactionID, error) {
 	return "", errors.New("unknown payment summary type")
 }
 
+func (c *ClaimSummary) ToPaymentStatus() PaymentStatus {
+	txStatus := c.TxStatus.ToPaymentStatus()
+	switch txStatus {
+	case PaymentStatus_COMPLETED:
+		if c.Dir == RelayDirection_YANK {
+			return PaymentStatus_CANCELED
+		}
+	}
+	return txStatus
+}
+
 func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (res CurrencyLocal, ok bool) {
 	def, found := d.Currencies[code]
 	if found {

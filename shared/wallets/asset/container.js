@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import Asset from '.'
 
 type OwnProps = {
@@ -9,7 +9,7 @@ type OwnProps = {
   index: number,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 
@@ -22,7 +22,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     equivAvailableToSend: `${asset.availableToSendWorth} ${asset.worthCurrency}`,
     equivBalance: `${asset.worth} ${asset.worthCurrency}`,
     issuerAccountID: asset.issuerAccountID,
-    issuerName: asset.issuerVerifiedDomain || 'Unknown',
+    issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
     reserves: asset.reserves.toArray(),
   }

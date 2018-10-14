@@ -9,9 +9,8 @@ import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
 import * as Tabs from '../constants/tabs'
 import {switchTo} from '../actions/route-tree'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {globalStyles} from '../styles'
-import flags from '../util/feature-flags'
 import RpcStats from './rpc-stats'
 
 type Props = {
@@ -22,16 +21,10 @@ type Props = {
   routePath: I.List<string>,
 }
 
-const hotkeyTabMap: {[string]: Tabs.Tab} = {
-  '1': Tabs.peopleTab,
-  '2': Tabs.chatTab,
-  '3': Tabs.fsTab,
-  '4': Tabs.teamsTab,
-  '5': Tabs.devicesTab,
-  '6': Tabs.gitTab,
-  '7': Tabs.settingsTab,
-  ...(flags.walletsEnabled ? {'8': Tabs.walletsTab} : {}),
-}
+const hotkeyTabMap = Tabs.desktopTabOrder.reduce((tabMap, tab, index) => {
+  tabMap[index + 1] = tab
+  return tabMap
+}, {})
 
 const hotkeys = Object.keys(hotkeyTabMap).map(key => `${isDarwin ? 'command' : 'ctrl'}+${key}`)
 
@@ -73,7 +66,7 @@ const stylesTabsContainer = {
   flex: 1,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _username: state.config.username,
 })
 

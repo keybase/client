@@ -4,9 +4,8 @@ import ConfirmOrPending from '.'
 import {proveCommonProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
 import {connect} from '../../util/container'
-import {type TypedState} from '../../constants/reducer'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const profile = state.profile
   const isGood = profile.proofFound && profile.proofStatus === proveCommonProofStatus.ok
   const isPending =
@@ -28,7 +27,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 

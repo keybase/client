@@ -604,6 +604,12 @@ func testRelay(t *testing.T, yank bool) {
 		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "4.9999800")
 	}
 
+	frontendExpStatusSimp := stellar1.PaymentStatus_COMPLETED
+	if yank {
+		frontendExpStatusSimp = stellar1.PaymentStatus_CANCELED
+	}
+	frontendExpStatusDesc := strings.ToLower(frontendExpStatusSimp.String())
+
 	history, err = tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -617,8 +623,8 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
+	require.Equal(t, frontendExpStatusSimp, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, frontendExpStatusDesc, fhistory[0].Payment.StatusDescription)
 
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -633,8 +639,8 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
+	require.Equal(t, frontendExpStatusSimp, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, frontendExpStatusDesc, fhistory[0].Payment.StatusDescription)
 
 	t.Logf("try to claim again")
 	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})

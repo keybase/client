@@ -2,12 +2,12 @@
 import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, type TypedState, compose} from '../util/container'
+import {NullComponent, connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
-const unlockFolderMapPropsToState = (state: TypedState) => {
+const unlockFolderMapPropsToState = state => {
   const {devices, phase, paperkeyError, waiting} = state.unlockFolders
   return {
     devices,
@@ -53,7 +53,7 @@ class UnlockFolders extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   show: state.unlockFolders.popupOpen,
 })
 

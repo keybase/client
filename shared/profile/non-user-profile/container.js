@@ -2,11 +2,11 @@
 import * as FsGen from '../../actions/fs-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
   const myUsername = state.config.username
   const title = routeProps.get('username')

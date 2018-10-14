@@ -1,8 +1,12 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
-import {Box, Button, Checkbox, Divider, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {isLinux} from '../../constants/platform'
+import flags from '../../util/feature-flags'
+// normally never do this but this call serves no purpose for users at all
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type Props = {
   openAtLogin: boolean,
@@ -18,28 +22,28 @@ type Props = {
 }
 
 const Advanced = (props: Props) => (
-  <Box style={styles.advancedContainer}>
-    <Box style={styles.checkboxContainer}>
-      <Checkbox
+  <Kb.Box style={styles.advancedContainer}>
+    <Kb.Box style={styles.checkboxContainer}>
+      <Kb.Checkbox
         checked={!!props.lockdownModeEnabled}
         disabled={props.lockdownModeEnabled == null}
         label="Forbid account changes from the website"
         onCheck={props.onChangeLockdownMode}
         style={styles.checkbox}
       />
-    </Box>
-    {!isMobile &&
+    </Kb.Box>
+    {!Styles.isMobile &&
       !isLinux && (
-        <Box style={styles.openAtLoginCheckboxContainer}>
-          <Checkbox
+        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+          <Kb.Checkbox
             label="Open Keybase on startup"
             checked={props.openAtLogin}
             onCheck={props.onSetOpenAtLogin}
           />
-        </Box>
+        </Kb.Box>
       )}
     <Developer {...props} />
-  </Box>
+  </Kb.Box>
 )
 
 type StartButtonProps = {
@@ -49,29 +53,31 @@ type StartButtonProps = {
 }
 
 const StartButton = (props: StartButtonProps) => (
-  <Button
+  <Kb.Button
     waiting={props.inProgress}
-    style={{marginTop: globalMargins.small}}
+    style={{marginTop: Styles.globalMargins.small}}
     type="Danger"
     label={props.label}
     onClick={props.onStart}
   />
 )
 
-type DeveloperState = {
+type State = {
   clickCount: number,
+  indexTook: number,
 }
 
 const clickThreshold = 7
 const traceDurationSeconds = 30
 const processorProfileDurationSeconds = 30
 
-class Developer extends React.Component<Props, DeveloperState> {
+class Developer extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
     this.state = {
       clickCount: 0,
+      indexTook: -1,
     }
   }
 
@@ -94,15 +100,15 @@ class Developer extends React.Component<Props, DeveloperState> {
   render() {
     const props = this.props
     return (
-      <Box style={styles.developerContainer}>
-        <Text type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
-          {isMobile
+      <Kb.Box style={styles.developerContainer}>
+        <Kb.Text type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
+          {Styles.isMobile
             ? `Please don't do anything here unless instructed to by a developer.`
             : `Please don't do anything below here unless instructed to by a developer.`}
-        </Text>
-        <Divider style={styles.divider} />
-        <Button
-          style={{marginTop: globalMargins.small}}
+        </Kb.Text>
+        <Kb.Divider style={styles.divider} />
+        <Kb.Button
+          style={{marginTop: Styles.globalMargins.small}}
           type="Danger"
           label="DB Nuke"
           onClick={props.onDBNuke}
@@ -119,55 +125,68 @@ class Developer extends React.Component<Props, DeveloperState> {
               onStart={() => props.onProcessorProfile(processorProfileDurationSeconds)}
               inProgress={props.processorProfileInProgress}
             />
-            <Text type="BodySmallSemibold" style={styles.text}>
+            <Kb.Text type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
-            </Text>
+            </Kb.Text>
           </React.Fragment>
         )}
-        <Box style={styles.filler} />
-      </Box>
+        {flags.chatIndexProfilingEnabled && (
+          <Kb.Button
+            type="Primary"
+            label={`Chat Index: ${this.state.indexTook}ms`}
+            onClick={() => {
+              this.setState({indexTook: -1})
+              const start = Date.now()
+              RPCChatTypes.localIndexChatSearchRpcPromise({
+                identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+              }).then(() => this.setState({indexTook: Date.now() - start}))
+            }}
+          />
+        )}
+        <Kb.Box style={styles.filler} />
+      </Kb.Box>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   advancedContainer: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
-    paddingBottom: globalMargins.medium,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
   },
   checkbox: {
     flex: 1,
-    paddingBottom: globalMargins.small,
-    paddingTop: globalMargins.small,
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
   checkboxContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     minHeight: 48,
   },
   developerContainer: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    paddingTop: globalMargins.xlarge,
-    paddingBottom: globalMargins.medium,
+    paddingTop: Styles.globalMargins.xlarge,
+    paddingBottom: Styles.globalMargins.medium,
   },
   divider: {
-    marginTop: globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
     width: '100%',
   },
   filler: {
     flex: 1,
   },
   openAtLoginCheckboxContainer: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     flex: 1,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
       textAlign: 'center',
     },

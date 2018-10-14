@@ -1,20 +1,13 @@
 // @flow
 import Render from '.'
-import {
-  compose,
-  withHandlers,
-  withPropsOnChange,
-  withStateHandlers,
-  connect,
-  type TypedState,
-} from '../../util/container'
+import {compose, withHandlers, withPropsOnChange, withStateHandlers, connect} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 import {HeaderOnMobile} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   if (!state.config.username) {
     throw new Error("Didn't get username")
   }
@@ -27,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
   return {bio, fullname, location, title: 'Edit Profile'}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
   onEditProfile: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),

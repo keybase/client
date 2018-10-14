@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import * as MessageConstants from '../../../../../constants/chat2/message'
 import WrapperAuthor from '.'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {setDisplayName, compose, connect} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
 type OwnProps = {|
@@ -17,7 +17,7 @@ type OwnProps = {|
   toggleMessageMenu: () => void,
 |}
 
-const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
+const mapStateToProps = (state, {message, previous, isEditing}: OwnProps) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

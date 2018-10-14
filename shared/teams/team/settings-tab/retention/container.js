@@ -8,7 +8,6 @@ import {
   setDisplayName,
   withStateHandlers,
   withHandlers,
-  type TypedState,
 } from '../../../../util/container'
 import {
   getTeamRetentionPolicy,
@@ -35,7 +34,7 @@ export type OwnProps = {
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   let policy: RetentionPolicy = retentionPolicies.policyRetain
   let teamPolicy: ?RetentionPolicy
   let showInheritOption = false

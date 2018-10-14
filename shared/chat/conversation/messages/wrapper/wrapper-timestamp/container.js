@@ -3,7 +3,7 @@ import * as React from 'react'
 import {WrapperTimestamp} from '../'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {setDisplayName, compose, connect} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type OwnProps = {|
@@ -28,7 +28,7 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
   return Constants.decoratedMessageTypes.includes(message.type)
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
   return {
     _you: state.config.username || '',

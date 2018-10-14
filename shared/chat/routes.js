@@ -15,7 +15,7 @@ import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import InboxAndConversation from './inbox-and-conversation'
 import TeamBuilding from '../team-building/container'
-import {MaybePopupHoc, TODORoute} from '../common-adapters'
+import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
@@ -23,6 +23,7 @@ import RetentionWarning from '../teams/team/settings-tab/retention/warning/conta
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
 import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
+import ChooseAsset from '../wallets/send-form/choose-asset/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -108,8 +109,13 @@ const chatChildren = {
         component: ConfirmForm,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
+      [WalletConstants.chooseAssetFormRouteKey]: {
+        children: {},
+        component: ChooseAsset,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
     },
-    component: isMobile ? TODORoute : SendForm,
+    component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
 }

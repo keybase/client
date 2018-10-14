@@ -104,7 +104,8 @@
         "CLAIMABLE_2",
         "COMPLETED_3",
         "ERROR_4",
-        "UNKNOWN_5"
+        "UNKNOWN_5",
+        "CANCELED_6"
       ]
     },
     {
@@ -487,6 +488,10 @@
             "items": "SendBannerLocal"
           },
           "name": "banners"
+        },
+        {
+          "type": "string",
+          "name": "amountFormatted"
         }
       ]
     },

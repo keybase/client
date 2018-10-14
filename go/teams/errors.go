@@ -441,3 +441,18 @@ func NewAuditError(format string, args ...interface{}) error {
 func (e AuditError) Error() string {
 	return fmt.Sprintf("Audit error: %s", e.Msg)
 }
+
+type KBFSKeyGenerationError struct {
+	Required, Exists int
+}
+
+func NewKBFSKeyGenerationError(required, exists int) KBFSKeyGenerationError {
+	return KBFSKeyGenerationError{
+		Required: required,
+		Exists:   exists,
+	}
+}
+
+func (e KBFSKeyGenerationError) Error() string {
+	return fmt.Sprintf("KBFS key generation too low: %v < %v", e.Exists, e.Required)
+}

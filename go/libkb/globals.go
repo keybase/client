@@ -848,6 +848,10 @@ func (g *GlobalContext) GetCacheDir() string {
 	return g.Env.GetCacheDir()
 }
 
+func (g *GlobalContext) GetSharedCacheDir() string {
+	return g.Env.GetSharedCacheDir()
+}
+
 func (g *GlobalContext) GetRuntimeDir() string {
 	return g.Env.GetRuntimeDir()
 }

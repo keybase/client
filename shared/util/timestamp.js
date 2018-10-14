@@ -29,7 +29,7 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 
   if (m.isSame(now, 'd')) {
     // Covers interval [startOfToday, endOfToday]
-    return m.format('h:mm A') // 4:34 PM
+    return 'Today ' + m.format('h:mm A') // Today 4:34 PM
   } else if (m.isSame(yesterday, 'd')) {
     // Covers interval [startOfYesterday, endOfYesterday]
     return 'Yesterday ' + m.format('h:mm A') // Yesterday 4:34 PM
@@ -100,7 +100,6 @@ export function daysToLabel(days: number): string {
   return label
 }
 
-// $FlowIssue - locale with no args returns the locale
 const defaultLocale = moment.locale()
 moment.defineLocale('people', {
   parentLocale: 'en',
