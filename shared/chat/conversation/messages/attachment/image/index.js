@@ -85,8 +85,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 !this.state.loaded && styles.spinner,
                 {
                   width: this.props.width + 6,
-                  maxWidth: this.props.width + 6,
-                  minHeight: 200,
+                  minHeight: !this.state.loaded ? 200 : 0,
                   borderRadius: 5,
                   backgroundColor: Styles.globalColors.lightGrey,
                 },
@@ -94,17 +93,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             )}
           >
             {!!this.props.path && (
-              <Kb.Box
-                style={Styles.collapseStyles([
-                  styles.image,
-                  {
-                    opacity: this.state.loaded ? 1 : 0,
-                    width: this.props.width + 6,
-                    maxWidth: this.props.width + 6,
-                    minHeight: 200,
-                  },
-                ])}
-              >
+              <React.Fragment>
                 <ImageRender
                   ref={ref => {
                     this.imageRef = ref
@@ -118,61 +107,60 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   style={Styles.collapseStyles([
                     styles.image,
                     {
-                      position: 'relative',
                       opacity: this.state.loaded ? 1 : 0,
                       borderRadius: 5,
-                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                       margin: 3,
                     },
                   ])}
                 />
-                {this.props.title.length > 0 && (
-                  <Kb.Text type="Body" style={styles.title}>
-                    {this.props.title}
-                  </Kb.Text>
-                )}
-                <Kb.Box
-                  style={Styles.collapseStyles([
-                    {
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: this.props.width,
-                      height: this.props.height,
-                    },
-                  ])}
-                >
-                  {!!this.props.showButton &&
-                    !this.state.playingVideo && (
-                      <Kb.Icon
-                        type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                        style={Kb.iconCastPlatformStyles(styles.playButton)}
-                      />
-                    )}
-                  {this.props.videoDuration.length > 0 &&
-                    !this.state.playingVideo &&
-                    this.state.loaded && (
-                      <Kb.Box style={styles.durationContainer}>
-                        <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                          {this.props.videoDuration}
-                        </Kb.Text>
-                      </Kb.Box>
-                    )}
-                  {!!this.props.arrowColor && (
-                    <Kb.Box style={styles.downloadedIconWrapper}>
-                      <Kb.Icon
-                        type="iconfont-download"
-                        style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                        color={this.props.arrowColor}
-                      />
-                    </Kb.Box>
+                {this.state.loaded &&
+                  this.props.title.length > 0 && (
+                    <Kb.Text type="Body" style={styles.title}>
+                      {this.props.title}
+                    </Kb.Text>
                   )}
-                  {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-                    <Kb.ProgressIndicator style={styles.progress} />
-                  )}
-                </Kb.Box>
-              </Kb.Box>
+              </React.Fragment>
             )}
+            <Kb.Box
+              style={Styles.collapseStyles([
+                {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: this.props.width,
+                  height: this.props.height,
+                },
+              ])}
+            >
+              {!!this.props.showButton &&
+                !this.state.playingVideo && (
+                  <Kb.Icon
+                    type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                    style={Kb.iconCastPlatformStyles(styles.playButton)}
+                  />
+                )}
+              {this.props.videoDuration.length > 0 &&
+                !this.state.playingVideo &&
+                this.state.loaded && (
+                  <Kb.Box style={styles.durationContainer}>
+                    <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                      {this.props.videoDuration}
+                    </Kb.Text>
+                  </Kb.Box>
+                )}
+              {!!this.props.arrowColor && (
+                <Kb.Box style={styles.downloadedIconWrapper}>
+                  <Kb.Icon
+                    type="iconfont-download"
+                    style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                    color={this.props.arrowColor}
+                  />
+                </Kb.Box>
+              )}
+              {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+                <Kb.ProgressIndicator style={styles.progress} />
+              )}
+            </Kb.Box>
           </Kb.Box>
           <Kb.Box style={styles.progressContainer}>
             {!this.props.onShowInFinder && (
