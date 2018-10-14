@@ -55,7 +55,7 @@ export class ImageRender extends React.Component<Props> {
         onLoad={this.props.onLoad}
         source={{uri: this.props.src}}
         style={this.props.style}
-        resizeMode="contain"
+        resizeMode="cover"
       />
     )
   }
