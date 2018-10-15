@@ -50,7 +50,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
-      return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
+      return state
+        .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
         .set('building', state.get('building').merge({currency: action.payload.currency.code}))
     case WalletsGen.secretKeyReceived:
       return state
