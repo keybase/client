@@ -12,6 +12,7 @@ const loadingProps = {
   amount: '',
   balanceChange: '',
   balanceChangeColor: '',
+  canceled: false,
   icon: 'iconfont-stellar-send',
   loading: true,
   memo: '',
@@ -30,8 +31,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
-      const pending = paymentInfo.status !== 'completed'
-      const verb = pending ? 'sending' : 'sent'
+      const pending = ['pending', 'cancelable'].includes(paymentInfo.status)
+      const canceled = paymentInfo.status === 'canceled'
+      const verb = pending || canceled ? 'sending' : 'sent'
       return {
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
@@ -40,6 +42,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.amountDescription
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
+        canceled,
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
@@ -69,6 +72,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
+        canceled: false, // TODO
         icon: 'iconfont-stellar-request',
         loading: false,
         memo: message.note.stringValue(),
@@ -89,6 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   amount: stateProps.amount,
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
+  canceled: stateProps.canceled,
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,

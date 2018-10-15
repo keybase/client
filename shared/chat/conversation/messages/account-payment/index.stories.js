@@ -6,6 +6,7 @@ import {globalColors} from '../../../../styles'
 import Payment from '.'
 
 const sendCommon = {
+  canceled: false,
   onSend: action('onSend'),
   sendButtonLabel: '',
 }

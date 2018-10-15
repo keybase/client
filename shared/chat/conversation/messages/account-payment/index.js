@@ -15,6 +15,7 @@ export type Props = {|
   amount: string,
   balanceChange: string,
   balanceChangeColor: string,
+  canceled: boolean,
   icon: IconType,
   loading: boolean,
   memo: string,
@@ -38,17 +39,28 @@ const AccountPayment = (props: Props) => {
           style={collapseStyles([styles.headingContainer, {marginBottom: globalMargins.xtiny}])}
         >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
-          <Text type="BodySmall" style={styles.purple}>
+          <Text
+            type="BodySmall"
+            style={collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
+          >
             {props.action}{' '}
             <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {props.amount}
             </Text>
             {props.pending ? '...' : '.'}
           </Text>
+          {props.canceled && <Text type="BodySmall">CANCELED</Text>}
         </Box2>
         {!!props.balanceChange && (
           <Box2 direction="horizontal">
-            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
+            <Text
+              type="BodyExtrabold"
+              selectable={true}
+              style={collapseStyles([
+                {color: props.balanceChangeColor},
+                props.canceled && styles.lineThrough,
+              ])}
+            >
               {props.balanceChange}
             </Text>
           </Box2>
@@ -78,6 +90,9 @@ const styles = styleSheetCreate({
   headingContainer: {
     alignItems: 'center',
     flex: 1,
+  },
+  lineThrough: {
+    textDecorationLine: 'line-through',
   },
   progressIndicator: platformStyles({
     // Match height of a line of text
