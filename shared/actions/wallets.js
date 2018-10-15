@@ -81,7 +81,7 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
 const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
 
 const sendPayment = (state: TypedState) => {
-  const notXLM = state.wallets.buildingPayment.currency !== '' && state.wallets.buildingPayment.currency !== 'XLM'
+  const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
