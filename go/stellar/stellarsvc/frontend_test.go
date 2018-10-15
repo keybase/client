@@ -1147,7 +1147,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.PublicMemoErrMsg)
 		require.Equal(t, "$0.00", bres.WorthDescription)
 		require.Equal(t, "", bres.AmountFormatted)
-		require.Equal(t, "", bres.WorthCurrency)
+		require.Equal(t, "USD", bres.WorthCurrency)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		requireBannerSet(t, bres, nil)
 	}
