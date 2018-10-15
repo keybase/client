@@ -42,7 +42,7 @@ func (c *loadKeyCache) loadKeyV2(mctx libkb.MetaContext, uid keybase1.UID, kid k
 	}
 
 	// Load the user. LoadKeyV2 handles punching through the cache when needed.
-	user, upakPtr, _, err := mctx.G().GetUPAKLoader().LoadKey(mctx.Ctx(), uid, kid, false)
+	user, upakPtr, _, err := mctx.G().GetUPAKLoader().LoadKey(mctx.Ctx(), uid, kid, true)
 	if err != nil {
 		return uv, pubKey, linkMap, err
 	}
