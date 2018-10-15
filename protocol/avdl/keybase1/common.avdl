@@ -292,21 +292,22 @@ protocol Common {
 
   /**
     SocialAssertion contains a service and username for that service, that
-    together form an assertion about a user. Resolving an assertion requires
+    together form an assertion about a user. It can either be a social
+    assertion (like "facebook" or "twitter") or a server trust assertion (like
+    "phone" or "email").
+
+    If the assertion is for social network, resolving an assertion requires
     that the user posts a Keybase proof on the asserted service as the asserted
     user.
+
+    For server trust assertion, we have to trust the server.
+
+    TODO: SocialAssertion is historical name for this type, but it's not
+    correct since we do phone/email assertions as well.
     */
   record SocialAssertion {
       string user;
       SocialAssertionService service;
-  }
-
-  /**
-    UserResolution maps how an unresolved user assertion has been resolved.
-    */
-  record UserResolution {
-      SocialAssertion assertion;
-      UID userID;
   }
 
   @typedef("string")
