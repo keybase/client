@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"math"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -606,11 +605,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
 		att := body.Attachment()
-		title := att.Object.Title
-		if title == "" {
-			title = filepath.Base(att.Object.Filename)
-		}
-		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
+		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", att.GetTitle(), m.ServerHeader.MessageID)
 		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}

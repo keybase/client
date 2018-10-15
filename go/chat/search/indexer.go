@@ -5,196 +5,49 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"sync"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/encrypteddb"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const MaxAllowedSearchHits = 10000
-const MaxAllowedSearchMessages = 100000
-const MaxContext = 15
-
-// token -> msgID
-type convIndex map[string]map[chat1.MessageID]bool
-
-func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
-	if set == nil {
-		return nil
-	}
-	msgIDSlice := []chat1.MessageID{}
-	for _, el := range set.ToSlice() {
-		msgID, ok := el.(chat1.MessageID)
-		if ok {
-			msgIDSlice = append(msgIDSlice, msgID)
-		}
-	}
-	return msgIDSlice
-}
-
-// Indexer keeps an encrypted index of chat messages for all conversations to enable full inbox search locally.
-// Data is stored in leveldb in the form:
-// (convID) -> {
-//                token: { msgID: (msgMetadata), ...},
-//                ...
-//             },
-//     ...       ->        ...
-// Where msgMetadata has information about the message which can be used to
-// filter the search such as sender username or creation time.  The workload is
-// expected to be write heavy with keeping the index up to date.
 type Indexer struct {
-	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
-	encryptedDB *encrypteddb.EncryptedDB
+	store *store
+	// for testing
+	consumeCh chan bool
 }
 
 var _ types.Indexer = (*Indexer)(nil)
 
 func NewIndexer(g *globals.Context) *Indexer {
-	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
-	}
-	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
-		return g.LocalChatDb
-	}
 	return &Indexer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
-		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		store:        newStore(g),
 	}
 }
 
-func (idx *Indexer) dbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatIndex,
-		Key: fmt.Sprintf("idx:%s:%s", convID, uid),
-	}
+func (idx *Indexer) SetConsumeCh(consumeCh chan bool) {
+	idx.consumeCh = consumeCh
 }
 
-func (idx *Indexer) getMsgText(msg chat1.MessageUnboxed) string {
-	if !msg.IsValidFull() {
-		return ""
-	}
-
-	mbody := msg.Valid().MessageBody
-	switch msg.GetMessageType() {
-	case chat1.MessageType_TEXT:
-		return mbody.Text().Body
-	case chat1.MessageType_EDIT:
-		return mbody.Edit().Body
-	default:
-		return ""
-	}
+func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (*chat1.ConversationIndex, error) {
+	return idx.store.getConvIndex(ctx, convID, uid)
 }
 
-func (idx *Indexer) getConvIndex(ctx context.Context, dbKey libkb.DbKey) (convIndex, error) {
-	var convIdx convIndex
-	found, err := idx.encryptedDB.Get(ctx, dbKey, &convIdx)
-	if err != nil {
-		return convIdx, err
-	}
-	if !found {
-		convIdx = convIndex{}
-	}
-	return convIdx, nil
-}
-
-func (idx *Indexer) BatchAdd(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.BatchAdd convID: %v, msgs: %d", convID.String(), len(msgs)))()
-	idx.Lock()
-	defer idx.Unlock()
-
-	return idx.batchAddLocked(ctx, convID, uid, msgs)
-}
-
-// Add tokenizes the message content and creates/updates index keys for each token.
-func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msg chat1.MessageUnboxed) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.Add convID: %v", convID.String()))()
-	idx.Lock()
-	defer idx.Unlock()
-
-	return idx.batchAddLocked(ctx, convID, uid, []chat1.MessageUnboxed{msg})
-}
-
-func (idx *Indexer) batchAddLocked(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	dbKey := idx.dbKey(convID, uid)
-	convIdx, err := idx.getConvIndex(ctx, dbKey)
-	if err != nil {
-		return err
-	}
-
-	for _, msg := range msgs {
-		msgText := idx.getMsgText(msg)
-		tokens := tokenize(msgText)
-		if tokens == nil {
-			continue
-		}
-
-		for _, token := range tokens {
-			msgIDs, ok := convIdx[token]
-			if !ok {
-				msgIDs = map[chat1.MessageID]bool{}
-			}
-			msgIDs[msg.GetMessageID()] = true
-			convIdx[token] = msgIDs
-		}
-	}
-	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
-	return err
-}
-
-// Remove tokenizes the message content and updates/removes index keys for each token.
-func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msg chat1.MessageUnboxed) (err error) {
-	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("Indexer.Remove convID: %v", convID.String()))()
-	idx.Lock()
-	defer idx.Unlock()
-
-	msgText := idx.getMsgText(msg)
-	tokens := tokenize(msgText)
-	if tokens == nil {
-		return nil
-	}
-
-	dbKey := idx.dbKey(convID, uid)
-	convIdx, err := idx.getConvIndex(ctx, dbKey)
-	if err != nil {
-		return err
-	}
-
-	for _, token := range tokens {
-		msgIDs, ok := convIdx[token]
-		if !ok {
-			continue
-		}
-		delete(msgIDs, msg.GetMessageID())
-		if len(msgIDs) == 0 {
-			delete(convIdx, token)
-		}
-	}
-	err = idx.encryptedDB.Put(ctx, dbKey, convIdx)
-	return err
-}
-
-// searchConvLocked finds all messages that match the given set of tokens and
-// opts, results are ordered desc by msg id.
-func (idx *Indexer) searchConvLocked(ctx context.Context, convID chat1.ConversationID,
+// searchConv finds all messages that match the given set of tokens and opts,
+// results are ordered desc by msg id.
+func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, tokens []string, opts chat1.SearchOpts) (msgIDs []chat1.MessageID, err error) {
-	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConvLocked convID: %v", convID.String()))()
+	defer idx.Trace(ctx, func() error { return err }, fmt.Sprintf("searchConv convID: %v", convID.String()))()
 
-	dbKey := idx.dbKey(convID, uid)
-	convIdx, err := idx.getConvIndex(ctx, dbKey)
+	convIdx, err := idx.store.getConvIndex(ctx, convID, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +55,7 @@ func (idx *Indexer) searchConvLocked(ctx context.Context, convID chat1.Conversat
 	// NOTE potential optimization, sort by token size desc, might be able to
 	// short circuit, CORE-8902
 	for i, token := range tokens {
-		msgIDs, ok := convIdx[token]
+		msgIDs, ok := convIdx.Index[token]
 		if !ok {
 			// this conversation is missing a token, abort
 			return nil, nil
@@ -235,43 +88,37 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 	idSet := mapset.NewThreadUnsafeSet()
 	idSetWithContext := mapset.NewThreadUnsafeSet()
 	for _, msgID := range msgIDs {
-		for i := 0; i < opts.BeforeContext; i++ {
-			beforeID := msgID - chat1.MessageID(i+1)
-			if beforeID > 0 {
-				idSetWithContext.Add(beforeID)
-			} else {
-				break
+		if opts.BeforeContext > 0 {
+			// Best effort attempt to get surrounding context
+			for i := 0; i < opts.BeforeContext+MaxContext; i++ {
+				beforeID := msgID - chat1.MessageID(i+1)
+				if beforeID > 0 {
+					idSetWithContext.Add(beforeID)
+				} else {
+					break
+				}
 			}
 		}
 
 		idSet.Add(msgID)
 		idSetWithContext.Add(msgID)
-
-		for i := 0; i < opts.AfterContext; i++ {
-			afterID := msgID + chat1.MessageID(i+1)
-			idSetWithContext.Add(afterID)
+		if opts.AfterContext > 0 {
+			// Best effort attempt to get surrounding context
+			for i := 0; i < opts.AfterContext+MaxContext; i++ {
+				afterID := msgID + chat1.MessageID(i+1)
+				idSetWithContext.Add(afterID)
+			}
 		}
 	}
-	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData */, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(inbox.ConvsUnverified) == 0 || !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return nil, nil, nil
-	}
-	conv := inbox.ConvsUnverified[0].Conv
-
 	msgIDSlice := msgIDsFromSet(idSetWithContext)
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, msgIDSlice, &reason)
+	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice, true /* resolveSupersedes*/, &reason)
 	if err != nil {
 		return nil, nil, err
 	}
 	res := []chat1.MessageUnboxed{}
 	for _, msg := range msgs {
-		if msg.IsValid() {
+		if msg.IsValid() && msg.IsVisible() {
 			res = append(res, msg)
 		}
 	}
@@ -309,34 +156,35 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	hits := []chat1.ChatSearchHit{}
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
-			msgText := msg.Valid().MessageBody.Text().Body
+			msgText := msg.SearchableText()
 			matches := queryRe.FindAllString(msgText, -1)
-			if matches != nil {
-				afterLimit := i - opts.AfterContext
-				if afterLimit < 0 {
-					afterLimit = 0
-				}
-				afterMessages := getUIMsgs(msgs[afterLimit:i])
+			if matches == nil {
+				continue
+			}
+			afterLimit := i - opts.AfterContext
+			if afterLimit < 0 {
+				afterLimit = 0
+			}
+			afterMessages := getUIMsgs(msgs[afterLimit:i])
 
-				var beforeMessages []chat1.UIMessage
-				if i < len(msgs)-1 {
-					beforeLimit := i + 1 + opts.AfterContext
-					if beforeLimit >= len(msgs) {
-						beforeLimit = len(msgs)
-					}
-					beforeMessages = getUIMsgs(msgs[i+1 : beforeLimit])
+			var beforeMessages []chat1.UIMessage
+			if i < len(msgs)-1 {
+				beforeLimit := i + 1 + opts.AfterContext
+				if beforeLimit >= len(msgs) {
+					beforeLimit = len(msgs)
 				}
+				beforeMessages = getUIMsgs(msgs[i+1 : beforeLimit])
+			}
 
-				searchHit := chat1.ChatSearchHit{
-					BeforeMessages: beforeMessages,
-					HitMessage:     utils.PresentMessageUnboxed(ctx, idx.G(), msg, uid, convID),
-					AfterMessages:  afterMessages,
-					Matches:        matches,
-				}
-				hits = append(hits, searchHit)
-				if len(hits)+numHits >= opts.MaxHits {
-					break
-				}
+			searchHit := chat1.ChatSearchHit{
+				BeforeMessages: beforeMessages,
+				HitMessage:     utils.PresentMessageUnboxed(ctx, idx.G(), msg, uid, convID),
+				AfterMessages:  afterMessages,
+				Matches:        matches,
+			}
+			hits = append(hits, searchHit)
+			if len(hits)+numHits >= opts.MaxHits {
+				break
 			}
 		}
 	}
@@ -350,13 +198,41 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	}, nil
 }
 
+func (idx *Indexer) consumeResultsForTest(msgs []chat1.MessageUnboxed, err error) {
+	if err == nil && idx.consumeCh != nil {
+		idx.consumeCh <- true
+	}
+}
+
+func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
+	if len(msgs) == 0 {
+		return nil
+	}
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(msgs, err)
+	err = idx.store.add(ctx, convID, uid, msgs)
+	return err
+}
+
+func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
+	if len(msgs) == 0 {
+		return nil
+	}
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(msgs, err)
+	err = idx.store.remove(ctx, convID, uid, msgs)
+	return err
+}
+
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning (convID,msgID) pairs with match information.
 func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 	opts chat1.SearchOpts, uiCh chan chat1.ChatInboxSearchHit) (hits []chat1.ChatInboxSearchHit, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
-	idx.Lock()
-	defer idx.Unlock()
 
 	// NOTE opts.MaxMessages is ignored
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
@@ -385,18 +261,22 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 		return nil, err
 	}
 
-	// NOTE performance opt, do this in parallel CORE-8902
 	numHits := 0
 	for _, conv := range convs {
 		convID := conv.GetConvID()
-		msgIDs, err := idx.searchConvLocked(ctx, convID, uid, tokens, opts)
+		msgIDs, err := idx.searchConv(ctx, convID, uid, tokens, opts)
 		if err != nil {
 			return nil, err
 		}
 		convHits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts, numHits)
 		if err != nil {
 			return nil, err
-		} else if convHits == nil {
+		}
+		if len(msgIDs) != convHits.Size() {
+			idx.Debug(ctx, "search hit mismatch, found %d msgIDs in index, %d hits in conv",
+				len(msgIDs), convHits.Size())
+		}
+		if convHits == nil {
 			continue
 		}
 		if uiCh != nil {
@@ -405,7 +285,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 			uiCh <- *convHits
 		}
 		hits = append(hits, *convHits)
-		numHits += len(convHits.Hits)
+		numHits += convHits.Size()
 		if numHits >= opts.MaxHits {
 			break
 		}

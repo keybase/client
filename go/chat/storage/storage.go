@@ -437,6 +437,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 		}
 	}
 
+	// queue search index update in the background
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Add(ctx, convID, uid, msgs)
+	}
+
 	return res, nil
 }
 
@@ -444,7 +449,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, inMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(inMsgs))
 	// Do a pass over all the messages and update supersededBy pointers
+
 	var allAssets []chat1.Asset
+	var allPurged []chat1.MessageUnboxed
 	// We return a set of reaction targets that have been updated
 	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 
@@ -521,6 +528,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 						}
 					}
 					msgPurged, assets := s.purgeMessage(mvalid)
+					allPurged = append(allPurged, *superMsg)
 					allAssets = append(allAssets, assets...)
 					newMsgs = append(newMsgs, msgPurged)
 				default:
@@ -540,6 +548,11 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	// queue search index update in the background
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Remove(ctx, convID, uid, allPurged)
+	}
+
 	// Send back the ids of messages that were updated with reactions so we can
 	// send to the UI.
 	reactionTargets := []chat1.MessageUnboxed{}
@@ -712,7 +725,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var allAssets []chat1.Asset
-	var writeback []chat1.MessageUnboxed
+	var writeback, allPurged []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
 			// Skip message types that cannot be deleted this way
@@ -728,12 +741,17 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		}
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0
 		msgPurged, assets := s.purgeMessage(mvalid)
+		allPurged = append(allPurged, msg)
 		allAssets = append(allAssets, assets...)
 		writeback = append(writeback, msgPurged)
 	}
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	// queue search index update in the background
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Remove(ctx, convID, uid, allPurged)
+	}
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {

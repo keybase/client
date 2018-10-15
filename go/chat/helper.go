@@ -218,19 +218,19 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 }
 
 func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
-	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes)
+	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
+	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes, reason)
 }
 
 func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	conv, err := GetUnverifiedConv(ctx, g, uid, convID, true /* useLocalData */)
 	if err != nil {
 		return nil, err
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, nil)
+	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, reason)
 	if err != nil {
 		return nil, err
 	}

@@ -537,4 +537,19 @@
     int beforeContext;
     int afterContext;
   }
+
+  record ConversationIndexMetadata {
+    @mpackkey("s") @jsonkey("s")
+    map<MessageID, boolean> seenIDs;
+    @mpackkey("v") @jsonkey("v")
+    int version;
+  }
+
+  record ConversationIndex {
+    // search token -> msgID
+    @mpackkey("i") @jsonkey("i")
+    map<string, map<MessageID, boolean>> index;
+    @mpackkey("m") @jsonkey("m")
+    ConversationIndexMetadata metadata;
+  }
 }
