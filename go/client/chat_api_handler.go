@@ -416,7 +416,7 @@ func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 
 func (a *ChatAPI) GetV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodRead, err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodGet, err: errors.New("empty options")}
 	}
 	var opts getOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -585,7 +585,7 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 
 func (a *ChatAPI) UpdateTypingV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodSearchRegexp, err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodUpdateTyping, err: errors.New("empty options")}
 	}
 	var opts updateTypingOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
