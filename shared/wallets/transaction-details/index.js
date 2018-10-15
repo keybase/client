@@ -89,6 +89,29 @@ const Counterparty = (props: CounterpartyProps) => {
   )
 }
 
+const YourAccount = props => {
+  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
+  return props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
+    <Counterparty
+      counterpartyType={props.counterpartyType}
+      counterparty={props.yourAccountName}
+      accountID={yourAccountID}
+      onShowProfile={() => {}}
+      counterpartyMeta=""
+    />
+  ) : (
+    <Kb.NameWithIcon
+      colorFollowing={true}
+      horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
+      username={props.you}
+      metaOne="You"
+      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+    />
+  )
+}
+
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
@@ -124,29 +147,9 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: NotLoadingProps) => {
-  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
-  const you =
-    props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
-      <Counterparty
-        counterpartyType={props.counterpartyType}
-        counterparty={props.yourAccountName}
-        accountID={yourAccountID}
-        onShowProfile={() => {}}
-        counterpartyMeta=""
-      />
-    ) : (
-      <Kb.NameWithIcon
-        colorFollowing={true}
-        horizontal={true}
-        onClick={() => props.onShowProfile(props.you)}
-        underline={true}
-        username={props.you}
-        metaOne="You"
-        metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
-      />
-    )
+  const you = <YourAccount {...props} />
 
   const counterparty = (
     <Counterparty
