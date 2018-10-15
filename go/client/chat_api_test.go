@@ -27,6 +27,7 @@ type handlerTracker struct {
 	setstatusV1    int
 	markV1         int
 	searchRegexpV1 int
+	updateTypingV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -89,6 +90,11 @@ func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error 
 	return nil
 }
 
+func (h *handlerTracker) UpdateTypingV1(context.Context, Call, io.Writer) error {
+	h.updateTypingV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -145,11 +151,16 @@ func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply 
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) UpdateTypingV1(context.Context, updateTypingOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input          string
 	err            error
 	listV1         int
 	readV1         int
+	getV1          int
 	sendV1         int
 	editV1         int
 	reactionV1     int
@@ -158,6 +169,7 @@ type topTest struct {
 	downloadV1     int
 	markV1         int
 	searchRegexpV1 int
+	updateTypingV1 int
 }
 
 var topTests = []topTest{
@@ -209,6 +221,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.readV1 != test.readV1 {
 			t.Errorf("test %d: input %s => readV1 = %d, expected %d", i, test.input, h.readV1, test.readV1)
 		}
+		if h.getV1 != test.getV1 {
+			t.Errorf("test %d: input %s => getV1 = %d, expected %d", i, test.input, h.getV1, test.getV1)
+		}
 		if h.sendV1 != test.sendV1 {
 			t.Errorf("test %d: input %s => sendV1 = %d, expected %d", i, test.input, h.sendV1, test.sendV1)
 		}
@@ -232,6 +247,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.searchRegexpV1 != test.searchRegexpV1 {
 			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
+		}
+		if h.updateTypingV1 != test.updateTypingV1 {
+			t.Errorf("test %d: input %s => updateTypingV1 = %d, expected %d", i, test.input, h.updateTypingV1, test.updateTypingV1)
 		}
 	}
 }
@@ -553,6 +571,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "searchregexp", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "query": "hi"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "updatetyping", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "typing": true}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }
