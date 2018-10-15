@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import Participants from '.'
+import {stringToAccountID} from '../../../constants/types/wallets'
 
 const provider = Sb.createPropProviderWithCommon()
 
@@ -13,7 +14,7 @@ const defaultProps = {
   recipientAccountIsDefault: false,
   recipientAccountName: 'Secondary Account',
   recipientFullName: 'Addie Stokes',
-  recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I4',
+  recipientStellarAddress: stringToAccountID('GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I4'),
   recipientUsername: 'yen',
   yourUsername: 'cjb',
 }

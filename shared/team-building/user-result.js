@@ -44,7 +44,10 @@ const realCSS = (inTeam: boolean) => `
 
 const Row = (props: Props) => (
   <Kb.Box2
-    className={`hoverRow${props.inTeam ? 'inTeam' : ''}`}
+    className={Styles.classNames({
+      hoverRow: !props.inTeam,
+      hoverRowinTeam: props.inTeam,
+    })}
     direction="horizontal"
     centerChildren={true}
     style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}

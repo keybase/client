@@ -1179,12 +1179,13 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-    // Editing a normal message
-    if (message.id) {
-      const supersedes = message.id
-      const outboxID = Constants.generateOutboxID()
-
-      return Saga.call(
+    const outboxID = Constants.generateOutboxID()
+    const target = {
+      messageID: message.id,
+      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+    }
+    let actions = [
+      Saga.call(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
           body: text.stringValue(),
@@ -1192,30 +1193,19 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
           conversationID: Types.keyToConversationID(conversationIDKey),
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
           outboxID,
-          supersedes,
+          target,
           tlfName,
           tlfPublic: false,
         },
         Constants.waitingKeyEditPost
+      ),
+    ]
+    if (!message.id) {
+      actions = actions.concat(
+        Saga.put(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
       )
-    } else {
-      // Pending messages need to be cancelled and resent
-      if (message.outboxID) {
-        return Saga.sequentially([
-          Saga.call(
-            RPCChatTypes.localCancelPostRpcPromise,
-            {
-              outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-            },
-            Constants.waitingKeyCancelPost
-          ),
-          Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-          Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
-        ])
-      } else {
-        logger.warn('Editing no id and no outboxid')
-      }
     }
+    return Saga.sequentially(actions)
   } else {
     logger.warn('Editing non-text message')
   }

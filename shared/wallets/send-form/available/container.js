@@ -3,7 +3,9 @@ import Available from '.'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
 const mapStateToProps = state => ({
-  amountErrMsg: state.wallets.builtPayment.amountErrMsg,
+  amountErrMsg: state.wallets.building.isRequest
+    ? state.wallets.builtRequest.amountErrMsg
+    : state.wallets.builtPayment.amountErrMsg,
 })
 
 const mapDispatchToProps = dispatch => ({})

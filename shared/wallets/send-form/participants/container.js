@@ -12,17 +12,20 @@ import {
   linkExistingWaitingKey,
   createNewAccountWaitingKey,
 } from '../../../constants/wallets'
-import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
+import {
+  stringToAccountID,
+  type Account as StateAccount,
+  type AccountID,
+} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
-  const build = state.wallets.buildingPayment
-  const built = state.wallets.builtPayment
+  const build = state.wallets.building
 
   // If build.to is set, assume it's a valid username.
   return {
-    recipientUsername: built.toUsername || build.to,
+    recipientUsername: (!build.isRequest && state.wallets.builtPayment.toUsername) || build.to,
   }
 }
 
@@ -47,8 +50,8 @@ const ConnectedParticipantsKeybaseUser = compose(
 )(ParticipantsKeybaseUser)
 
 const mapStateToPropsStellarPublicKey = state => {
-  const build = state.wallets.buildingPayment
-  const built = state.wallets.builtPayment
+  const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   return {
     recipientPublicKey: build.to,
@@ -84,9 +87,9 @@ const makeAccount = (stateAccount: StateAccount) => ({
 })
 
 const mapStateToPropsOtherAccount = state => {
-  const build = state.wallets.buildingPayment
+  const build = state.wallets.building
 
-  const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
+  const fromAccount = makeAccount(getAccount(state, build.from))
   const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
@@ -106,7 +109,7 @@ const mapStateToPropsOtherAccount = state => {
 }
 
 const mapDispatchToPropsOtherAccount = dispatch => ({
-  onChangeFromAccount: (from: string) => {
+  onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
@@ -124,7 +127,7 @@ const ConnectedParticipantsOtherAccount = compose(
 )(ParticipantsOtherAccount)
 
 const mapStateToPropsChooser = state => {
-  const recipientType = state.wallets.buildingPayment.recipientType
+  const recipientType = state.wallets.building.recipientType
   return {recipientType}
 }
 

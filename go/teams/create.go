@@ -112,6 +112,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			ID:   NewInviteID(),
 		})
 	}
+
 	for _, assertion := range impTeam.Readers.UnresolvedUsers {
 		readerInvites = append(readerInvites, SCTeamInvite{
 			Type: assertion.TeamInviteType(),

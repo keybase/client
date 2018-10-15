@@ -17,6 +17,15 @@ const getPeopleData = (
   state: TypedState,
   action: PeopleGen.GetPeopleDataPayload | ConfigGen.LoggedInPayload
 ) => {
+  // more logging to understand why this fails so much
+  logger.info(
+    'getPeopleData: appFocused:',
+    state.config.appFocused,
+    'loggedIn',
+    state.config.loggedIn,
+    'action',
+    action
+  )
   let markViewed = false
   let numFollowSuggestionsWanted = Constants.defaultNumFollowSuggestions
   if (action.type === PeopleGen.getPeopleData) {

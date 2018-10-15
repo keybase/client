@@ -30,10 +30,7 @@ func newOutboxFilesStorage(g *globals.Context, uid gregor1.UID) *outboxFilesStor
 }
 
 func (s *outboxFilesStorage) getDir() string {
-	base := s.G().GetEnv().GetDataDir()
-	if len(s.G().GetEnv().GetMobileSharedHome()) > 0 {
-		base = s.G().GetEnv().GetMobileSharedHome()
-	}
+	base := s.G().GetEnv().GetSharedDataDir()
 	return filepath.Join(base, "fileoutbox", s.uid.String())
 }
 
@@ -49,7 +46,9 @@ func (s *outboxFilesStorage) readStorage(ctx context.Context) (res diskOutbox, e
 	res.Version = 1
 	fis, ierr := ioutil.ReadDir(dir)
 	if ierr != nil {
-		s.Debug(ctx, "readStorage: failed to read directory: %s", ierr)
+		if !os.IsNotExist(ierr) {
+			s.Debug(ctx, "readStorage: failed to read directory: %s", ierr)
+		}
 		return res, nil
 	}
 	for _, fi := range fis {

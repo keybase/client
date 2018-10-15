@@ -16,15 +16,16 @@ export const abandonPayment = 'wallets:abandonPayment'
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
-export const buildPayment = 'wallets:buildPayment'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
+export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const changedAccountName = 'wallets:changedAccountName'
-export const clearBuildingPayment = 'wallets:clearBuildingPayment'
+export const clearBuilding = 'wallets:clearBuilding'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
+export const clearBuiltRequest = 'wallets:clearBuiltRequest'
 export const clearErrors = 'wallets:clearErrors'
 export const createNewAccount = 'wallets:createNewAccount'
 export const createdNewAccount = 'wallets:createdNewAccount'
@@ -63,6 +64,7 @@ export const setAccountAsDefault = 'wallets:setAccountAsDefault'
 export const setBuildingAmount = 'wallets:setBuildingAmount'
 export const setBuildingCurrency = 'wallets:setBuildingCurrency'
 export const setBuildingFrom = 'wallets:setBuildingFrom'
+export const setBuildingIsRequest = 'wallets:setBuildingIsRequest'
 export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
 export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
@@ -80,10 +82,13 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   assets: Array<Types.Assets>,
 |}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
-type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|
   build: Types.BuiltPayment,
-  forBuildingPayment: Types.BuildingPayment,
+  forBuilding: Types.Building,
+|}>
+type _BuiltRequestReceivedPayload = $ReadOnly<{|
+  build: Types.BuiltRequest,
+  forBuilding: Types.Building,
 |}>
 type _CancelPaymentPayload = $ReadOnly<{|paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|
@@ -104,8 +109,9 @@ type _ChangedAccountNamePayloadError = $ReadOnly<{|
   name: string,
   error: string,
 |}>
-type _ClearBuildingPaymentPayload = void
+type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
+type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
 type _CreateNewAccountPayload = $ReadOnly<{|
   name: string,
@@ -195,7 +201,8 @@ type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
-type _SetBuildingFromPayload = $ReadOnly<{|from: string|}>
+type _SetBuildingFromPayload = $ReadOnly<{|from: Types.AccountID|}>
+type _SetBuildingIsRequestPayload = $ReadOnly<{|isRequest: boolean|}>
 type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
@@ -260,13 +267,17 @@ export const createSetAccountAsDefault = (payload: _SetAccountAsDefaultPayload) 
  */
 export const createChangeAccountName = (payload: _ChangeAccountNamePayload) => ({error: false, payload, type: changeAccountName})
 /**
- * Clear a payment that was being prepared
+ * Clear a payment or request that was being prepared
  */
-export const createClearBuildingPayment = (payload: _ClearBuildingPaymentPayload) => ({error: false, payload, type: clearBuildingPayment})
+export const createClearBuilding = (payload: _ClearBuildingPayload) => ({error: false, payload, type: clearBuilding})
 /**
  * Clear a prepared payment once it has been sent or canceled
  */
 export const createClearBuiltPayment = (payload: _ClearBuiltPaymentPayload) => ({error: false, payload, type: clearBuiltPayment})
+/**
+ * Clear a prepared request once it has been sent or canceled
+ */
+export const createClearBuiltRequest = (payload: _ClearBuiltRequestPayload) => ({error: false, payload, type: clearBuiltRequest})
 /**
  * Clear errors from the store at times like opening or closing a form dialog.
  */
@@ -324,10 +335,6 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({error: false,
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({error: false, payload, type: sendPayment})
 /**
- * Prepare a payment for sending
- */
-export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
-/**
  * Refresh our list of accounts
  */
 export const createLoadAccounts = (payload: _LoadAccountsPayload) => ({error: false, payload, type: loadAccounts})
@@ -363,6 +370,10 @@ export const createSetBuildingCurrency = (payload: _SetBuildingCurrencyPayload) 
  * Set building from
  */
 export const createSetBuildingFrom = (payload: _SetBuildingFromPayload) => ({error: false, payload, type: setBuildingFrom})
+/**
+ * Set building isRequest
+ */
+export const createSetBuildingIsRequest = (payload: _SetBuildingIsRequestPayload) => ({error: false, payload, type: setBuildingIsRequest})
 /**
  * Set building public memo
  */
@@ -444,6 +455,10 @@ export const createPaymentsReceived = (payload: _PaymentsReceivedPayload) => ({e
  */
 export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload) => ({error: false, payload, type: builtPaymentReceived})
 /**
+ * Update our store with a prepared payment
+ */
+export const createBuiltRequestReceived = (payload: _BuiltRequestReceivedPayload) => ({error: false, payload, type: builtRequestReceived})
+/**
  * Update our store with an exported secret key
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({error: false, payload, type: secretKeyReceived})
@@ -461,16 +476,17 @@ export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonP
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
-export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
+export type BuiltRequestReceivedPayload = $Call<typeof createBuiltRequestReceived, _BuiltRequestReceivedPayload>
 export type CancelPaymentPayload = $Call<typeof createCancelPayment, _CancelPaymentPayload>
 export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequestPayload>
 export type ChangeAccountNamePayload = $Call<typeof createChangeAccountName, _ChangeAccountNamePayload>
 export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurrency, _ChangeDisplayCurrencyPayload>
 export type ChangedAccountNamePayload = $Call<typeof createChangedAccountName, _ChangedAccountNamePayload>
 export type ChangedAccountNamePayloadError = $Call<typeof createChangedAccountNameError, _ChangedAccountNamePayloadError>
-export type ClearBuildingPaymentPayload = $Call<typeof createClearBuildingPayment, _ClearBuildingPaymentPayload>
+export type ClearBuildingPayload = $Call<typeof createClearBuilding, _ClearBuildingPayload>
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
+export type ClearBuiltRequestPayload = $Call<typeof createClearBuiltRequest, _ClearBuiltRequestPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
 export type CreateNewAccountPayload = $Call<typeof createCreateNewAccount, _CreateNewAccountPayload>
 export type CreatedNewAccountPayload = $Call<typeof createCreatedNewAccount, _CreatedNewAccountPayload>
@@ -511,6 +527,7 @@ export type SetAccountAsDefaultPayload = $Call<typeof createSetAccountAsDefault,
 export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
 export type SetBuildingCurrencyPayload = $Call<typeof createSetBuildingCurrency, _SetBuildingCurrencyPayload>
 export type SetBuildingFromPayload = $Call<typeof createSetBuildingFrom, _SetBuildingFromPayload>
+export type SetBuildingIsRequestPayload = $Call<typeof createSetBuildingIsRequest, _SetBuildingIsRequestPayload>
 export type SetBuildingPublicMemoPayload = $Call<typeof createSetBuildingPublicMemo, _SetBuildingPublicMemoPayload>
 export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingRecipientType, _SetBuildingRecipientTypePayload>
 export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
@@ -529,16 +546,17 @@ export type Actions =
   | AccountsReceivedPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
-  | BuildPaymentPayload
   | BuiltPaymentReceivedPayload
+  | BuiltRequestReceivedPayload
   | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
-  | ClearBuildingPaymentPayload
+  | ClearBuildingPayload
   | ClearBuiltPaymentPayload
+  | ClearBuiltRequestPayload
   | ClearErrorsPayload
   | CreateNewAccountPayload
   | CreatedNewAccountPayload
@@ -579,6 +597,7 @@ export type Actions =
   | SetBuildingAmountPayload
   | SetBuildingCurrencyPayload
   | SetBuildingFromPayload
+  | SetBuildingIsRequestPayload
   | SetBuildingPublicMemoPayload
   | SetBuildingRecipientTypePayload
   | SetBuildingSecretNotePayload

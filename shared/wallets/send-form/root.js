@@ -2,27 +2,18 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Body from './body/container'
 import Header from './header'
 
 type Props = {|
-  isRequest: boolean,
-  isProcessing?: boolean,
   onClose: () => void,
-  onLinkAccount: () => void,
-  onCreateNewAccount: () => void,
+  children: React.Node,
 |}
 
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Header />
-      <Body
-        isProcessing={props.isProcessing}
-        isRequest={props.isRequest}
-        onLinkAccount={props.onLinkAccount}
-        onCreateNewAccount={props.onCreateNewAccount}
-      />
+      {props.children}
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.textContainer}>
       <Kb.Text type="BodySmallSemibold" style={styles.textColor}>
