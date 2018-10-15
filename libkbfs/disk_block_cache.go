@@ -5,18 +5,14 @@
 package libkbfs
 
 import (
-	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
@@ -40,9 +36,8 @@ const (
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	metaDbFilename                string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                 string = "diskCacheTLF.leveldb"
-	versionFilename               string = "version"
-	initialDiskCacheVersion       uint64 = 1
-	currentDiskCacheVersion       uint64 = initialDiskCacheVersion
+	initialDiskBlockCacheVersion  uint64 = 1
+	currentDiskBlockCacheVersion  uint64 = initialDiskBlockCacheVersion
 	syncCacheName                 string = "SyncBlockCache"
 	workingSetCacheName           string = "WorkingSetBlockCache"
 )
@@ -245,78 +240,6 @@ func newDiskBlockCacheStandardFromStorage(
 	return cache, nil
 }
 
-func versionPathFromVersion(dirPath string, version uint64) string {
-	return filepath.Join(dirPath, fmt.Sprintf("v%d", version))
-}
-
-func getVersionedPathForDiskCache(log logger.Logger, dirPath string) (
-	versionedDirPath string, err error) {
-	// Read the version file
-	versionFilepath := filepath.Join(dirPath, versionFilename)
-	versionBytes, err := ioutil.ReadFile(versionFilepath)
-	// We expect the file to open successfully or not exist. Anything else is a
-	// problem.
-	version := currentDiskCacheVersion
-	if ioutil.IsNotExist(err) {
-		// Do nothing, meaning that we will create the version file below.
-		log.Debug("Creating new version file for the disk block cache.")
-	} else if err != nil {
-		log.Debug("An error occurred while reading the disk block cache "+
-			"version file. Using %d as the version and creating a new file "+
-			"to record it.", version)
-		// TODO: when we increase the version of the disk cache, we'll have
-		// to make sure we wipe all previous versions of the disk cache.
-	} else {
-		// We expect a successfully opened version file to parse a single
-		// unsigned integer representing the version. Anything else is a
-		// corrupted version file. However, this we can solve by deleting
-		// everything in the cache.  TODO: Eventually delete the whole disk
-		// cache if we have an out of date version.
-		version, err = strconv.ParseUint(string(versionBytes), 10,
-			strconv.IntSize)
-		if err == nil && version == currentDiskCacheVersion {
-			// Success case, no need to write the version file again.
-			log.Debug("Loaded the disk block cache version file successfully."+
-				" Version: %d", version)
-			return versionPathFromVersion(dirPath, version), nil
-		}
-		if err != nil {
-			log.Debug("An error occurred while parsing the disk block cache "+
-				"version file. Using %d as the version.",
-				currentDiskCacheVersion)
-			// TODO: when we increase the version of the disk cache, we'll have
-			// to make sure we wipe all previous versions of the disk cache.
-			version = currentDiskCacheVersion
-		} else if version < currentDiskCacheVersion {
-			log.Debug("The disk block cache version file contained an old "+
-				"version: %d. Updating to the new version: %d.", version,
-				currentDiskCacheVersion)
-			// TODO: when we increase the version of the disk cache, we'll have
-			// to make sure we wipe all previous versions of the disk cache.
-			version = currentDiskCacheVersion
-		} else if version > currentDiskCacheVersion {
-			log.Debug("The disk block cache version file contained a newer "+
-				"version (%d) than this client knows how to read. Switching "+
-				"to this client's newest known version: %d.", version,
-				currentDiskCacheVersion)
-			version = currentDiskCacheVersion
-		}
-	}
-	// Ensure the disk cache directory exists.
-	err = os.MkdirAll(dirPath, 0700)
-	if err != nil {
-		// This does actually need to be fatal.
-		return "", err
-	}
-	versionString := strconv.FormatUint(version, 10)
-	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
-	if err != nil {
-		// This also needs to be fatal.
-		return "", err
-	}
-	return versionPathFromVersion(dirPath, version), nil
-}
-
 // newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig,
@@ -328,7 +251,8 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig,
 			log.Error("Error initializing disk cache: %+v", err)
 		}
 	}()
-	versionPath, err := getVersionedPathForDiskCache(log, dirPath)
+	versionPath, err := getVersionedPathForDiskCache(
+		log, dirPath, "block", currentDiskBlockCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -425,13 +349,17 @@ func (*DiskBlockCacheLocal) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
 func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
-	blockKey []byte, metadata DiskBlockCacheMetadata) error {
+	blockKey []byte, metadata DiskBlockCacheMetadata, metered bool) error {
 	metadata.LRUTime.Time = cache.config.Clock().Now()
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
 		return err
 	}
-	err = cache.metaDb.Put(blockKey, encodedMetadata, nil)
+	var putMeter *CountMeter
+	if metered {
+		putMeter = cache.updateMeter
+	}
+	err = cache.metaDb.PutWithMeter(blockKey, encodedMetadata, putMeter)
 	if err != nil {
 		cache.log.CWarningf(ctx, "Error writing to disk cache meta "+
 			"database: %+v", err)
@@ -441,11 +369,19 @@ func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
 
 // getMetadataLocked retrieves the metadata for a block in the cache, or
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
-func (cache *DiskBlockCacheLocal) getMetadataLocked(blockID kbfsblock.ID) (
+func (cache *DiskBlockCacheLocal) getMetadataLocked(
+	blockID kbfsblock.ID, metered bool) (
 	metadata DiskBlockCacheMetadata, err error) {
-	metadataBytes, err := cache.metaDb.Get(blockID.Bytes(), nil)
+	var hitMeter, missMeter *CountMeter
+	if metered {
+		hitMeter = cache.hitMeter
+		missMeter = cache.missMeter
+	}
+
+	metadataBytes, err := cache.metaDb.GetWithMeter(
+		blockID.Bytes(), hitMeter, missMeter)
 	if err != nil {
-		return metadata, err
+		return DiskBlockCacheMetadata{}, err
 	}
 	err = cache.config.Codec().Decode(metadataBytes, &metadata)
 	if cache.cacheType == workingSetCacheLimitTrackerType {
@@ -463,7 +399,7 @@ func (cache *DiskBlockCacheLocal) getMetadataLocked(blockID kbfsblock.ID) (
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
 func (cache *DiskBlockCacheLocal) getLRULocked(blockID kbfsblock.ID) (
 	time.Time, error) {
-	metadata, err := cache.getMetadataLocked(blockID)
+	metadata, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -531,24 +467,17 @@ func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 
-	defer func() {
-		if err == nil {
-			cache.hitMeter.Mark(1)
-		} else {
-			cache.missMeter.Mark(1)
-		}
-	}()
 	blockKey := blockID.Bytes()
 	entry, err := cache.blockDb.Get(blockKey, nil)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
 			NoSuchBlockError{blockID}
 	}
-	md, err := cache.getMetadataLocked(blockID)
+	md, err := cache.getMetadataLocked(blockID, true)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
-	err = cache.updateMetadataLocked(ctx, blockKey, md)
+	err = cache.updateMetadataLocked(ctx, blockKey, md, false)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
@@ -612,11 +541,6 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	encodedLen := int64(len(entry))
 	defer func() {
-		if err == nil {
-			cache.putMeter.Mark(1)
-		} else {
-			err = errors.WithStack(err)
-		}
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
 			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 	}()
@@ -653,7 +577,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 				return cachePutCacheFullError{blockID}
 			}
 		}
-		err = cache.blockDb.Put(blockKey, entry, nil)
+		err = cache.blockDb.PutWithMeter(blockKey, entry, cache.putMeter)
 		if err != nil {
 			cache.config.DiskLimiter().commitOrRollback(ctx,
 				cache.cacheType, encodedLen, 0, false, "")
@@ -680,7 +604,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 				"Error writing to TLF cache database: %+v", err)
 		}
 	}
-	md, err := cache.getMetadataLocked(blockID)
+	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
 		// Only set the relevant fields if we had trouble getting the metadata.
 		// Initially leave TriggeredPrefetch and FinishedPrefetch as false;
@@ -689,7 +613,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 		md.BlockSize = uint32(encodedLen)
 		err = nil
 	}
-	return cache.updateMetadataLocked(ctx, blockKey, md)
+	return cache.updateMetadataLocked(ctx, blockKey, md, false)
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -698,7 +622,7 @@ func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	return cache.getMetadataLocked(blockID)
+	return cache.getMetadataLocked(blockID, false)
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for
@@ -712,12 +636,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 		return err
 	}
 
-	defer func() {
-		if err == nil {
-			cache.updateMeter.Mark(1)
-		}
-	}()
-	md, err := cache.getMetadataLocked(blockID)
+	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
@@ -730,7 +649,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 		md.TriggeredPrefetch = true
 		md.FinishedPrefetch = true
 	}
-	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md)
+	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, true)
 }
 
 // deleteLocked deletes a set of blocks from the disk block cache.

@@ -12,7 +12,8 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
-	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/pkg/errors"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 )
 
@@ -142,10 +143,10 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 	defer cache.mtx.RUnlock()
 	if cache.syncCache != nil {
 		md, err := cache.syncCache.GetMetadata(ctx, blockID)
-		switch err {
+		switch errors.Cause(err) {
 		case nil:
 			return md, nil
-		case errors.ErrNotFound:
+		case ldberrors.ErrNotFound:
 		default:
 			return md, err
 		}
