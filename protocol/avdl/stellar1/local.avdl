@@ -67,8 +67,8 @@ protocol local {
   record PaymentLocal {
     PaymentID id;                   // For relay payments, the funding tx.
     TimeMs time;
-    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
-    string statusDescription;       // "pending", "completed", "error"
+    PaymentStatus statusSimplified;
+    string statusDescription;       // "pending", "completed", "error", "claimable", "canceled"
     string statusDetail;
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
@@ -128,8 +128,8 @@ protocol local {
     PaymentID id;
     TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
-    PaymentStatus statusSimplified; // we are working on making this correct for relay payments...
-    string statusDescription;       // "pending", "completed", "error"
+    PaymentStatus statusSimplified;
+    string statusDescription;       // "pending", "completed", "error", "claimable", "canceled"
     string statusDetail;
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
