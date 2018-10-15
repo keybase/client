@@ -75,8 +75,8 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fullHeight: {height: '100%'},
-  fullWidth: {width: '100%'},
+  fullHeight: {height: '100%', maxHeight: '100%'},
+  fullWidth: {width: '100%', maxWidth: '100%'},
   vbox: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
