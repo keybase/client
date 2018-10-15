@@ -6,7 +6,7 @@ import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
+import {PathItemAction, OpenInSystemFileManager} from '../common'
 
 const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>

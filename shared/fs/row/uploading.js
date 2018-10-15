@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import {rowStyles} from './common'
 import {Box, Icon, Meta, Text} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemIcon} from '../common'
 
 type UploadingProps = {
   name: string,
