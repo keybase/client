@@ -28,7 +28,7 @@ const Spinner = () => (
 )
 
 export const SendBody = (props: SendBodyProps) => (
-  <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
@@ -45,7 +45,7 @@ export const SendBody = (props: SendBodyProps) => (
 )
 
 export const RequestBody = (props: RequestBodyProps) => (
-  <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
