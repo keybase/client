@@ -272,6 +272,22 @@
           "name": "noteB64"
         },
         {
+          "type": "string",
+          "name": "fromDisplayAmount"
+        },
+        {
+          "type": "string",
+          "name": "fromDisplayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "toDisplayAmount"
+        },
+        {
+          "type": "string",
+          "name": "toDisplayCurrency"
+        },
+        {
           "type": "TimeMs",
           "name": "ctime"
         },
@@ -698,6 +714,10 @@
         {
           "name": "caller",
           "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
         },
         {
           "name": "txID",

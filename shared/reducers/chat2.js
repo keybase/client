@@ -10,6 +10,7 @@ import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
+import {partition} from 'lodash-es'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -463,7 +464,9 @@ const rootReducer = (
         Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
       )
     case Chat2Gen.messagesAdd: {
-      const {messages, context, shouldClearOthers} = action.payload
+      const {context, shouldClearOthers} = action.payload
+      // pull out deletes and handle at the end
+      const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
       // we want the clear applied when we call findExisting
       let oldMessageOrdinals = state.messageOrdinals
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
@@ -477,6 +480,12 @@ const rootReducer = (
         const key = String(m.conversationIDKey)
         map[key] = map[key] || []
         map[key].push(m)
+        return map
+      }, {})
+      const convoToDeletedOrdinals: {[cid: string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
+        const key = String(m.conversationIDKey)
+        map[key] = map[key] || new Set()
+        map[key].add(m.ordinal)
         return map
       }, {})
 
@@ -568,7 +577,8 @@ const rootReducer = (
             }, [])
 
             map.update(conversationIDKey, I.SortedSet(), (set: I.SortedSet<Types.Ordinal>) =>
-              set.concat(ordinals)
+              // add new ones, remove deleted ones
+              set.concat(ordinals).subtract(convoToDeletedOrdinals[cid])
             )
           })
         }
@@ -593,6 +603,11 @@ const rootReducer = (
               }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
+
+            // remove deleted
+            map.update(conversationIDKey, (m = I.Map()) =>
+              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
+            )
           })
         }
       )

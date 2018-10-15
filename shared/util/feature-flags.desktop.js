@@ -18,6 +18,7 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
+  foldersInProfileTab: false,
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
   plansEnabled: false,

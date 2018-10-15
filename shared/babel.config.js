@@ -37,12 +37,7 @@ module.exports = function(api /*: Api */) {
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')
     return {
-      plugins: [
-        [
-          '@babel/plugin-transform-modules-commonjs',
-          {loose: true}, // needed for HMR to work
-        ],
-      ],
+      presets: ['module:metro-react-native-babel-preset'],
     }
   }
 }

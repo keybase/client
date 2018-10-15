@@ -37,7 +37,8 @@ const BOOL isSimulator = NO;
     BOOL skipLogFile = NO;
     NSError* error = nil;
     NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
+    PushNotifier* pusher = [[PushNotifier alloc] init];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, pusher, &error);
     if (error != nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
         // If Init failed, then let's throw up our error screen.
@@ -234,65 +235,46 @@ const BOOL isSimulator = NO;
 // function to send the contents at that URL. 
 - (void)handleFileURL:(NSURL*)url item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   NSError* error;
-  PushNotifier* pusher = [[PushNotifier alloc] init];
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSString* filePath = [url relativePath];
-  
-  NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
-  if (error != nil) {
-    NSLog(@"failed to register send: %@", error);
-    [self maybeCompleteRequest:lastItem];
-    return;
-  }
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     // Generate image preview here, since it runs out of memory easy in Go
     [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight,
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
-      KeybaseExtensionPostVideo(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+      KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+                                duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     // Generate image preview here, since it runs out of memory easy in Go
     [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight,
                                             NSString* mimeType, NSData* preview) {
       NSError* error = NULL;
-      KeybaseExtensionPostImage(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+      KeybaseExtensionPostImage(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+                                baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
     }];
   } else {
     NSError* error = NULL;
-    KeybaseExtensionPostFile(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
+    KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, &error);
   }
   [self maybeCompleteRequest:lastItem];
 };
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
-  PushNotifier* pusher = [[PushNotifier alloc] init];
   NSString* convID = self.convTarget[@"ConvID"];
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-    } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, pusher, &error);
-    }
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
-    if (error != nil) {
-      NSLog(@"failed to register send: %@", error);
-    } else {
-      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, pusher, &error);
-    }
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], text, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -300,7 +282,7 @@ const BOOL isSimulator = NO;
   // and run it through the normal file sharing code path.
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
     NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
-    NSString* filename = [NSString stringWithFormat:@"%@upload_%@", NSTemporaryDirectory(), guid];
+    NSString* filename = [NSString stringWithFormat:@"%@%@.jpg", NSTemporaryDirectory(), guid];
     NSURL* url = [NSURL fileURLWithPath:filename];
     
     NSData* imageData = UIImageJPEGRepresentation(image, 0.7);
@@ -341,10 +323,44 @@ const BOOL isSimulator = NO;
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [pusher localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
-                   badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
+    [[[PushNotifier alloc] init] localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
+                                        badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
     [self maybeCompleteRequest:lastItem];
   }
+}
+
+- (void)showProgressView {
+  UIAlertController* alert = [UIAlertController
+                              alertControllerWithTitle:@"Sending"
+                              message:@"Encrypting and transmitting your message."
+                              preferredStyle:UIAlertControllerStyleAlert];
+  UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
+  [alert.view addConstraints:@[
+       [NSLayoutConstraint constraintWithItem:spinner
+                                    attribute:NSLayoutAttributeCenterX
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:alert.view
+                                    attribute:NSLayoutAttributeCenterX
+                                   multiplier:1 constant:0],
+       [NSLayoutConstraint constraintWithItem:spinner
+                                    attribute:NSLayoutAttributeCenterY
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:alert.view
+                                    attribute:NSLayoutAttributeCenterY
+                                   multiplier:1 constant:40],
+       [NSLayoutConstraint constraintWithItem:alert.view
+                                    attribute:NSLayoutAttributeBottom
+                                    relatedBy:NSLayoutRelationEqual
+                                       toItem:spinner
+                                    attribute:NSLayoutAttributeBottom
+                                   multiplier:1 constant:10]
+       ]
+   ];
+  
+  [alert.view addSubview:spinner];
+  [spinner startAnimating];
+  [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)didSelectPost {
@@ -358,6 +374,7 @@ const BOOL isSimulator = NO;
     [self maybeCompleteRequest:YES];
     return;
   }
+  [self showProgressView];
   for (int i = 0; i < [items count]; i++) {
     BOOL lastItem = (BOOL)(i == [items count]-1);
     [self processItem:items[i] lastItem:lastItem];

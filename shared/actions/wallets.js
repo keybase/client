@@ -22,33 +22,44 @@ import {anyWaiting} from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 
-const buildPayment = (state: TypedState, action: any) =>
-  RPCStellarTypes.localBuildPaymentLocalRpcPromise({
-    amount: state.wallets.buildingPayment.amount,
-    currency: state.wallets.buildingPayment.currency === 'XLM' ? null : state.wallets.buildingPayment.currency,
-    fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
-    from: state.wallets.buildingPayment.from === Types.noAccountID ? '' : state.wallets.buildingPayment.from,
-    fromSeqno: '',
-    publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
-    secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
-    to: state.wallets.buildingPayment.to,
-    toIsAccountID:
-      state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
-      !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
+const build = (state: TypedState, action: any) =>
+  (state.wallets.building.isRequest
+    ? RPCStellarTypes.localBuildRequestLocalRpcPromise({
+        amount: state.wallets.building.amount,
+        currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+        secretNote: state.wallets.building.secretNote.stringValue(),
+        to: state.wallets.building.to,
+      }).then(build =>
+        WalletsGen.createBuiltRequestReceived({
+          build: Constants.buildRequestResultToBuiltRequest(build),
+          forBuilding: state.wallets.building,
+        })
+      )
+    : RPCStellarTypes.localBuildPaymentLocalRpcPromise({
+        amount: state.wallets.building.amount,
+        currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+        fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
+        from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+        fromSeqno: '',
+        publicMemo: state.wallets.building.publicMemo.stringValue(),
+        secretNote: state.wallets.building.secretNote.stringValue(),
+        to: state.wallets.building.to,
+        toIsAccountID:
+          state.wallets.building.recipientType !== 'keybaseUser' &&
+          !Constants.isFederatedAddress(state.wallets.building.to),
+      }).then(build =>
+        WalletsGen.createBuiltPaymentReceived({
+          build: Constants.buildPaymentResultToBuiltPayment(build),
+          forBuilding: state.wallets.building,
+        })
+      )
+  ).catch(error => {
+    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+      // ignore cancellation
+    } else {
+      throw error
+    }
   })
-    .then(build =>
-      WalletsGen.createBuiltPaymentReceived({
-        build: Constants.buildPaymentResultToBuiltPayment(build),
-        forBuildingPayment: state.wallets.buildingPayment,
-      })
-    )
-    .catch(error => {
-      if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
-        // ignore cancellation
-      } else {
-        throw error
-      }
-    })
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
@@ -73,19 +84,19 @@ const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.buildingPayment.currency !== '' && state.wallets.buildingPayment.currency !== 'XLM'
   RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
-      amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.buildingPayment.amount,
+      amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
       fromSeqno: '',
-      publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
+      publicMemo: state.wallets.building.publicMemo.stringValue(),
       quickReturn: true,
-      secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
-      to: state.wallets.buildingPayment.to,
+      secretNote: state.wallets.building.secretNote.stringValue(),
+      to: state.wallets.building.to,
       toIsAccountID:
-        state.wallets.buildingPayment.recipientType !== 'keybaseUser' &&
-        !Constants.isFederatedAddress(state.wallets.buildingPayment.to),
-      worthAmount: notXLM ? state.wallets.buildingPayment.amount : state.wallets.builtPayment.worthAmount,
+        state.wallets.building.recipientType !== 'keybaseUser' &&
+        !Constants.isFederatedAddress(state.wallets.building.to),
+      worthAmount: notXLM ? state.wallets.building.amount : state.wallets.builtPayment.worthAmount,
       worthCurrency: state.wallets.builtPayment.worthCurrency,
     },
     Constants.sendPaymentWaitingKey
@@ -97,19 +108,20 @@ const sendPayment = (state: TypedState) => {
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
-      amount: state.wallets.buildingPayment.amount,
+      amount: state.wallets.building.amount,
       // FIXME -- support other assets.
       asset: emptyAsset,
-      recipient: state.wallets.buildingPayment.to,
+      recipient: state.wallets.building.to,
       // TODO -- support currency
-      note: state.wallets.buildingPayment.secretNote.stringValue(),
+      note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
   ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
+const clearBuiltRequest = () => Saga.put(WalletsGen.createClearBuiltRequest())
 
-const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+const clearBuilding = () => Saga.put(WalletsGen.createClearBuilding())
 
 const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
@@ -208,7 +220,7 @@ const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplay
     })
   )
 
-  const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAssetChoicesPayload) =>
+const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAssetChoicesPayload) =>
   RPCStellarTypes.localGetSendAssetChoicesLocalRpcPromise({
     from: action.payload.from,
     to: action.payload.to,
@@ -520,30 +532,31 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingAmount,
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
+      WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingPublicMemo,
       WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
     ],
-    buildPayment
+    build
   )
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
 
   yield Saga.actionToAction(WalletsGen.sentPayment, maybeNavigateAwayFromSendForm)
 
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
-  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuildingPayment)
-  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuilding)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltRequest)
   yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateAwayFromSendForm)
 
   // Effects of abandoning payments
-  yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuildingPayment)
-  yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuilding)
+  yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuiltRequest)
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearErrors)
   yield Saga.actionToAction(WalletsGen.abandonPayment, maybeNavigateAwayFromSendForm)
 

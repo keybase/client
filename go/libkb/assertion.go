@@ -155,6 +155,7 @@ type AssertionURL interface {
 	GetValue() string
 	GetKey() string
 	ToLookup() (string, string, error)
+	IsServerTrust() bool
 }
 
 type AssertionURLBase struct {
@@ -187,18 +188,17 @@ func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 func (b AssertionURLBase) NeedsParens() bool { return false }
 func (b AssertionURLBase) HasOr() bool       { return false }
 
-func (a AssertionUID) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionTeamID) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
-func (a AssertionTeamName) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
-func (a AssertionKeybase) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
-func (a AssertionWeb) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionSocial) MatchSet(ps ProofSet) bool   { return a.matchSet(a, ps) }
-func (a AssertionHTTP) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
-func (a AssertionHTTPS) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
-func (a AssertionDNS) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
-func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
-	return a.matchSet(a, ps)
-}
+func (a AssertionUID) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionTeamID) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
+func (a AssertionTeamName) MatchSet(ps ProofSet) bool    { return a.matchSet(a, ps) }
+func (a AssertionKeybase) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionWeb) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionSocial) MatchSet(ps ProofSet) bool      { return a.matchSet(a, ps) }
+func (a AssertionHTTP) MatchSet(ps ProofSet) bool        { return a.matchSet(a, ps) }
+func (a AssertionHTTPS) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
+func (a AssertionDNS) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
+func (a AssertionFingerprint) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionPhoneNumber) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
@@ -217,6 +217,7 @@ func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
 }
+func (b AssertionURLBase) IsServerTrust() bool { return false }
 
 func (b AssertionURLBase) ToSocialAssertionHelper() (sa keybase1.SocialAssertion, err error) {
 	return keybase1.SocialAssertion{
@@ -254,6 +255,12 @@ func (a AssertionDNS) ToSocialAssertion() (sa keybase1.SocialAssertion, err erro
 func (a AssertionFingerprint) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+func (a AssertionPhoneNumber) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	// Phone number is not "social" like facebook or twitter, and there are no
+	// public prooofs, but it still conforms to keybase1.SocialAssertion type
+	// used in implicit team handling code.
+	return a.ToSocialAssertionHelper()
+}
 
 func (a AssertionSocial) GetValue() string {
 	return a.Value
@@ -281,6 +288,8 @@ func (a AssertionHTTP) CollectUrls(v []AssertionURL) []AssertionURL        { ret
 func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL       { return append(v, a) }
 func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
 func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionPhoneNumber) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionPhoneNumber) IsServerTrust() bool                         { return true }
 
 type AssertionSocial struct{ AssertionURLBase }
 type AssertionWeb struct{ AssertionURLBase }
@@ -302,6 +311,7 @@ type AssertionHTTP struct{ AssertionURLBase }
 type AssertionHTTPS struct{ AssertionURLBase }
 type AssertionDNS struct{ AssertionURLBase }
 type AssertionFingerprint struct{ AssertionURLBase }
+type AssertionPhoneNumber struct{ AssertionURLBase }
 
 func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
@@ -431,6 +441,7 @@ func (a AssertionTeamName) IsTeamName() bool       { return true }
 func (a AssertionHTTP) IsRemote() bool             { return true }
 func (a AssertionHTTPS) IsRemote() bool            { return true }
 func (a AssertionDNS) IsRemote() bool              { return true }
+func (a AssertionPhoneNumber) IsRemote() bool      { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -502,8 +513,16 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 	return a, err
 }
 
+func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	return a, nil
+}
+
 func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
+}
+
+func (a AssertionPhoneNumber) ToLookup() (key, value string, err error) {
+	return "phone", a.Value, nil
 }
 
 func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
@@ -545,6 +564,8 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 		ret = AssertionDNS{base}
 	case PGPAssertionKey:
 		ret = AssertionFingerprint{base}
+	case "phone":
+		ret = AssertionPhoneNumber{base}
 	default:
 		ret = AssertionSocial{base}
 	}

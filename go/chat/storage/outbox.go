@@ -459,6 +459,13 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 	inserted := false
 	var res []chat1.MessageUnboxed
 
+	// Special case a prev of 0, just stick it at the front
+	if prev == 0 {
+		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
+			thread.Messages...)
+		return nil
+	}
+
 	for index, msg := range thread.Messages {
 		ord := o.getMsgOrdinal(msg)
 		if !inserted && prev >= ord {

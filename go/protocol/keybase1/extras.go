@@ -2296,6 +2296,9 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		if isDev && s == "rooter" {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 		}
+		if isDev && s == "phone" {
+			return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
+		}
 		// Don't want to break existing clients if we see an unknown invite
 		// type.
 		return NewTeamInviteTypeWithUnknown(s), nil
@@ -2312,6 +2315,8 @@ func (t TeamInviteType) String() (string, error) {
 		return "keybase", nil
 	case TeamInviteCategory_EMAIL:
 		return "email", nil
+	case TeamInviteCategory_PHONE:
+		return "phone", nil
 	case TeamInviteCategory_SBS:
 		return string(t.Sbs()), nil
 	case TeamInviteCategory_SEITAN:

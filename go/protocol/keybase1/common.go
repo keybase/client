@@ -842,9 +842,18 @@ func (o SocialAssertionService) DeepCopy() SocialAssertionService {
 }
 
 // SocialAssertion contains a service and username for that service, that
-// together form an assertion about a user. Resolving an assertion requires
+// together form an assertion about a user. It can either be a social
+// assertion (like "facebook" or "twitter") or a server trust assertion (like
+// "phone" or "email").
+//
+// If the assertion is for social network, resolving an assertion requires
 // that the user posts a Keybase proof on the asserted service as the asserted
 // user.
+//
+// For server trust assertion, we have to trust the server.
+//
+// TODO: SocialAssertion is historical name for this type, but it's not
+// correct since we do phone/email assertions as well.
 type SocialAssertion struct {
 	User    string                 `codec:"user" json:"user"`
 	Service SocialAssertionService `codec:"service" json:"service"`
@@ -854,19 +863,6 @@ func (o SocialAssertion) DeepCopy() SocialAssertion {
 	return SocialAssertion{
 		User:    o.User,
 		Service: o.Service.DeepCopy(),
-	}
-}
-
-// UserResolution maps how an unresolved user assertion has been resolved.
-type UserResolution struct {
-	Assertion SocialAssertion `codec:"assertion" json:"assertion"`
-	UserID    UID             `codec:"userID" json:"userID"`
-}
-
-func (o UserResolution) DeepCopy() UserResolution {
-	return UserResolution{
-		Assertion: o.Assertion.DeepCopy(),
-		UserID:    o.UserID.DeepCopy(),
 	}
 }
 

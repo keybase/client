@@ -26,10 +26,12 @@ type Base struct {
 
 type HomeFinder interface {
 	CacheDir() string
+	SharedCacheDir() string
 	ConfigDir() string
 	Home(emptyOk bool) string
 	MobileSharedHome(emptyOk bool) string
 	DataDir() string
+	SharedDataDir() string
 	RuntimeDir() string
 	Normalize(s string) string
 	LogDir() string
@@ -78,8 +80,10 @@ func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 
 func (x XdgPosix) ConfigDir() string       { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
 func (x XdgPosix) CacheDir() string        { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
+func (x XdgPosix) SharedCacheDir() string  { return x.CacheDir() }
 func (x XdgPosix) SandboxCacheDir() string { return "" } // Unsupported
 func (x XdgPosix) DataDir() string         { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
+func (x XdgPosix) SharedDataDir() string   { return x.DataDir() }
 
 func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
 func (x XdgPosix) InfoDir() string    { return x.RuntimeDir() }
@@ -127,7 +131,26 @@ func (d Darwin) appDir(dirs ...string) string {
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string { return d.appDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) sharedHome() string {
+	homeDir := d.Home(false)
+	if d.isIOS() {
+		// check if we have a shared container path, and if so, that is where the shared home is.
+		sharedHome := d.getMobileSharedHome()
+		if len(sharedHome) > 0 {
+			homeDir = sharedHome
+		}
+	}
+	return homeDir
+}
+
+func (d Darwin) CacheDir() string {
+	return d.appDir(d.Home(false), "Library", "Caches")
+}
+
+func (d Darwin) SharedCacheDir() string {
+	return d.appDir(d.sharedHome(), "Library", "Caches")
+}
+
 func (d Darwin) SandboxCacheDir() string {
 	if d.isIOS() {
 		return ""
@@ -138,18 +161,13 @@ func (d Darwin) SandboxCacheDir() string {
 	return d.appDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
 }
 func (d Darwin) ConfigDir() string {
-	homeDir := d.Home(false)
-	if d.isIOS() {
-		// check if we have a shared container path, and if so, that is where the config should go.
-		sharedHome := d.getMobileSharedHome()
-		if len(sharedHome) > 0 {
-			homeDir = sharedHome
-		}
-	}
-	return d.appDir(homeDir, "Library", "Application Support")
+	return d.appDir(d.sharedHome(), "Library", "Application Support")
 }
 func (d Darwin) DataDir() string {
 	return d.appDir(d.Home(false), "Library", "Application Support")
+}
+func (d Darwin) SharedDataDir() string {
+	return d.appDir(d.sharedHome(), "Library", "Application Support")
 }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
@@ -228,9 +246,11 @@ func (w Win32) Normalize(s string) string {
 }
 
 func (w Win32) CacheDir() string                 { return w.Home(false) }
+func (w Win32) SharedCacheDir() string           { return w.CacheDir() }
 func (w Win32) SandboxCacheDir() string          { return "" } // Unsupported
 func (w Win32) ConfigDir() string                { return w.Home(false) }
 func (w Win32) DataDir() string                  { return w.Home(false) }
+func (w Win32) SharedDataDir() string            { return w.DataDir() }
 func (w Win32) RuntimeDir() string               { return w.Home(false) }
 func (w Win32) InfoDir() string                  { return w.RuntimeDir() }
 func (w Win32) ServiceSpawnDir() (string, error) { return w.RuntimeDir(), nil }

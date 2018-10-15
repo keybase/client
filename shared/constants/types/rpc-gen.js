@@ -705,6 +705,7 @@ export const teamsTeamInviteCategory = {
   email: 3,
   sbs: 4,
   seitan: 5,
+  phone: 6,
 }
 
 export const teamsTeamMemberStatus = {

@@ -1879,6 +1879,63 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 	}
 }
 
+type ConversationIndexMetadata struct {
+	SeenIDs map[MessageID]bool `codec:"s" json:"s"`
+	Version int                `codec:"v" json:"v"`
+}
+
+func (o ConversationIndexMetadata) DeepCopy() ConversationIndexMetadata {
+	return ConversationIndexMetadata{
+		SeenIDs: (func(x map[MessageID]bool) map[MessageID]bool {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[MessageID]bool, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SeenIDs),
+		Version: o.Version,
+	}
+}
+
+type ConversationIndex struct {
+	Index    map[string]map[MessageID]bool `codec:"i" json:"i"`
+	Metadata ConversationIndexMetadata     `codec:"m" json:"m"`
+}
+
+func (o ConversationIndex) DeepCopy() ConversationIndex {
+	return ConversationIndex{
+		Index: (func(x map[string]map[MessageID]bool) map[string]map[MessageID]bool {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]map[MessageID]bool, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x map[MessageID]bool) map[MessageID]bool {
+					if x == nil {
+						return nil
+					}
+					ret := make(map[MessageID]bool, len(x))
+					for k, v := range x {
+						kCopy := k.DeepCopy()
+						vCopy := v
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Index),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
 type CommonInterface interface {
 }
 

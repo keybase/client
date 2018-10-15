@@ -49,7 +49,7 @@ const load = () => {
     ))
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
     .add('Secret key error', () => <LinkExisting {...keyErrorProps} />)
-    .add('Enter name', () => <LinkExisting {...enterNameProps} />)
+    .add('Enter name', () => <LinkExisting {...enterNameProps} onBack={action('onBack')} />)
 }
 
 export default load

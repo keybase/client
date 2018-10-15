@@ -28,6 +28,7 @@ type ResolveResult struct {
 	mutable            bool
 	deleted            bool
 	isCompound         bool
+	isServerTrust      bool
 }
 
 func (res ResolveResult) HasPrimaryKey() bool {
@@ -116,6 +117,10 @@ func (res ResolveResult) FailOnDeleted() ResolveResult {
 		res.err = UserDeletedError{Msg: fmt.Sprintf("user %q deleted", label)}
 	}
 	return res
+}
+
+func (res ResolveResult) IsServerTrust() bool {
+	return res.isServerTrust
 }
 
 func (r *ResolverImpl) ResolveWithBody(m MetaContext, input string) ResolveResult {
@@ -279,6 +284,7 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 		r.putToDiskCache(m, ck, res)
 	}
 
+	res.isServerTrust = au.IsServerTrust()
 	return res
 }
 

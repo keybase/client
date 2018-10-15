@@ -127,18 +127,18 @@ func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearch
 	getContext := func(msgs []chat1.UIMessage) string {
 		ctx := []string{}
 		for _, msg := range msgs {
-			if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-				msgBody := msg.Valid().MessageBody.Text().Body
-				ctx = append(ctx, getMsgPrefix(msg)+msgBody+"\n")
+			msgText := msg.SearchableText()
+			if msgText != "" {
+				ctx = append(ctx, getMsgPrefix(msg)+msgText+"\n")
 			}
 		}
 		return strings.Join(ctx, "")
 	}
 
 	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
-		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-			msgBody := msg.Valid().MessageBody.Text().Body
-			escapedHitText := terminalescaper.Clean(msgBody)
+		msgText := msg.SearchableText()
+		if msgText != "" {
+			escapedHitText := terminalescaper.Clean(msgText)
 			for _, hit := range hits {
 				escapedHit := terminalescaper.Clean(hit)
 				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
