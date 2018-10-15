@@ -83,11 +83,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               Styles.collapseStyles([
                 styles.backgroundContainer,
                 {
-                  // Add 6 extra width to the background container to create the background
-                  // for the image. We use this in conjunction with the margin to reliaby
+                  // Add 6 extra width+height to the background container to create the background
+                  // for the image. We use this in conjunction with the margin to reliably
                   // center the image in the background container.
                   width: this.props.width + 6,
-                  minHeight: !this.state.loaded ? this.props.height : 0,
+                  minHeight: this.props.height + 6,
                 },
               ])
             )}
@@ -129,44 +129,44 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                 )}
               </React.Fragment>
             )}
-            <Kb.Box
-              style={Styles.collapseStyles([
-                styles.absoluteContainer,
-                {
-                  width: this.props.width,
-                  height: this.props.height,
-                },
-              ])}
-            >
-              {!!this.props.showButton &&
-                !this.state.playingVideo && (
+            {!this.state.playingVideo && (
+              <Kb.Box
+                style={Styles.collapseStyles([
+                  styles.absoluteContainer,
+                  {
+                    width: this.props.width,
+                    height: this.props.height,
+                  },
+                ])}
+              >
+                {!!this.props.showButton && (
                   <Kb.Icon
                     type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
                     style={Kb.iconCastPlatformStyles(styles.playButton)}
                   />
                 )}
-              {this.props.videoDuration.length > 0 &&
-                !this.state.playingVideo &&
-                this.state.loaded && (
-                  <Kb.Box style={styles.durationContainer}>
-                    <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                      {this.props.videoDuration}
-                    </Kb.Text>
+                {this.props.videoDuration.length > 0 &&
+                  this.state.loaded && (
+                    <Kb.Box style={styles.durationContainer}>
+                      <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                        {this.props.videoDuration}
+                      </Kb.Text>
+                    </Kb.Box>
+                  )}
+                {!!this.props.arrowColor && (
+                  <Kb.Box style={styles.downloadedIconWrapper}>
+                    <Kb.Icon
+                      type="iconfont-download"
+                      style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                      color={this.props.arrowColor}
+                    />
                   </Kb.Box>
                 )}
-              {!!this.props.arrowColor && (
-                <Kb.Box style={styles.downloadedIconWrapper}>
-                  <Kb.Icon
-                    type="iconfont-download"
-                    style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                    color={this.props.arrowColor}
-                  />
-                </Kb.Box>
-              )}
-              {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-                <Kb.ProgressIndicator style={styles.progress} />
-              )}
-            </Kb.Box>
+                {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+                  <Kb.ProgressIndicator style={styles.progress} />
+                )}
+              </Kb.Box>
+            )}
           </Kb.Box>
           <Kb.Box style={styles.progressContainer}>
             {!this.props.onShowInFinder && (

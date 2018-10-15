@@ -220,7 +220,7 @@
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string"
+      "from": "Types.AccountID"
     },
     "setBuildingIsRequest": {
       "_description": "Set building isRequest",

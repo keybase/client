@@ -8,19 +8,28 @@ const mapStateToProps = state => {
   const build = state.wallets.building
   const built = state.wallets.builtPayment
 
-  const recipientType = build.recipientType || 'keybaseUser'
   let recipientUsername = built.toUsername
   const userInfo = state.users.infoMap.get(recipientUsername)
   const recipientFullName = userInfo ? userInfo.fullname : ''
-  const fromAccount = getAccount(state, stringToAccountID(built.from))
-  const recipientAccount = getAccount(state, stringToAccountID(build.to))
-  const recipientAccountIsDefault = recipientAccount.isDefault
-  const recipientStellarAddress = build.to
+  const fromAccount = getAccount(state, built.from)
 
-  if (recipientType === 'keybaseUser' && build.to.includes('@')) {
-    // this is an sbs assertion, which does not get stowed in `built`.
-    // `build.to` has the assertion
-    recipientUsername = build.to
+  const recipientType = build.recipientType
+  let recipientStellarAddress
+  let recipientAccountIsDefault
+  let recipientAccountName
+  let recipientAccountAssets
+  if (recipientType === 'keybaseUser') {
+    if (build.to.includes('@')) {
+      // this is an sbs assertion, which does not get stowed in `built`.
+      // `build.to` has the assertion
+      recipientUsername = build.to
+    }
+  } else {
+    recipientStellarAddress = stringToAccountID(build.to)
+    const recipientAccount = getAccount(state, recipientStellarAddress)
+    recipientAccountName = recipientAccount.name || recipientAccount.accountID
+    recipientAccountIsDefault = recipientAccount.isDefault
+    recipientAccountAssets = recipientAccount.balanceDescription
   }
 
   return {
@@ -29,11 +38,11 @@ const mapStateToProps = state => {
     fromAccountAssets: fromAccount.balanceDescription,
     fromAccountIsDefault: fromAccount.isDefault,
     fromAccountName: fromAccount.name,
-    recipientAccountAssets: recipientAccount.balanceDescription,
-    recipientAccountName: recipientAccount.name,
-    recipientAccountIsDefault,
-    recipientFullName,
     recipientStellarAddress,
+    recipientAccountName,
+    recipientAccountIsDefault,
+    recipientAccountAssets,
+    recipientFullName,
     recipientUsername,
   }
 }
