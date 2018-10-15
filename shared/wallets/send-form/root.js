@@ -48,6 +48,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       height: '100%',
+      maxHeight: '100%',
       width: '100%',
       maxWidth: 360,
     },
