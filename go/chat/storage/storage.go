@@ -438,7 +438,9 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// queue search index update in the background
-	go s.G().Indexer.Add(ctx, convID, uid, msgs)
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Add(ctx, convID, uid, msgs)
+	}
 
 	return res, nil
 }
@@ -547,7 +549,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Remove(ctx, convID, uid, allPurged)
+	}
 
 	// Send back the ids of messages that were updated with reactions so we can
 	// send to the UI.
@@ -745,7 +749,9 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	if idxer := s.G().Indexer; idxer != nil {
+		go idxer.Remove(ctx, convID, uid, allPurged)
+	}
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {
