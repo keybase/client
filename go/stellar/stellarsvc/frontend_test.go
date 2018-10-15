@@ -123,8 +123,8 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "0", assets[0].BalanceTotal)
 	require.Equal(t, "0", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
-	require.Equal(t, "$0.00", assets[0].Worth)
-	require.Equal(t, "$0.00", assets[0].AvailableToSendWorth)
+	require.Equal(t, "$0", assets[0].Worth)
+	require.Equal(t, "$0", assets[0].AvailableToSendWorth)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {
@@ -1130,7 +1130,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
+	worthInfo := "$1 = 3.1414139 XLM\nSource: coinmarketcap.com"
 
 	for _, toIsAccountID := range []bool{false, true} {
 		t.Logf("toIsAccountID: %v", toIsAccountID)
@@ -1145,7 +1145,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.AmountErrMsg)
 		require.Equal(t, "", bres.SecretNoteErrMsg)
 		require.Equal(t, "", bres.PublicMemoErrMsg)
-		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, "$0", bres.WorthDescription)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		requireBannerSet(t, bres, nil)
 	}
@@ -1161,7 +1161,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.00", bres.WorthDescription)
+	require.Equal(t, "$0", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -1181,7 +1181,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.00", bres.WorthDescription)
+	require.Equal(t, "$0", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -1261,7 +1261,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "You must send at least *1* XLM", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "$0.00", bres.WorthDescription)
+	require.Equal(t, "$0", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
