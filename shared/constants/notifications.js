@@ -27,7 +27,9 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
   }
 
   const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
-  const deviceChanges = I.Set((newDevices || []).concat(revokedDevices || [])).size
+  const allDeviceChanges = I.Set((newDevices || []).concat(revokedDevices || []))
+  // don't see badges related to this device
+  const deviceChanges = allDeviceChanges.remove(state.config.deviceID).size
   const totalMessages = (conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
     0
