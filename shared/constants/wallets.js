@@ -161,7 +161,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   readState: 'read',
-  section: 'pending',
+  section: 'none',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -224,7 +224,7 @@ const paymentResultToPayment = (
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
-    ...rpcPaymentToPaymentCommon(p, 'history'),
+    ...rpcPaymentToPaymentCommon(p),
     // Payment details have no unread field.
     readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
@@ -234,7 +234,7 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
 
 const rpcPaymentToPaymentCommon = (
   p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
-  section: Types.PaymentSection
+  section?: Types.PaymentSection
 ) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
@@ -248,13 +248,13 @@ const rpcPaymentToPaymentCommon = (
   )
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
+    ...(section ? {section} : null),
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
     id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
-    section,
     source,
     sourceAccountID: p.fromAccountID,
     sourceType,

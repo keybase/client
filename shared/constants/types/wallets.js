@@ -105,7 +105,7 @@ export type _BuiltPayment = {
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
-export type PaymentSection = 'pending' | 'history' // where does the payment go on the wallet screen
+export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
 export type _Payment = {
   amountDescription: string,
   delta: PaymentDelta,
