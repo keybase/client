@@ -1,10 +1,15 @@
 // @flow
 import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as ChatConstants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
+import * as Chat2Gen from '../chat2-gen'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
+import fs from 'fs'
 import logger from '../../logger'
 import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
@@ -229,6 +234,28 @@ function* loadStartupDetails() {
   )
 }
 
+// Handle an image pasted into a conversation
+function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
+  const {conversationIDKey, data} = action.payload
+  const outboxID = ChatConstants.generateOutboxID()
+  const path = yield Saga.call(RPCChatTypes.localGetUploadTempFileRpcPromise, {
+    outboxID,
+    filename: 'paste.png',
+  })
+  const paths = [
+    {
+      path,
+      outboxID,
+    },
+  ]
+  fs.writeFileSync(path, data)
+  yield Saga.put(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}],
+    })
+  )
+}
+
 const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
@@ -278,6 +305,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
 
   if (isWindows) {
     yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)
