@@ -10,7 +10,6 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
-  type TypedState,
 } from '../../util/container'
 import SelectChannel from '.'
 
@@ -20,7 +19,7 @@ export type SelectChannelProps = {
   selected: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   const selected = routeProps.get('selected')
   const _channelInfos = getTeamChannelInfos(state, teamname)

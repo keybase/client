@@ -85,6 +85,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
       return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
+    case WalletsGen.sendAssetChoicesReceived:
+      const {sendAssetChoices} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({sendAssetChoices}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
@@ -197,6 +200,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.requestPayment:
     case WalletsGen.requestedPayment:
     case WalletsGen.abandonPayment:
+    case WalletsGen.loadSendAssetChoices:
       return state
     default:
       /*::

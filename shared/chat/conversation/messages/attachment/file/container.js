@@ -2,16 +2,16 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, isMobile} from '../../../../../util/container'
+import {connect, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 type OwnProps = {
   message: Types.MessageAttachment,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({

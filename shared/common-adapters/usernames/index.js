@@ -84,7 +84,7 @@ function UsernameText(props: Props) {
         <Text
           type={props.type}
           backgroundMode={props.backgroundMode}
-          className={props.underline ? 'hover-underline' : undefined}
+          className={Styles.classNames({'hover-underline': props.underline})}
           onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
           style={userStyle}
         >

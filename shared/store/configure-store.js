@@ -5,14 +5,14 @@ import rootReducer from '../reducers'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
-import {createStore, applyMiddleware} from 'redux'
+import {createStore, applyMiddleware, type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
 
-let theStore: Store
+let theStore: Store<any, any, any>
 
 const crashHandler = error => {
   if (__DEV__) {

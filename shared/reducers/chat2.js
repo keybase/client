@@ -215,6 +215,13 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
               })
       )
     }
+    case Chat2Gen.pendingMessageWasEdited: {
+      const {conversationIDKey, ordinal, text} = action.payload
+      return messageMap.updateIn(
+        [conversationIDKey, ordinal],
+        message => (!message || message.type !== 'text' ? message : message.set('text', text))
+      )
+    }
     case Chat2Gen.attachmentUploading:
       const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
       const ordinal = convMap.get(action.payload.outboxID)
@@ -835,6 +842,7 @@ const rootReducer = (
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
+    case Chat2Gen.pendingMessageWasEdited:
     case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:

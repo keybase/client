@@ -207,7 +207,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
-		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
+		loc.StatusSimplified = p.Claim.ToPaymentStatus()
 		loc.ToAccountID = &p.Claim.ToStellar
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""

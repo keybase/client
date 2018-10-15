@@ -3,14 +3,14 @@ import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
+import {connect, compose, lifecycle, setDisplayName} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 
 type OwnProps = {
   path?: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
   const kbfsOutdated = Constants.kbfsOutdated(state)
   return {
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),

@@ -51,7 +51,7 @@ const TurnOnNotifications = (props: Props) => (
 
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(PushGen.createRequestPermissions()),
 })
 

@@ -351,12 +351,27 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID,
 	return res, nil
 }
 
-func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecord) error {
+func (o *Outbox) GetRecord(ctx context.Context, outboxID chat1.OutboxID) (res chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return err
+		return res, err
+	}
+	for _, obr := range obox.Records {
+		if obr.OutboxID.Eq(&outboxID) {
+			return obr, nil
+		}
+	}
+	return res, MissError{}
+}
+
+func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecord) (updated bool, err error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return false, err
 	}
 	// Scan to find the message and replace it
 	var recs []chat1.OutboxRecord
@@ -364,14 +379,15 @@ func (o *Outbox) UpdateMessage(ctx context.Context, replaceobr chat1.OutboxRecor
 		if !obr.OutboxID.Eq(&replaceobr.OutboxID) {
 			recs = append(recs, obr)
 		} else {
+			updated = true
 			recs = append(recs, replaceobr)
 		}
 	}
 	obox.Records = recs
 	if err := o.writeStorage(ctx, obox); err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	return updated, nil
 }
 
 func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel func(chat1.OutboxRecord) bool) (int, error) {
@@ -442,6 +458,13 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
 	inserted := false
 	var res []chat1.MessageUnboxed
+
+	// Special case a prev of 0, just stick it at the front
+	if prev == 0 {
+		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
+			thread.Messages...)
+		return nil
+	}
 
 	for index, msg := range thread.Messages {
 		ord := o.getMsgOrdinal(msg)

@@ -5,7 +5,7 @@ import * as TrackerGen from '../../../../actions/tracker-gen'
 import Git from '.'
 import {connect, isMobile} from '../../../../util/container'
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onClickUserAvatar: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))

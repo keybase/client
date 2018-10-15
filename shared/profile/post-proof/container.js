@@ -2,10 +2,10 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import PostProof from '.'
-import {compose, connect, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
+import {compose, connect, lifecycle, withStateHandlers} from '../../util/container'
 import {type ProvablePlatformsType} from '../../constants/types/more'
 
-const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
+const mapStateToProps = (state, {onAllowProofCheck}) => {
   const profile = state.profile
 
   if (
@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),

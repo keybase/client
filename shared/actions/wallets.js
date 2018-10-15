@@ -25,7 +25,7 @@ import {isMobile} from '../constants/platform'
 const buildPayment = (state: TypedState, action: any) =>
   RPCStellarTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
-    // FIXME: Assumes XLM.
+    currency: state.wallets.buildingPayment.currency === 'XLM' ? null : state.wallets.buildingPayment.currency,
     fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
     from: state.wallets.buildingPayment.from === Types.noAccountID ? '' : state.wallets.buildingPayment.from,
     fromSeqno: '',
@@ -172,10 +172,10 @@ const loadPayments = (
       accountID: action.payload.accountID,
       paymentCursor: payments.cursor,
       payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
         .filter(Boolean),
       pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+        .map(elem => Constants.paymentResultToPayment(elem, 'pending', payments.oldestUnread))
         .filter(Boolean),
     })
   )
@@ -190,7 +190,7 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
           accountID: action.payload.accountID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem, payments.oldestUnread))
+            .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
             .filter(Boolean),
           pending: [],
         })
@@ -204,6 +204,14 @@ const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplay
       currencies: (res || []).map(c => Constants.currenciesResultToCurrencies(c)),
     })
   )
+
+  const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAssetChoicesPayload) =>
+  RPCStellarTypes.localGetSendAssetChoicesLocalRpcPromise({
+    from: action.payload.from,
+    to: action.payload.to,
+  }).then(res => {
+    res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
+  })
 
 const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
   RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
@@ -492,6 +500,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
+  yield Saga.actionToPromise(WalletsGen.loadSendAssetChoices, loadSendAssetChoices)
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)

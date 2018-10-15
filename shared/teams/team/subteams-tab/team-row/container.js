@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/teams'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
 import {TeamRow} from '../../../main/team-list'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'
 import * as FsGen from '../../../../actions/fs-gen'
 
@@ -12,7 +12,7 @@ type OwnProps = {
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
+const mapStateToProps = (state, {teamname}: OwnProps) => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
   members: Constants.getTeamMemberCount(state, teamname),

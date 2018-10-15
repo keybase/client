@@ -104,6 +104,7 @@ const (
 	PaymentStatus_COMPLETED PaymentStatus = 3
 	PaymentStatus_ERROR     PaymentStatus = 4
 	PaymentStatus_UNKNOWN   PaymentStatus = 5
+	PaymentStatus_CANCELED  PaymentStatus = 6
 )
 
 func (o PaymentStatus) DeepCopy() PaymentStatus { return o }
@@ -115,6 +116,7 @@ var PaymentStatusMap = map[string]PaymentStatus{
 	"COMPLETED": 3,
 	"ERROR":     4,
 	"UNKNOWN":   5,
+	"CANCELED":  6,
 }
 
 var PaymentStatusRevMap = map[PaymentStatus]string{
@@ -124,6 +126,7 @@ var PaymentStatusRevMap = map[PaymentStatus]string{
 	3: "COMPLETED",
 	4: "ERROR",
 	5: "UNKNOWN",
+	6: "CANCELED",
 }
 
 func (e PaymentStatus) String() string {
@@ -411,6 +414,7 @@ type BuildPaymentResLocal struct {
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
 	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
 }
 
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
@@ -435,6 +439,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 			}
 			return ret
 		})(o.Banners),
+		AmountFormatted: o.AmountFormatted,
 	}
 }
 

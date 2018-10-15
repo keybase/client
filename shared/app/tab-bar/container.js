@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState, isMobile} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
@@ -10,7 +10,7 @@ if (!isMobile) {
   KeyHandler = require('../../util/key-handler.desktop').default
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.get('navBadges'),
   username: state.config.username,
 })

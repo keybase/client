@@ -1,12 +1,12 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
-import {connect, type TypedState, lifecycle, compose} from '../../util/container'
+import {connect, lifecycle, compose} from '../../util/container'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
 import * as ConfigGen from '../../actions/config-gen'
 
-const mapStateToProps = (state: TypedState, ownProps: {}) => ({
+const mapStateToProps = (state, ownProps: {}) => ({
   ...state.settings.notifications,
   mobileHasPermissions: state.push.hasPermissions,
   waitingForResponse: state.settings.waitingForResponse,

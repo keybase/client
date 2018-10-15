@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
-import {connect, type TypedState, compose, lifecycle, withStateHandlers} from '../../../../util/container'
+import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -12,7 +12,7 @@ type OwnProps = {
   onFocusInput: () => void,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
   let lastMessageIsOurs = false

@@ -1,9 +1,9 @@
 // @flow
 import SendForm from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onClose: () => dispatch(WalletsGen.createAbandonPayment()),

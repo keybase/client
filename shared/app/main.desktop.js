@@ -2,7 +2,7 @@
 import {hot} from 'react-hot-loader'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
@@ -61,7 +61,7 @@ class Main extends Component<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   return {
     desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
     routeDef: state.routeTree.routeDef,
