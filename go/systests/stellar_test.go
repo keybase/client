@@ -20,7 +20,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const disable = false
+const disableMsg = "friendbot issues"
+
 func TestStellarNoteRoundtripAndResets(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -73,11 +79,17 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	testStellarRelayAutoClaims(t, false, false)
 }
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	testStellarRelayAutoClaims(t, true, true)
 }
 
