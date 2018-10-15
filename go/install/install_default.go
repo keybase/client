@@ -6,8 +6,10 @@
 package install
 
 import (
+	"context"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -19,4 +21,9 @@ func Install(context Context, binPath string, sourcePath string, components []st
 // Uninstall empty implementation for unsupported platforms
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	return keybase1.UninstallResult{}
+}
+
+// StartUpdateIfNeeded is a no-op on this platform.
+func StartUpdateIfNeeded(context.Context, logger.Logger) error {
+	return nil
 }

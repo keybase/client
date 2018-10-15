@@ -6,6 +6,7 @@ package install
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -23,7 +24,9 @@ import (
 
 	"io/ioutil"
 
+	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -327,4 +330,29 @@ func getCachedPackageModifyString(log Log) (string, error) {
 	}
 	log.Debug("getCachedPackageModifyString: " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey + "displayName " + displayName + ", publisher " + publisher)
 	return "", errors.New("no cached package path found")
+}
+
+// StartUpdateIfNeeded starts to update the app if there's one available. It
+// calls `updater check` internally so it ignores the snooze.
+func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
+	updaterPath, err := UpdaterBinPath()
+	if err != nil {
+		return err
+	}
+	pid, err := libcmdline.SpawnDetachedProcess(
+		updaterPath, []string{"check"}, log)
+	if err != nil {
+		return err
+	}
+	log.Debug("Started background updater process (%s). pid=%d", updaterPath, pid)
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		return err
+	}
+	// Ignore the exit status here as user may have hit "Ignore". If we are
+	// here without getting killed, it's likely user has hit "Ignore". Just
+	// just return `nil` and GUI would check for update info again where it'd
+	// know we don't need to update anymore.
+	process.Wait()
+	return nil
 }
