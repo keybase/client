@@ -285,11 +285,20 @@ export const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(props.timestamp)
   const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
+  let status = capitalize(props.status)
+  // 'cancelable' -> show 'pending' and completed -> show nothing
+  switch (status) {
+    case 'Completed':
+      status = null
+      break
+    case 'Cancelable':
+      status = 'Pending'
+      break
+  }
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {/* Show 'Pending' for all incomplete txs that haven't failed */}
-      {props.status && props.status !== 'completed' ? ` • Pending` : null}
+      {status ? ` • ${status}` : null}
     </Text>
   )
 }
