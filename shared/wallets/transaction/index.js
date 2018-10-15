@@ -288,7 +288,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
+      {/* Show 'Pending' for all incomplete txs that haven't failed */}
+      {props.status && props.status !== 'completed' ? ` • Pending` : null}
     </Text>
   )
 }
