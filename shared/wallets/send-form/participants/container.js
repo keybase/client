@@ -12,7 +12,11 @@ import {
   linkExistingWaitingKey,
   createNewAccountWaitingKey,
 } from '../../../constants/wallets'
-import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
+import {
+  stringToAccountID,
+  type Account as StateAccount,
+  type AccountID,
+} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
@@ -86,7 +90,7 @@ const makeAccount = (stateAccount: StateAccount) => ({
 const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.buildingPayment
 
-  const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
+  const fromAccount = makeAccount(getAccount(state, build.from))
   const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
@@ -106,7 +110,7 @@ const mapStateToPropsOtherAccount = state => {
 }
 
 const mapDispatchToPropsOtherAccount = dispatch => ({
-  onChangeFromAccount: (from: string) => {
+  onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
