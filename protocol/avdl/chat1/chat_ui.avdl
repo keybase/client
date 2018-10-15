@@ -200,24 +200,12 @@ protocol chatUi {
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
 
-  record ChatSearchHit {
-    array<UIMessage> beforeMessages;
-    UIMessage hitMessage;
-    array<UIMessage> afterMessages;
-    array<string>  matches;
-  }
-
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
-  record ChatInboxSearchHit {
-    ConversationID convID;
-    string convName;
-    array<ChatSearchHit> hits;
-  }
-
   void chatInboxSearchHit(int sessionID, ChatInboxSearchHit searchHit);
-  void chatInboxSearchDone(int sessionID, int numHits, int numConvs);
+
+  void chatInboxSearchDone(int sessionID, ChatInboxSearchDone res);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

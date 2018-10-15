@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
 	"golang.org/x/net/context"
@@ -50,46 +49,7 @@ func (c *CmdChatIndexSearch) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	ctx := context.TODO()
-
-	var convID *chat1.ConversationID
-	if c.resolvingRequest.TlfName != "" {
-		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
-			return err
-		}
-		// TODO: Right now this command cannot be run in standalone at
-		// all, even though team chats should work, but there is a bug
-		// in finding existing conversations.
-		if c.G().Standalone {
-			switch c.resolvingRequest.MembersType {
-			case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-				chat1.ConversationMembersType_IMPTEAMUPGRADE:
-				c.G().StartStandaloneChat()
-			default:
-				err = CantRunInStandaloneError{}
-				return err
-			}
-		}
-
-		conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-			CreateIfNotExists: false,
-			MustNotExist:      false,
-			Interactive:       c.hasTTY,
-			IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return err
-		}
-		convID = &conversation.Info.Id
-	}
-
-	// Nil convID means index entire inbox
-	arg := chat1.IndexChatSearchArg{
-		ConvID:           convID,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	}
-
-	res, err := resolver.ChatClient.IndexChatSearch(ctx, arg)
+	res, err := resolver.ChatClient.IndexChatSearch(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		return err
 	}

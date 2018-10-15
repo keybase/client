@@ -1197,7 +1197,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
+	defer b.Trace(ctx, func() error { return err }, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
 
 	// First stamp all of the messages as received
 	now := gregor1.ToTime(b.clock.Now())

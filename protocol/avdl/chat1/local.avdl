@@ -577,6 +577,7 @@ protocol local {
     array<MessageType> messageTypes;
     boolean disableResolveSupersedes;
     boolean enableDeletePlaceholders;
+    boolean disablePostProcessThread;
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
@@ -916,7 +917,7 @@ protocol local {
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record InboxSearchRes {
-    array<ChatInboxSearchHit> hits;
+    union { null, ChatInboxSearchResults } res;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -931,10 +932,11 @@ protocol local {
     int indexSize;
     // total time to index the conv
     gregor1.DurationMsec durationMsec;
+    int percentIndexed;
   }
 
   // ConversationID -> IndexSearchConvStats
-  map<string, IndexSearchConvStats> indexChatSearch(union { null, ConversationID } convID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  map<string, IndexSearchConvStats> indexChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();
