@@ -407,7 +407,6 @@ type BuildPaymentResLocal struct {
 	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
 	From             AccountID         `codec:"from" json:"from"`
 	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
-	ToUsername       string            `codec:"toUsername" json:"toUsername"`
 	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
 	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
 	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
@@ -424,7 +423,6 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		ReadyToSend:      o.ReadyToSend,
 		From:             o.From.DeepCopy(),
 		ToErrMsg:         o.ToErrMsg,
-		ToUsername:       o.ToUsername,
 		AmountErrMsg:     o.AmountErrMsg,
 		SecretNoteErrMsg: o.SecretNoteErrMsg,
 		PublicMemoErrMsg: o.PublicMemoErrMsg,

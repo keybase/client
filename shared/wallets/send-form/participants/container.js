@@ -25,7 +25,7 @@ const mapStateToPropsKeybaseUser = state => {
 
   // If build.to is set, assume it's a valid username.
   return {
-    recipientUsername: (!build.isRequest && state.wallets.builtPayment.toUsername) || build.to,
+    recipientUsername: build.to,
   }
 }
 
