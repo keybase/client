@@ -305,7 +305,8 @@ class Profile extends Component<Props, State> {
               onOpenPrivateFolder={this.props.onOpenPrivateFolder}
               onRefresh={this.props.refresh}
               onUnfollow={this.props.onUnfollow}
-              onSendOrRequestLumens={this.props.onSendOrRequestLumens}
+              onSendLumens={this.props.onSendLumens}
+              onRequestLumens={this.props.onRequestLumens}
               onAcceptProofs={this.props.onAcceptProofs}
               waiting={this.props.waiting}
             />

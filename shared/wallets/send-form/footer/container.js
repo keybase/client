@@ -5,17 +5,23 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToProps = state => ({
-  disabled: !state.wallets.builtPayment.readyToSend,
-  worthDescription: state.wallets.builtPayment.worthDescription,
-})
+const mapStateToProps = state => {
+  const {isRequest} = state.wallets.building
+  return {
+    isRequest,
+    disabled: !(isRequest
+      ? state.wallets.builtRequest.readyToRequest
+      : state.wallets.builtPayment.readyToSend),
+    worthDescription: isRequest
+      ? state.wallets.builtRequest.worthDescription
+      : state.wallets.builtPayment.worthDescription,
+  }
+}
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClickRequest:
-    ownProps.isRequest &&
-    (() => {
-      dispatch(WalletsGen.createRequestPayment())
-    }),
+const mapDispatchToProps = dispatch => ({
+  onClickRequest: () => {
+    dispatch(WalletsGen.createRequestPayment())
+  },
   onClickSend: () => {
     dispatch(
       Route.navigateAppend([
@@ -28,11 +34,18 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
+const mergeProps = (s, d, o) => ({
+  disabled: s.disabled,
+  worthDescription: s.worthDescription,
+  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
+  onClickSend: s.isRequest ? undefined : d.onClickSend,
+})
+
 export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    mergeProps
   ),
   setDisplayName('Footer')
 )(Footer)

@@ -16,10 +16,11 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType) => {
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
+  _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType, isRequest: boolean) => {
+    dispatch(WalletsGen.createClearBuilding())
+    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createClearErrors())
+    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
     dispatch(WalletsGen.createSetBuildingFrom({from}))
     dispatch(
@@ -64,9 +65,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   onBack: dispatchProps.onBack,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
-  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount'),
-  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser'),
-  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey'),
+  onRequest: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', true),
+  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount', false),
+  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', false),
+  onSendToStellarAddress: () =>
+    dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey', false),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })

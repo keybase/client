@@ -5,7 +5,7 @@ import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
 const mapStateToProps = state => {
-  const build = state.wallets.buildingPayment
+  const build = state.wallets.building
   const built = state.wallets.builtPayment
 
   let recipientUsername = built.toUsername

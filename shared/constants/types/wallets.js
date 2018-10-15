@@ -77,10 +77,11 @@ export type _LocalCurrency = {
   name: string,
 }
 
-export type _BuildingPayment = {
+export type _Building = {
   amount: string,
   currency: string,
   from: AccountID,
+  isRequest: boolean,
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
@@ -98,6 +99,16 @@ export type _BuiltPayment = {
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
   toUsername: string,
+  worthDescription: string,
+  worthInfo: string,
+}
+
+export type _BuiltRequest = {
+  amountErrMsg: string,
+  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  readyToRequest: boolean,
+  secretNoteErrMsg: HiddenString,
+  toErrMsg: string,
   worthDescription: string,
   worthInfo: string,
 }
@@ -168,9 +179,11 @@ export type Banner = {|
   bannerText: string,
 |}
 
-export type BuildingPayment = I.RecordOf<_BuildingPayment>
+export type Building = I.RecordOf<_Building>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
+
+export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
 export type Payment = I.RecordOf<_Payment>
 
@@ -185,8 +198,9 @@ export type _State = {
   accountNameError: string,
   accountNameValidationState: ValidationState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
-  buildingPayment: BuildingPayment,
+  building: Building,
   builtPayment: BuiltPayment,
+  builtRequest: BuiltRequest,
   createNewAccountError: string,
   currencies: I.List<Currency>,
   currencyMap: I.Map<AccountID, Currency>,
