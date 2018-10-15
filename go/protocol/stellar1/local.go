@@ -318,6 +318,7 @@ type PaymentDetailsLocal struct {
 	ToAccountName        string          `codec:"toAccountName" json:"toAccountName"`
 	ToUsername           string          `codec:"toUsername" json:"toUsername"`
 	ToAssertion          string          `codec:"toAssertion" json:"toAssertion"`
+	OriginalToAssertion  string          `codec:"originalToAssertion" json:"originalToAssertion"`
 	Note                 string          `codec:"note" json:"note"`
 	NoteErr              string          `codec:"noteErr" json:"noteErr"`
 	PublicNote           string          `codec:"publicNote" json:"publicNote"`
@@ -351,13 +352,14 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ToAccountID),
-		ToAccountName:  o.ToAccountName,
-		ToUsername:     o.ToUsername,
-		ToAssertion:    o.ToAssertion,
-		Note:           o.Note,
-		NoteErr:        o.NoteErr,
-		PublicNote:     o.PublicNote,
-		PublicNoteType: o.PublicNoteType,
+		ToAccountName:       o.ToAccountName,
+		ToUsername:          o.ToUsername,
+		ToAssertion:         o.ToAssertion,
+		OriginalToAssertion: o.OriginalToAssertion,
+		Note:                o.Note,
+		NoteErr:             o.NoteErr,
+		PublicNote:          o.PublicNote,
+		PublicNoteType:      o.PublicNoteType,
 	}
 }
 
