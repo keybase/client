@@ -1473,31 +1473,6 @@ func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	return nil
 }
 
-// FindKID finds the Key and user incarnation that most recently used this KID.
-// It is possible for users to use the same KID across incarnations (though definitely
-// not condoned or encouraged). In that case, we'll give the most recent use.
-func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *PublicKeyV2NaCl) {
-	ret, ok := u.Current.DeviceKeys[kid]
-	if ok {
-		return &u.Current, &ret
-	}
-	for i := len(u.PastIncarnations) - 1; i >= 0; i-- {
-		prev := u.PastIncarnations[i]
-		ret, ok = prev.DeviceKeys[kid]
-		if ok {
-			return &prev, &ret
-		}
-	}
-	return nil, nil
-}
-
-// HasKID returns true if u has the given KID in any of its incarnations.
-// Useful for deciding if we should repoll a stale UPAK in the UPAK loader.
-func (u UserPlusKeysV2AllIncarnations) HasKID(kid KID) bool {
-	incarnation, _ := u.FindKID(kid)
-	return (incarnation != nil)
-}
-
 func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.Base.Kid.Equal(needle) {
@@ -2174,6 +2149,17 @@ func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
 	return u.Current.ToUserVersion()
 }
 
+func (u UPKLiteV1) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
+}
+
+func (u UPKLiteV1AllIncarnations) ToUserVersion() UserVersion {
+	return u.Current.ToUserVersion()
+}
+
 // Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
@@ -2644,4 +2630,69 @@ func (d FastTeamData) ID() TeamID {
 
 func (d FastTeamData) IsPublic() bool {
 	return d.Chain.Public
+}
+
+type UPKLiteInterface interface {
+	GetUID() UID
+	GetEldestSeqno() Seqno
+	GetDeviceKeys() map[KID]PublicKeyV2NaCl
+	ToUserVersion() UserVersion
+}
+
+type UPKLiteAllIncarnationsInterface interface {
+	GetCurrent() UPKLiteInterface
+	GetPastIncarnations() []UPKLiteInterface
+	GetSeqnoLinkIDs() map[Seqno]LinkID
+}
+
+func (u UPKLiteV1) GetDeviceKeys() map[KID]PublicKeyV2NaCl {
+	return u.DeviceKeys
+}
+
+func (u UPKLiteV1AllIncarnations) GetCurrent() UPKLiteInterface {
+	return u.Current
+}
+
+func (u UPKLiteV1AllIncarnations) GetPastIncarnations() []UPKLiteInterface {
+	ret := make([]UPKLiteInterface, len(u.PastIncarnations))
+	for idx, incarnation := range u.PastIncarnations {
+		ret[idx] = incarnation
+	}
+	return ret
+}
+
+func (u UPKLiteV1) GetUID() UID {
+	return u.Uid
+}
+
+func (u UPKLiteV1) GetEldestSeqno() Seqno {
+	return u.EldestSeqno
+}
+
+func (u UPKLiteV1AllIncarnations) GetSeqnoLinkIDs() map[Seqno]LinkID {
+	return u.SeqnoLinkIDs
+}
+
+func (u UserPlusKeysV2) GetEldestSeqno() Seqno {
+	return u.EldestSeqno
+}
+
+func (u UserPlusKeysV2) GetDeviceKeys() map[KID]PublicKeyV2NaCl {
+	return u.DeviceKeys
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetCurrent() UPKLiteInterface {
+	return u.Current
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetPastIncarnations() []UPKLiteInterface {
+	ret := make([]UPKLiteInterface, len(u.PastIncarnations))
+	for idx, incarnation := range u.PastIncarnations {
+		ret[idx] = incarnation
+	}
+	return ret
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetSeqnoLinkIDs() map[Seqno]LinkID {
+	return u.SeqnoLinkIDs
 }

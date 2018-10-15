@@ -100,7 +100,7 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 			WithUID(u.Uid).
 			WithPublicKeyOptional().
 			WithForcePoll(true)
-		upak, _, err := g.GetUPAKLoader().LoadV2(arg)
+		upak, err := g.GetUPAKLoader().LoadLite(arg)
 		if err == nil {
 			resetUsers[u.Uid] = seqnoAndStatus{
 				eldestSeqno: upak.Current.EldestSeqno,
