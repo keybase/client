@@ -37,7 +37,7 @@ const props = {
   title: 'Details',
   transactionID: '998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591',
   you: 'cjb',
-  youWereWallet: '',
+  yourAccountName: '',
   yourRole: 'senderOnly',
 }
 

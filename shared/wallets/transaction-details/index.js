@@ -35,8 +35,8 @@ export type NotLoadingProps = {|
   transactionID?: string,
   you: string,
   yourRole: Types.Role,
-  // if 'you' is a wallet
-  youWereWallet: string,
+  // sending wallet to wallet we show the actual wallet and not your username
+  yourAccountName: string,
 |}
 export type Props =
   | NotLoadingProps
@@ -128,10 +128,10 @@ const propsToParties = (props: NotLoadingProps) => {
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
   const you =
-    props.counterpartyType === 'otherAccount' && props.youWereWallet ? (
+    props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
       <Counterparty
         counterpartyType={props.counterpartyType}
-        counterparty={props.youWereWallet}
+        counterparty={props.yourAccountName}
         accountID={yourAccountID}
         onShowProfile={() => {}}
         counterpartyMeta=""
