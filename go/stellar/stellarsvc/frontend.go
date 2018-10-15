@@ -1099,6 +1099,9 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		}
 		return res
 	case arg.Currency == nil:
+		if arg.Asset != nil {
+			res.asset = *arg.Asset
+		}
 		// Amount is of asset.
 		useAmount := "0"
 		if arg.Amount != "" {
@@ -1110,6 +1113,10 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.amountOfAsset = arg.Amount
 			res.haveAmount = true
 			useAmount = arg.Amount
+		}
+		if !res.asset.IsNativeXLM() {
+			// If sending non-XLM asset, don't try to show a worth.
+			return res
 		}
 		// Attempt to show the converted amount in outside currency.
 		// Unlike when sending based on outside currency, conversion is not critical.
