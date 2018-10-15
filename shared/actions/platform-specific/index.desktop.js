@@ -212,7 +212,7 @@ const setupEngineListeners = () => {
       NotifyPopup('Client out of date!', {body}, 60 * 60)
       // This is from the API server. Consider notifications from API server
       // always critical.
-      return Saga.put(ConfigGen.createOutOfDate({critical: true, message: upgradeMsg}))
+      return Saga.put(ConfigGen.createUpdateInfo({isOutOfDate: true, critical: true, message: upgradeMsg}))
     },
   })
 }
@@ -247,15 +247,8 @@ const startOutOfDateCheckLoop = () =>
   Saga.call(function*() {
     while (1) {
       try {
-        const {status, message} = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
-        if (status !== RPCTypes.configUpdateInfoStatus.upToDate) {
-          yield Saga.put(
-            ConfigGen.createOutOfDate({
-              critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
-              message,
-            })
-          )
-        }
+        const toPut = yield Saga.call(checkForUpdate)
+        yield Saga.put(toPut)
         yield Saga.delay(3600 * 1000) // 1 hr
       } catch (err) {
         logger.warn('error getting update info: ', err)
@@ -264,7 +257,17 @@ const startOutOfDateCheckLoop = () =>
     }
   })
 
-const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
+const checkForUpdate = () =>
+  RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
+    ConfigGen.createUpdateInfo({
+      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
+      critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+      message,
+    })
+  )
+
+const updateNow = () =>
+  RPCTypes.configStartUpdateIfNeededRpcPromise().then(() => ConfigGen.createCheckForUpdate())
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
@@ -276,6 +279,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, startOutOfDateCheckLoop)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
+  yield Saga.actionToPromise(ConfigGen.checkForUpdate, checkForUpdate)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 
