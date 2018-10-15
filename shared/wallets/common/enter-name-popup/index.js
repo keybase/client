@@ -33,7 +33,11 @@ const EnterNamePopup = (props: EnterNameProps) => {
   }
 
   return (
-    <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
+    <WalletPopup
+      bottomButtons={buttons}
+      onClose={Styles.isMobile ? null : props.onCancel}
+      onBack={props.onBack}
+    >
       {!Styles.isMobile && (
         <React.Fragment>
           <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />

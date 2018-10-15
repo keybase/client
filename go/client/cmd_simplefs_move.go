@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSMove is the 'fs list' command.
+// CmdSimpleFSMove is the 'fs mv' command.
 type CmdSimpleFSMove struct {
 	libkb.Contextified
 	src         []keybase1.Path

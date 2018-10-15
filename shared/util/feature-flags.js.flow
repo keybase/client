@@ -5,6 +5,7 @@ export type FeatureFlags = {|
   chatIndexProfilingEnabled: boolean,
   explodingMessagesEnabled: boolean,
   fileWidgetEnabled: boolean,
+  foldersInProfileTab: boolean,
   newTeamBuildingForChat: boolean,
   outOfDateBanner: boolean,
   plansEnabled: boolean,

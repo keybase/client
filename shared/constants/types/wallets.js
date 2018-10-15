@@ -77,10 +77,11 @@ export type _LocalCurrency = {
   name: string,
 }
 
-export type _BuildingPayment = {
+export type _Building = {
   amount: string,
   currency: string,
-  from: string,
+  from: AccountID,
+  isRequest: boolean,
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
@@ -92,7 +93,7 @@ export type _BuiltPayment = {
   amountErrMsg: string,
   amountFormatted: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
-  from: string,
+  from: AccountID,
   publicMemoErrMsg: HiddenString,
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
@@ -102,9 +103,20 @@ export type _BuiltPayment = {
   worthInfo: string,
 }
 
+export type _BuiltRequest = {
+  amountErrMsg: string,
+  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  readyToRequest: boolean,
+  secretNoteErrMsg: HiddenString,
+  toErrMsg: string,
+  worthDescription: string,
+  worthInfo: string,
+}
+
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
+export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
 export type _Payment = {
   amountDescription: string,
   delta: PaymentDelta,
@@ -115,6 +127,7 @@ export type _Payment = {
   publicMemo: HiddenString,
   publicMemoType: string,
   readState: ReadState,
+  section: PaymentSection,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -166,9 +179,11 @@ export type Banner = {|
   bannerText: string,
 |}
 
-export type BuildingPayment = I.RecordOf<_BuildingPayment>
+export type Building = I.RecordOf<_Building>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
+
+export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
 export type Payment = I.RecordOf<_Payment>
 
@@ -183,8 +198,9 @@ export type _State = {
   accountNameError: string,
   accountNameValidationState: ValidationState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
-  buildingPayment: BuildingPayment,
+  building: Building,
   builtPayment: BuiltPayment,
+  builtRequest: BuiltRequest,
   createNewAccountError: string,
   currencies: I.List<Currency>,
   currencyMap: I.Map<AccountID, Currency>,

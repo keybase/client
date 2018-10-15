@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -200,4 +201,48 @@ func TestChatSrvSBS(t *testing.T) {
 		})
 	})
 
+}
+
+func TestChatSrvPhoneNumber(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Only run this test for imp teams
+		if mt != chat1.ConversationMembersType_IMPTEAMNATIVE {
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvPhoneNumber", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		phone := kbtest.GenerateTestPhoneNumber()
+		name := fmt.Sprintf("%s,%s@phone", users[0].Username, phone)
+
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:          name,
+				TopicType:        chat1.TopicType_CHAT,
+				TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
+				MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+
+		mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "brrring",
+		}))
+
+		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: ncres.Conv.GetConvID(),
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(tvres.Thread.Messages))
+	})
 }

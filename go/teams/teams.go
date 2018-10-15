@@ -352,6 +352,25 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
 					invite.Id)
 			}
+		case keybase1.TeamInviteCategory_PHONE, keybase1.TeamInviteCategory_EMAIL:
+			typ, err := invite.Type.String()
+			if err != nil {
+				return res, fmt.Errorf("Failed to handle invite type %v: %s", invtyp, err)
+			}
+			sa := keybase1.SocialAssertion{
+				User:    string(invite.Name),
+				Service: keybase1.SocialAssertionService(typ),
+			}
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
+			case keybase1.TeamRole_READER:
+				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
+		case keybase1.TeamInviteCategory_UNKNOWN:
+			return res, fmt.Errorf("unknown invite type in implicit team: %q", invite.Type.Unknown())
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}

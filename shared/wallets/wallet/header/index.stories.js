@@ -23,6 +23,7 @@ const common = {
   onBack: Sb.action('onBack'),
   onDeposit: Sb.action('onDeposit'),
   onReceive: Sb.action('onReceive'),
+  onRequest: Sb.action('onRequest'),
   onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
   onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
   onSendToStellarAddress: Sb.action('onSendToStellarAddress'),

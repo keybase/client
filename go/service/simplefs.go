@@ -110,6 +110,15 @@ func (s *SimpleFSHandler) SimpleFSRename(ctx context.Context, arg keybase1.Simpl
 	return cli.SimpleFSRename(ctx, arg)
 }
 
+// SimpleFSSymlink - Make a symlink from KBFS to either elsewhere in KBFS or in the regular filesystem
+func (s *SimpleFSHandler) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSymlink(ctx, arg)
+}
+
 // SimpleFSOpen - Create/open a file and leave it open
 // or create a directory
 // Files must be closed afterwards.

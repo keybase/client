@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	mapset "github.com/deckarep/golang-set"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 // Split on whitespace, punctuation, code and quote markdown separators
@@ -35,8 +36,26 @@ func tokenize(msgText string) []string {
 	return strSlice
 }
 
+func tokensFromMsg(msg chat1.MessageUnboxed) []string {
+	return tokenize(msg.SearchableText())
+}
+
 // getQueryRe returns a regex to match the query string on message text. This
 // is used for result highlighting.
 func getQueryRe(query string) (*regexp.Regexp, error) {
 	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
+}
+
+func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
+	if set == nil {
+		return nil
+	}
+	msgIDSlice := []chat1.MessageID{}
+	for _, el := range set.ToSlice() {
+		msgID, ok := el.(chat1.MessageID)
+		if ok {
+			msgIDSlice = append(msgIDSlice, msgID)
+		}
+	}
+	return msgIDSlice
 }

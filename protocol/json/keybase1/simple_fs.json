@@ -691,6 +691,20 @@
       "response": null,
       "doc": "Begin copy of file or directory"
     },
+    "simpleFSSymlink": {
+      "request": [
+        {
+          "name": "target",
+          "type": "string"
+        },
+        {
+          "name": "link",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Make a symlink of file or directory"
+    },
     "simpleFSCopyRecursive": {
       "request": [
         {

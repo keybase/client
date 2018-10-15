@@ -2,12 +2,13 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
+import * as SettingsConstants from '../../../../../constants/settings'
 import * as Types from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {walletsTab} from '../../../../../constants/tabs'
+import * as Tabs from '../../../../../constants/tabs'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -58,9 +59,10 @@ const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
 const sendMapDispatchToProps = dispatch => ({
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID}))
+    const root = Container.isMobile ? [Tabs.settingsTab, SettingsConstants.walletsTab] : [Tabs.walletsTab]
     dispatch(
       RouteTreeGen.createNavigateTo({
-        path: [walletsTab, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
+        path: [...root, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
       })
     )
   },
