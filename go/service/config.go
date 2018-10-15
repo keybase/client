@@ -17,7 +17,6 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -320,12 +319,20 @@ func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	pid, err := libcmdline.SpawnDetachedProcess(
-		updaterPath, []string{"check"}, h.G().Log)
-	if err != nil {
+	cmd := exec.Command(updaterPath, "check")
+	if err = cmd.Start(); err != nil {
 		return err
 	}
-	h.G().Log.Debug("Starting background updater process (%s). pid=%d", updaterPath, pid)
+	pid := -1
+	if cmd.Process != nil {
+		pid = cmd.Process.Pid
+	}
+	h.G().Log.Debug("Started background updater process (%s). pid=%d", updaterPath, pid)
+	cmd.Wait()
+	// Ignore the exit status here as user may have hit "Ignore". If we are
+	// here without getting killed, it's likely user has hit "Ignore". Just
+	// just return `nil` and GUI would check for update info again where it'd
+	// know we don't need to update anymore.
 	return nil
 }
 
