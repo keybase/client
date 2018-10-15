@@ -7,6 +7,7 @@ export type FeatureFlags = {|
   walletsEnabled: boolean,
   newTeamBuildingForChat: boolean,
   fileWidgetEnabled?: boolean,
+  useSimpleMarkdown: boolean,
 |}
 
 declare var ff: FeatureFlags

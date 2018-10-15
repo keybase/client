@@ -246,6 +246,8 @@
     "null-loader": "0.1.1",
     "pegjs": "0.10.0",
     "raf": "3.4.0",
+    "randexp": "^0.5.3",
+    "random-seed": "^0.3.0",
     "react-hot-loader": "4.3.11",
     "react-test-renderer": "16.5.0",
     "redux-logger": "3.0.6",

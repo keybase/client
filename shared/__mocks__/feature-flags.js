@@ -10,9 +10,10 @@ const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
-  plansEnabled: false,
-  walletsEnabled: true,
   newTeamBuildingForChat: false,
+  plansEnabled: false,
+  useSimpleMarkdown: true,
+  walletsEnabled: true,
 }
 
 console.warn('feature flag mock in effect')

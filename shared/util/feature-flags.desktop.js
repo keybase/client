@@ -17,13 +17,15 @@ const ff: FeatureFlags = {
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
-  plansEnabled: false,
-  walletsEnabled: false,
   newTeamBuildingForChat: false,
+  plansEnabled: false,
+  useSimpleMarkdown: false,
+  walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   fileWidgetEnabled: true,
+  useSimpleMarkdown: true,
   walletsEnabled: true,
 }
 

@@ -5,6 +5,8 @@ import * as Sb from '../stories/storybook'
 import * as Kb from './index'
 import Markdown, {parserFromMeta, MarkdownMeta} from './markdown'
 import OriginalParser from '../markdown/parser'
+import RandomSeed from 'random-seed'
+import RandExp from 'randexp'
 
 const cases = {
   debugging: `
@@ -192,6 +194,43 @@ this is too long: @01234567890abcdef`,
   },
 }
 
+const perfTestCase = new RegExp(`
+(((>? Hi (Chris|Strib|Cecile), How are you doing (\\*Today\\*|_This week_)\\?\\n){2}\
+|(>? Inline code: \`[A-Z][a-z]{5} = \\d{1,10}\`)\
+|(>? This should be  \\\\_escaped\\\\_)\
+|(>? \`\`\`
+  [A-Z][a-z]{5} = \\d{1,10}
+  if \\([A-Z][a-z]{5}\\) {
+    // \\*!Important\\*
+    console\\.log\\("[a-z]{8}"\\)
+  }
+\`\`\`)\
+|( *> * A quote!)\
+|(>? Strikethrough ~[a-z]{3,50}~)\
+|(>? Emojis (?::couple_with_heart:|:wedding:|:heartbeat:|:broken_heart:|:two_hearts:|:sparkling_heart:|:heartpulse:|:cupid:|:blue_heart:|:green_heart:|\ud83c\uddf5\ud83c\uddf9|\ud83e\udd3c\u200d\u2640|\ud83c\uddf5\ud83c\uddfc|\ud83e\udd39\ud83c\udfff|\ud83d\udea3\u200d\u2640|\ud83e\udd39\ud83c\udffe|\ud83e\udd39\ud83c\udffd|\ud83e\udd39\ud83c\udffc|\ud83e\udd39\ud83c\udffb|\ud83e\udd39\u200d\u2642|\ud83c\uddf5\ud83c\uddfe|\ud83d\ude4f\ud83c\udfff|\ud83d\ude4f\ud83c\udffe|\ud83d\ude4f\ud83c\udffd|\ud83d\ude4f\ud83c\udffc|\ud83d\ude4f\ud83c\udffb|\ud83d\ude4e\ud83c\udfff))\
+|(>? \`\`\`
+ (?::couple_with_heart:|:wedding:|:heartbeat:|:broken_heart:|:two_hearts:|:sparkling_heart:|:heartpulse:|:cupid:|:blue_heart:|:green_heart:|\ud83c\uddf5\ud83c\uddf9|\ud83e\udd3c\u200d\u2640|\ud83c\uddf5\ud83c\uddfc|\ud83e\udd39\ud83c\udfff|\ud83d\udea3\u200d\u2640|\ud83e\udd39\ud83c\udffe|\ud83e\udd39\ud83c\udffd|\ud83e\udd39\ud83c\udffc|\ud83e\udd39\ud83c\udffb|\ud83e\udd39\u200d\u2642|\ud83c\uddf5\ud83c\uddfe|\ud83d\ude4f\ud83c\udfff|\ud83d\ude4f\ud83c\udffe|\ud83d\ude4f\ud83c\udffd|\ud83d\ude4f\ud83c\udffc|\ud83d\ude4f\ud83c\udffb|\ud83d\ude4e\ud83c\udfff)
+ \`\`\`)\
+|(>? \` (?::couple_with_heart:|:wedding:|:heartbeat:|:broken_heart:|:two_hearts:|:sparkling_heart:|:heartpulse:|:cupid:|:blue_heart:|:green_heart:|\ud83c\uddf5\ud83c\uddf9|\ud83e\udd3c\u200d\u2640|\ud83c\uddf5\ud83c\uddfc|\ud83e\udd39\ud83c\udfff|\ud83d\udea3\u200d\u2640|\ud83e\udd39\ud83c\udffe|\ud83e\udd39\ud83c\udffd|\ud83e\udd39\ud83c\udffc|\ud83e\udd39\ud83c\udffb|\ud83e\udd39\u200d\u2642|\ud83c\uddf5\ud83c\uddfe|\ud83d\ude4f\ud83c\udfff|\ud83d\ude4f\ud83c\udffe|\ud83d\ude4f\ud83c\udffd|\ud83d\ude4f\ud83c\udffc|\ud83d\ude4f\ud83c\udffb|\ud83d\ude4e\ud83c\udfff)\`)\
+|(>? Check out \\*This url!\\* ((https?:\\/\\/)?[\\w-]{3,10}(\\.(bofa|bom|bond|boo|book|booking|bosch|bostik|boston|bot|boutique|box|br|bradesco|bridgestone|broadway|broker|brother|brussels|bs|bt|budapest|bugatti|build|builders|business|buy|buzz|bv|bw|by|bz|bzh|ca|cab|cafe|cal|call|calvinklein|cam|camera|camp|cancerresearch|canon|capetown|capital|capitalone|car|caravan|cards|care|career|careers|cars|cartier|casa|case|caseih|cash|casino|cat))(:\\d{3,6})?(\\/[a-z]{0,10})?)\\b))\n){80}
+`)
+
+const generateCase = (seed: string) => {
+  // const random = RandomSeed.create('Hello Worldx Seed')
+  const random = RandomSeed.create(seed)
+  RandExp.prototype.randInt = random.intBetween
+  return new RandExp(perfTestCase).gen()
+}
+
+const perfCases = {
+  'Case 1': generateCase('case 1'),
+  'Case 2': generateCase('case 2'),
+  'Case 3': generateCase('case 3'),
+  'Case 4': generateCase('case 4'),
+  'Case 5': generateCase('case 5'),
+  'Case 6': generateCase('case 6'),
+}
+
 const provider = Sb.createPropProviderWithCommon({})
 
 class ShowAST extends React.Component<
@@ -262,11 +301,31 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
 
   Object.keys(cases).forEach(k => {
+    s = s.add(k + '[comparison]', () => (
+      <Kb.Box2 direction="horizontal">
+        <Markdown style={{flex: 1}} simple={true}>
+          {cases[k]}
+        </Markdown>
+        <Markdown style={{flex: 1}} simple={false}>
+          {cases[k]}
+        </Markdown>
+      </Kb.Box2>
+    ))
     s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{cases[k]}</MarkdownWithAst>)
     s = s.add(k + '[o]', () => <MarkdownWithAst simple={false}>{cases[k]}</MarkdownWithAst>)
   })
 
   Object.keys(mocksWithMeta).forEach(k => {
+    s = s.add(k + '[comparison]', () => (
+      <Kb.Box2 direction="horizontal">
+        <Markdown style={{flex: 1}} simple={true}>
+          {mocksWithMeta[k]}
+        </Markdown>
+        <Markdown style={{flex: 1}} simple={false}>
+          {mocksWithMeta[k]}
+        </Markdown>
+      </Kb.Box2>
+    ))
     s = s.add(k + '[s]', () => (
       <MarkdownWithAst simple={true} meta={mocksWithMeta[k].meta}>
         {mocksWithMeta[k].text}
@@ -277,6 +336,22 @@ const load = () => {
         {mocksWithMeta[k].text}
       </MarkdownWithAst>
     ))
+  })
+
+  Object.keys(perfCases).forEach(k => {
+    s = s.add(k + '[comparison]', () => (
+      <Kb.Box2 direction="horizontal">
+        <Markdown style={{flex: 1}} simple={true}>
+          {perfCases[k]}
+        </Markdown>
+        <Kb.Box style={{backgroundColor: 'black', width: 1}} />
+        <Markdown style={{flex: 1}} simple={false}>
+          {perfCases[k]}
+        </Markdown>
+      </Kb.Box2>
+    ))
+    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{perfCases[k]}</MarkdownWithAst>)
+    s = s.add(k + '[o]', () => <Markdown simple={false}>{perfCases[k]}</Markdown>)
   })
 }
 

@@ -1,6 +1,6 @@
 // @flow
-import * as I from 'immutable'
 import React, {PureComponent} from 'react'
+import ff from '../util/feature-flags'
 import Text from './text'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/chat2'
@@ -248,7 +248,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.fence,
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     // Example: https://regex101.com/r/ZiDBsO/6
-    match: SimpleMarkdown.anyScopeRegex(/^(?: *> ?((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+)```\n?/),
+    match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
 
     parse: function(capture, parse, state) {
       return {
@@ -296,7 +296,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // original:
     // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
     // ours: allow simple empty blocks
-    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)\n/),
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+?)\n/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={textBlockStyle}>
@@ -525,7 +525,7 @@ const isAllEmoji = ast => {
 class SimpleMarkdownComponent extends PureComponent<Props> {
   render() {
     const parser = parserFromMeta(this.props.meta)
-    const parseTree = parser((this.props.children || '') + '\n', {
+    const parseTree = parser((this.props.children || '').trim() + '\n', {
       inline: false,
       // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
       // So we add our own new line
@@ -565,7 +565,8 @@ class OriginalMarkdown extends PureComponent<Props> {
 
 class Markdown extends PureComponent<Props> {
   render() {
-    if (this.props.simple) {
+    const simple = this.props.simple === undefined ? ff.useSimpleMarkdown : this.props.simple
+    if (simple) {
       return <SimpleMarkdownComponent {...this.props} />
     } else {
       return <OriginalMarkdown {...this.props} />

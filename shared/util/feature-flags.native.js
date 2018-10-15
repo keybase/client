@@ -11,9 +11,10 @@ const ff: FeatureFlags = {
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
-  plansEnabled: false,
-  walletsEnabled: false,
   newTeamBuildingForChat: false,
+  plansEnabled: false,
+  useSimpleMarkdown: false,
+  walletsEnabled: false,
 }
 
 // load overrides
