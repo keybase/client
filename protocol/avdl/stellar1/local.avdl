@@ -336,6 +336,54 @@ protocol local {
     boolean pending;
   }
 
+  // Check but do not send a request.
+  //
+  // Arguments are optional unless otherwise described.  However, a coherent
+  // payment is required in order for res.readyToRequest to be returned as
+  // true.
+  BuildRequestResLocal buildRequestLocal(
+    int sessionID,
+
+    // Requestee username.  Examples: "russel", "t_alice"
+    string to,
+
+    string amount, // Amount of the asset OR outside currency being requested. Example: "3.005"
+
+    // Exactly one of `asset` and `currency` should be set.
+    union { null, Asset } asset,
+    // Note: Requesting non-XLM assets is not yet supported. (Miles: It may
+    // actually be supported, but that would be a weird asymmetry)
+    union { null, OutsideCurrencyCode } currency,
+
+    string secretNote   // Encrypted for the sender and recipient.
+  );
+
+  record BuildRequestResLocal {
+    boolean readyToRequest;
+
+    // Optional. Error to show with the To field.
+    // All errMsg fields are in 'keybase chat language' markdown.
+    // Example: "recipient not found"
+    string toErrMsg;
+
+    // Optional. Error to show with the amount field.
+    // Example: "Invalid amount."
+    string amountErrMsg;
+
+    // Optional. Error to show with the encrypted note field.
+    // Example: "Note is too long"
+    string secretNoteErrMsg;
+
+    // Optional. Blank if non-native assets are being requested or if there is a global error.
+    // Example: "96.5634762 XLM"
+    // Example: "$246.47"
+    string worthDescription;
+    // Set with `worthDescription`
+    // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
+    string worthInfo;
+    array<SendBannerLocal> banners;
+  }
+
   record RequestDetailsLocal {
     KeybaseRequestID id;
 
