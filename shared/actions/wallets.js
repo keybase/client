@@ -107,9 +107,9 @@ const requestPayment = (state: TypedState) =>
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
-      asset: state.wallets.building.currency ? null : emptyAsset,
+      asset: emptyAsset,
       recipient: state.wallets.building.to,
-      currency: state.wallets.building.currency || undefined,
+      // TODO -- support currency
       note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
