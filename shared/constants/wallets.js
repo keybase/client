@@ -270,15 +270,22 @@ const rpcPaymentToPaymentCommon = (
   p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
 ) => {
   const sourceType = partyTypeToString[p.fromType]
-  const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
-  const target = partyToDescription(
+  let targetType = partyTypeToString[p.toType]
+  let target = partyToDescription(
     targetType,
     p.toUsername,
     p.toAssertion,
     p.toAccountName,
     p.toAccountID || ''
   )
+  if (p.statusDescription === 'canceled') {
+    // Canceled relay. Similar presentation to a cancelable relay. Service
+    // transformed this to an account self-transfer, let's preserve the original
+    // target so we can show it.
+    target = p.originalToAssertion
+    targetType = 'keybase'
+  }
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
     amountDescription: p.amountDescription,
