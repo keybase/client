@@ -234,8 +234,15 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
       return {
         content: capture[1],
         lang: undefined,
-        type: 'codeBlock',
+        type: 'fence',
       }
+    },
+    react: (node, output, state) => {
+      return (
+        <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
+          {node.content}
+        </Text>
+      )
     },
   },
   quotedFence: {
@@ -256,7 +263,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
           ...SimpleMarkdown.parseInline(parse, capture[1], state),
           {
             content: capture[2],
-            type: 'codeBlock',
+            type: 'fence',
           },
         ],
         type: 'blockQuote',
@@ -277,26 +284,12 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
       )
     },
   },
-  codeBlock: {
-    ...SimpleMarkdown.defaultRules.codeBlock,
-    // original:
-    // match: blockRegex(/^(?:    [^\n]+\n*)+(?:\n *)+\n/),
-    // ours: we only want code blocks from fences (```) and not from spaces
-    match: () => null,
-    react: (node, output, state) => {
-      return (
-        <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
-          {node.content}
-        </Text>
-      )
-    },
-  },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
     // original:
     // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
     // ours: allow simple empty blocks
-    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+?)\n/),
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)\n/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={textBlockStyle}>
@@ -354,8 +347,17 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // e.g. https://regex101.com/r/ZiDBsO/2
     // ours: Everything in the quote has to be preceded by >
     // unless it has the start of a fence
-    // e.g. https://regex101.com/r/ZiDBsO/7
-    match: SimpleMarkdown.blockRegex(/^( *>(?:[^\n](?!```))*\n)+/),
+    // e.g. https://regex101.com/r/ZiDBsO/8
+    match: (source, state, lookbehind) => {
+      const regex = /^( *>(?:[^\n](?!```))+\n?)+/
+      // make sure the look behind is empty
+      const emptyLookbehind = /^$|\n *$/
+
+      const match = regex.exec(source)
+      if (match && emptyLookbehind.exec(lookbehind)) {
+        return match
+      }
+    },
     react: (node, output, state) => {
       return (
         <Box key={state.key} style={quoteStyle}>

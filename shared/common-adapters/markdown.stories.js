@@ -9,13 +9,8 @@ import RandomSeed from 'random-seed'
 import RandExp from 'randexp'
 
 const cases = {
-  debugging: `
-  keybase.io/a/user/lookup?one=1&two=2
-  keybase.io/a/user/path_with_underscore
-  keybase.io?blah=true
-  keybase.io/~user/cool
-  http://keybase.io/blah/../up-one/index.html
-  `,
+  quoteInParagraph: `Do you remember when you said:
+> Where do I make the left turn?`,
   paragraphs: `this is a sentence.
 this is the next line
 and another with two below
@@ -216,13 +211,12 @@ const perfTestCase = new RegExp(`
 `)
 
 const generateCase = (seed: string) => {
-  // const random = RandomSeed.create('Hello Worldx Seed')
   const random = RandomSeed.create(seed)
   RandExp.prototype.randInt = random.intBetween
   return new RandExp(perfTestCase).gen()
 }
 
-const perfCases = {
+const randomGenerated = {
   'Case 1': generateCase('case 1'),
   'Case 2': generateCase('case 2'),
   'Case 3': generateCase('case 3'),
@@ -285,20 +279,32 @@ class ShowPreview extends React.Component<
   }
 }
 
-const MarkdownWithAst = ({children, simple, meta}) => (
-  <Kb.Box2 direction="vertical">
+// Adds the perf decorator and disables showing previews and ast
+const PERF_MODE = false
+
+const MarkdownWithAst = ({children, simple, meta}) =>
+  PERF_MODE ? (
     <Markdown simple={simple} meta={meta}>
       {children}
     </Markdown>
-    <ShowAST text={children} simple={simple} meta={meta} />
-    <ShowPreview text={children} simple={simple} meta={meta} />
-  </Kb.Box2>
-)
+  ) : (
+    <Kb.Box2 direction="vertical">
+      <Markdown simple={simple} meta={meta}>
+        {children}
+      </Markdown>
+      <ShowAST text={children} simple={simple} meta={meta} />
+      <ShowPreview text={children} simple={simple} meta={meta} />
+    </Kb.Box2>
+  )
 
 const load = () => {
   let s = Sb.storiesOf('Common/Markdown', module)
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
+
+  if (PERF_MODE) {
+    s.addDecorator(Sb.perfDecorator())
+  }
 
   Object.keys(cases).forEach(k => {
     s = s.add(k + '[comparison]', () => (
@@ -318,11 +324,11 @@ const load = () => {
   Object.keys(mocksWithMeta).forEach(k => {
     s = s.add(k + '[comparison]', () => (
       <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true}>
-          {mocksWithMeta[k]}
+        <Markdown style={{flex: 1}} simple={true} meta={mocksWithMeta[k].meta}>
+          {mocksWithMeta[k].text}
         </Markdown>
-        <Markdown style={{flex: 1}} simple={false}>
-          {mocksWithMeta[k]}
+        <Markdown style={{flex: 1}} simple={false} meta={mocksWithMeta[k].meta}>
+          {mocksWithMeta[k].text}
         </Markdown>
       </Kb.Box2>
     ))
@@ -338,21 +344,30 @@ const load = () => {
     ))
   })
 
-  Object.keys(perfCases).forEach(k => {
+  Object.keys(randomGenerated).forEach(k => {
     s = s.add(k + '[comparison]', () => (
       <Kb.Box2 direction="horizontal">
         <Markdown style={{flex: 1}} simple={true}>
-          {perfCases[k]}
+          {randomGenerated[k]}
         </Markdown>
         <Kb.Box style={{backgroundColor: 'black', width: 1}} />
         <Markdown style={{flex: 1}} simple={false}>
-          {perfCases[k]}
+          {randomGenerated[k]}
         </Markdown>
+        <Kb.Box style={{backgroundColor: 'black', width: 1}} />
+        <Kb.Text style={{flex: 1}} type="Body">
+          {JSON.stringify(randomGenerated[k])}
+        </Kb.Text>
       </Kb.Box2>
     ))
-    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{perfCases[k]}</MarkdownWithAst>)
-    s = s.add(k + '[o]', () => <Markdown simple={false}>{perfCases[k]}</Markdown>)
+    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{randomGenerated[k]}</MarkdownWithAst>)
+    s = s.add(k + '[o]', () => <Markdown simple={false}>{randomGenerated[k]}</Markdown>)
   })
+
+  let perf = Sb.storiesOf('Common/Markdown - Perf', module)
+    .addDecorator(provider)
+    .addDecorator(Sb.perfDecorator())
+    .addDecorator(Sb.scrollViewDecorator)
 }
 
 export default load
