@@ -69,6 +69,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
       headingAlignment="Left"
       headingStyle={styles.heading}
       dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
+      style={styles.toStellarPublicKey}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
@@ -209,6 +210,9 @@ const styles = Styles.styleSheetCreate({
   },
 
   // ToStellarPublicKey
+  toStellarPublicKey: {
+    height: 52,
+  },
   heading: {
     alignSelf: 'flex-start',
   },

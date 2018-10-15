@@ -206,6 +206,10 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
       />
     )
 
+    // if the route is under the status bar keep this at 0 always
+    const keyboardVerticalOffset =
+      props.routeStack.last()?.tags?.underStatusBar === true ? 0 : this.state.verticalOffset
+
     const content = (
       <Box style={styles.content}>
         {stacks}
@@ -226,7 +230,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
            * when the in-call status bar is active. See https://github.com/facebook/react-native/issues/17862
            * We need to account for the extra offset made by the larger in call status bar (on pre-iPhone X devices).
            */
-          keyboardVerticalOffset={this.state.verticalOffset}
+          keyboardVerticalOffset={keyboardVerticalOffset}
         >
           {content}
         </NativeKeyboardAvoidingView>

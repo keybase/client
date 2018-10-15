@@ -63,11 +63,13 @@ export const RequestBody = (props: RequestBodyProps) => (
 const styles = Styles.styleSheetCreate({
   container: {
     flexGrow: 1,
+    flexShrink: 1,
   },
   scrollView: Styles.platformStyles({
     common: {
       width: '100%',
       flexGrow: 1,
+      flexShrink: 1,
     },
     isElectron: {minHeight: '100%'},
   }),

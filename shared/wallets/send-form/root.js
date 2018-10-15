@@ -28,7 +28,7 @@ const PoweredByStellar = () => (
 const Root = (props: Props) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" style={styles.container}>
-      <Header />
+      <Header onBack={Styles.isMobile ? props.onClose : null} />
       {props.children}
     </Kb.Box2>
     {!Styles.isMobile && <PoweredByStellar />}
@@ -43,8 +43,10 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flexGrow: 1,
+      flexShrink: 1,
       width: '100%',
       maxWidth: 360,
+      maxHeight: '100%',
     },
   }),
   textContainer: Styles.platformStyles({
