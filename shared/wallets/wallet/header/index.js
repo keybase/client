@@ -44,7 +44,7 @@ const Header = (props: Props) => (
           <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
         </Kb.Box2>
       )}
-      {props.walletName && (
+      {!!props.walletName && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <SmallAccountID accountID={props.accountID} />
         </Kb.Box2>

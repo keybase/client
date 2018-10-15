@@ -104,6 +104,8 @@ const walletChildren = {
 const routeTree = isMobile
   ? makeRouteDefNode({
       children: {
+        createNewAccount,
+        linkExisting,
         wallet: {
           children: walletChildren,
           component: Wallet,
