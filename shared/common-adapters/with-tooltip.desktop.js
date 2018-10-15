@@ -21,7 +21,7 @@ class WithTooltip extends React.Component<Props, State> {
     this.setState({mouseIn: true})
   }
   _onMouseLeave = () => {
-    this.setState({mouseIn: false})
+    this.setState({mouseIn: false, visible: false})
   }
   _setAttachmentRef = attachmentRef => (this._attachmentRef = attachmentRef)
   componentDidUpdate(prevProps: Props, prevState: State) {
