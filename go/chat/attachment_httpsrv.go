@@ -220,7 +220,7 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 					</script>
 				</head>
 				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {

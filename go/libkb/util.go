@@ -902,3 +902,7 @@ func DecodeHexFixed(dst, src []byte) error {
 	}
 	return nil
 }
+
+func IsIOS() bool {
+	return isIOS
+}
