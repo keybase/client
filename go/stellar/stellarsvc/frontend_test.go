@@ -1222,7 +1222,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55", bres.WorthDescription)
-	require.Equal(t, "$9.55", bres.AmountFormatted)
+	require.Equal(t, "", bres.AmountFormatted) // since no currency was specified
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
