@@ -1399,7 +1399,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
+		arg.ConvID, arg.TlfName, arg.Visibility, nil, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
 		arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
@@ -1596,7 +1596,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
+	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}

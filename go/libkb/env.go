@@ -353,8 +353,10 @@ func (e *Env) GetHome() string             { return e.HomeFinder.Home(false) }
 func (e *Env) GetMobileSharedHome() string { return e.HomeFinder.MobileSharedHome(false) }
 func (e *Env) GetConfigDir() string        { return e.HomeFinder.ConfigDir() }
 func (e *Env) GetCacheDir() string         { return e.HomeFinder.CacheDir() }
+func (e *Env) GetSharedCacheDir() string   { return e.HomeFinder.SharedCacheDir() }
 func (e *Env) GetSandboxCacheDir() string  { return e.HomeFinder.SandboxCacheDir() }
 func (e *Env) GetDataDir() string          { return e.HomeFinder.DataDir() }
+func (e *Env) GetSharedDataDir() string    { return e.HomeFinder.SharedDataDir() }
 func (e *Env) GetLogDir() string           { return e.HomeFinder.LogDir() }
 
 func (e *Env) SendSystemChatMessages() bool {

@@ -1,9 +1,9 @@
 // @flow
-import React, {PureComponent} from 'react'
-import {Box, ClickableBox} from '../../../../common-adapters'
+import * as React from 'react'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import {desktopStyles, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
@@ -22,7 +22,7 @@ type State = {
   isHovered: boolean,
 }
 
-class FilterSmallTeam extends PureComponent<Props, State> {
+class FilterSmallTeam extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
   }
@@ -33,9 +33,11 @@ class FilterSmallTeam extends PureComponent<Props, State> {
   render() {
     const props = this.props
     return (
-      <ClickableBox onClick={props.onSelectConversation} style={styles.container}>
-        <Box
-          className="hover_background_color_blueGrey2"
+      <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
+        <Kb.Box
+          className={Styles.classNames('hover_background_color_blueGrey2', {
+            background_color_blue: props.isSelected,
+          })}
           style={styles.rowContainer}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
@@ -57,39 +59,39 @@ class FilterSmallTeam extends PureComponent<Props, State> {
               participants={props.participants}
             />
           )}
-          <Box style={styles.conversationRow}>
+          <Kb.Box style={styles.conversationRow}>
             <FilteredTopLine
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               usernameColor={props.usernameColor}
             />
-          </Box>
-        </Box>
-      </ClickableBox>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
     flexShrink: 0,
     height: RowSizes.smallRowHeight,
   },
   conversationRow: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
     paddingLeft: 0,
     paddingRight: 8,
   },
-  rowContainer: platformStyles({
+  rowContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       height: '100%',
     },
-    isElectron: desktopStyles.clickable,
+    isElectron: Styles.desktopStyles.clickable,
   }),
 })
 

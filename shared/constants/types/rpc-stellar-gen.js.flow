@@ -187,6 +187,7 @@ export const localPaymentStatus = {
   completed: 3,
   error: 4,
   unknown: 5,
+  canceled: 6,
 }
 
 export const remotePaymentSummaryType = {
@@ -264,6 +265,7 @@ export type PaymentStatus =
   | 3 // COMPLETED_3
   | 4 // ERROR_4
   | 5 // UNKNOWN_5
+  | 6 // CANCELED_6
 
 export type PaymentStatusMsg = $ReadOnly<{accountID: AccountID, kbTxID: KeybaseTransactionID, txID: TransactionID}>
 export type PaymentStrategy =

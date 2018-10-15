@@ -117,9 +117,7 @@ class Icon extends Component<Props, void> {
           <span
             alt={this.props.hint}
             style={style}
-            className={['icon', colorStyleName, hoverStyleName, this.props.className]
-              .filter(Boolean)
-              .join(' ')}
+            className={Styles.classNames('icon', colorStyleName, hoverStyleName, this.props.className)}
             onMouseEnter={this.props.onMouseEnter}
             onMouseLeave={this.props.onMouseLeave}
             onClick={onClick}
