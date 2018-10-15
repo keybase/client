@@ -45,6 +45,7 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   toErrMsg: '',
   toUsername: '',
   worthAmount: '',
+  worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
 })
@@ -88,6 +89,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     toErrMsg: b.toErrMsg,
     toUsername: b.toUsername,
     worthAmount: b.worthAmount,
+    worthCurrency: b.worthCurrency,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })

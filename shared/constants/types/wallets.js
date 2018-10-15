@@ -99,6 +99,7 @@ export type _BuiltPayment = {
   toErrMsg: string,
   toUsername: string,
   worthAmount: string,
+  worthCurrency: string,
   worthDescription: string,
   worthInfo: string,
 }

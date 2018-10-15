@@ -414,6 +414,7 @@ type BuildPaymentResLocal struct {
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
 	WorthAmount      string            `codec:"worthAmount" json:"worthAmount"`
+	WorthCurrency    string            `codec:"worthCurrency" json:"worthCurrency"`
 	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
 	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
 }
@@ -430,6 +431,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		WorthDescription: o.WorthDescription,
 		WorthInfo:        o.WorthInfo,
 		WorthAmount:      o.WorthAmount,
+		WorthCurrency:    o.WorthCurrency,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil

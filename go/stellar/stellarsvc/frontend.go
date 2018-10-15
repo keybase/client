@@ -994,6 +994,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			res.AmountFormatted = amountFormatted
 		}
 		res.WorthAmount = amountX.amountOfAsset
+		res.WorthCurrency = string(*arg.Currency)
 	}
 
 	// -------------------- note + memo --------------------
