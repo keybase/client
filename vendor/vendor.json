@@ -146,6 +146,18 @@
 			"revisionTime": "2018-06-18T11:24:50Z"
 		},
 		{
+			"checksumSHA1": "+G7Tp8XWZDUd2WAXiEdOsneID9c=",
+			"path": "github.com/gammazero/deque",
+			"revision": "f6adf94963e448a692b33e9ddc931ff10afbb79b",
+			"revisionTime": "2018-09-20T17:21:22Z"
+		},
+		{
+			"checksumSHA1": "5QFcFwxpBKNNqRKThLfWqiOQlMQ=",
+			"path": "github.com/gammazero/workerpool",
+			"revision": "48371c973101f1425ff30aef37cbaf0c65822b22",
+			"revisionTime": "2018-09-20T15:53:29Z"
+		},
+		{
 			"path": "github.com/go-errors/errors",
 			"revision": "a41850380601eeb43f4350f7d17c6bbd8944aaf8",
 			"revisionTime": "2015-09-05T19:33:21-07:00"
