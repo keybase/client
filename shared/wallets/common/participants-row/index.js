@@ -54,6 +54,13 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   childFillContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+    },
+    isElectron: {
+      alignItems: 'center',
+      display: 'flex',
+    },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
     },

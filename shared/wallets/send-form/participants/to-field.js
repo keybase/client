@@ -20,21 +20,25 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
     // A username has been set, so display their name and avatar.
     return (
-      <ParticipantsRow heading="To" headingAlignment="Left">
-        <Kb.ConnectedNameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          username={props.recipientUsername}
-          avatarStyle={styles.avatar}
-          onClick="tracker"
-        />
-        <Kb.Icon
-          type="iconfont-remove"
-          boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-          fontSize={16}
-          color={Styles.globalColors.black_20}
-          onClick={props.onRemoveProfile}
-        />
+      <ParticipantsRow heading="To" headingAlignment="Left" style={styles.toKeybaseUser}>
+        <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
+          <Kb.ConnectedNameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            containerStyle={styles.toKeybaseUserNameWithIcon}
+            username={props.recipientUsername}
+            avatarStyle={styles.avatar}
+            avatarSize={32}
+            onClick="tracker"
+          />
+          <Kb.Icon
+            type="iconfont-remove"
+            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+            fontSize={16}
+            color={Styles.globalColors.black_20}
+            onClick={props.onRemoveProfile}
+          />
+        </Kb.Box2>
       </ParticipantsRow>
     )
   }
@@ -196,6 +200,12 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     textAlign: 'right',
     marginRight: Styles.globalMargins.tiny, // consistent with UserInput
+  },
+  toKeybaseUser: {
+    height: 48,
+  },
+  toKeybaseUserNameWithIcon: {
+    flexGrow: 1,
   },
 
   // ToStellarPublicKey

@@ -84,6 +84,7 @@ const styles = Styles.styleSheetCreate({
   row: {
     paddingBottom: 0,
     paddingTop: 0,
+    minHeight: 48,
   },
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
