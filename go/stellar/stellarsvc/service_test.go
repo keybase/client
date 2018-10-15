@@ -763,7 +763,7 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Nil(t, details.Asset)
 	require.NotNil(t, details.Currency)
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), *details.Currency)
-	require.Equal(t, "$8.20 USD", details.AmountDescription)
+	require.Equal(t, "$8.2 USD", details.AmountDescription)
 }
 
 type TestContext struct {

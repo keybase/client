@@ -920,13 +920,14 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	}
 	currency, ok := conf.Currencies[code]
 	if !ok {
-		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
+		return "", fmt.Errorf("FormatCurrency error: cannot find currency code %q", code)
 	}
 
 	amountFmt, err := FormatAmount(amount, true)
 	if err != nil {
 		return "", err
 	}
+	amountFmt = libkb.StellarSimplifyAmount(amountFmt)
 
 	if currency.Symbol.Postfix {
 		return fmt.Sprintf("%s %s", amountFmt, currency.Symbol.Symbol), nil
