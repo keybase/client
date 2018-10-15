@@ -120,7 +120,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       />
     )
     const metas = this.props.horizontal ? (
-      <Box style={Styles.globalStyles.flexBoxRow}>
+      <Box style={styles.metasBox}>
         {metaOne}
         {!!(this.props.metaTwo && this.props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
         {metaTwo}
@@ -208,6 +208,11 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
+  metasBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    maxWidth: '100%',
+    width: '100%',
+  },
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
