@@ -22,19 +22,24 @@
       "_description": "Update badges in the nav",
       "accounts": "Array<RPCTypes.WalletAccountInfo>"
     },
-    "buildPayment": {
-      "_description": "Prepare a payment for sending"
-    },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
-      "forBuildingPayment": "Types.BuildingPayment"
+      "forBuilding": "Types.Building"
     },
-    "clearBuildingPayment": {
-      "_description": "Clear a payment that was being prepared"
+    "builtRequestReceived": {
+      "_description": "Update our store with a prepared payment",
+      "build": "Types.BuiltRequest",
+      "forBuilding": "Types.Building"
+    },
+    "clearBuilding": {
+      "_description": "Clear a payment or request that was being prepared"
     },
     "clearBuiltPayment": {
       "_description": "Clear a prepared payment once it has been sent or canceled"
+    },
+    "clearBuiltRequest": {
+      "_description": "Clear a prepared request once it has been sent or canceled"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
@@ -215,7 +220,11 @@
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string"
+      "from": "Types.AccountID"
+    },
+    "setBuildingIsRequest": {
+      "_description": "Set building isRequest",
+      "isRequest": "boolean"
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",

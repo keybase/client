@@ -1,19 +1,19 @@
 // @flow
 import * as React from 'react'
-import SendFormRoot from './root-container'
+import Root from './root'
+import {SendBody, RequestBody} from './body/container'
 import LinkExisting from '../link-existing/container'
 import CreateNewAccount from '../create-account/container'
 
-type Props = {|
-  isRequest: boolean,
+type FormProps = {|
   onClose: () => void,
 |}
 
-type State = {
+type SendFormState = {
   currentScreen: 'root' | 'link-existing' | 'create-new-account',
 }
 
-class SendForm extends React.PureComponent<Props, State> {
+class SendForm extends React.PureComponent<FormProps, SendFormState> {
   state = {
     currentScreen: 'root',
   }
@@ -36,12 +36,13 @@ class SendForm extends React.PureComponent<Props, State> {
     switch (this.state.currentScreen) {
       case 'root':
         return (
-          <SendFormRoot
-            isRequest={this.props.isRequest}
-            onClose={this.props.onClose}
-            onLinkAccount={this.linkExisting}
-            onCreateNewAccount={this.createNewAccount}
-          />
+          <Root onClose={this.props.onClose}>
+            <SendBody
+              isProcessing={undefined /* TODO */}
+              onLinkAccount={this.linkExisting}
+              onCreateNewAccount={this.createNewAccount}
+            />
+          </Root>
         )
       case 'link-existing':
         return (
@@ -73,4 +74,10 @@ class SendForm extends React.PureComponent<Props, State> {
   }
 }
 
-export default SendForm
+const RequestForm = ({onClose}: FormProps) => (
+  <Root onClose={onClose}>
+    <RequestBody isProcessing={undefined /* TODO */} />
+  </Root>
+)
+
+export {SendForm, RequestForm}

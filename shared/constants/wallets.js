@@ -23,10 +23,11 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
-const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
+const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
+  isRequest: false,
   publicMemo: new HiddenString(''),
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
@@ -48,14 +49,25 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   worthInfo: '',
 })
 
+const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  readyToRequest: false,
+  secretNoteErrMsg: new HiddenString(''),
+  toErrMsg: '',
+  worthDescription: '',
+  worthInfo: '',
+})
+
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
-  buildingPayment: makeBuildingPayment(),
+  building: makeBuilding(),
   builtPayment: makeBuiltPayment(),
+  builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
   currencyMap: I.Map(),
@@ -80,12 +92,23 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     amountErrMsg: b.amountErrMsg,
     amountFormatted: b.amountFormatted,
     banners: b.banners,
-    from: b.from,
+    from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
     toUsername: b.toUsername,
+    worthDescription: b.worthDescription,
+    worthInfo: b.worthInfo,
+  })
+
+const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
+  makeBuiltRequest({
+    amountErrMsg: b.amountErrMsg,
+    banners: b.banners,
+    readyToRequest: b.readyToRequest,
+    secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    toErrMsg: b.toErrMsg,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })
@@ -161,7 +184,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   readState: 'read',
-  section: 'pending',
+  section: 'none',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -224,7 +247,7 @@ const paymentResultToPayment = (
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
-    ...rpcPaymentToPaymentCommon(p, 'history'),
+    ...rpcPaymentToPaymentCommon(p),
     // Payment details have no unread field.
     readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
@@ -234,7 +257,7 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
 
 const rpcPaymentToPaymentCommon = (
   p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
-  section: Types.PaymentSection
+  section?: Types.PaymentSection
 ) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
@@ -248,13 +271,13 @@ const rpcPaymentToPaymentCommon = (
   )
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
+    ...(section ? {section} : null),
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
     id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
-    section,
     source,
     sourceAccountID: p.fromAccountID,
     sourceType,
@@ -520,6 +543,7 @@ export {
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
+  buildRequestResultToBuiltRequest,
   chooseAssetFormRouteKey,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
@@ -547,8 +571,9 @@ export {
   makeAssetDescription,
   makeAssets,
   makeCurrencies,
-  makeBuildingPayment,
+  makeBuilding,
   makeBuiltPayment,
+  makeBuiltRequest,
   makePayment,
   makeRequest,
   makeReserve,

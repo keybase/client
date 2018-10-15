@@ -10,6 +10,7 @@ type Props = {
   isDefaultWallet: boolean,
   onReceive: () => void,
   onBack: ?() => void,
+  onRequest: () => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,

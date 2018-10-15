@@ -8,7 +8,7 @@ import noteAndMemo from './note-and-memo/index.stories'
 import participants, {participantProviderProperties} from './participants/index.stories'
 import type {Props as AvailableProps} from './available'
 
-import SendForm from '.'
+import {SendForm, RequestForm} from '.'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
@@ -19,18 +19,22 @@ const provider = Sb.createPropProviderWithCommon({
   AssetInput: props => assetInputProps,
   Available: props => ({amountErrMsg: ''}: AvailableProps),
   Banner: props => ({}),
-  Body: props => ({
+  ConnectedSendBody: props => ({
     banners: [],
     isProcessing: props.isProcessing,
-    isRequest: props.isRequest,
+  }),
+  ConnectedRequestBody: props => ({
+    banners: [],
+    isProcessing: props.isProcessing,
   }),
   Footer: props => ({
     isRequest: props.isRequest,
     onClickRequest: props.isRequest ? Sb.action('onClickRequest') : undefined,
-    onClickSend: Sb.action('onClickSend'),
+    onClickSend: props.isRequest ? undefined : Sb.action('onClickSend'),
   }),
   Header: props => ({}),
-  NoteAndMemo: props => ({}),
+  ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
+  ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
   Participants: props => ({
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
@@ -55,8 +59,8 @@ const load = () => {
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm isRequest={false} onClose={Sb.action('onClose')} />)
-    .add('Request', () => <SendForm isRequest={true} onClose={Sb.action('onClose')} />)
+    .add('Send', () => <SendForm onClose={Sb.action('onClose')} />)
+    .add('Request', () => <RequestForm onClose={Sb.action('onClose')} />)
 }
 
 export default load

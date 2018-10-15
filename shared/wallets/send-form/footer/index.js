@@ -6,7 +6,7 @@ import * as Styles from '../../../styles'
 type Props = {
   disabled?: boolean,
   onClickRequest?: Function,
-  onClickSend: Function,
+  onClickSend?: Function,
   worthDescription?: string,
 }
 
@@ -54,21 +54,23 @@ const Footer = (props: Props) => (
             }
           />
         )}
-        <Kb.Button
-          type="Wallet"
-          label="Send"
-          onClick={props.onClickSend}
-          disabled={props.disabled}
-          fullWidth={true}
-          style={styles.button}
-          children={
-            <Kb.Icon
-              type="iconfont-stellar-send"
-              style={Kb.iconCastPlatformStyles(styles.icon)}
-              color={Styles.globalColors.white}
-            />
-          }
-        />
+        {!!props.onClickSend && (
+          <Kb.Button
+            type="Wallet"
+            label="Send"
+            onClick={props.onClickSend}
+            disabled={props.disabled}
+            fullWidth={true}
+            style={styles.button}
+            children={
+              <Kb.Icon
+                type="iconfont-stellar-send"
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                color={Styles.globalColors.white}
+              />
+            }
+          />
+        )}
       </Kb.ButtonBar>
     </Kb.Box2>
   </Kb.Box2>

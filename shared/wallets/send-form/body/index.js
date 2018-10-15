@@ -5,16 +5,20 @@ import * as Styles from '../../../styles'
 import AssetInput from '../asset-input/container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
-import NoteAndMemo from '../note-and-memo/container'
+import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import type {Banner as BannerType} from '../../../constants/types/wallets'
 
-type Props = {
-  isRequest: boolean,
+type SendBodyProps = {
   banners: Array<BannerType>,
   isProcessing?: boolean,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
+}
+
+type RequestBodyProps = {
+  banners: Array<BannerType>,
+  isProcessing?: boolean,
 }
 
 const Spinner = () => (
@@ -23,8 +27,8 @@ const Spinner = () => (
   </Kb.Box2>
 )
 
-const Body = (props: Props) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+export const SendBody = (props: SendBodyProps) => (
+  <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
@@ -33,9 +37,26 @@ const Body = (props: Props) => (
       <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
       <AssetInput />
       <Kb.Divider />
-      <NoteAndMemo />
+      <SecretNote />
+      <PublicMemo />
     </Kb.ScrollView>
-    <Footer isRequest={props.isRequest} />
+    <Footer />
+  </Kb.Box2>
+)
+
+export const RequestBody = (props: RequestBodyProps) => (
+  <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
+    <Kb.ScrollView style={styles.scrollView}>
+      {props.isProcessing && <Spinner />}
+      {props.banners.map(banner => (
+        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+      ))}
+      <Participants />
+      <AssetInput />
+      <Kb.Divider />
+      <SecretNote />
+    </Kb.ScrollView>
+    <Footer />
   </Kb.Box2>
 )
 
@@ -52,5 +73,3 @@ const styles = Styles.styleSheetCreate({
   }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })
-
-export default Body

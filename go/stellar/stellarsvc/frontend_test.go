@@ -1123,6 +1123,71 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	require.Equal(t, "", detailsRes.NoteErr)
 }
 
+func TestBuildRequestLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
+
+	bres, err := tcs[0].Srv.BuildRequestLocal(context.Background(), stellar1.BuildRequestLocalArg{
+		To: tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToRequest)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "$0.00", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	bres, err = tcs[0].Srv.BuildRequestLocal(context.Background(), stellar1.BuildRequestLocalArg{
+		To:     tcs[1].Fu.Username,
+		Amount: "-1",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToRequest)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "Invalid amount.", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.WorthDescription)
+	require.Equal(t, "", bres.WorthInfo)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	bres, err = tcs[0].Srv.BuildRequestLocal(context.Background(), stellar1.BuildRequestLocalArg{
+		To:     tcs[1].Fu.Username,
+		Amount: "15",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToRequest)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "$4.77", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	t.Logf("requesting in amount composed in USD")
+	bres, err = tcs[0].Srv.BuildRequestLocal(context.Background(), stellar1.BuildRequestLocalArg{
+		To:       tcs[1].Fu.Username,
+		Amount:   "8.50",
+		Currency: &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToRequest)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+}
+
 func TestBuildPaymentLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
@@ -1147,7 +1212,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.PublicMemoErrMsg)
 		require.Equal(t, "$0.00", bres.WorthDescription)
 		require.Equal(t, worthInfo, bres.WorthInfo)
-		requireBannerSet(t, bres, nil)
+		requireBannerSet(t, bres.DeepCopy().Banners, nil)
 	}
 
 	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1163,7 +1228,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$0.00", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1183,7 +1248,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$0.00", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1202,7 +1267,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "", bres.WorthDescription)
 	require.Equal(t, "", bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1221,7 +1286,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1243,7 +1308,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1263,7 +1328,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$0.00", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1282,7 +1347,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$4.77", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
@@ -1310,7 +1375,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
 	require.Equal(t, "$4.77", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
 
 	// Send an amount so close to available to send that the fee would push it it over the edge.
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1327,7 +1392,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$1.27", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	t.Logf("using FromSeqno")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1346,7 +1411,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg)
 	require.Equal(t, "$0.95", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "error",
 		Message: "Activity on account since initiating send. Take another look at account history.",
 	}})
@@ -1370,7 +1435,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	t.Logf("using `fromDefaultAccount`")
 	for _, x := range []string{"blank", "match", "wrong"} {
@@ -1412,7 +1477,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 			require.Equal(t, "", bres.PublicMemoErrMsg)
 			require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 			require.Equal(t, worthInfo, bres.WorthInfo)
-			requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+			requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 		}
 	}
 
@@ -1434,7 +1499,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
 		Message: "Because it's their first transaction, you must send at least 1 XLM.",
 	}})
@@ -1457,7 +1522,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	upak, _, err := tcs[0].G.GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(tcs[0].MetaContext()).WithPublicKeyOptional().
@@ -1483,16 +1548,15 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 }
 
 // modifies `expected`
-func requireBannerSet(t testing.TB, bres stellar1.BuildPaymentResLocal, expected []stellar1.SendBannerLocal) {
-	if len(bres.Banners) != len(expected) {
-		t.Logf("%s", spew.Sdump(bres.Banners))
-		require.Len(t, bres.Banners, len(expected))
+func requireBannerSet(t testing.TB, got []stellar1.SendBannerLocal, expected []stellar1.SendBannerLocal) {
+	if len(got) != len(expected) {
+		t.Logf("%s", spew.Sdump(got))
+		require.Len(t, got, len(expected))
 	}
-	got := bres.DeepCopy().Banners
 	sort.Slice(got, func(i, j int) bool {
 		return got[i].Message < got[j].Message
 	})

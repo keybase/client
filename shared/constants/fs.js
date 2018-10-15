@@ -772,6 +772,11 @@ export const isPendingDownload = (download: Types.Download, path: Types.Path, in
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
   Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
 
+export const usernameInPath = (username: string, path: Types.Path) => {
+  const elems = Types.getPathElements(path)
+  return elems.length >= 3 && elems[2].split(',').includes(username)
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:

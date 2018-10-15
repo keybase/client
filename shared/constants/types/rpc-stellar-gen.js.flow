@@ -23,6 +23,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String|}>,
     outParam: BuildPaymentResLocal,
   |},
+  'stellar.1.local.buildRequestLocal': {|
+    inParam: $ReadOnly<{|to: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, secretNote: String|}>,
+    outParam: BuildRequestResLocal,
+  |},
   'stellar.1.local.cancelPaymentLocal': {|
     inParam: $ReadOnly<{|paymentID: PaymentID|}>,
     outParam: RelayClaimResult,
@@ -213,6 +217,7 @@ export type BalanceDelta =
   | 2 // DECREASE_2
 
 export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>, amountFormatted: String}>
+export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -322,6 +327,7 @@ export type IncomingCallMapType = {|'stellar.1.notify.paymentNotification'?: (pa
 
 export type CustomResponseIncomingCallMap = {||}
 declare export function localBuildPaymentLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildPaymentLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildPaymentLocal'>, 'outParam'>>
+declare export function localBuildRequestLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildRequestLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildRequestLocal'>, 'outParam'>>
 declare export function localCancelPaymentLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelPaymentLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelPaymentLocal'>, 'outParam'>>
 declare export function localCancelRequestLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelRequestLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelRequestLocal'>, 'outParam'>>
 declare export function localChangeDisplayCurrencyLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.changeDisplayCurrencyLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.changeDisplayCurrencyLocal'>, 'outParam'>>
