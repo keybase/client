@@ -24,7 +24,7 @@ const Spinner = () => (
 )
 
 const Body = (props: Props) => (
-  <Kb.Box2 fullWidth={true} direction="vertical">
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
@@ -40,10 +40,16 @@ const Body = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  scrollView: {
-    width: '100%',
-    minHeight: '100%',
+  container: {
+    flexGrow: 1,
   },
+  scrollView: Styles.platformStyles({
+    common: {
+      width: '100%',
+      flexGrow: 1,
+    },
+    isElectron: {minHeight: '100%'},
+  }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })
 

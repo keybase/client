@@ -32,8 +32,8 @@ const styles = styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
-      borderTopLeftRadius: '4px',
-      borderTopRightRadius: '4px',
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 4,
     },
     isMobile: {
       height: 60,
