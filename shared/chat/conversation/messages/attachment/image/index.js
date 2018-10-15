@@ -83,6 +83,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               Styles.collapseStyles([
                 styles.backgroundContainer,
                 {
+                  // Add 6 extra width to the background container to create the background
+                  // for the image. We use this in conjunction with the margin to reliaby
+                  // center the image in the background container.
                   width: this.props.width + 6,
                   minHeight: !this.state.loaded ? this.props.height : 0,
                 },
@@ -220,10 +223,10 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 3,
   },
   image: {
+    ...Styles.globalStyles.rounded,
     backgroundColor: Styles.globalColors.fastBlank,
     maxWidth: 320,
     position: 'relative',
-    borderRadius: Styles.globalMargins.xtiny,
     margin: 3,
   },
   absoluteContainer: {
@@ -243,7 +246,7 @@ const styles = Styles.styleSheetCreate({
   },
   backgroundContainer: {
     backgroundColor: Styles.globalColors.black_05,
-    borderRadius: Styles.globalMargins.xtiny,
+    borderRadius: Styles.borderRadius,
     maxWidth: 330,
     position: 'relative',
   },
@@ -279,13 +282,12 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   title: Styles.platformStyles({
+    common: {
+      padding: 5,
+    },
     isElectron: {
       wordBreak: 'break-word',
-      padding: 5,
       display: 'block',
-    },
-    isMobile: {
-      padding: 5,
     },
   }),
 })
