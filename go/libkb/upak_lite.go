@@ -13,6 +13,10 @@ func LoadUPAKLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err 
 	uid := arg.uid
 	m := arg.m
 
+	if m.G().Env.GetRunMode() == ProductionRunMode {
+		return nil, fmt.Errorf("UPAK lites are currently disabled in production.")
+	}
+
 	user, err := LoadUserFromServer(m, uid, nil)
 	if err != nil {
 		return nil, err
