@@ -181,6 +181,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
 				TopicName:   utils.GetTopicName(conv),
 			},
+			ConvID: conv.GetConvID(),
 			Sender: MsgSender{
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
@@ -1079,6 +1080,7 @@ type MsgContent struct {
 type MsgSummary struct {
 	ID                  chat1.MessageID                `json:"id"`
 	Channel             ChatChannel                    `json:"channel"`
+	ConvID              chat1.ConversationID           `json:"conv_id"`
 	Sender              MsgSender                      `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`
 	SentAtMs            int64                          `json:"sent_at_ms"`

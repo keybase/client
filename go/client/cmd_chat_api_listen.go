@@ -26,8 +26,8 @@ type CmdChatAPIListen struct {
 	// depending on their use case might require extra care to keep secrecy
 	// of chat participants.
 	showExploding bool
-
-	showLocal bool
+	showLocal     bool
+	showTyping    bool
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -50,6 +50,10 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "local",
 				Usage: "Show local messages (skipped by default)",
 			},
+			cli.BoolFlag{
+				Name:  "typing",
+				Usage: "Show typing notifications from channels",
+			},
 		},
 	}
 }
@@ -57,6 +61,7 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
 	c.showExploding = ctx.Bool("exploding")
 	c.showLocal = ctx.Bool("local")
+	c.showTyping = ctx.Bool("typing")
 	return nil
 }
 
@@ -134,6 +139,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 				TopicName:   inMsg.Conv.Channel,
 				Public:      inMsg.Conv.Visibility == keybase1.TLFVisibility_PUBLIC,
 			},
+			ConvID: inMsg.Conv.GetConvID(),
 			Sender: MsgSender{
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
@@ -221,7 +227,22 @@ func (d *chatNotificationDisplay) ChatInboxStale(context.Context, keybase1.UID) 
 func (d *chatNotificationDisplay) ChatThreadsStale(context.Context, chat1.ChatThreadsStaleArg) error {
 	return nil
 }
-func (d *chatNotificationDisplay) ChatTypingUpdate(context.Context, []chat1.ConvTypingUpdate) error {
+
+type msgTypingUpdate struct {
+	TypingUpdates []chat1.ConvTypingUpdate `json:"typing_updates"`
+}
+
+func (d *chatNotificationDisplay) ChatTypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) error {
+	if d.cmd.showTyping {
+		notif := msgTypingUpdate{
+			TypingUpdates: updates,
+		}
+		if jsonStr, err := json.Marshal(notif); err == nil {
+			d.printf("%s\n", string(jsonStr))
+		} else {
+			d.errorf("Error while marshaling JSON: %s\n", err)
+		}
+	}
 	return nil
 }
 func (d *chatNotificationDisplay) ChatJoinedConversation(context.Context, chat1.ChatJoinedConversationArg) error {
