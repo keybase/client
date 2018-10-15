@@ -12,8 +12,15 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
     <Box style={styleFolderHeader}>
       {path === '/keybase' ? (
-        <Box style={folderHeaderStyleRoot}>
-          <Text type="BodyBig">Keybase Files</Text>
+        <Box style={styleFolderHeaderContainer}>
+          <Box style={folderHeaderStyleRoot}>
+            <Text type="BodyBig">Keybase Files</Text>
+          </Box>
+          <Box style={styleFolderHeaderEnd}>
+            <WithTooltip text="Show in Finder">
+              <OpenInSystemFileManager path={path} />
+            </WithTooltip>
+          </Box>
         </Box>
       ) : (
         <Box style={styleFolderHeaderContainer}>
