@@ -13,6 +13,7 @@
   "chat.1.local.getTLFConversationsLocal": {"promise": true},
   "chat.1.local.getTeamRetentionLocal": {"promise": true},
   "chat.1.local.getThreadNonblock": {"engineSaga": true},
+  "chat.1.local.getUploadTempFile": {"promise": true},
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
   "chat.1.local.makePreview": {"promise": true},

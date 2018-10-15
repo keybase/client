@@ -20,6 +20,8 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
+    dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
     dispatch(
       RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
@@ -42,6 +44,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     infoPanelOpen: stateProps.infoPanelOpen,
     isSearching: stateProps.isSearching,
+    onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
     onShowTracker: dispatchProps.onShowTracker,

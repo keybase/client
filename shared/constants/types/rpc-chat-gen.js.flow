@@ -215,6 +215,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|conversationID: ConversationID, cbMode: GetThreadNonblockCbMode, reason: GetThreadReason, pgmode: GetThreadNonblockPgMode, query?: ?GetThreadQuery, pagination?: ?UIPagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NonblockFetchRes,
   |},
+  'chat.1.local.getUploadTempFile': {|
+    inParam: $ReadOnly<{|outboxID: OutboxID, filename: String|}>,
+    outParam: String,
+  |},
   'chat.1.local.indexChatSearch': {|
     inParam: $ReadOnly<{|convID?: ?ConversationID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: {[key: string]: IndexSearchConvStats},
@@ -252,7 +256,7 @@ export type MessageTypes = {|
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postFileAttachmentMessageLocalNonblock': {|
-    inParam: $ReadOnly<{|convID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, clientPrev: MessageID, filename: String, title: String, metadata: Bytes, ephemeralLifetime?: ?Gregor1.DurationSec, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|convID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, outboxID?: ?OutboxID, clientPrev: MessageID, filename: String, title: String, metadata: Bytes, ephemeralLifetime?: ?Gregor1.DurationSec, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: PostLocalNonblockRes,
   |},
   'chat.1.local.postFileAttachmentUploadLocalNonblock': {|
@@ -1039,6 +1043,7 @@ declare export function localGetStaticConfigRpcPromise(params: $PropertyType<$Pr
 declare export function localGetTLFConversationsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'outParam'>>
 declare export function localGetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'outParam'>>
 declare export function localGetThreadNonblockRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getThreadNonblock'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
+declare export function localGetUploadTempFileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getUploadTempFile'>, 'outParam'>>
 declare export function localIndexChatSearchRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.indexChatSearch'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.indexChatSearch'>, 'outParam'>>
 declare export function localJoinConversationByIDLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'outParam'>>
 declare export function localLeaveConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'outParam'>>

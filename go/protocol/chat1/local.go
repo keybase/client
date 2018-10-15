@@ -4641,6 +4641,7 @@ type PostFileAttachmentMessageLocalNonblockArg struct {
 	ConvID            ConversationID               `codec:"convID" json:"convID"`
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
 	Filename          string                       `codec:"filename" json:"filename"`
 	Title             string                       `codec:"title" json:"title"`
@@ -4682,6 +4683,11 @@ type MakePreviewArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Filename  string   `codec:"filename" json:"filename"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
+type GetUploadTempFileArg struct {
+	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+	Filename string   `codec:"filename" json:"filename"`
 }
 
 type CancelPostArg struct {
@@ -4851,6 +4857,7 @@ type LocalInterface interface {
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
+	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
@@ -5369,6 +5376,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MakePreview(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getUploadTempFile": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUploadTempFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUploadTempFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUploadTempFileArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUploadTempFile(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5925,6 +5948,11 @@ func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg Down
 
 func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makePreview", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetUploadTempFile(ctx context.Context, __arg GetUploadTempFileArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getUploadTempFile", []interface{}{__arg}, &res)
 	return
 }
 

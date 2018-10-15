@@ -3418,6 +3418,13 @@
           "type": "keybase1.TLFVisibility"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "clientPrev",
           "type": "MessageID"
         },
@@ -3563,6 +3570,19 @@
         }
       ],
       "response": "MakePreviewRes"
+    },
+    "getUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": "string"
     },
     "CancelPost": {
       "request": [
