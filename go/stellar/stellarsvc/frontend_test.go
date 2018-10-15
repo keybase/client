@@ -1438,7 +1438,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	require.Equal(t, "8.50", bres.AmountFormatted)
+	require.Equal(t, "$8.50", bres.AmountFormatted)
 	require.Equal(t, "26.7020180", bres.WorthAmount)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
