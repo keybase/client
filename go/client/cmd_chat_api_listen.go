@@ -139,7 +139,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 				TopicName:   inMsg.Conv.Channel,
 				Public:      inMsg.Conv.Visibility == keybase1.TLFVisibility_PUBLIC,
 			},
-			ConvID: inMsg.Conv.GetConvID(),
+			ConvID: inMsg.Conv.GetConvID().String(),
 			Sender: MsgSender{
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
@@ -228,14 +228,26 @@ func (d *chatNotificationDisplay) ChatThreadsStale(context.Context, chat1.ChatTh
 	return nil
 }
 
+type singleTypingUpdate struct {
+	ConvID string            `json:"convID"`
+	Typers []chat1.TyperInfo `json:"typers"`
+}
+
 type msgTypingUpdate struct {
-	TypingUpdates []chat1.ConvTypingUpdate `json:"typing_updates"`
+	TypingUpdates []singleTypingUpdate `json:"typing_updates"`
 }
 
 func (d *chatNotificationDisplay) ChatTypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) error {
 	if d.cmd.showTyping {
+
 		notif := msgTypingUpdate{
-			TypingUpdates: updates,
+			TypingUpdates: make([]singleTypingUpdate, len(updates)),
+		}
+		for i, v := range updates {
+			notif.TypingUpdates[i] = singleTypingUpdate{
+				ConvID: v.ConvID.String(),
+				Typers: v.Typers,
+			}
 		}
 		if jsonStr, err := json.Marshal(notif); err == nil {
 			d.printf("%s\n", string(jsonStr))
