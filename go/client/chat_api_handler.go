@@ -30,6 +30,7 @@ const (
 	methodSetStatus    = "setstatus"
 	methodMark         = "mark"
 	methodSearchRegexp = "searchregexp"
+	methodUpdateTyping = "updatetyping"
 )
 
 type RateLimit struct {
@@ -57,6 +58,7 @@ type ChatAPIHandler interface {
 	SetStatusV1(context.Context, Call, io.Writer) error
 	MarkV1(context.Context, Call, io.Writer) error
 	SearchRegexpV1(context.Context, Call, io.Writer) error
+	UpdateTypingV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -368,6 +370,16 @@ func (o searchRegexpOptionsV1) Check() error {
 	return nil
 }
 
+type updateTypingOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string `json:"conversation_id"`
+	Typing         bool   `json:"typing"`
+}
+
+func (o updateTypingOptionsV1) Check() error {
+	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -569,6 +581,20 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 	// opts are valid for search v1
 
 	return a.encodeReply(c, a.svcHandler.SearchRegexpV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) UpdateTypingV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodSearchRegexp, err: errors.New("empty options")}
+	}
+	var opts updateTypingOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.UpdateTypingV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

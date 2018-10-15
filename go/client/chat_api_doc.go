@@ -69,4 +69,10 @@ Read a team conversation channel:
 
 Send a message to a team conversation channel:
     {"method": "send", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "message": {"body": "time for lunch?"}}}}
+
+Fetch chat messages by message IDs:
+    {"method": "get", "params": {"options": {"channel": {"name": "you,them"}, "message_ids": [10,12], "peek": true}}}
+
+Update typing notification in a channel:
+    {"method": "updatetyping", "params": {"options": {"conversation_id": "11222", "typing": true}}}
 `

@@ -32,6 +32,7 @@ type ChatServiceHandler interface {
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
+	UpdateTypingV1(context.Context, updateTypingOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -816,6 +817,36 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 
 	return Reply{Result: res}
+}
+
+// UpdateTypingV1 implements ChatServiceHandler.UpdateTypingV1.
+func (c *chatServiceHandler) UpdateTypingV1(ctx context.Context, opts updateTypingOptionsV1) Reply {
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.UpdateTypingArg{
+		ConversationID: convID,
+		Typing:         opts.Typing,
+	}
+
+	err = client.UpdateTyping(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(rlimits),
+		},
+	}
+	return Reply{Result: cres}
 }
 
 type postHeader struct {
