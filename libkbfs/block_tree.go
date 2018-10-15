@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"github.com/gammazero/workerpool"
 	"sort"
 	"sync"
 
@@ -14,8 +15,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
-	"golang.org/x/sync/errgroup"
 )
+
+// maxBlockFetchWorkers specifies the number of parallel goroutines allowed
+// when fetching blocks recursively in parallel.
+const maxBlockFetchWorkers = 100
 
 // blockGetterFn is a function that gets a block suitable for reading
 // or writing, and also returns whether the block was already dirty.
@@ -271,164 +275,71 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
 }
 
-// TODO: rename these structs
-// structs used for passing data to and from GetBlocksForOffsetRange tasks
-type task struct {
+// getBlocksForOffsetRangeTask is used for passing data to
+// getBlocksForOffsetRange tasks
+type getBlocksForOffsetRangeTask struct {
 	ptr        BlockPointer
-	pblock     *BlockWithPtrs
+	pblock     BlockWithPtrs
 	pathPrefix []parentBlockAndChildIndex
 	startOff   Offset
 	endOff     Offset
 	prefixOk   bool
 	getDirect  bool
 }
-type result struct {
+
+func (task *getBlocksForOffsetRangeTask) subTask(childPtr BlockPointer,
+	childPath []parentBlockAndChildIndex) getBlocksForOffsetRangeTask {
+	subTask := *task
+	subTask.ptr = childPtr
+	subTask.pblock = nil
+	subTask.pathPrefix = childPath
+	return subTask
+}
+
+// getBlocksForOffsetRangeResult is used for passing data back from
+// getBlocksForOffsetRange tasks
+type getBlocksForOffsetRangeResult struct {
 	pathFromRoot    []parentBlockAndChildIndex
-	ptr             *BlockPointer
+	ptr             BlockPointer
 	block           Block
 	nextBlockOffset Offset
+	err             error
 }
 
-// getBlocksForOffsetRange fetches all the blocks making up paths down
-// the block tree to leaf ("direct") blocks that encompass the given
-// offset range (half-inclusive) in the data.  If `endOff` is nil, it
-// returns blocks until reaching the end of the data.  If `prefixOk`
-// is true, the function will ignore context deadline errors and
-// return whatever prefix of the data it could fetch within the
-// deadine.  Return params:
-//
-//   * pathsFromRoot is a slice, ordered by offset, of paths from
-//     the root to each block that makes up the range.  If the path is
-//     empty, it indicates that pblock is a direct block and has no
-//     children.
-//   * blocks: a map from block pointer to a data-containing leaf node
-//     in the given range of offsets, if `getDirect` is true.
-//   * nextBlockOff is the offset of the block that follows the last
-//     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
-//     the last block among the children, nextBlockOff is nil.
-func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
-	ptr BlockPointer, pblock BlockWithPtrs, startOff, endOff Offset,
-	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
-	blocks map[BlockPointer]Block, nextBlockOffset Offset,
-	err error) {
+// processGetBlocksTask examines the block it is passed, enqueueing any children
+// in range into wp, and passing data back through results.
+func (bt *blockTree) processGetBlocksTask(ctx context.Context,
+	wg *sync.WaitGroup, wp *workerpool.WorkerPool,
+	job getBlocksForOffsetRangeTask,
+	results chan getBlocksForOffsetRangeResult) {
+	defer wg.Done()
 
-	// Make a queue for tasks and one for results. Queue for results is big to prevent workers from blocking on
-	// sending back their results.
-	jobs := make(chan task, 2)
-	results := make(chan result, 400)
-
-	// make a WaitGroup to keep track of whether there's still work to be done.
-	// TODO: simplify this so we don't need both the errgroup and the WaitGroup
-	var wg sync.WaitGroup
-
-	// enqueue the top-level task. Increment the task counter by one.
-	jobs <- task{
-		ptr:        ptr,
-		pblock:     &pblock,
-		pathPrefix: nil,
-		startOff:   startOff,
-		endOff:     endOff,
-		prefixOk:   prefixOk,
-		getDirect:  getDirect,
-	}
-	wg.Add(1)
-
-	// make an errgroup to cancel everything if anything goes wrong.
-	eg, groupCtx := errgroup.WithContext(ctx)
-
-	// start 16 goroutines to each pick up tasks and put subtasks back in the queue.
-	for w := 1; w <= 16; w++ {
-		eg.Go(func() error {
-			return bt.getBlocksForOffsetRangeWorker(groupCtx, &wg, jobs, results)
-		})
-	}
-
-	// start a goroutine to reduce all the results coming in over the results channel.
-	// TODO: if this is a bottleneck, we could spawn several goroutines to reduce at once, but that seems inefficient.
-	eg.Go(func() error {
-		var minNextBlockOffset Offset
-		blocks = make(map[BlockPointer]Block)
-		pathsFromRoot = [][]parentBlockAndChildIndex{}
-		for res := range results {
-			if res.pathFromRoot != nil {
-				pathsFromRoot = append(pathsFromRoot, res.pathFromRoot)
-			}
-			if res.ptr != nil {
-				blocks[*res.ptr] = res.block
-			}
-			if res.nextBlockOffset != nil &&
-				(minNextBlockOffset == nil ||
-					res.nextBlockOffset.Less(minNextBlockOffset)) {
-				minNextBlockOffset = res.nextBlockOffset
-			}
-		}
-		nextBlockOffset = minNextBlockOffset
-		return nil
-	})
-
-	// Once all the work is done, close the channels so that the goroutines return
-	go func() {
-		wg.Wait()
-		close(jobs)
-		close(results)
-	}()
-
-	err = eg.Wait()
-
-	// If we are ok with just getting the prefix, don't treat a
-	// deadline exceeded error as fatal.
-	if prefixOk && err == context.DeadlineExceeded {
-		err = nil //TODO: determine that this is correct
-	}
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// Out-of-order traversal means the paths come back from workers unsorted.
-	// Sort them before returning them to the caller.
-	// TODO: if this is slow, sort in parallel as the paths come in
-	sort.Slice(pathsFromRoot, func(i, j int) bool {
-		pathI := pathsFromRoot[i]
-		pathJ := pathsFromRoot[j]
-		lastChildI := pathI[len(pathI)-1]
-		lastChildJ := pathJ[len(pathJ)-1]
-
-		_, offsetI := lastChildI.pblock.IndirectPtr(lastChildI.childIndex)
-		_, offsetJ := lastChildJ.pblock.IndirectPtr(lastChildJ.childIndex)
-
-		return offsetI.Less(offsetJ)
-	})
-
-	return pathsFromRoot, blocks, nextBlockOffset, nil
-}
-
-// processGetBlocksTask examines the block it is passed, enqueueing any children in range into jobs, and passing
-// data back through results.
-func (bt *blockTree) processGetBlocksTask(ctx context.Context, wg *sync.WaitGroup, job task, jobs chan task, results chan result) error {
+	// We may have been passed just a pointer and need to fetch the block here.
 	var pblock BlockWithPtrs
-	// we may have been passed just a pointer and need to fetch the block ourselves
 	if job.pblock == nil {
 		var err error
 		pblock, _, err = bt.getter(ctx, bt.kmd, job.ptr, bt.file, blockReadParallel)
 		if err != nil {
-			return err
+			results <- getBlocksForOffsetRangeResult{err: err}
+			return
 		}
 	} else {
-		pblock = *job.pblock
+		pblock = job.pblock
 	}
 
 	if !pblock.IsIndirect() {
 		// Return this block, under the assumption that the
 		// caller already checked the range for this block.
 		if job.getDirect {
-			results <- result{
+			results <- getBlocksForOffsetRangeResult{
 				pathFromRoot:    job.pathPrefix,
-				ptr:             &job.ptr,
+				ptr:             job.ptr,
 				block:           pblock,
 				nextBlockOffset: nil,
+				err:             nil,
 			}
 		}
-		return nil
+		return
 	}
 
 	// Search all of the in-range child blocks, and their child
@@ -454,8 +365,8 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context, wg *sync.WaitGrou
 		if !inRangeRight {
 			// This block is the first one past the offset range
 			// amount the children.
-			results <- result{nextBlockOffset: iptrOff}
-			return nil
+			results <- getBlocksForOffsetRangeResult{nextBlockOffset: iptrOff}
+			return
 		}
 
 		childPtr := info.BlockPointer
@@ -476,49 +387,125 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context, wg *sync.WaitGrou
 		if job.getDirect || childPtr.DirectType == IndirectBlock {
 			// Create a task for the child, and either enqueue it or recurse to it.
 
-			subTask := task{
-				ptr:        childPtr,
-				pblock:     nil,
-				pathPrefix: childPath,
-				startOff:   job.startOff,
-				endOff:     job.endOff,
-				prefixOk:   job.prefixOk,
-				getDirect:  job.getDirect,
-			}
+			subTask := job.subTask(childPtr, childPath)
 
-			// process the subtask by passing it to another goroutine; if they're all occupied, recurse instead.
-			select {
-			case jobs <- subTask:
-				wg.Add(1)
-			default:
-				bt.processGetBlocksTask(ctx, wg, subTask, jobs, results)
-			}
+			// Enqueue the subTask with the WorkerPool.
+			wg.Add(1)
+			wp.Submit(func() {
+				bt.processGetBlocksTask(ctx, wg, wp, subTask, results)
+			})
 		} else {
-			results <- result{
+			results <- getBlocksForOffsetRangeResult{
 				pathFromRoot: childPath,
 			}
 		}
 	}
-	return nil
 }
 
-// getBlocksForOffsetRangeWorker
-func (bt *blockTree) getBlocksForOffsetRangeWorker(ctx context.Context, wg *sync.WaitGroup, jobs chan task,
-	results chan result) error {
+// getBlocksForOffsetRange fetches all the blocks making up paths down
+// the block tree to leaf ("direct") blocks that encompass the given
+// offset range (half-inclusive) in the data.  If `endOff` is nil, it
+// returns blocks until reaching the end of the data.  If `prefixOk`
+// is true, the function will ignore context deadline errors and
+// return whatever prefix of the data it could fetch within the
+// deadine.  Return params:
+//
+//   * pathsFromRoot is a slice, ordered by offset, of paths from
+//     the root to each block that makes up the range.  If the path is
+//     empty, it indicates that pblock is a direct block and has no
+//     children.
+//   * blocks: a map from block pointer to a data-containing leaf node
+//     in the given range of offsets, if `getDirect` is true.
+//   * nextBlockOff is the offset of the block that follows the last
+//     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
+//     the last block among the children, nextBlockOff is nil.
+func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
+	ptr BlockPointer, pblock BlockWithPtrs, startOff, endOff Offset,
+	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
+	blocks map[BlockPointer]Block, nextBlockOffset Offset,
+	err error) {
+	// Make a WaitGroup to keep track of whether there's still work to be done.
+	var wg sync.WaitGroup
 
-	for job := range jobs {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-		err := bt.processGetBlocksTask(ctx, wg, job, jobs, results)
-		if err != nil {
-			return err
-		}
-		wg.Done()
+	// Make a workerpool to limit the number of concurrent goroutines.
+	wp := workerpool.New(maxBlockFetchWorkers)
+	defer wp.Stop() // TODO: this may be unnecessary
+
+	// Make a context to cancel all the jobs if something goes wrong
+	// TODO: determine if we can collapse this into the workerpool
+	groupCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Make a queue for results coming back from workers.
+	results := make(chan getBlocksForOffsetRangeResult)
+
+	// Enqueue the top-level task. Increment the task counter by one.
+	rootTask := getBlocksForOffsetRangeTask{
+		ptr:        ptr,
+		pblock:     pblock,
+		pathPrefix: nil,
+		startOff:   startOff,
+		endOff:     endOff,
+		prefixOk:   prefixOk,
+		getDirect:  getDirect,
 	}
-	return nil
+	wg.Add(1)
+	wp.Submit(func() {
+		bt.processGetBlocksTask(groupCtx, &wg, wp, rootTask, results)
+	})
+
+	// Once all the work is done, stop the WorkerPool and close `results` so
+	// that the loop below exits
+	go func() {
+		wg.Wait()
+		wp.Stop()
+		close(results)
+	}()
+
+	// Reduce all the results coming in over the results channel.
+	var minNextBlockOffset Offset
+	blocks = make(map[BlockPointer]Block)
+	pathsFromRoot = [][]parentBlockAndChildIndex{}
+	for res := range results {
+		if res.err != nil {
+			// If we are ok with just getting the prefix, don't treat a
+			// deadline exceeded error as fatal.
+			if prefixOk && res.err == context.DeadlineExceeded {
+				//TODO: determine that this is correct
+				break
+			}
+			return nil, nil, nil, res.err
+		}
+		if res.pathFromRoot != nil {
+			pathsFromRoot = append(pathsFromRoot, res.pathFromRoot)
+		}
+		if res.block != nil {
+			blocks[res.ptr] = res.block
+		}
+		if res.nextBlockOffset != nil &&
+			(minNextBlockOffset == nil ||
+				res.nextBlockOffset.Less(minNextBlockOffset)) {
+			minNextBlockOffset = res.nextBlockOffset
+		}
+	}
+	nextBlockOffset = minNextBlockOffset
+
+	// Out-of-order traversal means the paths come back from workers unsorted.
+	// Sort them before returning them to the caller.
+	// TODO: if this is slow, sort in parallel as the paths come in
+	sort.Slice(pathsFromRoot, func(i, j int) bool {
+		pathI := pathsFromRoot[i]
+		pathJ := pathsFromRoot[j]
+		lastChildI := pathI[len(pathI)-1]
+		lastChildJ := pathJ[len(pathJ)-1]
+
+		_, offsetI := lastChildI.pblock.IndirectPtr(lastChildI.childIndex)
+		_, offsetJ := lastChildJ.pblock.IndirectPtr(lastChildJ.childIndex)
+
+		return offsetI.Less(offsetJ)
+	})
+
+	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
 type createTopBlockFn func(context.Context, DataVer) (BlockWithPtrs, error)
