@@ -31,16 +31,18 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
               <OpenInSystemFileManager path={path} />
             </WithTooltip>
             {onChat && (
-              <Icon
-                type="iconfont-chat"
-                style={{
-                  marginLeft: Styles.globalMargins.small,
-                }}
-                color={Styles.globalColors.black_40}
-                fontSize={16}
-                onClick={onChat}
-              />
+              <Box style={styles.headerIcon}>
+                <Icon
+                  type="iconfont-chat"
+                  color={Styles.globalColors.black_40}
+                  fontSize={16}
+                  onClick={onChat}
+                />
+              </Box>
             )}
+            <Box style={styles.headerIcon}>
+              <PathItemAction path={path} actionIconClassName="fs-path-item-hover-icon" />
+            </Box>
           </Box>
         </Box>
       )}
@@ -81,6 +83,9 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     alignItems: 'center',
     position: 'relative',
+  },
+  headerIcon: {
+    marginLeft: Styles.globalMargins.tiny,
   },
   addNew: {
     ...Styles.globalStyles.flexBoxRow,

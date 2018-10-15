@@ -5,7 +5,7 @@ import {type StylesCrossPlatform, type StylesCrossPlatformWithSomeDisallowed, ty
 
 // These must be passed as props
 type DisallowedStyles = {
-  color?: empty,
+  color?: empty | null,
   hoverColor?: empty,
   fontSize?: empty,
 }
