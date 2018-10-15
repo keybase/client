@@ -635,8 +635,9 @@ type MarkAsReadArg struct {
 }
 
 type PaymentDetailsArg struct {
-	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
-	TxID   string               `codec:"txID" json:"txID"`
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	TxID      string               `codec:"txID" json:"txID"`
 }
 
 type AccountSeqnoArg struct {

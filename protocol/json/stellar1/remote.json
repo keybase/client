@@ -716,6 +716,10 @@
           "type": "keybase1.UserVersion"
         },
         {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
           "name": "txID",
           "type": "string"
         }
