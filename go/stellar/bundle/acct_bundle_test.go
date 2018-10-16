@@ -30,4 +30,8 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.NotEmpty(t, boxed.Enc.E)
 	require.NotZero(t, boxed.Enc.N)
 	require.Equal(t, gen, boxed.Enc.Gen)
+
+	unboxed, err := AccountUnbox(boxed)
+	require.NoError(t, err)
+
 }
