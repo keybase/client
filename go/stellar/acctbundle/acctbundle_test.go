@@ -38,6 +38,7 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
 	require.Len(t, bundle.Signers, 1)
 	require.Equal(t, bundle.Signers[0], b.signers[0])
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Mode)
 }
 
 func testDecodeAndUnbox(t *testing.T, encB64 string, visB64 string, seed libkb.PerUserKeySeed) (stellar1.AccountBundle, stellar1.AccountBundleVersion) {
