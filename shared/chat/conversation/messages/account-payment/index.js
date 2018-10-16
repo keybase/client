@@ -6,6 +6,7 @@ import {
   Icon,
   ProgressIndicator,
   Text,
+  WaitingButton,
   WithTooltip,
   type IconType,
 } from '../../../../common-adapters'
@@ -101,7 +102,8 @@ const AccountPayment = (props: Props) => {
       )}
       {!!props.cancelButtonLabel && (
         <Box2 direction="horizontal" centerChildren={true} gap="tiny" style={{alignSelf: 'flex-start'}}>
-          <Button
+          <WaitingButton
+            waitingKey={null}
             type="Danger"
             label={props.cancelButtonLabel}
             onClick={props.onCancel}

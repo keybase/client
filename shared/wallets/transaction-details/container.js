@@ -31,7 +31,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
-  onCancelPayment: () => dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID')})),
+  onCancelPayment: () =>
+    dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({

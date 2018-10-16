@@ -1,13 +1,16 @@
 // @flow
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import * as WalletConstants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/chat2'
+import * as WalletConstants from '../../../../constants/wallets'
+import * as WalletTypes from '../../../../constants/types/wallets'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as WalletsGen from '../../../../actions/wallets-gen'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
+  _paymentID: null,
   action: '',
   amount: '',
   balanceChange: '',
@@ -32,7 +35,8 @@ type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
-  const youAreSender = ownProps.message.author === state.config.username
+  const you = state.config.username
+  const youAreSender = ownProps.message.author === you
   switch (ownProps.message.type) {
     case 'sendPayment': {
       const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
@@ -40,11 +44,17 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
+
+      // find the other participant's username
+      const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+      const theirUsername = conv.participants.find(p => p !== you) || ''
+
       const pending = ['pending', 'cancelable'].includes(paymentInfo.status)
       const canceled = paymentInfo.status === 'canceled'
       const cancelable = paymentInfo.status === 'cancelable'
       const verb = pending || canceled ? 'sending' : 'sent'
       return {
+        _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${WalletConstants.balanceChangeSign(
@@ -52,7 +62,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.amountDescription
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
-        cancelButtonInfo: youAreSender && cancelable ? makeCancelButtonInfo(ownProps.message.author) : '',
+        cancelButtonInfo: youAreSender && cancelable ? makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: youAreSender && cancelable ? 'Cancel' : '',
         canceled,
         claimButtonLabel:
@@ -75,6 +85,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
       return {
+        _paymentID: null,
         action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
@@ -100,7 +111,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
-  onCancel: () => {}, // TODO cancel payment
+  _onCancel: (paymentID: ?WalletTypes.PaymentID) => {
+    if (paymentID) {
+      dispatch(WalletsGen.createCancelPayment({paymentID}))
+    }
+  },
   onClaim: () => {}, // TODO nav to wallets accept disclaimer flow
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
@@ -117,7 +132,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onCancel: dispatchProps.onCancel,
+  onCancel: () => dispatchProps._onCancel(stateProps._paymentID),
   onClaim: dispatchProps.onClaim,
   onSend: dispatchProps.onSend,
   pending: stateProps.pending,
