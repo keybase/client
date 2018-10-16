@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Icon, Meta, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemInfo} from '../common'
 
 type StillProps = StillCommonProps & {
   isDownloading?: boolean,
