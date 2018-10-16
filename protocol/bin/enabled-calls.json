@@ -81,6 +81,7 @@
   "keybase.1.device.checkDeviceNameFormat": {"promise": true},
   "keybase.1.device.deviceAdd": {"engineSaga": true},
   "keybase.1.device.deviceHistoryList": {"promise": true},
+  "keybase.1.device.dismissDeviceChangeNotifications":{"promise": true},
   "keybase.1.favorite.favoriteAdd": {"promise": true},
   "keybase.1.favorite.favoriteIgnore": {"promise": true},
   "keybase.1.git.createPersonalRepo": {"promise": true},

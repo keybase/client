@@ -80,10 +80,11 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
 
 const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
 
-const sendPayment = (state: TypedState) =>
+const sendPayment = (state: TypedState) => {
+  const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
-      amount: state.wallets.building.amount,
+      amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       // FIXME -- support other assets.
       asset: emptyAsset,
       from: state.wallets.builtPayment.from,
@@ -95,12 +96,14 @@ const sendPayment = (state: TypedState) =>
       toIsAccountID:
         state.wallets.building.recipientType !== 'keybaseUser' &&
         !Constants.isFederatedAddress(state.wallets.building.to),
-      worthAmount: '',
+      worthAmount: notXLM ? state.wallets.building.amount : state.wallets.builtPayment.worthAmount,
+      worthCurrency: state.wallets.builtPayment.worthCurrency,
     },
     Constants.sendPaymentWaitingKey
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
+  }
 
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(

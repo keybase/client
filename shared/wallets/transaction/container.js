@@ -17,7 +17,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   _you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
@@ -34,12 +34,19 @@ const mapDispatchToProps = (dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
+  let large = true
+  const memo = tx.note.stringValue()
+
+  if (yourRoleAndCounterparty.counterpartyType === 'otherAccount') {
+    // only large if there's a note
+    large = !!memo
+  }
   return {
     ...yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
-    memo: tx.note.stringValue(),
+    large,
+    memo,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),

@@ -73,6 +73,9 @@ type CheckDeviceNameFormatArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
+type DismissDeviceChangeNotificationsArg struct {
+}
+
 type CheckDeviceNameForUserArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Username   string `codec:"username" json:"username"`
@@ -90,6 +93,9 @@ type DeviceInterface interface {
 	DeviceAdd(context.Context, int) error
 	// Checks the device name format.
 	CheckDeviceNameFormat(context.Context, CheckDeviceNameFormatArg) (bool, error)
+	// Dismisses the notifications for a new or revoked device
+	// assuming this is not that device.
+	DismissDeviceChangeNotifications(context.Context) error
 	// Checks a given device against all of user's past devices,
 	// including those that predate a reset. It will also check a device name
 	// for proper formatting. Return null error on success, and a non-null
@@ -165,6 +171,17 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"dismissDeviceChangeNotifications": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissDeviceChangeNotificationsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.DismissDeviceChangeNotifications(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"checkDeviceNameForUser": {
 				MakeArg: func() interface{} {
 					var ret [1]CheckDeviceNameForUserArg
@@ -215,6 +232,13 @@ func (c DeviceClient) DeviceAdd(ctx context.Context, sessionID int) (err error) 
 // Checks the device name format.
 func (c DeviceClient) CheckDeviceNameFormat(ctx context.Context, __arg CheckDeviceNameFormatArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameFormat", []interface{}{__arg}, &res)
+	return
+}
+
+// Dismisses the notifications for a new or revoked device
+// assuming this is not that device.
+func (c DeviceClient) DismissDeviceChangeNotifications(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.device.dismissDeviceChangeNotifications", []interface{}{DismissDeviceChangeNotificationsArg{}}, nil)
 	return
 }
 

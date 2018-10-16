@@ -34,11 +34,12 @@ const Header = (props: HeaderProps) => (
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}
       </Kb.Text>
-      {props.assetType === 'XLM' && props.worthDescription && (
-        <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-          {'(APPROXIMATELY ' + props.worthDescription + ')'}
-        </Kb.Text>
-      )}
+      {props.assetType === 'XLM' &&
+        !!props.worthDescription && (
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+            {'(APPROXIMATELY ' + props.worthDescription + ')'}
+          </Kb.Text>
+        )}
     </Kb.Box2>
   </Kb.Box2>
 )

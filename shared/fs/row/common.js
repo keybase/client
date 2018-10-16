@@ -3,9 +3,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import {Box, Box2, ClickableBox} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemAction from '../common/path-item-action-container'
-import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
+import {PathItemIcon, PathItemAction, OpenInSystemFileManager} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,

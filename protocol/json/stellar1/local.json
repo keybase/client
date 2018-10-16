@@ -483,6 +483,14 @@
           "name": "worthInfo"
         },
         {
+          "type": "string",
+          "name": "worthAmount"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
           "type": {
             "type": "array",
             "items": "SendBannerLocal"

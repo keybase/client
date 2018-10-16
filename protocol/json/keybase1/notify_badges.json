@@ -82,6 +82,20 @@
         {
           "type": {
             "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "newDevices"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "revokedDevices"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "BadgeConversationInfo"
           },
           "name": "conversations"

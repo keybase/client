@@ -35,6 +35,8 @@ export type NotLoadingProps = {|
   transactionID?: string,
   you: string,
   yourRole: Types.Role,
+  // sending wallet to wallet we show the actual wallet and not your username
+  yourAccountName: string,
 |}
 export type Props =
   | NotLoadingProps
@@ -68,7 +70,7 @@ const Counterparty = (props: CounterpartyProps) => {
       <CounterpartyIcon
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        large={false}
+        large={props.counterpartyType !== 'otherAccount'}
         onShowProfile={props.onShowProfile}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
@@ -84,6 +86,29 @@ const Counterparty = (props: CounterpartyProps) => {
           props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
+  )
+}
+
+const YourAccount = props => {
+  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
+  return props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
+    <Counterparty
+      counterpartyType={props.counterpartyType}
+      counterparty={props.yourAccountName}
+      accountID={yourAccountID}
+      onShowProfile={() => {}}
+      counterpartyMeta=""
+    />
+  ) : (
+    <Kb.NameWithIcon
+      colorFollowing={true}
+      horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
+      username={props.you}
+      metaOne="You"
+      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+    />
   )
 }
 
@@ -122,20 +147,10 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: NotLoadingProps) => {
-  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
-  const you = (
-    <Kb.NameWithIcon
-      colorFollowing={true}
-      horizontal={true}
-      onClick={() => props.onShowProfile(props.you)}
-      underline={true}
-      username={props.you}
-      metaOne="You"
-      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
-    />
-  )
+  const you = <YourAccount {...props} />
+
   const counterparty = (
     <Counterparty
       accountID={counterpartyAccountID}
@@ -174,7 +189,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={true}
+          large={props.counterpartyType !== 'otherAccount' || !!props.memo}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
