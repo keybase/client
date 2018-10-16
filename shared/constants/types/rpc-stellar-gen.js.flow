@@ -145,9 +145,14 @@ export type MessageTypes = {|
   |},
 |}
 
+export const bundleAccountBundleVersion = {
+  v1: 1,
+}
+
 export const bundleAccountMode = {
   none: 0,
   user: 1,
+  mobile: 2,
 }
 
 export const bundleBundleVersion = {
@@ -209,11 +214,18 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, issuerVerifiedDomain: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
+export type AccountBundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accountID: AccountID, mode: AccountMode, signers?: ?Array<SecretKey>, name: String, isPrimary: Boolean}>
+export type AccountBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accountID: AccountID, signers?: ?Array<SecretKey>, name: String}>
+export type AccountBundleSecretVersioned = {version: 1, v1: ?AccountBundleSecretV1}
+export type AccountBundleVersion = 1 // V1_1
+
+export type AccountBundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, accountID: AccountID, mode: AccountMode}>
 export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID, unreadPayments: Int}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
   | 1 // USER_1
+  | 2 // MOBILE_2
 
 export type AccountReserve = $ReadOnly<{amount: String, description: String}>
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String, verifiedDomain: String, issuerName: String}>
@@ -239,6 +251,7 @@ export type BundleVisibleV1 = $ReadOnly<{revision: BundleRevision, prev: Hash, a
 export type ClaimSummary = $ReadOnly<{txID: TransactionID, txStatus: TransactionStatus, txErrMsg: String, dir: RelayDirection, toStellar: AccountID, to: Keybase1.UserVersion}>
 export type CurrencyLocal = $ReadOnly<{description: String, code: OutsideCurrencyCode, symbol: String, name: String}>
 export type CurrencySymbol = $ReadOnly<{symbol: String, ambigious: Boolean, postfix: Boolean}>
+export type EncryptedAccountBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerUserKeyGeneration}>
 export type EncryptedBundle = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerUserKeyGeneration}>
 export type EncryptedNote = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, sender: NoteRecipient, recipient?: ?NoteRecipient}>
 export type EncryptedRelaySecret = $ReadOnly<{v: Int, e: Bytes, n: Keybase1.BoxNonce, gen: Keybase1.PerTeamKeyGeneration}>

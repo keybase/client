@@ -39,7 +39,8 @@ protocol bundle {
 
   enum AccountMode {
     NONE_0,
-    USER_1 // Each of the user's devices has access to the keys
+    USER_1,  // Each of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices have access to the keys
   }
 
   // Server-visible attributes of an account.
@@ -75,6 +76,55 @@ protocol bundle {
     boolean isPrimary; // whether this is the primary account
     array<SecretKey> signers;
     string name;
+  }
+
+  // --------------------------------------------------------------------------
+  // AccountBundles
+  // --------------------------------------------------------------------------
+
+  // The same format as in chat1.EncryptedData (and KBFS, Git)
+  record EncryptedAccountBundle {
+    int   v;                           // Version of the CRYPT.
+    bytes e;                           // encrypted msgpacked AccountBundleSecretVersioned (output of secretbox)
+    keybase1.BoxNonce n;               // nonce
+    keybase1.PerUserKeyGeneration gen; // PUK generation that was used
+  }
+
+  // Version of the DATA.
+  enum AccountBundleVersion {
+    V1_1
+  }
+
+  variant AccountBundleSecretVersioned switch (AccountBundleVersion version) {
+    case V1 : AccountBundleSecretV1;
+  }
+
+  record AccountBundleVisibleV1 {
+    BundleRevision revision;
+    Hash prev; // SHA256 of previous msgpack(EncryptedAccountBundle)
+    AccountID accountID;
+    AccountMode mode;
+  }
+
+  record AccountBundleSecretV1 {
+    Hash visibleHash; // SHA256 of msgpack(AccountBundleVisibleV1)
+    AccountID accountID;
+    array<SecretKey> signers;
+    string name;
+  }
+
+  // Unversioned struct for local use only.
+  record AccountBundle {
+    BundleRevision revision;
+    Hash prev;
+    // SHA256 of this msgpack(EncryptedBundle)
+    // Not serialized. Only set if this bundle was decrypted.
+    Hash ownHash;
+    AccountID accountID;
+    AccountMode mode;
+    array<SecretKey> signers;
+    string name;
+    boolean isPrimary; // whether this is the primary account
   }
 
 }
