@@ -98,6 +98,9 @@ const load = () => {
     ))
     .addDecorator(Sb.scrollViewDecorator)
 
+  // Don't add new configs except for new counterparty types -- change
+  // addConfigs instead.
+
   addConfigs(stories, 'Keybase User', config => (
     <Transaction {...config} counterparty="paul" counterpartyType="keybaseUser" />
   ))
