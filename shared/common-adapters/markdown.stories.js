@@ -3,7 +3,8 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from './index'
-import Markdown, {parserFromMeta, MarkdownMeta} from './markdown'
+import Markdown, {type MarkdownMeta} from './markdown'
+import {parserFromMeta} from './markdown.shared'
 import OriginalParser from '../markdown/parser'
 import RandomSeed from 'random-seed'
 import RandExp from 'randexp'
@@ -120,6 +121,7 @@ this is a code block with two newline above\`\`\`
 
 const mockMeta = {
   mentionsChannelName: I.Map({
+    // $ForceType
     general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
   }),
   mentionsChannel: 'all',
@@ -282,7 +284,7 @@ class ShowPreview extends React.Component<
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({children, simple, meta}) =>
+const MarkdownWithAst = ({children, simple, meta}: {children: any, simple: boolean, meta?: ?MarkdownMeta}) =>
   PERF_MODE ? (
     <Markdown simple={simple} meta={meta}>
       {children}
