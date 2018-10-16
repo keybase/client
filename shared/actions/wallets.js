@@ -191,6 +191,9 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
+      oldestUnread: payments.oldestUnread
+        ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
+        : Types.noPaymentID,
       paymentCursor: payments.cursor,
       payments: (payments.payments || [])
         .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
@@ -209,6 +212,9 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
       payments =>
         WalletsGen.createPaymentsReceived({
           accountID: action.payload.accountID,
+          oldestUnread: payments.oldestUnread
+            ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
+            : Types.noPaymentID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
             .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))

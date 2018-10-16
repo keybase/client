@@ -77,6 +77,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   linkExistingAccountError: '',
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
+  paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
