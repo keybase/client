@@ -386,12 +386,16 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 
 	// Find all conversations in our inbox
 	pagination := &chat1.Pagination{Num: idx.pageSize}
+	topicType := chat1.TopicType_CHAT
+	inboxQuery := &chat1.GetInboxQuery{
+		TopicType: &topicType,
+	}
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	// convID -> convIdx
 	convIdxMap := map[string]*chat1.ConversationIndex{}
 	for !pagination.Last {
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, nil, pagination)
+		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, inboxQuery, pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -480,8 +484,12 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	pagination := &chat1.Pagination{Num: idx.pageSize}
 	// convID -> stats
 	res = map[string]chat1.IndexSearchConvStats{}
+	topicType := chat1.TopicType_CHAT
+	inboxQuery := &chat1.GetInboxQuery{
+		TopicType: &topicType,
+	}
 	for !pagination.Last {
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, nil, pagination)
+		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, inboxQuery, pagination)
 		if err != nil {
 			return nil, err
 		}
