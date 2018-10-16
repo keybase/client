@@ -39,12 +39,6 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       statusDetail: 'Horizon error',
       onCancelPayment: Sb.action('onCancelPayment'),
     },
-    {
-      status: 'error',
-      statusDetail: 'Horizon error',
-      onCancelPayment: Sb.action('onCancelPayment'),
-      onRetryPayment: Sb.action('onRetryPayment'),
-    },
   ]
   const memosAndTimes = [
     // No memo.
