@@ -550,3 +550,26 @@ func TestGetTeamIDRPC(t *testing.T) {
 		require.Equal(t, teamObj.ID, res)
 	}
 }
+
+func TestPhoneNumberImpteam(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	phoneNo := RandomPhoneNumber()
+	displayName := fmt.Sprintf("%s,%s@phone", fus[0].Username, phoneNo)
+	canonicalDisplayName := fmt.Sprintf("%s@phone,%s", phoneNo, fus[0].Username)
+
+	teamObj, teamName, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G,
+		displayName, false /* public */)
+
+	require.NoError(t, err)
+	spew.Dump(teamName, impTeamName)
+	teamDisplay, err := teamObj.ImplicitTeamDisplayNameString(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, canonicalDisplayName, teamDisplay)
+	formatName, err := FormatImplicitTeamDisplayName(context.TODO(), tcs[0].G, impTeamName)
+	require.NoError(t, err)
+	require.Equal(t, canonicalDisplayName, formatName)
+
+	fmt.Printf("Team id is: %s\n", teamObj.ID.String())
+}

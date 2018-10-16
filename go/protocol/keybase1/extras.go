@@ -2293,7 +2293,7 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 	case "seitan_invite_token":
 		return NewTeamInviteTypeDefault(TeamInviteCategory_SEITAN), nil
 	default:
-		if isDev && s == "rooter" {
+		if isDev && (s == "rooter" || s == "phone") {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 		}
 		if isDev && s == "phone" {
