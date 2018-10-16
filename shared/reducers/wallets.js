@@ -75,31 +75,61 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     }
     case WalletsGen.setBuildingAmount:
       const {amount} = action.payload
-      return state.set('building', state.get('building').merge({amount}))
+      return state
+        .set(
+          'builtPayment',
+          state
+            .get('builtPayment')
+            .merge({amountErrMsg: '', amountFormatted: '', worthDescription: '', worthInfo: ''})
+        )
+        .set(
+          'builtRequest',
+          state.get('builtRequest').merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
+        )
+        .set('building', state.get('building').merge({amount}))
     case WalletsGen.setBuildingCurrency:
       const {currency} = action.payload
-      return state.set('building', state.get('building').merge({currency}))
+      return state
+        .set('builtPayment', Constants.makeBuiltPayment())
+        .set('building', state.get('building').merge({currency}))
     case WalletsGen.setBuildingFrom:
       const {from} = action.payload
-      return state.set('building', state.get('building').merge({from}))
+      return state
+        .set('builtPayment', Constants.makeBuiltPayment())
+        .set('building', state.get('building').merge({from}))
     case WalletsGen.setBuildingIsRequest:
       const {isRequest} = action.payload
-      return state.set('building', state.get('building').merge({isRequest}))
+      return state
+        .set('builtPayment', Constants.makeBuiltPayment())
+        .set('builtRequest', Constants.makeBuiltRequest())
+        .set('building', state.get('building').merge({isRequest}))
     case WalletsGen.setBuildingPublicMemo:
       const {publicMemo} = action.payload
-      return state.set('building', state.get('building').merge({publicMemo}))
+      return state
+        .set('builtPayment', state.get('builtPayment').merge({publicMemoErrMsg: new HiddenString('')}))
+        .set('building', state.get('building').merge({publicMemo}))
     case WalletsGen.setBuildingRecipientType:
       const {recipientType} = action.payload
-      return state.set('building', state.get('building').merge({recipientType}))
+      return state
+        .set('builtPayment', Constants.makeBuiltPayment())
+        .set('building', state.get('building').merge({recipientType}))
     case WalletsGen.setBuildingSecretNote:
       const {secretNote} = action.payload
-      return state.set('building', state.get('building').merge({secretNote}))
+      return state
+        .set('builtPayment', state.get('builtPayment').merge({secretNoteErrMsg: new HiddenString('')}))
+        .set('builtRequest', state.get('builtRequest').merge({secretNoteErrMsg: new HiddenString('')}))
+        .set('building', state.get('building').merge({secretNote}))
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
-      return state.set('building', state.get('building').merge({to}))
+      return state
+        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: '', toUsername: ''}))
+        .set('builtRequest', state.get('builtRequest').merge({toErrMsg: ''}))
+        .set('building', state.get('building').merge({to}))
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
-      return state.set('building', state.get('building').merge({sendAssetChoices}))
+      return state
+        .set('builtPayment', Constants.makeBuiltPayment())
+        .set('building', state.get('building').merge({sendAssetChoices}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,

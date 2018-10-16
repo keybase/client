@@ -24,30 +24,36 @@ import {isMobile} from '../constants/platform'
 
 const build = (state: TypedState, action: any) =>
   (state.wallets.building.isRequest
-    ? RPCStellarTypes.localBuildRequestLocalRpcPromise({
-        amount: state.wallets.building.amount,
-        currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-        secretNote: state.wallets.building.secretNote.stringValue(),
-        to: state.wallets.building.to,
-      }).then(build =>
+    ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
+        {
+          amount: state.wallets.building.amount,
+          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+          secretNote: state.wallets.building.secretNote.stringValue(),
+          to: state.wallets.building.to,
+        },
+        Constants.buildPaymentWaitingKey
+      ).then(build =>
         WalletsGen.createBuiltRequestReceived({
           build: Constants.buildRequestResultToBuiltRequest(build),
           forBuilding: state.wallets.building,
         })
       )
-    : RPCStellarTypes.localBuildPaymentLocalRpcPromise({
-        amount: state.wallets.building.amount,
-        currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-        fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
-        from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
-        fromSeqno: '',
-        publicMemo: state.wallets.building.publicMemo.stringValue(),
-        secretNote: state.wallets.building.secretNote.stringValue(),
-        to: state.wallets.building.to,
-        toIsAccountID:
-          state.wallets.building.recipientType !== 'keybaseUser' &&
-          !Constants.isFederatedAddress(state.wallets.building.to),
-      }).then(build =>
+    : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
+        {
+          amount: state.wallets.building.amount,
+          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+          fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
+          from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
+          fromSeqno: '',
+          publicMemo: state.wallets.building.publicMemo.stringValue(),
+          secretNote: state.wallets.building.secretNote.stringValue(),
+          to: state.wallets.building.to,
+          toIsAccountID:
+            state.wallets.building.recipientType !== 'keybaseUser' &&
+            !Constants.isFederatedAddress(state.wallets.building.to),
+        },
+        Constants.buildPaymentWaitingKey
+      ).then(build =>
         WalletsGen.createBuiltPaymentReceived({
           build: Constants.buildPaymentResultToBuiltPayment(build),
           forBuilding: state.wallets.building,

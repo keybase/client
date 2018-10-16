@@ -8,10 +8,11 @@ import {compose, connect, setDisplayName} from '../../../util/container'
 const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   return {
-    isRequest,
     disabled: !(isRequest
       ? state.wallets.builtRequest.readyToRequest
       : state.wallets.builtPayment.readyToSend),
+    isRequest,
+    waitingKey: Constants.buildPaymentWaitingKey,
     worthDescription: isRequest
       ? state.wallets.builtRequest.worthDescription
       : state.wallets.builtPayment.worthDescription,
@@ -36,9 +37,10 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (s, d, o) => ({
   disabled: s.disabled,
-  worthDescription: s.worthDescription,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,
   onClickSend: s.isRequest ? undefined : d.onClickSend,
+  waitingKey: s.waitingKey,
+  worthDescription: s.worthDescription,
 })
 
 export default compose(

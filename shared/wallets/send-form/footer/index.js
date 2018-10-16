@@ -7,6 +7,7 @@ type Props = {
   disabled?: boolean,
   onClickRequest?: Function,
   onClickSend?: Function,
+  waitingKey: string,
   worthDescription?: string,
 }
 
@@ -55,8 +56,9 @@ const Footer = (props: Props) => (
           />
         )}
         {!!props.onClickSend && (
-          <Kb.Button
+          <Kb.WaitingButton
             type="Wallet"
+            waitingKey={props.waitingKey}
             label="Send"
             onClick={props.onClickSend}
             disabled={props.disabled}
