@@ -189,7 +189,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={props.counterpartyType !== 'otherAccount' || !!props.memo}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""

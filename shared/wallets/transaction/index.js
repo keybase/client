@@ -279,9 +279,8 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  large: boolean,
-  // Ignored if yourRole is receiverOnly and counterpartyType is
-  // stellarPublicKey.
+  // Ignored if counterpartyType is stellarPublicKey and yourRole is
+  // receiverOnly.
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
@@ -297,9 +296,29 @@ export type Props = {|
 |}
 
 export const Transaction = (props: Props) => {
+  let large
+  let showMemo
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      large = true
+      showMemo = true
+      break
+    case 'stellarPublicKey':
+      large = true
+      showMemo = props.yourRole !== 'receiverOnly'
+      break
+    case 'otherAccount':
+      large = !!props.memo
+      showMemo = props.memo
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      return null
+  }
   const pending = !props.timestamp || props.status !== 'completed'
-  const showMemo =
-    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
   const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
   return (
@@ -309,7 +328,7 @@ export const Transaction = (props: Props) => {
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            large={props.large}
+            large={large}
             onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
@@ -320,7 +339,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
-              large={props.large}
+              large={large}
               pending={pending}
               yourRole={props.yourRole}
               counterparty={props.counterparty}

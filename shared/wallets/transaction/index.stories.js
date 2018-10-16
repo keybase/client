@@ -23,7 +23,6 @@ const longMemo =
 
 const addConfigs = (stories, namePrefix, storyFn) => {
   const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
-  const sizes = [{large: true}, {large: false}]
   const statuses = [
     {
       status: 'completed',
@@ -58,35 +57,32 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
   roles.forEach(r => {
-    sizes.forEach(s => {
-      stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
-        const components = []
-        let first = true
-        statuses.forEach(st => {
-          first = false
-          const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
-          const localReadStates = first ? readStates : readStates.slice(0, 1)
-          localMemosAndTimes.forEach(mt => {
-            localReadStates.forEach(rs => {
-              components.push(
-                storyFn({
-                  key: components.length,
-                  ...r,
-                  ...s,
-                  ...st,
-                  ...mt,
-                  ...rs,
-                  onCancelPaymentWaitingKey: '',
-                  onSelectTransaction: Sb.action('onSelectTransaction'),
-                  onShowProfile: Sb.action('onShowProfile'),
-                  selectableText: false,
-                })
-              )
-            })
+    stories.add(`${namePrefix} (${r.yourRole})`, () => {
+      const components = []
+      let first = true
+      statuses.forEach(st => {
+        first = false
+        const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
+        const localReadStates = first ? readStates : readStates.slice(0, 1)
+        localMemosAndTimes.forEach(mt => {
+          localReadStates.forEach(rs => {
+            components.push(
+              storyFn({
+                key: components.length,
+                ...r,
+                ...st,
+                ...mt,
+                ...rs,
+                onCancelPaymentWaitingKey: '',
+                onSelectTransaction: Sb.action('onSelectTransaction'),
+                onShowProfile: Sb.action('onShowProfile'),
+                selectableText: false,
+              })
+            )
           })
         })
-        return components
       })
+      return components
     })
   })
 }

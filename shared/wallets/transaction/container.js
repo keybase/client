@@ -34,18 +34,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
-  let large = true
   const memo = tx.note.stringValue()
-
-  if (yourRoleAndCounterparty.counterpartyType === 'otherAccount') {
-    // only large if there's a note
-    large = !!memo
-  }
   return {
     ...yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    large,
     memo,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
