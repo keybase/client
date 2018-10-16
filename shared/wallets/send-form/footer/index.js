@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
 
 type Props = {
+  calculating: boolean,
   disabled?: boolean,
   onClickRequest?: Function,
   onClickSend?: Function,
@@ -21,11 +22,17 @@ const Footer = (props: Props) => (
       fullWidth={true}
       style={styles.background}
     >
-      {!!props.worthDescription && (
+      {(!!props.worthDescription || props.calculating) && (
         <Kb.Box2 direction="horizontal">
-          <Kb.Text style={styles.worthDescription} type="BodySmall">
-            This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
-          </Kb.Text>
+          {props.worthDescription ? (
+            <Kb.Text style={styles.worthDescription} type="BodySmall">
+              This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+            </Kb.Text>
+          ) : (
+            <Kb.Text style={styles.worthDescription} type="BodySmallItalic">
+              Calculating...
+            </Kb.Text>
+          )}
           {/* <Kb.Icon
             type="iconfont-question-mark"
             color={globalColors.black_20}

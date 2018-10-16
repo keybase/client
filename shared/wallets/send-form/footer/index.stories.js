@@ -11,8 +11,10 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const common = {
+  calculating: false,
   disabled: false,
   onClickSend: Sb.action('onClickSend'),
+  waitingKey: 'wallets:buildPayment',
 }
 
 const onClickRequest = Sb.action('onClickRequest')

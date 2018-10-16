@@ -8,6 +8,7 @@ import {compose, connect, setDisplayName} from '../../../util/container'
 const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   return {
+    calculating: !!state.wallets.building.amount,
     disabled: !(isRequest
       ? state.wallets.builtRequest.readyToRequest
       : state.wallets.builtPayment.readyToSend),
@@ -36,6 +37,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (s, d, o) => ({
+  calculating: s.calculating,
   disabled: s.disabled,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,
   onClickSend: s.isRequest ? undefined : d.onClickSend,
