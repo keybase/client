@@ -16,7 +16,6 @@ import {
   RenameAccountPopup,
 } from './wallet/settings/popups'
 import SendForm from './send-form/container'
-import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
 import ChooseAsset from './send-form/choose-asset/container'
 import WalletsList from './wallet-list/container'
@@ -48,13 +47,6 @@ const walletChildren = {
   },
   [Constants.sendReceiveFormRouteKey]: {
     children: {
-      [Constants.confirmFormRouteKey]: {
-        children: {},
-        component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
-      },
-      createNewAccount,
-      linkExisting,
       [Constants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,

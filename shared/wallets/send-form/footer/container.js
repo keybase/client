@@ -1,8 +1,6 @@
 // @flow
 import Footer from '.'
-import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
 const mapStateToProps = state => {
@@ -20,20 +18,11 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {onConfirm}) => ({
   onClickRequest: () => {
     dispatch(WalletsGen.createRequestPayment())
   },
-  onClickSend: () => {
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {},
-          selected: Constants.confirmFormRouteKey,
-        },
-      ])
-    )
-  },
+  onClickSend: onConfirm,
 })
 
 const mergeProps = (s, d, o) => ({

@@ -4,34 +4,28 @@ import Root from './root'
 import {SendBody, RequestBody} from './body/container'
 import LinkExisting from '../link-existing/container'
 import CreateNewAccount from '../create-account/container'
+import ChooseAsset from './choose-asset/container'
+import ConfirmForm from '../confirm-form/container'
 
 type FormProps = {|
   onClose: () => void,
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'link-existing' | 'create-new-account',
+  currentScreen: 'root' | 'link-existing' | 'create-new-account' | 'confirm' | 'choose-asset',
 }
 
 class SendForm extends React.PureComponent<FormProps, SendFormState> {
   state = {
     currentScreen: 'root',
   }
-  linkExisting = () => {
-    this.setState(() => ({
-      currentScreen: 'link-existing',
-    }))
-  }
-  createNewAccount = () => {
-    this.setState(() => ({
-      currentScreen: 'create-new-account',
-    }))
-  }
-  backToRoot = () => {
-    this.setState(() => ({
-      currentScreen: 'root',
-    }))
-  }
+  _setCurrentScreen = currentScreen =>
+    this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
+  linkExisting = () => this._setCurrentScreen('link-existing')
+  createNewAccount = () => this._setCurrentScreen('create-new-account')
+  chooseAsset = () => this._setCurrentScreen('choose-asset')
+  confirm = () => this._setCurrentScreen('confirm')
+  backToRoot = () => this._setCurrentScreen('root')
   render() {
     switch (this.state.currentScreen) {
       case 'root':
@@ -41,6 +35,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
               isProcessing={undefined /* TODO */}
               onLinkAccount={this.linkExisting}
               onCreateNewAccount={this.createNewAccount}
+              onConfirm={this.confirm}
             />
           </Root>
         )
@@ -64,6 +59,10 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
             routeProps={null}
           />
         )
+      case 'choose-asset':
+        return <ChooseAsset />
+      case 'confirm':
+        return <ConfirmForm onBack={this.backToRoot} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (currentScreen: empty) => any

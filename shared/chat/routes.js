@@ -21,7 +21,6 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
-import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
 import ChooseAsset from '../wallets/send-form/choose-asset/container'
 
@@ -104,11 +103,6 @@ const chatChildren = {
   },
   [WalletConstants.sendReceiveFormRouteKey]: {
     children: {
-      [WalletConstants.confirmFormRouteKey]: {
-        children: {},
-        component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,

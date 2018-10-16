@@ -30,14 +30,13 @@ const mapStateToProps = state => {
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
     waitingKey: Constants.sendPaymentWaitingKey,
-    yourUsername: state.config.username,
     worthDescription: built.worthDescription,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, {onBack}) => ({
+  onBack,
+  onClose: onBack,
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 

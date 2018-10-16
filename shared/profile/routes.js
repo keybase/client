@@ -18,7 +18,6 @@ import ShowcaseTeamOffer from './showcase-team-offer/container'
 import ControlledRolePicker from '../teams/role-picker/controlled-container'
 import * as WalletConstants from '../constants/wallets'
 import SendForm from '../wallets/send-form/container'
-import ConfirmForm from '../wallets/confirm-form/container'
 import ChooseAsset from '../wallets/send-form/choose-asset/container'
 
 const proveEnterUsername = makeRouteDefNode({
@@ -94,11 +93,6 @@ const profileRoute = makeRouteDefNode({
     },
     [WalletConstants.sendReceiveFormRouteKey]: {
       children: {
-        [WalletConstants.confirmFormRouteKey]: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
         [WalletConstants.chooseAssetFormRouteKey]: {
           children: {},
           component: ChooseAsset,
