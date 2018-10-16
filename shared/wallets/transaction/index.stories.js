@@ -89,11 +89,13 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 }
 
 const load = () => {
-  const stories = Sb.storiesOf('Wallets/Transaction', module).addDecorator(story => (
-    <Box2 direction="vertical" style={{maxWidth: 520}}>
-      {story()}
-    </Box2>
-  ))
+  const stories = Sb.storiesOf('Wallets/Transaction', module)
+    .addDecorator(story => (
+      <Box2 direction="vertical" style={{maxWidth: 520}}>
+        {story()}
+      </Box2>
+    ))
+    .addDecorator(Sb.scrollViewDecorator)
 
   addConfigs(stories, 'Keybase User', config => (
     <Transaction
