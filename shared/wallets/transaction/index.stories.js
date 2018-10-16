@@ -47,7 +47,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     },
   ]
   const memosAndTimes = [
-    {memo: shortMemo, timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
+    // No memo.
+    {memo: '', timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
     {memo: longMemo, timestamp: lastWeek, amountUser: '$15.65', amountXLM: '42.535091 XLM'},
     // No display currency.
     {memo: singleEmojiMemo, timestamp: beforeLastWeek, amountUser: '', amountXLM: '19.4567588 XLM'},
