@@ -33,9 +33,19 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.NotZero(t, boxed.Enc.N)
 	require.Equal(t, gen, boxed.Enc.Gen)
 
-	//	unboxed, err := AccountUnbox(boxed)
-	//	require.NoError(t, err)
+	bundle, version := testDecodeAndUnbox(t, boxed.EncB64, boxed.VisB64, seed)
+	require.NotNil(t, bundle)
+	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
+	require.Len(t, bundle.Signers, 1)
+	require.Equal(t, bundle.Signers[0], b.signers[0])
+}
 
+func testDecodeAndUnbox(t *testing.T, encB64 string, visB64 string, seed libkb.PerUserKeySeed) (stellar1.AccountBundle, stellar1.AccountBundleVersion) {
+	encBundle, hash, err := decode(encB64)
+	require.NoError(t, err)
+	acctBundle, version, err := unbox(encBundle, hash, visB64, seed)
+	require.NoError(t, err)
+	return acctBundle, version
 }
 
 func mkPuk(t *testing.T, gen int) (libkb.PerUserKeySeed, keybase1.PerUserKeyGeneration) {

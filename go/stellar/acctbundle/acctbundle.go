@@ -1,8 +1,10 @@
 package acctbundle
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -117,4 +119,104 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	return res, resB64, nil
 }
 
-func accountDecrypt(encryptedB64 string) {}
+func decode(encryptedB64 string) (stellar1.EncryptedAccountBundle, stellar1.Hash, error) {
+	cipherpack, err := base64.StdEncoding.DecodeString(encryptedB64)
+	if err != nil {
+		return stellar1.EncryptedAccountBundle{}, stellar1.Hash{}, err
+	}
+	encHash := sha256.Sum256(cipherpack)
+	var enc stellar1.EncryptedAccountBundle
+	if err = libkb.MsgpackDecode(&enc, cipherpack); err != nil {
+		return stellar1.EncryptedAccountBundle{}, stellar1.Hash{}, err
+	}
+	return enc, encHash[:], nil
+}
+
+func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64 string, puk libkb.PerUserKeySeed) (stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
+	versioned, err := decrypt(encBundle, puk)
+	if err != nil {
+		return stellar1.AccountBundle{}, 0, err
+	}
+	version, err := versioned.Version()
+	if err != nil {
+		return stellar1.AccountBundle{}, 0, err
+	}
+
+	var bundleOut stellar1.AccountBundle
+	switch version {
+	case stellar1.AccountBundleVersion_V1:
+		visiblePack, err := base64.StdEncoding.DecodeString(visB64)
+		if err != nil {
+			return stellar1.AccountBundle{}, 0, err
+		}
+		visibleHash := sha256.Sum256(visiblePack)
+		secretV1 := versioned.V1()
+		if !hmac.Equal(visibleHash[:], secretV1.VisibleHash) {
+			return stellar1.AccountBundle{}, 0, errors.New("corrupted bundle: visible hash mismatch")
+		}
+		var visibleV1 stellar1.AccountBundleVisibleV1
+		err = libkb.MsgpackDecode(&visibleV1, visiblePack)
+		if err != nil {
+			return stellar1.AccountBundle{}, 0, err
+		}
+		bundleOut, err = merge(secretV1, visibleV1)
+		if err != nil {
+			return stellar1.AccountBundle{}, 0, err
+		}
+	default:
+		return stellar1.AccountBundle{}, 0, err
+	}
+
+	bundleOut.OwnHash = hash
+	if len(bundleOut.OwnHash) == 0 {
+		return stellar1.AccountBundle{}, 0, errors.New("stellar account bundle missing own hash")
+	}
+
+	// XXX
+	// if err = bundleOut.CheckInvariants(); err != nil {
+	//	return stellar1.AccountBundle{}, 0, err
+	// }
+
+	return bundleOut, version, nil
+}
+
+func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed) (stellar1.AccountBundleSecretVersioned, error) {
+	var empty stellar1.AccountBundleSecretVersioned
+	if encBundle.V != 1 {
+		return empty, errors.New("invalid stellar secret account bundle encryption version")
+	}
+
+	// Derive key
+	reason := libkb.DeriveReasonPUKStellarBundle
+	symmetricKey, err := puk.DeriveSymmetricKey(reason)
+	if err != nil {
+		return empty, err
+	}
+
+	// Secretbox
+	clearpack, ok := secretbox.Open(nil, encBundle.E,
+		(*[libkb.NaclDHNonceSize]byte)(&encBundle.N),
+		(*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
+	if !ok {
+		return empty, errors.New("stellar bundle secret box open failed")
+	}
+
+	// Msgpack (inner)
+	var bver stellar1.AccountBundleSecretVersioned
+	err = libkb.MsgpackDecode(&bver, clearpack)
+	if err != nil {
+		return empty, err
+	}
+	return bver, nil
+}
+
+func merge(secret stellar1.AccountBundleSecretV1, visible stellar1.AccountBundleVisibleV1) (stellar1.AccountBundle, error) {
+	return stellar1.AccountBundle{
+		Revision:  visible.Revision,
+		Prev:      visible.Prev,
+		AccountID: visible.AccountID,
+		Mode:      visible.Mode,
+		Signers:   secret.Signers,
+		Name:      secret.Name,
+	}, nil
+}
