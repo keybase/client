@@ -28,11 +28,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onRequest: () => {
     const accountID = routeProps.get('accountID')
     dispatch(WalletsGen.createSetBuildingFrom({from: accountID}))
+    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest: true}))
     // TODO DESKTOP-7961 navigate to separate receive form
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [...(isMobile ? [settingsTab, walletsSettingsTab] : [walletsTab]), 'wallet'],
-        path: [{props: {isRequest: true}, selected: Constants.sendReceiveFormRouteKey}],
+        path: [{props: {}, selected: Constants.sendReceiveFormRouteKey}],
       })
     )
   },
