@@ -1211,6 +1211,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.SecretNoteErrMsg)
 		require.Equal(t, "", bres.PublicMemoErrMsg)
 		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, "", bres.AmountFormatted)
+		require.Equal(t, "USD", bres.WorthCurrency)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		requireBannerSet(t, bres.DeepCopy().Banners, nil)
 	}
@@ -1285,6 +1287,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55", bres.WorthDescription)
+	require.Equal(t, "", bres.AmountFormatted) // since no currency was specified
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -1435,6 +1438,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
+	require.Equal(t, "$8.50", bres.AmountFormatted)
+	require.Equal(t, "26.7020180", bres.WorthAmount)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	t.Logf("using `fromDefaultAccount`")

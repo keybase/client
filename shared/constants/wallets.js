@@ -45,6 +45,8 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   secretNoteErrMsg: new HiddenString(''),
   toErrMsg: '',
   toUsername: '',
+  worthAmount: '',
+  worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
 })
@@ -98,6 +100,8 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
     toUsername: b.toUsername,
+    worthAmount: b.worthAmount,
+    worthCurrency: b.worthCurrency,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })

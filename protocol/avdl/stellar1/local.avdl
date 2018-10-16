@@ -294,8 +294,17 @@ protocol local {
     // Set with `worthDescription`
     // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"
     string worthInfo;
+    // Set with `worthDescription`
+    // Amount of local (non-XLM) currency in XLM
+    // Example: "5.0992345"
+    string worthAmount;
+    // Set with `worthDescription`
+    // Local currency if not XLM
+    string worthCurrency;
+
     array<SendBannerLocal> banners;
-    // Optional. Formatted input amount, if local currency is selected.
+    // Optional. Formatted input amount, if local currency is selected,
+    // so the GUI doesn't have to call FormatCurrency separately
     string amountFormatted;
   }
   record SendBannerLocal {
