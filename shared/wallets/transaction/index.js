@@ -292,6 +292,9 @@ export type Props = {|
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
+  // onChat and onShowProfile are used only when counterpartyType ===
+  // 'keybaseUser'.
+  onChat: string => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
   readState: Types.ReadState,
@@ -365,7 +368,7 @@ export const Transaction = (props: Props) => {
                   label="Chat"
                   small={true}
                   style={styles.chatButton}
-                  onClick={() => {}}
+                  onClick={() => props.onChat(props.counterparty)}
                 />
               )}
               {props.onCancelPayment && (

@@ -38,6 +38,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
+  // TODO: Add
+  onChat: (username: string) => {},
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -61,6 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onBack: dispatchProps.navigateUp,
     onCancelPayment: tx.statusSimplified === 'cancelable' ? dispatchProps.onCancelPayment : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),

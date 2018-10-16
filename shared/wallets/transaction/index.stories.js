@@ -69,6 +69,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                 ...mt,
                 ...rs,
                 onCancelPaymentWaitingKey: '',
+                onChat: Sb.action('onChat'),
                 onSelectTransaction: Sb.action('onSelectTransaction'),
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,

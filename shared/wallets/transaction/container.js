@@ -28,7 +28,9 @@ const mapDispatchToProps = dispatch => ({
         },
       ])
     ),
-  _onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  // TODO: Add
+  onChat: (username: string) => {},
+  onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -43,9 +45,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onChat: dispatchProps.onChat,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
-    onShowProfile: dispatchProps._onShowProfile,
+    onShowProfile: dispatchProps.onShowProfile,
     readState: tx.readState,
     selectableText: false,
     status: tx.statusSimplified,
