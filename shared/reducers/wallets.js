@@ -52,7 +52,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrencyReceived:
       return state
         .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        .update('building',  b => b.merge({currency: action.payload.currency.code}))
+        .update('building', b => b.merge({currency: action.payload.currency.code}))
     case WalletsGen.secretKeyReceived:
       return state
         .set('exportedSecretKey', action.payload.secretKey)
