@@ -71,7 +71,7 @@ class Search extends React.Component<SearchProps, SearchState> {
           </Kb.Box2>
         </ParticipantsRow>
         {this.state.displayResultsList && (
-          <Kb.FloatingBox attachTo={this._getRef} position="top center">
+          <Kb.FloatingBox attachTo={this._getRef} position="top center" propagateOutsideClicks={true}>
             <Kb.Box2 direction="vertical" style={styles.resultsFloatingContainer}>
               <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
                 <ResultsList
