@@ -55,6 +55,7 @@ func filterPubsubdItems(items []gregor1.ItemAndMetadata) (res []gregor1.ItemAndM
 		categoryStr := i.Category().String()
 		if !strings.HasPrefix(categoryStr, "user.") &&
 			!strings.HasPrefix(categoryStr, "stellar.") &&
+			!strings.HasPrefix(categoryStr, "device.") &&
 			!strings.HasPrefix(categoryStr, "home.") {
 			res = append(res, i)
 		}
