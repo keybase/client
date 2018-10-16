@@ -37,5 +37,5 @@ type AccountBoxResult struct {
 // part is packed and encoded, the secret part is encrypted, packed, and
 // encoded.
 func (a *AccountBundle) Box(pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AccountBoxResult, error) {
-	return nil, nil
+	return &AccountBoxResult{}, nil
 }
