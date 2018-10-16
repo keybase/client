@@ -269,6 +269,7 @@ export const constantsStatusCode = {
   scstellarbadprev: 3106,
   scstellarwrongprimary: 3107,
   scstellarunsupportedcurrency: 3108,
+  scstellarneeddisclaimer: 3109,
   scnistwrongsize: 3201,
   scnistbadmode: 3202,
   scnisthashwrongsize: 3203,

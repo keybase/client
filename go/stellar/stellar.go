@@ -34,6 +34,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	if !loggedInUsername.IsValid() {
 		return false, fmt.Errorf("could not get logged-in username")
 	}
+	perUserKeyUpgradeSoft(ctx, g, "create-wallet")
 	clearBundle, err := bundle.NewInitialBundle(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
 		return false, err
@@ -62,45 +63,56 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	return true, nil
 }
 
+type CreateWalletGatedResult struct {
+	JustCreated        bool // whether the user's wallet was created by this call
+	HasWallet          bool // whether the user now has a wallet
+	AcceptedDisclaimer bool // whether the user has accepted the disclaimer
+}
+
 // CreateWalletGated may create a wallet for the user.
-// Taking into account settings from the server and env.
+// Taking into account settings from the server.
 // It should be speedy to call repeatedly _if_ the user gets a wallet.
-// `hasWallet` returns whether the user has by the time this call returns.
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (justCreated, hasWallet bool, err error) {
+func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateWalletGatedResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
 	defer func() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: (justCreated:%v, hasWallet:%v, err:%v)", justCreated, hasWallet, err != nil)
+		g.Log.CDebugf(ctx, "CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
 	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
-		return false, false, err
+		return res, err
 	}
 	if getGlobal(g).CachedHasWallet(ctx, meUV) {
 		g.Log.CDebugf(ctx, "CreateWalletGated: local cache says we already have a wallet")
-		return false, true, nil
+		return CreateWalletGatedResult{
+			JustCreated:        false,
+			HasWallet:          true,
+			AcceptedDisclaimer: true, // because it should be impossible to have created a wallet without accepting.
+		}, nil
 	}
-	shouldCreate, hasWallet, err := remote.ShouldCreate(ctx, g)
+	scr, err := remote.ShouldCreate(ctx, g)
 	if err != nil {
-		return false, false, err
+		return res, err
 	}
-	if hasWallet {
+	res.HasWallet = scr.HasWallet
+	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
+	if scr.HasWallet {
 		g.Log.CDebugf(ctx, "CreateWalletGated: server says we already have a wallet")
 		getGlobal(g).InformHasWallet(ctx, meUV)
-		return false, hasWallet, nil
+		return res, nil
 	}
-	if !shouldCreate {
+	if !scr.ShouldCreate {
 		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
-		return false, hasWallet, nil
+		return res, nil
 	}
-	if !g.Env.GetAutoWallet() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: disabled by env setting")
-		return false, hasWallet, nil
-	}
-	justCreated, err = CreateWallet(ctx, g)
+	justCreated, err := CreateWallet(ctx, g)
 	if err != nil {
-		return false, hasWallet, err
+		return res, nil
 	}
-	return justCreated, true, nil
+	res.JustCreated = justCreated
+	if justCreated {
+		res.HasWallet = true
+	}
+	return res, nil
 }
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
@@ -112,7 +124,7 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, _, err = CreateWalletGated(ctx, g)
+	_, err = CreateWalletGated(ctx, g)
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -1413,4 +1425,16 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
 
 	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
+	m := libkb.NewMetaContext(ctx, g)
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
+	}
 }

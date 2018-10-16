@@ -38,7 +38,8 @@ func (c *CmdWalletCancelRequest) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdWalletCancelRequest) Run() error {
+func (c *CmdWalletCancelRequest) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

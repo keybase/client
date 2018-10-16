@@ -178,6 +178,7 @@ const (
 	StatusCode_SCStellarBadPrev                   StatusCode = 3106
 	StatusCode_SCStellarWrongPrimary              StatusCode = 3107
 	StatusCode_SCStellarUnsupportedCurrency       StatusCode = 3108
+	StatusCode_SCStellarNeedDisclaimer            StatusCode = 3109
 	StatusCode_SCNISTWrongSize                    StatusCode = 3201
 	StatusCode_SCNISTBadMode                      StatusCode = 3202
 	StatusCode_SCNISTHashWrongSize                StatusCode = 3203
@@ -372,6 +373,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStellarBadPrev":                   3106,
 	"SCStellarWrongPrimary":              3107,
 	"SCStellarUnsupportedCurrency":       3108,
+	"SCStellarNeedDisclaimer":            3109,
 	"SCNISTWrongSize":                    3201,
 	"SCNISTBadMode":                      3202,
 	"SCNISTHashWrongSize":                3203,
@@ -564,6 +566,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3106: "SCStellarBadPrev",
 	3107: "SCStellarWrongPrimary",
 	3108: "SCStellarUnsupportedCurrency",
+	3109: "SCStellarNeedDisclaimer",
 	3201: "SCNISTWrongSize",
 	3202: "SCNISTBadMode",
 	3203: "SCNISTHashWrongSize",
