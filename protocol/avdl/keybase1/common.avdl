@@ -301,9 +301,6 @@ protocol Common {
     user.
 
     For server trust assertion, we have to trust the server.
-
-    TODO: SocialAssertion is historical name for this type, but it's not
-    correct since we do phone/email assertions as well.
     */
   record SocialAssertion {
       string user;

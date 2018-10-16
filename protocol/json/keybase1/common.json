@@ -678,7 +678,7 @@
           "name": "service"
         }
       ],
-      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. It can either be a social\n    assertion (like \"facebook\" or \"twitter\") or a server trust assertion (like\n    \"phone\" or \"email\").\n\n    If the assertion is for social network, resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user.\n\n    For server trust assertion, we have to trust the server.\n\n    TODO: SocialAssertion is historical name for this type, but it's not\n    correct since we do phone/email assertions as well."
+      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. It can either be a social\n    assertion (like \"facebook\" or \"twitter\") or a server trust assertion (like\n    \"phone\" or \"email\").\n\n    If the assertion is for social network, resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user.\n\n    For server trust assertion, we have to trust the server."
     },
     {
       "type": "record",
