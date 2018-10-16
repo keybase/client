@@ -196,11 +196,9 @@ const loadPayments = (
         : Types.noPaymentID,
       paymentCursor: payments.cursor,
       payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
+        .map(elem => Constants.paymentResultToPayment(elem, 'history'))
         .filter(Boolean),
-      pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'pending', payments.oldestUnread))
-        .filter(Boolean),
+      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem, 'pending')).filter(Boolean),
     })
   )
 
@@ -217,7 +215,7 @@ const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePayments
             : Types.noPaymentID,
           paymentCursor: payments.cursor,
           payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
+            .map(elem => Constants.paymentResultToPayment(elem, 'history'))
             .filter(Boolean),
           pending: [],
         })

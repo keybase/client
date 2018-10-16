@@ -127,7 +127,6 @@ export type _Payment = {
   noteErr: HiddenString,
   publicMemo: HiddenString,
   publicMemoType: string,
-  readState: ReadState,
   section: PaymentSection,
   source: string,
   sourceAccountID: string,
@@ -140,6 +139,7 @@ export type _Payment = {
   targetType: string,
   time: ?number,
   txID: string,
+  unread: boolean,
   worth: string,
   worthCurrency: string,
 }

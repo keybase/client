@@ -40,9 +40,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
   const memo = tx.note.stringValue()
 
-  let readState = tx.readState
-  if (readState === 'unread' || readState === 'oldestUnread') {
+  let readState
+  if (tx.unread) {
     readState = tx.id === stateProps._oldestUnread ? 'oldestUnread' : 'read'
+  } else {
+    readState = 'read'
   }
 
   return {
