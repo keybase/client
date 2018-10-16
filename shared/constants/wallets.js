@@ -8,10 +8,18 @@ import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 
-const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
-const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
-const partyTypeToString = invert(RPCTypes.localParticipantType)
-const requestStatusToString = invert(RPCTypes.commonRequestStatus)
+const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
+  RPCTypes.localBalanceDelta
+)
+const statusSimplifiedToString: {
+  [key: RPCTypes.PaymentStatus]: $Keys<typeof RPCTypes.localPaymentStatus>,
+} = invert(RPCTypes.localPaymentStatus)
+const partyTypeToString: {
+  [key: RPCTypes.ParticipantType]: $Keys<typeof RPCTypes.localParticipantType>,
+} = invert(RPCTypes.localParticipantType)
+const requestStatusToString: {
+  [key: RPCTypes.RequestStatus]: $Keys<typeof RPCTypes.commonRequestStatus>,
+} = invert(RPCTypes.commonRequestStatus)
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
 const chooseAssetFormRouteKey = 'chooseAssetForm'

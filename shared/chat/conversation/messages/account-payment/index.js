@@ -1,10 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '../../../../common-adapters'
+import {
+  Box2,
+  Button,
+  Icon,
+  ProgressIndicator,
+  Text,
+  WithTooltip,
+  type IconType,
+} from '../../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
   globalMargins,
+  isMobile,
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
@@ -15,11 +24,14 @@ export type Props = {|
   amount: string,
   balanceChange: string,
   balanceChangeColor: string,
+  cancelButtonInfo: string,
+  cancelButtonLabel: string, // empty string if disabled
   canceled: boolean,
   claimButtonLabel: string, // empty string if disabled
   icon: IconType,
   loading: boolean,
   memo: string,
+  onCancel: () => void,
   onClaim: () => void,
   onSend: () => void,
   pending: boolean,
@@ -87,6 +99,27 @@ const AccountPayment = (props: Props) => {
           style={{alignSelf: 'flex-start'}}
         />
       )}
+      {!!props.cancelButtonLabel && (
+        <Box2 direction="horizontal" centerChildren={true} gap="tiny" style={{alignSelf: 'flex-start'}}>
+          <Button
+            type="Danger"
+            label={props.cancelButtonLabel}
+            onClick={props.onCancel}
+            small={true}
+            style={{alignSelf: 'flex-start'}}
+          />
+          {!isMobile && (
+            <WithTooltip
+              multiline={true}
+              position="top center"
+              text={props.cancelButtonInfo}
+              textStyle={styles.tooltipText}
+            >
+              <Icon type="iconfont-question-mark" />
+            </WithTooltip>
+          )}
+        </Box2>
+      )}
     </React.Fragment>
   )
   return (
@@ -116,6 +149,9 @@ const styles = styleSheetCreate({
     },
   }),
   purple: {color: globalColors.purple2},
+  tooltipText: platformStyles({
+    isElectron: {wordBreak: 'normal'},
+  }),
 })
 
 export default AccountPayment

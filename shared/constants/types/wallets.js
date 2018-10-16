@@ -114,7 +114,14 @@ export type _BuiltRequest = {
   worthInfo: string,
 }
 
-export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
+export type StatusSimplified =
+  | 'none'
+  | 'pending'
+  | 'cancelable'
+  | 'canceled'
+  | 'completed'
+  | 'error'
+  | 'unknown'
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen

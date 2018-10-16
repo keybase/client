@@ -6,8 +6,11 @@ import {globalColors} from '../../../../styles'
 import Payment from '.'
 
 const common = {
+  cancelButtonInfo: '',
+  cancelButtonLabel: '',
   canceled: false,
   claimButtonLabel: '',
+  onCancel: action('onCancel'),
   onClaim: action('onClaim'),
   onSend: action('onSend'),
   sendButtonLabel: '',
@@ -40,6 +43,12 @@ const sendingProps = {
 const claimableProps = {
   ...sendingProps,
   claimButtonLabel: 'Claim lumens worth $35',
+}
+
+const cancelableProps = {
+  ...sendingProps,
+  cancelButtonInfo: `This transaction can be canceled because barb does not yet have a wallet. Encourage barb to claim this and set up a wallet.`,
+  cancelButtonLabel: 'Cancel',
 }
 
 const requestCommon = {
@@ -96,6 +105,7 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
     .add('Sent', () => <Payment {...sentProps} />)
     .add('Sending', () => <Payment {...sendingProps} />)
+    .add(`Relay from sender's perspective`, () => <Payment {...cancelableProps} />)
     .add(`Relay from recipient's perspective`, () => <Payment {...claimableProps} />)
     .add('You request', () => <Payment {...youRequestProps} />)
     .add('They request', () => <Payment {...theyRequestProps} />)

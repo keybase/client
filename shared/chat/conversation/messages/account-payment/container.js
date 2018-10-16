@@ -12,6 +12,8 @@ const loadingProps = {
   amount: '',
   balanceChange: '',
   balanceChangeColor: '',
+  cancelButtonInfo: '',
+  cancelButtonLabel: '',
   canceled: false,
   claimButtonLabel: '',
   icon: 'iconfont-stellar-send',
@@ -20,12 +22,17 @@ const loadingProps = {
   pending: false,
 }
 
+// Tooltip text for cancelable payments
+const makeCancelButtonInfo = (username: string) =>
+  `This transaction can be canceled because ${username} does not yet have a wallet. Encourage ${username} to claim this and set up a wallet.`
+
 type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
+  const youAreSender = ownProps.message.author === state.config.username
   switch (ownProps.message.type) {
     case 'sendPayment': {
       const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
@@ -35,6 +42,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
       const pending = ['pending', 'cancelable'].includes(paymentInfo.status)
       const canceled = paymentInfo.status === 'canceled'
+      const cancelable = paymentInfo.status === 'cancelable'
       const verb = pending || canceled ? 'sending' : 'sent'
       return {
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
@@ -44,11 +52,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.amountDescription
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
+        cancelButtonInfo: youAreSender && cancelable ? makeCancelButtonInfo(ownProps.message.author) : '',
+        cancelButtonLabel: youAreSender && cancelable ? 'Cancel' : '',
         canceled,
-        claimButtonLabel: acceptedDisclaimer
-          ? ''
-          : `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
-              paymentInfo.amountDescription}`,
+        claimButtonLabel:
+          !youAreSender && cancelable && !acceptedDisclaimer
+            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
+                paymentInfo.amountDescription}`
+            : '',
         icon: paymentInfo.status === 'pending' ? 'icon-transaction-pending-16' : 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
@@ -68,18 +79,19 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
+        cancelButtonInfo: '',
+        cancelButtonLabel: '',
         canceled: false, // TODO
         claimButtonLabel: '',
         icon: 'iconfont-stellar-request',
         loading: false,
         memo: message.note.stringValue(),
         pending: false,
-        sendButtonLabel:
-          message.author === state.config.username
-            ? ''
-            : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
-                requestInfo.amountDescription
-              }`,
+        sendButtonLabel: youAreSender
+          ? ''
+          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
+              requestInfo.amountDescription
+            }`,
       }
     }
     default:
@@ -88,6 +100,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
+  onCancel: () => {}, // TODO cancel payment
   onClaim: () => {}, // TODO nav to wallets accept disclaimer flow
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
@@ -97,12 +110,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   amount: stateProps.amount,
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
+  cancelButtonInfo: stateProps.cancelButtonInfo,
+  cancelButtonLabel: stateProps.cancelButtonLabel,
   canceled: stateProps.canceled,
   claimButtonLabel: stateProps.claimButtonLabel,
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onClaim: () => {},
+  onCancel: dispatchProps.onCancel,
+  onClaim: dispatchProps.onClaim,
   onSend: dispatchProps.onSend,
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
