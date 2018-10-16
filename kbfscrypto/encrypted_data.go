@@ -132,7 +132,8 @@ func decryptData(
 	decryptedData, ok := secretbox.Open(
 		nil, encryptedData.EncryptedData, &nonce, &key)
 	if !ok {
-		return nil, errors.WithStack(libkb.DecryptionError{})
+		return nil, errors.WithStack(
+			libkb.DecryptionError{Cause: errors.New("Cannot open secret box")})
 	}
 
 	return decryptedData, nil
@@ -378,7 +379,8 @@ func DecryptMerkleLeaf(
 	decryptedData, ok := box.Open(nil, encryptedMerkleLeaf.EncryptedData,
 		&nonce, &publicKeyData, &privateKeyData)
 	if !ok {
-		return nil, errors.WithStack(libkb.DecryptionError{})
+		return nil, errors.WithStack(
+			libkb.DecryptionError{Cause: errors.New("Cannot open box")})
 	}
 	return decryptedData, nil
 }

@@ -93,14 +93,14 @@ func TestDecryptDataFailure(t *testing.T) {
 	keyCorrupt := key
 	keyCorrupt[0] = ^keyCorrupt[0]
 	_, err = decryptData(encryptedData, keyCorrupt, nonce)
-	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
+	assert.IsType(t, errors.Cause(err), libkb.DecryptionError{})
 
 	// Corrupt data.
 
 	encryptedDataCorruptData := encryptedData
 	encryptedDataCorruptData.EncryptedData[0] = ^encryptedDataCorruptData.EncryptedData[0]
 	_, err = decryptData(encryptedDataCorruptData, key, nonce)
-	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
+	assert.IsType(t, errors.Cause(err), libkb.DecryptionError{})
 }
 
 // Test that EncryptTLFCryptKeyClientHalf() encrypts its passed-in
