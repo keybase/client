@@ -30,6 +30,7 @@ export class AssetInput extends React.Component<Props> {
           </Kb.Text>
         )}
         <Kb.NewInput
+          autoFocus={true}
           type="text"
           keyboardType="numeric"
           decoration={

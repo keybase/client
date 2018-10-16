@@ -216,7 +216,7 @@ const ConnectedUserInput = compose(
         this.props.onFocusInput()
       }
 
-      if (this.props.searchResultIds !== prevProps.searchResultIds) {
+      if (this.props.searchResultIds !== prevProps.searchResultIds && !this.props.showingSearchSuggestions) {
         this.props.onUpdateSelectedSearchResult(
           (this.props.searchResultIds && this.props.searchResultIds[0]) || null
         )
