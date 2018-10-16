@@ -1400,6 +1400,54 @@
           "name": "afterContext"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIndexMetadata",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "MessageID"
+          },
+          "name": "seenIDs",
+          "mpackkey": "s",
+          "jsonkey": "s"
+        },
+        {
+          "type": "int",
+          "name": "version",
+          "mpackkey": "v",
+          "jsonkey": "v"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIndex",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "boolean",
+              "keys": "MessageID"
+            },
+            "keys": "string"
+          },
+          "name": "index",
+          "mpackkey": "i",
+          "jsonkey": "i"
+        },
+        {
+          "type": "ConversationIndexMetadata",
+          "name": "metadata",
+          "mpackkey": "m",
+          "jsonkey": "m"
+        }
+      ]
     }
   ],
   "messages": {},

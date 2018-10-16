@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -355,6 +356,23 @@ func (m MessageUnboxed) IsValidDeleted() bool {
 	return bodyType == MessageType_NONE
 }
 
+func (m MessageUnboxed) IsVisible() bool {
+	typ := m.GetMessageType()
+	for _, visType := range VisibleChatMessageTypes() {
+		if typ == visType {
+			return true
+		}
+	}
+	return false
+}
+
+func (m MessageUnboxed) SearchableText() string {
+	if !m.IsValidFull() {
+		return ""
+	}
+	return m.Valid().MessageBody.SearchableText()
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -599,6 +617,25 @@ func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
 
+func (b MessageBody) SearchableText() string {
+	typ, err := b.MessageType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageType_TEXT:
+		return b.Text().Body
+	case MessageType_EDIT:
+		return b.Edit().Body
+	case MessageType_REQUESTPAYMENT:
+		return b.Requestpayment().Note
+	case MessageType_ATTACHMENT:
+		return b.Attachment().GetTitle()
+	default:
+		return ""
+	}
+}
+
 func (m UIMessage) IsValid() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_VALID
@@ -667,6 +704,13 @@ func (m UIMessage) GetMessageType() MessageType {
 		}
 	}
 	return MessageType_NONE
+}
+
+func (m UIMessage) SearchableText() string {
+	if !m.IsValid() {
+		return ""
+	}
+	return m.Valid().MessageBody.SearchableText()
 }
 
 func (m MessageBoxed) GetMessageID() MessageID {
@@ -1687,4 +1731,19 @@ func (o SearchOpts) Matches(msgMetadata MsgMetadata) bool {
 		return false
 	}
 	return true
+}
+
+func (a MessageAttachment) GetTitle() string {
+	title := a.Object.Title
+	if title == "" {
+		title = filepath.Base(a.Object.Filename)
+	}
+	return title
+}
+
+func (h *ChatInboxSearchHit) Size() int {
+	if h == nil {
+		return 0
+	}
+	return len(h.Hits)
 }

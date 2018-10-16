@@ -48,9 +48,7 @@ func (idx *Indexer) indexConv(ctx context.Context, uid gregor1.UID, convID chat1
 	for !pagination.Last {
 		thread, err := idx.G().ConvSource.Pull(ctx, convID, uid,
 			chat1.GetThreadReason_INDEXED_SEARCH,
-			&chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-			}, pagination)
+			nil, pagination)
 		if err != nil {
 			return res, err
 		}
@@ -59,12 +57,12 @@ func (idx *Indexer) indexConv(ctx context.Context, uid gregor1.UID, convID chat1
 		pagination.Previous = nil
 
 		res.NumMessages += len(thread.Messages)
-		if err = idx.BatchAdd(ctx, convID, uid, thread.Messages); err != nil {
+		if err = idx.Add(ctx, convID, uid, thread.Messages); err != nil {
 			return res, err
 		}
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Now().Sub(startT))
-	dbKey := idx.dbKey(convID, uid)
+	dbKey := idx.store.dbKey(convID, uid)
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
 		return res, err
