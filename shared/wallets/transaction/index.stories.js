@@ -61,9 +61,9 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       const components = []
       let first = true
       statuses.forEach(st => {
-        first = false
         const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
         const localReadStates = first ? readStates : readStates.slice(0, 1)
+        first = false
         localMemosAndTimes.forEach(mt => {
           localReadStates.forEach(rs => {
             components.push(
