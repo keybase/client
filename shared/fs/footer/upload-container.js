@@ -1,12 +1,12 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
   _uploads: state.fs.uploads,
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false
 
-const getDebugToggleShow = (dispatch: Dispatch) => {
+const getDebugToggleShow = dispatch => {
   if (!(__DEV__ && enableDebugUploadBanner)) {
     return undefined
   }
@@ -32,7 +32,7 @@ const getDebugToggleShow = (dispatch: Dispatch) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 

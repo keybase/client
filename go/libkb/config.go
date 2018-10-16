@@ -844,3 +844,8 @@ func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
 func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
 	return f.GetBoolAtPath("attachment_disable_multi")
 }
+
+func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
+	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
+	return s
+}

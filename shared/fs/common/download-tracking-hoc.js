@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 
 type OwnProps = {
   trackingPath: Types.Path,
@@ -12,11 +12,11 @@ type OwnProps = {
   cancelOnUnmount?: boolean,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })
 

@@ -653,3 +653,6 @@ const EphemeralKeyGenInterval = time.Hour * 24 // one day
 const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100
+
+const MaxStellarPaymentNoteLength = 500
+const MaxStellarPaymentBoxedNoteLength = 1000

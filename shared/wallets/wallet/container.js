@@ -1,12 +1,13 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import {partition} from 'lodash-es'
 
 import Wallet from '.'
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   return {
     accountID,
@@ -20,6 +21,8 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   navigateAppend,
   navigateUp,
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
+  _onMarkAsRead: (accountID, mostRecentID) =>
+    dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -34,29 +37,21 @@ const mergeProps = (stateProps, dispatchProps) => {
   sections.push({data: assets, title: 'Your assets'})
 
   // split into pending & history
-  let pending
-  let history
-  stateProps.payments &&
-    stateProps.payments.forEach(p => {
-      if (p.statusSimplified === 'completed') {
-        if (!history) {
-          history = []
-        }
-        history.push({paymentID: p.id, timestamp: p.time})
-      } else {
-        if (!pending) {
-          pending = []
-        }
-        pending.push({paymentID: p.id, timestamp: p.time})
-      }
-    })
-  if (!history) {
-    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
-  } else {
+  let mostRecentID
+  const paymentsList = stateProps.payments && stateProps.payments.toList().toArray()
+  const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
+  const mapItem = p => ({paymentID: p.id, timestamp: p.time})
+  let history = _history.map(mapItem)
+  const pending = _pending.map(mapItem)
+
+  if (history.length) {
     history = sortAndStripTimestamps(history)
+    mostRecentID = history[0].paymentID
+  } else {
+    history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
   }
 
-  if (pending) {
+  if (pending.length) {
     sections.push({
       data: sortAndStripTimestamps(pending),
       title: 'Pending',
@@ -74,12 +69,19 @@ const mergeProps = (stateProps, dispatchProps) => {
     navigateAppend: dispatchProps.navigateAppend,
     navigateUp: dispatchProps.navigateUp,
     onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
+    onMarkAsRead: () => {
+      if (mostRecentID) {
+        dispatchProps._onMarkAsRead(stateProps.accountID, mostRecentID)
+      }
+    },
     sections,
   }
 }
 
-const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp: number}>) =>
-  p.sort((p1, p2) => p2.timestamp - p1.timestamp || 0).map(({paymentID}) => ({paymentID}))
+const sortAndStripTimestamps = (p: Array<{paymentID: Types.PaymentID, timestamp: ?number}>) =>
+  p
+    .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
+    .map(({paymentID}) => ({paymentID}))
 
 export default connect(
   mapStateToProps,

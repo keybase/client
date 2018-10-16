@@ -18,10 +18,14 @@ const MarkdownMemo = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
+  container: {
+    maxWidth: '100%',
+  },
   memo: Styles.platformStyles({
     // Taken from text message styling
     common: {
       width: '100%',
+      maxWidth: '100%',
     },
     isElectron: {
       cursor: 'text',

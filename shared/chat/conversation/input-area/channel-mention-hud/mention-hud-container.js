@@ -1,9 +1,9 @@
 // @flow
 import {MentionHud} from '.'
-import {compose, connect, type TypedState, setDisplayName} from '../../../../util/container'
+import {compose, connect, setDisplayName} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 
-const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
+const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     _metaMap: state.chat2.metaMap,

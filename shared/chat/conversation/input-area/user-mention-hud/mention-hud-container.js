@@ -4,12 +4,12 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import {MentionHud} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {compose, connect, type TypedState, setDisplayName} from '../../../../util/container'
+import {compose, connect, setDisplayName} from '../../../../util/container'
 import * as I from 'immutable'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
 
-const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
+const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamType = meta.teamType
   return {
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _loadParticipants: conversationIDKey =>
     dispatch(
       Chat2Gen.createMetaRequestTrusted({

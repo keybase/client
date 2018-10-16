@@ -1,12 +1,12 @@
 // @flow
 import RenderError from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import openURL from '../../util/open-url'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.finalError,
 })
 

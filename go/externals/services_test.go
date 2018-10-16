@@ -35,15 +35,19 @@ func TestLoadParamServices(t *testing.T) {
 	require.NotNil(t, gubbleConf)
 	require.Equal(t, 1, gubbleConf.Version)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
-	require.Contains(t, []string{"GubbleSocial", "Gubble.social", "Gubble.Social"}, gubbleConf.DisplayName)
-	var group *keybase1.ProofServiceGroup
-	require.EqualValues(t, group, gubbleConf.Group)
+	group := "gubble"
+	require.EqualValues(t, &group, gubbleConf.Group)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
 		Re:  "^([a-zA-Z0-9_])+$",
 		Min: 2,
 		Max: 20,
 	}, gubbleConf.UsernameConfig)
-	require.Equal(t, "#33A0FF", gubbleConf.BrandColor)
+	require.NotZero(t, len(gubbleConf.BrandColor))
+	require.NotNil(t, gubbleConf.Logo)
+	require.NotZero(t, len(gubbleConf.Logo.Url))
+	require.NotZero(t, len(gubbleConf.Logo.FaIcon))
+	require.NotZero(t, len(gubbleConf.DisplayName))
+	require.NotZero(t, len(gubbleConf.Description))
 
 	serverURI := tc.G.Env.GetServerURI()
 	gubbleRoot := fmt.Sprintf("%s/_/gubble_universe/gubble_social", serverURI)

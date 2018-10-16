@@ -962,6 +962,7 @@ const (
 	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
 	TeamInviteCategory_SBS     TeamInviteCategory = 4
 	TeamInviteCategory_SEITAN  TeamInviteCategory = 5
+	TeamInviteCategory_PHONE   TeamInviteCategory = 6
 )
 
 func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
@@ -973,6 +974,7 @@ var TeamInviteCategoryMap = map[string]TeamInviteCategory{
 	"EMAIL":   3,
 	"SBS":     4,
 	"SEITAN":  5,
+	"PHONE":   6,
 }
 
 var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
@@ -982,6 +984,7 @@ var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	3: "EMAIL",
 	4: "SBS",
 	5: "SEITAN",
+	6: "PHONE",
 }
 
 func (e TeamInviteCategory) String() string {

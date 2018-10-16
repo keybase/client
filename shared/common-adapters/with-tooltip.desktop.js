@@ -29,7 +29,8 @@ class WithTooltip extends React.Component<Props, State> {
       // Set visible after Toast is mounted, to trigger transition on opacity.
       // Note that we aren't doing anything to make ease out work. We don't
       // keep Toast mounted all the time (which would make this unnecessary)
-      // because in that case it doesn't follow scrolling.
+      // because in that case the position of the overlay can be messed up when
+      // not visible, causing ghost unclickable areas.
       this.setState({visible: true})
     }
   }
@@ -45,16 +46,21 @@ class WithTooltip extends React.Component<Props, State> {
         >
           {this.props.children}
         </Box>
-        <Toast
-          containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
-          visible={!!this.props.text && this.state.visible}
-          attachTo={() => this._attachmentRef}
-          position={this.props.position || 'top center'}
-        >
-          <Text type="BodySmall" style={Styles.collapseStyles([styles.text, this.props.textStyle])}>
-            {this.props.text}
-          </Text>
-        </Toast>
+        {this.state.mouseIn && (
+          <Toast
+            containerStyle={Styles.collapseStyles([
+              styles.container,
+              this.props.multiline && styles.containerMultiline,
+            ])}
+            visible={!!this.props.text && this.state.visible}
+            attachTo={() => this._attachmentRef}
+            position={this.props.position || 'top center'}
+          >
+            <Text type="BodySmall" style={Styles.collapseStyles([styles.text, this.props.textStyle])}>
+              {this.props.text}
+            </Text>
+          </Toast>
+        )}
       </>
     )
   }
@@ -62,10 +68,9 @@ class WithTooltip extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    borderRadius: 20,
+    borderRadius: Styles.borderRadius,
   },
   containerMultiline: {
-    borderRadius: 4,
     width: 320,
     minWidth: 320,
     maxWidth: 320,

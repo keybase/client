@@ -705,6 +705,7 @@ export const teamsTeamInviteCategory = {
   email: 3,
   sbs: 4,
   seitan: 5,
+  phone: 6,
 }
 
 export const teamsTeamMemberStatus = {
@@ -763,6 +764,10 @@ export const uPKUPK2MinorVersion = {
   v4: 4,
   v5: 5,
   v6: 6,
+}
+
+export const uPKUPKLiteMinorVersion = {
+  v0: 0,
 }
 
 export const uiPromptDefault = {

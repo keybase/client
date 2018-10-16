@@ -7,7 +7,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
+import {compose, connect, isMobile, setDisplayName} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -21,7 +21,7 @@ export type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =

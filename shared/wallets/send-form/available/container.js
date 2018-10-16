@@ -1,12 +1,14 @@
 // @flow
 import Available from '.'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {compose, connect, setDisplayName} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
-  amountErrMsg: state.wallets.builtPayment.amountErrMsg,
+const mapStateToProps = state => ({
+  amountErrMsg: state.wallets.building.isRequest
+    ? state.wallets.builtRequest.amountErrMsg
+    : state.wallets.builtPayment.amountErrMsg,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 
 export default compose(
   connect(

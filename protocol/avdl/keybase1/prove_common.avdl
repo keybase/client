@@ -88,11 +88,6 @@ protocol proveCommon {
     ROOTER_100001
   }
 
-  record ProofServiceGroup {
-    // TODO need to spec out
-    string id;
-  }
-
   record SelectorEntry {
     // Exactly one of Is* is true
     boolean isIndex;
@@ -116,12 +111,20 @@ protocol proveCommon {
     int max;
   }
 
+  record ParamProofLogoConfig {
+    string url;
+    @jsonkey("fa_icon")
+    string faIcon;
+  }
+
   record ParamProofServiceConfig {
     int version;
     string domain;
     @jsonkey("display_name")
     string displayName;
-    union { null, ProofServiceGroup } group;
+    union { null, string } group;
+    union { null, ParamProofLogoConfig} logo;
+    string description;
     @jsonkey("username")
     ParamProofUsernameConfig usernameConfig;
     @jsonkey("brand_color")

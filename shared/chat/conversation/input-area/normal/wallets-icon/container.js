@@ -15,22 +15,18 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onClick: (to: string, wasNew: boolean) => {
+  _onClick: (to: string, wasNew: boolean, isRequest: boolean) => {
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createClearBuilding())
+    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {isRequest: true},
-            selected: WalletConstants.sendReceiveFormRouteKey,
-          },
-        ],
+        path: [WalletConstants.sendReceiveFormRouteKey],
       })
     )
   },
@@ -43,13 +39,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     return renderNothingProps
   }
   const to = stateProps._meta.participants.find(u => u !== stateProps._you)
-  if (!to || to.indexOf('@') !== -1) {
-    // Send to SBS assertion not currently supported in the GUI
+  if (!to) {
     return renderNothingProps
   }
   return {
     isNew: stateProps.isNew,
-    onClick: () => dispatchProps._onClick(to, stateProps.isNew),
+    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
+    onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
     shouldRender: true,
     size: ownProps.size,
     style: ownProps.style,

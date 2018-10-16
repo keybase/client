@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -12,12 +12,12 @@ export type OwnProps = {
   paymentID: Types.PaymentID,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
@@ -34,12 +34,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
+  let large = true
+  const memo = tx.note.stringValue()
+
+  if (yourRoleAndCounterparty.counterpartyType === 'otherAccount') {
+    // only large if there's a note
+    large = !!memo
+  }
   return {
     ...yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
-    memo: tx.note.stringValue(),
+    large,
+    memo,
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
@@ -48,6 +55,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps._onShowProfile,
+    readState: tx.readState,
     selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,

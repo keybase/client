@@ -42,7 +42,7 @@ const Row = (
   }
 ) => (
   <Box
-    className={'channel-row'}
+    className="channel-row"
     style={{
       ...globalStyles.flexBoxColumn,
       paddingLeft: globalMargins.medium,

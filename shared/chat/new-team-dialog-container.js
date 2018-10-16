@@ -3,9 +3,9 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
-import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
+import {connect, lifecycle, compose, withStateHandlers} from '../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   baseTeam: '',
   errorText: upperFirst(state.teams.teamCreationError),
   isSubteam: false,

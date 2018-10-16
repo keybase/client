@@ -55,6 +55,10 @@
         },
         {
           "type": "string",
+          "name": "issuerVerifiedDomain"
+        },
+        {
+          "type": "string",
           "name": "balanceTotal"
         },
         {
@@ -100,7 +104,8 @@
         "CLAIMABLE_2",
         "COMPLETED_3",
         "ERROR_4",
-        "UNKNOWN_5"
+        "UNKNOWN_5",
+        "CANCELED_6"
       ]
     },
     {
@@ -483,6 +488,10 @@
             "items": "SendBannerLocal"
           },
           "name": "banners"
+        },
+        {
+          "type": "string",
+          "name": "amountFormatted"
         }
       ]
     },
@@ -515,6 +524,43 @@
         {
           "type": "boolean",
           "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BuildRequestResLocal",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "readyToRequest"
+        },
+        {
+          "type": "string",
+          "name": "toErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "amountErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "secretNoteErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "worthDescription"
+        },
+        {
+          "type": "string",
+          "name": "worthInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SendBannerLocal"
+          },
+          "name": "banners"
         }
       ]
     },
@@ -1189,6 +1235,41 @@
         }
       ],
       "response": "SendPaymentResLocal"
+    },
+    "buildRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "secretNote",
+          "type": "string"
+        }
+      ],
+      "response": "BuildRequestResLocal"
     },
     "getRequestDetailsLocal": {
       "request": [

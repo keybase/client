@@ -15,15 +15,19 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
+  chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
   fileWidgetEnabled: false,
+  foldersInProfileTab: false,
   newTeamBuildingForChat: false,
+  outOfDateBanner: false,
   plansEnabled: false,
   useSimpleMarkdown: false,
   walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  chatIndexProfilingEnabled: true,
   fileWidgetEnabled: true,
   useSimpleMarkdown: true,
   walletsEnabled: true,
@@ -31,7 +35,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
 
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && inAdmin[k])
+  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && !!inAdmin[k])
 })
 
 if (__DEV__) {

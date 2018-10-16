@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
@@ -14,7 +14,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {

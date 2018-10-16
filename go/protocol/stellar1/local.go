@@ -31,6 +31,7 @@ type AccountAssetLocal struct {
 	AssetCode              string           `codec:"assetCode" json:"assetCode"`
 	IssuerName             string           `codec:"issuerName" json:"issuerName"`
 	IssuerAccountID        string           `codec:"issuerAccountID" json:"issuerAccountID"`
+	IssuerVerifiedDomain   string           `codec:"issuerVerifiedDomain" json:"issuerVerifiedDomain"`
 	BalanceTotal           string           `codec:"balanceTotal" json:"balanceTotal"`
 	BalanceAvailableToSend string           `codec:"balanceAvailableToSend" json:"balanceAvailableToSend"`
 	WorthCurrency          string           `codec:"worthCurrency" json:"worthCurrency"`
@@ -45,6 +46,7 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 		AssetCode:              o.AssetCode,
 		IssuerName:             o.IssuerName,
 		IssuerAccountID:        o.IssuerAccountID,
+		IssuerVerifiedDomain:   o.IssuerVerifiedDomain,
 		BalanceTotal:           o.BalanceTotal,
 		BalanceAvailableToSend: o.BalanceAvailableToSend,
 		WorthCurrency:          o.WorthCurrency,
@@ -102,6 +104,7 @@ const (
 	PaymentStatus_COMPLETED PaymentStatus = 3
 	PaymentStatus_ERROR     PaymentStatus = 4
 	PaymentStatus_UNKNOWN   PaymentStatus = 5
+	PaymentStatus_CANCELED  PaymentStatus = 6
 )
 
 func (o PaymentStatus) DeepCopy() PaymentStatus { return o }
@@ -113,6 +116,7 @@ var PaymentStatusMap = map[string]PaymentStatus{
 	"COMPLETED": 3,
 	"ERROR":     4,
 	"UNKNOWN":   5,
+	"CANCELED":  6,
 }
 
 var PaymentStatusRevMap = map[PaymentStatus]string{
@@ -122,6 +126,7 @@ var PaymentStatusRevMap = map[PaymentStatus]string{
 	3: "COMPLETED",
 	4: "ERROR",
 	5: "UNKNOWN",
+	6: "CANCELED",
 }
 
 func (e PaymentStatus) String() string {
@@ -409,6 +414,7 @@ type BuildPaymentResLocal struct {
 	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
 	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
 }
 
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
@@ -433,6 +439,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 			}
 			return ret
 		})(o.Banners),
+		AmountFormatted: o.AmountFormatted,
 	}
 }
 
@@ -459,6 +466,38 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 	return SendPaymentResLocal{
 		KbTxID:  o.KbTxID.DeepCopy(),
 		Pending: o.Pending,
+	}
+}
+
+type BuildRequestResLocal struct {
+	ReadyToRequest   bool              `codec:"readyToRequest" json:"readyToRequest"`
+	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
+	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
+	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
+	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
+	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
+	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+}
+
+func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
+	return BuildRequestResLocal{
+		ReadyToRequest:   o.ReadyToRequest,
+		ToErrMsg:         o.ToErrMsg,
+		AmountErrMsg:     o.AmountErrMsg,
+		SecretNoteErrMsg: o.SecretNoteErrMsg,
+		WorthDescription: o.WorthDescription,
+		WorthInfo:        o.WorthInfo,
+		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SendBannerLocal, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Banners),
 	}
 }
 
@@ -814,6 +853,15 @@ type SendPaymentLocalArg struct {
 	QuickReturn   bool                 `codec:"quickReturn" json:"quickReturn"`
 }
 
+type BuildRequestLocalArg struct {
+	SessionID  int                  `codec:"sessionID" json:"sessionID"`
+	To         string               `codec:"to" json:"to"`
+	Amount     string               `codec:"amount" json:"amount"`
+	Asset      *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency   *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	SecretNote string               `codec:"secretNote" json:"secretNote"`
+}
+
 type GetRequestDetailsLocalArg struct {
 	SessionID int              `codec:"sessionID" json:"sessionID"`
 	ReqID     KeybaseRequestID `codec:"reqID" json:"reqID"`
@@ -955,6 +1003,7 @@ type LocalInterface interface {
 	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
 	SendPaymentLocal(context.Context, SendPaymentLocalArg) (SendPaymentResLocal, error)
+	BuildRequestLocal(context.Context, BuildRequestLocalArg) (BuildRequestResLocal, error)
 	GetRequestDetailsLocal(context.Context, GetRequestDetailsLocalArg) (RequestDetailsLocal, error)
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
@@ -1380,6 +1429,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendPaymentLocal(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"buildRequestLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]BuildRequestLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BuildRequestLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BuildRequestLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.BuildRequestLocal(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1866,6 +1931,11 @@ func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLo
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) BuildRequestLocal(ctx context.Context, __arg BuildRequestLocalArg) (res BuildRequestResLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res)
 	return
 }
 

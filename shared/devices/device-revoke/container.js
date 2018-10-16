@@ -4,10 +4,10 @@ import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DeviceRevoke from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
   device: Constants.getDevice(state, state.devices.selectedDeviceID),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),

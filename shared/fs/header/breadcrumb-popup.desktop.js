@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemIcon} from '../common'
 
 type Props = {
   items: Array<Types.PathBreadcrumbItem>,
