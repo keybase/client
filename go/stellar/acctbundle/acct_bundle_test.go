@@ -1,8 +1,10 @@
-package bundle
+package acctbundle
 
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +33,13 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.NotZero(t, boxed.Enc.N)
 	require.Equal(t, gen, boxed.Enc.Gen)
 
-	unboxed, err := AccountUnbox(boxed)
-	require.NoError(t, err)
+	//	unboxed, err := AccountUnbox(boxed)
+	//	require.NoError(t, err)
 
+}
+
+func mkPuk(t *testing.T, gen int) (libkb.PerUserKeySeed, keybase1.PerUserKeyGeneration) {
+	puk, err := libkb.GeneratePerUserKeySeed()
+	require.NoError(t, err)
+	return puk, keybase1.PerUserKeyGeneration(gen)
 }
