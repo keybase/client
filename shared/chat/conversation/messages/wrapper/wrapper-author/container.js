@@ -88,7 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     failureDescription = message.errorReason
     if (stateProps.isYou && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix
-      failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+      failureDescription = `Failed to send: ${message.errorReason}`
       isErrorFixable = true
     }
   }
@@ -147,6 +147,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('WrapperAuthor')
 )(WrapperAuthor)
