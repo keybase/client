@@ -24,13 +24,6 @@ const longMemo =
 const addConfigs = (stories, namePrefix, storyFn) => {
   const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
   const sizes = [{large: true}, {large: false}]
-  const memosAndTimes = [
-    {memo: shortMemo, timestamp: yesterday},
-    {memo: longMemo, timestamp: lastWeek},
-    {memo: singleEmojiMemo, timestamp: beforeLastWeek},
-    // Pending.
-    {memo: shortMemo, timestamp: null},
-  ]
   const statuses = [
     {
       status: 'completed',
@@ -51,6 +44,14 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       onCancelPayment: Sb.action('onCancelPayment'),
       onRetryPayment: Sb.action('onRetryPayment'),
     },
+  ]
+  const memosAndTimes = [
+    {memo: shortMemo, timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
+    {memo: longMemo, timestamp: lastWeek, amountUser: '$15.65', amountXLM: '42.535091 XLM'},
+    // No display currency.
+    {memo: singleEmojiMemo, timestamp: beforeLastWeek, amountUser: '', amountXLM: '19.4567588 XLM'},
+    // Pending.
+    {memo: shortMemo, timestamp: null, amountUser: '$100', amountXLM: '545.2562704 XLM'},
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
@@ -98,40 +99,13 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
 
   addConfigs(stories, 'Keybase User', config => (
-    <Transaction
-      {...config}
-      counterparty="paul"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-    />
+    <Transaction {...config} counterparty="paul" counterpartyType="keybaseUser" />
   ))
   addConfigs(stories, 'Stellar Public Key', config => (
-    <Transaction
-      {...config}
-      counterparty="G43289XXXXX34OPL"
-      counterpartyType="stellarPublicKey"
-      amountUser="$15.65"
-      amountXLM="42.535091 XLM"
-    />
+    <Transaction {...config} counterparty="G43289XXXXX34OPL" counterpartyType="stellarPublicKey" />
   ))
   addConfigs(stories, 'Account', config => (
-    <Transaction
-      {...config}
-      counterparty="Second account"
-      counterpartyType="otherAccount"
-      amountUser="$100"
-      amountXLM="545.2562704 XLM"
-    />
-  ))
-  addConfigs(stories, 'No display currency', config => (
-    <Transaction
-      {...config}
-      counterparty="peter"
-      counterpartyType="keybaseUser"
-      amountUser=""
-      amountXLM="19.4567588 XLM"
-    />
+    <Transaction {...config} counterparty="Second account" counterpartyType="otherAccount" />
   ))
 }
 
