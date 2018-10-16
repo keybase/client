@@ -285,7 +285,6 @@ export type Props = {|
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
-  onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
   readState: Types.ReadState,

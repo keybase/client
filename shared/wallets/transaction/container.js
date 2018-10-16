@@ -50,8 +50,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-    // TODO -- waiting on CORE integration for this
-    onRetryPayment: undefined,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps._onShowProfile,
