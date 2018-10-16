@@ -279,9 +279,12 @@ function ModalPositionRelative<PP>(
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
-            <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(this.props: PP)} />
-            </EscapeHandler>
+            {this.props.onClosePopup && (
+              <EscapeHandler onESC={this.props.onClosePopup}>
+                <WrappedComponent {...(this.props: PP)} />
+              </EscapeHandler>
+            )}
+            {!this.props.onClosePopup && <WrappedComponent {...(this.props: PP)} />}
           </Box>
         </Modal>
       )

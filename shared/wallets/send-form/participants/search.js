@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
 import ResultsList from '../../../search/results-list/container'
 import UserInput from '../../../search/user-input/container'
-import {Box2} from '../../../common-adapters'
 import {ParticipantsRow} from '../../common'
 import {searchKey} from '../../../constants/wallets'
 
@@ -24,6 +24,7 @@ const placeholder = 'Search Keybase'
 // TODO: Once UserInput is cleaned up, we may be able to stretch it
 // properly horizontally without wrapping a vertical Box2 around it.
 class Search extends React.Component<SearchProps, SearchState> {
+  _row: ?ParticipantsRow
   state = {
     displayResultsList: false,
     hideClearSearch: true,
@@ -48,11 +49,14 @@ class Search extends React.Component<SearchProps, SearchState> {
 
   closeResultsList = () => this.setState({displayResultsList: false, hideClearSearch: true})
 
+  _setRef = r => (this._row = r)
+  _getRef = () => this._row
+
   render() {
     return (
       <React.Fragment>
-        <ParticipantsRow heading="To" style={styles.row} headingStyle={styles.rowHeading}>
-          <Box2 direction="horizontal" fullWidth={true}>
+        <ParticipantsRow ref={this._setRef} heading="To" style={styles.row} headingStyle={styles.rowHeading}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
             <UserInput
               disableListBuilding={true}
               onExitSearch={this.closeResultsList}
@@ -64,16 +68,22 @@ class Search extends React.Component<SearchProps, SearchState> {
               showServiceFilter={false}
               style={styles.input}
             />
-          </Box2>
+          </Kb.Box2>
         </ParticipantsRow>
         {this.state.displayResultsList && (
-          <ResultsList
-            searchKey={searchKey}
-            onClick={this.props.onClickResult}
-            onShowTracker={this.props.onShowTracker}
-            disableListBuilding={true}
-            style={styles.list}
-          />
+          <Kb.FloatingBox attachTo={this._getRef} position="top center">
+            <Kb.Box2 direction="vertical" style={styles.resultsFloatingContainer}>
+              <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
+                <ResultsList
+                  searchKey={searchKey}
+                  onClick={this.props.onClickResult}
+                  onShowTracker={this.props.onShowTracker}
+                  disableListBuilding={true}
+                  style={styles.list}
+                />
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.FloatingBox>
         )}
       </React.Fragment>
     )
@@ -81,10 +91,36 @@ class Search extends React.Component<SearchProps, SearchState> {
 }
 
 const styles = Styles.styleSheetCreate({
+  resultsFloatingContainer: Styles.platformStyles({
+    isElectron: {
+      height: 429,
+      width: 360,
+    },
+    isMobile: {
+      flexGrow: 1,
+      maxWidth: 360,
+      paddingTop: 98,
+      width: '100%',
+    },
+  }),
+  resultsContainer: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      height: '100%',
+      marginLeft: 1,
+      overflowY: 'auto',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+      height: '100%',
+      width: '100%',
+    },
+  }),
   row: {
+    minHeight: 48,
     paddingBottom: 0,
     paddingTop: 0,
-    minHeight: 48,
   },
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
@@ -97,15 +133,30 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: 0,
   },
   list: Styles.platformStyles({
+    // common: {
+    // position: 'absolute',
+    // width: '100%',
+    // },
     isElectron: {
-      position: 'absolute',
-      top: 93, // This is the exact height of the header + the input + the divider
-      zIndex: 4,
-      backgroundColor: Styles.globalColors.white,
-      height: 432, // 525 (height of popup) - 93
+      height: '100%',
       width: '100%',
-      overflowY: 'scroll',
     },
+    isMobile: {
+      height: '100%',
+      width: '100%',
+    },
+    // top: 93, // This is the exact height of the header + the input + the divider
+    // zIndex: 4,
+    // backgroundColor: Styles.globalColors.white,
+    // height: 432, // 525 (height of popup) - 93
+    // overflowY: 'scroll',
+    // },
+    // isMobile: {
+    // top: 93,
+    // zIndex: 4,
+    // bottom: 0,
+    // backgroundColor: Styles.globalColors.white,
+    // },
   }),
 })
 

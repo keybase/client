@@ -14,28 +14,37 @@ type Props = {|
 |}
 
 // A row for use in Participants components; provides a blue heading to the left of the content.
-const ParticipantsRow = (props: Props) => (
-  <React.Fragment>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={Styles.collapseStyles([styles.row, props.style])}>
-      <Kb.Text
-        type="BodyTinySemibold"
-        style={Styles.collapseStyles([
-          styles.headingText,
-          props.headingAlignment === 'Right' && {textAlign: 'right', width: 40},
-          props.headingStyle,
-        ])}
-      >
-        {props.heading}:
-      </Kb.Text>
-      <Kb.Box style={styles.childContainer}>
-        <Kb.Box style={styles.childFillContainer}>{props.children}</Kb.Box>
-      </Kb.Box>
-    </Kb.Box2>
-    {props.bottomDivider && (
-      <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
-    )}
-  </React.Fragment>
-)
+class ParticipantsRow extends React.Component<Props> {
+  render() {
+    const props = this.props
+    return (
+      <React.Fragment>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={Styles.collapseStyles([styles.row, props.style])}
+        >
+          <Kb.Text
+            type="BodyTinySemibold"
+            style={Styles.collapseStyles([
+              styles.headingText,
+              props.headingAlignment === 'Right' && {textAlign: 'right', width: 40},
+              props.headingStyle,
+            ])}
+          >
+            {props.heading}:
+          </Kb.Text>
+          <Kb.Box style={styles.childContainer}>
+            <Kb.Box style={styles.childFillContainer}>{props.children}</Kb.Box>
+          </Kb.Box>
+        </Kb.Box2>
+        {props.bottomDivider && (
+          <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
+        )}
+      </React.Fragment>
+    )
+  }
+}
 
 ParticipantsRow.defaultProps = {
   bottomDivider: true,
