@@ -16,12 +16,14 @@ export type Props = {|
   balanceChange: string,
   balanceChangeColor: string,
   canceled: boolean,
+  claimButtonLabel: string, // empty string if disabled
   icon: IconType,
   loading: boolean,
   memo: string,
+  onClaim: () => void,
   onSend: () => void,
   pending: boolean,
-  sendButtonLabel: string,
+  sendButtonLabel: string, // empty string if disabled
 |}
 
 const AccountPayment = (props: Props) => {
@@ -67,16 +69,24 @@ const AccountPayment = (props: Props) => {
         )}
       </Box2>
       <MarkdownMemo memo={props.memo} />
-      {!!props.sendButtonLabel &&
-        !!props.onSend && (
-          <Button
-            type="Wallet"
-            label={props.sendButtonLabel}
-            onClick={props.onSend}
-            small={true}
-            style={{alignSelf: 'flex-start'}}
-          />
-        )}
+      {!!props.sendButtonLabel && (
+        <Button
+          type="Wallet"
+          label={props.sendButtonLabel}
+          onClick={props.onSend}
+          small={true}
+          style={{alignSelf: 'flex-start'}}
+        />
+      )}
+      {!!props.claimButtonLabel && (
+        <Button
+          type="Wallet"
+          label={props.claimButtonLabel}
+          onClick={props.onClaim}
+          small={true}
+          style={{alignSelf: 'flex-start'}}
+        />
+      )}
     </React.Fragment>
   )
   return (

@@ -266,9 +266,7 @@ const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
     txID: p.txID,
   })
 
-const rpcPaymentToPaymentCommon = (
-  p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
-) => {
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
   let targetType = partyTypeToString[p.toType]
@@ -430,16 +428,20 @@ const paymentToYourRoleAndCounterparty = (
 
 const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
-  paymentDetail: Types.PaymentDetail,
+  paymentDetail: Types.PaymentDetail
 ) => {
   return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 
 const updatePaymentsReceived = (
   map: I.Map<Types.PaymentID, Types.Payment>,
-  paymentResults: Array<Types.PaymentResult>,
+  paymentResults: Array<Types.PaymentResult>
 ) => {
-  return map.withMutations(mapMutable => paymentResults.forEach(paymentResult => mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))))
+  return map.withMutations(mapMutable =>
+    paymentResults.forEach(paymentResult =>
+      mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))
+    )
+  )
 }
 
 const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
@@ -518,6 +520,8 @@ const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   return currency ? currency.description : code
 }
 
+const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
+
 const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
   if (delta !== 'none') {
@@ -556,6 +560,7 @@ export {
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
+  getAcceptedDisclaimer,
   getAccountIDs,
   getAccounts,
   getAccount,

@@ -13,6 +13,7 @@ const loadingProps = {
   balanceChange: '',
   balanceChangeColor: '',
   canceled: false,
+  claimButtonLabel: '',
   icon: 'iconfont-stellar-send',
   loading: true,
   memo: '',
@@ -24,6 +25,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
+  const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
   switch (ownProps.message.type) {
     case 'sendPayment': {
       const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
@@ -43,7 +45,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         )}`,
         balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
         canceled,
-        icon: 'iconfont-stellar-send',
+        claimButtonLabel: acceptedDisclaimer
+          ? ''
+          : `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
+              paymentInfo.amountDescription}`,
+        icon: paymentInfo.status === 'pending' ? 'icon-transaction-pending-16' : 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
         pending,
@@ -57,26 +63,23 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         // waiting for service to load it
         return loadingProps
       }
-      const sendProps =
-        message.author === state.config.username
-          ? {}
-          : {
-              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
-                requestInfo.amountDescription
-              }`,
-            }
-
       return {
-        ...sendProps,
         action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
         canceled: false, // TODO
+        claimButtonLabel: '',
         icon: 'iconfont-stellar-request',
         loading: false,
         memo: message.note.stringValue(),
         pending: false,
+        sendButtonLabel:
+          message.author === state.config.username
+            ? ''
+            : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
+                requestInfo.amountDescription
+              }`,
       }
     }
     default:
@@ -85,6 +88,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
+  onClaim: () => {}, // TODO nav to wallets accept disclaimer flow
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
@@ -94,9 +98,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
   canceled: stateProps.canceled,
+  claimButtonLabel: stateProps.claimButtonLabel,
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,
+  onClaim: () => {},
   onSend: dispatchProps.onSend,
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
