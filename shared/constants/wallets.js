@@ -467,11 +467,11 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
-const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
+const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.currencyMap.get(accountID, makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+const getPayments = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID, null)
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
@@ -479,19 +479,19 @@ const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Ty
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
 
-const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
+const getAccount = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID, unknownAccount)
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
 }
 
-const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
+const getAssets = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.assetsMap.get(accountID, I.List())
 
-const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
+const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
+  const account = state.wallets.accountMap.get(accountID, unknownAccount)
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
