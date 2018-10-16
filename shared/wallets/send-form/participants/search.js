@@ -104,17 +104,14 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   resultsContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       backgroundColor: Styles.globalColors.white,
       height: '100%',
-      marginLeft: 1,
-      overflowY: 'auto',
       width: '100%',
     },
-    isMobile: {
-      backgroundColor: Styles.globalColors.white,
-      height: '100%',
-      width: '100%',
+    isElectron: {
+      marginLeft: 1,
+      overflowY: 'auto',
     },
   }),
   row: {
@@ -132,32 +129,10 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 0,
     paddingLeft: 0,
   },
-  list: Styles.platformStyles({
-    // common: {
-    // position: 'absolute',
-    // width: '100%',
-    // },
-    isElectron: {
-      height: '100%',
-      width: '100%',
-    },
-    isMobile: {
-      height: '100%',
-      width: '100%',
-    },
-    // top: 93, // This is the exact height of the header + the input + the divider
-    // zIndex: 4,
-    // backgroundColor: Styles.globalColors.white,
-    // height: 432, // 525 (height of popup) - 93
-    // overflowY: 'scroll',
-    // },
-    // isMobile: {
-    // top: 93,
-    // zIndex: 4,
-    // bottom: 0,
-    // backgroundColor: Styles.globalColors.white,
-    // },
-  }),
+  list: {
+    height: '100%',
+    width: '100%',
+  },
 })
 
 export default Search
