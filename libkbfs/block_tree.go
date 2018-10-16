@@ -276,7 +276,7 @@ func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 }
 
 // getBlocksForOffsetRangeTask is used for passing data to
-// getBlocksForOffsetRange tasks
+// getBlocksForOffsetRange tasks.
 type getBlocksForOffsetRangeTask struct {
 	ptr        BlockPointer
 	pblock     BlockWithPtrs
@@ -287,7 +287,8 @@ type getBlocksForOffsetRangeTask struct {
 	getDirect  bool
 }
 
-func (task *getBlocksForOffsetRangeTask) subTask(childPtr BlockPointer,
+func (task *getBlocksForOffsetRangeTask) subTask(
+	childPtr BlockPointer,
 	childPath []parentBlockAndChildIndex) getBlocksForOffsetRangeTask {
 	subTask := *task
 	subTask.ptr = childPtr
@@ -297,7 +298,7 @@ func (task *getBlocksForOffsetRangeTask) subTask(childPtr BlockPointer,
 }
 
 // getBlocksForOffsetRangeResult is used for passing data back from
-// getBlocksForOffsetRange tasks
+// getBlocksForOffsetRange tasks.
 type getBlocksForOffsetRangeResult struct {
 	pathFromRoot    []parentBlockAndChildIndex
 	ptr             BlockPointer
@@ -311,8 +312,15 @@ type getBlocksForOffsetRangeResult struct {
 func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 	wg *sync.WaitGroup, wp *workerpool.WorkerPool,
 	job getBlocksForOffsetRangeTask,
-	results chan getBlocksForOffsetRangeResult) {
+	results chan<- getBlocksForOffsetRangeResult) {
 	defer wg.Done()
+
+	select {
+	case <-ctx.Done():
+		results <- getBlocksForOffsetRangeResult{err: ctx.Err()}
+		return
+	default:
+	}
 
 	// We may have been passed just a pointer and need to fetch the block here.
 	var pblock BlockWithPtrs
@@ -385,8 +393,6 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 		// blocks, since there weren't multiple levels of
 		// indirection before the introduction of the flag.
 		if job.getDirect || childPtr.DirectType == IndirectBlock {
-			// Create a task for the child, and either enqueue it or recurse to it.
-
 			subTask := job.subTask(childPtr, childPath)
 
 			// Enqueue the subTask with the WorkerPool.
@@ -429,10 +435,8 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 
 	// Make a workerpool to limit the number of concurrent goroutines.
 	wp := workerpool.New(maxBlockFetchWorkers)
-	defer wp.Stop() // TODO: this may be unnecessary
 
 	// Make a context to cancel all the jobs if something goes wrong
-	// TODO: determine if we can collapse this into the workerpool
 	groupCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -466,15 +470,20 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	var minNextBlockOffset Offset
 	blocks = make(map[BlockPointer]Block)
 	pathsFromRoot = [][]parentBlockAndChildIndex{}
+	mustCheckForHoles := false
+	var errors []error
 	for res := range results {
 		if res.err != nil {
 			// If we are ok with just getting the prefix, don't treat a
 			// deadline exceeded error as fatal.
-			if prefixOk && res.err == context.DeadlineExceeded {
-				//TODO: determine that this is correct
-				break
+			if prefixOk && res.err == context.DeadlineExceeded &&
+				len(errors) == 0 {
+				mustCheckForHoles = true
+			} else {
+				errors = append(errors, res.err)
 			}
-			return nil, nil, nil, res.err
+			wp.Stop()
+			cancel()
 		}
 		if res.pathFromRoot != nil {
 			pathsFromRoot = append(pathsFromRoot, res.pathFromRoot)
@@ -490,9 +499,14 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	}
 	nextBlockOffset = minNextBlockOffset
 
+	if len(errors) == 1 {
+		return nil, nil, nil, errors[0]
+	} else if len(errors) > 1 {
+		return nil, nil, nil, fmt.Errorf("multiple errors: %v", errors)
+	}
+
 	// Out-of-order traversal means the paths come back from workers unsorted.
 	// Sort them before returning them to the caller.
-	// TODO: if this is slow, sort in parallel as the paths come in
 	sort.Slice(pathsFromRoot, func(i, j int) bool {
 		pathI := pathsFromRoot[i]
 		pathJ := pathsFromRoot[j]
@@ -504,6 +518,63 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 
 		return offsetI.Less(offsetJ)
 	})
+
+	// If we are returning data even though not all the goroutines completed,
+	// we may need to return only some of the data we gathered in order to
+	// return a correct prefix of the data. Thus, we find the longest prefix of
+	// the data without any holes.
+	if mustCheckForHoles {
+		var prevPath []parentBlockAndChildIndex
+		for pathIdx, path := range pathsFromRoot {
+			// First path should be at startOff. Each subsequent path should
+			// immediately follow the preceding path.
+			pathIsCorrect := true
+			if pathIdx == 0 {
+				lastBlockInPath := path[len(path)-1]
+				_, off := lastBlockInPath.pblock.IndirectPtr(
+					lastBlockInPath.childIndex)
+				if off != startOff {
+					pathIsCorrect = false
+				}
+			} else {
+				// Find the first place the 2 paths differ.
+				// Verify that path is immediately after prevPath.
+				if len(path) != len(prevPath) {
+					pathIsCorrect = false
+				} else {
+					foundIncrement := false
+					for idx := range path {
+						prevChild := prevPath[idx].childIndex
+						thisChild := path[idx].childIndex
+						if foundIncrement {
+							if thisChild != 0 || prevChild != prevPath[idx-1].
+								pblock.NumIndirectPtrs() {
+								pathIsCorrect = false
+								break
+							}
+						} else {
+							if prevChild+1 == thisChild {
+								foundIncrement = true
+							} else if prevChild != thisChild {
+								pathIsCorrect = false
+								break
+							}
+						}
+					}
+					// If we never found where the two paths differ,
+					// then something has gone wrong.
+					if !foundIncrement {
+						pathIsCorrect = false
+					}
+				}
+			}
+			if !pathIsCorrect {
+				pathsFromRoot = pathsFromRoot[:pathIdx]
+				break
+			}
+			prevPath = path
+		}
+	}
 
 	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
