@@ -34,7 +34,7 @@
         "'push'", // from a push
         "'savedLastState'", // last seen chat tab
         "'startFoundExisting'", // starting a conversation and found one already
-        "'teamChat'", // from team
+        "'teamChat'" // from team
       ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
