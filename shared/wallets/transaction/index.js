@@ -2,7 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
+import {
+  Avatar,
+  Box2,
+  Button,
+  ClickableBox,
+  Icon,
+  ConnectedUsernames,
+  WaitingButton,
+} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
@@ -351,6 +359,15 @@ export const Transaction = (props: Props) => {
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
+              {props.counterpartyType === 'keybaseUser' && (
+                <Button
+                  type="Secondary"
+                  label="Chat"
+                  small={true}
+                  style={styles.chatButton}
+                  onClick={() => {}}
+                />
+              )}
               {props.onCancelPayment && (
                 <WaitingButton
                   type="Danger"
@@ -386,6 +403,11 @@ const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
     marginTop: globalMargins.tiny,
+  },
+  chatButton: {
+    alignSelf: 'flex-start',
+    marginTop: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
   },
   container: {
     padding: globalMargins.tiny,
