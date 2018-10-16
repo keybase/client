@@ -30,7 +30,7 @@ type LoadUserArg struct {
 	uider                    UIDer
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
-
+	upakLite                 bool
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -43,8 +43,7 @@ type LoadUserArg struct {
 	// failed LoadUserPlusKeys load
 	merkleLeaf *MerkleUserLeaf
 	sigHints   *SigHints
-
-	m MetaContext
+	m          MetaContext
 }
 
 func (arg LoadUserArg) String() string {
@@ -155,6 +154,11 @@ func (arg LoadUserArg) WithUID(uid keybase1.UID) LoadUserArg {
 
 func (arg LoadUserArg) WithPublicKeyOptional() LoadUserArg {
 	arg.publicKeyOptional = true
+	return arg
+}
+
+func (arg LoadUserArg) ForUPAKLite() LoadUserArg {
+	arg.upakLite = true
 	return arg
 }
 
@@ -481,7 +485,7 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	m.CDebugf("Load User from server: %s", uid)
 
-	// Res.body might already have been preloaded a a result of a Resolve call earlier.
+	// Res.body might already have been preloaded as a result of a Resolve call earlier.
 	if body == nil {
 		res, err := m.G().API.Get(APIArg{
 			Endpoint:    "user/lookup",

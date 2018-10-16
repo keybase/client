@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
@@ -9,7 +9,7 @@ export type OwnProps = {
   accountID: Types.AccountID,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const walletName = routeProps.get('walletName')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()

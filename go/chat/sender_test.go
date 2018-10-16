@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -267,8 +268,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 
 	searcher := NewSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
-	searcher.pageSize = 2
+	searcher.pageSize = 3
 	g.Searcher = searcher
+	g.Indexer = search.NewIndexer(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	g.StellarLoader = types.DummyStellarLoader{}
@@ -740,6 +742,9 @@ func TestDisconnectedFailure(t *testing.T) {
 		break
 	}
 	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	sort.Slice(obids, func(i, j int) bool {
+		return j < i
+	})
 	require.Equal(t, listener.obidsRemote, obids)
 }
 

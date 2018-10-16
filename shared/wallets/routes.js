@@ -18,6 +18,7 @@ import {
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
+import ChooseAsset from './send-form/choose-asset/container'
 import WalletsList from './wallet-list/container'
 
 const createNewAccount = {
@@ -54,6 +55,11 @@ const walletChildren = {
       },
       createNewAccount,
       linkExisting,
+      [Constants.chooseAssetFormRouteKey]: {
+        children: {},
+        component: ChooseAsset,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
     },
     component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
@@ -98,6 +104,8 @@ const walletChildren = {
 const routeTree = isMobile
   ? makeRouteDefNode({
       children: {
+        createNewAccount,
+        linkExisting,
         wallet: {
           children: walletChildren,
           component: Wallet,

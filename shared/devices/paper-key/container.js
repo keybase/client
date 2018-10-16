@@ -5,12 +5,12 @@ import * as Constants from '../../constants/devices'
 import PaperKey from '.'
 import {navigateUp} from '../../actions/route-tree'
 
-const mapStateToProps = (state: Container.TypedState) => ({
+const mapStateToProps = state => ({
   paperkey: state.devices.newPaperkey.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
 })
 

@@ -257,23 +257,27 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 }
 
 type PaymentSummaryDirect struct {
-	KbTxID          KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
-	TxID            TransactionID         `codec:"txID" json:"txID"`
-	TxStatus        TransactionStatus     `codec:"txStatus" json:"txStatus"`
-	TxErrMsg        string                `codec:"txErrMsg" json:"txErrMsg"`
-	FromStellar     AccountID             `codec:"fromStellar" json:"fromStellar"`
-	From            keybase1.UserVersion  `codec:"from" json:"from"`
-	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
-	ToStellar       AccountID             `codec:"toStellar" json:"toStellar"`
-	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
-	Amount          string                `codec:"amount" json:"amount"`
-	Asset           Asset                 `codec:"asset" json:"asset"`
-	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
-	NoteB64         string                `codec:"noteB64" json:"noteB64"`
-	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
-	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
-	CursorToken     string                `codec:"cursorToken" json:"cursorToken"`
+	KbTxID              KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
+	TxID                TransactionID         `codec:"txID" json:"txID"`
+	TxStatus            TransactionStatus     `codec:"txStatus" json:"txStatus"`
+	TxErrMsg            string                `codec:"txErrMsg" json:"txErrMsg"`
+	FromStellar         AccountID             `codec:"fromStellar" json:"fromStellar"`
+	From                keybase1.UserVersion  `codec:"from" json:"from"`
+	FromDeviceID        keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	ToStellar           AccountID             `codec:"toStellar" json:"toStellar"`
+	To                  *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	Amount              string                `codec:"amount" json:"amount"`
+	Asset               Asset                 `codec:"asset" json:"asset"`
+	DisplayAmount       *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency     *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	NoteB64             string                `codec:"noteB64" json:"noteB64"`
+	FromDisplayAmount   string                `codec:"fromDisplayAmount" json:"fromDisplayAmount"`
+	FromDisplayCurrency string                `codec:"fromDisplayCurrency" json:"fromDisplayCurrency"`
+	ToDisplayAmount     string                `codec:"toDisplayAmount" json:"toDisplayAmount"`
+	ToDisplayCurrency   string                `codec:"toDisplayCurrency" json:"toDisplayCurrency"`
+	Ctime               TimeMs                `codec:"ctime" json:"ctime"`
+	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
+	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -309,10 +313,14 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 			tmp := (*x)
 			return &tmp
 		})(o.DisplayCurrency),
-		NoteB64:     o.NoteB64,
-		Ctime:       o.Ctime.DeepCopy(),
-		Rtime:       o.Rtime.DeepCopy(),
-		CursorToken: o.CursorToken,
+		NoteB64:             o.NoteB64,
+		FromDisplayAmount:   o.FromDisplayAmount,
+		FromDisplayCurrency: o.FromDisplayCurrency,
+		ToDisplayAmount:     o.ToDisplayAmount,
+		ToDisplayCurrency:   o.ToDisplayCurrency,
+		Ctime:               o.Ctime.DeepCopy(),
+		Rtime:               o.Rtime.DeepCopy(),
+		CursorToken:         o.CursorToken,
 	}
 }
 
@@ -627,8 +635,9 @@ type MarkAsReadArg struct {
 }
 
 type PaymentDetailsArg struct {
-	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
-	TxID   string               `codec:"txID" json:"txID"`
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	TxID      string               `codec:"txID" json:"txID"`
 }
 
 type AccountSeqnoArg struct {

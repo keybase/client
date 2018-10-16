@@ -11,16 +11,15 @@ import {
   withStateHandlers,
   connect,
   safeSubmit,
-  type TypedState,
 } from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),

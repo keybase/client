@@ -41,13 +41,11 @@ class Text extends React.Component<Props> {
 
   _className(props: Props) {
     const meta = metaData[props.type]
-    const classNames = [`text_${props.type}`, props.className]
-    if (props.underline) {
-      classNames.push('underline')
-    } else if (meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal')) {
-      classNames.push('hover-underline')
-    }
-    return classNames.filter(Boolean).join(' ') || undefined
+    return Styles.classNames(`text_${props.type}`, props.className, {
+      underline: props.underline,
+      // eslint-disable-next-line sort-keys
+      'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
+    })
   }
 
   _urlClick = (e: MouseEvent) => {

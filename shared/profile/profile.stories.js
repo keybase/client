@@ -14,44 +14,6 @@ import {
   metaUnreachable,
 } from '../constants/tracker'
 
-// TODO this is a ton of stuff thats ported over from the dumb component. We could reduce this by making a provider and feeding the container
-
-// Copied from old constants/favorite.js
-// Start --->
-import type {UserList} from '../common-adapters/usernames'
-import {defaultKBFSPath} from '../constants/config'
-function pathFromFolder({
-  isPublic,
-  isTeam,
-  users,
-}: {
-  isPublic: boolean,
-  isTeam: boolean,
-  users: UserList,
-}): {sortName: string, path: string} {
-  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
-  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
-  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
-
-  let subdir = 'unknown'
-  if (isTeam) {
-    subdir = 'team'
-  } else if (isPublic) {
-    subdir = 'public'
-  } else {
-    subdir = 'private'
-  }
-
-  const path = `${defaultKBFSPath}/${subdir}/${sortName}`
-  return {sortName, path}
-}
-// <--- End
-
-function createFolder(partialFolder) {
-  // $FlowIssue spreading inexact
-  return {...partialFolder, ...pathFromFolder(partialFolder)}
-}
-
 const followers = [
   {following: false, followsYou: true, fullname: 'Alex Wendland', uid: '0', username: 'awendland'},
   {following: false, followsYou: false, fullname: 'Marco Munizaga', uid: '0', username: 'marcopolo'},
@@ -141,50 +103,6 @@ const proofsDefault = [
     type: 'dns',
   },
 ]
-const baseFolder = {
-  ignored: false,
-  isPublic: true,
-  isTeam: false,
-  waitingForParticipantUnlock: [],
-  youCanUnlock: [],
-}
-const folders = [
-  createFolder({
-    ...baseFolder,
-    users: [{username: 'chris', you: true}, {username: 'cecileb'}],
-  }),
-  createFolder({
-    ...baseFolder,
-    isPublic: false,
-    users: [{username: 'chris', you: true}, {username: 'cecileb'}],
-  }),
-  createFolder({
-    ...baseFolder,
-    users: [{username: 'chris', you: true}, {username: 'cecileb'}, {username: 'max'}],
-  }),
-  createFolder({
-    ...baseFolder,
-    users: [{username: 'chris', you: true}, {username: 'max'}],
-  }),
-  createFolder({
-    ...baseFolder,
-    users: [{username: 'chris', you: true}, {username: 'cjb'}],
-  }),
-  createFolder({
-    ...baseFolder,
-    isPublic: false,
-    users: [
-      {username: 'chris', you: true},
-      {username: 'chrisnojima'},
-      {username: 'marcopolo'},
-      {username: 'kldsjflksjflkd sfkjds klf djslfk dslkf jdlks jfkld sjflk djslkf lkzanderz'},
-    ],
-  }),
-  createFolder({
-    ...baseFolder,
-    users: [{username: 'chris', you: true}, {username: 'chrisnojima'}, {username: 'marcopolo'}],
-  }),
-]
 
 const props = {
   ...mockUserInfo,
@@ -219,7 +137,8 @@ const props = {
   onRecheckProof: Sb.action('onRecheckProof'),
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
-  onSendOrRequestLumens: Sb.action('onSendOrRequestLumens'),
+  onSendLumens: Sb.action('onSendLumens'),
+  onRequestLumens: Sb.action('onRequestLumens'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),
@@ -227,7 +146,6 @@ const props = {
   reason: '',
   refresh: Sb.action('refresh'),
   serverActive: false,
-  tlfs: folders,
   trackerState: normal,
   waiting: false,
   youAreInTeams: false,
@@ -261,8 +179,25 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
   state: checking,
 }))
 
+const provider = (cfProps =>
+  Sb.createPropProviderWithCommon({
+    ConnectedFolders: () => ({
+      tlfs: [
+        {...cfProps, isPublic: true, isSelf: true, text: `public/meatball`},
+        {...cfProps, isPublic: true, isSelf: false, text: `public/meatball,songgao`},
+        {...cfProps, isPublic: false, isSelf: true, text: `private/meatball`},
+        {...cfProps, isPublic: false, isSelf: false, text: `private/meatball,songgao`},
+      ],
+      loadTlfs: Sb.action('loadTlfs'),
+    }),
+  }))({
+  openInFilesTab: Sb.action('openInFilesTab'),
+  style: {maxWidth: 256},
+})
+
 const load = () => {
   Sb.storiesOf('Profile/Profile', module)
+    .addDecorator(provider)
     .add('Your Profile', () => <Profile {...props} bioEditFns={bioEditFns} isYou={true} />)
     .add('Your Profile - Loading', () => (
       <Profile {...props} loading={true} bioEditFns={bioEditFns} isYou={true} />
@@ -305,7 +240,6 @@ const load = () => {
     .add('Your Profile - Following Tab', () => <Profile {...props} currentFriendshipsTab={'Following'} />)
     .add('Unfollowed - Profile page', () => <Profile {...props} onBack={undefined} />)
     .add('Unfollowed', () => <Profile {...props} />)
-    .add('Unfollowed - Few Folders', () => <Profile {...props} tlfs={folders.slice(0, 3)} />)
     .add('Unfollowed - Changed (Proofs unreachable)', () => <Profile {...props} proofs={proofsChanged} />)
     .add('Unfollowed - Changed (Proofs deleted)', () => <Profile {...props} proofs={proofsDeleted} />)
     .add('Followed', () => <Profile {...props} proofs={proofsTracked} currentlyFollowing={true} />)

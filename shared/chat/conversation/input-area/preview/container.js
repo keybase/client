@@ -3,9 +3,9 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ChannelPreview from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const _meta = Constants.getMeta(state, conversationIDKey)
   return {
     _conversationIDKey: conversationIDKey,
@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   _onLeaveChannel: (conversationIDKey: Types.ConversationIDKey) =>

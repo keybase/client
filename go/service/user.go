@@ -340,6 +340,19 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	return ret, err
 }
 
+func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UPKLiteV1AllIncarnations, err error) {
+	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional().ForUPAKLite()
+	upakLite, err := h.G().GetUPAKLoader().LoadLite(arg)
+	if err != nil {
+		return ret, err
+	}
+	if upakLite == nil {
+		return ret, libkb.UserNotFoundError{UID: uid, Msg: "upak load failed"}
+	}
+	ret = *upakLite
+	return ret, nil
+}
+
 func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "US")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()

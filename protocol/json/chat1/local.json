@@ -1122,6 +1122,13 @@
         {
           "type": "MessageBody",
           "name": "messageBody"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "supersedesOutboxID"
         }
       ]
     },
@@ -2057,6 +2064,26 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EditTarget",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "messageID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
         }
       ]
     },
@@ -3004,8 +3031,8 @@
           "type": "boolean"
         },
         {
-          "name": "supersedes",
-          "type": "MessageID"
+          "name": "target",
+          "type": "EditTarget"
         },
         {
           "name": "body",

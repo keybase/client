@@ -3,7 +3,7 @@ import * as React from 'react'
 import {WrapperTimestamp} from '../'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {setDisplayName, compose, connect} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type OwnProps = {|
@@ -28,7 +28,7 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
   return Constants.decoratedMessageTypes.includes(message.type)
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
   return {
     _you: state.config.username || '',
@@ -51,6 +51,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
+  const sequentialUserMessages =
+    previous &&
+    previous.author === message.author &&
+    Constants.authorIsCollapsible(message) &&
+    Constants.authorIsCollapsible(previous)
+  const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
+
   let type = 'children'
   if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
     type = 'wrapper-author'
@@ -65,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
+    isShowingUsername,
     measure: ownProps.measure,
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,

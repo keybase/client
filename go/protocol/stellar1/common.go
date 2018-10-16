@@ -62,16 +62,20 @@ func (o KeybaseRequestID) DeepCopy() KeybaseRequestID {
 }
 
 type Asset struct {
-	Type   string `codec:"type" json:"type"`
-	Code   string `codec:"code" json:"code"`
-	Issuer string `codec:"issuer" json:"issuer"`
+	Type           string `codec:"type" json:"type"`
+	Code           string `codec:"code" json:"code"`
+	Issuer         string `codec:"issuer" json:"issuer"`
+	VerifiedDomain string `codec:"verifiedDomain" json:"verifiedDomain"`
+	IssuerName     string `codec:"issuerName" json:"issuerName"`
 }
 
 func (o Asset) DeepCopy() Asset {
 	return Asset{
-		Type:   o.Type,
-		Code:   o.Code,
-		Issuer: o.Issuer,
+		Type:           o.Type,
+		Code:           o.Code,
+		Issuer:         o.Issuer,
+		VerifiedDomain: o.VerifiedDomain,
+		IssuerName:     o.IssuerName,
 	}
 }
 

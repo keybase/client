@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../../../util/container'
+import {compose, connect, setDisplayName} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
@@ -22,7 +22,7 @@ export type OwnProps = {|
   ordinal: Types.Ordinal,
 |}
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
     // nothing to see here

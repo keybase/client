@@ -1,19 +1,19 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect, compose, withStateHandlers, type TypedState} from '../../util/container'
+import {connect, compose, withStateHandlers} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state, {routeProps}) => ({
   createNewAccountError: state.wallets.createNewAccountError,
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps, fromSendForm}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
   _onCreateAccount: (name: string) =>
     dispatch(
       WalletsGen.createCreateNewAccount({

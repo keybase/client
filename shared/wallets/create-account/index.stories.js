@@ -14,7 +14,6 @@ const props = {
   onCreateAccount: Sb.action('onCreateAccount'),
   onDone: Sb.action('onDone'),
   onNameChange: Sb.action('onNameChange'),
-  onBack: Sb.action('onBack'),
   waiting: false,
 }
 

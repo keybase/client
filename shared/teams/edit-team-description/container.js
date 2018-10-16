@@ -7,11 +7,10 @@ import {
   withHandlers,
   withProps,
   withStateHandlers,
-  type TypedState,
 } from '../../util/container'
 import * as Constants from '../../constants/teams'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the description page, please report this error.')

@@ -1,12 +1,12 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   keyError: state.wallets.secretKeyError,
   linkExistingAccountError: state.wallets.linkExistingAccountError,
   nameError: state.wallets.accountNameError,

@@ -5,7 +5,7 @@ import {HeaderHoc} from '../common-adapters'
 import {version} from '../constants/platform'
 
 const mapStateToProps = () => ({version})
-const mapDispatchToProps = (dispatch: Container.Dispatch, {navigateUp, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
   onBack: () => dispatch(navigateUp()),
   onShowPrivacyPolicy: () =>
     dispatch(

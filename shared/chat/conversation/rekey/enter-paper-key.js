@@ -9,7 +9,7 @@ const mapStateToProps = () => ({
   waitingForResponse: false,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onEnterPaperkey: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
     dispatch(navigateUp())

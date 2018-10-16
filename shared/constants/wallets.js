@@ -14,6 +14,7 @@ const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
+const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
 const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
 
@@ -22,18 +23,21 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
-const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
+const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
+  isRequest: false,
   publicMemo: new HiddenString(''),
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
   to: '',
+  sendAssetChoices: null,
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
+  amountFormatted: '',
   banners: null,
   from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
@@ -45,14 +49,25 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   worthInfo: '',
 })
 
+const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  readyToRequest: false,
+  secretNoteErrMsg: new HiddenString(''),
+  toErrMsg: '',
+  worthDescription: '',
+  worthInfo: '',
+})
+
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
-  buildingPayment: makeBuildingPayment(),
+  building: makeBuilding(),
   builtPayment: makeBuiltPayment(),
+  builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
   currencyMap: I.Map(),
@@ -69,18 +84,31 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  unreadPaymentsMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
+    amountFormatted: b.amountFormatted,
     banners: b.banners,
-    from: b.from,
+    from: Types.stringToAccountID(b.from),
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
     toUsername: b.toUsername,
+    worthDescription: b.worthDescription,
+    worthInfo: b.worthInfo,
+  })
+
+const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
+  makeBuiltRequest({
+    amountErrMsg: b.amountErrMsg,
+    banners: b.banners,
+    readyToRequest: b.readyToRequest,
+    secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    toErrMsg: b.toErrMsg,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })
@@ -108,6 +136,7 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   balanceTotal: '',
   issuerAccountID: '',
   issuerName: '',
+  issuerVerifiedDomain: '',
   name: '',
   worth: '',
   worthCurrency: '',
@@ -122,6 +151,7 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     balanceTotal: w.balanceTotal,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
+    issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
     worthCurrency: w.worthCurrency,
@@ -153,6 +183,8 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
   publicMemoType: '',
+  readState: 'read',
+  section: 'none',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -188,25 +220,45 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
+const paymentResultToPayment = (
+  w: RPCTypes.PaymentOrErrorLocal,
+  section: Types.PaymentSection,
+  oldestUnread: ?RPCTypes.PaymentID
+) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
   }
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+  let readState
+  if (w.payment.id === oldestUnread) {
+    readState = 'oldestUnread'
+  } else if (w.payment.unread) {
+    readState = 'unread'
+  } else {
+    readState = 'read'
+  }
+  return makePayment({
+    ...rpcPaymentToPaymentCommon(w.payment, section),
+    readState,
+  })
 }
 
 const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
   makePayment({
     ...rpcPaymentToPaymentCommon(p),
+    // Payment details have no unread field.
+    readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (
+  p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
+  section?: Types.PaymentSection
+) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
@@ -219,6 +271,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
   )
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
+    ...(section ? {section} : null),
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
@@ -243,7 +296,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
-  issuerName: null,
+  issuerName: '',
+  issuerVerifiedDomain: '',
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
@@ -267,9 +321,12 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     logger.error('Received requestDetails with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: Types.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: Types.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'
@@ -421,9 +478,6 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
 
-const getAccountName = (account: Types.Account) =>
-  account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
-
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
@@ -449,6 +503,14 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
+
+const getCurrencyAndSymbol = (state: TypedState, code: string) => {
+  if (!state.wallets.currencies || !code) {
+    return 'XLM'
+  }
+  const currency = state.wallets.currencies.find(c => c.code === code)
+  return currency ? currency.description : code
+}
 
 const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black
@@ -481,14 +543,16 @@ export {
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
+  buildRequestResultToBuiltRequest,
+  chooseAssetFormRouteKey,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,
   getAccountIDs,
   getAccounts,
-  getAccountName,
   getAccount,
   getAssets,
+  getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
   getDefaultAccountID,
@@ -507,8 +571,9 @@ export {
   makeAssetDescription,
   makeAssets,
   makeCurrencies,
-  makeBuildingPayment,
+  makeBuilding,
   makeBuiltPayment,
+  makeBuiltRequest,
   makePayment,
   makeRequest,
   makeReserve,

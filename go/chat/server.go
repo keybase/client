@@ -1018,8 +1018,9 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 		return res, err
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	reason := chat1.GetThreadReason_GENERAL
 	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID, arg.MessageIDs,
-		!arg.DisableResolveSupersedes)
+		!arg.DisableResolveSupersedes, &reason)
 	if err != nil {
 		return res, err
 	}
@@ -1138,21 +1139,35 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	return h.PostLocalNonblock(ctx, parg)
 }
 
-func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
+func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PostEditNonblock")()
+
 	var parg chat1.PostLocalNonblockArg
+	var supersedes chat1.MessageID
+	if arg.Target.MessageID != nil && *arg.Target.MessageID > 0 {
+		supersedes = *arg.Target.MessageID
+	}
+	if supersedes.IsNil() && arg.Target.OutboxID == nil {
+		return res, errors.New("must specify a messageID or outboxID for edit")
+	}
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
-	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.Supersedes = supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-		MessageID: arg.Supersedes,
+		MessageID: supersedes,
 		Body:      arg.Body,
 	})
-
+	if supersedes.IsNil() {
+		h.Debug(ctx, "PostEditNonblock: setting supersedes outboxID: %s", arg.Target.OutboxID)
+		parg.Msg.SupersedesOutboxID = arg.Target.OutboxID
+	}
 	return h.PostLocalNonblock(ctx, parg)
 }
 
@@ -1173,7 +1188,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 			Lifetime: *arg.EphemeralLifetime,
 		}
 	}
-
 	return h.PostLocalNonblock(ctx, parg)
 }
 
@@ -1386,7 +1400,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
+		arg.ConvID, arg.TlfName, arg.Visibility, nil, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
 		arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
@@ -1493,8 +1507,9 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	if filename == "" {
 		// No filename means we will create one in the OS temp dir
 		// Get the sent file name first
+		reason := chat1.GetThreadReason_GENERAL
 		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
-			[]chat1.MessageID{arg.MessageID}, true)
+			[]chat1.MessageID{arg.MessageID}, true, &reason)
 		if err != nil {
 			return res, err
 		}
@@ -1583,7 +1598,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
+	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
@@ -2252,6 +2267,11 @@ func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchA
 			arg.ConvID.String(): convStats,
 		}
 	}
+	b, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	h.Debug(ctx, "%s\n", string(b))
 	return res, err
 }
 

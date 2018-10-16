@@ -3,10 +3,10 @@ import logger from '../../logger'
 import * as SettingsGen from '../../actions/settings-gen'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
-import {connect, type TypedState, compose} from '../../util/container'
+import {connect, compose} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 
-const mapStateToProps = (state: TypedState, ownProps: {}) => {
+const mapStateToProps = (state, ownProps: {}) => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
   let accountProps

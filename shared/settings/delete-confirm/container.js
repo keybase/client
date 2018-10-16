@@ -4,7 +4,7 @@ import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
 import {navigateUp} from '../../actions/route-tree'
 import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
-import {compose, connect, type TypedState} from '../../util/container'
+import {compose, connect} from '../../util/container'
 
 class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   componentDidMount() {
@@ -23,7 +23,7 @@ class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   if (!state.config.username) {
     throw new Error('No current username for delete confirm container')
   }
@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(navigateUp()),
   onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
   setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),

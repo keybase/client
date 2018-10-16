@@ -12,6 +12,9 @@ export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
+// Possible read states a transaction can be in.
+export type ReadState = 'read' | 'unread' | 'oldestUnread'
+
 // Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
@@ -57,6 +60,7 @@ export type _Assets = {
   balanceTotal: string,
   issuerAccountID: string,
   issuerName: string,
+  issuerVerifiedDomain: string,
   name: string,
   worth: string,
   worthCurrency: string,
@@ -72,20 +76,24 @@ export type _LocalCurrency = {
   symbol: string,
   name: string,
 }
-export type _BuildingPayment = {
+
+export type _Building = {
   amount: string,
   currency: string,
-  from: string,
+  from: AccountID,
+  isRequest: boolean,
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
+  sendAssetChoices: ?Array<StellarRPCTypes.SendAssetChoiceLocal>,
   to: string,
 }
 
 export type _BuiltPayment = {
   amountErrMsg: string,
+  amountFormatted: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
-  from: string,
+  from: AccountID,
   publicMemoErrMsg: HiddenString,
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
@@ -95,9 +103,20 @@ export type _BuiltPayment = {
   worthInfo: string,
 }
 
+export type _BuiltRequest = {
+  amountErrMsg: string,
+  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  readyToRequest: boolean,
+  secretNoteErrMsg: HiddenString,
+  toErrMsg: string,
+  worthDescription: string,
+  worthInfo: string,
+}
+
 export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
+export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
 export type _Payment = {
   amountDescription: string,
   delta: PaymentDelta,
@@ -107,6 +126,8 @@ export type _Payment = {
   noteErr: HiddenString,
   publicMemo: HiddenString,
   publicMemoType: string,
+  readState: ReadState,
+  section: PaymentSection,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -125,7 +146,8 @@ export type _Payment = {
 export type _AssetDescription = {
   code: string,
   issuerAccountID: AccountID,
-  issuerName: ?string,
+  issuerName: string,
+  issuerVerifiedDomain: string,
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
@@ -157,9 +179,11 @@ export type Banner = {|
   bannerText: string,
 |}
 
-export type BuildingPayment = I.RecordOf<_BuildingPayment>
+export type Building = I.RecordOf<_Building>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
+
+export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
 export type Payment = I.RecordOf<_Payment>
 
@@ -173,26 +197,27 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
-  buildingPayment: BuildingPayment,
+  assetsMap: I.Map<AccountID, I.List<Assets>>,
+  building: Building,
   builtPayment: BuiltPayment,
+  builtRequest: BuiltRequest,
   createNewAccountError: string,
+  currencies: I.List<Currency>,
+  currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
   linkExistingAccountError: string,
-  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
-  secretKey: HiddenString,
-  secretKeyError: string,
-  secretKeyValidationState: ValidationState,
-  selectedAccount: AccountID,
-  sentPaymentError: string,
-  assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
+  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
+  secretKey: HiddenString,
+  secretKeyError: string,
   secretKeyMap: I.Map<AccountID, HiddenString>,
+  secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
-  currencies: I.List<Currency>,
-  currencyMap: I.Map<AccountID, Currency>,
+  sentPaymentError: string,
+  unreadPaymentsMap: I.Map<string, number>,
 }
 
 export type State = I.RecordOf<_State>

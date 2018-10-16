@@ -2,16 +2,20 @@
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTree from '../../actions/route-tree'
-import {connect, type TypedState, isMobile} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   accounts: getAccountIDs(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   onAddNew: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'createNewAccount'}]))
+    dispatch(
+      RouteTree.navigateAppend([
+        {props: {showOnCreation: true, backButton: isMobile}, selected: 'createNewAccount'},
+      ])
+    )
   },
   onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {

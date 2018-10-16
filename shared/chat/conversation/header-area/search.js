@@ -8,14 +8,13 @@ import {
   withStateHandlers,
   lifecycle,
   withProps,
-  type TypedState,
 } from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   pendingConversationUsers: Constants.getMeta(state, Constants.pendingConversationIDKey).participants,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onExitSearch: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
   onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
 })

@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import Breadcrumb from './breadcrumb.desktop'
@@ -10,11 +10,11 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _navigateTo: (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
 })
 

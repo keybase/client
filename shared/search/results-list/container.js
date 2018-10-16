@@ -1,5 +1,5 @@
 // @flow
-import {connect, compose, setDisplayName, type TypedState} from '../../util/container'
+import {connect, compose, setDisplayName} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
 import SearchResultsList, {type Props as _Props} from '.'
@@ -15,7 +15,7 @@ export type OwnProps = {|
   style?: any,
 |}
 
-const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
+const mapStateToProps = ({entities}, {disableIfInTeamName, searchKey}: OwnProps) => {
   const searchResultIds = entities.search.searchKeyToResults.get(searchKey)
   const pending = entities.search.searchKeyToPending.get(searchKey, false)
   const showSearchSuggestions = entities.search.searchKeyToShowSearchSuggestion.get(searchKey, false)

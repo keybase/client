@@ -2,12 +2,13 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
+import * as SettingsConstants from '../../../../../constants/settings'
 import * as Types from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {walletsTab} from '../../../../../constants/tabs'
+import * as Tabs from '../../../../../constants/tabs'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -50,7 +51,7 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => ({
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
   paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -58,9 +59,10 @@ const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps
 const sendMapDispatchToProps = dispatch => ({
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID}))
+    const root = Container.isMobile ? [Tabs.settingsTab, SettingsConstants.walletsTab] : [Tabs.walletsTab]
     dispatch(
       RouteTreeGen.createNavigateTo({
-        path: [walletsTab, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
+        path: [...root, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
       })
     )
   },
@@ -111,7 +113,7 @@ const SendPaymentPopup = Container.connect(
 )(PaymentPopup)
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
+const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
   requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -150,7 +152,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
 
   let bottomLine = ''
   if (requestInfo.asset !== 'native' && requestInfo.asset !== 'currency') {
-    bottomLine = requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
+    bottomLine = requestInfo.asset.issuerVerifiedDomain || requestInfo.asset.issuerAccountID || ''
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${

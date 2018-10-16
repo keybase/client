@@ -76,6 +76,10 @@ protocol remote {
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
+    string fromDisplayAmount;
+    string fromDisplayCurrency;
+    string toDisplayAmount;
+    string toDisplayCurrency;
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
     string cursorToken;
@@ -150,7 +154,7 @@ protocol remote {
   void markAsRead(keybase1.UserVersion caller, AccountID accountID, TransactionID mostRecentID);
 
   // txID can be either a keybase or stellar transaction ID.
-  PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
+  PaymentDetails paymentDetails(keybase1.UserVersion caller, AccountID accountID, string txID);
 
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);

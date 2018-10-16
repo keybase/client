@@ -10,18 +10,26 @@ const provider = Sb.createPropProviderWithCommon({
   Available: props => ({}),
 })
 
+const common = {
+  disabled: false,
+  onClickSend: Sb.action('onClickSend'),
+}
+
+const onClickRequest = Sb.action('onClickRequest')
+
 const load = () => {
   const story = Sb.storiesOf('Wallets/SendForm/Footer', module).addDecorator(story => (
     <Box style={{maxWidth: 360}}>{story()}</Box>
   ))
   story.addDecorator(provider)
-  story.add('Normal send', () => <Footer onClickSend={Sb.action('onClick')} />)
-  story.add('Send with request', () => (
-    <Footer onClickSend={Sb.action('onClick')} onClickRequest={Sb.action('onClick')} />
-  ))
-  story.add('Disabled', () => <Footer onClickSend={Sb.action('onClick')} disabled={true} />)
+  story.add('Normal send', () => <Footer {...common} />)
+  story.add('Send with request', () => <Footer {...common} onClickRequest={onClickRequest} />)
+  story.add('Disabled', () => <Footer {...common} disabled={true} />)
   story.add('Disabled with request', () => (
-    <Footer onClickSend={Sb.action('onClick')} onClickRequest={Sb.action('onClick')} disabled={true} />
+    <Footer {...common} onClickRequest={onClickRequest} disabled={true} />
+  ))
+  story.add('With worth description', () => (
+    <Footer {...common} onClickRequest={onClickRequest} worthDescription="$1.23" />
   ))
 }
 

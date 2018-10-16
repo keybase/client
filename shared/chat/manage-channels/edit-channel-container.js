@@ -5,8 +5,8 @@ import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
-const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
+import {connect, compose, lifecycle} from '../../util/container'
+const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
   if (!conversationIDKey) {
     throw new Error('conversationIDKey unexpectedly empty')

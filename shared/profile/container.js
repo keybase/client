@@ -21,7 +21,7 @@ import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
@@ -54,7 +54,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
+const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
@@ -116,23 +116,15 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         [peopleTab]
       )
     ),
-  _onSendOrRequestLumens: (to: string) => {
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
+  _onSendOrRequestLumens: (to: string, isRequest) => {
+    dispatch(WalletsGen.createClearBuilding())
+    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createClearErrors())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
+    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
-    dispatch(
-      Route.createNavigateAppend({
-        path: [
-          {
-            props: {isRequest: true},
-            selected: WalletConstants.sendReceiveFormRouteKey,
-          },
-        ],
-      })
-    )
+    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
   },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
@@ -198,7 +190,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username),
+    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false),
+    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,

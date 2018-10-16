@@ -7,11 +7,11 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle, type TypedState, connect} from '../util/container'
+import {compose, lifecycle, connect} from '../util/container'
 import {getSortedTeamnames} from '../constants/teams'
 import {type Teamname} from '../constants/types/teams'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
