@@ -327,7 +327,7 @@ export const Transaction = (props: Props) => {
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
       */
-      return null
+      throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || props.status !== 'completed'
   const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
