@@ -26,6 +26,7 @@ export type _State = {
   newPaperkey: HiddenString,
   selectedDeviceID: ?DeviceID,
   justRevokedSelf: string,
+  isNew: I.Set<string>,
 }
 export type State = I.RecordOf<_State>
 

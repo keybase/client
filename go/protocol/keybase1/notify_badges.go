@@ -54,6 +54,8 @@ type BadgeState struct {
 	NewFollowers              int                     `codec:"newFollowers" json:"newFollowers"`
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
 	HomeTodoItems             int                     `codec:"homeTodoItems" json:"homeTodoItems"`
+	NewDevices                []DeviceID              `codec:"newDevices" json:"newDevices"`
+	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
 	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
@@ -69,6 +71,28 @@ func (o BadgeState) DeepCopy() BadgeState {
 		NewFollowers:  o.NewFollowers,
 		InboxVers:     o.InboxVers,
 		HomeTodoItems: o.HomeTodoItems,
+		NewDevices: (func(x []DeviceID) []DeviceID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NewDevices),
+		RevokedDevices: (func(x []DeviceID) []DeviceID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RevokedDevices),
 		Conversations: (func(x []BadgeConversationInfo) []BadgeConversationInfo {
 			if x == nil {
 				return nil

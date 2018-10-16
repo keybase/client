@@ -7,6 +7,7 @@ type Props = {|
   isCurrentDevice: boolean,
   name: string,
   isRevoked: boolean,
+  isNew: boolean,
   type: 'desktop' | 'backup' | 'mobile',
   showExistingDevicePage: () => void,
   firstItem: boolean,
@@ -44,6 +45,10 @@ const DeviceRow = (props: Props) => {
             {props.name}
           </Kb.Text>
           {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
+          {props.isNew &&
+            !props.isCurrentDevice && (
+              <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
+            )}
         </Kb.Box2>
       }
     />
@@ -58,5 +63,10 @@ const styles = Styles.styleSheetCreate({
     textDecorationStyle: 'solid',
   },
 })
+
+const _metaStyle = {
+  alignSelf: 'flex-start',
+  marginLeft: 6,
+}
 
 export default DeviceRow
