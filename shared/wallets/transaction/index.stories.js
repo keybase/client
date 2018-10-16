@@ -43,25 +43,24 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   const memosAndTimes = [
     // No memo.
     {memo: '', timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
+    {memo: shortMemo, timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
     {memo: longMemo, timestamp: lastWeek, amountUser: '$15.65', amountXLM: '42.535091 XLM'},
     // No display currency.
     {memo: singleEmojiMemo, timestamp: beforeLastWeek, amountUser: '', amountXLM: '19.4567588 XLM'},
-    // Pending.
-    {memo: shortMemo, timestamp: null, amountUser: '$100', amountXLM: '545.2562704 XLM'},
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
   roles.forEach(r => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
       const components = []
-      let first = true
       statuses.forEach(st => {
         components.push(JSON.stringify(st))
-        const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
-        const localReadStates = first ? readStates : readStates.slice(0, 1)
-        first = false
-        localMemosAndTimes.forEach(mt => {
-          localReadStates.forEach(rs => {
+        memosAndTimes.forEach(mt => {
+          readStates.forEach(rs => {
+            // a non-complete transaction is already treated as 'unread'.
+            if (st.status !== 'completed' && rs.readState === 'read') {
+              return
+            }
             components.push(
               storyFn({
                 key: components.length,
