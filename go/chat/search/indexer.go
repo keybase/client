@@ -267,6 +267,7 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid
 func (idx *Indexer) reindex(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 	convIdx *chat1.ConversationIndex, forceReindex bool) (newIdx *chat1.ConversationIndex, err error) {
 
+	// find the min and max missing ids so we can page between them to fill the gaps.
 	minConvMsgID := conv.GetMaxDeletedUpTo()
 	maxConvMsgID := conv.GetMaxMessageID()
 	missingIDs := convIdx.MissingIDs(minConvMsgID, maxConvMsgID)
@@ -285,10 +286,10 @@ func (idx *Indexer) reindex(ctx context.Context, conv chat1.Conversation, uid gr
 	}
 
 	convID := conv.GetConvID()
-	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	defer idx.Trace(ctx, func() error { return err }, "Indexer.reindex")()
-	idx.Debug(ctx, "convID: %v, minID: %v, maxID: %v, numMissing: %v", convID, minIdxID, maxIdxID, len(missingIDs))
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.reindex: convID: %v, minID: %v, maxID: %v, numMissing: %v", convID, minIdxID, maxIdxID, len(missingIDs)))()
 
+	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
 		postHook := func(ctx context.Context) error {
 			msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, missingIDs, &reason)
