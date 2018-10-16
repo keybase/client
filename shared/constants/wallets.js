@@ -473,6 +473,9 @@ const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
 const getPayments = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID, null)
 
+const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
+
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
@@ -564,6 +567,7 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getOldestUnread,
   getRequest,
   getSecretKey,
   getSelectedAccount,
