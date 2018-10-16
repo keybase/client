@@ -274,9 +274,9 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 	return ret, nil
 }
 
-func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "SetAcceptedDisclaimerLocal",
+		RPCName:       "AcceptDisclaimerLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})

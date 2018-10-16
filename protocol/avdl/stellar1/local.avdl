@@ -208,7 +208,7 @@ protocol local {
   }
   WalletSettings getWalletSettingsLocal(int sessionID);
 
-  void setAcceptedDisclaimerLocal(int sessionID);
+  void acceptDisclaimerLocal(int sessionID);
 
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);

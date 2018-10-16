@@ -1078,7 +1078,7 @@
       ],
       "response": "WalletSettings"
     },
-    "setAcceptedDisclaimerLocal": {
+    "acceptDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",
