@@ -62,6 +62,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
       const components = []
       let first = true
       statuses.forEach(st => {
+        components.push(JSON.stringify(st))
         const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
         const localReadStates = first ? readStates : readStates.slice(0, 1)
         first = false
