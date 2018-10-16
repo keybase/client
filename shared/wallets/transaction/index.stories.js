@@ -28,10 +28,12 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     {
       status: 'completed',
       statusDetail: '',
+      onCancelPayment: null,
     },
     {
       status: 'error',
       statusDetail: 'Horizon error',
+      onCancelPayment: null,
     },
     {
       status: 'error',
@@ -62,8 +64,9 @@ const addConfigs = (stories, namePrefix, storyFn) => {
         let first = true
         statuses.forEach(st => {
           first = false
+          const localMemosAndTimes = first ? memosAndTimes : memosAndTimes.slice(0, 1)
           const localReadStates = first ? readStates : readStates.slice(0, 1)
-          memosAndTimes.forEach(t => {
+          localMemosAndTimes.forEach(mt => {
             localReadStates.forEach(rs => {
               components.push(
                 storyFn({
@@ -71,9 +74,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                   ...r,
                   ...s,
                   ...st,
-                  ...t,
+                  ...mt,
                   ...rs,
-                  onCancelPayment: null,
                   onCancelPaymentWaitingKey: '',
                   onSelectTransaction: Sb.action('onSelectTransaction'),
                   onShowProfile: Sb.action('onShowProfile'),
