@@ -82,7 +82,7 @@ const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifi
 
 const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
-  RPCStellarTypes.localSendPaymentLocalRpcPromise(
+  return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       // FIXME -- support other assets.
@@ -103,7 +103,7 @@ const sendPayment = (state: TypedState) => {
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
-  }
+}
 
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(
