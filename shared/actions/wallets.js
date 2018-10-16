@@ -243,13 +243,44 @@ const loadPayments = (
     | WalletsGen.LoadPaymentsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
   ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
+
+const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
+  !action.error &&
+  Promise.all([
+    RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+  ]).then(([_pending, _payments]) => {
+    const {accountID, paymentID} = action.payload
+    const payments = (_payments.payments || [])
+      .map(elem => Constants.paymentResultToPayment(elem, 'history', _payments.oldestUnread))
+      .filter(Boolean)
+    const pending = (_pending || [])
+      .map(elem => Constants.paymentResultToPayment(elem, 'pending', _payments.oldestUnread))
+      .filter(Boolean)
+    if (paymentID) {
+      const found =
+        payments.find(elem => elem.id === paymentID) || pending.find(elem => elem.id === paymentID)
+      if (!found) {
+        logger.warn(
+          `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
+            paymentID
+          )}`
+        )
+      }
+    }
+    return WalletsGen.createPaymentsReceived({
+      accountID,
+      paymentCursor: _payments.cursor,
+      payments,
+      pending,
+    })
+  })
 
 const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
@@ -509,8 +540,13 @@ const setupEngineListeners = () => {
   })
 }
 
-const refreshPayments = ({accountID}) =>
-  Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)}))
+const refreshPayments = ({accountID, paymentID}) =>
+  Saga.put(
+    WalletsGen.createRefreshPayments({
+      accountID: Types.stringToAccountID(accountID),
+      paymentID: Types.rpcPaymentIDToPaymentID(paymentID),
+    })
+  )
 
 const maybeClearErrors = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
@@ -579,14 +615,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadAssets
   )
   yield Saga.actionToPromise(
-    [
-      WalletsGen.loadPayments,
-      WalletsGen.refreshPayments,
-      WalletsGen.selectAccount,
-      WalletsGen.linkedExistingAccount,
-    ],
+    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.refreshPayments, doRefreshPayments)
   yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
