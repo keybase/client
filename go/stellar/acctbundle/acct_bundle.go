@@ -1,4 +1,4 @@
-package bundle
+package acctbundle
 
 import (
 	"crypto/sha256"
@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/stellar/go/keypair"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -23,10 +24,11 @@ func NewAccountBundle(secret stellar1.SecretKey) *AccountBundle {
 
 // NewInitialAccountBundle creates an AccountBundle with a new random secret key.
 func NewInitialAccountBundle() (*AccountBundle, error) {
-	_, masterKey, err := randomStellarKeypair()
+	full, err := keypair.Random()
 	if err != nil {
 		return nil, err
 	}
+	masterKey := stellar1.SecretKey(full.Seed())
 	return NewAccountBundle(masterKey), nil
 }
 
