@@ -154,20 +154,23 @@ func (o BundleSecretV1) DeepCopy() BundleSecretV1 {
 type AccountMode int
 
 const (
-	AccountMode_NONE AccountMode = 0
-	AccountMode_USER AccountMode = 1
+	AccountMode_NONE   AccountMode = 0
+	AccountMode_USER   AccountMode = 1
+	AccountMode_MOBILE AccountMode = 2
 )
 
 func (o AccountMode) DeepCopy() AccountMode { return o }
 
 var AccountModeMap = map[string]AccountMode{
-	"NONE": 0,
-	"USER": 1,
+	"NONE":   0,
+	"USER":   1,
+	"MOBILE": 2,
 }
 
 var AccountModeRevMap = map[AccountMode]string{
 	0: "NONE",
 	1: "USER",
+	2: "MOBILE",
 }
 
 func (e AccountMode) String() string {
@@ -266,6 +269,172 @@ func (o BundleEntry) DeepCopy() BundleEntry {
 			return ret
 		})(o.Signers),
 		Name: o.Name,
+	}
+}
+
+type EncryptedAccountBundle struct {
+	V   int                           `codec:"v" json:"v"`
+	E   []byte                        `codec:"e" json:"e"`
+	N   keybase1.BoxNonce             `codec:"n" json:"n"`
+	Gen keybase1.PerUserKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedAccountBundle) DeepCopy() EncryptedAccountBundle {
+	return EncryptedAccountBundle{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
+type AccountBundleVersion int
+
+const (
+	AccountBundleVersion_V1 AccountBundleVersion = 1
+)
+
+func (o AccountBundleVersion) DeepCopy() AccountBundleVersion { return o }
+
+var AccountBundleVersionMap = map[string]AccountBundleVersion{
+	"V1": 1,
+}
+
+var AccountBundleVersionRevMap = map[AccountBundleVersion]string{
+	1: "V1",
+}
+
+func (e AccountBundleVersion) String() string {
+	if v, ok := AccountBundleVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type AccountBundleSecretVersioned struct {
+	Version__ AccountBundleVersion   `codec:"version" json:"version"`
+	V1__      *AccountBundleSecretV1 `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *AccountBundleSecretVersioned) Version() (ret AccountBundleVersion, err error) {
+	switch o.Version__ {
+	case AccountBundleVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o AccountBundleSecretVersioned) V1() (res AccountBundleSecretV1) {
+	if o.Version__ != AccountBundleVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func NewAccountBundleSecretVersionedWithV1(v AccountBundleSecretV1) AccountBundleSecretVersioned {
+	return AccountBundleSecretVersioned{
+		Version__: AccountBundleVersion_V1,
+		V1__:      &v,
+	}
+}
+
+func (o AccountBundleSecretVersioned) DeepCopy() AccountBundleSecretVersioned {
+	return AccountBundleSecretVersioned{
+		Version__: o.Version__.DeepCopy(),
+		V1__: (func(x *AccountBundleSecretV1) *AccountBundleSecretV1 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+	}
+}
+
+type AccountBundleVisibleV1 struct {
+	Revision  BundleRevision `codec:"revision" json:"revision"`
+	Prev      Hash           `codec:"prev" json:"prev"`
+	AccountID AccountID      `codec:"accountID" json:"accountID"`
+	Mode      AccountMode    `codec:"mode" json:"mode"`
+}
+
+func (o AccountBundleVisibleV1) DeepCopy() AccountBundleVisibleV1 {
+	return AccountBundleVisibleV1{
+		Revision:  o.Revision.DeepCopy(),
+		Prev:      o.Prev.DeepCopy(),
+		AccountID: o.AccountID.DeepCopy(),
+		Mode:      o.Mode.DeepCopy(),
+	}
+}
+
+type AccountBundleSecretV1 struct {
+	VisibleHash Hash        `codec:"visibleHash" json:"visibleHash"`
+	AccountID   AccountID   `codec:"accountID" json:"accountID"`
+	Signers     []SecretKey `codec:"signers" json:"signers"`
+	Name        string      `codec:"name" json:"name"`
+}
+
+func (o AccountBundleSecretV1) DeepCopy() AccountBundleSecretV1 {
+	return AccountBundleSecretV1{
+		VisibleHash: o.VisibleHash.DeepCopy(),
+		AccountID:   o.AccountID.DeepCopy(),
+		Signers: (func(x []SecretKey) []SecretKey {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SecretKey, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Signers),
+		Name: o.Name,
+	}
+}
+
+type AccountBundle struct {
+	Revision  BundleRevision `codec:"revision" json:"revision"`
+	Prev      Hash           `codec:"prev" json:"prev"`
+	OwnHash   Hash           `codec:"ownHash" json:"ownHash"`
+	AccountID AccountID      `codec:"accountID" json:"accountID"`
+	Mode      AccountMode    `codec:"mode" json:"mode"`
+	Signers   []SecretKey    `codec:"signers" json:"signers"`
+	Name      string         `codec:"name" json:"name"`
+	IsPrimary bool           `codec:"isPrimary" json:"isPrimary"`
+}
+
+func (o AccountBundle) DeepCopy() AccountBundle {
+	return AccountBundle{
+		Revision:  o.Revision.DeepCopy(),
+		Prev:      o.Prev.DeepCopy(),
+		OwnHash:   o.OwnHash.DeepCopy(),
+		AccountID: o.AccountID.DeepCopy(),
+		Mode:      o.Mode.DeepCopy(),
+		Signers: (func(x []SecretKey) []SecretKey {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SecretKey, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Signers),
+		Name:      o.Name,
+		IsPrimary: o.IsPrimary,
 	}
 }
 

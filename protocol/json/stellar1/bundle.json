@@ -108,7 +108,8 @@
       "name": "AccountMode",
       "symbols": [
         "NONE_0",
-        "USER_1"
+        "USER_1",
+        "MOBILE_2"
       ]
     },
     {
@@ -201,6 +202,140 @@
         {
           "type": "string",
           "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedAccountBundle",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.PerUserKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AccountBundleVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "AccountBundleSecretVersioned",
+      "switch": {
+        "type": "AccountBundleVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "AccountBundleSecretV1"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountBundleVisibleV1",
+      "fields": [
+        {
+          "type": "BundleRevision",
+          "name": "revision"
+        },
+        {
+          "type": "Hash",
+          "name": "prev"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "AccountMode",
+          "name": "mode"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountBundleSecretV1",
+      "fields": [
+        {
+          "type": "Hash",
+          "name": "visibleHash"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SecretKey"
+          },
+          "name": "signers"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountBundle",
+      "fields": [
+        {
+          "type": "BundleRevision",
+          "name": "revision"
+        },
+        {
+          "type": "Hash",
+          "name": "prev"
+        },
+        {
+          "type": "Hash",
+          "name": "ownHash"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "AccountMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SecretKey"
+          },
+          "name": "signers"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
         }
       ]
     }
