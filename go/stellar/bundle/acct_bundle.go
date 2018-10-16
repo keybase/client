@@ -37,5 +37,15 @@ type AccountBoxResult struct {
 // part is packed and encoded, the secret part is encrypted, packed, and
 // encoded.
 func (a *AccountBundle) Box(pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AccountBoxResult, error) {
-	return &AccountBoxResult{}, nil
+	return &AccountBoxResult{
+		Enc: stellar1.EncryptedAccountBundle{
+			V:   1,
+			E:   []byte("xxx"),
+			N:   keybase1.BoxNonce{1},
+			Gen: pukGen,
+		},
+		EncB64:        "xxx",
+		VisB64:        "xxx",
+		FormatVersion: stellar1.AccountBundleVersion_V1,
+	}, nil
 }
