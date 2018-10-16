@@ -52,7 +52,7 @@ class Search extends React.Component<SearchProps, SearchState> {
     return (
       <React.Fragment>
         <ParticipantsRow heading="To" style={styles.row} headingStyle={styles.rowHeading}>
-          <Box2 direction="vertical" fullWidth={true}>
+          <Box2 direction="horizontal" fullWidth={true}>
             <UserInput
               disableListBuilding={true}
               onExitSearch={this.closeResultsList}
@@ -84,12 +84,16 @@ const styles = Styles.styleSheetCreate({
   row: {
     paddingBottom: 0,
     paddingTop: 0,
+    minHeight: 48,
   },
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
   },
   input: {
+    alignSelf: 'center',
+    flexGrow: 1,
     borderWidth: 0,
+    borderBottomWidth: 0,
     paddingLeft: 0,
   },
   list: Styles.platformStyles({

@@ -36,6 +36,7 @@ const Participants = (props: ParticipantsProps) => {
             username={props.recipientUsername}
             metaOne={props.recipientFullName}
             avatarStyle={styles.avatar}
+            avatarSize={32}
             onClick="tracker"
           />
         )

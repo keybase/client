@@ -128,6 +128,9 @@ const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
+    ))
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />

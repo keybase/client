@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, Divider, ProgressIndicator} from '../../../common-adapters'
-import {globalStyles, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import AssetInput from '../asset-input/container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
@@ -22,40 +22,56 @@ type RequestBodyProps = {
 }
 
 const Spinner = () => (
-  <Box2 direction="vertical" style={styles.spinnerContainer}>
-    <ProgressIndicator type="Large" />
-  </Box2>
+  <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
+    <Kb.ProgressIndicator type="Large" />
+  </Kb.Box2>
 )
 
 export const SendBody = (props: SendBodyProps) => (
-  <Box2 fullWidth={true} fullHeight={true} direction="vertical">
-    {props.isProcessing && <Spinner />}
-    {props.banners.map(banner => (
-      <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-    ))}
-    <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
-    <AssetInput />
-    <Divider />
-    <SecretNote />
-    <PublicMemo />
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+    <Kb.ScrollView style={styles.scrollView}>
+      {props.isProcessing && <Spinner />}
+      {props.banners.map(banner => (
+        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+      ))}
+      <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
+      <AssetInput />
+      <Kb.Divider />
+      <SecretNote />
+      <PublicMemo />
+    </Kb.ScrollView>
     <Footer />
-  </Box2>
+  </Kb.Box2>
 )
 
 export const RequestBody = (props: RequestBodyProps) => (
-  <Box2 fullWidth={true} fullHeight={true} direction="vertical">
-    {props.isProcessing && <Spinner />}
-    {props.banners.map(banner => (
-      <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-    ))}
-    <Participants />
-    <AssetInput />
-    <Divider />
-    <SecretNote />
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+    <Kb.ScrollView style={styles.scrollView}>
+      {props.isProcessing && <Spinner />}
+      {props.banners.map(banner => (
+        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+      ))}
+      <Participants />
+      <AssetInput />
+      <Kb.Divider />
+      <SecretNote />
+    </Kb.ScrollView>
     <Footer />
-  </Box2>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  spinnerContainer: {...globalStyles.fillAbsolute},
+const styles = Styles.styleSheetCreate({
+  container: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  scrollView: Styles.platformStyles({
+    common: {
+      width: '100%',
+      flexGrow: 1,
+      flexShrink: 1,
+    },
+    isElectron: {minHeight: '100%'},
+  }),
+  spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })

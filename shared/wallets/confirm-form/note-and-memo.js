@@ -20,7 +20,7 @@ const NoteAndMemo = (props: Props) => (
           <Kb.Text type="Body" style={styles.bodyText}>
             {props.encryptedNote}
           </Kb.Text>
-        </Kb.Box2>{' '}
+        </Kb.Box2>
       </React.Fragment>
     )}
     {!!props.publicMemo && (
