@@ -14,6 +14,7 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
@@ -38,6 +39,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
   const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
   const memo = tx.note.stringValue()
+
+  let readState = tx.readState
+  if (readState === 'unread' || readState === 'oldestUnread') {
+    readState = tx.id === stateProps._oldestUnread ? 'oldestUnread' : 'read'
+  }
+
   return {
     ...yourRoleAndCounterparty,
     amountUser: tx.worth,
@@ -50,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps.onShowProfile,
-    readState: tx.readState,
+    readState,
     selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,

@@ -14,7 +14,6 @@ const mapStateToProps = state => {
     assets: Constants.getAssets(state, accountID),
     payments: Constants.getPayments(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
-    oldestUnread: Constants.getOldestUnread(state, accountID),
   }
 }
 
