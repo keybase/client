@@ -511,7 +511,7 @@ func TestGetWalletSettings(t *testing.T) {
 	require.Equal(t, false, ret.AcceptedDisclaimer)
 }
 
-func TestSetAcceptedDisclaimer(t *testing.T) {
+func TestAcceptDisclaimer(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -519,7 +519,7 @@ func TestSetAcceptedDisclaimer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, false, us.AcceptedDisclaimer)
 
-	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background(), 0)
+	err = tcs[0].Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
 
 	us, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
