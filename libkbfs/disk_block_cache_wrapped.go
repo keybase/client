@@ -64,11 +64,11 @@ func (cache *diskBlockCacheWrapped) enableCache(
 		return nil
 	}
 	if cache.config.IsTestMode() {
-		*cachePtr, err = newDiskBlockCacheStandardForTest(
+		*cachePtr, err = newDiskBlockCacheLocalForTest(
 			cache.config, typ)
 	} else {
 		cacheStorageRoot := filepath.Join(cache.storageRoot, cacheFolder)
-		*cachePtr, err = newDiskBlockCacheStandard(cache.config, typ,
+		*cachePtr, err = newDiskBlockCacheLocal(cache.config, typ,
 			cacheStorageRoot)
 	}
 	return err

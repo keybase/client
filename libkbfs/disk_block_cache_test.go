@@ -50,12 +50,12 @@ func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 	maxBytes int64) (*diskBlockCacheWrapped, error) {
 	maxFiles := int64(10000)
-	workingSetCache, err := newDiskBlockCacheStandardForTest(config,
+	workingSetCache, err := newDiskBlockCacheLocalForTest(config,
 		workingSetCacheLimitTrackerType)
 	if err != nil {
 		return nil, err
 	}
-	syncCache, err := newDiskBlockCacheStandardForTest(
+	syncCache, err := newDiskBlockCacheLocalForTest(
 		config, syncCacheLimitTrackerType)
 	if err != nil {
 		return nil, err

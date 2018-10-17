@@ -544,6 +544,76 @@ func (mr *MocksyncBlockCacheFractionSetterMockRecorder) SetSyncBlockCacheFractio
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncBlockCacheFraction", reflect.TypeOf((*MocksyncBlockCacheFractionSetter)(nil).SetSyncBlockCacheFraction), arg0)
 }
 
+// MockdiskMDCacheGetter is a mock of diskMDCacheGetter interface
+type MockdiskMDCacheGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskMDCacheGetterMockRecorder
+}
+
+// MockdiskMDCacheGetterMockRecorder is the mock recorder for MockdiskMDCacheGetter
+type MockdiskMDCacheGetterMockRecorder struct {
+	mock *MockdiskMDCacheGetter
+}
+
+// NewMockdiskMDCacheGetter creates a new mock instance
+func NewMockdiskMDCacheGetter(ctrl *gomock.Controller) *MockdiskMDCacheGetter {
+	mock := &MockdiskMDCacheGetter{ctrl: ctrl}
+	mock.recorder = &MockdiskMDCacheGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskMDCacheGetter) EXPECT() *MockdiskMDCacheGetterMockRecorder {
+	return m.recorder
+}
+
+// DiskMDCache mocks base method
+func (m *MockdiskMDCacheGetter) DiskMDCache() DiskMDCache {
+	ret := m.ctrl.Call(m, "DiskMDCache")
+	ret0, _ := ret[0].(DiskMDCache)
+	return ret0
+}
+
+// DiskMDCache indicates an expected call of DiskMDCache
+func (mr *MockdiskMDCacheGetterMockRecorder) DiskMDCache() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskMDCache", reflect.TypeOf((*MockdiskMDCacheGetter)(nil).DiskMDCache))
+}
+
+// MockdiskMDCacheSetter is a mock of diskMDCacheSetter interface
+type MockdiskMDCacheSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskMDCacheSetterMockRecorder
+}
+
+// MockdiskMDCacheSetterMockRecorder is the mock recorder for MockdiskMDCacheSetter
+type MockdiskMDCacheSetterMockRecorder struct {
+	mock *MockdiskMDCacheSetter
+}
+
+// NewMockdiskMDCacheSetter creates a new mock instance
+func NewMockdiskMDCacheSetter(ctrl *gomock.Controller) *MockdiskMDCacheSetter {
+	mock := &MockdiskMDCacheSetter{ctrl: ctrl}
+	mock.recorder = &MockdiskMDCacheSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskMDCacheSetter) EXPECT() *MockdiskMDCacheSetterMockRecorder {
+	return m.recorder
+}
+
+// MakeDiskMDCacheIfNotExists mocks base method
+func (m *MockdiskMDCacheSetter) MakeDiskMDCacheIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskMDCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskMDCacheIfNotExists indicates an expected call of MakeDiskMDCacheIfNotExists
+func (mr *MockdiskMDCacheSetterMockRecorder) MakeDiskMDCacheIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskMDCacheIfNotExists", reflect.TypeOf((*MockdiskMDCacheSetter)(nil).MakeDiskMDCacheIfNotExists))
+}
+
 // MockclockGetter is a mock of clockGetter interface
 type MockclockGetter struct {
 	ctrl     *gomock.Controller
@@ -4251,6 +4321,102 @@ func (mr *MockDiskBlockCacheMockRecorder) Shutdown(ctx interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskBlockCache)(nil).Shutdown), ctx)
 }
 
+// MockDiskMDCache is a mock of DiskMDCache interface
+type MockDiskMDCache struct {
+	ctrl     *gomock.Controller
+	recorder *MockDiskMDCacheMockRecorder
+}
+
+// MockDiskMDCacheMockRecorder is the mock recorder for MockDiskMDCache
+type MockDiskMDCacheMockRecorder struct {
+	mock *MockDiskMDCache
+}
+
+// NewMockDiskMDCache creates a new mock instance
+func NewMockDiskMDCache(ctrl *gomock.Controller) *MockDiskMDCache {
+	mock := &MockDiskMDCache{ctrl: ctrl}
+	mock.recorder = &MockDiskMDCacheMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDiskMDCache) EXPECT() *MockDiskMDCacheMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockDiskMDCache) Get(ctx context.Context, tlfID tlf.ID) ([]byte, kbfsmd.MetadataVer, time.Time, error) {
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(kbfsmd.MetadataVer)
+	ret2, _ := ret[2].(time.Time)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// Get indicates an expected call of Get
+func (mr *MockDiskMDCacheMockRecorder) Get(ctx, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDiskMDCache)(nil).Get), ctx, tlfID)
+}
+
+// Stage mocks base method
+func (m *MockDiskMDCache) Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte, ver kbfsmd.MetadataVer, localTimestamp time.Time) error {
+	ret := m.ctrl.Call(m, "Stage", ctx, tlfID, rev, buf, ver, localTimestamp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Stage indicates an expected call of Stage
+func (mr *MockDiskMDCacheMockRecorder) Stage(ctx, tlfID, rev, buf, ver, localTimestamp interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stage", reflect.TypeOf((*MockDiskMDCache)(nil).Stage), ctx, tlfID, rev, buf, ver, localTimestamp)
+}
+
+// Commit mocks base method
+func (m *MockDiskMDCache) Commit(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ret := m.ctrl.Call(m, "Commit", ctx, tlfID, rev)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Commit indicates an expected call of Commit
+func (mr *MockDiskMDCacheMockRecorder) Commit(ctx, tlfID, rev interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockDiskMDCache)(nil).Commit), ctx, tlfID, rev)
+}
+
+// Unstage mocks base method
+func (m *MockDiskMDCache) Unstage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ret := m.ctrl.Call(m, "Unstage", ctx, tlfID, rev)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Unstage indicates an expected call of Unstage
+func (mr *MockDiskMDCacheMockRecorder) Unstage(ctx, tlfID, rev interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unstage", reflect.TypeOf((*MockDiskMDCache)(nil).Unstage), ctx, tlfID, rev)
+}
+
+// Status mocks base method
+func (m *MockDiskMDCache) Status(ctx context.Context) DiskMDCacheStatus {
+	ret := m.ctrl.Call(m, "Status", ctx)
+	ret0, _ := ret[0].(DiskMDCacheStatus)
+	return ret0
+}
+
+// Status indicates an expected call of Status
+func (mr *MockDiskMDCacheMockRecorder) Status(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockDiskMDCache)(nil).Status), ctx)
+}
+
+// Shutdown mocks base method
+func (m *MockDiskMDCache) Shutdown(ctx context.Context) {
+	m.ctrl.Call(m, "Shutdown", ctx)
+}
+
+// Shutdown indicates an expected call of Shutdown
+func (mr *MockDiskMDCacheMockRecorder) Shutdown(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskMDCache)(nil).Shutdown), ctx)
+}
+
 // MockcryptoPure is a mock of cryptoPure interface
 type MockcryptoPure struct {
 	ctrl     *gomock.Controller
@@ -7238,6 +7404,30 @@ func (m *MockConfig) SetSyncBlockCacheFraction(arg0 float64) {
 // SetSyncBlockCacheFraction indicates an expected call of SetSyncBlockCacheFraction
 func (mr *MockConfigMockRecorder) SetSyncBlockCacheFraction(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncBlockCacheFraction", reflect.TypeOf((*MockConfig)(nil).SetSyncBlockCacheFraction), arg0)
+}
+
+// DiskMDCache mocks base method
+func (m *MockConfig) DiskMDCache() DiskMDCache {
+	ret := m.ctrl.Call(m, "DiskMDCache")
+	ret0, _ := ret[0].(DiskMDCache)
+	return ret0
+}
+
+// DiskMDCache indicates an expected call of DiskMDCache
+func (mr *MockConfigMockRecorder) DiskMDCache() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskMDCache", reflect.TypeOf((*MockConfig)(nil).DiskMDCache))
+}
+
+// MakeDiskMDCacheIfNotExists mocks base method
+func (m *MockConfig) MakeDiskMDCacheIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskMDCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskMDCacheIfNotExists indicates an expected call of MakeDiskMDCacheIfNotExists
+func (mr *MockConfigMockRecorder) MakeDiskMDCacheIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskMDCacheIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskMDCacheIfNotExists))
 }
 
 // Clock mocks base method

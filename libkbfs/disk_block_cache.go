@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -47,13 +46,7 @@ type DiskBlockCacheLocal struct {
 	config     diskBlockCacheConfig
 	log        logger.Logger
 	maxBlockID []byte
-	cacheType  diskLimitTrackerType
-	// Track the number of blocks in the cache per TLF and overall.
-	tlfCounts map[tlf.ID]int
-	numBlocks int
-	// Track the aggregate size of blocks in the cache per TLF and overall.
-	tlfSizes  map[tlf.ID]uint64
-	currBytes uint64
+
 	// Track the cache hit rate and eviction rate
 	hitMeter         *CountMeter
 	missMeter        *CountMeter
@@ -63,12 +56,20 @@ type DiskBlockCacheLocal struct {
 	evictSizeMeter   *CountMeter
 	deleteCountMeter *CountMeter
 	deleteSizeMeter  *CountMeter
+
 	// Protect the disk caches from being shutdown while they're being
-	// accessed.
-	lock    sync.RWMutex
-	blockDb *levelDb
-	metaDb  *levelDb
-	tlfDb   *levelDb
+	// accessed, and mutable data.
+	lock      sync.RWMutex
+	blockDb   *levelDb
+	metaDb    *levelDb
+	tlfDb     *levelDb
+	cacheType diskLimitTrackerType
+	// Track the number of blocks in the cache per TLF and overall.
+	tlfCounts map[tlf.ID]int
+	numBlocks int
+	// Track the aggregate size of blocks in the cache per TLF and overall.
+	tlfSizes  map[tlf.ID]uint64
+	currBytes uint64
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -78,24 +79,6 @@ type DiskBlockCacheLocal struct {
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheLocal)(nil)
-
-// MeterStatus represents the status of a rate meter.
-type MeterStatus struct {
-	Minutes1  float64
-	Minutes5  float64
-	Minutes15 float64
-	Count     int64
-}
-
-func rateMeterToStatus(m metrics.Meter) MeterStatus {
-	s := m.Snapshot()
-	return MeterStatus{
-		s.Rate1(),
-		s.Rate5(),
-		s.Rate15(),
-		s.Count(),
-	}
-}
 
 // DiskBlockCacheStartState represents whether this disk block cache has
 // started or failed.
@@ -141,10 +124,10 @@ type DiskBlockCacheStatus struct {
 	SizeDeleted     MeterStatus
 }
 
-// newDiskBlockCacheStandardFromStorage creates a new *DiskBlockCacheStandard
+// newDiskBlockCacheLocalFromStorage creates a new *DiskBlockCacheLocal
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
-func newDiskBlockCacheStandardFromStorage(
+func newDiskBlockCacheLocalFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
 	blockStorage, metadataStorage, tlfStorage storage.Storage) (
 	cache *DiskBlockCacheLocal, err error) {
@@ -195,8 +178,6 @@ func newDiskBlockCacheStandardFromStorage(
 		config:           config,
 		maxBlockID:       maxBlockID.Bytes(),
 		cacheType:        cacheType,
-		tlfCounts:        map[tlf.ID]int{},
-		tlfSizes:         map[tlf.ID]uint64{},
 		hitMeter:         NewCountMeter(),
 		missMeter:        NewCountMeter(),
 		putMeter:         NewCountMeter(),
@@ -209,6 +190,8 @@ func newDiskBlockCacheStandardFromStorage(
 		blockDb:          blockDb,
 		metaDb:           metaDb,
 		tlfDb:            tlfDb,
+		tlfCounts:        map[tlf.ID]int{},
+		tlfSizes:         map[tlf.ID]uint64{},
 		startedCh:        startedCh,
 		startErrCh:       startErrCh,
 		shutdownCh:       make(chan struct{}),
@@ -240,9 +223,9 @@ func newDiskBlockCacheStandardFromStorage(
 	return cache, nil
 }
 
-// newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
+// newDiskBlockCacheLocal creates a new *DiskBlockCacheLocal with a
 // specified directory on the filesystem as storage.
-func newDiskBlockCacheStandard(config diskBlockCacheConfig,
+func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 	cacheType diskLimitTrackerType, dirPath string) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("DBC")
@@ -286,13 +269,13 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig,
 			tlfStorage.Close()
 		}
 	}()
-	return newDiskBlockCacheStandardFromStorage(config, cacheType,
+	return newDiskBlockCacheLocalFromStorage(config, cacheType,
 		blockStorage, metadataStorage, tlfStorage)
 }
 
-func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
+func newDiskBlockCacheLocalForTest(config diskBlockCacheConfig,
 	cacheType diskLimitTrackerType) (*DiskBlockCacheLocal, error) {
-	return newDiskBlockCacheStandardFromStorage(
+	return newDiskBlockCacheLocalFromStorage(
 		config, cacheType, storage.NewMemStorage(),
 		storage.NewMemStorage(), storage.NewMemStorage())
 }
@@ -429,8 +412,7 @@ func (cache *DiskBlockCacheLocal) encodeBlockCacheEntry(buf []byte,
 	return cache.config.Codec().Encode(&entry)
 }
 
-// checkAndLockCache checks whether the cache is started, then locks it based
-// on the provided flag, leaving the cache locked.
+// checkAndLockCache checks whether the cache is started.
 func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 	select {
 	case <-cache.startedCh:
@@ -455,7 +437,7 @@ func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 	return nil
 }
 
-// Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// Get implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
@@ -523,7 +505,7 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 	return false, nil
 }
 
-// Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// Put implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
@@ -617,7 +599,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 // GetMetadata implements the DiskBlockCache interface for
-// DiskBlockCacheStandard.
+// DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
 	cache.lock.RLock()
@@ -626,7 +608,7 @@ func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for
-// DiskBlockCacheStandard.
+// DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) (err error) {
 	cache.lock.Lock()
@@ -716,7 +698,7 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 	return numRemoved, sizeRemoved, nil
 }
 
-// Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// Delete implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	cache.lock.Lock()
@@ -869,7 +851,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
 }
 
-// Status implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// Status implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {
 	var name string
@@ -913,7 +895,7 @@ func (cache *DiskBlockCacheLocal) Status(
 	}
 }
 
-// Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	// Wait for the cache to either finish starting or error.
 	select {

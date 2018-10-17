@@ -7,6 +7,24 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 )
 
+// MeterStatus represents the status of a rate meter.
+type MeterStatus struct {
+	Minutes1  float64
+	Minutes5  float64
+	Minutes15 float64
+	Count     int64
+}
+
+func rateMeterToStatus(m metrics.Meter) MeterStatus {
+	s := m.Snapshot()
+	return MeterStatus{
+		s.Rate1(),
+		s.Rate5(),
+		s.Rate15(),
+		s.Count(),
+	}
+}
+
 // CountMeter counts ticks with a sliding window into the past.
 type CountMeter struct {
 	mtx      sync.RWMutex

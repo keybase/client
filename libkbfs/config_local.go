@@ -78,6 +78,7 @@ type ConfigLocal struct {
 	bcache           BlockCache
 	dirtyBcache      DirtyBlockCache
 	diskBlockCache   DiskBlockCache
+	diskMDCache      DiskMDCache
 	codec            kbfscodec.Codec
 	mdops            MDOps
 	kops             KeyOps
@@ -603,6 +604,13 @@ func (c *ConfigLocal) SetSyncBlockCacheFraction(fraction float64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.syncBlockCacheFraction = fraction
+}
+
+// DiskMDCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DiskMDCache() DiskMDCache {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.diskMDCache
 }
 
 // DiskLimiter implements the Config interface for ConfigLocal.
@@ -1400,6 +1408,26 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 		return nil
 	}
 	return nil
+}
+
+func (c *ConfigLocal) resetDiskMDCacheLocked() error {
+	dmc, err := newDiskMDCacheLocal(c, c.storageRoot)
+	if err != nil {
+		return err
+	}
+	c.diskMDCache = dmc
+	return nil
+}
+
+// MakeDiskMDCacheIfNotExists implements the Config interface for
+// ConfigLocal.
+func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.diskMDCache != nil {
+		return nil
+	}
+	return c.resetDiskBlockCacheLocked()
 }
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
