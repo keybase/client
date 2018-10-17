@@ -21,6 +21,9 @@ export type NotLoadingProps = {|
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
   title: string,
+  // onChat and onShowProfile are used only when counterpartyType ===
+  // 'keybaseUser'.
+  onChat: string => void,
   onLoadPaymentDetail: () => void,
   onShowProfile: string => void,
   onViewTransaction?: () => void,
@@ -189,10 +192,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={props.counterpartyType !== 'otherAccount' || !!props.memo}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
+          onChat={props.onChat}
           onShowProfile={props.onShowProfile}
           // Don't render unread state in detail view.
           readState="read"

@@ -60,7 +60,8 @@
         "'teamHeader'",
         "'convertAdHoc'",
         "'memberView'",
-        "'newChannel'"
+        "'newChannel'",
+        "'transaction'"
       ]
     },
     "createConversation": {

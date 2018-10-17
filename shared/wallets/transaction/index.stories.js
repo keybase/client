@@ -23,34 +23,53 @@ const longMemo =
 
 const addConfigs = (stories, namePrefix, storyFn) => {
   const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
-  const sizes = [{large: true}, {large: false}]
+  const statuses = [
+    {
+      status: 'completed',
+      statusDetail: '',
+      onCancelPayment: null,
+    },
+    {
+      status: 'error',
+      statusDetail: 'Horizon error',
+      onCancelPayment: null,
+    },
+    {
+      status: 'error',
+      statusDetail: 'Horizon error',
+      onCancelPayment: Sb.action('onCancelPayment'),
+    },
+  ]
   const memosAndTimes = [
-    {memo: shortMemo, timestamp: yesterday},
-    {memo: longMemo, timestamp: lastWeek},
-    {memo: singleEmojiMemo, timestamp: beforeLastWeek},
-    // Pending.
-    {memo: shortMemo, timestamp: null},
+    // No memo.
+    {memo: '', timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
+    {memo: shortMemo, timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
+    {memo: longMemo, timestamp: lastWeek, amountUser: '$15.65', amountXLM: '42.535091 XLM'},
+    // No display currency.
+    {memo: singleEmojiMemo, timestamp: beforeLastWeek, amountUser: '', amountXLM: '19.4567588 XLM'},
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
   roles.forEach(r => {
-    sizes.forEach(s => {
-      stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
-        const components = []
-        let first = true
-        memosAndTimes.forEach(t => {
-          const localReadStates = first ? readStates : readStates.slice(0, 1)
-          first = false
-          localReadStates.forEach(rs => {
+    stories.add(`${namePrefix} (${r.yourRole})`, () => {
+      const components = []
+      statuses.forEach(st => {
+        components.push(JSON.stringify(st))
+        memosAndTimes.forEach(mt => {
+          readStates.forEach(rs => {
+            // a non-complete transaction is already treated as 'unread'.
+            if (st.status !== 'completed' && rs.readState === 'read') {
+              return
+            }
             components.push(
               storyFn({
                 key: components.length,
                 ...r,
-                ...s,
-                ...t,
+                ...st,
+                ...mt,
                 ...rs,
-                onCancelPayment: null,
                 onCancelPaymentWaitingKey: '',
+                onChat: Sb.action('onChat'),
                 onSelectTransaction: Sb.action('onSelectTransaction'),
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,
@@ -58,98 +77,32 @@ const addConfigs = (stories, namePrefix, storyFn) => {
             )
           })
         })
-        return components
       })
+      return components
     })
   })
 }
 
 const load = () => {
-  const stories = Sb.storiesOf('Wallets/Transaction', module).addDecorator(story => (
-    <Box2 direction="vertical" style={{maxWidth: 520}}>
-      {story()}
-    </Box2>
-  ))
+  const stories = Sb.storiesOf('Wallets/Transaction', module)
+    .addDecorator(story => (
+      <Box2 direction="vertical" style={{maxWidth: 520}}>
+        {story()}
+      </Box2>
+    ))
+    .addDecorator(Sb.scrollViewDecorator)
+
+  // Don't add new configs except for new counterparty types -- change
+  // addConfigs instead.
 
   addConfigs(stories, 'Keybase User', config => (
-    <Transaction
-      {...config}
-      counterparty="paul"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-      status="completed"
-      statusDetail=""
-    />
+    <Transaction {...config} counterparty="paul" counterpartyType="keybaseUser" />
   ))
   addConfigs(stories, 'Stellar Public Key', config => (
-    <Transaction
-      {...config}
-      counterparty="G43289XXXXX34OPL"
-      counterpartyType="stellarPublicKey"
-      amountUser="$15.65"
-      amountXLM="42.535091 XLM"
-      status="completed"
-      statusDetail=""
-    />
+    <Transaction {...config} counterparty="G43289XXXXX34OPL" counterpartyType="stellarPublicKey" />
   ))
   addConfigs(stories, 'Account', config => (
-    <Transaction
-      {...config}
-      counterparty="Second account"
-      counterpartyType="otherAccount"
-      amountUser="$100"
-      amountXLM="545.2562704 XLM"
-      status="completed"
-      statusDetail=""
-    />
-  ))
-  addConfigs(stories, 'No display currency', config => (
-    <Transaction
-      {...config}
-      counterparty="peter"
-      counterpartyType="keybaseUser"
-      amountUser=""
-      amountXLM="19.4567588 XLM"
-      status="completed"
-      statusDetail=""
-    />
-  ))
-  addConfigs(stories, 'Keybase User - error', config => (
-    <Transaction
-      {...config}
-      counterparty="paul"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-      status="error"
-      statusDetail="Horizon error"
-    />
-  ))
-  addConfigs(stories, 'Keybase User - error with retry and cancel', config => (
-    <Transaction
-      {...config}
-      counterparty="paul"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-      status="error"
-      statusDetail="Horizon error"
-      onCancelPayment={Sb.action('onCancelPayment')}
-      onRetryPayment={Sb.action('onRetryPayment')}
-    />
-  ))
-  addConfigs(stories, 'Keybase user - cancelable', config => (
-    <Transaction
-      {...config}
-      counterparty="paul"
-      counterpartyType="keybaseUser"
-      amountUser="$12.50"
-      amountXLM="53.1688643 XLM"
-      status="cancelable"
-      statusDetail="Waiting for someone to claim"
-      onCancelPayment={Sb.action('onCancelPayment')}
-    />
+    <Transaction {...config} counterparty="Second account" counterpartyType="otherAccount" />
   ))
 }
 
