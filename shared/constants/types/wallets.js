@@ -195,6 +195,7 @@ export type Request = I.RecordOf<_Request>
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
+  acceptedDisclaimer: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,

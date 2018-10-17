@@ -214,6 +214,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         'unreadPaymentsMap',
         I.Map(action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread]))
       )
+    case WalletsGen.walletSettingsReceived:
+      return state.set('acceptedDisclaimer', action.payload.settings.acceptedDisclaimer)
     // Saga only actions
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -233,6 +235,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.deleteAccount:
     case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
+    case WalletsGen.loadWalletSettings:
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:

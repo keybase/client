@@ -91,6 +91,13 @@
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID"
     },
+    "loadWalletSettings": {
+      "_description": "Load wallet settings"
+    },
+    "walletSettingsReceived": {
+      "_description": "Received wallet settings",
+      "settings": "Types.WalletSettings"
+    },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"
     },
@@ -110,7 +117,7 @@
     },
     "sendAssetChoicesReceived": {
       "_description": "Update valid send assets to choose from",
-      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>",
+      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>"
     },
     "changeAccountName": {
       "_description": "Change the name of an account",

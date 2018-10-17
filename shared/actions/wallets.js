@@ -131,6 +131,9 @@ const clearBuilding = () => Saga.put(WalletsGen.createClearBuilding())
 
 const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
+const loadWalletSettings = () =>
+  RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings => WalletsGen.createWalletSettingsReceived({settings}))
+
 const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
   const {from: _accountID} = action.payload.build
   const accountID = Types.stringToAccountID(_accountID)
@@ -576,6 +579,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(RouteTreeGen.navigateUp, maybeClearErrors)
 
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+
+  yield Saga.actionToPromise(WalletsGen.loadAccounts, loadWalletSettings)
 }
 
 export default walletsSaga
