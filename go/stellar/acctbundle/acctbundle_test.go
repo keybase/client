@@ -12,14 +12,14 @@ import (
 )
 
 func TestInitialAccountBundle(t *testing.T) {
-	b, err := NewInitial()
+	b, err := NewInitial("hello")
 	require.NoError(t, err)
 	require.NotNil(t, b)
 	require.Len(t, b.Signers, 1)
 }
 
 func TestBoxAccountBundle(t *testing.T) {
-	b, err := NewInitial()
+	b, err := NewInitial("abc")
 	require.NoError(t, err)
 	require.NotNil(t, b)
 
