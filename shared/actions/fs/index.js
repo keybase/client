@@ -672,15 +672,17 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
-const deleteFile = (state, {payload: {path}}: FsGen.DeleteFilePayload) => new Promise(() => {
+const deleteFile = (state, action: FsGen.DeleteFilePayload) => new Promise(() => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
     opID,
     path: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
+      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
     },
   })
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .catch(makeRetriableErrorHandler(action))
 })
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
