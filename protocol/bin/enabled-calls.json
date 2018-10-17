@@ -49,6 +49,7 @@
   "keybase.1.SimpleFS.simpleFSSyncStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSWait": {"promise": true},
   "keybase.1.SimpleFS.simpleFSOpen": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSRemove": {"promise": true},
   "keybase.1.SimpleFS.simpleFSUserEditHistory": {"promise": true},
   "keybase.1.account.emailChange": {"promise": true},
   "keybase.1.account.getLockdownMode": {"promise": true},
