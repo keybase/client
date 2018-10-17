@@ -14,10 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-// Bumped whenever there are tokenization or structural changes to building the
-// index
-const indexVersion = 1
-
 type store struct {
 	sync.Mutex
 	globals.Contextified
@@ -78,7 +74,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 	if err != nil || !found {
 		return nil, err
 	}
-	if entry.Metadata.Version != indexVersion {
+	if entry.Metadata.Version != IndexVersion {
 		// drop the whole index for this conv
 		err = s.deleteLocked(ctx, convID, uid)
 		return nil, err
@@ -91,7 +87,7 @@ func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		return nil
 	}
 	dbKey := s.dbKey(convID, uid)
-	entry.Metadata.Version = indexVersion
+	entry.Metadata.Version = IndexVersion
 	return s.encryptedDB.Put(ctx, dbKey, *entry)
 }
 

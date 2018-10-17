@@ -100,7 +100,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 			}
 		}
 
-		search := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.GetSearchRegexpRes {
+		runSearch := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.GetSearchRegexpRes {
 			res, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
 				ConvID:  convID,
 				Query:   query,
@@ -124,14 +124,14 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		query := "hi"
 		msgBody := "hi there"
 		msgID1 := sendMessage(msgBody, u1)
-		res := search(query, isRegex, opts)
+		res := runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit(nil, msgID1, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 0, len(res.Hits))
 		verifySearchDone(0)
 
@@ -139,20 +139,20 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		opts.MaxHits = 1
 		query = "hi"
 		msgID2 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID1}, msgID2, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
 
 		opts.MaxHits = 5
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 2, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID1}, msgID2, nil, []string{query}, res.Hits[0])
 		verifyHit(nil, msgID1, []chat1.MessageID{msgID2}, []string{query}, res.Hits[1])
 		verifySearchDone(2)
 
 		msgID3 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 3, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID1, msgID2}, msgID3, nil, []string{query}, res.Hits[0])
 		verifyHit([]chat1.MessageID{msgID1}, msgID2, []chat1.MessageID{msgID3}, []string{query}, res.Hits[1])
@@ -162,7 +162,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		// test sentBy
 		// invalid username
 		opts.SentBy = u1.Username + "foo"
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 		verifySearchDone(0)
 
@@ -171,7 +171,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		msgBody = "hi"
 		query = "hi"
 		msgID4 := sendMessage(msgBody, u2)
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID2, msgID3}, msgID4, nil, []string{query}, res.Hits[0])
 		verifySearchDone(1)
@@ -189,19 +189,19 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// nothing sent after msg4
 		opts.SentAfter = msg4.GetCtime() + 500
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 		opts.SentAfter = msg1.GetCtime()
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 4, len(res.Hits))
 
 		// nothing sent before msg1
 		opts.SentAfter = 0
 		opts.SentBefore = msg1.GetCtime() - 500
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Zero(t, len(res.Hits))
 		opts.SentBefore = msg4.GetCtime()
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 4, len(res.Hits))
 		opts.SentBefore = 0
 		timeout := 20 * time.Second
@@ -222,7 +222,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		msgBody = `约书亚和约翰屌爆了`
 		query = `约.*`
 		msgID5 := sendMessage(msgBody, u1)
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, 1, len(res.Hits))
 		verifyHit([]chat1.MessageID{msgID3, msgID4}, msgID5, nil, []string{msgBody}, res.Hits[0])
 		verifySearchDone(1)
@@ -233,18 +233,18 @@ func TestChatSearchConvRegexp(t *testing.T) {
 			sendMessage("h."+string(char), u1)
 		}
 		opts.MaxHits = len(lowercase)
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, opts.MaxHits, len(res.Hits))
 		verifySearchDone(opts.MaxHits)
 
 		query = `h\..*`
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, opts.MaxHits, len(res.Hits))
 		verifySearchDone(opts.MaxHits)
 
 		// Test maxMessages
 		opts.MaxMessages = 2
-		res = search(query, isRegex, opts)
+		res = runSearch(query, isRegex, opts)
 		require.Equal(t, opts.MaxMessages, len(res.Hits))
 		verifySearchDone(opts.MaxMessages)
 
@@ -380,7 +380,7 @@ func TestChatSearchInbox(t *testing.T) {
 			require.Equal(t, expectedIndex, convIdx2)
 		}
 
-		search := func(query string, opts chat1.SearchOpts, expectedReindex bool) *chat1.ChatInboxSearchResults {
+		runSearch := func(query string, opts chat1.SearchOpts, expectedReindex bool) *chat1.ChatInboxSearchResults {
 			res, err := tc1.chatLocalHandler().InboxSearch(tc1.startCtx, chat1.InboxSearchArg{
 				Query: query,
 				Opts:  opts,
@@ -421,14 +421,14 @@ func TestChatSearchInbox(t *testing.T) {
 					1:      true, // tlf name
 					msgID1: true,
 				},
-				Version: 1,
+				Version: search.IndexVersion,
 			},
 		}
 		verifyIndex(expectedIndex)
 		queries := []string{"hi", "hi, ByE"}
 		matchText := []string{"hi", "hi, byE"}
 		for i, query := range queries {
-			res := search(query, opts, false /* expectedReindex */)
+			res := runSearch(query, opts, false /* expectedReindex */)
 			require.Equal(t, 1, len(res.Hits))
 			convHit := res.Hits[0]
 			require.Equal(t, convID, convHit.ConvID)
@@ -438,12 +438,12 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// No match since highlighting fails
 		query := "hi bye"
-		res := search(query, opts, false /* expectedReindex */)
+		res := runSearch(query, opts, false /* expectedReindex */)
 		require.Equal(t, 0, len(res.Hits))
 
 		// Test basic no results
 		query = "hey"
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 0, len(res.Hits))
 
 		// Test maxHits
@@ -457,7 +457,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Metadata.SeenIDs[msgID2] = true
 		verifyIndex(expectedIndex)
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit := res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -465,7 +465,7 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{msgID1}, msgID2, nil, []string{query}, convHit.Hits[0])
 
 		opts.MaxHits = 5
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -481,7 +481,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Metadata.SeenIDs[msgID3] = true
 		verifyIndex(expectedIndex)
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -493,7 +493,7 @@ func TestChatSearchInbox(t *testing.T) {
 		// test sentBy
 		// invalid username
 		opts.SentBy = u1.Username + "foo"
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
 
 		// send from user2 and make sure we can filter
@@ -507,7 +507,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Metadata.SeenIDs[msgID4] = true
 		verifyIndex(expectedIndex)
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -527,22 +527,22 @@ func TestChatSearchInbox(t *testing.T) {
 
 		// nothing sent after msg4
 		opts.SentAfter = msg4.GetCtime() + 500
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
 
 		opts.SentAfter = msg1.GetCtime()
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
 
 		// nothing sent before msg1
 		opts.SentAfter = 0
 		opts.SentBefore = msg1.GetCtime() - 500
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Zero(t, len(res.Hits))
 
 		opts.SentBefore = msg4.GetCtime()
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		require.Equal(t, 4, len(res.Hits[0].Hits))
 		opts.SentBefore = 0
@@ -557,7 +557,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Index["edited"] = map[chat1.MessageID]bool{msgID4: true}
 		expectedIndex.Metadata.SeenIDs[msgID5] = true
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -573,7 +573,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Metadata.SeenIDs[msgID6] = true
 		verifyIndex(expectedIndex)
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 0, len(res.Hits))
 
 		// Test request payment
@@ -588,7 +588,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Metadata.SeenIDs[msgID7] = true
 		verifyIndex(expectedIndex)
 
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -604,7 +604,7 @@ func TestChatSearchInbox(t *testing.T) {
 		expectedIndex.Index[msgBody] = map[chat1.MessageID]bool{msgID8: true}
 		expectedIndex.Metadata.SeenIDs[msgID8] = true
 		verifyIndex(expectedIndex)
-		res = search(query, opts, false /* expectedReindex*/)
+		res = runSearch(query, opts, false /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -614,7 +614,7 @@ func TestChatSearchInbox(t *testing.T) {
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
 		opts.ForceReindex = true // force reindex so we're fully up to date.
-		res = search(query, opts, true /* expectedReindex*/)
+		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]
 		require.Equal(t, convID, convHit.ConvID)
@@ -622,7 +622,7 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []string{query}, convHit.Hits[0])
 		verifyIndex(expectedIndex)
 		// since our index is full, we shouldn't fire off any calls to get messages
-		search(query, opts, false /* expectedReindex*/)
+		runSearch(query, opts, false /* expectedReindex*/)
 
 		// Test deletehistory
 		msgID9 := mustDeleteHistory(tc2.startCtx, t, ctc, u2, conv, msgID8+1)

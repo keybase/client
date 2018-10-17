@@ -347,6 +347,12 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
+			"checksumSHA1": "v+BpTxHFNO9rsGBINRqtWiZoTJI=",
+			"path": "github.com/keybase/go-porterstemmer",
+			"revision": "521f1ed5c3f7c5baba9a7da3ce777774dd7b8449",
+			"revisionTime": "2018-10-16T18:57:45Z"
+		},
+		{
 			"checksumSHA1": "07FctQiwHCBvhiXp2mTLc8e0ll8=",
 			"path": "github.com/keybase/go-ps",
 			"revision": "9c11ca40a47944f49e0784b77a66636cb098445a",
