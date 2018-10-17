@@ -2622,7 +2622,7 @@
     },
     {
       "type": "record",
-      "name": "GetSearchRegexpRes",
+      "name": "SearchRegexpRes",
       "fields": [
         {
           "type": {
@@ -2649,12 +2649,12 @@
     },
     {
       "type": "record",
-      "name": "InboxSearchRes",
+      "name": "SearchInboxRes",
       "fields": [
         {
           "type": [
             null,
-            "ChatInboxSearchResults"
+            "ChatSearchInboxResults"
           ],
           "name": "res"
         },
@@ -2676,7 +2676,7 @@
     },
     {
       "type": "record",
-      "name": "IndexSearchConvStats",
+      "name": "ProfileSearchConvStats",
       "fields": [
         {
           "type": "int",
@@ -3889,7 +3889,7 @@
       ],
       "response": null
     },
-    "getSearchRegexp": {
+    "searchRegexp": {
       "request": [
         {
           "name": "sessionID",
@@ -3916,9 +3916,9 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetSearchRegexpRes"
+      "response": "SearchRegexpRes"
     },
-    "inboxSearch": {
+    "searchInbox": {
       "request": [
         {
           "name": "sessionID",
@@ -3937,9 +3937,9 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "InboxSearchRes"
+      "response": "SearchInboxRes"
     },
-    "indexChatSearch": {
+    "profileChatSearch": {
       "request": [
         {
           "name": "identifyBehavior",
@@ -3948,7 +3948,7 @@
       ],
       "response": {
         "type": "map",
-        "values": "IndexSearchConvStats",
+        "values": "ProfileSearchConvStats",
         "keys": "string"
       }
     },

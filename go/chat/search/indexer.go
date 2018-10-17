@@ -18,8 +18,10 @@ import (
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
+
 	store    *store
 	pageSize int
+
 	// for testing
 	consumeCh chan chat1.ConversationID
 	reindexCh chan chat1.ConversationID
@@ -52,6 +54,57 @@ func (idx *Indexer) GetConvIndex(ctx context.Context, convID chat1.ConversationI
 	return idx.store.getConvIndex(ctx, convID, uid)
 }
 
+// validBatch verifies the topic type is CHAT
+func (idx *Indexer) validBatch(msgs []chat1.MessageUnboxed) bool {
+	if len(msgs) == 0 {
+		return false
+	}
+
+	for _, msg := range msgs {
+		switch msg.GetTopicType() {
+		case chat1.TopicType_CHAT:
+			return true
+		case chat1.TopicType_NONE:
+			continue
+		default:
+			return false
+		}
+	}
+	// if we only have TopicType_NONE, assume it's ok to return true so we
+	// document the seen ids properly.
+	return true
+}
+
+func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error) {
+	if err == nil && idx.consumeCh != nil {
+		idx.consumeCh <- convID
+	}
+}
+
+func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
+	if !idx.validBatch(msgs) {
+		return nil
+	}
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(convID, err)
+	err = idx.store.add(ctx, convID, uid, msgs)
+	return err
+}
+
+func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed) (err error) {
+	if !idx.validBatch(msgs) {
+		return nil
+	}
+	defer idx.Trace(ctx, func() error { return err },
+		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
+	defer idx.consumeResultsForTest(convID, err)
+	err = idx.store.remove(ctx, convID, uid, msgs)
+	return err
+}
+
 // searchConv finds all messages that match the given set of tokens and opts,
 // results are ordered desc by msg id.
 func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID, convIdx *chat1.ConversationIndex,
@@ -62,8 +115,6 @@ func (idx *Indexer) searchConv(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var allMsgIDs mapset.Set
-	// NOTE potential optimization, sort by token size desc, might be able to
-	// short circuit, CORE-8902
 	for i, token := range tokens {
 		msgIDs, ok := convIdx.Index[token]
 		if !ok {
@@ -97,23 +148,25 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 	msgIDs []chat1.MessageID, opts chat1.SearchOpts) (mapset.Set, []chat1.MessageUnboxed, error) {
 	idSet := mapset.NewThreadUnsafeSet()
 	idSetWithContext := mapset.NewThreadUnsafeSet()
+	// Best effort attempt to get surrounding context. We filter out
+	// non-visible messages so exact counts may be slightly off. We add a
+	// padding of MaxContext to minimize the chance of this but don't have any
+	// error correction in place.
 	for _, msgID := range msgIDs {
 		if opts.BeforeContext > 0 {
-			// Best effort attempt to get surrounding context
 			for i := 0; i < opts.BeforeContext+MaxContext; i++ {
-				beforeID := msgID - chat1.MessageID(i+1)
-				if beforeID > 0 {
-					idSetWithContext.Add(beforeID)
-				} else {
+				// ensure we don't underflow MessageID which is a uint.
+				if chat1.MessageID(i+1) >= msgID {
 					break
 				}
+				beforeID := msgID - chat1.MessageID(i+1)
+				idSetWithContext.Add(beforeID)
 			}
 		}
 
 		idSet.Add(msgID)
 		idSetWithContext.Add(msgID)
 		if opts.AfterContext > 0 {
-			// Best effort attempt to get surrounding context
 			for i := 0; i < opts.AfterContext+MaxContext; i++ {
 				afterID := msgID + chat1.MessageID(i+1)
 				idSetWithContext.Add(afterID)
@@ -140,23 +193,12 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 // messages) and match info (for UI highlighting). Results are ordered desc by
 // msg id.
 func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation, uid gregor1.UID,
-	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts, numHits int) (convHits *chat1.ChatInboxSearchHit, err error) {
+	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts, numHits int) (convHits *chat1.ChatSearchInboxHit, err error) {
 	if msgIDs == nil {
 		return nil, nil
 	}
 
 	convID := conv.GetConvID()
-	getUIMsgs := func(msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
-		for i := len(msgs) - 1; i >= 0; i-- {
-			msg := msgs[i]
-			if !msg.IsValid() {
-				continue
-			}
-			uiMsg := utils.PresentMessageUnboxed(ctx, idx.G(), msg, uid, convID)
-			uiMsgs = append(uiMsgs, uiMsg)
-		}
-		return uiMsgs
-	}
 
 	idSet, msgs, err := idx.getMsgsAndIDSet(ctx, uid, convID, msgIDs, opts)
 	if err != nil {
@@ -175,7 +217,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 			if afterLimit < 0 {
 				afterLimit = 0
 			}
-			afterMessages := getUIMsgs(msgs[afterLimit:i])
+			afterMessages := getUIMsgs(ctx, idx.G(), convID, uid, msgs[afterLimit:i])
 
 			var beforeMessages []chat1.UIMessage
 			if i < len(msgs)-1 {
@@ -183,7 +225,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 				if beforeLimit >= len(msgs) {
 					beforeLimit = len(msgs)
 				}
-				beforeMessages = getUIMsgs(msgs[i+1 : beforeLimit])
+				beforeMessages = getUIMsgs(ctx, idx.G(), convID, uid, msgs[i+1:beforeLimit])
 			}
 
 			searchHit := chat1.ChatSearchHit{
@@ -201,62 +243,11 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	if len(hits) == 0 {
 		return nil, nil
 	}
-	return &chat1.ChatInboxSearchHit{
+	return &chat1.ChatSearchInboxHit{
 		ConvID:   convID,
 		ConvName: conv.GetName(),
 		Hits:     hits,
 	}, nil
-}
-
-func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error) {
-	if err == nil && idx.consumeCh != nil {
-		idx.consumeCh <- convID
-	}
-}
-
-// validBatch verifies the topic type is CHAT
-func (idx *Indexer) validBatch(msgs []chat1.MessageUnboxed) bool {
-	if len(msgs) == 0 {
-		return false
-	}
-
-	for _, msg := range msgs {
-		switch msg.GetTopicType() {
-		case chat1.TopicType_CHAT:
-			return true
-		case chat1.TopicType_NONE:
-			continue
-		default:
-			return false
-		}
-	}
-	// if we only have TopicType_NONE, assume it's ok to return true so we
-	// document the seen ids properly.
-	return true
-}
-
-func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	if !idx.validBatch(msgs) {
-		return nil
-	}
-	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
-	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.add(ctx, convID, uid, msgs)
-	return err
-}
-
-func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (err error) {
-	if !idx.validBatch(msgs) {
-		return nil
-	}
-	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
-	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.remove(ctx, convID, uid, msgs)
-	return err
 }
 
 // reindex attempts to fill in any missing messages from the index.
@@ -359,9 +350,9 @@ func (idx *Indexer) reindex(ctx context.Context, conv chat1.Conversation, uid gr
 }
 
 // Search tokenizes the given query and finds the intersection of all matches
-// for each token, returning (convID,msgID) pairs with match information.
+// for each token, returning matches.
 func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
-	opts chat1.SearchOpts, uiCh chan chat1.ChatInboxSearchHit) (res *chat1.ChatInboxSearchResults, err error) {
+	opts chat1.SearchOpts, uiCh chan chat1.ChatSearchInboxHit) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 
 	// NOTE opts.MaxMessages is ignored
@@ -422,7 +413,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 	numHits := 0
 	numConvs := 0
 	totalPercentIndexed := 0
-	hits := []chat1.ChatInboxSearchHit{}
+	hits := []chat1.ChatSearchInboxHit{}
 	for convIDStr, conv := range convMap {
 		convIdx := convIdxMap[convIDStr]
 		if convIdx == nil {
@@ -447,8 +438,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 			continue
 		}
 		if uiCh != nil {
-			// Stream search hits back to the UI
-			// channel
+			// Stream search hits back to the UI channel
 			uiCh <- *convHits
 		}
 		hits = append(hits, *convHits)
@@ -471,19 +461,21 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 		}
 	}
 	percentIndexed := totalPercentIndexed / numConvs
-	res = &chat1.ChatInboxSearchResults{
+	res = &chat1.ChatSearchInboxResults{
 		Hits:           hits,
 		PercentIndexed: percentIndexed,
 	}
 	return res, nil
 }
 
-func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.IndexSearchConvStats, err error) {
+// IndexInbox is only exposed in devel for debugging/profiling the indexing
+// process.
+func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
 	pagination := &chat1.Pagination{Num: idx.pageSize}
 	// convID -> stats
-	res = map[string]chat1.IndexSearchConvStats{}
+	res = map[string]chat1.ProfileSearchConvStats{}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
 		TopicType: &topicType,
@@ -511,7 +503,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	return res, nil
 }
 
-func (idx *Indexer) indexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID) (res chat1.IndexSearchConvStats, err error) {
+func (idx *Indexer) indexConv(ctx context.Context, conv chat1.Conversation, uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConv")()
 
 	convID := conv.GetConvID()

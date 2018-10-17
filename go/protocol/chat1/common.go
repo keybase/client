@@ -1984,14 +1984,14 @@ func (o ChatSearchHit) DeepCopy() ChatSearchHit {
 	}
 }
 
-type ChatInboxSearchHit struct {
+type ChatSearchInboxHit struct {
 	ConvID   ConversationID  `codec:"convID" json:"convID"`
 	ConvName string          `codec:"convName" json:"convName"`
 	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
 }
 
-func (o ChatInboxSearchHit) DeepCopy() ChatInboxSearchHit {
-	return ChatInboxSearchHit{
+func (o ChatSearchInboxHit) DeepCopy() ChatSearchInboxHit {
+	return ChatSearchInboxHit{
 		ConvID:   o.ConvID.DeepCopy(),
 		ConvName: o.ConvName,
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
@@ -2008,18 +2008,18 @@ func (o ChatInboxSearchHit) DeepCopy() ChatInboxSearchHit {
 	}
 }
 
-type ChatInboxSearchResults struct {
-	Hits           []ChatInboxSearchHit `codec:"hits" json:"hits"`
+type ChatSearchInboxResults struct {
+	Hits           []ChatSearchInboxHit `codec:"hits" json:"hits"`
 	PercentIndexed int                  `codec:"percentIndexed" json:"percentIndexed"`
 }
 
-func (o ChatInboxSearchResults) DeepCopy() ChatInboxSearchResults {
-	return ChatInboxSearchResults{
-		Hits: (func(x []ChatInboxSearchHit) []ChatInboxSearchHit {
+func (o ChatSearchInboxResults) DeepCopy() ChatSearchInboxResults {
+	return ChatSearchInboxResults{
+		Hits: (func(x []ChatSearchInboxHit) []ChatSearchInboxHit {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ChatInboxSearchHit, len(x))
+			ret := make([]ChatSearchInboxHit, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -2030,14 +2030,14 @@ func (o ChatInboxSearchResults) DeepCopy() ChatInboxSearchResults {
 	}
 }
 
-type ChatInboxSearchDone struct {
+type ChatSearchInboxDone struct {
 	NumHits        int `codec:"numHits" json:"numHits"`
 	NumConvs       int `codec:"numConvs" json:"numConvs"`
 	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
 }
 
-func (o ChatInboxSearchDone) DeepCopy() ChatInboxSearchDone {
-	return ChatInboxSearchDone{
+func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
+	return ChatSearchInboxDone{
 		NumHits:        o.NumHits,
 		NumConvs:       o.NumConvs,
 		PercentIndexed: o.PercentIndexed,

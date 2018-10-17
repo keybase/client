@@ -23,13 +23,13 @@ type store struct {
 
 // store keeps an encrypted index of chat messages for all conversations to
 // enable full inbox search locally.
-// Data is stored in leveldb in the form:
+// Data is stored in an encrypted leveldb in the form:
 // (convID) -> {
 //                token: { msgID,...},
 //                ...
 //             },
 //     ...       ->        ...
-// NOTE: as a performance optimization we may want to split the metdata from
+// NOTE: as a performance optimization we may want to split the metadata from
 // the index itself so we can quickly operate on the metadata separately from
 // the index and have less bytes to encrypt/decrypt on reads (metadata only
 // contains only msg ids and no user content).

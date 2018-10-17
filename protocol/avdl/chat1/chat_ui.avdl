@@ -203,9 +203,9 @@ protocol chatUi {
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
-  void chatInboxSearchHit(int sessionID, ChatInboxSearchHit searchHit);
+  void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
 
-  void chatInboxSearchDone(int sessionID, ChatInboxSearchDone res);
+  void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

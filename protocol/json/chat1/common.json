@@ -1486,7 +1486,7 @@
     },
     {
       "type": "record",
-      "name": "ChatInboxSearchHit",
+      "name": "ChatSearchInboxHit",
       "fields": [
         {
           "type": "ConversationID",
@@ -1507,12 +1507,12 @@
     },
     {
       "type": "record",
-      "name": "ChatInboxSearchResults",
+      "name": "ChatSearchInboxResults",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "ChatInboxSearchHit"
+            "items": "ChatSearchInboxHit"
           },
           "name": "hits"
         },
@@ -1524,7 +1524,7 @@
     },
     {
       "type": "record",
-      "name": "ChatInboxSearchDone",
+      "name": "ChatSearchInboxDone",
       "fields": [
         {
           "type": "int",

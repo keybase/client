@@ -22,7 +22,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdChatSearch struct {
+type CmdChatSearchRegexp struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	query            string
@@ -31,71 +31,36 @@ type CmdChatSearch struct {
 	hasTTY           bool
 }
 
-func NewCmdChatSearchRunner(g *libkb.GlobalContext) *CmdChatSearch {
-	return &CmdChatSearch{
+func NewCmdChatSearchRegexpRunner(g *libkb.GlobalContext) *CmdChatSearchRegexp {
+	return &CmdChatSearchRegexp{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatSearchRegexp(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := append(getConversationResolverFlags(), chatSearchFlags...)
 	return cli.Command{
-		Name:         "search",
+		Name:         "search-regexp",
 		Usage:        "Search via regex within a conversation",
 		ArgumentHelp: "<conversation> <query>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdChatSearchRunner(g), "search", c)
+			cl.ChooseCommand(NewCmdChatSearchRegexpRunner(g), "search-regexp", c)
 			cl.SetNoStandalone()
 		},
-		Flags: append(getConversationResolverFlags(),
-			cli.BoolFlag{
-				Name:  "r, regex",
-				Usage: "Make the given query a regex",
-			},
-			cli.IntFlag{
-				Name:  "max-hits",
-				Value: 10,
-				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
-			},
-			cli.StringFlag{
-				Name:  "sent-by",
-				Value: "",
-				Usage: "Filter search results by the username of the sender.",
-			},
-			cli.StringFlag{
-				Name:  "sent-before",
-				Value: "",
-				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-after.",
-			},
-			cli.StringFlag{
-				Name:  "sent-after",
-				Value: "",
-				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-before.",
-			},
+		Flags: append(flags, cli.BoolFlag{
+			Name:  "r, regex",
+			Usage: "Make the given query a regex",
+		},
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
 				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", search.MaxAllowedSearchMessages),
 			},
-			cli.IntFlag{
-				Name:  "B, before-context",
-				Value: 0,
-				Usage: "Print number messages of leading context before each match.",
-			},
-			cli.IntFlag{
-				Name:  "A, after-context",
-				Value: 0,
-				Usage: "Print number of messages of trailing context after each match.",
-			},
-			cli.IntFlag{
-				Name:  "C, context",
-				Value: 2,
-				Usage: "Print number of messages of leading and trailing context surrounding each match.",
-			},
 		),
 	}
 }
 
-func (c *CmdChatSearch) Run() (err error) {
+func (c *CmdChatSearchRegexp) Run() (err error) {
 	ui := &ChatUI{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
@@ -143,7 +108,7 @@ func (c *CmdChatSearch) Run() (err error) {
 	}
 	conversationInfo := conversation.Info
 
-	arg := chat1.GetSearchRegexpArg{
+	arg := chat1.SearchRegexpArg{
 		ConvID:           conversationInfo.Id,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
@@ -151,13 +116,13 @@ func (c *CmdChatSearch) Run() (err error) {
 		Opts:             c.opts,
 	}
 
-	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
+	_, err = resolver.ChatClient.SearchRegexp(ctx, arg)
 	return err
 }
 
-func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 2 {
-		return errors.New("usage: keybase chat search <conversation> <query>")
+		return errors.New("usage: keybase chat search-regexp <conversation> <query>")
 	}
 	// Get the TLF name from the first position arg
 	tlfName := ctx.Args().Get(0)
@@ -216,7 +181,7 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *CmdChatSearch) GetUsage() libkb.Usage {
+func (c *CmdChatSearchRegexp) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

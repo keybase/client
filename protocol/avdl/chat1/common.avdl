@@ -563,18 +563,18 @@
     array<string>  matches;
   }
 
-  record ChatInboxSearchHit {
+  record ChatSearchInboxHit {
     ConversationID convID;
     string convName;
     array<ChatSearchHit> hits;
   }
 
-  record ChatInboxSearchResults {
-    array<ChatInboxSearchHit> hits;
+  record ChatSearchInboxResults {
+    array<ChatSearchInboxHit> hits;
     int percentIndexed;
   }
 
-  record ChatInboxSearchDone {
+  record ChatSearchInboxDone {
     int numHits;
     int numConvs;
     int percentIndexed;

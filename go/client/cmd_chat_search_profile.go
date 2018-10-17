@@ -17,39 +17,39 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdChatIndexSearch struct {
+type CmdChatProfileSearch struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	hasTTY           bool
 }
 
-func NewCmdChatIndexSearchRunner(g *libkb.GlobalContext) *CmdChatIndexSearch {
-	return &CmdChatIndexSearch{
+func NewCmdChatProfileSearchRunner(g *libkb.GlobalContext) *CmdChatProfileSearch {
+	return &CmdChatProfileSearch{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func newCmdChatIndexSearchDev(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatProfileSearchDev(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "index",
-		Usage:        "Index the inbox or a particular conversation",
+		Name:         "search-profile",
+		Usage:        "Index the inbox or a particular conversation, profiling the results.",
 		ArgumentHelp: "<conversation>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdChatIndexSearchRunner(g), "index", c)
+			cl.ChooseCommand(NewCmdChatProfileSearchRunner(g), "search-profile", c)
 			cl.SetNoStandalone()
 		},
 		Flags: getConversationResolverFlags(),
 	}
 }
 
-func (c *CmdChatIndexSearch) Run() (err error) {
+func (c *CmdChatProfileSearch) Run() (err error) {
 	terminal := c.G().UI.GetTerminalUI()
 
 	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
-	res, err := resolver.ChatClient.IndexChatSearch(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI)
+	res, err := resolver.ChatClient.ProfileChatSearch(context.TODO(), keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (c *CmdChatIndexSearch) Run() (err error) {
 	return nil
 }
 
-func (c *CmdChatIndexSearch) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatProfileSearch) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) == 1 {
 		// Get the TLF name from the first position arg
 		tlfName := ctx.Args().Get(0)
@@ -73,7 +73,7 @@ func (c *CmdChatIndexSearch) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *CmdChatIndexSearch) GetUsage() libkb.Usage {
+func (c *CmdChatProfileSearch) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

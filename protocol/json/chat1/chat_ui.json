@@ -883,7 +883,7 @@
       ],
       "response": null
     },
-    "chatInboxSearchHit": {
+    "chatSearchInboxHit": {
       "request": [
         {
           "name": "sessionID",
@@ -891,12 +891,12 @@
         },
         {
           "name": "searchHit",
-          "type": "ChatInboxSearchHit"
+          "type": "ChatSearchInboxHit"
         }
       ],
       "response": null
     },
-    "chatInboxSearchDone": {
+    "chatSearchInboxDone": {
       "request": [
         {
           "name": "sessionID",
@@ -904,7 +904,7 @@
         },
         {
           "name": "res",
-          "type": "ChatInboxSearchDone"
+          "type": "ChatSearchInboxDone"
         }
       ],
       "response": null
