@@ -175,7 +175,10 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	}
 
 	// XXX temporary code path to send a stellar account bundle to the server
-	acctBundle := acctbundle.New(secretKey)
+	acctBundle, err := acctbundle.New(secretKey)
+	if err != nil {
+		return err
+	}
 	if err := remote.PostAccountBundle(ctx, g, acctBundle); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
 		return err
