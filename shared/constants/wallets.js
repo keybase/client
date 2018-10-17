@@ -414,8 +414,12 @@ const keys = emptyPayment
 const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
   const res = oldPayment.withMutations(paymentMutable => {
     keys.forEach(
-      key =>
-        newPayment.get(key) === emptyPayment.get(key) ? null : paymentMutable.set(key, newPayment.get(key))
+      key => {
+        // TODO: Better fix?
+        if (key === 'unread' || newPayment.get(key) !== emptyPayment.get(key)) {
+          paymentMutable.set(key, newPayment.get(key))
+        }
+      }
     )
   })
   return res
