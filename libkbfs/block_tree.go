@@ -332,7 +332,10 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 		var err error
 		pblock, _, err = bt.getter(ctx, bt.kmd, job.ptr, bt.file, blockReadParallel)
 		if err != nil {
-			results <- getBlocksForOffsetRangeResult{err: err}
+			results <- getBlocksForOffsetRangeResult{
+				firstBlock: job.firstBlock,
+				err:        err,
+			}
 			return
 		}
 	} else {
@@ -421,40 +424,36 @@ func checkForHolesAndTruncate(
 	var prevPath []parentBlockAndChildIndex
 	for pathIdx, path := range pathsFromRoot {
 		// Each path after the first must immediately follow the preceding path.
-		pathIsCorrect := true
-		if pathIdx != 0 {
-			// Find the first place the 2 paths differ.
-			// Verify that path is immediately after prevPath.
-			if len(path) != len(prevPath) {
-				pathIsCorrect = false
-			} else {
-				foundIncrement := false
-				for idx := range path {
-					prevChild := prevPath[idx].childIndex
-					thisChild := path[idx].childIndex
-					if foundIncrement {
-						if thisChild != 0 || prevChild != prevPath[idx-1].
-							pblock.NumIndirectPtrs()-1 {
-							pathIsCorrect = false
-							break
-						}
-					} else {
-						if prevChild+1 == thisChild {
-							foundIncrement = true
-						} else if prevChild != thisChild {
-							pathIsCorrect = false
-							break
-						}
-					}
+		if pathIdx == 0 {
+			prevPath = path
+			continue
+		}
+		// Find the first place the 2 paths differ.
+		// Verify that path is immediately after prevPath.
+		if len(path) != len(prevPath) {
+			return pathsFromRoot[:pathIdx]
+		}
+
+		foundIncrement := false
+		for idx := range path {
+			prevChild := prevPath[idx].childIndex
+			thisChild := path[idx].childIndex
+			if foundIncrement {
+				if thisChild != 0 || prevChild != prevPath[idx-1].
+					pblock.NumIndirectPtrs()-1 {
+					return pathsFromRoot[:pathIdx]
 				}
-				// If we never found where the two paths differ,
-				// then something has gone wrong.
-				if !foundIncrement {
-					pathIsCorrect = false
+			} else {
+				if prevChild+1 == thisChild {
+					foundIncrement = true
+				} else if prevChild != thisChild {
+					return pathsFromRoot[:pathIdx]
 				}
 			}
 		}
-		if !pathIsCorrect {
+		// If we never found where the two paths differ,
+		// then something has gone wrong.
+		if !foundIncrement {
 			return pathsFromRoot[:pathIdx]
 		}
 		prevPath = path
@@ -533,7 +532,7 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 			// If we are ok with just getting the prefix, don't treat a
 			// deadline exceeded error as fatal.
 			if prefixOk && res.err == context.DeadlineExceeded &&
-				len(errors) == 0 {
+				!res.firstBlock && len(errors) == 0 {
 				mustCheckForHoles = true
 			} else {
 				errors = append(errors, res.err)
