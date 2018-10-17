@@ -15,6 +15,11 @@ type Props = {|
 
 // A row for use in Participants components; provides a blue heading to the left of the content.
 class ParticipantsRow extends React.Component<Props> {
+  static defaultProps = {
+    bottomDivider: true,
+    headingAlignment: 'Left',
+  }
+
   render() {
     const props = this.props
     return (
@@ -44,11 +49,6 @@ class ParticipantsRow extends React.Component<Props> {
       </React.Fragment>
     )
   }
-}
-
-ParticipantsRow.defaultProps = {
-  bottomDivider: true,
-  headingAlignment: 'Left',
 }
 
 const styles = Styles.styleSheetCreate({
