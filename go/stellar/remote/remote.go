@@ -700,6 +700,7 @@ func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID 
 	return res.MobileOnly != 0, nil
 }
 
+// XXX this should change very soon
 func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
 	payload := make(libkb.JSONPayload)
 	payload["account_id"] = accountID
@@ -711,6 +712,31 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	}
 	var res libkb.AppStatusEmbed
 	return g.API.PostDecode(apiArg, &res)
+}
+
+// MakeAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
+// then send the new account bundle revision to the server.
+func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	bundle, version, err := FetchAccountBundle(ctx, g, accountID)
+	if err != nil {
+		return err
+	}
+	_ = version
+
+	err = acctbundle.MakeMobileOnly(bundle)
+	if err == acctbundle.ErrNoChangeNecessary {
+		g.Log.CDebugf(ctx, "MakeAccountMobileOnly account %s is already mobile-only", accountID)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := PostAccountBundle(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostAccountBundle error: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 type lookupUnverifiedResult struct {

@@ -781,10 +781,8 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	// for now, let's just get it directly from `remote`:
 	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
 	require.NoError(t, err)
-	fmt.Printf("account bundle: %+v\n", acctBundle)
 	require.NotNil(t, acctBundle)
-	_ = version
-
+	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
 	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
 	require.Equal(t, a1, acctBundle.AccountID)
 	require.Len(t, acctBundle.Signers, 1)
@@ -792,6 +790,45 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	require.Empty(t, acctBundle.Prev)
 	require.NotEmpty(t, acctBundle.OwnHash)
 	require.Equal(t, argS1.Name, acctBundle.Name)
+}
+
+// TestMakeAccountMobileOnly imports a new secret stellar key, then makes it
+// mobile only.
+func TestMakeAccountMobileOnly(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	srv := tcs[0].Srv
+
+	a1, s1 := randomStellarKeypair()
+	argS1 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+		Name:        "vault",
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
+	require.NoError(t, err)
+
+	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
+	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
+	require.Equal(t, a1, acctBundle.AccountID)
+	require.Equal(t, stellar1.AccountMode_USER, acctBundle.Mode, "account mode should be USER")
+
+	err = remote.MakeAccountMobileOnly(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+
+	// TODO: this shouldn't actually work unless this is a mobile device
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
+	require.Equal(t, a1, acctBundle.AccountID)
+	require.Equal(t, stellar1.AccountMode_MOBILE, acctBundle.Mode, "account mode should be MOBILE")
 }
 
 type TestContext struct {
