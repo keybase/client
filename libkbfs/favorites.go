@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -76,8 +77,9 @@ type Favorites struct {
 }
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
-	disableVal := os.Getenv(disableFavoritesEnvVar)
-	if len(disableVal) > 0 {
+	disableVal := strings.ToLower(os.Getenv(disableFavoritesEnvVar))
+	if len(disableVal) > 0 && disableVal != "0" && disableVal != "false" &&
+		disableVal != "no" {
 		config.MakeLogger("").CDebugf(nil,
 			"Disable favorites due to env var %s=%s",
 			disableFavoritesEnvVar, disableVal)
