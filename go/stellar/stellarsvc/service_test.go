@@ -757,6 +757,35 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
+// TestImportMakesAccountBundle checks that importing a secret key makes a stellar account
+// bundle (i.e. the new version where there is a bundle per account) and that we
+// can retrieve it from the server.
+func TestImportMakesAccountBundle(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	srv := tcs[0].Srv
+
+	a1, s1 := randomStellarKeypair()
+	argS1 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+		Name:        "qq",
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
+	require.NoError(t, err)
+
+	// for now, let's just get it directly from `remote`:
+	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	fmt.Printf("account bundle: %+v\n", acctBundle)
+	require.NotNil(t, acctBundle)
+	_ = version
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser

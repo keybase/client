@@ -13,25 +13,19 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-// AccountBundle contains the secret key for a stellar account.
-type AccountBundle struct {
-	revision stellar1.BundleRevision
-	signers  []stellar1.SecretKey
+// New creates an AccountBundle from an existing secret key.
+func New(secret stellar1.SecretKey) *stellar1.AccountBundle {
+	return &stellar1.AccountBundle{Signers: []stellar1.SecretKey{secret}}
 }
 
-// NewAccountBundle creates an AccountBundle from an existing secret key.
-func NewAccountBundle(secret stellar1.SecretKey) *AccountBundle {
-	return &AccountBundle{signers: []stellar1.SecretKey{secret}}
-}
-
-// NewInitialAccountBundle creates an AccountBundle with a new random secret key.
-func NewInitialAccountBundle() (*AccountBundle, error) {
+// NewInitial creates an AccountBundle with a new random secret key.
+func NewInitial() (*stellar1.AccountBundle, error) {
 	full, err := keypair.Random()
 	if err != nil {
 		return nil, err
 	}
 	masterKey := stellar1.SecretKey(full.Seed())
-	return NewAccountBundle(masterKey), nil
+	return New(masterKey), nil
 }
 
 // AccountBoxResult is the result of boxing an AccountBundle.
@@ -45,14 +39,14 @@ type AccountBoxResult struct {
 // Box splits AccountBundle into visible and secret parts.  The visible
 // part is packed and encoded, the secret part is encrypted, packed, and
 // encoded.
-func (a *AccountBundle) Box(pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AccountBoxResult, error) {
+func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AccountBoxResult, error) {
 	boxed := &AccountBoxResult{
 		FormatVersion: stellar1.AccountBundleVersion_V1,
 	}
 
 	// visible portion
 	visible := stellar1.AccountBundleVisibleV1{
-		Revision: a.revision,
+		Revision: a.Revision,
 		// XXX Hash prev
 		// XXX AccountID
 		// XXX AccountMode mode
@@ -67,7 +61,7 @@ func (a *AccountBundle) Box(pukGen keybase1.PerUserKeyGeneration, puk libkb.PerU
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
 		VisibleHash: visibleHash[:],
 		AccountID:   "xxx",
-		Signers:     a.signers,
+		Signers:     a.Signers,
 		Name:        "xxx",
 	})
 	boxed.Enc, boxed.EncB64, err = accountEncrypt(versionedSecret, pukGen, puk)
@@ -76,6 +70,24 @@ func (a *AccountBundle) Box(pukGen keybase1.PerUserKeyGeneration, puk libkb.PerU
 	}
 
 	return boxed, nil
+}
+
+type PukFinder interface {
+	SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error)
+}
+
+func Unbox(m libkb.MetaContext, finder PukFinder, encB64, visB64 string) (*stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
+	encBundle, hash, err := decode(encB64)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	puk, err := finder.SeedByGeneration(m, encBundle.Gen)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return unbox(encBundle, hash, visB64, puk)
 }
 
 // accountEncrypt encrypts the stellar account key bundle for the PUK.
@@ -132,14 +144,14 @@ func decode(encryptedB64 string) (stellar1.EncryptedAccountBundle, stellar1.Hash
 	return enc, encHash[:], nil
 }
 
-func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64 string, puk libkb.PerUserKeySeed) (stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
+func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64 string, puk libkb.PerUserKeySeed) (*stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
 	versioned, err := decrypt(encBundle, puk)
 	if err != nil {
-		return stellar1.AccountBundle{}, 0, err
+		return nil, 0, err
 	}
 	version, err := versioned.Version()
 	if err != nil {
-		return stellar1.AccountBundle{}, 0, err
+		return nil, 0, err
 	}
 
 	var bundleOut stellar1.AccountBundle
@@ -147,29 +159,29 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64
 	case stellar1.AccountBundleVersion_V1:
 		visiblePack, err := base64.StdEncoding.DecodeString(visB64)
 		if err != nil {
-			return stellar1.AccountBundle{}, 0, err
+			return nil, 0, err
 		}
 		visibleHash := sha256.Sum256(visiblePack)
 		secretV1 := versioned.V1()
 		if !hmac.Equal(visibleHash[:], secretV1.VisibleHash) {
-			return stellar1.AccountBundle{}, 0, errors.New("corrupted bundle: visible hash mismatch")
+			return nil, 0, errors.New("corrupted bundle: visible hash mismatch")
 		}
 		var visibleV1 stellar1.AccountBundleVisibleV1
 		err = libkb.MsgpackDecode(&visibleV1, visiblePack)
 		if err != nil {
-			return stellar1.AccountBundle{}, 0, err
+			return nil, 0, err
 		}
 		bundleOut, err = merge(secretV1, visibleV1)
 		if err != nil {
-			return stellar1.AccountBundle{}, 0, err
+			return nil, 0, err
 		}
 	default:
-		return stellar1.AccountBundle{}, 0, err
+		return nil, 0, err
 	}
 
 	bundleOut.OwnHash = hash
 	if len(bundleOut.OwnHash) == 0 {
-		return stellar1.AccountBundle{}, 0, errors.New("stellar account bundle missing own hash")
+		return nil, 0, errors.New("stellar account bundle missing own hash")
 	}
 
 	// XXX
@@ -177,7 +189,7 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64
 	//	return stellar1.AccountBundle{}, 0, err
 	// }
 
-	return bundleOut, version, nil
+	return &bundleOut, version, nil
 }
 
 func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed) (stellar1.AccountBundleSecretVersioned, error) {
