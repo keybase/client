@@ -285,15 +285,18 @@ type getBlocksForOffsetRangeTask struct {
 	endOff     Offset
 	prefixOk   bool
 	getDirect  bool
+	// firstBlock is true if this is the first block in the range being fetched.
+	firstBlock bool
 }
 
 func (task *getBlocksForOffsetRangeTask) subTask(
-	childPtr BlockPointer,
-	childPath []parentBlockAndChildIndex) getBlocksForOffsetRangeTask {
+	childPtr BlockPointer, childPath []parentBlockAndChildIndex,
+	firstBlock bool) getBlocksForOffsetRangeTask {
 	subTask := *task
 	subTask.ptr = childPtr
 	subTask.pblock = nil
 	subTask.pathPrefix = childPath
+	subTask.firstBlock = firstBlock
 	return subTask
 }
 
@@ -304,6 +307,7 @@ type getBlocksForOffsetRangeResult struct {
 	ptr             BlockPointer
 	block           Block
 	nextBlockOffset Offset
+	firstBlock      bool
 	err             error
 }
 
@@ -344,6 +348,7 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 				ptr:             job.ptr,
 				block:           pblock,
 				nextBlockOffset: nil,
+				firstBlock:      job.firstBlock,
 				err:             nil,
 			}
 		}
@@ -352,6 +357,7 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 
 	// Search all of the in-range child blocks, and their child
 	// blocks, etc, in parallel.
+	childIsFirstBlock := job.firstBlock
 	for i := 0; i < pblock.NumIndirectPtrs(); i++ {
 		info, iptrOff := pblock.IndirectPtr(i)
 		// Some byte of this block is included in the left side of the
@@ -393,7 +399,7 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 		// blocks, since there weren't multiple levels of
 		// indirection before the introduction of the flag.
 		if job.getDirect || childPtr.DirectType == IndirectBlock {
-			subTask := job.subTask(childPtr, childPath)
+			subTask := job.subTask(childPtr, childPath, childIsFirstBlock)
 
 			// Enqueue the subTask with the WorkerPool.
 			wg.Add(1)
@@ -403,9 +409,57 @@ func (bt *blockTree) processGetBlocksTask(ctx context.Context,
 		} else {
 			results <- getBlocksForOffsetRangeResult{
 				pathFromRoot: childPath,
+				firstBlock:   childIsFirstBlock,
 			}
 		}
+		childIsFirstBlock = false
 	}
+}
+
+func checkForHolesAndTruncate(
+	pathsFromRoot [][]parentBlockAndChildIndex) [][]parentBlockAndChildIndex {
+	var prevPath []parentBlockAndChildIndex
+	for pathIdx, path := range pathsFromRoot {
+		// Each path after the first must immediately follow the preceding path.
+		pathIsCorrect := true
+		if pathIdx != 0 {
+			// Find the first place the 2 paths differ.
+			// Verify that path is immediately after prevPath.
+			if len(path) != len(prevPath) {
+				pathIsCorrect = false
+			} else {
+				foundIncrement := false
+				for idx := range path {
+					prevChild := prevPath[idx].childIndex
+					thisChild := path[idx].childIndex
+					if foundIncrement {
+						if thisChild != 0 || prevChild != prevPath[idx-1].
+							pblock.NumIndirectPtrs()-1 {
+							pathIsCorrect = false
+							break
+						}
+					} else {
+						if prevChild+1 == thisChild {
+							foundIncrement = true
+						} else if prevChild != thisChild {
+							pathIsCorrect = false
+							break
+						}
+					}
+				}
+				// If we never found where the two paths differ,
+				// then something has gone wrong.
+				if !foundIncrement {
+					pathIsCorrect = false
+				}
+			}
+		}
+		if !pathIsCorrect {
+			return pathsFromRoot[:pathIdx]
+		}
+		prevPath = path
+	}
+	return pathsFromRoot
 }
 
 // getBlocksForOffsetRange fetches all the blocks making up paths down
@@ -436,7 +490,7 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	// Make a workerpool to limit the number of concurrent goroutines.
 	wp := workerpool.New(maxBlockFetchWorkers)
 
-	// Make a context to cancel all the jobs if something goes wrong
+	// Make a context to cancel all the jobs if something goes wrong.
 	groupCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -452,6 +506,7 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 		endOff:     endOff,
 		prefixOk:   prefixOk,
 		getDirect:  getDirect,
+		firstBlock: true,
 	}
 	wg.Add(1)
 	wp.Submit(func() {
@@ -471,6 +526,7 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	blocks = make(map[BlockPointer]Block)
 	pathsFromRoot = [][]parentBlockAndChildIndex{}
 	mustCheckForHoles := false
+	gotFirstBlock := false
 	var errors []error
 	for res := range results {
 		if res.err != nil {
@@ -495,6 +551,9 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 			(minNextBlockOffset == nil ||
 				res.nextBlockOffset.Less(minNextBlockOffset)) {
 			minNextBlockOffset = res.nextBlockOffset
+		}
+		if res.firstBlock {
+			gotFirstBlock = true
 		}
 	}
 	nextBlockOffset = minNextBlockOffset
@@ -523,57 +582,10 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 	// we may need to return only some of the data we gathered in order to
 	// return a correct prefix of the data. Thus, we find the longest prefix of
 	// the data without any holes.
-	if mustCheckForHoles {
-		var prevPath []parentBlockAndChildIndex
-		for pathIdx, path := range pathsFromRoot {
-			// First path should be at startOff. Each subsequent path should
-			// immediately follow the preceding path.
-			pathIsCorrect := true
-			if pathIdx == 0 {
-				lastBlockInPath := path[len(path)-1]
-				_, off := lastBlockInPath.pblock.IndirectPtr(
-					lastBlockInPath.childIndex)
-				if off != startOff {
-					pathIsCorrect = false
-				}
-			} else {
-				// Find the first place the 2 paths differ.
-				// Verify that path is immediately after prevPath.
-				if len(path) != len(prevPath) {
-					pathIsCorrect = false
-				} else {
-					foundIncrement := false
-					for idx := range path {
-						prevChild := prevPath[idx].childIndex
-						thisChild := path[idx].childIndex
-						if foundIncrement {
-							if thisChild != 0 || prevChild != prevPath[idx-1].
-								pblock.NumIndirectPtrs() {
-								pathIsCorrect = false
-								break
-							}
-						} else {
-							if prevChild+1 == thisChild {
-								foundIncrement = true
-							} else if prevChild != thisChild {
-								pathIsCorrect = false
-								break
-							}
-						}
-					}
-					// If we never found where the two paths differ,
-					// then something has gone wrong.
-					if !foundIncrement {
-						pathIsCorrect = false
-					}
-				}
-			}
-			if !pathIsCorrect {
-				pathsFromRoot = pathsFromRoot[:pathIdx]
-				break
-			}
-			prevPath = path
-		}
+	if !gotFirstBlock {
+		pathsFromRoot = [][]parentBlockAndChildIndex{}
+	} else if mustCheckForHoles {
+		pathsFromRoot = checkForHolesAndTruncate(pathsFromRoot)
 	}
 
 	return pathsFromRoot, blocks, nextBlockOffset, nil
