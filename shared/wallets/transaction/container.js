@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   let readState
   if (tx.unread) {
-    readState = tx.id === stateProps._oldestUnread ? 'oldestUnread' : 'read'
+    readState = tx.id === stateProps._oldestUnread ? 'oldestUnread' : 'unread'
   } else {
     readState = 'read'
   }
