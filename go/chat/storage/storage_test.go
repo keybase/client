@@ -6,7 +6,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -17,15 +16,10 @@ import (
 )
 
 func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Storage, gregor1.UID) {
-	ltc := setupCommonTest(t, name)
-	u, err := kbtest.CreateAndSignupFakeUser("cs", ltc.G)
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
-	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
+	ctc := setupCommonTest(t, name)
+	u, err := kbtest.CreateAndSignupFakeUser("cs", ctc.TestContext.G)
 	require.NoError(t, err)
-	return tc, New(tc.Context(), kbtest.NewDummyAssetDeleter()), gregor1.UID(u.User.GetUID().ToBytes())
+	return ctc, New(ctc.Context(), kbtest.NewDummyAssetDeleter()), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {
