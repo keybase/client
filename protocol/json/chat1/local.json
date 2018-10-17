@@ -3592,6 +3592,23 @@
       ],
       "response": "string"
     },
+    "makeUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    },
     "CancelPost": {
       "request": [
         {

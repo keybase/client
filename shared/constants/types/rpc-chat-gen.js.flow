@@ -231,6 +231,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|filename: String, outboxID: OutboxID|}>,
     outParam: MakePreviewRes,
   |},
+  'chat.1.local.makeUploadTempFile': {|
+    inParam: $ReadOnly<{|outboxID: OutboxID, filename: String, data: Bytes|}>,
+    outParam: void,
+  |},
   'chat.1.local.markAsReadLocal': {|
     inParam: $ReadOnly<{|conversationID: ConversationID, msgID: MessageID|}>,
     outParam: MarkAsReadLocalRes,
@@ -1051,6 +1055,7 @@ declare export function localGetUploadTempFileRpcPromise(params: $PropertyType<$
 declare export function localJoinConversationByIDLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.joinConversationByIDLocal'>, 'outParam'>>
 declare export function localLeaveConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.leaveConversationLocal'>, 'outParam'>>
 declare export function localMakePreviewRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makePreview'>, 'outParam'>>
+declare export function localMakeUploadTempFileRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makeUploadTempFile'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.makeUploadTempFile'>, 'outParam'>>
 declare export function localMarkAsReadLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.markAsReadLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.markAsReadLocal'>, 'outParam'>>
 declare export function localNewConversationLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.newConversationLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.newConversationLocal'>, 'outParam'>>
 declare export function localPostDeleteHistoryByAgeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteHistoryByAge'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.postDeleteHistoryByAge'>, 'outParam'>>

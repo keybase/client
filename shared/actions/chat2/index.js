@@ -1735,6 +1735,28 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
   }
 }
 
+// Handle an image pasted into a conversation
+function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
+  const {conversationIDKey, data} = action.payload
+  const outboxID = Constants.generateOutboxID()
+  const path = yield Saga.call(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
+    outboxID,
+    filename: 'paste.png',
+    data,
+  })
+  const paths = [
+    {
+      path,
+      outboxID,
+    },
+  ]
+  yield Saga.put(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}],
+    })
+  )
+}
+
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
@@ -2667,6 +2689,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)

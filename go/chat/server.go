@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -1392,6 +1393,15 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetUploadTempFile")()
 	return h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)
+}
+
+func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTempFileArg) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakeUploadTempFile")()
+	path, err := h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, arg.Data, 0644)
 }
 
 func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
