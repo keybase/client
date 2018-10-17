@@ -38,6 +38,7 @@ export function PopupDialog({
             type="iconfont-close"
             style={collapseStyles([closeStyle, styleClose])}
             color={globalColors.white}
+            onClick={onClose}
           />
           <Box
             style={collapseStyles([clipContainerStyle, styleClipContainer])}
