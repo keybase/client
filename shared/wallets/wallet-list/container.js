@@ -9,7 +9,7 @@ const mapStateToProps = state => ({
   accounts: getAccountIDs(state),
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
       RouteTree.navigateAppend([
@@ -19,7 +19,8 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
+    dispatch(RouteTree.navigateAppend([{props: {}, selected: 'onboarding'}]))
+    // dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
   },
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
