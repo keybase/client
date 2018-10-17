@@ -1,7 +1,7 @@
 // @flow
 import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
-import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
+import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
@@ -12,6 +12,7 @@ if (!isMobile) {
 
 const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.get('navBadges'),
+  isWalletsNew: state.chat2.isWalletsNew,
   username: state.config.username,
 })
 
@@ -69,6 +70,9 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
 
 const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   badgeNumbers: stateProps._badgeNumbers.toObject(),
+  isNew: {
+    [walletsTab]: stateProps.isWalletsNew,
+  },
   onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username),
   selectedTab: routeSelected,
   username: stateProps.username || '',

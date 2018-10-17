@@ -2,6 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
+import Meta from './meta'
 import Text from './text'
 import Avatar from './avatar'
 import Badge from './badge'
@@ -146,7 +147,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
     )
   }
 
-  _renderNav(badgeNumber: number) {
+  _renderNav(badgeNumber: number, isNew: boolean) {
     if (this.props.source.type !== 'nav') return null // needed to make flow happy
     return (
       <Box onClick={this.props.onClick}>
@@ -162,6 +163,16 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: Styles.globalMargins.tiny}}
+              />
+            </Box>
+          )}
+          {isNew && (
+            <Box style={styleBadgeNav}>
+              <Meta
+                title="new"
+                size="Small"
+                style={{alignSelf: 'center', marginRight: 4}}
+                backgroundColor={Styles.globalColors.blue2}
               />
             </Box>
           )}
@@ -216,12 +227,11 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   render() {
     const color = this.props.selected ? Styles.globalColors.white : Styles.globalColors.blue3_60
     const badgeNumber = this.props.badgeNumber || 0
-
     switch (this.props.source.type) {
       case 'avatar':
         return this._renderAvatar(color, badgeNumber)
       case 'nav':
-        return this._renderNav(badgeNumber)
+        return this._renderNav(badgeNumber, this.props.isNew)
       case 'icon':
       default:
         return this._renderIcon(color, badgeNumber)
