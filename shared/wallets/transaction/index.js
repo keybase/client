@@ -307,8 +307,8 @@ export type Props = {|
 |}
 
 export const Transaction = (props: Props) => {
-  let large
-  let showMemo
+  let large: boolean
+  let showMemo: boolean
   switch (props.counterpartyType) {
     case 'keybaseUser':
       large = true
@@ -320,7 +320,7 @@ export const Transaction = (props: Props) => {
       break
     case 'otherAccount':
       large = !!props.memo
-      showMemo = props.memo
+      showMemo = !!props.memo
       break
     default:
       /*::
@@ -360,7 +360,7 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {!!showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
               {props.counterpartyType === 'keybaseUser' && (
                 <Button
