@@ -3084,6 +3084,7 @@ type GetThreadQuery struct {
 	MessageTypes             []MessageType     `codec:"messageTypes" json:"messageTypes"`
 	DisableResolveSupersedes bool              `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
 	EnableDeletePlaceholders bool              `codec:"enableDeletePlaceholders" json:"enableDeletePlaceholders"`
+	DisablePostProcessThread bool              `codec:"disablePostProcessThread" json:"disablePostProcessThread"`
 	Before                   *gregor1.Time     `codec:"before,omitempty" json:"before,omitempty"`
 	After                    *gregor1.Time     `codec:"after,omitempty" json:"after,omitempty"`
 	MessageIDControl         *MessageIDControl `codec:"messageIDControl,omitempty" json:"messageIDControl,omitempty"`
@@ -3105,6 +3106,7 @@ func (o GetThreadQuery) DeepCopy() GetThreadQuery {
 		})(o.MessageTypes),
 		DisableResolveSupersedes: o.DisableResolveSupersedes,
 		EnableDeletePlaceholders: o.EnableDeletePlaceholders,
+		DisablePostProcessThread: o.DisablePostProcessThread,
 		Before: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil
@@ -4312,14 +4314,14 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
-type GetSearchRegexpRes struct {
+type SearchRegexpRes struct {
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
-func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
-	return GetSearchRegexpRes{
+func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
+	return SearchRegexpRes{
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil
@@ -4356,25 +4358,21 @@ func (o GetSearchRegexpRes) DeepCopy() GetSearchRegexpRes {
 	}
 }
 
-type InboxSearchRes struct {
-	Hits             []ChatInboxSearchHit          `codec:"hits" json:"hits"`
+type SearchInboxRes struct {
+	Res              *ChatSearchInboxResults       `codec:"res,omitempty" json:"res,omitempty"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
-func (o InboxSearchRes) DeepCopy() InboxSearchRes {
-	return InboxSearchRes{
-		Hits: (func(x []ChatInboxSearchHit) []ChatInboxSearchHit {
+func (o SearchInboxRes) DeepCopy() SearchInboxRes {
+	return SearchInboxRes{
+		Res: (func(x *ChatSearchInboxResults) *ChatSearchInboxResults {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ChatInboxSearchHit, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Hits),
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Res),
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -4400,17 +4398,19 @@ func (o InboxSearchRes) DeepCopy() InboxSearchRes {
 	}
 }
 
-type IndexSearchConvStats struct {
-	NumMessages  int                  `codec:"numMessages" json:"numMessages"`
-	IndexSize    int                  `codec:"indexSize" json:"indexSize"`
-	DurationMsec gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
+type ProfileSearchConvStats struct {
+	NumMessages    int                  `codec:"numMessages" json:"numMessages"`
+	IndexSize      int                  `codec:"indexSize" json:"indexSize"`
+	DurationMsec   gregor1.DurationMsec `codec:"durationMsec" json:"durationMsec"`
+	PercentIndexed int                  `codec:"percentIndexed" json:"percentIndexed"`
 }
 
-func (o IndexSearchConvStats) DeepCopy() IndexSearchConvStats {
-	return IndexSearchConvStats{
-		NumMessages:  o.NumMessages,
-		IndexSize:    o.IndexSize,
-		DurationMsec: o.DurationMsec.DeepCopy(),
+func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
+	return ProfileSearchConvStats{
+		NumMessages:    o.NumMessages,
+		IndexSize:      o.IndexSize,
+		DurationMsec:   o.DurationMsec.DeepCopy(),
+		PercentIndexed: o.PercentIndexed,
 	}
 }
 
@@ -4801,7 +4801,7 @@ type UpgradeKBFSConversationToImpteamArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
-type GetSearchRegexpArg struct {
+type SearchRegexpArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	Query            string                       `codec:"query" json:"query"`
@@ -4810,15 +4810,14 @@ type GetSearchRegexpArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type InboxSearchArg struct {
+type SearchInboxArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	Query            string                       `codec:"query" json:"query"`
 	Opts             SearchOpts                   `codec:"opts" json:"opts"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type IndexChatSearchArg struct {
-	ConvID           *ConversationID              `codec:"convID,omitempty" json:"convID,omitempty"`
+type ProfileChatSearchArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -4879,9 +4878,9 @@ type LocalInterface interface {
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
 	SetConvMinWriterRoleLocal(context.Context, SetConvMinWriterRoleLocalArg) error
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
-	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
-	InboxSearch(context.Context, InboxSearchArg) (InboxSearchRes, error)
-	IndexChatSearch(context.Context, IndexChatSearchArg) (map[string]IndexSearchConvStats, error)
+	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
+	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
+	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 }
 
@@ -5727,50 +5726,50 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getSearchRegexp": {
+			"searchRegexp": {
 				MakeArg: func() interface{} {
-					var ret [1]GetSearchRegexpArg
+					var ret [1]SearchRegexpArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetSearchRegexpArg)
+					typedArgs, ok := args.(*[1]SearchRegexpArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]GetSearchRegexpArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SearchRegexpArg)(nil), args)
 						return
 					}
-					ret, err = i.GetSearchRegexp(ctx, typedArgs[0])
+					ret, err = i.SearchRegexp(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"inboxSearch": {
+			"searchInbox": {
 				MakeArg: func() interface{} {
-					var ret [1]InboxSearchArg
+					var ret [1]SearchInboxArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]InboxSearchArg)
+					typedArgs, ok := args.(*[1]SearchInboxArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]InboxSearchArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SearchInboxArg)(nil), args)
 						return
 					}
-					ret, err = i.InboxSearch(ctx, typedArgs[0])
+					ret, err = i.SearchInbox(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"indexChatSearch": {
+			"profileChatSearch": {
 				MakeArg: func() interface{} {
-					var ret [1]IndexChatSearchArg
+					var ret [1]ProfileChatSearchArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]IndexChatSearchArg)
+					typedArgs, ok := args.(*[1]ProfileChatSearchArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]IndexChatSearchArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ProfileChatSearchArg)(nil), args)
 						return
 					}
-					ret, err = i.IndexChatSearch(ctx, typedArgs[0])
+					ret, err = i.ProfileChatSearch(ctx, typedArgs[0].IdentifyBehavior)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -6068,18 +6067,19 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 	return
 }
 
-func (c LocalClient) GetSearchRegexp(ctx context.Context, __arg GetSearchRegexpArg) (res GetSearchRegexpRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getSearchRegexp", []interface{}{__arg}, &res)
+func (c LocalClient) SearchRegexp(ctx context.Context, __arg SearchRegexpArg) (res SearchRegexpRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.searchRegexp", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) InboxSearch(ctx context.Context, __arg InboxSearchArg) (res InboxSearchRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.inboxSearch", []interface{}{__arg}, &res)
+func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res SearchInboxRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) IndexChatSearch(ctx context.Context, __arg IndexChatSearchArg) (res map[string]IndexSearchConvStats, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.indexChatSearch", []interface{}{__arg}, &res)
+func (c LocalClient) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]ProfileSearchConvStats, err error) {
+	__arg := ProfileChatSearchArg{IdentifyBehavior: identifyBehavior}
+	err = c.Cli.Call(ctx, "chat.1.local.profileChatSearch", []interface{}{__arg}, &res)
 	return
 }
 

@@ -29,6 +29,7 @@ const (
 	methodDownload     = "download"
 	methodSetStatus    = "setstatus"
 	methodMark         = "mark"
+	methodSearchInbox  = "searchinbox"
 	methodSearchRegexp = "searchregexp"
 )
 
@@ -56,6 +57,7 @@ type ChatAPIHandler interface {
 	DownloadV1(context.Context, Call, io.Writer) error
 	SetStatusV1(context.Context, Call, io.Writer) error
 	MarkV1(context.Context, Call, io.Writer) error
+	SearchInboxV1(context.Context, Call, io.Writer) error
 	SearchRegexpV1(context.Context, Call, io.Writer) error
 }
 
@@ -337,18 +339,35 @@ func (o markOptionsV1) Check() error {
 	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
 }
 
+type searchOptionsV1 struct {
+	SentBy        string `json:"sent_by"`
+	SentBefore    string `json:"sent_before"`
+	SentAfter     string `json:"sent_after"`
+	MaxHits       int    `json:"max_hits"`
+	BeforeContext int    `json:"before_context"`
+	AfterContext  int    `json:"after_context"`
+}
+
+type searchInboxOptionsV1 struct {
+	searchOptionsV1
+	Query        string `json:"query"`
+	ForceReindex bool   `json:"force_reindex"`
+}
+
+func (o searchInboxOptionsV1) Check() error {
+	if o.Query == "" {
+		return errors.New("query required")
+	}
+	return nil
+}
+
 type searchRegexpOptionsV1 struct {
+	searchOptionsV1
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Query          string `json:"query"`
 	IsRegex        bool   `json:"is_regex"`
-	SentBy         string `json:"sent_by"`
-	SentBefore     string `json:"sent_before"`
-	SentAfter      string `json:"sent_after"`
-	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
-	BeforeContext  int    `json:"before_context"`
-	AfterContext   int    `json:"after_context"`
 }
 
 func (o searchRegexpOptionsV1) Check() error {
@@ -554,6 +573,23 @@ func (a *ChatAPI) MarkV1(ctx context.Context, c Call, w io.Writer) error {
 	return a.encodeReply(c, a.svcHandler.MarkV1(ctx, opts), w)
 }
 
+func (a *ChatAPI) SearchInboxV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodSearchInbox, err: errors.New("empty options")}
+	}
+	var opts searchInboxOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for search inbox v1
+
+	return a.encodeReply(c, a.svcHandler.SearchInboxV1(ctx, opts), w)
+}
+
 func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodSearchRegexp, err: errors.New("empty options")}
@@ -566,7 +602,7 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 		return err
 	}
 
-	// opts are valid for search v1
+	// opts are valid for search regexp v1
 
 	return a.encodeReply(c, a.svcHandler.SearchRegexpV1(ctx, opts), w)
 }

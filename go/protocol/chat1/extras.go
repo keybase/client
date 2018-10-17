@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -275,18 +276,32 @@ func (m MessageUnboxed) GetOutboxID() *OutboxID {
 	return nil
 }
 
+func (m MessageUnboxed) GetTopicType() TopicType {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().ClientHeader.Conv.TopicType
+		case MessageUnboxedState_ERROR:
+			return TopicType_NONE
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.Conv.TopicType
+		case MessageUnboxedState_PLACEHOLDER:
+			return TopicType_NONE
+		}
+	}
+	return TopicType_NONE
+}
+
 func (m MessageUnboxed) GetMessageType() MessageType {
 	if state, err := m.State(); err == nil {
-		if state == MessageUnboxedState_VALID {
+		switch state {
+		case MessageUnboxedState_VALID:
 			return m.Valid().ClientHeader.MessageType
-		}
-		if state == MessageUnboxedState_ERROR {
+		case MessageUnboxedState_ERROR:
 			return m.Error().MessageType
-		}
-		if state == MessageUnboxedState_OUTBOX {
+		case MessageUnboxedState_OUTBOX:
 			return m.Outbox().Msg.ClientHeader.MessageType
-		}
-		if state == MessageUnboxedState_PLACEHOLDER {
+		case MessageUnboxedState_PLACEHOLDER:
 			// All we know about a place holder is the ID, so just
 			// call it type NONE
 			return MessageType_NONE
@@ -353,6 +368,23 @@ func (m MessageUnboxed) IsValidDeleted() bool {
 		return false
 	}
 	return bodyType == MessageType_NONE
+}
+
+func (m MessageUnboxed) IsVisible() bool {
+	typ := m.GetMessageType()
+	for _, visType := range VisibleChatMessageTypes() {
+		if typ == visType {
+			return true
+		}
+	}
+	return false
+}
+
+func (m MessageUnboxed) SearchableText() string {
+	if !m.IsValidFull() {
+		return ""
+	}
+	return m.Valid().MessageBody.SearchableText()
 }
 
 func (m *MessageUnboxed) DebugString() string {
@@ -599,6 +631,25 @@ func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
 
+func (b MessageBody) SearchableText() string {
+	typ, err := b.MessageType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case MessageType_TEXT:
+		return b.Text().Body
+	case MessageType_EDIT:
+		return b.Edit().Body
+	case MessageType_REQUESTPAYMENT:
+		return b.Requestpayment().Note
+	case MessageType_ATTACHMENT:
+		return b.Attachment().GetTitle()
+	default:
+		return ""
+	}
+}
+
 func (m UIMessage) IsValid() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_VALID
@@ -667,6 +718,13 @@ func (m UIMessage) GetMessageType() MessageType {
 		}
 	}
 	return MessageType_NONE
+}
+
+func (m UIMessage) SearchableText() string {
+	if !m.IsValid() {
+		return ""
+	}
+	return m.Valid().MessageBody.SearchableText()
 }
 
 func (m MessageBoxed) GetMessageID() MessageID {
@@ -1013,6 +1071,30 @@ func (c Conversation) Includes(uid gregor1.UID) bool {
 		}
 	}
 	return false
+}
+
+func (c Conversation) GetMaxDeletedUpTo() MessageID {
+	var maxExpungeID, maxDelHID MessageID
+	if expunge := c.GetExpunge(); expunge != nil {
+		maxExpungeID = expunge.Upto
+	}
+	if maxDelH, err := c.GetMaxMessage(MessageType_DELETEHISTORY); err != nil {
+		maxDelHID = maxDelH.GetMessageID()
+	}
+	if maxExpungeID > maxDelHID {
+		return maxExpungeID
+	}
+	return maxDelHID
+}
+
+func (c Conversation) GetMaxMessageID() MessageID {
+	maxMsgID := MessageID(0)
+	for _, msg := range c.MaxMsgSummaries {
+		if msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+	return maxMsgID
 }
 
 func (m MessageSummary) GetMessageID() MessageID {
@@ -1432,19 +1514,19 @@ func (r *SetAppNotificationSettingsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
-func (r *GetSearchRegexpRes) GetRateLimit() []RateLimit {
+func (r *SearchRegexpRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
+func (r *SearchRegexpRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
-func (r *InboxSearchRes) GetRateLimit() []RateLimit {
+func (r *SearchInboxRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *InboxSearchRes) SetRateLimits(rl []RateLimit) {
+func (r *SearchInboxRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1687,4 +1769,45 @@ func (o SearchOpts) Matches(msgMetadata MsgMetadata) bool {
 		return false
 	}
 	return true
+}
+
+func (a MessageAttachment) GetTitle() string {
+	title := a.Object.Title
+	if title == "" {
+		title = filepath.Base(a.Object.Filename)
+	}
+	return title
+}
+
+func (h *ChatSearchInboxHit) Size() int {
+	if h == nil {
+		return 0
+	}
+	return len(h.Hits)
+}
+
+func (idx *ConversationIndex) MissingIDs(min, max MessageID) []MessageID {
+	missingIDs := []MessageID{}
+	if min == 0 {
+		min = 1
+	}
+	for i := min; i <= max; i++ {
+		if _, ok := idx.Metadata.SeenIDs[i]; !ok {
+			missingIDs = append(missingIDs, i)
+		}
+	}
+	return missingIDs
+}
+
+func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
+	// lowest msgID we care about
+	min := conv.GetMaxDeletedUpTo()
+	// highest msgID we care about
+	max := conv.GetMaxMessageID()
+	numMessages := int(max) - int(min)
+	if numMessages <= 0 {
+		return 100
+	}
+	missingIDs := idx.MissingIDs(min, max)
+	return 100 * (1 - (len(missingIDs) / numMessages))
 }

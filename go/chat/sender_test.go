@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -265,10 +266,13 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
-	searcher := NewSearcher(g)
+	searcher := search.NewRegexpSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
-	searcher.pageSize = 2
-	g.Searcher = searcher
+	searcher.SetPageSize(2)
+	g.RegexpSearcher = searcher
+	indexer := search.NewIndexer(g)
+	indexer.SetPageSize(2)
+	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	g.StellarLoader = types.DummyStellarLoader{}

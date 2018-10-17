@@ -815,76 +815,6 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
-type ChatSearchHit struct {
-	BeforeMessages []UIMessage `codec:"beforeMessages" json:"beforeMessages"`
-	HitMessage     UIMessage   `codec:"hitMessage" json:"hitMessage"`
-	AfterMessages  []UIMessage `codec:"afterMessages" json:"afterMessages"`
-	Matches        []string    `codec:"matches" json:"matches"`
-}
-
-func (o ChatSearchHit) DeepCopy() ChatSearchHit {
-	return ChatSearchHit{
-		BeforeMessages: (func(x []UIMessage) []UIMessage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIMessage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.BeforeMessages),
-		HitMessage: o.HitMessage.DeepCopy(),
-		AfterMessages: (func(x []UIMessage) []UIMessage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIMessage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.AfterMessages),
-		Matches: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Matches),
-	}
-}
-
-type ChatInboxSearchHit struct {
-	ConvID   ConversationID  `codec:"convID" json:"convID"`
-	ConvName string          `codec:"convName" json:"convName"`
-	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
-}
-
-func (o ChatInboxSearchHit) DeepCopy() ChatInboxSearchHit {
-	return ChatInboxSearchHit{
-		ConvID:   o.ConvID.DeepCopy(),
-		ConvName: o.ConvName,
-		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
-			if x == nil {
-				return nil
-			}
-			ret := make([]ChatSearchHit, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Hits),
-	}
-}
-
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -935,15 +865,14 @@ type ChatSearchDoneArg struct {
 	NumHits   int `codec:"numHits" json:"numHits"`
 }
 
-type ChatInboxSearchHitArg struct {
+type ChatSearchInboxHitArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
-	SearchHit ChatInboxSearchHit `codec:"searchHit" json:"searchHit"`
+	SearchHit ChatSearchInboxHit `codec:"searchHit" json:"searchHit"`
 }
 
-type ChatInboxSearchDoneArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-	NumHits   int `codec:"numHits" json:"numHits"`
-	NumConvs  int `codec:"numConvs" json:"numConvs"`
+type ChatSearchInboxDoneArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Res       ChatSearchInboxDone `codec:"res" json:"res"`
 }
 
 type ChatConfirmChannelDeleteArg struct {
@@ -962,8 +891,8 @@ type ChatUiInterface interface {
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
-	ChatInboxSearchHit(context.Context, ChatInboxSearchHitArg) error
-	ChatInboxSearchDone(context.Context, ChatInboxSearchDoneArg) error
+	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
+	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
@@ -1131,34 +1060,34 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"chatInboxSearchHit": {
+			"chatSearchInboxHit": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatInboxSearchHitArg
+					var ret [1]ChatSearchInboxHitArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatInboxSearchHitArg)
+					typedArgs, ok := args.(*[1]ChatSearchInboxHitArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatInboxSearchHitArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatSearchInboxHitArg)(nil), args)
 						return
 					}
-					err = i.ChatInboxSearchHit(ctx, typedArgs[0])
+					err = i.ChatSearchInboxHit(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"chatInboxSearchDone": {
+			"chatSearchInboxDone": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatInboxSearchDoneArg
+					var ret [1]ChatSearchInboxDoneArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatInboxSearchDoneArg)
+					typedArgs, ok := args.(*[1]ChatSearchInboxDoneArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatInboxSearchDoneArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatSearchInboxDoneArg)(nil), args)
 						return
 					}
-					err = i.ChatInboxSearchDone(ctx, typedArgs[0])
+					err = i.ChatSearchInboxDone(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1239,13 +1168,13 @@ func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneAr
 	return
 }
 
-func (c ChatUiClient) ChatInboxSearchHit(ctx context.Context, __arg ChatInboxSearchHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxSearchHit", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatSearchInboxHit(ctx context.Context, __arg ChatSearchInboxHitArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ChatUiClient) ChatInboxSearchDone(ctx context.Context, __arg ChatInboxSearchDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxSearchDone", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchInboxDoneArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []interface{}{__arg}, nil)
 	return
 }
 

@@ -198,9 +198,9 @@ func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int
 	return res, err
 }
 
-func (s *stellarRetryClient) SetAcceptedDisclaimerLocal(ctx context.Context, sid int) (err error) {
+func (s *stellarRetryClient) AcceptDisclaimerLocal(ctx context.Context, sid int) (err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetAcceptedDisclaimerLocal(ctx, sid)
+		err = s.cli.AcceptDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}

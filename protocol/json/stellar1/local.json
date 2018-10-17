@@ -460,10 +460,6 @@
         },
         {
           "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -481,6 +477,14 @@
         {
           "type": "string",
           "name": "worthInfo"
+        },
+        {
+          "type": "string",
+          "name": "worthAmount"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
         },
         {
           "type": {
@@ -1070,7 +1074,7 @@
       ],
       "response": "WalletSettings"
     },
-    "setAcceptedDisclaimerLocal": {
+    "acceptDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",

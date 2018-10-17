@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import Avatar from '../avatar'
+import Avatar, {type AvatarSize} from '../avatar'
 import Box from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, type IconType} from '../icon'
@@ -12,6 +12,7 @@ type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {|
+  avatarSize?: AvatarSize,
   avatarStyle?: Styles.StylesCrossPlatform,
   colorFollowing?: boolean,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -59,7 +60,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Avatar
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
-          size={this.props.horizontal ? commonHeight : adapterProps.iconSize}
+          size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
           showFollowingStatus={this.props.horizontal ? undefined : true}
           username={this.props.username}
           teamname={this.props.teamname}
@@ -120,7 +121,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       />
     )
     const metas = this.props.horizontal ? (
-      <Box style={Styles.globalStyles.flexBoxRow}>
+      <Box style={styles.metasBox}>
         {metaOne}
         {!!(this.props.metaTwo && this.props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
         {metaTwo}
@@ -208,6 +209,11 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
+  metasBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    maxWidth: '100%',
+    width: '100%',
+  },
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)

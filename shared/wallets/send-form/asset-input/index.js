@@ -22,12 +22,17 @@ export class AssetInput extends React.Component<Props> {
     return (
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
         {!!this.props.topLabel && (
-          <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
+          <Kb.Text
+            type="BodySmallSemibold"
+            style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}
+          >
             {this.props.topLabel}
           </Kb.Text>
         )}
         <Kb.NewInput
+          autoFocus={true}
           type="text"
+          keyboardType="numeric"
           decoration={
             <Kb.Box2 direction="vertical" style={styles.flexEnd}>
               <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>

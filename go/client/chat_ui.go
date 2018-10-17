@@ -127,18 +127,18 @@ func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearch
 	getContext := func(msgs []chat1.UIMessage) string {
 		ctx := []string{}
 		for _, msg := range msgs {
-			if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-				msgBody := msg.Valid().MessageBody.Text().Body
-				ctx = append(ctx, getMsgPrefix(msg)+msgBody+"\n")
+			msgText := msg.SearchableText()
+			if msgText != "" {
+				ctx = append(ctx, getMsgPrefix(msg)+msgText+"\n")
 			}
 		}
 		return strings.Join(ctx, "")
 	}
 
 	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
-		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-			msgBody := msg.Valid().MessageBody.Text().Body
-			escapedHitText := terminalescaper.Clean(msgBody)
+		msgText := msg.SearchableText()
+		if msgText != "" {
+			escapedHitText := terminalescaper.Clean(msgText)
 			for _, hit := range hits {
 				escapedHit := terminalescaper.Clean(hit)
 				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
@@ -177,7 +177,7 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -192,12 +192,17 @@ func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSear
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	if c.noOutput {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Search complete. Found %d results in %d conversations.", arg.NumHits, arg.NumConvs)
-	fmt.Fprintln(w, "")
+	fmt.Fprintf(w, "Search complete. Found %d results in %d conversations.\n", arg.Res.NumHits, arg.Res.NumConvs)
+	percentIndexed := arg.Res.PercentIndexed
+	helpText := ""
+	if percentIndexed < 70 {
+		helpText = "Rerun with --force-reindex for more complete results."
+	}
+	fmt.Fprintf(w, "Indexing was %d percent complete. %s\n", percentIndexed, helpText)
 	return nil
 }

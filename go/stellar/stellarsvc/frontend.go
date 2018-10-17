@@ -274,9 +274,9 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 	return ret, nil
 }
 
-func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "SetAcceptedDisclaimerLocal",
+		RPCName:       "AcceptDisclaimerLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -886,8 +886,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				})
 			}
 			bannerThem := "their"
-			if recipient.User != nil {
-				res.ToUsername = recipient.User.Username.String()
+			if recipient.User != nil && !arg.ToIsAccountID {
 				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
@@ -922,6 +921,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	res.AmountErrMsg = amountX.amountErrMsg
 	res.WorthDescription = amountX.worthDescription
 	res.WorthInfo = amountX.worthInfo
+	res.WorthCurrency = amountX.worthCurrency
 
 	if amountX.haveAmount {
 		if !amountX.asset.IsNativeXLM() {
@@ -993,6 +993,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		} else {
 			res.AmountFormatted = amountFormatted
 		}
+		res.WorthAmount = amountX.amountOfAsset
 	}
 
 	// -------------------- note + memo --------------------
@@ -1037,6 +1038,7 @@ type buildPaymentAmountResult struct {
 	amountErrMsg     string
 	worthDescription string
 	worthInfo        string
+	worthCurrency    string
 	// Rate may be nil if there was an error fetching it.
 	rate *stellar1.OutsideExchangeRate
 }
@@ -1085,6 +1087,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.worthDescription = xlmAmountFormatted
+		res.worthCurrency = string(*arg.Currency)
 		if convertAmountOutside != "0" {
 			// haveAmount gates whether the send button is enabled.
 			// Only enable after `worthDescription` is set.
@@ -1099,6 +1102,9 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		}
 		return res
 	case arg.Currency == nil:
+		if arg.Asset != nil {
+			res.asset = *arg.Asset
+		}
 		// Amount is of asset.
 		useAmount := "0"
 		if arg.Amount != "" {
@@ -1110,6 +1116,10 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.amountOfAsset = arg.Amount
 			res.haveAmount = true
 			useAmount = arg.Amount
+		}
+		if !res.asset.IsNativeXLM() {
+			// If sending non-XLM asset, don't try to show a worth.
+			return res
 		}
 		// Attempt to show the converted amount in outside currency.
 		// Unlike when sending based on outside currency, conversion is not critical.
@@ -1139,6 +1149,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.worthDescription = outsideAmountFormatted
+		res.worthCurrency = string(currency)
 		res.worthInfo, err = s.buildPaymentWorthInfo(ctx, xrate)
 		if err != nil {
 			log("error making worth info: %v", err)

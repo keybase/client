@@ -22,6 +22,7 @@ type Props = {|
   loadDevices: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
+  hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
   ...$Exact<Kb.OverlayParentProps>,
@@ -35,18 +36,27 @@ class Devices extends React.PureComponent<Props, State> {
     this.props.loadDevices()
   }
 
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
+      this.setState({revokedExpanded: true})
+    }
+  }
+
   _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
 
-  _renderRow = (index, item) =>
-    item.type === 'revokedHeader' ? (
-      <RevokedHeader
-        key="revokedHeader"
-        expanded={this.state.revokedExpanded}
-        onToggleExpanded={this._toggleExpanded}
-      />
-    ) : (
-      <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
-    )
+  _renderRow = (index, item) => {
+    if (item.type === 'revokedHeader') {
+      return (
+        <RevokedHeader
+          key="revokedHeader"
+          expanded={this.state.revokedExpanded}
+          onToggleExpanded={this._toggleExpanded}
+        />
+      )
+    } else {
+      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+    }
+  }
 
   render() {
     const items = [
@@ -155,7 +165,4 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default compose(
-  Kb.OverlayParentHOC,
-  Kb.HeaderOnMobile
-)(Devices)
+export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)

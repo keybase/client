@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Meta, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemInfo} from '../common'
 
 type TlfProps = StillCommonProps & {
   isIgnored: boolean,

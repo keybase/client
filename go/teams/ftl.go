@@ -203,6 +203,7 @@ type fastLoadArg struct {
 	downPointersNeeded []keybase1.Seqno
 	readSubteamID      keybase1.TeamID
 	needLatestName     bool
+	forceReset         bool
 }
 
 // needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
@@ -212,7 +213,7 @@ func (a fastLoadArg) needChainTail() bool {
 	return a.needLatestName || a.NeedLatestKey
 }
 
-// load acquires a lock by team ID, and the runs loadLocked.
+// load acquires a lock by team ID, and the runs loadLockedWithRetries.
 func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#load(%+v)", arg), func() error { return err })()
@@ -221,7 +222,25 @@ func (f *FastTeamChainLoader) load(m libkb.MetaContext, arg fastLoadArg) (res *f
 	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), arg.ID.String())
 	defer lock.Release(m.Ctx())
 
-	return f.loadLocked(m, arg)
+	return f.loadLockedWithRetries(m, arg)
+}
+
+// loadLockedWithRetries attempts two loads of the team. If the first iteration returns an FTLMissingSeedError,
+// we'll blast through the cache and attempt a full reload a second time. Then that's for all the marbles.
+func (f *FastTeamChainLoader) loadLockedWithRetries(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
+
+	for i := 0; i < 2; i++ {
+		res, err = f.loadLocked(m, arg)
+		if err == nil {
+			return res, err
+		}
+		if _, ok := err.(FTLMissingSeedError); !ok {
+			return nil, err
+		}
+		m.CDebugf("Got retriable error %s; will force reset", err)
+		arg.forceReset = true
+	}
+	return res, err
 }
 
 // dervieSeedAtGeneration either goes to cache or rederives the PTK private seed
@@ -235,7 +254,11 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 	var tmp keybase1.PerTeamKeySeed
 	tmp, ok = state.PerTeamKeySeedsUnverified[gen]
 	if !ok {
-		return seed, NewFastLoadError(fmt.Sprintf("no unverified key seed found at generation %d", gen))
+		// See CORE-9207. We can hit this case if we previously loaded a parent team for verifying a subteam
+		// name before we were members of the team, and then later get added to the team, and then try to
+		// reload the team. We didn't have boxes from the first time around, so just force a full reload.
+		// It's inefficient but it's a very rare case.
+		return seed, NewFTLMissingSeedError(gen)
 	}
 
 	ptkChain, ok := state.Chain.PerTeamKeys[gen]
@@ -517,6 +540,12 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) {
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
+
+	if arg.forceReset {
+		s.linksSince = keybase1.Seqno(0)
+		m.CDebugf("forceReset specified, so reloading from low=0")
+	}
+
 	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needMerkleRefresh = true

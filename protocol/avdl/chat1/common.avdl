@@ -533,8 +533,51 @@
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
     int maxHits;
+    // only used by regexp search
     int maxMessages;
     int beforeContext;
     int afterContext;
+    // only used by in inbox search
+    boolean forceReindex;
   }
+
+  record ConversationIndexMetadata {
+    @mpackkey("s") @jsonkey("s")
+    map<MessageID, boolean> seenIDs;
+    @mpackkey("v") @jsonkey("v")
+    int version;
+  }
+
+  record ConversationIndex {
+    // search token -> msgID
+    @mpackkey("i") @jsonkey("i")
+    map<string, map<MessageID, boolean>> index;
+    @mpackkey("m") @jsonkey("m")
+    ConversationIndexMetadata metadata;
+  }
+
+  record ChatSearchHit {
+    array<UIMessage> beforeMessages;
+    UIMessage hitMessage;
+    array<UIMessage> afterMessages;
+    array<string>  matches;
+  }
+
+  record ChatSearchInboxHit {
+    ConversationID convID;
+    string convName;
+    array<ChatSearchHit> hits;
+  }
+
+  record ChatSearchInboxResults {
+    array<ChatSearchInboxHit> hits;
+    int percentIndexed;
+  }
+
+  record ChatSearchInboxDone {
+    int numHits;
+    int numConvs;
+    int percentIndexed;
+  }
+
 }

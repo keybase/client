@@ -218,6 +218,7 @@ const styles = Styles.styleSheetCreate({
   dropdown: {
     alignItems: 'center',
     marginBottom: Styles.globalMargins.xtiny,
+    flexShrink: 1,
   },
   remove: {
     ...Styles.globalStyles.flexBoxRow,

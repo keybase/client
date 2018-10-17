@@ -1500,7 +1500,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 		return ret, NewInvalidLink(headLink, "wrong head seqno; wanted 1 but got something else")
 	}
 	if !headLink.LinkID().Eq(expectedLink) {
-		return ret, NewInvalidLink(headLink, "wrong head link hash: %s != %s", headLink.LinkID, expectedLink)
+		return ret, NewInvalidLink(headLink, "wrong head link hash: %s != %s", headLink.LinkID(), expectedLink)
 	}
 	if headLink.isStubbed() {
 		return ret, NewInvalidLink(headLink, "got a stubbed head link, but wasn't expecting that")

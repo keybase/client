@@ -969,13 +969,13 @@ type ChatUI struct {
 	threadCb          chan NonblockThreadResult
 	searchHitCb       chan chat1.ChatSearchHitArg
 	searchDoneCb      chan chat1.ChatSearchDoneArg
-	inboxSearchHitCb  chan chat1.ChatInboxSearchHitArg
-	inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg
+	inboxSearchHitCb  chan chat1.ChatSearchInboxHitArg
+	inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg
 }
 
 func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult,
 	searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg,
-	inboxSearchHitCb chan chat1.ChatInboxSearchHitArg, inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg) *ChatUI {
+	inboxSearchHitCb chan chat1.ChatSearchInboxHitArg, inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg) *ChatUI {
 	return &ChatUI{
 		inboxCb:           inboxCb,
 		threadCb:          threadCb,
@@ -1073,12 +1073,12 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	c.inboxSearchHitCb <- arg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	c.inboxSearchDoneCb <- arg
 	return nil
 }
@@ -1239,7 +1239,7 @@ func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName strin
 }
 
 func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	return nil, nil
 }
 

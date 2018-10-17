@@ -456,3 +456,15 @@ func NewKBFSKeyGenerationError(required, exists int) KBFSKeyGenerationError {
 func (e KBFSKeyGenerationError) Error() string {
 	return fmt.Sprintf("KBFS key generation too low: %v < %v", e.Exists, e.Required)
 }
+
+type FTLMissingSeedError struct {
+	gen keybase1.PerTeamKeyGeneration
+}
+
+func NewFTLMissingSeedError(g keybase1.PerTeamKeyGeneration) error {
+	return FTLMissingSeedError{gen: g}
+}
+
+func (e FTLMissingSeedError) Error() string {
+	return fmt.Sprintf("FTL Missing seed at generation: %d", e.gen)
+}

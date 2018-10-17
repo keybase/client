@@ -276,14 +276,14 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: SearchGen.SearchSu
   yield Saga.sequentially([
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToResults'],
-        entities: I.Map({[searchKey]: I.List(ids)}),
+        keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
+        entities: I.Map({[searchKey]: true}),
       })
     ),
     Saga.put(
       EntitiesGen.createReplaceEntity({
-        keyPath: ['search', 'searchKeyToShowSearchSuggestion'],
-        entities: I.Map({[searchKey]: true}),
+        keyPath: ['search', 'searchKeyToResults'],
+        entities: I.Map({[searchKey]: I.List(ids)}),
       })
     ),
   ])

@@ -44,7 +44,8 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   readyToSend: false,
   secretNoteErrMsg: new HiddenString(''),
   toErrMsg: '',
-  toUsername: '',
+  worthAmount: '',
+  worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
 })
@@ -97,7 +98,8 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
     toErrMsg: b.toErrMsg,
-    toUsername: b.toUsername,
+    worthAmount: b.worthAmount,
+    worthCurrency: b.worthCurrency,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
   })
@@ -446,6 +448,7 @@ const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
+const buildPaymentWaitingKey = 'wallets:buildPayment'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
 const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
@@ -537,6 +540,7 @@ export {
   bannerLevelToBackground,
   balanceChangeColor,
   balanceChangeSign,
+  buildPaymentWaitingKey,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,

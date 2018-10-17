@@ -511,7 +511,7 @@ func TestGetWalletSettings(t *testing.T) {
 	require.Equal(t, false, ret.AcceptedDisclaimer)
 }
 
-func TestSetAcceptedDisclaimer(t *testing.T) {
+func TestAcceptDisclaimer(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -519,7 +519,7 @@ func TestSetAcceptedDisclaimer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, false, us.AcceptedDisclaimer)
 
-	err = tcs[0].Srv.SetAcceptedDisclaimerLocal(context.Background(), 0)
+	err = tcs[0].Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
 
 	us, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
@@ -1211,6 +1211,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.SecretNoteErrMsg)
 		require.Equal(t, "", bres.PublicMemoErrMsg)
 		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, "", bres.AmountFormatted)
+		require.Equal(t, "USD", bres.WorthCurrency)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		requireBannerSet(t, bres.DeepCopy().Banners, nil)
 	}
@@ -1250,7 +1252,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1285,6 +1287,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55", bres.WorthDescription)
+	require.Equal(t, "", bres.AmountFormatted) // since no currency was specified
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -1330,7 +1333,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1435,6 +1438,8 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
+	require.Equal(t, "$8.50", bres.AmountFormatted)
+	require.Equal(t, "26.7020180", bres.WorthAmount)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 
 	t.Logf("using `fromDefaultAccount`")
@@ -1493,7 +1498,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "", bres.ToUsername) // account does not resolve to keybase user
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
@@ -1504,7 +1508,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		Message: "Because it's their first transaction, you must send at least 1 XLM.",
 	}})
 
-	t.Logf("sending to account ID that resolves")
+	t.Logf("sending to account ID that is someone's primary")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:          senderAccountID,
 		To:            senderAccountID.String(),
@@ -1516,7 +1520,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, tcs[0].Fu.Username, bres.ToUsername) // account resolves to self
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
@@ -1530,7 +1533,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, upak.Current.StellarAccountID)
 
-	t.Logf("sending to account ID that resolves")
+	t.Logf("sending to account ID that is someone's primary")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:          senderAccountID,
 		To:            *upak.Current.StellarAccountID,
@@ -1542,7 +1545,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, tcs[1].Fu.Username, bres.ToUsername) // account resolves to other
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
