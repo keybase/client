@@ -695,6 +695,14 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => 
   }
 }
 
+export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
+  tlfList.reduce((reduction, tlf) => (tlfIsBadged(tlf) ? reduction + 1 : reduction), 0)
+
+export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
+  ['private', 'public', 'team']
+    .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
+    .reduce((sum, count) => sum + count, 0)
+
 export const getTlfListAndTypeFromPath = (
   tlfs: Types.Tlfs,
   path: Types.Path
@@ -776,6 +784,16 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
+
+// To make sure we have consistent badging, all badging related stuff should go
+// through this function. That is:
+// * When calculating number of TLFs being badged, a TLF should be counted if
+//   and only if this function returns true.
+// * When an individual TLF is shown (e.g. as a row), it should be badged if
+//   and only if this funciton returns true.
+//
+// If we add more badges, this function should be updated.
+export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
 
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {

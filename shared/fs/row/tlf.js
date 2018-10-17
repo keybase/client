@@ -6,15 +6,14 @@ import {Box, Box2, Meta, Text} from '../../common-adapters'
 import {PathItemInfo} from '../common'
 
 type TlfProps = StillCommonProps & {
-  isIgnored: boolean,
   isNew: boolean,
   isUserReset: boolean,
   needsRekey: boolean,
   resetParticipants: Array<string>,
 }
 
-const RowMeta = ({isNew, isIgnored, needsRekey}) => {
-  if (isIgnored || !(isNew || needsRekey)) {
+const RowMeta = ({isNew, needsRekey}) => {
+  if (!isNew && !needsRekey) {
     return null
   }
 
@@ -36,7 +35,7 @@ const RowMeta = ({isNew, isIgnored, needsRekey}) => {
 
 const Tlf = (props: TlfProps) => (
   <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
-    <RowMeta isIgnored={props.isIgnored} isNew={props.isNew} needsRekey={props.needsRekey} />
+    <RowMeta isNew={props.isNew} needsRekey={props.needsRekey} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text

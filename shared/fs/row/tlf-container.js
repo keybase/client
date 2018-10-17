@@ -16,16 +16,15 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath}) => {
-  const {isNew, isIgnored, needsRekey} = stateProps._tlf
+  const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   return {
-    isIgnored,
-    isNew,
+    isNew: shouldBadge && stateProps._tlf.isNew,
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     itemStyles: Constants.getItemStyles(Types.getPathElements(path), 'folder', stateProps._username),
     name,
-    needsRekey,
+    needsRekey: shouldBadge && stateProps._tlf.needsRekey,
     path,
     resetParticipants,
     routePath,

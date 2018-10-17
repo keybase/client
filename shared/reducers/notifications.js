@@ -1,4 +1,5 @@
 // @flow
+import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/notifications'
 import * as Constants from '../constants/notifications'
 import * as NotificationsGen from '../actions/notifications-gen'
@@ -20,8 +21,17 @@ export default function(state: Types.State = initialState, action: Notifications
   switch (action.type) {
     case NotificationsGen.resetStore:
       return initialState
-    case NotificationsGen.setAppBadgeState:
-      const newState = state.mergeDeep(action.payload)
+    case NotificationsGen.setBadgeCounts:
+      const chatCount = action.payload.counts.get(Tabs.chatTab)
+      const newState = (chatCount ? state.set('mobileAppBadgeCount', chatCount) : state)
+        .set(
+          'desktopAppBadgeCount',
+          action.payload.counts.reduce(
+            (count, v, k) => count - state.navBadges.get(k, 0) + v,
+            state.desktopAppBadgeCount
+          )
+        )
+        .mergeIn(['navBadges'], action.payload.counts)
       return _updateWidgetBadge(newState)
     case NotificationsGen.badgeApp: {
       const newState = state.update('keyState', ks => ks.set(action.payload.key, action.payload.on))
