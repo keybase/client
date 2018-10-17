@@ -14,8 +14,16 @@ import (
 )
 
 // New creates an AccountBundle from an existing secret key.
-func New(secret stellar1.SecretKey) *stellar1.AccountBundle {
-	return &stellar1.AccountBundle{Signers: []stellar1.SecretKey{secret}}
+func New(secret stellar1.SecretKey) (*stellar1.AccountBundle, error) {
+	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secret))
+	if err != nil {
+		return nil, err
+	}
+	return &stellar1.AccountBundle{
+		Revision:  1,
+		AccountID: accountID,
+		Signers:   []stellar1.SecretKey{secretKey},
+	}, nil
 }
 
 // NewInitial creates an AccountBundle with a new random secret key.
@@ -25,7 +33,7 @@ func NewInitial() (*stellar1.AccountBundle, error) {
 		return nil, err
 	}
 	masterKey := stellar1.SecretKey(full.Seed())
-	return New(masterKey), nil
+	return New(masterKey)
 }
 
 // AccountBoxResult is the result of boxing an AccountBundle.
@@ -48,7 +56,7 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 	visible := stellar1.AccountBundleVisibleV1{
 		Revision: a.Revision,
 		// XXX Hash prev
-		// XXX AccountID
+		AccountID: a.AccountID,
 		// XXX AccountMode mode
 	}
 	visiblePack, err := libkb.MsgpackEncode(visible)
