@@ -3,6 +3,7 @@ import {connect, compose} from '../../util/container'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
@@ -38,6 +39,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
+  onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -61,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onBack: dispatchProps.navigateUp,
     onCancelPayment: tx.statusSimplified === 'cancelable' ? dispatchProps.onCancelPayment : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),

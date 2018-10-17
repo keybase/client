@@ -258,52 +258,52 @@
 			"revisionTime": "2017-01-27T01:24:59Z"
 		},
 		{
-			"checksumSHA1": "1TZ1Ym1XrMztVJB6ZvkWgxpY4w0=",
+			"checksumSHA1": "w4dpSM8ao0QPsKcOBTZpTTlJ01c=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "c84d7cbef16bcd1cd873e1d5793b18865f443ba0",
-			"revisionTime": "2018-08-07T16:30:25Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "tin/wcIHur1IM0n5f5u8nlZ/J6U=",
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "cTboJNAg/so2wzlf6HscarfPlDE=",
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "LhCQJCoB7yqxN6hSaPP7qXW2y5s=",
 			"path": "github.com/keybase/go-crypto/openpgp/ecdh",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "uxXG9IC/XF8jwwvZUbW65+x8/+M=",
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "ofZhU2758YZAAGSEJ8UjFMQLc+k=",
 			"path": "github.com/keybase/go-crypto/openpgp/errors",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
-			"checksumSHA1": "LDNYus5Sx+hvbFqihEQ0Dl1i6JY=",
+			"checksumSHA1": "IG0C9zMpY0fXO6kJP0Whpe7ZJvc=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
+			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
 			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
