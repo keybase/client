@@ -609,7 +609,7 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 			Next: resultPagination.Next,
 		}
 		h.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
-		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityLow,
+		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /* query */, p, types.ConvLoaderPriorityLow,
 			newConvLoaderPagebackHook(h.G(), 0, 5))); err != nil {
 			h.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
 		}
@@ -2231,41 +2231,37 @@ func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res
 		close(ch)
 	}()
 
-	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
+	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
 	if err != nil {
 		return res, err
 	}
 	<-ch
 	chatUI.ChatInboxSearchDone(ctx, chat1.ChatInboxSearchDoneArg{
 		SessionID: arg.SessionID,
-		NumHits:   numHits,
-		NumConvs:  len(hits),
+		Res: chat1.ChatInboxSearchDone{
+			NumHits:        numHits,
+			NumConvs:       len(searchRes.Hits),
+			PercentIndexed: searchRes.PercentIndexed,
+		},
 	})
 	return chat1.InboxSearchRes{
-		Hits:             hits,
+		Res:              searchRes,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
 
-func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchArg) (res map[string]chat1.IndexSearchConvStats, err error) {
+func (h *Server) IndexChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]chat1.IndexSearchConvStats, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	ctx = Context(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "IndexSearch")()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if arg.ConvID == nil {
-		res, err = h.G().Indexer.IndexInbox(ctx, uid)
-	} else {
-		convStats, err := h.G().Indexer.IndexConv(ctx, uid, *arg.ConvID)
-		if err != nil {
-			return nil, err
-		}
-		res = map[string]chat1.IndexSearchConvStats{
-			arg.ConvID.String(): convStats,
-		}
+	res, err = h.G().Indexer.IndexInbox(ctx, uid)
+	if err != nil {
+		return nil, err
 	}
 	b, err := json.Marshal(res)
 	if err != nil {

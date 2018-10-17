@@ -744,58 +744,6 @@
           "name": "pagination"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "ChatSearchHit",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "beforeMessages"
-        },
-        {
-          "type": "UIMessage",
-          "name": "hitMessage"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "afterMessages"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "matches"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ChatInboxSearchHit",
-      "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
-        {
-          "type": "string",
-          "name": "convName"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ChatSearchHit"
-          },
-          "name": "hits"
-        }
-      ]
     }
   ],
   "messages": {
@@ -955,12 +903,8 @@
           "type": "int"
         },
         {
-          "name": "numHits",
-          "type": "int"
-        },
-        {
-          "name": "numConvs",
-          "type": "int"
+          "name": "res",
+          "type": "ChatInboxSearchDone"
         }
       ],
       "response": null

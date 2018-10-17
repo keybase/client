@@ -533,9 +533,12 @@
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
     int maxHits;
+    // only used by regexp search
     int maxMessages;
     int beforeContext;
     int afterContext;
+    // only used by in inbox search
+    boolean forceReindex;
   }
 
   record ConversationIndexMetadata {
@@ -552,4 +555,29 @@
     @mpackkey("m") @jsonkey("m")
     ConversationIndexMetadata metadata;
   }
+
+  record ChatSearchHit {
+    array<UIMessage> beforeMessages;
+    UIMessage hitMessage;
+    array<UIMessage> afterMessages;
+    array<string>  matches;
+  }
+
+  record ChatInboxSearchHit {
+    ConversationID convID;
+    string convName;
+    array<ChatSearchHit> hits;
+  }
+
+  record ChatInboxSearchResults {
+    array<ChatInboxSearchHit> hits;
+    int percentIndexed;
+  }
+
+  record ChatInboxSearchDone {
+    int numHits;
+    int numConvs;
+    int percentIndexed;
+  }
+
 }

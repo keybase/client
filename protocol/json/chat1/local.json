@@ -1744,6 +1744,10 @@
           "name": "enableDeletePlaceholders"
         },
         {
+          "type": "boolean",
+          "name": "disablePostProcessThread"
+        },
+        {
           "type": [
             null,
             "gregor1.Time"
@@ -2648,11 +2652,11 @@
       "name": "InboxSearchRes",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "ChatInboxSearchHit"
-          },
-          "name": "hits"
+          "type": [
+            null,
+            "ChatInboxSearchResults"
+          ],
+          "name": "res"
         },
         {
           "type": {
@@ -2685,6 +2689,10 @@
         {
           "type": "gregor1.DurationMsec",
           "name": "durationMsec"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
         }
       ]
     },
@@ -3933,13 +3941,6 @@
     },
     "indexChatSearch": {
       "request": [
-        {
-          "name": "convID",
-          "type": [
-            null,
-            "ConversationID"
-          ]
-        },
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"

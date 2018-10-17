@@ -982,6 +982,7 @@ const loadMoreMessages = (
           query: {
             enableDeletePlaceholders: true,
             disableResolveSupersedes: false,
+            disablePostProcessThread: false,
             markAsRead: false,
             messageTypes: loadThreadMessageTypes,
           },

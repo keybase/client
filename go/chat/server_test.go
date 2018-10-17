@@ -341,7 +341,9 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 3
 	g.Searcher = searcher
-	g.Indexer = search.NewIndexer(g)
+	indexer := search.NewIndexer(g)
+	indexer.SetPageSize(3)
+	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)
 

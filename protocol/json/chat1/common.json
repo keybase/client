@@ -1398,6 +1398,10 @@
         {
           "type": "int",
           "name": "afterContext"
+        },
+        {
+          "type": "boolean",
+          "name": "forceReindex"
         }
       ]
     },
@@ -1446,6 +1450,93 @@
           "name": "metadata",
           "mpackkey": "m",
           "jsonkey": "m"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "beforeMessages"
+        },
+        {
+          "type": "UIMessage",
+          "name": "hitMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "afterMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatInboxSearchHit",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatInboxSearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatInboxSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatInboxSearchDone",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numHits"
+        },
+        {
+          "type": "int",
+          "name": "numConvs"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
         }
       ]
     }

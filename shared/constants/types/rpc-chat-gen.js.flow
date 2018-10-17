@@ -132,7 +132,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'chat.1.chatUi.chatInboxSearchDone': {|
-    inParam: $ReadOnly<{|numHits: Int, numConvs: Int|}>,
+    inParam: $ReadOnly<{|res: ChatInboxSearchDone|}>,
     outParam: void,
   |},
   'chat.1.chatUi.chatInboxSearchHit': {|
@@ -216,7 +216,7 @@ export type MessageTypes = {|
     outParam: NonblockFetchRes,
   |},
   'chat.1.local.indexChatSearch': {|
-    inParam: $ReadOnly<{|convID?: ?ConversationID, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: {[key: string]: IndexSearchConvStats},
   |},
   'chat.1.local.joinConversationByIDLocal': {|
@@ -627,7 +627,9 @@ export type ChatActivityType =
   | 10 // EPHEMERAL_PURGE_10
   | 11 // REACTION_UPDATE_11
 
+export type ChatInboxSearchDone = $ReadOnly<{numHits: Int, numConvs: Int, percentIndexed: Int}>
 export type ChatInboxSearchHit = $ReadOnly<{convID: ConversationID, convName: String, hits?: ?Array<ChatSearchHit>}>
+export type ChatInboxSearchResults = $ReadOnly<{hits?: ?Array<ChatInboxSearchHit>, percentIndexed: Int}>
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
@@ -736,7 +738,7 @@ export type GetThreadNonblockPgMode =
   | 0 // DEFAULT_0
   | 1 // SERVER_1
 
-export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, enableDeletePlaceholders: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
+export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, enableDeletePlaceholders: Boolean, disablePostProcessThread: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 export type GetThreadReason =
   | 0 // GENERAL_0
   | 1 // PUSH_1
@@ -777,7 +779,7 @@ export type InboxResType =
   | 0 // VERSIONHIT_0
   | 1 // FULL_1
 
-export type InboxSearchRes = $ReadOnly<{hits?: ?Array<ChatInboxSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type InboxSearchRes = $ReadOnly<{res?: ?ChatInboxSearchResults, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type InboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isEmpty: Boolean, name: String, snippet: String, snippetDecoration: String, channel: String, headline: String, visibility: Keybase1.TLFVisibility, participants?: ?Array<String>, fullNames: {[key: string]: String}, resetParticipants?: ?Array<String>, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, time: Gregor1.Time, notifications?: ?ConversationNotificationInfo, creatorInfo?: ?ConversationCreatorInfoLocal, version: ConversationVers, maxMsgID: MessageID, readMsgID: MessageID, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, convSettings?: ?ConversationSettingsLocal, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 export type InboxUIItemError = $ReadOnly<{typ: ConversationErrorType, message: String, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey, remoteConv: UnverifiedInboxUIItem}>
 export type InboxUIItems = $ReadOnly<{items?: ?Array<InboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
@@ -786,7 +788,7 @@ export type InboxVersInfo = $ReadOnly<{uid: Gregor1.UID, vers: InboxVers}>
 export type InboxView = {rtype: 0} | {rtype: 1, full: ?InboxViewFull}
 export type InboxViewFull = $ReadOnly<{vers: InboxVers, conversations?: ?Array<Conversation>, pagination?: ?Pagination}>
 export type IncomingMessage = $ReadOnly<{message: UIMessage, convID: ConversationID, displayDesktopNotification: Boolean, desktopNotificationSnippet: String, conv?: ?InboxUIItem, pagination?: ?UIPagination}>
-export type IndexSearchConvStats = $ReadOnly<{numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec}>
+export type IndexSearchConvStats = $ReadOnly<{numMessages: Int, indexSize: Int, durationMsec: Gregor1.DurationMsec, percentIndexed: Int}>
 export type JoinLeaveConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type JoinLeaveConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type KBFSImpteamUpgradeUpdate = $ReadOnly<{convID: ConversationID, inboxVers: InboxVers, topicType: TopicType}>
@@ -942,7 +944,7 @@ export type RpInherit = $ReadOnly<{}>
 export type RpRetain = $ReadOnly<{}>
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int}>
+export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, forceReindex: Boolean}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
 export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>

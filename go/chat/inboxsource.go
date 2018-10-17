@@ -541,7 +541,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		// Queue all these convs up to be loaded by the background loader
 		// Only load first 100 so we don't get the conv loader too backed up
 		if index < 100 {
-			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)

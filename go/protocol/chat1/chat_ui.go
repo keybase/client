@@ -815,76 +815,6 @@ func (o UIMessages) DeepCopy() UIMessages {
 	}
 }
 
-type ChatSearchHit struct {
-	BeforeMessages []UIMessage `codec:"beforeMessages" json:"beforeMessages"`
-	HitMessage     UIMessage   `codec:"hitMessage" json:"hitMessage"`
-	AfterMessages  []UIMessage `codec:"afterMessages" json:"afterMessages"`
-	Matches        []string    `codec:"matches" json:"matches"`
-}
-
-func (o ChatSearchHit) DeepCopy() ChatSearchHit {
-	return ChatSearchHit{
-		BeforeMessages: (func(x []UIMessage) []UIMessage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIMessage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.BeforeMessages),
-		HitMessage: o.HitMessage.DeepCopy(),
-		AfterMessages: (func(x []UIMessage) []UIMessage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UIMessage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.AfterMessages),
-		Matches: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Matches),
-	}
-}
-
-type ChatInboxSearchHit struct {
-	ConvID   ConversationID  `codec:"convID" json:"convID"`
-	ConvName string          `codec:"convName" json:"convName"`
-	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
-}
-
-func (o ChatInboxSearchHit) DeepCopy() ChatInboxSearchHit {
-	return ChatInboxSearchHit{
-		ConvID:   o.ConvID.DeepCopy(),
-		ConvName: o.ConvName,
-		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
-			if x == nil {
-				return nil
-			}
-			ret := make([]ChatSearchHit, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Hits),
-	}
-}
-
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -941,9 +871,8 @@ type ChatInboxSearchHitArg struct {
 }
 
 type ChatInboxSearchDoneArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-	NumHits   int `codec:"numHits" json:"numHits"`
-	NumConvs  int `codec:"numConvs" json:"numConvs"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Res       ChatInboxSearchDone `codec:"res" json:"res"`
 }
 
 type ChatConfirmChannelDeleteArg struct {

@@ -270,7 +270,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 3
 	g.Searcher = searcher
-	g.Indexer = search.NewIndexer(g)
+	indexer := search.NewIndexer(g)
+	indexer.SetPageSize(3)
+	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	g.StellarLoader = types.DummyStellarLoader{}

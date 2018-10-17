@@ -44,6 +44,10 @@ func newCmdChatInboxSearchDev(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "force-reindex",
+				Usage: "Ensure inbox is fully indexed before executing the search.",
+			},
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
@@ -116,6 +120,7 @@ func (c *CmdChatInboxSearch) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	c.query = ctx.Args().Get(0)
 	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.ForceReindex = ctx.Bool("force-reindex")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
 	if sentBeforeStr != "" && sentAfterStr != "" {
