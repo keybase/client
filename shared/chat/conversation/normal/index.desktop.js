@@ -99,10 +99,7 @@ class Conversation extends React.PureComponent<Props, State> {
     }).then(clipboardData => {
       this._mounted && this.setState({showDropOverlay: false})
       if (clipboardData) {
-        const {path} = clipboardData
-        if (path) {
-          this.props.onAttach([path])
-        }
+        this.props.onPaste(clipboardData)
       }
     })
   }
