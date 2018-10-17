@@ -9,6 +9,9 @@
     "abandonPayment": {
       "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
+    "acceptDisclaimer": {
+      "_description": "Accept the Stellar account disclaimer"
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
@@ -266,6 +269,9 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
+    },
+    "rejectDisclaimer": {
+      "_description": "Reject (temporarily) the Stellar account disclaimer"
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
