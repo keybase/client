@@ -1,6 +1,8 @@
 package acctbundle
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -10,19 +12,20 @@ import (
 )
 
 func TestInitialAccountBundle(t *testing.T) {
-	b, err := NewInitialAccountBundle()
+	b, err := NewInitial()
 	require.NoError(t, err)
 	require.NotNil(t, b)
-	require.Len(t, b.signers, 1)
+	require.Len(t, b.Signers, 1)
 }
 
 func TestBoxAccountBundle(t *testing.T) {
-	b, err := NewInitialAccountBundle()
+	b, err := NewInitial()
 	require.NoError(t, err)
 	require.NotNil(t, b)
 
-	seed, gen := mkPuk(t, 1)
-	boxed, err := b.Box(gen, seed)
+	ring := newPukRing()
+	seed, gen := ring.makeGen(t, 1)
+	boxed, err := Box(b, gen, seed)
 	require.NoError(t, err)
 	require.NotNil(t, boxed, "b.Box() should return something")
 	require.Equal(t, stellar1.AccountBundleVersion_V1, boxed.FormatVersion, "should be V1")
@@ -33,24 +36,36 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.NotZero(t, boxed.Enc.N)
 	require.Equal(t, gen, boxed.Enc.Gen)
 
-	bundle, version := testDecodeAndUnbox(t, boxed.EncB64, boxed.VisB64, seed)
+	m := libkb.NewMetaContext(context.Background(), nil)
+	bundle, version, err := Unbox(m, ring, boxed.EncB64, boxed.VisB64)
+	require.NoError(t, err)
 	require.NotNil(t, bundle)
 	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
 	require.Len(t, bundle.Signers, 1)
-	require.Equal(t, bundle.Signers[0], b.signers[0])
+	require.Equal(t, bundle.Signers[0], b.Signers[0])
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Mode)
 }
 
-func testDecodeAndUnbox(t *testing.T, encB64 string, visB64 string, seed libkb.PerUserKeySeed) (stellar1.AccountBundle, stellar1.AccountBundleVersion) {
-	encBundle, hash, err := decode(encB64)
-	require.NoError(t, err)
-	acctBundle, version, err := unbox(encBundle, hash, visB64, seed)
-	require.NoError(t, err)
-	return acctBundle, version
+type pukRing struct {
+	puks map[keybase1.PerUserKeyGeneration]libkb.PerUserKeySeed
 }
 
-func mkPuk(t *testing.T, gen int) (libkb.PerUserKeySeed, keybase1.PerUserKeyGeneration) {
+func newPukRing() *pukRing {
+	return &pukRing{puks: make(map[keybase1.PerUserKeyGeneration]libkb.PerUserKeySeed)}
+}
+
+func (p *pukRing) makeGen(t *testing.T, gen int) (libkb.PerUserKeySeed, keybase1.PerUserKeyGeneration) {
 	puk, err := libkb.GeneratePerUserKeySeed()
 	require.NoError(t, err)
-	return puk, keybase1.PerUserKeyGeneration(gen)
+	pgen := keybase1.PerUserKeyGeneration(gen)
+	p.puks[pgen] = puk
+	return puk, pgen
+}
+
+func (p *pukRing) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
+	puk, ok := p.puks[generation]
+	if ok {
+		return puk, nil
+	}
+	return libkb.PerUserKeySeed{}, errors.New("not found")
 }

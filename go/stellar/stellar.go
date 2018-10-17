@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
@@ -170,6 +171,13 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 		err = remote.Post(ctx, g, nextBundle)
 	}
 	if err != nil {
+		return err
+	}
+
+	// XXX temporary code path to send a stellar account bundle to the server
+	acctBundle := acctbundle.New(secretKey)
+	if err := remote.PostAccountBundle(ctx, g, acctBundle); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
 		return err
 	}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 )
 
@@ -145,6 +146,49 @@ func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bund
 		JSONPayload: payload,
 	})
 	return err
+}
+
+// PostAccountBundle encrypts and uploads an account bundle to the server.
+func PostAccountBundle(ctx context.Context, g *libkb.GlobalContext, acctBundle *stellar1.AccountBundle) (err error) {
+	defer g.CTraceTimed(ctx, "Stellar.PostAccountBundle", func() error { return err })()
+
+	pukGen, pukSeed, err := getLatestPuk(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	boxed, err := acctbundle.Box(acctBundle, pukGen, pukSeed)
+	if err != nil {
+		return err
+	}
+
+	payload := make(libkb.JSONPayload)
+	addWalletServerArg(payload, boxed.EncB64, boxed.VisB64, int(boxed.FormatVersion))
+	_, err = g.API.PostJSON(libkb.APIArg{
+		Endpoint:    "stellar/acctbundle",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	})
+	return err
+}
+
+// FetchAccountBundle gets an account bundle from the server and decrypts it.
+func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.AccountBundle, version stellar1.AccountBundleVersion, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/acctbundle",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:  ctx,
+	}
+	var apiRes fetchRes
+	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return nil, 0, err
+	}
+	m := libkb.NewMetaContext(ctx, g)
+	finder := &pukFinder{}
+	return acctbundle.Unbox(m, finder, apiRes.EncryptedB64, apiRes.VisibleB64)
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
@@ -694,4 +738,15 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 		ret = append(ret, keybase1.NewUserVersion(user.UID, user.EldestSeqno))
 	}
 	return ret, nil
+}
+
+type pukFinder struct{}
+
+func (p *pukFinder) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
+	pukring, err := m.G().GetPerUserKeyring()
+	if err != nil {
+		return libkb.PerUserKeySeed{}, err
+	}
+
+	return pukring.GetSeedByGenerationOrSync(m, generation)
 }
