@@ -360,7 +360,7 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {!!showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
               {props.counterpartyType === 'keybaseUser' && (
                 <Button
