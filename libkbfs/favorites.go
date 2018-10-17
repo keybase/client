@@ -5,12 +5,17 @@
 package libkbfs
 
 import (
+	"os"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
+)
+
+const (
+	disableFavoritesEnvVar = "KEYBASE_DISABLE_FAVORITES"
 )
 
 type favToAdd struct {
@@ -49,7 +54,8 @@ type favReq struct {
 
 // Favorites manages a user's favorite list.
 type Favorites struct {
-	config Config
+	config   Config
+	disabled bool
 
 	// Channels for interacting with the favorites cache
 	reqChan chan *favReq
@@ -70,6 +76,17 @@ type Favorites struct {
 }
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
+	disableVal := os.Getenv(disableFavoritesEnvVar)
+	if len(disableVal) > 0 {
+		config.MakeLogger("").CDebugf(nil,
+			"Disable favorites due to env var %s=%s",
+			disableFavoritesEnvVar, disableVal)
+		return &Favorites{
+			config:   config,
+			disabled: true,
+		}
+	}
+
 	f := &Favorites{
 		config:       config,
 		reqChan:      reqChan,
@@ -165,6 +182,10 @@ func (f *Favorites) loop() {
 
 // Shutdown shuts down this Favorites instance.
 func (f *Favorites) Shutdown() error {
+	if f.disabled {
+		return nil
+	}
+
 	f.muShutdown.Lock()
 	defer f.muShutdown.Unlock()
 	f.shutdown = true
@@ -234,6 +255,9 @@ func (f *Favorites) startOrJoinAddReq(
 
 // Add adds a favorite to your favorites list.
 func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
+	if f.disabled {
+		return nil
+	}
 	if f.hasShutdown() {
 		return ShutdownHappenedError{}
 	}
@@ -258,7 +282,7 @@ func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
 func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
-	if f.hasShutdown() {
+	if f.disabled || f.hasShutdown() {
 		return
 	}
 	// Use a fresh context, since we want the request to succeed even
@@ -280,6 +304,9 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
+	if f.disabled {
+		return nil
+	}
 	if f.hasShutdown() {
 		return ShutdownHappenedError{}
 	}
@@ -292,7 +319,7 @@ func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 
 // RefreshCache refreshes the cached list of favorites.
 func (f *Favorites) RefreshCache(ctx context.Context) {
-	if f.hasShutdown() {
+	if f.disabled || f.hasShutdown() {
 		return
 	}
 	// This request is non-blocking, so use a throw-away done channel
@@ -314,6 +341,17 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 // Get returns the logged-in users list of favorites. It
 // doesn't use the cache.
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
+	if f.disabled {
+		session, err := f.config.KBPKI().GetCurrentSession(ctx)
+		if err == nil {
+			// Add favorites only for the current user.
+			return []Favorite{
+				{string(session.Name), tlf.Private},
+				{string(session.Name), tlf.Public},
+			}, nil
+		}
+		return nil, nil
+	}
 	if f.hasShutdown() {
 		return nil, ShutdownHappenedError{}
 	}
