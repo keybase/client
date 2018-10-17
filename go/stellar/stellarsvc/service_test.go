@@ -784,6 +784,14 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	fmt.Printf("account bundle: %+v\n", acctBundle)
 	require.NotNil(t, acctBundle)
 	_ = version
+
+	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
+	require.Equal(t, a1, acctBundle.AccountID)
+	require.Len(t, acctBundle.Signers, 1)
+	require.Equal(t, s1, acctBundle.Signers[0])
+	require.Empty(t, acctBundle.Prev)
+	require.NotEmpty(t, acctBundle.OwnHash)
+	require.Equal(t, argS1.Name, acctBundle.Name)
 }
 
 type TestContext struct {

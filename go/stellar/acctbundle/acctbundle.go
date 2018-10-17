@@ -14,26 +14,28 @@ import (
 )
 
 // New creates an AccountBundle from an existing secret key.
-func New(secret stellar1.SecretKey) (*stellar1.AccountBundle, error) {
+func New(secret stellar1.SecretKey, name string) (*stellar1.AccountBundle, error) {
 	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secret))
 	if err != nil {
 		return nil, err
 	}
 	return &stellar1.AccountBundle{
+		Name:      name,
 		Revision:  1,
 		AccountID: accountID,
 		Signers:   []stellar1.SecretKey{secretKey},
+		Mode:      stellar1.AccountMode_USER,
 	}, nil
 }
 
 // NewInitial creates an AccountBundle with a new random secret key.
-func NewInitial() (*stellar1.AccountBundle, error) {
+func NewInitial(name string) (*stellar1.AccountBundle, error) {
 	full, err := keypair.Random()
 	if err != nil {
 		return nil, err
 	}
 	masterKey := stellar1.SecretKey(full.Seed())
-	return New(masterKey)
+	return New(masterKey, name)
 }
 
 // AccountBoxResult is the result of boxing an AccountBundle.
@@ -57,7 +59,7 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 		Revision: a.Revision,
 		// XXX Hash prev
 		AccountID: a.AccountID,
-		// XXX AccountMode mode
+		Mode:      a.Mode,
 	}
 	visiblePack, err := libkb.MsgpackEncode(visible)
 	if err != nil {
@@ -68,9 +70,9 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
 		VisibleHash: visibleHash[:],
-		AccountID:   "xxx",
+		AccountID:   a.AccountID,
 		Signers:     a.Signers,
-		Name:        "xxx",
+		Name:        a.Name,
 	})
 	boxed.Enc, boxed.EncB64, err = accountEncrypt(versionedSecret, pukGen, puk)
 	if err != nil {
