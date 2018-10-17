@@ -6,10 +6,31 @@ import (
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/keybase/client/go/protocol/chat1"
+	porterstemmer "github.com/keybase/go-porterstemmer"
 )
 
 // Split on whitespace, punctuation, code and quote markdown separators
-var tokenizeExpr = regexp.MustCompile("[\\s\\.,\\?!`>]")
+var splitExpr = regexp.MustCompile("[\\s\\.,\\?!]")
+
+// Strip the following separators to create tokens
+var stripSeps = []string{
+	// groupings
+	"<", ">",
+	"\\(", "\\)",
+	"\\[", "\\]",
+	"\\{", "\\}",
+	"\"",
+	"'",
+	// mentions
+	"@",
+	"#",
+	// markdown
+	"\\*",
+	"_",
+	"~",
+	"`",
+}
+var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
 // getIndexTokens splits the content of the given message on whitespace and
 // special characters returning a set of tokens normalized to lowercase.
@@ -17,7 +38,7 @@ func tokenize(msgText string) []string {
 	if msgText == "" {
 		return nil
 	}
-	tokens := tokenizeExpr.Split(msgText, -1)
+	tokens := splitExpr.Split(msgText, -1)
 	tokenSet := mapset.NewThreadUnsafeSet()
 	for _, token := range tokens {
 		if token == "" {
@@ -25,6 +46,10 @@ func tokenize(msgText string) []string {
 		}
 		token = strings.ToLower(token)
 		tokenSet.Add(token)
+		stripped := stripExpr.ReplaceAllString(token, "")
+		tokenSet.Add(stripped)
+		stemmed := porterstemmer.StemWithoutLowerCasing([]rune(stripped))
+		tokenSet.Add(string(stemmed))
 	}
 	strSlice := []string{}
 	for _, el := range tokenSet.ToSlice() {
