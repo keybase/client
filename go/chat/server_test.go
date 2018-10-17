@@ -365,6 +365,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.FetchRetrier.Start(context.TODO(), uid)
 
 	g.ConvLoader = NewBackgroundConvLoader(g)
+	g.EphemeralPurger = types.DummyEphemeralPurger{}
 
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
