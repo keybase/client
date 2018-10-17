@@ -1,11 +1,15 @@
 package search
 
 import (
+	"context"
 	"regexp"
 	"strings"
 
 	mapset "github.com/deckarep/golang-set"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	porterstemmer "github.com/keybase/go-porterstemmer"
 )
 
@@ -83,4 +87,15 @@ func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
 		}
 	}
 	return msgIDSlice
+}
+
+// Order messages ascending by ID for presentation
+func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
+	for i := len(msgs) - 1; i >= 0; i-- {
+		msg := msgs[i]
+		uiMsg := utils.PresentMessageUnboxed(ctx, g, msg, uid, convID)
+		uiMsgs = append(uiMsgs, uiMsg)
+	}
+	return uiMsgs
 }

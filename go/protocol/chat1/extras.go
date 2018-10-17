@@ -1514,19 +1514,19 @@ func (r *SetAppNotificationSettingsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
-func (r *GetSearchRegexpRes) GetRateLimit() []RateLimit {
+func (r *SearchRegexpRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *GetSearchRegexpRes) SetRateLimits(rl []RateLimit) {
+func (r *SearchRegexpRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
-func (r *InboxSearchRes) GetRateLimit() []RateLimit {
+func (r *SearchInboxRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *InboxSearchRes) SetRateLimits(rl []RateLimit) {
+func (r *SearchInboxRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1779,7 +1779,7 @@ func (a MessageAttachment) GetTitle() string {
 	return title
 }
 
-func (h *ChatInboxSearchHit) Size() int {
+func (h *ChatSearchInboxHit) Size() int {
 	if h == nil {
 		return 0
 	}

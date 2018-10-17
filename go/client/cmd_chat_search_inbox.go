@@ -21,73 +21,38 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdChatInboxSearch struct {
+type CmdChatSearchInbox struct {
 	libkb.Contextified
 	query  string
 	opts   chat1.SearchOpts
 	hasTTY bool
 }
 
-func NewCmdChatInboxSearchRunner(g *libkb.GlobalContext) *CmdChatInboxSearch {
-	return &CmdChatInboxSearch{
+func NewCmdChatSearchInboxRunner(g *libkb.GlobalContext) *CmdChatSearchInbox {
+	return &CmdChatSearchInbox{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func newCmdChatInboxSearchDev(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "inbox-search",
+		Name:         "search",
 		Usage:        "Search full inbox",
 		ArgumentHelp: "<query>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdChatInboxSearchRunner(g), "inbox-search", c)
+			cl.ChooseCommand(NewCmdChatSearchInboxRunner(g), "search", c)
 			cl.SetNoStandalone()
 		},
-		Flags: []cli.Flag{
+		Flags: append(chatSearchFlags,
 			cli.BoolFlag{
 				Name:  "force-reindex",
 				Usage: "Ensure inbox is fully indexed before executing the search.",
 			},
-			cli.IntFlag{
-				Name:  "max-hits",
-				Value: 10,
-				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
-			},
-			cli.StringFlag{
-				Name:  "sent-by",
-				Value: "",
-				Usage: "Filter search results by the username of the sender.",
-			},
-			cli.StringFlag{
-				Name:  "sent-before",
-				Value: "",
-				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-after.",
-			},
-			cli.StringFlag{
-				Name:  "sent-after",
-				Value: "",
-				Usage: "Filter search results by the message creation time. Mutually exclusive with sent-before.",
-			},
-			cli.IntFlag{
-				Name:  "B, before-context",
-				Value: 0,
-				Usage: "Print number messages of leading context before each match.",
-			},
-			cli.IntFlag{
-				Name:  "A, after-context",
-				Value: 0,
-				Usage: "Print number of messages of trailing context after each match.",
-			},
-			cli.IntFlag{
-				Name:  "C, context",
-				Value: 2,
-				Usage: "Print number of messages of leading and trailing context surrounding each match.",
-			},
-		},
+		),
 	}
 }
 
-func (c *CmdChatInboxSearch) Run() (err error) {
+func (c *CmdChatSearchInbox) Run() (err error) {
 	ui := &ChatUI{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
@@ -105,22 +70,22 @@ func (c *CmdChatInboxSearch) Run() (err error) {
 	}
 	ctx := context.TODO()
 
-	arg := chat1.InboxSearchArg{
+	arg := chat1.SearchInboxArg{
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		Opts:             c.opts,
 	}
-	_, err = resolver.ChatClient.InboxSearch(ctx, arg)
+	_, err = resolver.ChatClient.SearchInbox(ctx, arg)
 	return err
 }
 
-func (c *CmdChatInboxSearch) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
-		return errors.New("usage: keybase chat inbox-search <query>")
+		return errors.New("usage: keybase chat search <query>")
 	}
 	c.query = ctx.Args().Get(0)
-	c.opts.SentBy = ctx.String("sent-by")
 	c.opts.ForceReindex = ctx.Bool("force-reindex")
+	c.opts.SentBy = ctx.String("sent-by")
 	sentBeforeStr := ctx.String("sent-before")
 	sentAfterStr := ctx.String("sent-after")
 	if sentBeforeStr != "" && sentAfterStr != "" {
@@ -162,7 +127,7 @@ func (c *CmdChatInboxSearch) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *CmdChatInboxSearch) GetUsage() libkb.Usage {
+func (c *CmdChatSearchInbox) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

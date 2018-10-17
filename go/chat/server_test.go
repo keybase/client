@@ -337,12 +337,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	chatSyncer := NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
-	searcher := NewSearcher(g)
+	searcher := search.NewRegexpSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
-	searcher.pageSize = 3
-	g.Searcher = searcher
+	searcher.SetPageSize(2)
+	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
-	indexer.SetPageSize(3)
+	indexer.SetPageSize(2)
 	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)

@@ -137,7 +137,7 @@ class Developer extends React.Component<Props, State> {
             onClick={() => {
               this.setState({indexTook: -1})
               const start = Date.now()
-              RPCChatTypes.localIndexChatSearchRpcPromise({
+              RPCChatTypes.localProfileChatSearchRpcPromise({
                 identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
               }).then(() => this.setState({indexTook: Date.now() - start}))
             }}

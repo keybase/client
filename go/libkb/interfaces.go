@@ -389,8 +389,8 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
-	ChatInboxSearchHit(context.Context, chat1.ChatInboxSearchHitArg) error
-	ChatInboxSearchDone(context.Context, chat1.ChatInboxSearchDoneArg) error
+	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 }
 
 type PromptDefault int

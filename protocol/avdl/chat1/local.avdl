@@ -907,25 +907,25 @@ protocol local {
   void setConvMinWriterRoleLocal(ConversationID convID, keybase1.TeamRole role);
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
-  record GetSearchRegexpRes {
+  record SearchRegexpRes {
     array<ChatSearchHit> hits;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
+  SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query, boolean isRegex,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record InboxSearchRes {
-    union { null, ChatInboxSearchResults } res;
+  record SearchInboxRes {
+    union { null, ChatSearchInboxResults } res;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  InboxSearchRes inboxSearch(int sessionID, string query,
+  SearchInboxRes searchInbox(int sessionID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record IndexSearchConvStats {
+  record ProfileSearchConvStats {
     // number of messages in the conversation that were indexed (type TEXT)
     int numMessages;
     // number of bytes in the final index
@@ -936,7 +936,7 @@ protocol local {
   }
 
   // ConversationID -> IndexSearchConvStats
-  map<string, IndexSearchConvStats> indexChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
+  map<string, ProfileSearchConvStats> profileChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();
