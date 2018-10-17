@@ -56,8 +56,8 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 
 	// visible portion
 	visible := stellar1.AccountBundleVisibleV1{
-		Revision: a.Revision,
-		// XXX Hash prev
+		Revision:  a.Revision,
+		Prev:      a.Prev,
 		AccountID: a.AccountID,
 		Mode:      a.Mode,
 	}
@@ -80,6 +80,21 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 	}
 
 	return boxed, nil
+}
+
+var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
+
+func MakeMobileOnly(a *stellar1.AccountBundle) error {
+	if a.Mode == stellar1.AccountMode_MOBILE {
+		return ErrNoChangeNecessary
+	}
+
+	a.Mode = stellar1.AccountMode_MOBILE
+	a.Revision++
+	a.Prev = a.OwnHash
+	a.OwnHash = nil
+
+	return nil
 }
 
 type PukFinder interface {
