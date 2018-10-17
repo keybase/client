@@ -98,7 +98,6 @@ export type _BuiltPayment = {
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
-  toUsername: string,
   worthAmount: string,
   worthCurrency: string,
   worthDescription: string,

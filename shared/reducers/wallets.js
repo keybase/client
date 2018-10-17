@@ -122,7 +122,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
       return state
-        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: '', toUsername: ''}))
+        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: ''}))
         .set('builtRequest', state.get('builtRequest').merge({toErrMsg: ''}))
         .set('building', state.get('building').merge({to}))
     case WalletsGen.sendAssetChoicesReceived:

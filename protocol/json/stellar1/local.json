@@ -460,10 +460,6 @@
         },
         {
           "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
           "name": "amountErrMsg"
         },
         {
