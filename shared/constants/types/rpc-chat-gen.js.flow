@@ -233,7 +233,7 @@ export type MessageTypes = {|
   |},
   'chat.1.local.makeUploadTempFile': {|
     inParam: $ReadOnly<{|outboxID: OutboxID, filename: String, data: Bytes|}>,
-    outParam: void,
+    outParam: String,
   |},
   'chat.1.local.markAsReadLocal': {|
     inParam: $ReadOnly<{|conversationID: ConversationID, msgID: MessageID|}>,

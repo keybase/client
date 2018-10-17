@@ -10,13 +10,13 @@ import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
 
 type OwnProps = RouteProps<
-  {paths: Array<Types.PathAndOutboxID>, conversationIDKey: Types.ConversationIDKey},
+  {pathAndOutboxIDs: Array<Types.PathAndOutboxID>, conversationIDKey: Types.ConversationIDKey},
   {}
 >
 
 const mapStateToProps = (state, {routeProps}: OwnProps) => ({
   _conversationIDKey: routeProps.get('conversationIDKey'),
-  paths: routeProps.get('paths'),
+  pathAndOutboxIDs: routeProps.get('pathAndOutboxIDs'),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -42,13 +42,13 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
-  pathToInfo: stateProps.paths.reduce((map, path) => {
-    const filename = FsTypes.getLocalPathName(path.path)
-    map[path.path] = {
+  pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {
+    const filename = FsTypes.getLocalPathName(path)
+    map[path] = {
       filename,
       title: '',
-      type: Constants.pathToAttachmentType(path.path),
-      outboxID: path.outboxID,
+      type: Constants.pathToAttachmentType(path),
+      outboxID: outboxID,
     }
     return map
   }, {}),

@@ -1744,7 +1744,7 @@ function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
     filename: 'paste.png',
     data,
   })
-  const paths = [
+  const pathAndOutboxIDs = [
     {
       path,
       outboxID,
@@ -1752,7 +1752,7 @@ function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
   ]
   yield Saga.put(
     RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}],
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
     })
   )
 }

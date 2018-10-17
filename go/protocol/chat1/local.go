@@ -4863,7 +4863,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
-	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) error
+	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
@@ -5413,7 +5413,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]MakeUploadTempFileArg)(nil), args)
 						return
 					}
-					err = i.MakeUploadTempFile(ctx, typedArgs[0])
+					ret, err = i.MakeUploadTempFile(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5978,8 +5978,8 @@ func (c LocalClient) GetUploadTempFile(ctx context.Context, __arg GetUploadTempF
 	return
 }
 
-func (c LocalClient) MakeUploadTempFile(ctx context.Context, __arg MakeUploadTempFileArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.makeUploadTempFile", []interface{}{__arg}, nil)
+func (c LocalClient) MakeUploadTempFile(ctx context.Context, __arg MakeUploadTempFileArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.makeUploadTempFile", []interface{}{__arg}, &res)
 	return
 }
 

@@ -22,10 +22,17 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = dispatch => ({
   _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
-  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({
+      path: p,
+      outboxID: null,
+    }))
     dispatch(
-      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
-    ),
+      RouteTree.navigateAppend([
+        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
+      ])
+    )
+  },
   _onToggleInfoPanel: (isOpen: boolean, conversationIDKey: Types.ConversationIDKey) => {
     if (isOpen) {
       dispatch(RouteTree.navigateTo(['conversation'], [chatTab]))

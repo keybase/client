@@ -3607,7 +3607,7 @@
           "type": "bytes"
         }
       ],
-      "response": null
+      "response": "string"
     },
     "CancelPost": {
       "request": [

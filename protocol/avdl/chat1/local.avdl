@@ -833,7 +833,7 @@ protocol local {
   }
   MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
   string getUploadTempFile(OutboxID outboxID, string filename);
-  void makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
+  string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
