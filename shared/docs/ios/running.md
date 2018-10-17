@@ -70,5 +70,5 @@ brew install watchman
 ```
 
 ## Also see general react-native troubleshooting
-[Here](../react-native/troubleshoothing)
+[Here](../react-native/troubleshooting.md)
 

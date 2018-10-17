@@ -35,21 +35,25 @@ restarting it seems to fix it.
 ## Can't reach packager (could not connect to development server)
 
 can you see the packager in your computer's browser if you go to localhost:8081?
+
 no -> You aren't runnning the packager, run `yarn rn-start android`
 
 yes:
   can you see the packager in android's browser if you go to localhost:8081?
+
 no -> You didn't port forward 8081 run `adb reverse tcp:8081 tcp:8081`
 
 yes:
   Did you set debug server host & port to localhost:8081?
+
   no:
-    1. Dismiss redbox
-    1. Press volume up. A popup should appear (We're trying to get to the [react native debug menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu)
+
+1. Dismiss redbox
+1. Press volume up. A popup should appear (We're trying to get to the [react native debug menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu)
 )
-    1. Click dev settings
-    1. Click Debug server host & port
-    1. set it to `localhost:8081` (See [#could-not-connect-to-development-server-error](running.md#could-not-connect-to-development-server-error) for more info)
+1. Click dev settings
+1. Click Debug server host & port
+1. set it to `localhost:8081` (See [#could-not-connect-to-development-server-error](running.md#could-not-connect-to-development-server-error) for more info)
 
   yes:
     You're in uncharted territories. Try using the java debugger in android studio and setting a break point in react-native's BundleDownloader and reading the actual error since it might be more informative than rn's generic handler. After you fix it, come back and update this page!
@@ -111,5 +115,5 @@ tap "Dev settings" and set "Debug server host & port for device" to
 `127.0.0.1:8081`
 
 ## Also see general react-native troubleshooting
-[Here](../react-native/troubleshoothing)
+[Here](../react-native/troubleshooting.md)
 
