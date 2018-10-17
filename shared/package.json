@@ -83,7 +83,6 @@
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
     "setupFiles": [
-      "raf/polyfill"
     ],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
     "testPathIgnorePatterns": [
