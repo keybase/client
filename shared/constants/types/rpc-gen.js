@@ -129,6 +129,7 @@ export const constantsStatusCode = {
   scnospaceondevice: 297,
   scmerkleclienterror: 299,
   scbademail: 472,
+  scratelimit: 602,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scfeatureflag: 712,
