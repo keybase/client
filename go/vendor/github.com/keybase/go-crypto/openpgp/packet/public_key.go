@@ -32,6 +32,8 @@ import (
 )
 
 var (
+	// NIST curve P-224
+	oidCurveP224 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x21}
 	// NIST curve P-256
 	oidCurveP256 []byte = []byte{0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07}
 	// NIST curve P-384
@@ -129,6 +131,8 @@ func (f *ecdsaKey) serialize(w io.Writer) (err error) {
 
 func getCurveByOid(oid []byte) elliptic.Curve {
 	switch {
+	case bytes.Equal(oid, oidCurveP224):
+		return elliptic.P224()
 	case bytes.Equal(oid, oidCurveP256):
 		return elliptic.P256()
 	case bytes.Equal(oid, oidCurveP384):
@@ -327,6 +331,8 @@ func NewElGamalPublicKey(creationTime time.Time, pub *elgamal.PublicKey) *Public
 
 func getCurveOid(curve elliptic.Curve) (res []byte, err error) {
 	switch curve {
+	case elliptic.P224():
+		res = oidCurveP224
 	case elliptic.P256():
 		res = oidCurveP256
 	case elliptic.P384():
