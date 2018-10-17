@@ -14,7 +14,7 @@ type Props = {|
 |}
 
 // A row for use in Participants components; provides a blue heading to the left of the content.
-class ParticipantsRow extends React.Component<Props> {
+class ParticipantsRow extends React.PureComponent<Props> {
   static defaultProps = {
     bottomDivider: true,
     headingAlignment: 'Left',
