@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
-import EscapeHandler from '../util/escape-handler'
+import EscapeHandler from '../util/escape-handler.desktop'
 import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
