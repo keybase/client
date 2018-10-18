@@ -1048,6 +1048,7 @@ export const constantsStatusCode = {
   scnospaceondevice: 297,
   scmerkleclienterror: 299,
   scbademail: 472,
+  scratelimit: 602,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scfeatureflag: 712,
@@ -2417,6 +2418,7 @@ export type StatusCode =
   | 297 // SCNoSpaceOnDevice_297
   | 299 // SCMerkleClientError_299
   | 472 // SCBadEmail_472
+  | 602 // SCRateLimit_602
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 712 // SCFeatureFlag_712

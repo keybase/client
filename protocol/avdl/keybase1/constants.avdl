@@ -30,6 +30,7 @@ protocol constants {
     SCNoSpaceOnDevice_297,
     SCMerkleClientError_299,
     SCBadEmail_472,
+    SCRateLimit_602,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
     SCFeatureFlag_712,
