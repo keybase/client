@@ -184,6 +184,9 @@
     "userFileEditsLoaded": {
       "tlfUpdates": "Types.UserTlfUpdates"
     },
+    "deleteFile": {
+      "path": "Types.Path"
+    },
 
     "placeholderAction": {}
   }

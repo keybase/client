@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/stellar/go/address"
@@ -94,16 +95,18 @@ func TestLookupRecipientFederation(t *testing.T) {
 	require.NotNil(t, res.AccountID)
 	require.EqualValues(t, randomPub, *res.AccountID)
 
-	// We ask external server about federation address, we get account
-	// id back, but we also discover that this account is owned by
-	// Keybase user.
+	// We ask external server about federation address, we get account id back
+	// That account ID is the primary of a keybase user.
+	// LookupRecipient doesn't tell us that, but LookupUserByAccountID does.
 	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(tcsAtStellar), false)
 	require.NoError(t, err)
 	require.NotNil(t, res.AccountID)
 	require.EqualValues(t, fAccounts[0].accountID, *res.AccountID)
-	require.NotNil(t, res.User)
-	require.EqualValues(t, tcs[0].Fu.Username, res.User.Username)
-	require.Equal(t, tcs[0].Fu.GetUserVersion(), res.User.UV)
+	require.Nil(t, res.User)
+	uv, username, err := stellar.LookupUserByAccountID(mctx, stellar1.AccountID(res.AccountID.String()))
+	require.NoError(t, err)
+	require.EqualValues(t, tcs[0].Fu.Username, username)
+	require.Equal(t, tcs[0].Fu.GetUserVersion(), uv)
 }
 
 func TestLookupRecipientKeybaseFederation(t *testing.T) {

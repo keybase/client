@@ -263,6 +263,8 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
+// LookupRecipient finds a recipient.
+// `to` can be a username, social assertion, account ID, or federation address.
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
@@ -285,6 +287,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return nil
 	}
 
+	// Federation address
 	if strings.Contains(string(to), stellarAddress.Separator) {
 		name, domain, err := stellarAddress.Split(string(to))
 		if err != nil {
@@ -319,27 +322,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		}
 	}
 
-	// A Stellar address
+	// Stellar account ID
 	if to[0] == 'G' && len(to) > 16 {
 		err := storeAddress(string(to))
-		if err != nil {
-			return res, err
-		}
-		uv, username, err := LookupUserByAccountID(m, stellar1.AccountID(to))
-		switch err.(type) {
-		case nil:
-			res.User = &stellarcommon.User{
-				UV:       uv,
-				Username: username,
-			}
-			return res, nil
-		case libkb.NotFoundError:
-			// common case
-		default:
-			m.CDebugf("LookupRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
-			// log and ignore
-		}
-		return res, nil
+		return res, err
 	}
 
 	idRes, err := identifyRecipient(m, string(to), isCLI)
@@ -461,6 +447,25 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return sendRelayPayment(m, remoter,
 			senderSeed, sendArg.FromSeqno, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
+	}
+
+	ownRecipient, err := OwnAccount(m.Ctx(), m.G(),
+		stellar1.AccountID(recipient.AccountID.String()))
+	if err != nil {
+		m.CDebugf("error determining if user own's recipient: %v", err)
+		return res, err
+	}
+	if ownRecipient {
+		// When sending to an account that we own, act as though sending to a user as opposed to just an account ID.
+		uv, un := m.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
+		if uv.IsNil() || un.IsNil() {
+			m.CDebugf("error finding self: uv:%v un:%v", uv, un)
+			return res, fmt.Errorf("error getting logged-in user")
+		}
+		recipient.User = &stellarcommon.User{
+			UV:       uv,
+			Username: un,
+		}
 	}
 
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())

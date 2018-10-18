@@ -878,6 +878,7 @@ const rootReducer = (
     // Saga only actions
     case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
+    case Chat2Gen.attachmentPasted:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:

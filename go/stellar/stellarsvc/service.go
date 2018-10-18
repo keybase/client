@@ -505,11 +505,22 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := s.mctx(ctx).WithUIs(uis)
+	mctx := s.mctx(ctx).WithUIs(uis)
 
-	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(arg), true)
+	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg), true)
 	if err != nil {
 		return res, err
+	}
+	if recipient.AccountID != nil {
+		// Lookup Account ID -> User
+		uv, username, err := stellar.LookupUserByAccountID(s.mctx(ctx),
+			stellar1.AccountID(recipient.AccountID.String()))
+		if err == nil {
+			recipient.User = &stellarcommon.User{
+				UV:       uv,
+				Username: username,
+			}
+		}
 	}
 	if recipient.AccountID == nil {
 		if recipient.User != nil {

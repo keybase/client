@@ -920,7 +920,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 }
 
 func TestSendToSelf(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
 	rm := tcs[0].Backend
@@ -1008,7 +1008,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
 	require.Equal(t, accountID2, *p.ToAccountID)
 	require.Equal(t, "savings", p.ToAccountName)
-	require.Equal(t, "", p.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 
 	p = page.Payments[0].Payment
@@ -1020,7 +1020,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
 	require.Equal(t, accountID1, *p.ToAccountID)
 	require.Equal(t, "office lunch money", p.ToAccountName)
-	require.Equal(t, tcs[0].Fu.Username, p.ToUsername) // the sender resolved the username before sending, so it's recorded
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 
 	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
@@ -1052,7 +1052,7 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
 	require.Equal(t, accountID2, *pd.ToAccountID)
 	require.Equal(t, "savings", pd.ToAccountName)
-	require.Equal(t, "", pd.ToUsername)
+	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
 	require.Equal(t, "", pd.ToAssertion)
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
@@ -1648,11 +1648,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 
 	require.True(t, choices2[0].Asset.Eq(keys))
 	require.False(t, choices2[0].Enabled)
-	// Using AccountID should still resolve to user and we should see
-	// "*username* does not accept ..." subtext.
-	require.Contains(t, choices2[0].Subtext, tcs[1].Fu.Username)
-	require.Contains(t, choices2[0].Subtext, "does not accept")
-	require.Contains(t, choices2[0].Subtext, choices2[0].Asset.Code)
+	require.Equal(t, choices2[0].Subtext, fmt.Sprintf("Recipient does not accept %v", choices2[0].Asset.Code))
 
 	require.True(t, choices2[1].Asset.Eq(astro))
 	require.True(t, choices2[1].Enabled)
