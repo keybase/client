@@ -37,7 +37,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers, isNew}: 
         className="keybase-nav"
         badgeNumber={badgeNumbers[tab]}
         isNav={true}
-        isNew={isNew[tab]}
+        isNew={isNew[tab] || false}
         key={tab}
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}

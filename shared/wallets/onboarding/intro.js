@@ -12,12 +12,16 @@ type IntroProps = {|
 const Intro = (props: IntroProps) => {
   const buttons = [
     <Kb.Button
+      style={{width: '100%'}}
+      fullWidth={true}
       key={0}
       type="Secondary"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
     />,
     <Kb.Button
+      style={{width: '100%'}}
+      fullWidth={true}
       key={1}
       type="Wallet"
       onClick={() => props.setNextScreen('linkExisting')}
@@ -52,6 +56,8 @@ const Intro = (props: IntroProps) => {
           </Kb.Text>
           .
         </Kb.Text>
+
+        <Kb.Icon type="icon-illustration-stellar-payments-183-188" />
       </Kb.Box2>
     </WalletPopup>
   )
@@ -59,7 +65,7 @@ const Intro = (props: IntroProps) => {
 
 const styles = Styles.styleSheetCreate({
   bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.small, textAlign: 'center'},
-  container: {backgroundColor: Styles.globalColors.purple2},
+  container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
   headerText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.medium,

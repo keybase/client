@@ -99,7 +99,7 @@
     },
     "walletSettingsReceived": {
       "_description": "Received wallet settings",
-      "settings": "Types.WalletSettings"
+      "settings": "RPCTypes.WalletSettings"
     },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"

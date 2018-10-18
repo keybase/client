@@ -21,7 +21,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers, isNew}: Props) => 
     {_tabs.map(tab => (
       <TabBarButton
         badgeNumber={badgeNumbers[tab]}
-        isNew={isNew[tab]}
+        isNew={isNew[tab] || false}
         badgePosition="top-right"
         key={tab}
         isNav={true}

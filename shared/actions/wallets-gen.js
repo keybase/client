@@ -226,7 +226,7 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
   secretKey: HiddenString,
   error: string,
 |}>
-type _WalletSettingsReceivedPayload = $ReadOnly<{|settings: Types.WalletSettings|}>
+type _WalletSettingsReceivedPayload = $ReadOnly<{|settings: RPCTypes.WalletSettings|}>
 
 // Action Creators
 /**

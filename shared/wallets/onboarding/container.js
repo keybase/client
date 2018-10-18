@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, withStateHandlers} from '../../util/container'
+import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Onboarding from '.'
 
@@ -7,7 +7,7 @@ const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
   onAcceptDisclaimer: (nextScreen: string) => dispatch(WalletsGen.createAcceptDisclaimer({nextScreen})),
-  onNotNow: () => dispatch(WalletsGen.createNotNow()),
+  onNotNow: () => dispatch(WalletsGen.createRejectDisclaimer()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
