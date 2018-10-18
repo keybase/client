@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
         name,
         secretKey: new HiddenString(sk),
         showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm,
+        setBuildingTo: fromSendForm ?? (!!routeProps && routeProps.get('fromSendForm')),
       })
     ),
   fromSendForm,

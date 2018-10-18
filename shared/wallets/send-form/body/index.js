@@ -12,8 +12,8 @@ import type {Banner as BannerType} from '../../../constants/types/wallets'
 type SendBodyProps = {
   banners: Array<BannerType>,
   isProcessing?: boolean,
-  onLinkAccount: () => void,
-  onCreateNewAccount: () => void,
+  onLinkAccount?: () => void,
+  onCreateNewAccount?: () => void,
 }
 
 type RequestBodyProps = {

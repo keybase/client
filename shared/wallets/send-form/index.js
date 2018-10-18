@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {isMobile} from '../../styles'
 import Root from './root'
 import {SendBody, RequestBody} from './body/container'
 import LinkExisting from '../link-existing/container'
@@ -13,6 +14,8 @@ type SendFormState = {
   currentScreen: 'root' | 'link-existing' | 'create-new-account',
 }
 
+// On desktop, we switch between views in this container.
+// On mobile, we use routing to switch views
 class SendForm extends React.PureComponent<FormProps, SendFormState> {
   state = {
     currentScreen: 'root',
@@ -33,6 +36,13 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
     }))
   }
   render() {
+    if (isMobile) {
+      return (
+        <Root onClose={this.props.onClose}>
+          <SendBody isProcessing={undefined /* TODO */} />
+        </Root>
+      )
+    }
     switch (this.state.currentScreen) {
       case 'root':
         return (
@@ -47,7 +57,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
       case 'link-existing':
         return (
           <LinkExisting
-            onCancel={this.props.onClose}
+            onCancel={this.backToRoot}
             onBack={this.backToRoot}
             fromSendForm={true}
             navigateUp={null}
@@ -57,7 +67,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
       case 'create-new-account':
         return (
           <CreateNewAccount
-            onCancel={this.props.onClose}
+            onCancel={this.backToRoot}
             onBack={this.backToRoot}
             fromSendForm={true}
             navigateUp={null}

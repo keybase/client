@@ -4,6 +4,7 @@ import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOther
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {
   getAccount,
   getAccounts,
@@ -108,13 +109,29 @@ const mapStateToPropsOtherAccount = state => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = dispatch => ({
+const mapDispatchToPropsOtherAccount = (dispatch, ownProps) => ({
   onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onCreateNewAccount:
+    ownProps.onCreateNewAccount ||
+    (() =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+        })
+      )),
+  onLinkAccount:
+    ownProps.onLinkAccount ||
+    (() =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+        })
+      )),
 })
 
 const ConnectedParticipantsOtherAccount = compose(
