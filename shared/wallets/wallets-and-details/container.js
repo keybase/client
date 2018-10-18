@@ -1,11 +1,12 @@
 // @flow
-import WalletsAndDetails from '.'
+import * as React from 'react'
+import WalletList from './index'
 import Onboarding from '../onboarding/container'
-import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
 
 type Props = {
   acceptedDisclaimer: boolean,
+  children: React.Node,
 }
 
 const mapStateToProps = state => ({
@@ -16,9 +17,11 @@ const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
+  children: ownProps.children,
 })
 
-const WalletOrOnboarding = (props: Props) => props.acceptedDisclaimer ? WalletList : Onboarding
+const WalletOrOnboarding = (props: Props) =>
+  props.acceptedDisclaimer ? <WalletList children={props.children} /> : <Onboarding />
 
 export default connect(
   mapStateToProps,

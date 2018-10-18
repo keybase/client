@@ -479,10 +479,11 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(null, Constants.acceptDisclaimerWaitingKey).then(res =>
-    RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
-      WalletsGen.createWalletSettingsReceived({settings})
-    )
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
+    res =>
+      RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
+        WalletsGen.createWalletSettingsReceived({settings})
+      )
   )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
@@ -589,7 +590,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
-  yield Saga.actionToPromise(WalletsGen.loadAccounts, loadWalletSettings)
+  yield Saga.actionToPromise(
+    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletSettings],
+    loadWalletSettings
+  )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
 }
 
