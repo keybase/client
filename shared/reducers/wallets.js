@@ -52,7 +52,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrencyReceived:
       return state
         .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        .update('building', b => b.merge({currency: action.payload.currency.code}))
     case WalletsGen.secretKeyReceived:
       return state
         .set('exportedSecretKey', action.payload.secretKey)
@@ -132,11 +131,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .set('builtPayment', Constants.makeBuiltPayment())
         .set('building', state.get('building').merge({sendAssetChoices}))
+    case WalletsGen.setLastSentXLM:
+      return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.validateAccountName:
       return state.merge({
-        accountName: action.payload.name,
-        accountNameValidationState: 'waiting',
-      })
+          accountName: action.payload.name,
+          accountNameValidationState: 'waiting',
+        })
     case WalletsGen.validatedAccountName:
       if (action.payload.name !== state.accountName) {
         // this wasn't from the most recent call

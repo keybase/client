@@ -9,19 +9,20 @@ import {windowStyle} from '../../styles'
 import logger from '../../logger'
 
 export type State = {
-  x: ?number,
-  y: ?number,
-  width: number,
-  height: number,
-  windowHidden: boolean,
-  isMaximized: ?boolean,
-  isFullScreen: ?boolean,
   displayBounds: ?any,
-  tab: ?string,
-  dockHidden: boolean,
+  dockHidden: boolean,  
+  height: number,
+  isFullScreen: ?boolean,
+  isMaximized: ?boolean,
+  isUserActive: ?boolean,
+  lastSentXLM: false,
   notifySound: boolean,
   openAtLogin: boolean,
-  isUserActive: ?boolean,
+  tab: ?string,
+  width: number,
+  windowHidden: boolean,
+  x: ?number,
+  y: ?number,  
 }
 
 export type Config = {
@@ -56,6 +57,7 @@ export default class AppState {
       height: windowStyle.height,
       isFullScreen: null,
       isMaximized: null,
+      lastSentXLM: false,
       notifySound: false,
       openAtLogin: true,
       isUserActive: true,

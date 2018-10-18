@@ -9,11 +9,13 @@ import * as Types from '../../../constants/types/wallets'
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const currency = state.wallets.building.currency
-
   const displayUnit = Constants.getCurrencyAndSymbol(state, currency)
+  const defaultCurrencyCode = state.wallets.lastSentXLM ? 'XLM' : Constants.getDisplayCurrency(state, accountID).code
   return {
     accountID,
     bottomLabel: '', // TODO
+    currency,
+    defaultCurrencyCode,
     displayUnit,
     inputPlaceholder: currency && currency !== 'XLM' ? '0.00' : '0.0000000',
     topLabel: '', // TODO
@@ -36,12 +38,13 @@ const mapDispatchToProps = dispatch => ({
       ])
     )
   },
-
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
+  _onSetCurrency: (currency: string) => dispatch(WalletsGen.createSetBuildingCurrency({currency})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   bottomLabel: stateProps.bottomLabel,
+  defaultCurrencyCode: stateProps.defaultCurrencyCode,
   displayUnit: stateProps.displayUnit,
   inputPlaceholder: stateProps.inputPlaceholder,
   onChangeAmount: dispatchProps.onChangeAmount,
@@ -49,6 +52,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   refresh: () => dispatchProps._refresh(stateProps.accountID),
   topLabel: stateProps.topLabel,
   value: stateProps.value,
+  onSetCurrency: (currency: string) => {
+    // This is because we have to wait for createLoadDisplayCurrency.
+    // Only called before the user changes the currency selection.
+    stateProps.defaultCurrencyCode != stateProps.currency &&
+      dispatchProps._onSetCurrency(stateProps.defaultCurrencyCode)
+  }
 })
 
 export default compose(

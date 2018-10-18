@@ -21,10 +21,11 @@ const mapStateToProps = state => {
       bannerText: banner.message,
     }))
   )
+  const assetType = build.currency || 'XLM'
   return {
-    amount: built.amountFormatted || build.amount + ' ' + build.currency,
+    amount: built.amountFormatted || build.amount + ' ' + assetType,
     assetConversion: built.worthDescription,
-    assetType: build.currency,
+    assetType: assetType,
     banners,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
