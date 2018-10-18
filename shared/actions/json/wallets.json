@@ -215,7 +215,7 @@
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
       "accountID": "Types.AccountID",
-      "paymentID?": "Types.PaymentID",
+      "paymentID": "Types.PaymentID",
     },
     "sendPayment": {
       "_description": "Perform sending a payment"

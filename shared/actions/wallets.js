@@ -255,31 +255,19 @@ const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPayments
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-  ]).then(([_pending, _payments]) => {
+  ]).then(([pending, payments]) => {
     const {accountID, paymentID} = action.payload
-    const payments = (_payments.payments || [])
-      .map(elem => Constants.paymentResultToPayment(elem, 'history', _payments.oldestUnread))
-      .filter(Boolean)
-    const pending = (_pending || [])
-      .map(elem => Constants.paymentResultToPayment(elem, 'pending', _payments.oldestUnread))
-      .filter(Boolean)
-    if (paymentID) {
-      const found =
-        payments.find(elem => elem.id === paymentID) || pending.find(elem => elem.id === paymentID)
-      if (!found) {
-        logger.warn(
-          `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
+    const paymentsReceived = createPaymentsReceived(action.payload.accountID, payments, pending)
+    const found =
+          paymentsReceived.payload.payments.find(elem => elem.id === paymentID) || paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
+    if (!found) {
+      logger.warn(
+        `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
             paymentID
           )}`
-        )
-      }
+      )
     }
-    return WalletsGen.createPaymentsReceived({
-      accountID,
-      paymentCursor: _payments.cursor,
-      payments,
-      pending,
-    })
+    return paymentsReceived
   })
 
 const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
