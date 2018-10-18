@@ -142,8 +142,9 @@ export type _PaymentCommon = {
 }
 
 export type _PaymentResult = _PaymentCommon & {
-  // The section can be derived from statusDescription, so this can be
-  // moved to _PaymentCommon.
+  // The statusDescription is either "pending", "completed", or
+  // "error" so the section field can actually be moved to
+  // _PaymentCommon.
   section: PaymentSection,
   unread: boolean,
 }
