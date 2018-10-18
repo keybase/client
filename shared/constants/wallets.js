@@ -537,6 +537,7 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
 }
 
 export {
+  acceptDisclaimerWaitingKey,
   accountResultToAccount,
   assetsResultToAssets,
   bannerLevelToBackground,

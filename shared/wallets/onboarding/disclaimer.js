@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
@@ -38,6 +39,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     const label = `Yes, I agree (${this.state.secondsLeft})`
     const buttons = [
       <Kb.Button
+        waitingKey={Constants.acceptDisclaimerWaitingKey}
         disabled={this.state.secondsLeft > 0}
         key={0}
         style={{width: '100%'}}

@@ -478,8 +478,8 @@ const maybeClearErrors = (state: TypedState) => {
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
-const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise({}, Constants.acceptDisclaimerWaitingKey).then(res =>
+const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(null, Constants.acceptDisclaimerWaitingKey).then(res =>
     RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
       WalletsGen.createWalletSettingsReceived({settings})
     )
