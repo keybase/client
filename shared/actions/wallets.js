@@ -169,6 +169,7 @@ const loadAssets = (
     | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
+  action.payload.accountID !== Types.noAccountID &&
   RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
