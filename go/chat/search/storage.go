@@ -14,10 +14,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-// Bumped whenever there are tokenization or structural changes to building the
-// index
-const indexVersion = 1
-
 type store struct {
 	sync.Mutex
 	globals.Contextified
@@ -27,13 +23,13 @@ type store struct {
 
 // store keeps an encrypted index of chat messages for all conversations to
 // enable full inbox search locally.
-// Data is stored in leveldb in the form:
+// Data is stored in an encrypted leveldb in the form:
 // (convID) -> {
 //                token: { msgID,...},
 //                ...
 //             },
 //     ...       ->        ...
-// NOTE: as a performance optimization we may want to split the metdata from
+// NOTE: as a performance optimization we may want to split the metadata from
 // the index itself so we can quickly operate on the metadata separately from
 // the index and have less bytes to encrypt/decrypt on reads (metadata only
 // contains only msg ids and no user content).
@@ -78,7 +74,7 @@ func (s *store) getLocked(ctx context.Context, convID chat1.ConversationID, uid 
 	if err != nil || !found {
 		return nil, err
 	}
-	if entry.Metadata.Version != indexVersion {
+	if entry.Metadata.Version != IndexVersion {
 		// drop the whole index for this conv
 		err = s.deleteLocked(ctx, convID, uid)
 		return nil, err
@@ -91,7 +87,7 @@ func (s *store) putLocked(ctx context.Context, convID chat1.ConversationID, uid 
 		return nil
 	}
 	dbKey := s.dbKey(convID, uid)
-	entry.Metadata.Version = indexVersion
+	entry.Metadata.Version = IndexVersion
 	return s.encryptedDB.Put(ctx, dbKey, *entry)
 }
 

@@ -276,16 +276,23 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "AcceptDisclaimerLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "AcceptDisclaimerLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
 		return err
 	}
 
-	return remote.SetAcceptedDisclaimer(ctx, s.G())
+	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	crg, err := stellar.CreateWalletGated(ctx, s.G())
+	if err != nil {
+		return err
+	}
+	if !crg.HasWallet {
+		return fmt.Errorf("user wallet not created")
+	}
+	return nil
 }
 
 func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
@@ -886,8 +893,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				})
 			}
 			bannerThem := "their"
-			if recipient.User != nil {
-				res.ToUsername = recipient.User.Username.String()
+			if recipient.User != nil && !arg.ToIsAccountID {
 				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {

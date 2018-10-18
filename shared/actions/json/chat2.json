@@ -60,7 +60,8 @@
         "'teamHeader'",
         "'convertAdHoc'",
         "'memberView'",
-        "'newChannel'"
+        "'newChannel'",
+        "'transaction'"
       ]
     },
     "createConversation": {
@@ -324,7 +325,7 @@
     // We want to upload some attachments
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paths": "Array<string>",
+      "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>"
     },
     // Update progress on an upload
@@ -337,6 +338,11 @@
     "attachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
+    },
+    // Image data pasted into a conversation
+    "attachmentPasted": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "data": "Buffer"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {

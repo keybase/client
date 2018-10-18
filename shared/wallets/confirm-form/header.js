@@ -13,12 +13,6 @@ type HeaderProps = {|
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-    <Kb.BackButton
-      onClick={props.onBack}
-      style={styles.backButton}
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButtonText}
-    />
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
         type={
@@ -41,6 +35,12 @@ const Header = (props: HeaderProps) => (
           </Kb.Text>
         )}
     </Kb.Box2>
+    <Kb.BackButton
+      onClick={props.onBack}
+      style={styles.backButton}
+      iconColor={Styles.globalColors.white}
+      textStyle={styles.backButtonText}
+    />
   </Kb.Box2>
 )
 

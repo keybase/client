@@ -216,7 +216,7 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
-export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, worthAmount: String, worthCurrency: String, banners?: ?Array<SendBannerLocal>, amountFormatted: String}>
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, worthAmount: String, worthCurrency: String, banners?: ?Array<SendBannerLocal>, amountFormatted: String}>
 export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>

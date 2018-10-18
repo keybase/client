@@ -77,7 +77,8 @@ func (c *CmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdWalletSend) Run() error {
+func (c *CmdWalletSend) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

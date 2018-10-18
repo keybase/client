@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Provider} from 'react-redux'
-import {GlobalEscapeHandler} from '../../util/escape-handler'
+import {GlobalEscapeHandler} from '../../util/escape-handler.desktop'
 
 import '../renderer/style.css'
 

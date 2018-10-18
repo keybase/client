@@ -4,7 +4,6 @@ import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import os from 'os'
-import semver from 'semver'
 import windowHelper from './window-helper.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
@@ -62,7 +61,7 @@ function start() {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
-    if (!semver.satisfies(os.release(), '>=14.0.0')) {
+    if (parseInt(os.release().split('.')[0], 10) < 14) {
       SafeElectron.getDialog().showErrorBox(
         'Keybase Error',
         "This version of macOS isn't currently supported."

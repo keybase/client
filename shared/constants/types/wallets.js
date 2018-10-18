@@ -12,9 +12,6 @@ export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
-// Possible read states a transaction can be in.
-export type ReadState = 'read' | 'unread' | 'oldestUnread'
-
 // Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
@@ -98,7 +95,6 @@ export type _BuiltPayment = {
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
-  toUsername: string,
   worthAmount: string,
   worthCurrency: string,
   worthDescription: string,
@@ -128,7 +124,6 @@ export type _Payment = {
   noteErr: HiddenString,
   publicMemo: HiddenString,
   publicMemoType: string,
-  readState: ReadState,
   section: PaymentSection,
   source: string,
   sourceAccountID: string,
@@ -141,6 +136,7 @@ export type _Payment = {
   targetType: string,
   time: ?number,
   txID: string,
+  unread: boolean,
   worth: string,
   worthCurrency: string,
 }
@@ -212,6 +208,7 @@ export type _State = {
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
+  paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   secretKey: HiddenString,
   secretKeyError: string,

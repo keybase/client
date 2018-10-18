@@ -1,21 +1,34 @@
 // @flow
-import {Component} from 'react'
-import PropTypes from 'prop-types'
+import * as React from 'react'
 
-import type {GlobalProps, Props} from './escape-handler'
+type GlobalProps = {
+  children: ?React.Node,
+}
 
-class EscapeHandler extends Component<Props> {
-  static contextTypes = {
-    addESCHandler: PropTypes.func,
-    removeESCHandler: PropTypes.func,
+type Props = {
+  onESC: ?() => void,
+  children: ?React.Node,
+}
+
+const EscapeContext = React.createContext({add: () => {}, remove: () => {}})
+
+class EscapeHandlerWrapper extends React.Component<Props> {
+  render() {
+    return (
+      <EscapeContext.Consumer>
+        {({add, remove}) => <EscapeHandler {...this.props} add={add} remove={remove} />}
+      </EscapeContext.Consumer>
+    )
   }
+}
 
+class EscapeHandler extends React.Component<Props & {add: any => void, remove: any => void}> {
   componentDidMount() {
-    this.context.addESCHandler && this.context.addESCHandler(this)
+    this.props.add(this)
   }
 
   componentWillUnmount() {
-    this.context.removeESCHandler && this.context.removeESCHandler(this)
+    this.props.remove(this)
   }
 
   onESC() {
@@ -27,7 +40,7 @@ class EscapeHandler extends Component<Props> {
   }
 }
 
-class GlobalEscapeHandler extends Component<GlobalProps> {
+class GlobalEscapeHandler extends React.Component<GlobalProps> {
   _stack: Array<EscapeHandler> = []
 
   componentDidMount() {
@@ -36,18 +49,6 @@ class GlobalEscapeHandler extends Component<GlobalProps> {
 
   componentWillUnmount() {
     document.body && document.body.removeEventListener('keydown', this._handleESC)
-  }
-
-  static childContextTypes = {
-    addESCHandler: PropTypes.func,
-    removeESCHandler: PropTypes.func,
-  }
-
-  getChildContext() {
-    return {
-      addESCHandler: this.add,
-      removeESCHandler: this.remove,
-    }
   }
 
   _handleESC = (ev: KeyboardEvent) => {
@@ -73,10 +74,13 @@ class GlobalEscapeHandler extends Component<GlobalProps> {
   }
 
   render() {
-    return this.props.children || null
+    return (
+      <EscapeContext.Provider value={{add: this.add, remove: this.remove}}>
+        {this.props.children}
+      </EscapeContext.Provider>
+    )
   }
 }
 
 export {GlobalEscapeHandler}
-
-export default EscapeHandler
+export default EscapeHandlerWrapper

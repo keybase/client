@@ -982,6 +982,7 @@ const loadMoreMessages = (
           query: {
             enableDeletePlaceholders: true,
             disableResolveSupersedes: false,
+            disablePostProcessThread: false,
             markAsRead: false,
             messageTypes: loadThreadMessageTypes,
           },
@@ -1734,6 +1735,28 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
   }
 }
 
+// Handle an image pasted into a conversation
+function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
+  const {conversationIDKey, data} = action.payload
+  const outboxID = Constants.generateOutboxID()
+  const path = yield Saga.call(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
+    outboxID,
+    filename: 'paste.png',
+    data,
+  })
+  const pathAndOutboxIDs = [
+    {
+      path,
+      outboxID,
+    },
+  ]
+  yield Saga.put(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+    })
+  )
+}
+
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
@@ -1759,10 +1782,11 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ...ephemeralData,
         convID: Types.keyToConversationID(conversationIDKey),
         tlfName: meta.tlfname,
-        filename: p,
+        filename: p.path,
         title: titles[i],
         metadata: Buffer.from([]),
         visibility: RPCTypes.commonTLFVisibility.private,
+        outboxID: p.outboxID,
         clientPrev,
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       })
@@ -1781,9 +1805,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map((filename, i) =>
+    paths.map((p, i) =>
       Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
-        filename,
+        filename: p.path,
         outboxID: outboxIDs[i],
       })
     )
@@ -1809,7 +1833,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       state,
       conversationIDKey,
       titles[i],
-      FsTypes.getLocalPathName(paths[i]),
+      FsTypes.getLocalPathName(paths[i].path),
       previewURLs[i],
       previewSpecs[i],
       Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
@@ -1831,7 +1855,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
         convID: Types.keyToConversationID(conversationIDKey),
         outboxID: outboxIDs[i],
-        filename: path,
+        filename: path.path,
         title: titles[i],
         metadata: Buffer.from([]),
         callerPreview: previews[i],
@@ -2665,6 +2689,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)

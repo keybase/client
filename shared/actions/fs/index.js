@@ -681,6 +681,19 @@ const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
     })
   )
 
+const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
+  const opID = Constants.makeUUID()
+  return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+    opID,
+    path: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
+    },
+  })
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .catch(makeRetriableErrorHandler(action))
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -696,6 +709,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
+  yield Saga.actionToPromise(FsGen.deleteFile, deleteFile)
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 

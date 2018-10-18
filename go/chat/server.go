@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -609,7 +610,7 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 			Next: resultPagination.Next,
 		}
 		h.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
-		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityLow,
+		if err := h.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /* query */, p, types.ConvLoaderPriorityLow,
 			newConvLoaderPagebackHook(h.G(), 0, 5))); err != nil {
 			h.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
 		}
@@ -1389,6 +1390,19 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
+func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "GetUploadTempFile")()
+	return h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)
+}
+
+func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTempFileArg) (res string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakeUploadTempFile")()
+	if res, err = h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename); err != nil {
+		return res, err
+	}
+	return res, ioutil.WriteFile(res, arg.Data, 0644)
+}
+
 func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	arg chat1.PostFileAttachmentMessageLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1400,8 +1414,8 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, nil, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
-		arg.EphemeralLifetime)
+		arg.ConvID, arg.TlfName, arg.Visibility, arg.OutboxID, arg.Filename, arg.Title, arg.Metadata,
+		arg.ClientPrev, arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
@@ -1613,17 +1627,19 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("RetryPost: obr: %v", arg.OutboxID))()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
 
 	// Mark as retry in the outbox
-	uid := h.G().Env.GetUID()
-	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
+	outbox := storage.NewOutbox(h.G(), uid)
 	obr, err := outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior)
 	if err != nil {
 		return err
+	} else if obr == nil {
+		return nil
 	}
 	if obr.IsAttachment() {
 		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
@@ -2156,10 +2172,10 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	return h.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, tlfID, public)
 }
 
-func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpArg) (res chat1.GetSearchRegexpRes, err error) {
+func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (res chat1.SearchRegexpRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetSearchRegexp")()
+	defer h.Trace(ctx, func() error { return err }, "SearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
@@ -2190,7 +2206,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
+	hits, err := h.G().RegexpSearcher.Search(ctx, uid, arg.ConvID, re, uiCh, arg.Opts)
 	if err != nil {
 		return res, err
 	}
@@ -2200,16 +2216,16 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		SessionID: arg.SessionID,
 		NumHits:   len(hits),
 	})
-	return chat1.GetSearchRegexpRes{
+	return chat1.SearchRegexpRes{
 		Hits:             hits,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
 
-func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res chat1.InboxSearchRes, err error) {
+func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res chat1.SearchInboxRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "InboxSearch")()
+	defer h.Trace(ctx, func() error { return err }, "SearchInbox")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
@@ -2217,13 +2233,13 @@ func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res
 	}
 
 	chatUI := h.getChatUI(arg.SessionID)
-	uiCh := make(chan chat1.ChatInboxSearchHit)
+	uiCh := make(chan chat1.ChatSearchInboxHit)
 	ch := make(chan struct{})
 	numHits := 0
 	go func() {
 		for searchHit := range uiCh {
 			numHits += len(searchHit.Hits)
-			chatUI.ChatInboxSearchHit(ctx, chat1.ChatInboxSearchHitArg{
+			chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 				SessionID: arg.SessionID,
 				SearchHit: searchHit,
 			})
@@ -2231,41 +2247,37 @@ func (h *Server) InboxSearch(ctx context.Context, arg chat1.InboxSearchArg) (res
 		close(ch)
 	}()
 
-	hits, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
+	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
 	if err != nil {
 		return res, err
 	}
 	<-ch
-	chatUI.ChatInboxSearchDone(ctx, chat1.ChatInboxSearchDoneArg{
+	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
 		SessionID: arg.SessionID,
-		NumHits:   numHits,
-		NumConvs:  len(hits),
+		Res: chat1.ChatSearchInboxDone{
+			NumHits:        numHits,
+			NumConvs:       len(searchRes.Hits),
+			PercentIndexed: searchRes.PercentIndexed,
+		},
 	})
-	return chat1.InboxSearchRes{
-		Hits:             hits,
+	return chat1.SearchInboxRes{
+		Res:              searchRes,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
 
-func (h *Server) IndexChatSearch(ctx context.Context, arg chat1.IndexChatSearchArg) (res map[string]chat1.IndexSearchConvStats, err error) {
+func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "IndexSearch")()
+	ctx = Context(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if arg.ConvID == nil {
-		res, err = h.G().Indexer.IndexInbox(ctx, uid)
-	} else {
-		convStats, err := h.G().Indexer.IndexConv(ctx, uid, *arg.ConvID)
-		if err != nil {
-			return nil, err
-		}
-		res = map[string]chat1.IndexSearchConvStats{
-			arg.ConvID.String(): convStats,
-		}
+	res, err = h.G().Indexer.IndexInbox(ctx, uid)
+	if err != nil {
+		return nil, err
 	}
 	b, err := json.Marshal(res)
 	if err != nil {

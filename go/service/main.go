@@ -353,7 +353,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
-	d.runBackgroundWalletInit()
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
@@ -410,7 +409,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.Searcher = chat.NewSearcher(g)
+	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
@@ -781,23 +780,6 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping per-user-key background upkeep")
-		eng.Shutdown()
-		return nil
-	})
-}
-
-func (d *Service) runBackgroundWalletInit() {
-	eng := engine.NewWalletInitBackground(d.G(), &engine.WalletInitBackgroundArgs{})
-	go func() {
-		m := libkb.NewMetaContextBackground(d.G())
-		err := engine.RunEngine2(m, eng)
-		if err != nil {
-			m.CWarningf("background WalletInit error: %v", err)
-		}
-	}()
-
-	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping background WalletInit")
 		eng.Shutdown()
 		return nil
 	})

@@ -114,9 +114,6 @@ func (p CommandLine) GetVDebugSetting() string {
 func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
 	return p.GetBool("upgrade-per-user-key", true)
 }
-func (p CommandLine) GetAutoWallet() (bool, bool) {
-	return p.GetBool("auto-wallet", true)
-}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }

@@ -79,11 +79,20 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 	}
 	if opts.RequireWallet {
 		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RPCName)
-		_, hasWallet, err := stellar.CreateWalletGated(ctx, s.G())
+		cwg, err := stellar.CreateWalletGated(ctx, s.G())
 		if err != nil {
 			return ctx, err, fin
 		}
-		if !hasWallet {
+		if !cwg.HasWallet {
+			if !cwg.AcceptedDisclaimer {
+				// Synthesize an AppStatusError so the CLI and GUI can match on these errors.
+				err = libkb.NewAppStatusError(&libkb.AppStatus{
+					Code: libkb.SCStellarNeedDisclaimer,
+					Name: "STELLAR_NEED_DISCLAIMER",
+					Desc: "user hasn't yet accepted the Stellar disclaimer",
+				})
+				return ctx, err, fin
+			}
 			return ctx, errors.New("logged-in user does not have a wallet"), fin
 		}
 	}
@@ -505,11 +514,22 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	uis := libkb.UIs{
 		IdentifyUI: s.uiSource.IdentifyUI(s.G(), 0),
 	}
-	m := s.mctx(ctx).WithUIs(uis)
+	mctx := s.mctx(ctx).WithUIs(uis)
 
-	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(arg), true)
+	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg), true)
 	if err != nil {
 		return res, err
+	}
+	if recipient.AccountID != nil {
+		// Lookup Account ID -> User
+		uv, username, err := stellar.LookupUserByAccountID(s.mctx(ctx),
+			stellar1.AccountID(recipient.AccountID.String()))
+		if err == nil {
+			recipient.User = &stellarcommon.User{
+				UV:       uv,
+				Username: username,
+			}
+		}
 	}
 	if recipient.AccountID == nil {
 		if recipient.User != nil {

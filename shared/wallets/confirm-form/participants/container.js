@@ -8,23 +8,17 @@ const mapStateToProps = state => {
   const build = state.wallets.building
   const built = state.wallets.builtPayment
 
-  let recipientUsername = built.toUsername
+  const recipientType = build.recipientType
+  const recipientUsername = (recipientType === 'keybaseUser' && build.to) || ''
   const userInfo = state.users.infoMap.get(recipientUsername)
-  const recipientFullName = userInfo ? userInfo.fullname : ''
+  let recipientFullName = userInfo ? userInfo.fullname : ''
   const fromAccount = getAccount(state, built.from)
 
-  const recipientType = build.recipientType
   let recipientStellarAddress
   let recipientAccountIsDefault
   let recipientAccountName
   let recipientAccountAssets
-  if (recipientType === 'keybaseUser') {
-    if (build.to.includes('@')) {
-      // this is an sbs assertion, which does not get stowed in `built`.
-      // `build.to` has the assertion
-      recipientUsername = build.to
-    }
-  } else {
+  if (recipientType !== 'keybaseUser') {
     recipientStellarAddress = stringToAccountID(build.to)
     const recipientAccount = getAccount(state, recipientStellarAddress)
     recipientAccountName = recipientAccount.name || recipientAccount.accountID

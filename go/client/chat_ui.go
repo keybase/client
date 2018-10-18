@@ -177,7 +177,7 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -192,12 +192,17 @@ func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSear
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	if c.noOutput {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Search complete. Found %d results in %d conversations.", arg.NumHits, arg.NumConvs)
-	fmt.Fprintln(w, "")
+	fmt.Fprintf(w, "Search complete. Found %d results in %d conversations.\n", arg.Res.NumHits, arg.Res.NumConvs)
+	percentIndexed := arg.Res.PercentIndexed
+	helpText := ""
+	if percentIndexed < 70 {
+		helpText = "Rerun with --force-reindex for more complete results."
+	}
+	fmt.Fprintf(w, "Indexing was %d percent complete. %s\n", percentIndexed, helpText)
 	return nil
 }

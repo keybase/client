@@ -214,9 +214,6 @@ declare module 'framed-msgpack-rpc' {
 declare module 'fs-extra' {
   declare module.exports: any
 }
-declare module 'getenv' {
-  declare module.exports: any
-}
 declare module 'glamor' {
   declare module.exports: any
 }

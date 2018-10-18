@@ -17,7 +17,7 @@ type Props = {|
   refresh: () => void,
 |}
 
-export class AssetInput extends React.Component<Props> {
+export default class AssetInput extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
@@ -110,5 +110,3 @@ const styles = Styles.styleSheetCreate({
   },
   topLabel: {color: Styles.globalColors.blue},
 })
-
-export default AssetInput

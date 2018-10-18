@@ -821,6 +821,8 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     case FsGen.openLocalPathInSystemFileManager:
       return `Failed to open path: ${action.payload.path}.`
+    case FsGen.deleteFile:
+      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
     default:
       return 'An unexplainable error has occurred.'
   }
