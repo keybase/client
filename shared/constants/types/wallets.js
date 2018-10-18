@@ -115,15 +115,18 @@ export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' |
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
-export type _Payment = {
+
+// The various payment types below are awkward, but they reflect the
+// protocol. We can clean this up once
+// https://keybase.atlassian.net/browse/CORE-9234 is fixed.
+
+export type _PaymentCommon = {
   amountDescription: string,
   delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
-  publicMemo: HiddenString,
-  publicMemoType: string,
   section: PaymentSection,
   source: string,
   sourceAccountID: string,
@@ -135,11 +138,21 @@ export type _Payment = {
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
-  txID: string,
-  unread: boolean,
   worth: string,
   worthCurrency: string,
 }
+
+export type _PaymentResult = _PaymentCommon & {
+  unread: boolean,
+}
+
+export type _PaymentDetail = _PaymentCommon & {
+  txID: string,
+  publicMemo: HiddenString,
+  publicMemoType: string,
+}
+
+export type _Payment = _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string,
