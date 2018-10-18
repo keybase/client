@@ -360,20 +360,22 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
-func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID, chanMention chat1.ChannelMention) bool {
+func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
+	chanMention chat1.ChannelMention) bool {
 	if IsVisibleChatMessageType(messageType) {
 		return true
 	}
-
-	if messageType != chat1.MessageType_EDIT {
-		return false
-	}
-
-	// an edit with atMention or channel mention should generate notifications
-	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+	switch messageType {
+	case chat1.MessageType_EDIT:
+		// an edit with atMention or channel mention should generate notifications
+		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+			return true
+		}
+	case chat1.MessageType_REACTION:
+		// effect of this is all reactions will notify if they are sent to a person that
+		// is notified for any messages in the conversation
 		return true
 	}
-
 	return false
 }
 
