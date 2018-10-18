@@ -369,6 +369,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			default:
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 			}
+			isFullyResolved = false
 		case keybase1.TeamInviteCategory_UNKNOWN:
 			return res, fmt.Errorf("unknown invite type in implicit team: %q", invite.Type.Unknown())
 		default:
