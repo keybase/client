@@ -4,6 +4,12 @@ import {compose, connect, lifecycle, setDisplayName} from '../../../util/contain
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
+import type {NavigateUpPayload} from '../../../actions/route-tree-gen'
+
+type OwnProps = {
+  navigateUp?: () => NavigateUpPayload, // if routed
+  onBack?: () => void, // if direct
+}
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
@@ -19,17 +25,17 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, onBack}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
   _refresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
   },
   _onClose: () => {
-    navigateUp ? dispatch(navigateUp()) : onBack()
+    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
   },
   _onChoose: (currency: string) => {
     dispatch(WalletsGen.createSetBuildingCurrency({currency}))
-    navigateUp ? dispatch(navigateUp()) : onBack()
+    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
   },
 })
 

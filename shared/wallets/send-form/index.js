@@ -6,13 +6,14 @@ import {SendBody, RequestBody} from './body/container'
 import LinkExisting from '../link-existing/container'
 import CreateNewAccount from '../create-account/container'
 import ChooseAsset from './choose-asset/container'
+import Confirm from '../confirm-form/container'
 
 type FormProps = {|
   onClose: () => void,
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'link-existing' | 'create-new-account' | 'choose-asset',
+  currentScreen: 'root' | 'link-existing' | 'create-new-account' | 'choose-asset' | 'confirm',
 }
 
 // On desktop, we switch between views in this container.
@@ -27,6 +28,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   createNewAccount = () => this._setCurrentScreen('create-new-account')
   backToRoot = () => this._setCurrentScreen('root')
   chooseAsset = () => this._setCurrentScreen('choose-asset')
+  confirm = () => this._setCurrentScreen('confirm')
   render() {
     if (isMobile) {
       return (
@@ -44,6 +46,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
               onLinkAccount={this.linkExisting}
               onChooseAsset={this.chooseAsset}
               onCreateNewAccount={this.createNewAccount}
+              onConfirm={this.confirm}
             />
           </Root>
         )
@@ -69,6 +72,8 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
         )
       case 'choose-asset':
         return <ChooseAsset onBack={this.backToRoot} />
+      case 'confirm':
+        return <Confirm onBack={this.backToRoot} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (currentScreen: empty) => any

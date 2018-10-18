@@ -13,8 +13,9 @@ type SendBodyProps = {
   banners: Array<BannerType>,
   isProcessing?: boolean,
   onChooseAsset?: () => void,
-  onLinkAccount?: () => void,
+  onConfirm?: () => void,
   onCreateNewAccount?: () => void,
+  onLinkAccount?: () => void,
 }
 
 type RequestBodyProps = {
@@ -41,7 +42,7 @@ export const SendBody = (props: SendBodyProps) => (
       <SecretNote />
       <PublicMemo />
     </Kb.ScrollView>
-    <Footer />
+    <Footer onConfirm={props.onConfirm} />
   </Kb.Box2>
 )
 
