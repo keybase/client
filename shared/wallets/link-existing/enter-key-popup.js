@@ -11,6 +11,7 @@ type EnterKeyProps = {|
   onKeyChange: string => void,
   onNext: () => void,
   secretKey: string,
+  stacked?: boolean,
   waiting: boolean,
 |}
 
@@ -25,6 +26,7 @@ const EnterKey = (props: EnterKeyProps) => {
       bottomButtons={buttons}
       onClose={props.onCancel}
       onBack={props.onBack}
+      stacked={props.stacked}
       buttonBarDirection="row"
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>

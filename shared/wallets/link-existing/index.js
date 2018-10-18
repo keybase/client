@@ -22,6 +22,7 @@ type LinkWalletProps = {|
   nameError: string,
   nameValidationState: ValidationState,
   secretKeyValidationState: ValidationState,
+  stacked?: boolean, // are we stacked on another popup?
   view?: View,
   waiting: boolean,
 |}
@@ -73,6 +74,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
             onNext={this._onCheckKey}
             waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
             onBack={this.props.onBack}
+            stacked={this.props.stacked}
           />
         )
       case 'name':
@@ -84,6 +86,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
             onCancel={this.props.onCancel}
             onNameChange={this.props.onNameChange}
             onPrimaryClick={this._onCheckName}
+            stacked={this.props.stacked}
             waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
           />
         )
@@ -109,6 +112,7 @@ type WrapperProps = {|
   nameError: string,
   nameValidationState: ValidationState,
   secretKeyValidationState: ValidationState,
+  stacked?: boolean,
   waiting: boolean,
 |}
 
@@ -139,6 +143,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
         nameError={this.props.nameError}
         nameValidationState={this.props.nameValidationState}
         secretKeyValidationState={this.props.secretKeyValidationState}
+        stacked={this.props.stacked}
         waiting={this.props.waiting}
       />
     )

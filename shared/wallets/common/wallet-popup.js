@@ -11,6 +11,8 @@ type WalletModalProps = {|
   containerStyle?: Styles.StylesCrossPlatform,
   // Since the header is only displayed on mobile, its styles only apply to mobile.
   headerStyle?: Styles.StylesCrossPlatform,
+  // Is this stacked above another popup?
+  stacked?: boolean,
   // Buttons to be placed in the bottom Button Bar.
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.Node>,
@@ -95,12 +97,16 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
+  stackedCoverStyle: {
+    backgroundColor: Styles.globalColors.transparent,
+  },
 })
 
 export default compose(
   renameProp('onClose', 'onCancel'),
-  withProps({
+  withProps(props => ({
     style: Styles.isMobile ? null : {height: 525},
-  }),
+    styleCover: props.stacked ? styles.stackedCoverStyle : null,
+  })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)

@@ -33,11 +33,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendRequestFo
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendRequestForm,
+        showOnCreation: routeProps.get('showOnCreation'),
+        setBuildingTo: routeProps.get('fromSendRequestForm'),
       })
     ),
-  fromSendRequestForm,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -47,12 +46,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   nameValidationState: stateProps.nameValidationState,
   secretKeyValidationState: stateProps.secretKeyValidationState,
   waiting: stateProps.waiting,
-  onCancel: ownProps.onCancel || dispatchProps.onCancel,
+  onCancel: dispatchProps.onCancel,
   onCheckKey: dispatchProps.onCheckKey,
   onCheckName: dispatchProps.onCheckName,
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
-  onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
+  onBack: ownProps.routeProps.get('fromSendRequestForm') ? dispatchProps.onCancel : undefined,
+  stacked: !!ownProps.routeProps.get('fromSendRequestForm'),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)

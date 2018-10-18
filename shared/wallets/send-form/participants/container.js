@@ -42,11 +42,7 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
-  connect(
-    mapStateToPropsKeybaseUser,
-    mapDispatchToPropsKeybaseUser,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToPropsKeybaseUser, mapDispatchToPropsKeybaseUser, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('ParticipantsKeybaseUser')
 )(ParticipantsKeybaseUser)
 
@@ -67,15 +63,11 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
 })
 
 const ConnectedParticipantsStellarPublicKey = compose(
-  connect(
-    mapStateToPropsStellarPublicKey,
-    mapDispatchToPropsStellarPublicKey,
-    (s, d, o) => ({
-      ...o,
-      ...s,
-      ...d,
-    })
-  ),
+  connect(mapStateToPropsStellarPublicKey, mapDispatchToPropsStellarPublicKey, (s, d, o) => ({
+    ...o,
+    ...s,
+    ...d,
+  })),
   setDisplayName('ParticipantsStellarPublicKey')
 )(ParticipantsStellarPublicKey)
 
@@ -120,7 +112,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
     dispatch(
       RouteTree.navigateAppend([
         {
-          props: {backButton: true},
+          props: {fromSendRequestForm: true},
           selected: 'createNewAccount',
         },
       ])
@@ -129,7 +121,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
     dispatch(
       RouteTree.navigateAppend([
         {
-          props: {backButton: true},
+          props: {fromSendRequestForm: true},
           selected: 'linkExisting',
         },
       ])
@@ -137,11 +129,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
 })
 
 const ConnectedParticipantsOtherAccount = compose(
-  connect(
-    mapStateToPropsOtherAccount,
-    mapDispatchToPropsOtherAccount,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToPropsOtherAccount, mapDispatchToPropsOtherAccount, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('ParticipantsOtherAccount')
 )(ParticipantsOtherAccount)
 
@@ -170,11 +158,7 @@ const ParticipantsChooser = props => {
 }
 
 const ConnectedParticipantsChooser = compose(
-  connect(
-    mapStateToPropsChooser,
-    () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToPropsChooser, () => ({}), (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('Participants')
 )(ParticipantsChooser)
 

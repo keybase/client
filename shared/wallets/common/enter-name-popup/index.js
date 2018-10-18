@@ -12,6 +12,7 @@ type EnterNameProps = {|
   onCancel: () => void,
   onNameChange: string => void,
   onPrimaryClick: () => void,
+  stacked?: boolean,
   waiting: boolean,
 |}
 
@@ -37,6 +38,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
       bottomButtons={buttons}
       onClose={Styles.isMobile ? null : props.onCancel}
       onBack={props.onBack}
+      stacked={props.stacked}
     >
       {!Styles.isMobile && (
         <React.Fragment>

@@ -4,6 +4,7 @@ import type {ValidationState} from '../../constants/types/wallets'
 import {EnterNamePopup} from '../common'
 
 type Props = {|
+  aboveOtherPopup: boolean,
   createNewAccountError: string,
   error: string,
   name: string,
@@ -21,6 +22,7 @@ class CreateAccount extends React.Component<Props> {
   render() {
     return (
       <EnterNamePopup
+        aboveOtherPopup={this.props.aboveOtherPopup}
         error={this.props.error || this.props.createNewAccountError}
         name={this.props.name}
         onBack={this.props.onBack}
