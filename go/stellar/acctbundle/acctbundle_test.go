@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestInitialAccountBundle makes sure we can make a brand-new account bundle
+// with a new random secret.
 func TestInitialAccountBundle(t *testing.T) {
 	b, err := NewInitial("hello")
 	require.NoError(t, err)
@@ -18,6 +20,8 @@ func TestInitialAccountBundle(t *testing.T) {
 	require.Len(t, b.Signers, 1)
 }
 
+// TestBoxAccountBundle checks boxing an account bundle and that DecodeAndUnbox
+// gets back to the initial bundle.
 func TestBoxAccountBundle(t *testing.T) {
 	b, err := NewInitial("abc")
 	require.NoError(t, err)
@@ -37,7 +41,7 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.Equal(t, gen, boxed.Enc.Gen)
 
 	m := libkb.NewMetaContext(context.Background(), nil)
-	bundle, version, err := Unbox(m, ring, boxed.EncB64, boxed.VisB64)
+	bundle, version, err := DecodeAndUnbox(m, ring, boxed.EncB64, boxed.VisB64)
 	require.NoError(t, err)
 	require.NotNil(t, bundle)
 	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
@@ -46,6 +50,7 @@ func TestBoxAccountBundle(t *testing.T) {
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Mode)
 }
 
+// pukRing is a convenience type for puks in these tests.
 type pukRing struct {
 	puks map[keybase1.PerUserKeyGeneration]libkb.PerUserKeySeed
 }
@@ -62,6 +67,7 @@ func (p *pukRing) makeGen(t *testing.T, gen int) (libkb.PerUserKeySeed, keybase1
 	return puk, pgen
 }
 
+// SeedByGeneration makes pukRing implement PukFinder.
 func (p *pukRing) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
 	puk, ok := p.puks[generation]
 	if ok {
