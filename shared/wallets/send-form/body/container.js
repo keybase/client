@@ -9,10 +9,7 @@ const mapStateToProps = state => ({
     : state.wallets.builtPayment.banners,
 })
 
-const mapDispatchToProps = dispatch => ({})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
+const mergeProps = (stateProps, dispatchProps) => ({
   banners: (stateProps.banners || []).map(banner => ({
     bannerBackground: bannerLevelToBackground(banner.level),
     bannerText: banner.message,
@@ -21,7 +18,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 const connector = connect(
   mapStateToProps,
-  mapDispatchToProps,
+  () => ({}),
   mergeProps
 )
 

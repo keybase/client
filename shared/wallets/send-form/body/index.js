@@ -12,8 +12,6 @@ import type {Banner as BannerType} from '../../../constants/types/wallets'
 type SendBodyProps = {
   banners: Array<BannerType>,
   isProcessing?: boolean,
-  onLinkAccount: () => void,
-  onCreateNewAccount: () => void,
 }
 
 type RequestBodyProps = {
@@ -34,7 +32,7 @@ export const SendBody = (props: SendBodyProps) => (
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
       ))}
-      <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
+      <Participants />
       <AssetInput />
       <Kb.Divider />
       <SecretNote />

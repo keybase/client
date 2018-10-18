@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
+import * as RouteTree from '../../../actions/route-tree'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
@@ -30,14 +31,14 @@ const mapStateToPropsKeybaseUser = state => {
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
+  onChangeRecipient: (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+  },
+  onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
-  onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
-  onChangeRecipient: (to: string) => {
-    dispatch(WalletsGen.createSetBuildingTo({to}))
-  },
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
@@ -115,6 +116,24 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'createNewAccount',
+        },
+      ])
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'linkExisting',
+        },
+      ])
+    ),
 })
 
 const ConnectedParticipantsOtherAccount = compose(
@@ -139,12 +158,7 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
 
     case 'otherAccount':
-      return (
-        <ConnectedParticipantsOtherAccount
-          onLinkAccount={props.onLinkAccount}
-          onCreateNewAccount={props.onCreateNewAccount}
-        />
-      )
+      return <ConnectedParticipantsOtherAccount />
 
     default:
       /*::
