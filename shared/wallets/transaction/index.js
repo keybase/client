@@ -282,6 +282,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+type ReadState = 'read' | 'unread' | 'oldestUnread'
+
 export type Props = {|
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
@@ -297,7 +299,7 @@ export type Props = {|
   onChat: string => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
-  readState: Types.ReadState,
+  readState: ReadState,
   selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
