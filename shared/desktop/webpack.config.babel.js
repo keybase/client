@@ -95,7 +95,7 @@ const config = (_, {mode}) => {
       devServer,
       mode: isDev ? 'development' : 'production',
       module: {rules},
-      node: {__dirname: true},
+      node: false,
       output: {
         filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
