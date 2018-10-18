@@ -47,6 +47,7 @@ func (c *cmdWalletRename) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletRename) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

@@ -21,10 +21,6 @@ func newNullStellar(g *GlobalContext) *nullStellar {
 
 func (n *nullStellar) OnLogout() {}
 
-func (n *nullStellar) CreateWalletGated(ctx context.Context) error {
-	return fmt.Errorf("null stellar impl")
-}
-
 func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
 	n.G().Log.CErrorf(ctx, "null stellar impl")
 }

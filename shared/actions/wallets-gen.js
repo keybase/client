@@ -178,6 +178,7 @@ type _PaymentDetailReceivedPayload = $ReadOnly<{|
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentCursor: ?StellarRPCTypes.PageCursor,
+  oldestUnread: Types.PaymentID,
   payments: Array<Types.Payment>,
   pending: Array<Types.Payment>,
 |}>

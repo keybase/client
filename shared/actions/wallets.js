@@ -176,6 +176,18 @@ const loadAssets = (
     })
   )
 
+const createPaymentsReceived = (accountID, payments, pending) => WalletsGen.createPaymentsReceived({
+      accountID,
+      oldestUnread: payments.oldestUnread
+        ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
+        : Types.noPaymentID,
+      paymentCursor: payments.cursor,
+      payments: (payments.payments || [])
+        .map(elem => Constants.paymentResultToPayment(elem, 'history'))
+        .filter(Boolean),
+      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem, 'pending')).filter(Boolean),
+    })
+
 const loadPayments = (
   state: TypedState,
   action:
@@ -189,32 +201,14 @@ const loadPayments = (
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
   ]).then(([pending, payments]) =>
-    WalletsGen.createPaymentsReceived({
-      accountID: action.payload.accountID,
-      paymentCursor: payments.cursor,
-      payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
-        .filter(Boolean),
-      pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'pending', payments.oldestUnread))
-        .filter(Boolean),
-    })
-  )
+          createPaymentsReceived(action.payload.accountID, payments, pending))
 
 const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
   return (
     cursor &&
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(
-      payments =>
-        WalletsGen.createPaymentsReceived({
-          accountID: action.payload.accountID,
-          paymentCursor: payments.cursor,
-          payments: (payments.payments || [])
-            .map(elem => Constants.paymentResultToPayment(elem, 'history', payments.oldestUnread))
-            .filter(Boolean),
-          pending: [],
-        })
+      payments => createPaymentsReceived(action.payload.accountID, payments, [])
     )
   )
 }

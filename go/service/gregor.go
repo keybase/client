@@ -1436,6 +1436,7 @@ func (g *gregorHandler) pingLoop() {
 					// library
 					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
 					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
 				}
 				select {
 				case <-ctx.Done():

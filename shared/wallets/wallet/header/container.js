@@ -6,7 +6,8 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
 const mapStateToProps = state => {
-  const selectedAccount = Constants.getAccount(state)
+  const accountID = Constants.getSelectedAccount(state)
+  const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,

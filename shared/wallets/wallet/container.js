@@ -11,8 +11,8 @@ const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   return {
     accountID,
-    assets: Constants.getAssets(state),
-    payments: Constants.getPayments(state),
+    assets: Constants.getAssets(state, accountID),
+    payments: Constants.getPayments(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
   }
 }

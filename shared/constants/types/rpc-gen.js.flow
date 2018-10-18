@@ -1056,6 +1056,7 @@ export const constantsStatusCode = {
   scnospaceondevice: 297,
   scmerkleclienterror: 299,
   scbademail: 472,
+  scratelimit: 602,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scfeatureflag: 712,
@@ -1196,6 +1197,7 @@ export const constantsStatusCode = {
   scstellarbadprev: 3106,
   scstellarwrongprimary: 3107,
   scstellarunsupportedcurrency: 3108,
+  scstellarneeddisclaimer: 3109,
   scnistwrongsize: 3201,
   scnistbadmode: 3202,
   scnisthashwrongsize: 3203,
@@ -2425,6 +2427,7 @@ export type StatusCode =
   | 297 // SCNoSpaceOnDevice_297
   | 299 // SCMerkleClientError_299
   | 472 // SCBadEmail_472
+  | 602 // SCRateLimit_602
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 712 // SCFeatureFlag_712
@@ -2565,6 +2568,7 @@ export type StatusCode =
   | 3106 // SCStellarBadPrev_3106
   | 3107 // SCStellarWrongPrimary_3107
   | 3108 // SCStellarUnsupportedCurrency_3108
+  | 3109 // SCStellarNeedDisclaimer_3109
   | 3201 // SCNISTWrongSize_3201
   | 3202 // SCNISTBadMode_3202
   | 3203 // SCNISTHashWrongSize_3203

@@ -688,13 +688,18 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 		c.randomTimer.Wait()
 		c.log.Debug("%s!", LogField{Key: ConnectionLogMsgKey, Value: "backoff done"})
 	}
-	err := backoff.RetryNotify(func() error {
+	c.log.Debug("RetryNotify %s", LogField{Key: ConnectionLogMsgKey, Value: "beginning"})
+	err := backoff.RetryNotify(func() (err error) {
+		defer func() {
+			c.log.Debug("RetryNotify operation result: %s", LogField{Key: ConnectionLogMsgKey, Value: err})
+		}()
 		// try to connect
-		err := c.connect(ctx)
+		err = c.connect(ctx)
 		select {
 		case <-ctx.Done():
 			// context was canceled by Shutdown() or a user action
 			*reconnectErrPtr = ctx.Err()
+			c.log.Debug("RetryNotify context canceled: %s", LogField{Key: ConnectionLogMsgKey, Value: ctx.Err()})
 			// short-circuit Retry
 			return nil
 		default:
@@ -702,6 +707,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 		if !c.handler.ShouldRetryOnConnect(err) {
 			// A fatal error happened.
 			*reconnectErrPtr = err
+			c.log.Debug("RetryNotify ShouldRetryOnConnect: %s", LogField{Key: ConnectionLogMsgKey, Value: err})
 			// short-circuit Retry
 			return nil
 		}
@@ -709,6 +715,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	}, c.reconnectBackoff(),
 		// give the caller a chance to log any other error or adjust state
 		c.handler.OnConnectError)
+	c.log.Debug("RetryNotify complete %s", LogField{Key: ConnectionLogMsgKey, Value: err})
 
 	if err != nil {
 		// this shouldn't happen, but just in case.
