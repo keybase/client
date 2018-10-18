@@ -6,6 +6,7 @@ import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 
 const mapStateToProps = state => ({
+  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   accounts: getAccountIDs(state),
 })
 
@@ -26,6 +27,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+  acceptedDisclaimer: stateProps.acceptedDisclaimer,
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
