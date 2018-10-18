@@ -36,6 +36,17 @@ func Advance(prevBundle stellar1.Bundle) stellar1.Bundle {
 	return nextBundle
 }
 
+// AdvanceWithoutSigners creates the next bundle given a decrypted bundle,
+// but omits the signers (secret keys) from it.
+func AdvanceWithoutSigners(prevBundle stellar1.Bundle) stellar1.Bundle {
+	next := Advance(prevBundle)
+	for i, a := range next.Accounts {
+		a.Signers = nil
+		next.Accounts[i] = a
+	}
+	return next
+}
+
 // AddAccount adds an account to the bundle. Mutates `bundle`.
 func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name string, makePrimary bool) (err error) {
 	if bundle == nil {

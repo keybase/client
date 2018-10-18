@@ -884,6 +884,18 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.Equal(t, s1, acctBundle.Signers[0])
 }
 
+func TestMigrateBundle(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+
+	acceptDisclaimer(tc)
+	_, err := stellar.CreateWallet(context.Background(), tc.G)
+	require.NoError(t, err)
+
+	err = stellar.MigrateBundleToAccountBundles(context.Background(), tc.G)
+	require.NoError(t, err)
+}
+
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
 	deviceID := g.ActiveDevice.DeviceID()
 	apiArg := libkb.APIArg{

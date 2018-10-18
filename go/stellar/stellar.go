@@ -1441,6 +1441,101 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
 }
 
+// MigrateBundleToAccountBundles migrates the existing stellar bundle that
+// contains all secrets to separate account bundles for each account.
+func MigrateBundleToAccountBundles(ctx context.Context, g *libkb.GlobalContext) error {
+	megaBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	// post all accounts in bundle to the server separately
+	postAllAccounts(ctx, g, megaBundle.Accounts)
+
+	// check if all the account bundles match the bundle entries
+	if err := verifyBundleAccounts(ctx, g, megaBundle.Accounts); err != nil {
+		return err
+	}
+
+	// change the signers in the bundle from secret keys to public keys
+	nextBundle := bundle.AdvanceWithoutSigners(megaBundle)
+	for _, a := range nextBundle.Accounts {
+		if len(a.Signers) > 0 {
+			return errors.New("AdvanceWithoutSigners didn't work")
+		}
+	}
+
+	// upload the big bundle
+	if err := remote.Post(ctx, g, nextBundle); err != nil {
+		return err
+	}
+
+	// fetch it and make sure it has no signers
+	afterBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+	for _, a := range afterBundle.Accounts {
+		if len(a.Signers) > 0 {
+			return errors.New("fetched bundle had signers")
+		}
+	}
+
+	return nil
+}
+
+func postAllAccounts(ctx context.Context, g *libkb.GlobalContext, accounts []stellar1.BundleEntry) error {
+	for _, entry := range accounts {
+		ab, err := acctbundle.New(entry.Signers[0], entry.Name)
+		if err != nil {
+			g.Log.CDebugf(ctx, "acctbundle.New error for %s: %s", entry.AccountID, err)
+			continue
+		}
+		for i := 1; i < len(entry.Signers); i++ {
+			acctbundle.AddSigner(ab, entry.Signers[i])
+		}
+		acctbundle.SetMode(ab, entry.Mode)
+
+		if err := remote.PostAccountBundle(ctx, g, ab); err != nil {
+			g.Log.CDebugf(ctx, "MigrateBundleToAccountBundles PostAccountBundle error: %s", err)
+			// keep going...the account bundle could already exist.
+			// later checks will make sure it's there
+		}
+	}
+
+	return nil
+}
+
+// verifyBundleAccounts fetches each account bundle from the server for each accountID in accounts
+// and checks that it matches the stellar1.BundleEntry.
+func verifyBundleAccounts(ctx context.Context, g *libkb.GlobalContext, accounts []stellar1.BundleEntry) error {
+	for _, entry := range accounts {
+		acctBundle, _, err := remote.FetchAccountBundle(ctx, g, entry.AccountID)
+		if err != nil {
+			return err
+		}
+
+		if acctBundle.AccountID != entry.AccountID {
+			return errors.New("invalid accountID")
+		}
+		if acctBundle.Mode != entry.Mode {
+			return errors.New("invalid mode")
+		}
+		if acctBundle.Name != entry.Name {
+			return errors.New("invalid name")
+		}
+		if len(acctBundle.Signers) != len(entry.Signers) {
+			return errors.New("invalid signers")
+		}
+		for i, s := range acctBundle.Signers {
+			if entry.Signers[i] != s {
+				return errors.New("invalid signer")
+			}
+		}
+	}
+	return nil
+}
+
 // Get a per-user key.
 // Wait for attempt but only warn on error.
 func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {

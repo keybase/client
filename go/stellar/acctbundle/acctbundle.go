@@ -38,6 +38,16 @@ func NewInitial(name string) (*stellar1.AccountBundle, error) {
 	return New(masterKey, name)
 }
 
+// AddSigner adds a secret key to the account.
+func AddSigner(a *stellar1.AccountBundle, signer stellar1.SecretKey) {
+	a.Signers = append(a.Signers, signer)
+}
+
+// SetMode changes the mode in the bundle.
+func SetMode(a *stellar1.AccountBundle, mode stellar1.AccountMode) {
+	a.Mode = mode
+}
+
 // AccountBoxResult is the result of boxing an AccountBundle.
 type AccountBoxResult struct {
 	Enc           stellar1.EncryptedAccountBundle
@@ -95,7 +105,7 @@ func MakeMobileOnly(a *stellar1.AccountBundle) error {
 		return ErrNoChangeNecessary
 	}
 
-	a.Mode = stellar1.AccountMode_MOBILE
+	SetMode(a, stellar1.AccountMode_MOBILE)
 	a.Revision++
 	a.Prev = a.OwnHash
 	a.OwnHash = nil
