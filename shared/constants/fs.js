@@ -696,7 +696,7 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => 
 }
 
 export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
-  tlfList.reduce((reduction, tlf) => (tlfIsBadged(tlf) ? reduction + 1 : reduction), 0)
+  tlfList.reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
 export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
   ['private', 'public', 'team']

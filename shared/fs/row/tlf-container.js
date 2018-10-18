@@ -20,6 +20,7 @@ const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath}) => {
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   return {
+    isIgnored: stateProps._tlf.isIgnored,
     isNew: shouldBadge && stateProps._tlf.isNew,
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     itemStyles: Constants.getItemStyles(Types.getPathElements(path), 'folder', stateProps._username),

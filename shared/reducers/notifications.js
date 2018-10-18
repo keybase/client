@@ -26,6 +26,19 @@ export default function(state: Types.State = initialState, action: Notifications
       const newState = (chatCount ? state.set('mobileAppBadgeCount', chatCount) : state)
         .set(
           'desktopAppBadgeCount',
+          // desktopAppBadgeCount is the sum of badge counts on all tabs. What
+          // happens here is for each tab we deduct the old count from the
+          // current desktopAppBadgeCount, then add the new count into it.
+          //
+          // For example, assume following existing state:
+          // 1) the overall app badge has 12, i.e. state.desktopAppBadgeCount === 12;
+          // 2) and the FS tab count is 4, i.e. state.navBadges.get(Tabs.fsTab) === 4;
+          // Now we receive `{count: {[Tabs.fsTab]: 7}}` indicating that the
+          // new FS tab badge count should become 7. So we deduct 4 from 12 and
+          // add 7, and we'd get 15.
+          //
+          // This way the app badge count is always consistent with the badged
+          // tabs.
           action.payload.counts.reduce(
             (count, v, k) => count - state.navBadges.get(k, 0) + v,
             state.desktopAppBadgeCount
