@@ -116,6 +116,8 @@ export default function configureStore() {
     })
   }
 
-  runSagas()
-  return store
+  return {
+    runSagas,
+    store,
+  }
 }
