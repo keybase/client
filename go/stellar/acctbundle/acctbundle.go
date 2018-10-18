@@ -68,6 +68,7 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 	boxed.VisB64 = base64.StdEncoding.EncodeToString(visiblePack)
 	visibleHash := sha256.Sum256(visiblePack)
 
+	// secret portion
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
 		VisibleHash: visibleHash[:],
 		AccountID:   a.AccountID,

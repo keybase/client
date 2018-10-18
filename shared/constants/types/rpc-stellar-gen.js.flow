@@ -214,7 +214,7 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, issuerVerifiedDomain: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
-export type AccountBundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accountID: AccountID, mode: AccountMode, signers?: ?Array<SecretKey>, name: String, isPrimary: Boolean}>
+export type AccountBundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accountID: AccountID, mode: AccountMode, signers?: ?Array<SecretKey>, name: String}>
 export type AccountBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accountID: AccountID, signers?: ?Array<SecretKey>, name: String}>
 export type AccountBundleSecretVersioned = {version: 1, v1: ?AccountBundleSecretV1}
 export type AccountBundleVersion = 1 // V1_1

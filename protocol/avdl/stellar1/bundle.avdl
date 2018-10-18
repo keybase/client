@@ -124,7 +124,6 @@ protocol bundle {
     AccountMode mode;
     array<SecretKey> signers;
     string name;
-    boolean isPrimary; // whether this is the primary account
   }
 
 }
