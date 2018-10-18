@@ -14,8 +14,9 @@ const config = (_, {mode}) => {
   const isHot = isDev && !!process.env['HOT']
   const isStats = !!process.env['STATS']
 
-  !isStats && console.log('Flags: ', {isDev, isHot})
-  const makeCommonConfig = () => {
+  !isStats && console.error('Flags: ', {isDev, isHot})
+
+  const makeRules = mainThread => {
     const fileLoaderRule = {
       loader: 'file-loader',
       options: {name: '[name].[ext]'},
@@ -26,12 +27,12 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
-        plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
+        plugins: [...(isHot && !mainThread ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '3.0.2'}}]],
       },
     }
 
-    const rules = [
+    return [
       {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
@@ -67,7 +68,9 @@ const config = (_, {mode}) => {
         use: ['style-loader', 'css-loader'],
       },
     ]
+  }
 
+  const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
     const devServer = {
       compress: false,
@@ -94,7 +97,6 @@ const config = (_, {mode}) => {
       bail: true,
       devServer,
       mode: isDev ? 'development' : 'production',
-      module: {rules},
       node: false,
       output: {
         filename: '[name].bundle.js',
@@ -147,7 +149,12 @@ const config = (_, {mode}) => {
   const mainThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
     entry: {main: './desktop/app/index.desktop.js'},
+    module: {rules: makeRules(true)},
     name: 'mainThread',
+    plugins: [
+      // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
+      new webpack.IgnorePlugin(/^react$/),
+    ],
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
     },
@@ -160,6 +167,7 @@ const config = (_, {mode}) => {
       'component-loader': './desktop/remote/component-loader.desktop.js',
       index: './desktop/renderer/index.desktop.js',
     },
+    module: {rules: makeRules(false)},
     name: 'renderThread',
     plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
     target: 'electron-renderer',
