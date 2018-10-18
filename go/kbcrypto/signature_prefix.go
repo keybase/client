@@ -11,7 +11,6 @@ const (
 	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
-	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
 	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
 	// Chat prefixes for each MessageBoxedVersion.
 	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
@@ -19,6 +18,9 @@ const (
 )
 
 func (p SignaturePrefix) IsWhitelisted() bool {
+	if p.IsWhitelistedTest() {
+		return true
+	}
 	switch p {
 	case SignaturePrefixKBFS, SignaturePrefixSigchain, SignaturePrefixChatAttachment,
 		SignaturePrefixTesting, SignaturePrefixNIST, SignaturePrefixChatMBv1, SignaturePrefixChatMBv2:
