@@ -764,6 +764,7 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
+	acceptDisclaimer(tcs[0])
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
@@ -799,6 +800,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	tc, cleanup := setupDesktopTest(t)
 	defer cleanup()
 
+	acceptDisclaimer(tc)
 	_, err := stellar.CreateWallet(context.Background(), tc.G)
 	require.NoError(t, err)
 
@@ -842,6 +844,7 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
 
+	acceptDisclaimer(tc)
 	_, err := stellar.CreateWallet(context.Background(), tc.G)
 	require.NoError(t, err)
 
