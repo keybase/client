@@ -54,6 +54,7 @@ func TestLookupRecipientFederation(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
+	acceptDisclaimer(tcs[0])
 	fAccounts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
 	randomPub, _ := randomStellarKeypair()

@@ -79,11 +79,20 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (ctx context.
 	}
 	if opts.RequireWallet {
 		s.G().Log.CDebugf(ctx, "wallet needed for %v", opts.RPCName)
-		_, hasWallet, err := stellar.CreateWalletGated(ctx, s.G())
+		cwg, err := stellar.CreateWalletGated(ctx, s.G())
 		if err != nil {
 			return ctx, err, fin
 		}
-		if !hasWallet {
+		if !cwg.HasWallet {
+			if !cwg.AcceptedDisclaimer {
+				// Synthesize an AppStatusError so the CLI and GUI can match on these errors.
+				err = libkb.NewAppStatusError(&libkb.AppStatus{
+					Code: libkb.SCStellarNeedDisclaimer,
+					Name: "STELLAR_NEED_DISCLAIMER",
+					Desc: "user hasn't yet accepted the Stellar disclaimer",
+				})
+				return ctx, err, fin
+			}
 			return ctx, errors.New("logged-in user does not have a wallet"), fin
 		}
 	}

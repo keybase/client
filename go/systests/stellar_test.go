@@ -87,6 +87,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	t.Skip("CORE-9018 blockade required for relays to be sent")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -112,13 +113,15 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	alice := tt.addUser("alice")
 	var bob *userPlusDevice
 	if startWithPUK {
-		bob = tt.addWalletlessUser("bob")
+		bob = tt.addUser("bob")
 	} else {
 		bob = tt.addPuklessUser("bob")
 	}
 	alice.kickTeamRekeyd()
 
 	t.Logf("alice gets funded")
+	acceptDisclaimer(alice)
+
 	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	gift(t, res[0].AccountID)
@@ -159,12 +162,11 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 	if startWithPUK {
 		t.Logf("bob gets a wallet")
-		bob.tc.Tp.DisableAutoWallet = false
-		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+		acceptDisclaimer(bob)
 	} else {
 		t.Logf("bob gets a PUK and wallet")
-		bob.perUserKeyUpgrade()
-		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+		bob.device.tctx.Tp.DisableUpgradePerUserKey = false
+		acceptDisclaimer(bob)
 
 		t.Logf("wait for alice to add bob to their impteam")
 		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
@@ -263,4 +265,9 @@ func gift(t testing.TB, accountID stellar1.AccountID) {
 
 func useStellarTestNet(t testing.TB) {
 	stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+}
+
+func acceptDisclaimer(u *userPlusDevice) {
+	err := u.stellarClient.AcceptDisclaimerLocal(context.Background(), 0)
+	require.NoError(u.tc.T, err)
 }

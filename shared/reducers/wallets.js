@@ -47,6 +47,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
+        .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
