@@ -4,7 +4,6 @@
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
 import TerserPlugin from 'terser-webpack-plugin'
-import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
@@ -12,8 +11,8 @@ import webpack from 'webpack'
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
-  const isHot = isDev && getenv.boolish('HOT', false)
-  const isStats = getenv.boolish('STATS', false)
+  const isHot = isDev && !!process.env['HOT']
+  const isStats = !!process.env['STATS']
 
   !isStats && console.log('Flags: ', {isDev, isHot})
   const makeCommonConfig = () => {
@@ -167,7 +166,7 @@ const config = (_, {mode}) => {
   })
 
   if (isHot) {
-    return getenv.boolish('BEFORE_HOT', false) ? mainThreadConfig : renderThreadConfig
+    return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
   } else {
     return [mainThreadConfig, renderThreadConfig]
   }
