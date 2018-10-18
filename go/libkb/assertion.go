@@ -6,6 +6,7 @@ package libkb
 import (
 	"encoding/hex"
 	"fmt"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -199,6 +200,7 @@ func (a AssertionHTTPS) MatchSet(ps ProofSet) bool       { return a.matchSet(a, 
 func (a AssertionDNS) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
 func (a AssertionFingerprint) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionPhoneNumber) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionEmail) MatchSet(ps ProofSet) bool       { return a.matchSet(a, ps) }
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
@@ -255,10 +257,14 @@ func (a AssertionDNS) ToSocialAssertion() (sa keybase1.SocialAssertion, err erro
 func (a AssertionFingerprint) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
+
+// Phone number and emails are not "social" like facebook or twitter, and there
+// are no public prooofs, but they still conform to keybase1.SocialAssertion
+// type used in implicit team handling code.
 func (a AssertionPhoneNumber) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
-	// Phone number is not "social" like facebook or twitter, and there are no
-	// public prooofs, but it still conforms to keybase1.SocialAssertion type
-	// used in implicit team handling code.
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionEmail) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
 	return a.ToSocialAssertionHelper()
 }
 
@@ -289,7 +295,10 @@ func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL       { ret
 func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
 func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
 func (a AssertionPhoneNumber) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
-func (a AssertionPhoneNumber) IsServerTrust() bool                         { return true }
+func (a AssertionEmail) CollectUrls(v []AssertionURL) []AssertionURL       { return append(v, a) }
+
+func (a AssertionPhoneNumber) IsServerTrust() bool { return true }
+func (a AssertionEmail) IsServerTrust() bool       { return true }
 
 type AssertionSocial struct{ AssertionURLBase }
 type AssertionWeb struct{ AssertionURLBase }
@@ -312,6 +321,7 @@ type AssertionHTTPS struct{ AssertionURLBase }
 type AssertionDNS struct{ AssertionURLBase }
 type AssertionFingerprint struct{ AssertionURLBase }
 type AssertionPhoneNumber struct{ AssertionURLBase }
+type AssertionEmail struct{ AssertionURLBase }
 
 func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
@@ -442,6 +452,7 @@ func (a AssertionHTTP) IsRemote() bool             { return true }
 func (a AssertionHTTPS) IsRemote() bool            { return true }
 func (a AssertionDNS) IsRemote() bool              { return true }
 func (a AssertionPhoneNumber) IsRemote() bool      { return true }
+func (a AssertionEmail) IsRemote() bool            { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -517,12 +528,28 @@ func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (Assertion
 	return a, nil
 }
 
+func (a AssertionEmail) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	_, err := url.QueryUnescape(a.Value)
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
 func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
 }
 
 func (a AssertionPhoneNumber) ToLookup() (key, value string, err error) {
 	return "phone", "+" + a.Value, nil
+}
+
+func (a AssertionEmail) ToLookup() (key, value string, err error) {
+	value, err = url.QueryUnescape(value)
+	if err != nil {
+		return "", "", err
+	}
+	return "email", value, nil
 }
 
 func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
@@ -566,6 +593,8 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 		ret = AssertionFingerprint{base}
 	case "phone":
 		ret = AssertionPhoneNumber{base}
+	case "email":
+		ret = AssertionEmail{base}
 	default:
 		ret = AssertionSocial{base}
 	}

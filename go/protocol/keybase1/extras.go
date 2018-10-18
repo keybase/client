@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1030,8 +1031,25 @@ func (sa SocialAssertion) TeamInviteType() string {
 	return string(sa.Service)
 }
 
-func (sa SocialAssertion) TeamInviteName() TeamInviteName {
-	return TeamInviteName(sa.User)
+func (sa SocialAssertion) TeamInviteName() (ret TeamInviteName, err error) {
+	switch sa.Service {
+	case "email":
+		unesc, err := url.QueryUnescape(sa.User)
+		if err != nil {
+			return ret, err
+		}
+		return TeamInviteName(unesc), nil
+	default:
+		return TeamInviteName(sa.User), nil
+	}
+}
+
+func (tn TeamInviteName) SocialAssertionEmail() string {
+	return url.QueryEscape(string(tn))
+}
+
+func (tn TeamInviteName) String() string {
+	return string(tn)
 }
 
 func (a GetArg) GetEndpoint() string {

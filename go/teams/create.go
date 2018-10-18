@@ -104,21 +104,33 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 		members.Readers = &readers
 	}
 
+	makeSCInvite := func(sa keybase1.SocialAssertion) (ret SCTeamInvite, err error) {
+		inviteName, err := sa.TeamInviteName()
+		if err != nil {
+			return ret, err
+		}
+		return SCTeamInvite{
+			Type: sa.TeamInviteType(),
+			Name: inviteName,
+			ID:   NewInviteID(),
+		}, nil
+	}
+
 	// Add invites for assertions
 	for _, assertion := range impTeam.Writers.UnresolvedUsers {
-		ownerInvites = append(ownerInvites, SCTeamInvite{
-			Type: assertion.TeamInviteType(),
-			Name: assertion.TeamInviteName(),
-			ID:   NewInviteID(),
-		})
+		sc, err := makeSCInvite(assertion)
+		if err != nil {
+			return res, teamName, err
+		}
+		ownerInvites = append(ownerInvites, sc)
 	}
 
 	for _, assertion := range impTeam.Readers.UnresolvedUsers {
-		readerInvites = append(readerInvites, SCTeamInvite{
-			Type: assertion.TeamInviteType(),
-			Name: assertion.TeamInviteName(),
-			ID:   NewInviteID(),
-		})
+		sc, err := makeSCInvite(assertion)
+		if err != nil {
+			return res, teamName, err
+		}
+		readerInvites = append(readerInvites, sc)
 	}
 
 	invites := &SCTeamInvites{

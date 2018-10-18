@@ -323,7 +323,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		switch invtyp {
 		case keybase1.TeamInviteCategory_SBS:
 			sa := keybase1.SocialAssertion{
-				User:    string(invite.Name),
+				User:    invite.Name.String(),
 				Service: keybase1.SocialAssertionService(string(invite.Type.Sbs())),
 			}
 			switch invite.Role {
@@ -337,7 +337,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			isFullyResolved = false
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// Check to make sure we don't already have the user in the name
-			iname := string(invite.Name)
+			iname := invite.Name.String()
 			if seenKBUsers[iname] {
 				continue
 			}
@@ -357,8 +357,15 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			if err != nil {
 				return res, fmt.Errorf("Failed to handle invite type %v: %s", invtyp, err)
 			}
+			var name string
+			switch invtyp {
+			case keybase1.TeamInviteCategory_PHONE:
+				name = invite.Name.String()
+			case keybase1.TeamInviteCategory_EMAIL:
+				name = invite.Name.SocialAssertionEmail()
+			}
 			sa := keybase1.SocialAssertion{
-				User:    string(invite.Name),
+				User:    name,
 				Service: keybase1.SocialAssertionService(typ),
 			}
 			switch invite.Role {
