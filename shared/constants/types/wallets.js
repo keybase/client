@@ -127,7 +127,6 @@ export type _PaymentCommon = {
   id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
-  section: PaymentSection,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -143,6 +142,7 @@ export type _PaymentCommon = {
 }
 
 export type _PaymentResult = _PaymentCommon & {
+  section: PaymentSection,
   unread: boolean,
 }
 

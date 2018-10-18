@@ -184,7 +184,6 @@ const _defaultPaymentCommon = {
   id: Types.noPaymentID,
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
-  section: 'none',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -202,6 +201,7 @@ const _defaultPaymentCommon = {
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
   unread: false,
+  section: 'none',
 }
 
 const _defaultPaymentDetail = {
@@ -251,7 +251,8 @@ const rpcPaymentResultToPaymentResult = (w: RPCTypes.PaymentOrErrorLocal, sectio
   }
   const unread = w.payment.unread
   return makePaymentResult({
-    ...rpcPaymentToPaymentCommon(w.payment, section),
+    ...rpcPaymentToPaymentCommon(w.payment),
+    section,
     unread,
   })
 }
@@ -266,7 +267,6 @@ const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
 
 const rpcPaymentToPaymentCommon = (
   p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
-  section?: Types.PaymentSection
 ) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
@@ -280,7 +280,6 @@ const rpcPaymentToPaymentCommon = (
   )
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
-    ...(section ? {section} : null),
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
