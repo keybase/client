@@ -142,9 +142,11 @@ export type _PaymentCommon = {
 }
 
 export type _PaymentResult = _PaymentCommon & {
-  // The statusDescription is either "pending", "completed", or
-  // "error" so the section field can actually be moved to
-  // _PaymentCommon.
+  // Ideally the section field would be in _PaymentCommon. We can
+  // derive it from statusDescription, which is either "pending",
+  // "completed", or "error", or once
+  // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
+  // might be a better way.
   section: PaymentSection,
   unread: boolean,
 }
