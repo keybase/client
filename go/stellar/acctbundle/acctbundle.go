@@ -83,8 +83,13 @@ func Box(a *stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk li
 	return boxed, nil
 }
 
+// ErrNoChangeNecessary means that any proposed change to a bundle isn't
+// actually necessary.
 var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 
+// MakeMobileOnly transforms a stellar1.AccountBundle into a mobile-only
+// bundle.  This advances the revision.  If it's already mobile-only,
+// this function will return ErrNoChangeNecessary.
 func MakeMobileOnly(a *stellar1.AccountBundle) error {
 	if a.Mode == stellar1.AccountMode_MOBILE {
 		return ErrNoChangeNecessary
@@ -98,11 +103,15 @@ func MakeMobileOnly(a *stellar1.AccountBundle) error {
 	return nil
 }
 
+// PukFinder helps this package find puks.
 type PukFinder interface {
 	SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error)
 }
 
-func Unbox(m libkb.MetaContext, finder PukFinder, encB64, visB64 string) (*stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
+// DecodeAndUnbox decodes the encrypted and visible encoded bundles and unboxes
+// the encrypted bundle using PukFinder to find the correct puk.  It combines
+// the results into a stellar1.AccountBundle.
+func DecodeAndUnbox(m libkb.MetaContext, finder PukFinder, encB64, visB64 string) (*stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
 	encBundle, hash, err := decode(encB64)
 	if err != nil {
 		return nil, 0, err
@@ -157,6 +166,7 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	return res, resB64, nil
 }
 
+// decode decodes a base64-encoded encrypted account bundle.
 func decode(encryptedB64 string) (stellar1.EncryptedAccountBundle, stellar1.Hash, error) {
 	cipherpack, err := base64.StdEncoding.DecodeString(encryptedB64)
 	if err != nil {
@@ -170,6 +180,8 @@ func decode(encryptedB64 string) (stellar1.EncryptedAccountBundle, stellar1.Hash
 	return enc, encHash[:], nil
 }
 
+// unbox unboxes an encrypted account bundle and decodes the visual portion of the bundle.
+// It validates the visible hash in the secret portion.
 func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64 string, puk libkb.PerUserKeySeed) (*stellar1.AccountBundle, stellar1.AccountBundleVersion, error) {
 	versioned, err := decrypt(encBundle, puk)
 	if err != nil {
@@ -210,14 +222,10 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash, visB64
 		return nil, 0, errors.New("stellar account bundle missing own hash")
 	}
 
-	// XXX
-	// if err = bundleOut.CheckInvariants(); err != nil {
-	//	return stellar1.AccountBundle{}, 0, err
-	// }
-
 	return &bundleOut, version, nil
 }
 
+// decrypt decrypts an encrypted account bundle with the provided puk.
 func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed) (stellar1.AccountBundleSecretVersioned, error) {
 	var empty stellar1.AccountBundleSecretVersioned
 	if encBundle.V != 1 {
@@ -248,6 +256,8 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	return bver, nil
 }
 
+// merge combines the versioned secret account bundle and the visible account bundle into
+// a stellar1.AccountBundle for local use.
 func merge(secret stellar1.AccountBundleSecretV1, visible stellar1.AccountBundleVisibleV1) (stellar1.AccountBundle, error) {
 	return stellar1.AccountBundle{
 		Revision:  visible.Revision,

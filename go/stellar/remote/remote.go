@@ -188,7 +188,7 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	}
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
-	return acctbundle.Unbox(m, finder, apiRes.EncryptedB64, apiRes.VisibleB64)
+	return acctbundle.DecodeAndUnbox(m, finder, apiRes.EncryptedB64, apiRes.VisibleB64)
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
@@ -700,7 +700,8 @@ func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID 
 	return res.MobileOnly != 0, nil
 }
 
-// XXX this should change very soon
+// TODO: This function will change very soon.  MakeAccountMobileOnly does what it intends to
+// do at the bundle level, so this can use that.
 func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
 	payload := make(libkb.JSONPayload)
 	payload["account_id"] = accountID
@@ -766,6 +767,7 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 	return ret, nil
 }
 
+// pukFinder implements the acctbundle.PukFinder interface.
 type pukFinder struct{}
 
 func (p *pukFinder) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
