@@ -105,6 +105,7 @@ export type {
   MessageType,
   Ordinal,
   OutboxID,
+  PathAndOutboxID,
   PreviewSpec,
   Reaction,
   Reactions,

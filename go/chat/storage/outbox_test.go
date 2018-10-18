@@ -7,7 +7,6 @@ import (
 
 	"time"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -18,22 +17,18 @@ import (
 )
 
 func setupOutboxTest(t testing.TB, storageEngine, name string) (kbtest.ChatTestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
-	ltc := setupCommonTest(t, name)
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
-	u, err := kbtest.CreateAndSignupFakeUser("ob", ltc.G)
+	ctc := setupCommonTest(t, name)
+	u, err := kbtest.CreateAndSignupFakeUser("ob", ctc.TestContext.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()
-	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
-		HomeDir:             tc.Context().GetEnv().GetHome(),
+	ctc.G.Env = libkb.NewEnv(libkb.AppConfig{
+		HomeDir:             ctc.Context().GetEnv().GetHome(),
 		OutboxStorageEngine: storageEngine,
-	}, nil, tc.Context().GetLog)
-	ob := NewOutbox(tc.Context(), uid)
+	}, nil, ctc.Context().GetLog)
+	ob := NewOutbox(ctc.Context(), uid)
 	ob.SetClock(cl)
-	return tc, ob, uid, cl
+	return ctc, ob, uid, cl
 }
 
 func makeMsgPlaintext(body string, uid gregor1.UID) chat1.MessagePlaintext {

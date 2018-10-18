@@ -50,7 +50,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
-      return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
+      return state
+        .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
+        .update('building', b => b.merge({currency: action.payload.currency.code}))
     case WalletsGen.secretKeyReceived:
       return state
         .set('exportedSecretKey', action.payload.secretKey)
@@ -122,7 +124,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setBuildingTo:
       const {to} = action.payload
       return state
-        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: '', toUsername: ''}))
+        .set('builtPayment', state.get('builtPayment').merge({toErrMsg: ''}))
         .set('builtRequest', state.get('builtRequest').merge({toErrMsg: ''}))
         .set('building', state.get('building').merge({to}))
     case WalletsGen.sendAssetChoicesReceived:

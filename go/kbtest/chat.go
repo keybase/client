@@ -969,13 +969,13 @@ type ChatUI struct {
 	threadCb          chan NonblockThreadResult
 	searchHitCb       chan chat1.ChatSearchHitArg
 	searchDoneCb      chan chat1.ChatSearchDoneArg
-	inboxSearchHitCb  chan chat1.ChatInboxSearchHitArg
-	inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg
+	inboxSearchHitCb  chan chat1.ChatSearchInboxHitArg
+	inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg
 }
 
 func NewChatUI(inboxCb chan NonblockInboxResult, threadCb chan NonblockThreadResult,
 	searchHitCb chan chat1.ChatSearchHitArg, searchDoneCb chan chat1.ChatSearchDoneArg,
-	inboxSearchHitCb chan chat1.ChatInboxSearchHitArg, inboxSearchDoneCb chan chat1.ChatInboxSearchDoneArg) *ChatUI {
+	inboxSearchHitCb chan chat1.ChatSearchInboxHitArg, inboxSearchDoneCb chan chat1.ChatSearchInboxDoneArg) *ChatUI {
 	return &ChatUI{
 		inboxCb:           inboxCb,
 		threadCb:          threadCb,
@@ -1073,12 +1073,12 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchHit(ctx context.Context, arg chat1.ChatInboxSearchHitArg) error {
+func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
 	c.inboxSearchHitCb <- arg
 	return nil
 }
 
-func (c *ChatUI) ChatInboxSearchDone(ctx context.Context, arg chat1.ChatInboxSearchDoneArg) error {
+func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
 	c.inboxSearchDoneCb <- arg
 	return nil
 }

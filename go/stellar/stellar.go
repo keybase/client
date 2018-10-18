@@ -149,10 +149,14 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err != nil {
 		return err
 	}
+
 	if makePrimary {
-		return remote.PostWithChainlink(ctx, g, nextBundle)
+		// primary account changes need sigchain link
+		// (so other users can find user's primary account id)
+		err = remote.PostWithChainlink(ctx, g, nextBundle)
+	} else {
+		err = remote.Post(ctx, g, nextBundle)
 	}
-	err = remote.Post(ctx, g, nextBundle)
 	if err != nil {
 		return err
 	}

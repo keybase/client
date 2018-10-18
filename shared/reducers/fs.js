@@ -292,6 +292,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.upload:
     case FsGen.openFilesFromWidget:
     case FsGen.userFileEditsLoad:
+    case FsGen.deleteFile:
       return state
     default:
       /*::

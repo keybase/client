@@ -134,6 +134,7 @@ func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
 
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
+	Query        *chat1.GetThreadQuery
 	Pagination   *chat1.Pagination
 	Priority     ConvLoaderPriority
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
@@ -147,10 +148,12 @@ func (j ConvLoaderJob) String() string {
 	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination, priority ConvLoaderPriority,
 	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
+		Query:        query,
 		Pagination:   pagination,
 		Priority:     priority,
 		PostLoadHook: postLoadHook,
@@ -221,4 +224,30 @@ func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.Conver
 
 func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
 	return nil
+}
+
+type DummyEphemeralPurger struct{}
+
+func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+
+type DummyIndexer struct{}
+
+func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	uiCh chan chat1.ChatSearchInboxHit) (*chat1.ChatSearchInboxResults, error) {
+	return nil, nil
+}
+func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
+	return nil, nil
 }

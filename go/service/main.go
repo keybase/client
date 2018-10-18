@@ -410,7 +410,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.Searcher = chat.NewSearcher(g)
+	g.RegexpSearcher = search.NewRegexpSearcher(g)
 	g.Indexer = search.NewIndexer(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 

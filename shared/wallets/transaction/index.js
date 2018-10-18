@@ -2,7 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
+import {
+  Avatar,
+  Box2,
+  Button,
+  ClickableBox,
+  Icon,
+  ConnectedUsernames,
+  WaitingButton,
+} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
@@ -279,13 +287,14 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  large: boolean,
-  // Ignored if yourRole is receiverOnly and counterpartyType is
-  // stellarPublicKey.
+  // Ignored if counterpartyType is stellarPublicKey and yourRole is
+  // receiverOnly.
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
-  onRetryPayment?: () => void,
+  // onChat and onShowProfile are used only when counterpartyType ===
+  // 'keybaseUser'.
+  onChat: string => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
   readState: Types.ReadState,
@@ -298,9 +307,29 @@ export type Props = {|
 |}
 
 export const Transaction = (props: Props) => {
+  let large
+  let showMemo
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      large = true
+      showMemo = true
+      break
+    case 'stellarPublicKey':
+      large = true
+      showMemo = props.yourRole !== 'receiverOnly'
+      break
+    case 'otherAccount':
+      large = !!props.memo
+      showMemo = props.memo
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
+  }
   const pending = !props.timestamp || props.status !== 'completed'
-  const showMemo =
-    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
   const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
   return (
@@ -310,7 +339,7 @@ export const Transaction = (props: Props) => {
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            large={props.large}
+            large={large}
             onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
@@ -321,7 +350,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
-              large={props.large}
+              large={large}
               pending={pending}
               yourRole={props.yourRole}
               counterparty={props.counterparty}
@@ -333,6 +362,15 @@ export const Transaction = (props: Props) => {
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
+              {props.counterpartyType === 'keybaseUser' && (
+                <Button
+                  type="Secondary"
+                  label="Chat"
+                  small={true}
+                  style={styles.chatButton}
+                  onClick={() => props.onChat(props.counterparty)}
+                />
+              )}
               {props.onCancelPayment && (
                 <WaitingButton
                   type="Danger"
@@ -368,6 +406,11 @@ const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
     marginTop: globalMargins.tiny,
+  },
+  chatButton: {
+    alignSelf: 'flex-start',
+    marginTop: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
   },
   container: {
     padding: globalMargins.tiny,

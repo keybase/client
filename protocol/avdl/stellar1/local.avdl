@@ -208,7 +208,7 @@ protocol local {
   }
   WalletSettings getWalletSettingsLocal(int sessionID);
 
-  void setAcceptedDisclaimerLocal(int sessionID);
+  void acceptDisclaimerLocal(int sessionID);
 
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
@@ -269,10 +269,6 @@ protocol local {
     // All errMsg fields are in 'keybase chat language' markdown.
     // Example: "This stellar address is incorrect"
     string toErrMsg;
-
-    // Optional. `arg.to` may be an account ID that resolves to a user.
-    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
-    string toUsername;
 
     // Optional. Error to show with the amount field.
     // Example: "russel doesn't accept *BTC/Stronghold.com*\nPlease pick another asset."

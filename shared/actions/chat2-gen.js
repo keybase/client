@@ -18,6 +18,7 @@ export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
+export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -122,6 +123,10 @@ type _AttachmentMobileSavedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
 |}>
+type _AttachmentPastedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  data: Buffer,
+|}>
 type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -134,7 +139,7 @@ type _AttachmentUploadingPayload = $ReadOnly<{|
 |}>
 type _AttachmentsUploadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  paths: Array<string>,
+  paths: Array<Types.PathAndOutboxID>,
   titles: Array<string>,
 |}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
@@ -297,7 +302,7 @@ type _PreviewConversationPayload = $ReadOnly<{|
   teamname?: string,
   channelname?: string,
   conversationIDKey?: Types.ConversationIDKey,
-  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
+  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction',
 |}>
 type _RequestInfoReceivedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -484,6 +489,7 @@ export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
 export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({error: false, payload, type: attachmentMobileSave})
 export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({error: false, payload, type: attachmentMobileSaved})
+export const createAttachmentPasted = (payload: _AttachmentPastedPayload) => ({error: false, payload, type: attachmentPasted})
 export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({error: false, payload, type: attachmentPreviewSelect})
 export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
@@ -547,6 +553,7 @@ export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloade
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
 export type AttachmentMobileSavePayload = $Call<typeof createAttachmentMobileSave, _AttachmentMobileSavePayload>
 export type AttachmentMobileSavedPayload = $Call<typeof createAttachmentMobileSaved, _AttachmentMobileSavedPayload>
+export type AttachmentPastedPayload = $Call<typeof createAttachmentPasted, _AttachmentPastedPayload>
 export type AttachmentPreviewSelectPayload = $Call<typeof createAttachmentPreviewSelect, _AttachmentPreviewSelectPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
@@ -635,6 +642,7 @@ export type Actions =
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload
+  | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload

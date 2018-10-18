@@ -266,11 +266,13 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
-	searcher := NewSearcher(g)
+	searcher := search.NewRegexpSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
-	searcher.pageSize = 3
-	g.Searcher = searcher
-	g.Indexer = search.NewIndexer(g)
+	searcher.SetPageSize(2)
+	g.RegexpSearcher = searcher
+	indexer := search.NewIndexer(g)
+	indexer.SetPageSize(2)
+	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	g.StellarLoader = types.DummyStellarLoader{}

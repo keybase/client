@@ -154,7 +154,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
     [kbfsCommonFSNotificationType.connection]: '',
   }[notification.notificationType]
 
-  if (action === undefined) {
+  if (action === undefined && notification.statusCode !== kbfsCommonFSStatusCode.error) {
     // Ignore notification types we don't care about.
     return
   }

@@ -274,9 +274,9 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 	return ret, nil
 }
 
-func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "SetAcceptedDisclaimerLocal",
+		RPCName:       "AcceptDisclaimerLocal",
 		Err:           &err,
 		RequireWallet: true,
 	})
@@ -886,8 +886,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				})
 			}
 			bannerThem := "their"
-			if recipient.User != nil {
-				res.ToUsername = recipient.User.Username.String()
+			if recipient.User != nil && !arg.ToIsAccountID {
 				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {

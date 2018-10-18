@@ -460,10 +460,6 @@
         },
         {
           "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -1078,7 +1074,7 @@
       ],
       "response": "WalletSettings"
     },
-    "setAcceptedDisclaimerLocal": {
+    "acceptDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",

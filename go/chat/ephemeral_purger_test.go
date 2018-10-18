@@ -76,7 +76,7 @@ func TestBackgroundPurge(t *testing.T) {
 
 	// Load our conv with the initial tlf msg
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
 	t.Logf("assert listener 0")
 	assertListener(res.ConvID)
 
