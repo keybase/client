@@ -170,6 +170,7 @@
   "keybase.1.user.loadMySettings": {"promise": true},
   "keybase.1.user.profileEdit": {"promise": true},
   "keybase.1.user.uploadUserAvatar": {"promise": true},
+  "stellar.1.local.acceptDisclaimerLocal": {"promise": true},
   "stellar.1.local.buildPaymentLocal": {"promise": true},
   "stellar.1.local.buildRequestLocal": {"promise": true},
   "stellar.1.local.cancelPaymentLocal": {"promise": true},

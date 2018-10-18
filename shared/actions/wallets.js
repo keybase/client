@@ -132,7 +132,9 @@ const clearBuilding = () => Saga.put(WalletsGen.createClearBuilding())
 const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
 const loadWalletSettings = () =>
-  RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings => WalletsGen.createWalletSettingsReceived({settings}))
+  RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
+    WalletsGen.createWalletSettingsReceived({settings})
+  )
 
 const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
   const {from: _accountID} = action.payload.build
@@ -476,6 +478,13 @@ const maybeClearErrors = (state: TypedState) => {
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
+const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer) =>
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise({}, Constants.acceptDisclaimerWaitingKey).then(res =>
+    RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
+      WalletsGen.createWalletSettingsReceived({settings})
+    )
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -581,6 +590,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   yield Saga.actionToPromise(WalletsGen.loadAccounts, loadWalletSettings)
+  yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
 }
 
 export default walletsSaga

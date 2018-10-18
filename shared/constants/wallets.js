@@ -444,6 +444,7 @@ const updatePaymentMap = (
   )
 }
 
+const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
