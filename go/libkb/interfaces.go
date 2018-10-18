@@ -46,7 +46,6 @@ type configGetter interface {
 	GetDebug() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
-	GetAutoWallet() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -650,7 +649,6 @@ type TeamAuditor interface {
 
 type Stellar interface {
 	OnLogout()
-	CreateWalletGated(context.Context) error
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)

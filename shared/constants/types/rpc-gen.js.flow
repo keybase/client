@@ -1189,6 +1189,7 @@ export const constantsStatusCode = {
   scstellarbadprev: 3106,
   scstellarwrongprimary: 3107,
   scstellarunsupportedcurrency: 3108,
+  scstellarneeddisclaimer: 3109,
   scnistwrongsize: 3201,
   scnistbadmode: 3202,
   scnisthashwrongsize: 3203,
@@ -2559,6 +2560,7 @@ export type StatusCode =
   | 3106 // SCStellarBadPrev_3106
   | 3107 // SCStellarWrongPrimary_3107
   | 3108 // SCStellarUnsupportedCurrency_3108
+  | 3109 // SCStellarNeedDisclaimer_3109
   | 3201 // SCNISTWrongSize_3201
   | 3202 // SCNISTBadMode_3202
   | 3203 // SCNISTHashWrongSize_3203
