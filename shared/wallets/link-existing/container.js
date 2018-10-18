@@ -15,7 +15,7 @@ const mapStateToProps = state => ({
   waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendRequestForm}) => ({
   onCancel: () => navigateUp && dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
@@ -34,10 +34,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
         name,
         secretKey: new HiddenString(sk),
         showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm,
+        setBuildingTo: fromSendRequestForm,
       })
     ),
-  fromSendForm,
+  fromSendRequestForm,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -55,8 +55,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(LinkExisting)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)

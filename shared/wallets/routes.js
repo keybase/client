@@ -46,7 +46,7 @@ const walletChildren = {
     component: ReceiveModal,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-  [Constants.sendReceiveFormRouteKey]: {
+  [Constants.sendRequestFormRouteKey]: {
     children: {
       [Constants.confirmFormRouteKey]: {
         children: {},

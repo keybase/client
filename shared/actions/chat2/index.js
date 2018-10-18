@@ -2594,7 +2594,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
       WalletsGen.createSetBuildingTo({to: message.author}),
       WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
-      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
+      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendRequestFormRouteKey]}),
     ].map(action => Saga.put(action))
   )
 }

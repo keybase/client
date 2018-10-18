@@ -124,7 +124,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
     dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
     dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
-    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
+    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendRequestFormRouteKey]}))
   },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
@@ -202,8 +202,4 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(ProfileContainer)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileContainer)

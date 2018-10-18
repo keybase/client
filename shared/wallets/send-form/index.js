@@ -6,42 +6,39 @@ import LinkExisting from '../link-existing/container'
 import CreateNewAccount from '../create-account/container'
 
 type FormProps = {|
+  isRequest: boolean,
   onClose: () => void,
 |}
 
-type SendFormState = {
+type SendRequestFormState = {
   currentScreen: 'root' | 'link-existing' | 'create-new-account',
 }
 
-class SendForm extends React.PureComponent<FormProps, SendFormState> {
+// Controls switching between 'root' (send or request form) and auxiliary screens.
+class SendRequestForm extends React.PureComponent<FormProps, SendRequestFormState> {
   state = {
     currentScreen: 'root',
   }
-  linkExisting = () => {
-    this.setState(() => ({
-      currentScreen: 'link-existing',
-    }))
-  }
-  createNewAccount = () => {
-    this.setState(() => ({
-      currentScreen: 'create-new-account',
-    }))
-  }
-  backToRoot = () => {
-    this.setState(() => ({
-      currentScreen: 'root',
-    }))
-  }
+  _setScreen = currentScreen =>
+    this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
+  linkExisting = () => this._setScreen('link-existing')
+  createNewAccount = () => this._setScreen('create-new-account')
+  backToRoot = () => this._setScreen('root')
+
   render() {
     switch (this.state.currentScreen) {
       case 'root':
         return (
           <Root onClose={this.props.onClose}>
-            <SendBody
-              isProcessing={undefined /* TODO */}
-              onLinkAccount={this.linkExisting}
-              onCreateNewAccount={this.createNewAccount}
-            />
+            {this.props.isRequest ? (
+              <RequestBody isProcessing={undefined} />
+            ) : (
+              <SendBody
+                isProcessing={undefined /* TODO */}
+                onLinkAccount={this.linkExisting}
+                onCreateNewAccount={this.createNewAccount}
+              />
+            )}
           </Root>
         )
       case 'link-existing':
@@ -49,7 +46,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
           <LinkExisting
             onCancel={this.props.onClose}
             onBack={this.backToRoot}
-            fromSendForm={true}
+            fromSendRequestForm={true}
             navigateUp={null}
             routeProps={null}
           />
@@ -59,7 +56,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
           <CreateNewAccount
             onCancel={this.props.onClose}
             onBack={this.backToRoot}
-            fromSendForm={true}
+            fromSendRequestForm={true}
             navigateUp={null}
             routeProps={null}
           />
@@ -74,10 +71,4 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   }
 }
 
-const RequestForm = ({onClose}: FormProps) => (
-  <Root onClose={onClose}>
-    <RequestBody isProcessing={undefined /* TODO */} />
-  </Root>
-)
-
-export {SendForm, RequestForm}
+export default SendRequestForm

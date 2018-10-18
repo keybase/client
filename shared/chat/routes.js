@@ -102,7 +102,7 @@ const chatChildren = {
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
-  [WalletConstants.sendReceiveFormRouteKey]: {
+  [WalletConstants.sendRequestFormRouteKey]: {
     children: {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},

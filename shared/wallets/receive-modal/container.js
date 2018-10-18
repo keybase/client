@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath: [...(isMobile ? [settingsTab, walletsSettingsTab] : [walletsTab]), 'wallet'],
-        path: [{props: {}, selected: Constants.sendReceiveFormRouteKey}],
+        path: [{props: {}, selected: Constants.sendRequestFormRouteKey}],
       })
     )
   },
@@ -45,8 +45,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onRequest: dispatchProps.onRequest,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Receive)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Receive)

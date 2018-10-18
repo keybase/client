@@ -1,6 +1,5 @@
 // @flow
-import * as React from 'react'
-import {SendForm, RequestForm} from '.'
+import SendRequestForm from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
 
@@ -17,11 +16,4 @@ const mergeProps = ({isRequest}, {onClose}) => ({
   onClose,
 })
 
-const TheBigSplit = ({isRequest, onClose}) =>
-  isRequest ? <RequestForm onClose={onClose} /> : <SendForm onClose={onClose} />
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(TheBigSplit)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendRequestForm)

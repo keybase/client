@@ -8,11 +8,8 @@ import noteAndMemo from './note-and-memo/index.stories'
 import participants, {participantProviderProperties} from './participants/index.stories'
 import type {Props as AvailableProps} from './available'
 
-import {SendForm, RequestForm} from '.'
+import SendRequestForm from '.'
 
-// TODO some of the state of these child components
-// may be held completely by the parent form. Figure out a
-// good level of connected granularity while implementing
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
@@ -57,10 +54,10 @@ const load = () => {
   noteAndMemo()
   participants()
   // full component
-  Sb.storiesOf('Wallets/SendForm', module)
+  Sb.storiesOf('Wallets/Wallet Form', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClose={Sb.action('onClose')} />)
-    .add('Request', () => <RequestForm onClose={Sb.action('onClose')} />)
+    .add('Send', () => <SendRequestForm isRequest={false} onClose={Sb.action('onClose')} />)
+    .add('Request', () => <SendRequestForm isRequest={true} onClose={Sb.action('onClose')} />)
 }
 
 export default load

@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(
       ownProps.navigateAppend([
         {
-          selected: Constants.sendReceiveFormRouteKey,
+          selected: Constants.sendRequestFormRouteKey,
         },
       ])
     )
@@ -75,8 +75,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Header)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)

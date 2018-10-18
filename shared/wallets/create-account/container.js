@@ -13,13 +13,13 @@ const mapStateToProps = (state, {routeProps}) => ({
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendRequestForm}) => ({
   _onCreateAccount: (name: string) =>
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
         showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm,
+        setBuildingTo: fromSendRequestForm,
       })
     ),
   _onDone: (name: string) => {
@@ -48,9 +48,5 @@ export default compose(
       onNameChange: () => name => ({name}),
     }
   ),
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
+  connect(mapStateToProps, mapDispatchToProps, mergeProps)
 )(CreateAccount)

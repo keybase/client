@@ -92,7 +92,7 @@ const profileRoute = makeRouteDefNode({
       component: ShowcaseTeamOffer,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    [WalletConstants.sendReceiveFormRouteKey]: {
+    [WalletConstants.sendRequestFormRouteKey]: {
       children: {
         [WalletConstants.confirmFormRouteKey]: {
           children: {},
