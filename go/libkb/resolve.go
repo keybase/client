@@ -474,8 +474,10 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 	res.resolvedKbUsername = user.Username
 	res.uid = user.Uid
 	res.isServerTrust = true
-	// TODO: We should ensure these are never cached, because phone numbers are
-	// entirely server trust, and one number can be deleted or reassigned easily.
+	// Mutable resolutions are not cached to disk. We can't be aggressive when
+	// caching server-trust resolutions, because when client pulls out one from
+	// cache, they have no way to verify it's still valid. From the server-side
+	// we have no way to invalidate that cache.
 	res.mutable = true
 
 	return res

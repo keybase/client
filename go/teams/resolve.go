@@ -185,7 +185,7 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	}
 
 	if resolvedAssertion.ResolveResult.IsServerTrust() && g.Env.GetRunMode() != libkb.ProductionRunMode {
-		g.Log.CWarningf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
+		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
 		return nil
 	}
 
