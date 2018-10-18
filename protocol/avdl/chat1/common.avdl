@@ -539,6 +539,7 @@
     int afterContext;
     // only used by in inbox search
     boolean forceReindex;
+    int maxConvs;
   }
 
   record ConversationIndexMetadata {

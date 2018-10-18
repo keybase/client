@@ -1866,6 +1866,7 @@ type SearchOpts struct {
 	BeforeContext int          `codec:"beforeContext" json:"beforeContext"`
 	AfterContext  int          `codec:"afterContext" json:"afterContext"`
 	ForceReindex  bool         `codec:"forceReindex" json:"forceReindex"`
+	MaxConvs      int          `codec:"maxConvs" json:"maxConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -1878,6 +1879,7 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		BeforeContext: o.BeforeContext,
 		AfterContext:  o.AfterContext,
 		ForceReindex:  o.ForceReindex,
+		MaxConvs:      o.MaxConvs,
 	}
 }
 

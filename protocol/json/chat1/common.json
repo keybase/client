@@ -1402,6 +1402,10 @@
         {
           "type": "boolean",
           "name": "forceReindex"
+        },
+        {
+          "type": "int",
+          "name": "maxConvs"
         }
       ]
     },

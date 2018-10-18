@@ -2252,13 +2252,17 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		return res, err
 	}
 	<-ch
-	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-		SessionID: arg.SessionID,
-		Res: chat1.ChatSearchInboxDone{
+	var doneRes chat1.ChatSearchInboxDone
+	if searchRes != nil {
+		doneRes = chat1.ChatSearchInboxDone{
 			NumHits:        numHits,
 			NumConvs:       len(searchRes.Hits),
 			PercentIndexed: searchRes.PercentIndexed,
-		},
+		}
+	}
+	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
+		SessionID: arg.SessionID,
+		Res:       doneRes,
 	})
 	return chat1.SearchInboxRes{
 		Res:              searchRes,

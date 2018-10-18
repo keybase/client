@@ -193,7 +193,7 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 // messages) and match info (for UI highlighting). Results are ordered desc by
 // msg id.
 func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteConversation, uid gregor1.UID,
-	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts, numHits int) (convHits *chat1.ChatSearchInboxHit, err error) {
+	msgIDs []chat1.MessageID, queryRe *regexp.Regexp, opts chat1.SearchOpts) (convHits *chat1.ChatSearchInboxHit, err error) {
 	if msgIDs == nil {
 		return nil, nil
 	}
@@ -235,7 +235,7 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 				Matches:        matches,
 			}
 			hits = append(hits, searchHit)
-			if len(hits)+numHits >= opts.MaxHits {
+			if len(hits) >= opts.MaxHits {
 				break
 			}
 		}
@@ -354,10 +354,18 @@ func (idx *Indexer) reindex(ctx context.Context, conv chat1.Conversation, uid gr
 func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 	opts chat1.SearchOpts, uiCh chan chat1.ChatSearchInboxHit) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
+	defer func() {
+		if uiCh != nil {
+			close(uiCh)
+		}
+	}()
 
 	// NOTE opts.MaxMessages is ignored
 	if opts.MaxHits > MaxAllowedSearchHits || opts.MaxHits < 0 {
 		opts.MaxHits = MaxAllowedSearchHits
+	}
+	if opts.MaxHits == 0 {
+		return nil, nil // um.
 	}
 	if opts.BeforeContext > MaxContext || opts.BeforeContext < 0 {
 		opts.BeforeContext = MaxContext
@@ -410,7 +418,6 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 		}
 	}
 
-	numHits := 0
 	numConvs := 0
 	totalPercentIndexed := 0
 	hits := []chat1.ChatSearchInboxHit{}
@@ -426,7 +433,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 		if err != nil {
 			return nil, err
 		}
-		convHits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts, numHits)
+		convHits, err := idx.searchHitsFromMsgIDs(ctx, conv, uid, msgIDs, queryRe, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -442,13 +449,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string,
 			uiCh <- *convHits
 		}
 		hits = append(hits, *convHits)
-		numHits += convHits.Size()
-		if numHits >= opts.MaxHits {
+		if opts.MaxConvs > 0 && numConvs >= opts.MaxConvs {
 			break
 		}
-	}
-	if uiCh != nil {
-		close(uiCh)
 	}
 	// kick this off in the background after we have our results so there is no
 	// lock contention during the search
