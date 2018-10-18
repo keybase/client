@@ -147,9 +147,9 @@ export type _PaymentResult = _PaymentCommon & {
 }
 
 export type _PaymentDetail = _PaymentCommon & {
-  txID: string,
   publicMemo: HiddenString,
   publicMemoType: string,
+  txID: string,
 }
 
 export type _Payment = _PaymentResult & _PaymentDetail

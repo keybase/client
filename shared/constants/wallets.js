@@ -177,15 +177,13 @@ const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
     name: w.name,
   })
 
-const makePayment: I.RecordFactory<Types._Payment> = I.Record({
+const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none',
   error: '',
   id: Types.noPaymentID,
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
-  publicMemo: new HiddenString(''),
-  publicMemoType: '',
   section: 'none',
   source: '',
   sourceAccountID: '',
@@ -197,11 +195,32 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   targetAccountID: '',
   targetType: '',
   time: null,
-  txID: '',
-  unread: false,
   worth: '',
   worthCurrency: '',
-})
+}
+
+const _defaultPaymentResult = {
+  ..._defaultPaymentCommon,
+  unread: false,
+}
+
+const _defaultPaymentDetail = {
+  ..._defaultPaymentCommon,
+  publicMemo: new HiddenString(''),
+  publicMemoType: '',
+  txID: '',
+}
+
+const _defaultPayment = {
+  ..._defaultPaymentResult,
+  ..._defaultPaymentDetail,
+}
+
+const makePaymentResult: I.RecordFactory<Types._PaymentResult> = I.Record(_defaultPaymentResult)
+
+const makePaymentDetail: I.RecordFactory<Types._PaymentDetail> = I.Record(_defaultPaymentDetail)
+
+const makePayment: I.RecordFactory<Types._Payment> = I.Record(_defaultPayment)
 
 const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   description: '',
@@ -243,8 +262,6 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
-    // Payment details have no unread field.
-    unread: false,
   })
 
 const rpcPaymentToPaymentCommon = (
@@ -576,6 +593,8 @@ export {
   makeBuilding,
   makeBuiltPayment,
   makeBuiltRequest,
+  makePaymentResult,
+  makePaymentDetail,
   makePayment,
   makeRequest,
   makeReserve,
