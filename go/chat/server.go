@@ -1627,17 +1627,19 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("RetryPost: obr: %v", arg.OutboxID))()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
 
 	// Mark as retry in the outbox
-	uid := h.G().Env.GetUID()
-	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
+	outbox := storage.NewOutbox(h.G(), uid)
 	obr, err := outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior)
 	if err != nil {
 		return err
+	} else if obr == nil {
+		return nil
 	}
 	if obr.IsAttachment() {
 		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
