@@ -174,14 +174,17 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 		return err
 	}
 
-	// XXX temporary code path to send a stellar account bundle to the server
-	acctBundle, err := acctbundle.New(secretKey, accountName)
-	if err != nil {
-		return err
-	}
-	if err := remote.PostAccountBundle(ctx, g, acctBundle); err != nil {
-		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
-		return err
+	if g.GetRunMode() != libkb.ProductionRunMode {
+		// XXX temporary code path to send a stellar account bundle to the server
+		g.Log.CDebugf(ctx, "creating a new account bundle and posting it to the server")
+		acctBundle, err := acctbundle.New(secretKey, accountName)
+		if err != nil {
+			return err
+		}
+		if err := remote.PostAccountBundle(ctx, g, acctBundle); err != nil {
+			g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
+			return err
+		}
 	}
 
 	// after import, mark all the transactions in this account as "read"
