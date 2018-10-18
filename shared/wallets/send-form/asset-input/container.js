@@ -45,13 +45,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   displayUnit: stateProps.displayUnit,
   inputPlaceholder: stateProps.inputPlaceholder,
   onChangeAmount: dispatchProps.onChangeAmount,
-  onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
+  onChangeDisplayUnit: ownProps.onChooseAsset || dispatchProps.onChangeDisplayUnit,
   refresh: () => dispatchProps._refresh(stateProps.accountID),
   topLabel: stateProps.topLabel,
   value: stateProps.value,
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('AssetInput')
 )(AssetInput)

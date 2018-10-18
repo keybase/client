@@ -5,13 +5,14 @@ import Root from './root'
 import {SendBody, RequestBody} from './body/container'
 import LinkExisting from '../link-existing/container'
 import CreateNewAccount from '../create-account/container'
+import ChooseAsset from './choose-asset/container'
 
 type FormProps = {|
   onClose: () => void,
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'link-existing' | 'create-new-account',
+  currentScreen: 'root' | 'link-existing' | 'create-new-account' | 'choose-asset',
 }
 
 // On desktop, we switch between views in this container.
@@ -25,6 +26,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   linkExisting = () => this._setCurrentScreen('link-existing')
   createNewAccount = () => this._setCurrentScreen('create-new-account')
   backToRoot = () => this._setCurrentScreen('root')
+  chooseAsset = () => this._setCurrentScreen('choose-asset')
   render() {
     if (isMobile) {
       return (
@@ -40,6 +42,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
             <SendBody
               isProcessing={undefined /* TODO */}
               onLinkAccount={this.linkExisting}
+              onChooseAsset={this.chooseAsset}
               onCreateNewAccount={this.createNewAccount}
             />
           </Root>
@@ -64,6 +67,8 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
             routeProps={null}
           />
         )
+      case 'choose-asset':
+        return <ChooseAsset onBack={this.backToRoot} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (currentScreen: empty) => any
