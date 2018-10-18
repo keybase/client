@@ -250,6 +250,8 @@ const loadPayments = (
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
   ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
 
+// Fetch all payments for now, but in the future we may want to just
+// fetch the single payment.
 const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
   !action.error &&
   Promise.all([
