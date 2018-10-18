@@ -23,7 +23,7 @@ func (p SignaturePrefix) IsWhitelisted() bool {
 	}
 	switch p {
 	case SignaturePrefixKBFS, SignaturePrefixSigchain, SignaturePrefixChatAttachment,
-		SignaturePrefixTesting, SignaturePrefixNIST, SignaturePrefixChatMBv1, SignaturePrefixChatMBv2:
+		SignaturePrefixNIST, SignaturePrefixChatMBv1, SignaturePrefixChatMBv2:
 		return true
 	default:
 		return false
