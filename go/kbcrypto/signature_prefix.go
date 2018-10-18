@@ -18,6 +18,16 @@ const (
 	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
 )
 
+func (p SignaturePrefix) IsWhitelisted() bool {
+	switch p {
+	case SignaturePrefixKBFS, SignaturePrefixSigchain, SignaturePrefixChatAttachment,
+		SignaturePrefixTesting, SignaturePrefixNIST, SignaturePrefixChatMBv1, SignaturePrefixChatMBv2:
+		return true
+	default:
+		return false
+	}
+}
+
 func (p SignaturePrefix) HasNullByte() bool {
 	return bytes.IndexByte([]byte(p), byte(0)) != -1
 }
