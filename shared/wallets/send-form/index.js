@@ -20,21 +20,11 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   state = {
     currentScreen: 'root',
   }
-  linkExisting = () => {
-    this.setState(() => ({
-      currentScreen: 'link-existing',
-    }))
-  }
-  createNewAccount = () => {
-    this.setState(() => ({
-      currentScreen: 'create-new-account',
-    }))
-  }
-  backToRoot = () => {
-    this.setState(() => ({
-      currentScreen: 'root',
-    }))
-  }
+  _setCurrentScreen = currentScreen =>
+    this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
+  linkExisting = () => this._setCurrentScreen('link-existing')
+  createNewAccount = () => this._setCurrentScreen('create-new-account')
+  backToRoot = () => this._setCurrentScreen('root')
   render() {
     if (isMobile) {
       return (
