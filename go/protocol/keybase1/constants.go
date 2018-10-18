@@ -180,6 +180,8 @@ const (
 	StatusCode_SCStellarWrongPrimary              StatusCode = 3107
 	StatusCode_SCStellarUnsupportedCurrency       StatusCode = 3108
 	StatusCode_SCStellarNeedDisclaimer            StatusCode = 3109
+	StatusCode_SCStellarDeviceNotMobile           StatusCode = 3110
+	StatusCode_SCStellarMobileOnlyPurgatory       StatusCode = 3111
 	StatusCode_SCNISTWrongSize                    StatusCode = 3201
 	StatusCode_SCNISTBadMode                      StatusCode = 3202
 	StatusCode_SCNISTHashWrongSize                StatusCode = 3203
@@ -376,6 +378,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStellarWrongPrimary":              3107,
 	"SCStellarUnsupportedCurrency":       3108,
 	"SCStellarNeedDisclaimer":            3109,
+	"SCStellarDeviceNotMobile":           3110,
+	"SCStellarMobileOnlyPurgatory":       3111,
 	"SCNISTWrongSize":                    3201,
 	"SCNISTBadMode":                      3202,
 	"SCNISTHashWrongSize":                3203,
@@ -570,6 +574,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3107: "SCStellarWrongPrimary",
 	3108: "SCStellarUnsupportedCurrency",
 	3109: "SCStellarNeedDisclaimer",
+	3110: "SCStellarDeviceNotMobile",
+	3111: "SCStellarMobileOnlyPurgatory",
 	3201: "SCNISTWrongSize",
 	3202: "SCNISTBadMode",
 	3203: "SCNISTHashWrongSize",
