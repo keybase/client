@@ -235,6 +235,7 @@ const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAsse
   })
 
 const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
+  action.payload.accountID !== Types.noAccountID &&
   RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
     accountID: action.payload.accountID,
   }).then(res =>

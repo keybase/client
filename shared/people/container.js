@@ -4,7 +4,6 @@ import People from './'
 import * as PeopleGen from '../actions/people-gen'
 import {connect} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
-import {navigateAppend} from '../actions/route-tree'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {getPeopleDataWaitingKey} from '../constants/people'
 import * as WaitingConstants from '../constants/waiting'
@@ -28,7 +27,7 @@ const mapStateToProps = state => ({
   waiting: WaitingConstants.anyWaiting(state, getPeopleDataWaitingKey),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   getData: (markViewed = true) =>
     dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
   onSearch: () => {
