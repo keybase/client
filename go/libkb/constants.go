@@ -308,6 +308,8 @@ const (
 	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
 	SCStellarNeedDisclaimer            = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
+	SCStellarDeviceNotMobile           = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
+	SCStellarMobileOnlyPurgatory       = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 )
 
 const (

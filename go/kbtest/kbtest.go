@@ -80,14 +80,18 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, true)
+	return createAndSignupFakeUser(prefix, g, true, keybase1.DeviceType_DESKTOP)
 }
 
 func CreateAndSignupFakeUserPaper(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, false)
+	return createAndSignupFakeUser(prefix, g, false, keybase1.DeviceType_DESKTOP)
 }
 
-func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool) (*FakeUser, error) {
+func CreateAndSignupFakeUserMobile(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, true, keybase1.DeviceType_MOBILE)
+}
+
+func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool, deviceType keybase1.DeviceType) (*FakeUser, error) {
 	fu, err := NewFakeUser(prefix)
 	if err != nil {
 		return nil, err
@@ -98,6 +102,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 		InviteCode: testInviteCode,
 		Passphrase: fu.Passphrase,
 		DeviceName: DefaultDeviceName,
+		DeviceType: deviceType,
 		SkipGPG:    true,
 		SkipMail:   true,
 		SkipPaper:  skipPaper,
