@@ -412,7 +412,6 @@ type AccountBundle struct {
 	Mode      AccountMode    `codec:"mode" json:"mode"`
 	Signers   []SecretKey    `codec:"signers" json:"signers"`
 	Name      string         `codec:"name" json:"name"`
-	IsPrimary bool           `codec:"isPrimary" json:"isPrimary"`
 }
 
 func (o AccountBundle) DeepCopy() AccountBundle {
@@ -433,8 +432,7 @@ func (o AccountBundle) DeepCopy() AccountBundle {
 			}
 			return ret
 		})(o.Signers),
-		Name:      o.Name,
-		IsPrimary: o.IsPrimary,
+		Name: o.Name,
 	}
 }
 

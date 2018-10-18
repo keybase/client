@@ -332,10 +332,6 @@
         {
           "type": "string",
           "name": "name"
-        },
-        {
-          "type": "boolean",
-          "name": "isPrimary"
         }
       ]
     }
