@@ -424,14 +424,14 @@ const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentDetail: Types.PaymentDetail,
 ) => {
-  return map.withMutations(mapMutable => mapMutable.update(paymentDetail.id, makePayment(), oldPayment => oldPayment.merge(paymentDetail)))
+  return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 
 const updatePaymentsReceived = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentResults: Array<Types.PaymentResult>,
 ) => {
-  return map.withMutations(mapMutable => paymentResults.forEach(paymentResult => mapMutable.update(paymentResult.id, makePayment(), oldPayment => oldPayment.merge(paymentResult))))
+  return map.withMutations(mapMutable => paymentResults.forEach(paymentResult => mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))))
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
