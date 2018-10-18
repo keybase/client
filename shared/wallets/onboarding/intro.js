@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Types from '../../constants/types/wallets'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
 type IntroProps = {|
   onClose: () => void,
-  setNextScreen: (nextScreen: string) => void,
+  setNextScreen: (nextScreen: Types.NextScreen) => void,
 |}
 
 const Intro = (props: IntroProps) => {

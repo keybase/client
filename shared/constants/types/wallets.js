@@ -4,6 +4,9 @@ import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
+// When accepting the Stellar disclaimer, next path after acceptance
+export type NextScreen = 'linkExisting' | 'openWallet'
+
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.

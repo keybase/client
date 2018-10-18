@@ -3,10 +3,11 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
+import {addTicker, removeTicker, type TickerID} from '../../util/second-timer'
 
 type DisclaimerProps = {|
-  onClose: () => void,
-  setNextScreen: (screen: 'openWallet' | 'linkExisting') => void,
+  onAcceptDisclaimer: () => void,
+  onNotNow: () => void,
 |}
 
 type DisclaimerState = {|
@@ -15,17 +16,35 @@ type DisclaimerState = {|
 
 class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   state = {secondsLeft: 5}
+  timer: ?TickerID = null
+
   _setSecondsLeft = (secondsLeft: number) => this.setState({secondsLeft})
 
+  tick = () => {
+    this.setState({secondsLeft: this.state.secondsLeft - 1}, () => {
+      if (this.state.secondsLeft === 0 && this.timer) {
+        removeTicker(this.timer)
+      }
+    })
+  }
+
+  componentDidMount() {
+    if (!__STORYBOOK__) {
+      this.timer = addTicker(this.tick)
+    }
+  }
+
   render() {
+    const label = `Yes, I agree (${this.state.secondsLeft})`
     const buttons = [
       <Kb.Button
+        disabled={this.state.secondsLeft > 0}
         key={0}
         style={{width: '100%'}}
         fullWidth={true}
         type="Secondary"
         onClick={this.props.onAcceptDisclaimer}
-        label="Yes, I agree"
+        label={label}
       />,
       <Kb.Button
         key={1}
@@ -40,7 +59,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     return (
       <WalletPopup
         bottomButtons={buttons}
-        onClose={this.props.onClose}
+        onClose={this.props.onNotNow}
         buttonBarDirection="column"
         containerStyle={styles.container}
         buttonBarStyle={styles.buttonBar}

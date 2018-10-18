@@ -80,7 +80,7 @@ export const walletSettingsReceived = 'wallets:walletSettingsReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = void
+type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreen|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
@@ -226,7 +226,7 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
   secretKey: HiddenString,
   error: string,
 |}>
-type _WalletSettingsReceivedPayload = $ReadOnly<{|settings: RPCTypes.WalletSettings|}>
+type _WalletSettingsReceivedPayload = $ReadOnly<{|settings: StellarRPCTypes.WalletSettings|}>
 
 // Action Creators
 /**

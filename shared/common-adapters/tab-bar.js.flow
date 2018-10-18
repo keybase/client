@@ -39,7 +39,7 @@ export type TabBarButtonProps = {|
   className?: string,
   underlined?: ?boolean,
   isNav?: boolean,
-  isNew?: boolean,
+  isNew: boolean,
   selected: boolean,
   onClick?: () => void,
   source: TabBarButtonSource,

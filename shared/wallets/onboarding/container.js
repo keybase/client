@@ -1,18 +1,20 @@
 // @flow
 import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as Types from '../../constants/types/wallets'
 import Onboarding from '.'
 
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
-  onAcceptDisclaimer: (nextScreen: string) => dispatch(WalletsGen.createAcceptDisclaimer({nextScreen})),
-  onNotNow: () => dispatch(WalletsGen.createRejectDisclaimer()),
+  onAcceptDisclaimer: (nextScreen: Types.NextScreen) =>
+    dispatch(WalletsGen.createAcceptDisclaimer({nextScreen})),
+  onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
-  onClose: dispatchProps.onNotNow,
+  onClose: dispatchProps.onClose,
 })
 
 export default connect(

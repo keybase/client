@@ -50,6 +50,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers, isNew}: 
     <TabBarButton
       label={username || ''}
       isNav={true}
+      isNew={false}
       selected={false}
       onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.profileTab]}

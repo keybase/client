@@ -10,7 +10,8 @@
       "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "acceptDisclaimer": {
-      "_description": "Accept the Stellar account disclaimer"
+      "_description": "Accept the Stellar account disclaimer",
+      "nextScreen": "Types.NextScreen"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -99,7 +100,7 @@
     },
     "walletSettingsReceived": {
       "_description": "Received wallet settings",
-      "settings": "RPCTypes.WalletSettings"
+      "settings": "StellarRPCTypes.WalletSettings"
     },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"

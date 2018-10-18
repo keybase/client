@@ -1,33 +1,37 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/wallets'
 import Disclaimer from './disclaimer'
 import Intro from './intro'
 
-type NextScreen = '' | 'openWallet' | 'linkExisting'
-
 type OnboardingProps = {|
-  onAcceptDisclaimer: () => void,
+  onAcceptDisclaimer: (nextScreen: Types.NextScreen) => void,
   onClose: () => void,
-  setNextScreen: (screen: 'openWallet' | 'linkExisting') => void,
 |}
 
 type OnboardingState = {|
-  nextScreen: 'openWallet' | 'linkExisting',
+  nextScreen: '' | 'openWallet' | 'linkExisting',
 |}
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
   state = {nextScreen: ''}
-  _setNextScreen = (nextScreen: NextScreen) => {
-    console.warn('in setnextscreen', nextScreen)
+  _setNextScreen = (nextScreen: Types.NextScreen) => {
     this.setState({nextScreen})
   }
   render() {
-    console.warn('in render', this.state.nextScreen)
     if (!this.state.nextScreen) {
       return <Intro onClose={this.props.onClose} setNextScreen={this._setNextScreen} />
     } else {
-      console.warn('nextScreen is', this.state.nextScreen)
-      return <Disclaimer onAcceptDisclaimer={this.props.onAcceptDisclaimer} onClose={this.props.onClose} />
+      return (
+        <Disclaimer
+          onAcceptDisclaimer={() => {
+            if (this.state.nextScreen) {
+              this.props.onAcceptDisclaimer(this.state.nextScreen)
+            }
+          }}
+          onNotNow={this.props.onClose}
+        />
+      )
     }
   }
 }

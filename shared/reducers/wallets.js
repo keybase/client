@@ -217,6 +217,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.walletSettingsReceived:
       return state.set('acceptedDisclaimer', action.payload.settings.acceptedDisclaimer)
     // Saga only actions
+    case WalletsGen.acceptDisclaimer:
+    case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
