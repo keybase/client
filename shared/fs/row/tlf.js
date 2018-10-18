@@ -10,7 +10,7 @@ type TlfProps = StillCommonProps & {
   isUserReset: boolean,
   needsRekey: boolean,
   resetParticipants: Array<string>,
-  // We don't use this at the moment. In the futuer this will be used for
+  // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean,
 }
