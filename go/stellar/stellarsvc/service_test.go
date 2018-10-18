@@ -819,6 +819,8 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
 	require.Equal(t, a1, acctBundle.AccountID)
 	require.Equal(t, stellar1.AccountMode_USER, acctBundle.Mode, "account mode should be USER")
+	require.Len(t, acctBundle.Signers, 1)
+	require.Equal(t, s1, acctBundle.Signers[0])
 
 	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
 	require.NoError(t, err)
@@ -835,7 +837,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
 // makes it mobile only.  The subsequent fetch fails because it is
-// a recently provisioned mobile device.
+// a recently provisioned mobile device.  After 14 days, the fetch works.
 func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
@@ -876,8 +878,14 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	// this will make the device older on the server
 	makeActiveDeviceOlder(t, tc.G)
 	// so now the fetch will work
-	_, _, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
 	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
+	require.Equal(t, a1, acctBundle.AccountID)
+	require.Equal(t, stellar1.AccountMode_MOBILE, acctBundle.Mode, "account mode should be MOBILE")
+	require.Len(t, acctBundle.Signers, 1)
+	require.Equal(t, s1, acctBundle.Signers[0])
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
