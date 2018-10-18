@@ -176,7 +176,7 @@ const loadAssets = (
     })
   )
 
-const createPaymentsReceived = (accountID, payments, pending) =>     WalletsGen.createPaymentsReceived({
+const createPaymentsReceived = (accountID, payments, pending) => WalletsGen.createPaymentsReceived({
       accountID,
       oldestUnread: payments.oldestUnread
         ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
