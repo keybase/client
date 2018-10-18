@@ -55,7 +55,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSetCurrency: (currency: string) => {
     // This is because we have to wait for createLoadDisplayCurrency.
     // Only called before the user changes the currency selection.
-    stateProps.defaultCurrencyCode != stateProps.currency &&
+    !stateProps.currency && stateProps.defaultCurrencyCode &&
       dispatchProps._onSetCurrency(stateProps.defaultCurrencyCode)
   }
 })
