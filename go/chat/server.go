@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -1389,6 +1390,19 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
+func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "GetUploadTempFile")()
+	return h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)
+}
+
+func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTempFileArg) (res string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakeUploadTempFile")()
+	if res, err = h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename); err != nil {
+		return res, err
+	}
+	return res, ioutil.WriteFile(res, arg.Data, 0644)
+}
+
 func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	arg chat1.PostFileAttachmentMessageLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1400,8 +1414,8 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	// Create non block sender
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
 	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
-		arg.ConvID, arg.TlfName, arg.Visibility, nil, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
-		arg.EphemeralLifetime)
+		arg.ConvID, arg.TlfName, arg.Visibility, arg.OutboxID, arg.Filename, arg.Title, arg.Metadata,
+		arg.ClientPrev, arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
@@ -1613,17 +1627,19 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("RetryPost: obr: %v", arg.OutboxID))()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return err
 	}
 
 	// Mark as retry in the outbox
-	uid := h.G().Env.GetUID()
-	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
+	outbox := storage.NewOutbox(h.G(), uid)
 	obr, err := outbox.RetryMessage(ctx, arg.OutboxID, arg.IdentifyBehavior)
 	if err != nil {
 		return err
+	} else if obr == nil {
+		return nil
 	}
 	if obr.IsAttachment() {
 		if _, err := h.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {

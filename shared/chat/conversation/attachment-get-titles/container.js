@@ -9,21 +9,28 @@ import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
 
-type OwnProps = RouteProps<{paths: Array<string>, conversationIDKey: Types.ConversationIDKey}, {}>
+type OwnProps = RouteProps<
+  {pathAndOutboxIDs: Array<Types.PathAndOutboxID>, conversationIDKey: Types.ConversationIDKey},
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}: OwnProps) => ({
   _conversationIDKey: routeProps.get('conversationIDKey'),
-  paths: routeProps.get('paths'),
+  pathAndOutboxIDs: routeProps.get('pathAndOutboxIDs'),
 })
 
 const mapDispatchToProps = dispatch => ({
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
     const paths = Object.keys(pathToInfo)
+    const pathAndOutboxIDs = paths.map(p => ({
+      path: p,
+      outboxID: pathToInfo[p].outboxID,
+    }))
     const titles = paths.map(p => pathToInfo[p].title)
     dispatch(
       Chat2Gen.createAttachmentsUpload({
         conversationIDKey,
-        paths,
+        paths: pathAndOutboxIDs,
         titles,
       })
     )
@@ -35,12 +42,13 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
-  pathToInfo: stateProps.paths.reduce((map, path) => {
+  pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {
     const filename = FsTypes.getLocalPathName(path)
     map[path] = {
       filename,
       title: '',
       type: Constants.pathToAttachmentType(path),
+      outboxID: outboxID,
     }
     return map
   }, {}),

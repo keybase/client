@@ -11,7 +11,6 @@ import (
 
 	"encoding/hex"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -23,17 +22,12 @@ import (
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := setupCommonTest(t, name)
+	ctc := setupCommonTest(t, name)
 
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
-	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
-	u, err := kbtest.CreateAndSignupFakeUser("ib", ltc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("ib", ctc.TestContext.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	return tc, NewInbox(tc.Context()), uid
+	return ctc, NewInbox(ctc.Context()), uid
 }
 
 func makeTlfID() chat1.TLFID {

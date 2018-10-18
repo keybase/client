@@ -49,11 +49,18 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
+const mapDispatchToProps = dispatch => ({
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({
+      path: p,
+      outboxID: null,
+    }))
     dispatch(
-      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
-    ),
+      RouteTree.navigateAppend([
+        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
+      ])
+    )
+  },
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>

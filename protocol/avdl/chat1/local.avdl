@@ -788,7 +788,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, union { null, OutboxID } outboxID, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
   void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
@@ -832,6 +832,8 @@ protocol local {
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
   MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
+  string getUploadTempFile(OutboxID outboxID, string filename);
+  string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);

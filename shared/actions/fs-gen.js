@@ -11,6 +11,7 @@ export const resetStore = 'common:resetStore' // not a part of fs but is handled
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
+export const deleteFile = 'fs:deleteFile'
 export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
@@ -67,6 +68,7 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
+type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
 type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
@@ -222,6 +224,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({error: false, payload, type: commitEdit})
+export const createDeleteFile = (payload: _DeleteFilePayload) => ({error: false, payload, type: deleteFile})
 export const createDiscardEdit = (payload: _DiscardEditPayload) => ({error: false, payload, type: discardEdit})
 export const createDismissDownload = (payload: _DismissDownloadPayload) => ({error: false, payload, type: dismissDownload})
 export const createDismissFsError = (payload: _DismissFsErrorPayload) => ({error: false, payload, type: dismissFsError})
@@ -278,6 +281,7 @@ export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
 export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
+export type DeleteFilePayload = $Call<typeof createDeleteFile, _DeleteFilePayload>
 export type DiscardEditPayload = $Call<typeof createDiscardEdit, _DiscardEditPayload>
 export type DismissDownloadPayload = $Call<typeof createDismissDownload, _DismissDownloadPayload>
 export type DismissFsErrorPayload = $Call<typeof createDismissFsError, _DismissFsErrorPayload>
@@ -336,6 +340,7 @@ export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded,
 export type Actions =
   | CancelDownloadPayload
   | CommitEditPayload
+  | DeleteFilePayload
   | DiscardEditPayload
   | DismissDownloadPayload
   | DismissFsErrorPayload
