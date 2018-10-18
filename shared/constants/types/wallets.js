@@ -196,6 +196,8 @@ export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
+export type PaymentResult = I.RecordOf<_PaymentResult>
+export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>

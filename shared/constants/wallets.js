@@ -242,22 +242,22 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal, section: Types.PaymentSection) => {
+const rpcPaymentResultToPaymentResult = (w: RPCTypes.PaymentOrErrorLocal, section: Types.PaymentSection) => {
   if (!w) {
-    return makePayment({error: 'No payments returned'})
+    return makePaymentResult({error: 'No payments returned'})
   }
   if (!w.payment) {
-    return makePayment({error: w.err})
+    return makePaymentResult({error: w.err})
   }
   const unread = w.payment.unread
-  return makePayment({
+  return makePaymentResult({
     ...rpcPaymentToPaymentCommon(w.payment, section),
     unread,
   })
 }
 
-const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
-  makePayment({
+const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
+  makePaymentDetail({
     ...rpcPaymentToPaymentCommon(p),
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
@@ -421,37 +421,24 @@ const paymentToYourRoleAndCounterparty = (
   }
 }
 
-// Update payment, take all new fields except any that contain the default value
-const emptyPayment = makePayment()
-// $FlowIssue thinks toSeq() has something to do with the `payment.delta` type
-const keys = emptyPayment
-  .toSeq()
-  .keySeq()
-  .toArray()
-const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
-  const res = oldPayment.withMutations(paymentMutable => {
-    keys.forEach(
-      key => {
-        // TODO: Better fix?
-        if (key === 'unread' || newPayment.get(key) !== emptyPayment.get(key)) {
-          paymentMutable.set(key, newPayment.get(key))
-        }
-      }
-    )
-  })
-  return res
-}
-const updatePaymentMap = (
+const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
-  newPayments: Array<Types.Payment>,
-  clearExisting: boolean = false
+  paymentDetail: Types.PaymentDetail,
 ) => {
-  const baseMap = clearExisting ? map.clear() : map
-  return baseMap.withMutations(mapMutable =>
-    newPayments.forEach(newPayment =>
-      mapMutable.update(newPayment.id, makePayment(), oldPayment => updatePayment(oldPayment, newPayment))
-    )
-  )
+  return map.withMutations(mapMutable =>
+                           mapMutable.update(paymentDetail.id, makePayment(), oldPayment => oldPayment.merge(paymentDetail))
+                          )
+}
+
+const updatePaymentsReceived = (
+  map: I.Map<Types.PaymentID, Types.Payment>,
+  paymentResults: Array<Types.PaymentResult>,
+) => {
+  return map.withMutations(mapMutable =>
+    paymentResults.forEach(paymentResult =>
+                        mapMutable.update(paymentResult.id, makePayment(), oldPayment => oldPayment.merge(paymentResult))
+                       )
+                          )
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
@@ -599,11 +586,11 @@ export {
   makeRequest,
   makeReserve,
   makeState,
-  paymentDetailResultToPayment,
-  paymentResultToPayment,
   paymentToYourRoleAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
+  rpcPaymentDetailToPaymentDetail,
+  rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
@@ -612,6 +599,6 @@ export {
   shortenAccountID,
   statusSimplifiedToString,
   unknownAccount,
-  updatePayment,
-  updatePaymentMap,
+  updatePaymentDetail,
+  updatePaymentsReceived,
 }
