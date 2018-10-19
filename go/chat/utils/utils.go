@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	emoji "gopkg.in/kyokomi/emoji.v1"
+
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
@@ -916,7 +918,12 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if !mvalid.IsEphemeral() {
 		switch msg.GetMessageType() {
 		case chat1.MessageType_REACTION:
-			snippet = "reacted to your message."
+			reaction, err := GetReaction(msg)
+			if err != nil {
+				snippet = ""
+			} else {
+				snippet = emoji.Sprintf("reacted to your message with %v", reaction)
+			}
 		default:
 			snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
 		}
