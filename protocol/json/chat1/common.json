@@ -1543,6 +1543,16 @@
           "name": "percentIndexed"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchIndexStatus",
+      "fields": [
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
     }
   ],
   "messages": {},

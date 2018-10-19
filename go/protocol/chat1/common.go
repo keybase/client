@@ -2046,6 +2046,16 @@ func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
 	}
 }
 
+type ChatSearchIndexStatus struct {
+	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+}
+
+func (o ChatSearchIndexStatus) DeepCopy() ChatSearchIndexStatus {
+	return ChatSearchIndexStatus{
+		PercentIndexed: o.PercentIndexed,
+	}
+}
+
 type CommonInterface interface {
 }
 

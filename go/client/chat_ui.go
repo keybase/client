@@ -205,7 +205,11 @@ func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInb
 		}
 	}
 	// Separate results in conversations.
-	fmt.Fprintf(w, fmt.Sprintf("%s\n", strings.Repeat("-", 80)))
+	width, _ := c.terminal.TerminalSize()
+	if width > 80 {
+		width = 80
+	}
+	fmt.Fprintf(w, fmt.Sprintf("%s\n", strings.Repeat("-", width)))
 	return nil
 }
 
@@ -220,9 +224,7 @@ func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchIn
 	} else {
 		searchText := fmt.Sprintf("Search complete. Found %d %s", numHits, c.simplePlural(numHits, "result"))
 		numConvs := arg.Res.NumConvs
-		if numConvs > 0 {
-			searchText = fmt.Sprintf("%s, in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
-		}
+		searchText = fmt.Sprintf("%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
 		fmt.Fprintf(w, searchText)
 	}
 	percentIndexed := arg.Res.PercentIndexed
@@ -230,6 +232,14 @@ func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchIn
 	if percentIndexed < 70 {
 		helpText = "Rerun with --force-reindex for more complete results."
 	}
-	fmt.Fprintf(w, "Indexing was %d percent complete. %s\n", percentIndexed, helpText)
+	fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
+	return nil
+}
+
+func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	if c.noOutput {
+		return nil
+	}
+	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
 	return nil
 }

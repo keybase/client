@@ -581,4 +581,8 @@
     int percentIndexed;
   }
 
+  record ChatSearchIndexStatus {
+    int percentIndexed;
+  }
+
 }

@@ -390,6 +390,7 @@ type ChatUI interface {
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
+	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 }
 
 type PromptDefault int
@@ -404,7 +405,7 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
-	// The ErrorWriter is not escaped: 	it should not be used to show unescaped user-originated data.
+	// The ErrorWriter is not escaped: it should not be used to show unescaped user-originated data.
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error

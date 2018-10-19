@@ -1083,6 +1083,10 @@ func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchIn
 	return nil
 }
 
+func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
