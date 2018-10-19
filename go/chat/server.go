@@ -2233,32 +2233,51 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}
 
 	chatUI := h.getChatUI(arg.SessionID)
-	uiCh := make(chan chat1.ChatSearchInboxHit)
-	ch := make(chan struct{})
+	// stream hits back to client UI
+	hitUICh := make(chan chat1.ChatSearchInboxHit)
+	hitUIDone := make(chan struct{})
 	numHits := 0
 	go func() {
-		for searchHit := range uiCh {
+		for searchHit := range hitUICh {
 			numHits += len(searchHit.Hits)
 			chatUI.ChatSearchInboxHit(ctx, chat1.ChatSearchInboxHitArg{
 				SessionID: arg.SessionID,
 				SearchHit: searchHit,
 			})
 		}
-		close(ch)
+		close(hitUIDone)
+	}()
+	// stream index status back to client UI
+	indexUICh := make(chan chat1.ChatSearchIndexStatus)
+	indexUIDone := make(chan struct{})
+	go func() {
+		for status := range indexUICh {
+			chatUI.ChatSearchIndexStatus(ctx, chat1.ChatSearchIndexStatusArg{
+				SessionID: arg.SessionID,
+				Status:    status,
+			})
+		}
+		close(indexUIDone)
 	}()
 
-	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, uiCh)
+	searchRes, err := h.G().Indexer.Search(ctx, uid, arg.Query, arg.Opts, hitUICh, indexUICh)
 	if err != nil {
 		return res, err
 	}
-	<-ch
-	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
-		SessionID: arg.SessionID,
-		Res: chat1.ChatSearchInboxDone{
+	<-hitUIDone
+	<-indexUIDone
+
+	var doneRes chat1.ChatSearchInboxDone
+	if searchRes != nil {
+		doneRes = chat1.ChatSearchInboxDone{
 			NumHits:        numHits,
 			NumConvs:       len(searchRes.Hits),
 			PercentIndexed: searchRes.PercentIndexed,
-		},
+		}
+	}
+	chatUI.ChatSearchInboxDone(ctx, chat1.ChatSearchInboxDoneArg{
+		SessionID: arg.SessionID,
+		Res:       doneRes,
 	})
 	return chat1.SearchInboxRes{
 		Res:              searchRes,

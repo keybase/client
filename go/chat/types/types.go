@@ -239,7 +239,7 @@ func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.Ephemer
 type DummyIndexer struct{}
 
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
-	uiCh chan chat1.ChatSearchInboxHit) (*chat1.ChatSearchInboxResults, error) {
+	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
 }
 func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {

@@ -1800,6 +1800,9 @@ func (idx *ConversationIndex) MissingIDs(min, max MessageID) []MessageID {
 }
 
 func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
+	if idx == nil {
+		return 0
+	}
 	// lowest msgID we care about
 	min := conv.GetMaxDeletedUpTo()
 	// highest msgID we care about

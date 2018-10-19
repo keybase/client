@@ -103,7 +103,7 @@ func PerUserKeyUpgradeBackgroundRound(m libkb.MetaContext) error {
 	}
 
 	// Do a fast local check to see if our work is done.
-	pukring, err := m.G().GetPerUserKeyring()
+	pukring, err := m.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		m.CDebugf("PerUserKeyUpgradeBackground error getting keyring: %v", err)
 		// ignore error

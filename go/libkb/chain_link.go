@@ -167,54 +167,54 @@ var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 // hash in subsequent chainlinks.  Caused by bad code on 15 Sep 2015.
 const whitespaceIssue20150915 = "Bad whitespace stripping on 15 Sep 2015"
 
-var badWhitespaceChainLinks = map[keybase1.SigID]string{
-	"595a73fc649c2c8ccc1aa79384e0b3e7ab3049d8df838f75ef0edbcb5bbc42990f": whitespaceIssue20150915,
-	"e256078702afd7a15a24681259935b48342a49840ab6a90291b300961669790f0f": whitespaceIssue20150915,
-	"30831001edee5e01c3b5f5850043f9ef7749a1ed8624dc703ae0922e1d0f16dd0f": whitespaceIssue20150915,
-	"88e6c581dbccbf390559bcb30ca21548ba0ec4861ec2d666217bd4ed4a4a8c3f0f": whitespaceIssue20150915,
-	"4db0fe3973b3a666c7830fcb39d93282f8bc414eca1d535033a5cc625eabda0c0f": whitespaceIssue20150915,
-	"9ba23a9a1796fb22b3c938f1edf5aba4ca5be7959d9151895eb6aa7a8d8ade420f": whitespaceIssue20150915,
-	"df0005f6c61bd6efd2867b320013800781f7f047e83fd44d484c2cb2616f019f0f": whitespaceIssue20150915,
-	"a32692af33e559e00a40aa3bb4004744d2c1083112468ed1c8040eaacd15c6eb0f": whitespaceIssue20150915,
-	"3e61901f50508aba72f12740fda2be488571afc51d718d845e339e5d1d1b531d0f": whitespaceIssue20150915,
-	"de43758b653b3383aca640a96c7890458eadd35242e8f8531f29b606890a14ea0f": whitespaceIssue20150915,
-	"b9ee3b46c97d48742a73e35494d3a373602460609e3c6c54a553fc4d83b659e40f": whitespaceIssue20150915,
-	"0ff29c1d036c3f4841f3f485e28d77351abb3eeeb52d2f8d802fd15e383d9a5f0f": whitespaceIssue20150915,
-	"eb1a13c6b6e42bb7470e222b51d36144a25ffc4fbc0b32e9a1ec11f059001bc80f": whitespaceIssue20150915,
-	"9c189d6d644bad9596f78519d870a685624f813afc1d0e49155073d3b0521f970f": whitespaceIssue20150915,
-	"aea7c8f7726871714e777ac730e77e1905a38e9587f9504b739ff9b77ef2d5cc0f": whitespaceIssue20150915,
-	"ac6e225b8324c1fcbe814382e198495bea801dfeb56cb22b9e89066cc52ab03b0f": whitespaceIssue20150915,
-	"3034e8b7d75861fc28a478b4992a8592b5478d4cbc7b87150d0b59573d731d870f": whitespaceIssue20150915,
-	"140f1b7b7ba32f34ad6302d0ed78692cf1564760d78c082965dc3b8b5f7e27f10f": whitespaceIssue20150915,
-	"833f27edcf54cc489795df1dc7d9f0cbea8253e1b84f5e82749a7a2a4ffc295c0f": whitespaceIssue20150915,
-	"110a64513b4188eca2af6406a8a6dbf278dfce324b8879b5cb67e8626ff2af180f": whitespaceIssue20150915,
-	"3042dbe45383b0c2eafe13a73da35c4e721be026d7908dfcef6eb121d95b75b10f": whitespaceIssue20150915,
-	"50ba350ddc388f7c6fdba032a7d283e4caa0ca656f92f69257213222dd7deeaf0f": whitespaceIssue20150915,
-	"803854b4074d668e1761ee9c533c0fc576bd0404cf26ff7545e14512f3b9002f0f": whitespaceIssue20150915,
-	"2e08f0b9566e15fa1f9e67b236e5385cdb38d57ff51d7ab3e568532867c9f8890f": whitespaceIssue20150915,
-	"cb97f4b62f2e817e8db8c6193440214ad20f906571e4851db186869f0b4c0e310f": whitespaceIssue20150915,
-	"a5c4a30d1eaaf752df424bf813c5a907a5cf94fd371e280d39e0a3d078310fba0f": whitespaceIssue20150915,
-	"c7d26afbc1957ecca890d8d9001a9cc4863490161720ad76a2aedeb8c2d50df70f": whitespaceIssue20150915,
-	"b385c0c76d790aba156ff68fd571171fc7cb85f75e7fc9d1561d7960d8875acb0f": whitespaceIssue20150915,
-	"47d349b8bb3c8457449390ca2ed5e489a70ad511ab3edb4c7f0af27eed8c65d30f": whitespaceIssue20150915,
-	"2785b24acd6869e1e7d38a91793af549f3c35cd0729127d200b66f8c0ffba59b0f": whitespaceIssue20150915,
-	"503df567f98cf5910ba44cb95e157e656afe95d159a15c7df4e88ac6016c948f0f": whitespaceIssue20150915,
-	"2892863758cdaf9796fb36e2466093762efda94e74eb51e3ab9d6bec54064b8a0f": whitespaceIssue20150915,
-	"e1d60584995e677254f7d913b3f40060b5500241d6de0c5822ba1282acc5e08b0f": whitespaceIssue20150915,
-	"031b506b705926ea962e59046bfe1720dcf72c85310502020e2ae836b294fcde0f": whitespaceIssue20150915,
-	"1454fec21489f17a6d78927af1c9dca4209360c6ef6bfa569d8b62d32e668ea30f": whitespaceIssue20150915,
-	"ba68052597a3782f64079d7d9ec821ea9785c0868e44b597a04c9cd8bf634c1e0f": whitespaceIssue20150915,
-	"db8d59151b2f78c82c095c9545f1e4d39947a0c0bcc01b907e0ace14517d39970f": whitespaceIssue20150915,
-	"e088beccfee26c5df39239023d1e4e0cbcd63fd50d0bdc4bf2c2ba25ef1a8fe40f": whitespaceIssue20150915,
-	"8182f385c347fe57d3c46fe40e8df0e2d6cabdac38f490417b313050249be9dc0f": whitespaceIssue20150915,
-	"2415e1c77b0815661452ea683e366c6d9dfd2008a7dbc907004c3a33e56cf6190f": whitespaceIssue20150915,
-	"44847743878bd56f5cd74980475e8f4e95d0d6ec1dd8722fd7cfc7761698ec780f": whitespaceIssue20150915,
-	"70c4026afec66312456b6820492b7936bff42b58ca7a035729462700677ef4190f": whitespaceIssue20150915,
-	"7591a920a5050de28faad24b5fe3336f658b964e0e64464b70878bfcf04537420f": whitespaceIssue20150915,
-	"10a45e10ff2585b03b9b5bc449cb1a7a44fbb7fcf25565286cb2d969ad9b89ae0f": whitespaceIssue20150915,
-	"062e6799f211177023bc310fd6e4e28a8e2e18f972d9b037d24434a203aca7240f": whitespaceIssue20150915,
-	"db9a0afaab297048be0d44ffd6d89a3eb6a003256426d7fd87a60ab59880f8160f": whitespaceIssue20150915,
-	"58bf751ddd23065a820449701f8a1a0a46019e1c54612ea0867086dbd405589a0f": whitespaceIssue20150915,
+var badWhitespaceChainLinks = map[keybase1.LinkID]string{
+	"ac3ecaa2aa1d638867026f0c54a1d895777f366d02bfef37403275aa0d4f8322": whitespaceIssue20150915,
+	"94fde9d49c29cba59c949b35dd424de3a0daccf8a04ba443833e3328d495b9d8": whitespaceIssue20150915,
+	"b9f188d0c6638e3bef3dfc3476c04078bb2aef2a9249cc77b6f009692967388a": whitespaceIssue20150915,
+	"f5f324e91a94c073fdc936b50d56250133dc19415ae592d2c7cb99db9e980e1b": whitespaceIssue20150915,
+	"03fb1e2c0e61e3715c41515045d89d2f788dbcc7eb671b94ac12ee5f805bbe70": whitespaceIssue20150915,
+	"e449b1cd1d6f2a86a0f800c47e7d1ad26bbb6c76b983bd78154972c51f77e960": whitespaceIssue20150915,
+	"d380d18672da3c18f0804baf6b28f5efda76d64220a152c000f2b3f9af8b6603": whitespaceIssue20150915,
+	"5957f583bec18cc6f381355843c21f903fe47d584a9816e072f3f102f1f488be": whitespaceIssue20150915,
+	"2c11a140d8f231af6d69543474138a503191486ae6b5739892c5e0c6c0c4c348": whitespaceIssue20150915,
+	"6f3d73ddf575f2033a48268a564575e40edbb5111cc057984f51f463d4e8ed58": whitespaceIssue20150915,
+	"b23dfd34e58a814543e1f8368b9d07922abec213afca6d2b76722825794acffa": whitespaceIssue20150915,
+	"2efe839231d6b03f85ab3c542e870e7062329a8c5e384f1289b00be7c7afb8ab": whitespaceIssue20150915,
+	"18688c45cbe05ee2b72567acc696b3856f9876dff0ec3ea927ad7632a3f48fe6": whitespaceIssue20150915,
+	"2cf8b9ffa500089b6db873acbabdba771e8e897c0a899a01f8967a7280cfd0da": whitespaceIssue20150915,
+	"acf150b2d57a3aa65574bc2bb97e224413ce3f5344fd24fc7c3282da48cc2f3d": whitespaceIssue20150915,
+	"371f9ae63d56ec853fa53941e79d29abbb4cd11aa926715d354d18d687b0ca71": whitespaceIssue20150915,
+	"4948115615d7dceb90bcdd818f69b66b5899339a2b747b5e6dc0f6987abbcbd0": whitespaceIssue20150915,
+	"4c3f7855eb307aa5620962e15de84b2cfe3f728a9722c43906b12e0f3082cb87": whitespaceIssue20150915,
+	"9db59496652a1587ed56ec6ae15917b6d0ef4ac9a14dda97bfa4d2427a80e2b8": whitespaceIssue20150915,
+	"43f21601ffaeae70eca2f585949f42c67e85e93cf2a6847d6c20ffd81a9ff890": whitespaceIssue20150915,
+	"7560f896c19457365225f48be0217b8a00519f1daccefee4c097dd1b4594dd66": whitespaceIssue20150915,
+	"09527db7672bf23a9681ac86c70826cdc01ed1e467252a76ca4bf4ad0964efd7": whitespaceIssue20150915,
+	"3803be27ec0c61b3fdcd8b9b7c78de3df73766736ef00727267858d34a039c7d": whitespaceIssue20150915,
+	"740f9140a7901defaaaec10042722b30d2fee457337b7ae8e9de3b9fc05d109f": whitespaceIssue20150915,
+	"32f5dd2643eabf3828f7f03ccded07d8d8a29e352df6130c3a4232104398d819": whitespaceIssue20150915,
+	"7d97355e5917c5bcc14ba3a1994398b3fa36416768b663c1454069de84a4fca2": whitespaceIssue20150915,
+	"720b80b7c15cb9a3d21a2eec228bceb5db6f0ef54df2d0aef08aec5ed1632257": whitespaceIssue20150915,
+	"12c9203c98fe0b1c80a551f8933b2c870fcc3754a8ea05591e43a4d528fadc68": whitespaceIssue20150915,
+	"9644d4db6a4928ad1075a22b4473d1efa47c99a1a2a779450d4cd67d9115b9ba": whitespaceIssue20150915,
+	"605525686fef18180be692df6106c13dae39abb2799dc9e8bed1e2bb64e9b886": whitespaceIssue20150915,
+	"374f1da46fd8238ab9f288183cb78f3c6a59732f4b19705763c9d6ac356015ef": whitespaceIssue20150915,
+	"893567013c77f45755279bf1138fecbb54cd3a55bf5814504cf0406acbe4bfeb": whitespaceIssue20150915,
+	"3ca5ef6a6115a8a86d7d94cb3565f43f05f7975d66015455dd6cc32b73936177": whitespaceIssue20150915,
+	"3cdd165df44ba7f8331b89213f213dab36482ef513d023c5d2b0f6bfd11d5678": whitespaceIssue20150915,
+	"36328ab1cf15cc3dd2ba4c771ca1066b2d44714780ad8e83894611e2a2642003": whitespaceIssue20150915,
+	"61e9f4b437fccac8abd396acfc96b17558c9c355b57f4a5f2f3698e78f19532f": whitespaceIssue20150915,
+	"14ef90159164e19228ff21c909b764e239f27f0fff49f86414a2dde9b719845f": whitespaceIssue20150915,
+	"b74b420f49b771ec04e656101f86c9729cf328b0fd32f5082d04d3c39f8ccea7": whitespaceIssue20150915,
+	"7772c99774570202a2c5ac017eefc8296f613e64c8d4adff4ba7991b553431f5": whitespaceIssue20150915,
+	"d7ae76e4fdae7034b07e515d5684adcd51afea5a22b8520d2c61d31f5028fc6e": whitespaceIssue20150915,
+	"33a61f19c0ca52257214f97524ef10441cf85215ff171868f53561dfd7b14c81": whitespaceIssue20150915,
+	"616d9710b3a594ab00292d3d414e6e141929935a133bfa9a25ec4a155a403e5c": whitespaceIssue20150915,
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": whitespaceIssue20150915,
+	"9f8c0a29a6ba3a521db2cd4d3e2ae15223dbcd5d5d1201e33ebb2dee1b61342f": whitespaceIssue20150915,
+	"a9efa00bc479cb40ac0521749520f5a7a38a4ba4e698ee03355a85a8464b3840": whitespaceIssue20150915,
+	"f1509495f4f1d46e43dcdd341156b975f7ad19aefeb250a80fd2b236c517a891": whitespaceIssue20150915,
+	"da99975f9ae8cdeb9e3a42a1166617dbf6afbcf841919dcf05145a73a7026cc2": whitespaceIssue20150915,
 }
 
 type ChainLink struct {
@@ -571,7 +571,7 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 	return &highSkip, nil
 }
 
-func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
+func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
 
 	if !IsJSONObject(payload) {
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
@@ -670,7 +670,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 	tmp.etime = tmp.ctime + ei
 
-	tmp.payloadHash = fixAndHashPayload(g, payload, tmp.sigID)
+	tmp.payloadHash = fixAndHashPayload(g, payload, linkID)
 
 	if tmp.sigVersion == KeybaseSignatureV2 {
 		tmp.payloadV2 = payload
@@ -681,7 +681,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 func (c *ChainLink) UnpackLocal(payload []byte) (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(c.G(), payload)
+	err = tmp.unpackPayloadJSON(c.G(), payload, c.id)
 	if err == nil {
 		tmp.payloadLocal = payload
 		c.unpacked = &tmp
@@ -747,14 +747,7 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	}
 
 	tmp := ChainLinkUnpacked{}
-	s, err := jsonparserw.GetString(packed, "sig_id")
-	if err != nil {
-		return err
-	}
-	tmp.sigID, err = keybase1.SigIDFromString(s, true)
-	if err != nil {
-		return err
-	}
+	var err error
 	tmp.sig, err = jsonparserw.GetString(packed, "sig")
 	if err != nil {
 		return err
@@ -802,19 +795,16 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 				return err
 			}
 
-			payloadFixed := c.fixPayload(payload, tmp.sigID)
+			payloadFixed := c.fixPayload(payload, c.id)
 
 			if !FastByteArrayEq(payloadFixed, sigPayload) {
 				return ChainLinkError{"sig payload does not match payload_json"}
 			}
-
-			// mark the payload verified so verification can be skipped in the future
-			c.markPayloadVerified(tmp.sigID)
 		}
 	}
 
 	// unpack the payload
-	if err := tmp.unpackPayloadJSON(c.G(), payload); err != nil {
+	if err := tmp.unpackPayloadJSON(c.G(), payload, c.id); err != nil {
 		m.CDebugf("unpack payload json err: %s", err)
 		return err
 	}
@@ -909,6 +899,27 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
 			c.diskVersion = int(i)
 		}
+
+		// It is not acceptable to digest sig_id from the server, but we do derive it
+		// as we unpack the server reply (see VerifyLink), and it is acceptable to
+		// read it out of a locally-stored chainlink. Note this field is required,
+		// and if we don't have it, there has been a major problem.
+		s, err := jsonparserw.GetString(packed, "sig_id")
+		if err != nil {
+			return err
+		}
+		c.unpacked.sigID, err = keybase1.SigIDFromString(s, true)
+		if err != nil {
+			return err
+		}
+	}
+
+	// sigID is set as a side effect of verifying the link. Make sure we do that
+	// on the way out of this function, before we return success. But it's not
+	// needed in the cased of a stubbed V2 link.
+	err = c.VerifyLink()
+	if err != nil {
+		return err
 	}
 
 	c.G().VDL.Log(VLog1, "| Unpacked Link %s", c.id)
@@ -1022,13 +1033,13 @@ func (c ChainLink) getFixedPayload() []byte {
 	if err != nil {
 		return nil
 	}
-	return c.fixPayload(payload, c.unpacked.sigID)
+	return c.fixPayload(payload, c.id)
 }
 
-func (c *ChainLink) fixPayload(payload []byte, sigID keybase1.SigID) []byte {
-	if s, ok := badWhitespaceChainLinks[sigID]; ok {
+func (c *ChainLink) fixPayload(payload []byte, linkID LinkID) []byte {
+	if s, ok := badWhitespaceChainLinks[linkID.Export()]; ok {
 		if payload[len(payload)-1] != '\n' {
-			c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", sigID, s)
+			c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", linkID.Export(), s)
 
 			// Careful not to mutate the passed in payload via append. So make
 			// a copy first.
@@ -1045,12 +1056,12 @@ func (c *ChainLink) fixPayload(payload []byte, sigID keybase1.SigID) []byte {
 // fixAndHashPayload does the inverse of ChainLink#fixPayload. It strips off a trailing
 // newline for buggy signature payloads, and then computes the hash of the result. This is
 // necessary now that we are computing chain link IDs from signature bodies.
-func fixAndHashPayload(g *GlobalContext, payload []byte, sigID keybase1.SigID) []byte {
+func fixAndHashPayload(g *GlobalContext, payload []byte, linkID LinkID) []byte {
 	toHash := payload
-	if s, ok := badWhitespaceChainLinks[sigID]; ok {
+	if s, ok := badWhitespaceChainLinks[linkID.Export()]; ok {
 		last := len(payload) - 1
 		if payload[last] == '\n' {
-			g.Log.Debug("Fixing payload hash by stripping newline on link '%s': %s", sigID, s)
+			g.Log.Debug("Fixing payload hash by stripping newline on link '%s': %s", linkID.Export(), s)
 			toHash = payload[0:last]
 		}
 	}

@@ -1402,6 +1402,10 @@
         {
           "type": "boolean",
           "name": "forceReindex"
+        },
+        {
+          "type": "int",
+          "name": "maxConvs"
         }
       ]
     },
@@ -1534,6 +1538,16 @@
           "type": "int",
           "name": "numConvs"
         },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchIndexStatus",
+      "fields": [
         {
           "type": "int",
           "name": "percentIndexed"

@@ -280,15 +280,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       } else {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && desktopNotificationSnippet) {
-          actions.push(
-            Chat2Gen.createDesktopNotification({
-              author: message.author,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
-        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const valid = cMsg.valid
@@ -338,6 +329,21 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
       }
+    }
+    if (
+      !isMobile &&
+      displayDesktopNotification &&
+      desktopNotificationSnippet &&
+      cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
+      cMsg.valid
+    ) {
+      actions.push(
+        Chat2Gen.createDesktopNotification({
+          author: cMsg.valid.senderUsername,
+          body: desktopNotificationSnippet,
+          conversationIDKey,
+        })
+      )
     }
   }
 

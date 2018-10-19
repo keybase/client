@@ -5,7 +5,6 @@ import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths.desktop'
 import {isEqual} from 'lodash-es'
-import {windowStyle} from '../../styles'
 import logger from '../../logger'
 
 export type State = {
@@ -53,14 +52,14 @@ export default class AppState {
     this.state = {
       displayBounds: null,
       dockHidden: false,
-      height: windowStyle.height,
+      height: 600,
       isFullScreen: null,
       isMaximized: null,
       notifySound: false,
       openAtLogin: true,
       isUserActive: true,
       tab: null,
-      width: windowStyle.width,
+      width: 800,
       windowHidden: false,
       x: null,
       y: null,
