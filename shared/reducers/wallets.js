@@ -147,9 +147,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.validateAccountName:
       return state.merge({
-          accountName: action.payload.name,
-          accountNameValidationState: 'waiting',
-        })
+        accountName: action.payload.name,
+        accountNameValidationState: 'waiting',
+      })
     case WalletsGen.validatedAccountName:
       if (action.payload.name !== state.accountName) {
         // this wasn't from the most recent call
