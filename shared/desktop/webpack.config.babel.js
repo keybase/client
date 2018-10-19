@@ -196,7 +196,7 @@ const config = (_, {mode}) => {
     main: 'desktop/renderer',
   }
 
-  const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry'].map(name =>
+  const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders'].map(name =>
     merge(commonConfig, {
       entry: {[name]: `./${entryOverride[name] || name}/main.desktop.js`},
       module: {rules: makeRules(false)},
