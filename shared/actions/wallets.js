@@ -142,9 +142,12 @@ const requestPayment = (state: TypedState) =>
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
-      asset: emptyAsset,
+      asset: state.wallets.building.currency === 'XLM' ? emptyAsset : undefined,
+      currency:
+        state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
+          ? state.wallets.building.currency
+          : undefined,
       recipient: state.wallets.building.to,
-      // TODO -- support currency
       note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
