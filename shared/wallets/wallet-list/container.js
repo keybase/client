@@ -22,8 +22,7 @@ const mapDispatchToProps = dispatch => ({
   },
   onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {
-    dispatch(RouteTree.navigateAppend([{props: {}, selected: 'onboarding'}]))
-    // dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
+    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
   },
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
@@ -39,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   title: 'Wallets',
 })
 
-const WalletListOrOnboarding = (props: Props & {acceptedDisclaimer: boolean}) =>
+const WalletListOrOnboarding = (props: Props) =>
   props.acceptedDisclaimer ? <WalletList {...props} /> : <Onboarding />
 
 export default connect(
