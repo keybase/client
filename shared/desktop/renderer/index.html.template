@@ -19,7 +19,7 @@
             <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
         </div>
         <div id="modal-root"></div>
-        <% if (!htmlWebpackPlugin.options.isDev) { %>}<script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().') }</script>
+        <% if (!htmlWebpackPlugin.options.isDev) { %><script>window.eval = global.eval = function () { throw new Error('Sorry, this app does not support window.eval().') }</script>
         <% } %>
     </body>
 </html>

@@ -17,7 +17,7 @@ const config = (_, {mode}) => {
 
   !isStats && console.error('Flags: ', {isDev, isHot})
 
-  const makeRules = mainThread => {
+  const makeRules = nodeThread => {
     const fileLoaderRule = {
       loader: 'file-loader',
       options: {name: '[name].[ext]'},
@@ -28,7 +28,7 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
-        plugins: [...(isHot && !mainThread ? ['react-hot-loader/babel'] : [])],
+        plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '3.0.2'}}]],
       },
     }
@@ -168,16 +168,6 @@ const config = (_, {mode}) => {
     target: 'electron-main',
   })
 
-  // const remoteConfig = merge(commonConfig, {
-  // context: path.resolve(__dirname, '..'),
-  // devtool: isDev ? 'eval' : 'source-map',
-  // entry: {'component-loader': './desktop/remote/component-loader.desktop.js'},
-  // module: {rules: makeRules(false)},
-  // name: 'component-loader',
-  // plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])].filter(Boolean),
-  // target: 'electron-renderer',
-  // })
-  //
   const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
   const template = path.join(__dirname, './renderer/index.html.template')
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
@@ -198,7 +188,12 @@ const config = (_, {mode}) => {
 
   const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders'].map(name =>
     merge(commonConfig, {
-      entry: {[name]: `./${entryOverride[name] || name}/main.desktop.js`},
+      entry: {
+        [name]: [
+          // ...(isHot ? ['react-hot-loader/patch', 'webpack-dev-server/client?http://localhost:4000'] : []),
+          `./${entryOverride[name] || name}/main.desktop.js`,
+        ],
+      },
       module: {rules: makeRules(false)},
       name,
       plugins: makeViewPlugins(name),
@@ -206,11 +201,6 @@ const config = (_, {mode}) => {
     })
   )
 
-  // if (isHot) {
-  // return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
-  // } else {
-  // return [mainThreadConfig, renderThreadConfig, remoteThreadConfig]
-  // }
   return [nodeConfig, ...viewConfigs]
 }
 
