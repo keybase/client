@@ -4,7 +4,6 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
-import Onboarding from './onboarding/container'
 import WalletsAndDetails from './wallets-and-details/container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
@@ -34,12 +33,6 @@ const linkExisting = {
   tags: makeLeafTags({layerOnTop: !isMobile}),
 }
 
-const onboarding = {
-  children: {},
-  component: Onboarding,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
-}
-
 const walletChildren = {
   createNewAccount,
   exportSecretKey: {
@@ -48,7 +41,6 @@ const walletChildren = {
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   linkExisting,
-  onboarding,
   receive: {
     children: {},
     component: ReceiveModal,
@@ -114,7 +106,6 @@ const routeTree = isMobile
       children: {
         createNewAccount,
         linkExisting,
-        onboarding,
         wallet: {
           children: walletChildren,
           component: Wallet,
@@ -125,7 +116,6 @@ const routeTree = isMobile
     })
   : makeRouteDefNode({
       children: {
-        onboarding,
         wallet: {
           children: walletChildren,
           component: Wallet,

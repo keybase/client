@@ -479,12 +479,24 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
-    res =>
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+    .then(res =>
       RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
         WalletsGen.createWalletSettingsReceived({settings})
       )
-  )
+    )
+    .then(
+      action.payload.nextScreen === 'linkExisting' &&
+        Route.navigateTo(
+          isMobile
+            ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
+            : [
+                {props: {}, selected: Tabs.walletsTab},
+                {props: {}, selected: 'wallet'},
+                {props: {}, selected: 'linkExisting'},
+              ]
+        )
+    )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab]))
