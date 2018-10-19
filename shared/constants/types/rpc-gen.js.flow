@@ -2172,6 +2172,7 @@ export type PerTeamKeySeedItem = $ReadOnly<{seed: PerTeamKeySeed, generation: Pe
 export type PerUserKey = $ReadOnly<{gen: Int, seqno: Seqno, sigKID: KID, encKID: KID, signedByKID: KID}>
 export type PerUserKeyBox = $ReadOnly<{generation: PerUserKeyGeneration, box: String, receiverKID: KID}>
 export type PerUserKeyGeneration = Int
+export type PhoneLookupResult = $ReadOnly<{uid: UID, username: String, ctime: UnixTime}>
 export type PhoneNumber = String
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 export type PingResponse = $ReadOnly<{timestamp: Time}>
