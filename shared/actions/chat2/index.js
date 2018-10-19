@@ -2586,7 +2586,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
   return Saga.put(
     WalletsGen.createOpenSendRequestForm({
       amount: requestInfo.amount,
-      currency: requestInfo.currencyCode,
+      currency: requestInfo.currencyCode || 'XLM',
       from: WalletTypes.noAccountID,
       recipientType: 'keybaseUser',
       to: message.author,
