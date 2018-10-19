@@ -191,36 +191,27 @@ const config = (_, {mode}) => {
       }),
     ].filter(Boolean)
 
-  const trackerConfig = merge(commonConfig, {
-    entry: {tracker: './tracker/main.desktop.js'},
-    module: {rules: makeRules(false)},
-    name: 'tracker',
-    plugins: makeViewPlugins('tracker'),
-    target: 'electron-renderer',
-  })
+  // just keeping main in its old place
+  const entryOverride = {
+    main: 'desktop/renderer',
+  }
 
-  const menubarConfig = merge(commonConfig, {
-    entry: {menubar: './menubar/main.desktop.js'},
-    module: {rules: makeRules(false)},
-    name: 'menubar',
-    plugins: makeViewPlugins('menubar'),
-    target: 'electron-renderer',
-  })
-
-  const mainConfig = merge(commonConfig, {
-    entry: {main: './desktop/renderer/main.desktop.js'},
-    module: {rules: makeRules(false)},
-    name: 'main',
-    plugins: makeViewPlugins('main'),
-    target: 'electron-renderer',
-  })
+  const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry'].map(name =>
+    merge(commonConfig, {
+      entry: {[name]: `./${entryOverride[name] || name}/main.desktop.js`},
+      module: {rules: makeRules(false)},
+      name,
+      plugins: makeViewPlugins(name),
+      target: 'electron-renderer',
+    })
+  )
 
   // if (isHot) {
   // return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
   // } else {
   // return [mainThreadConfig, renderThreadConfig, remoteThreadConfig]
   // }
-  return [nodeConfig, mainConfig, menubarConfig, trackerConfig]
+  return [nodeConfig, ...viewConfigs]
 }
 
 export default config
