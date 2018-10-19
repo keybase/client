@@ -2,6 +2,7 @@
 import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
@@ -18,7 +19,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
   _onTabClick: isMobile
-    ? (tab: Tab, me: ?string) => {
+    ? (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
           dispatch(navigateTo(routePath.push(tab)))
           return
@@ -38,7 +39,7 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         const action = routeSelected === tab ? navigateTo : switchTo
         dispatch(action(routePath.push(tab)))
       }
-    : (tab: Tab, me: ?string) => {
+    : (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
           // clicking the chat tab when already selected should do nothing.
           return
@@ -62,6 +63,11 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
           return
         }
 
+        // If we're going to the Wallets tab and it's badged new, unbadge it.
+        if (tab === walletsTab && isWalletsNew) {
+          dispatch(Chat2Gen.createHandleSeeingWallets())
+        }
+
         // otherwise, back out to the default route of the tab.
         const action = routeSelected === tab ? navigateTo : switchTo
         dispatch(action(routePath.push(tab)))
@@ -73,7 +79,7 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   isNew: {
     [walletsTab]: stateProps.isWalletsNew,
   },
-  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username),
+  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username, stateProps.isWalletsNew),
   selectedTab: routeSelected,
   username: stateProps.username || '',
 })
