@@ -14,6 +14,7 @@ import * as WalletsGen from '../wallets-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
@@ -26,7 +27,7 @@ import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} 
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../util/container'
-import {chatTab} from '../../constants/tabs'
+import {chatTab, walletsTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {switchTo} from '../route-tree'
@@ -2584,7 +2585,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return Saga.sequentially(
+  return state.wallets.acceptedDisclaimer ? Saga.sequentially(
     [
       ...(requestInfo.currencyCode
         ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
@@ -2596,7 +2597,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
       RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
     ].map(action => Saga.put(action))
-  )
+  ) : Saga.put(isMobile ? navigateTo([Tabs.settingsTab, SettingsConstants.walletsTab]) : switchTo([walletsTab]))
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
