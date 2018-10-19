@@ -135,7 +135,7 @@ func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID
 		return h.formatReactionPush(ctx, uid, convID, membersType, msg)
 	default:
 		h.Debug(ctx, "FormatPushText: unknown message type: %v", msg.GetMessageType())
-		return res, errors.New("invalid message type for plaintxt")
+		return res, errors.New("invalid message type for plaintext")
 	}
 }
 
