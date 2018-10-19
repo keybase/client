@@ -227,6 +227,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   render() {
     const color = this.props.selected ? Styles.globalColors.white : Styles.globalColors.blue3_60
     const badgeNumber = this.props.badgeNumber || 0
+
     switch (this.props.source.type) {
       case 'avatar':
         return this._renderAvatar(color, badgeNumber)
