@@ -914,6 +914,14 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		}
 	}
 
+	// sigID is set as a side effect of verifying the link. Make sure we do that
+	// on the way out of this function, before we return success. But it's not
+	// needed in the cased of a stubbed V2 link.
+	err = c.VerifyLink()
+	if err != nil {
+		return err
+	}
+
 	c.G().VDL.Log(VLog1, "| Unpacked Link %s", c.id)
 
 	return nil
