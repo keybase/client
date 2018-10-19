@@ -19,8 +19,11 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
+<<<<<<< HEAD
 import * as Tabs from '../../constants/tabs'
 import * as WalletConstants from '../../constants/wallets'
+=======
+>>>>>>> 8cac3ac3972f8291459933cf439e998564297ee9
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
@@ -2591,19 +2594,16 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return state.wallets.acceptedDisclaimer ? Saga.sequentially(
-    [
-      ...(requestInfo.currencyCode
-        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
-        : []),
-      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
-      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
-      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
-      WalletsGen.createSetBuildingTo({to: message.author}),
-      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
-      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
-    ].map(action => Saga.put(action))
-  ) : Saga.put(isMobile ? navigateTo([Tabs.settingsTab, SettingsConstants.walletsTab]) : switchTo([Tabs.walletsTab]))
+  return Saga.put(
+    WalletsGen.createOpenSendRequestForm({
+      amount: requestInfo.amount,
+      currency: requestInfo.currencyCode || 'XLM',
+      from: WalletTypes.noAccountID,
+      recipientType: 'keybaseUser',
+      to: message.author,
+      secretNote: message.note,
+    })
+  )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {

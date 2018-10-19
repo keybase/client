@@ -13,7 +13,6 @@ const provider = Sb.createPropProvider({
 const common = {
   onChangeAmount: Sb.action('onChangeAmount'),
   onChangeDisplayUnit: Sb.action('onChangeDisplayUnit'),
-  refresh: Sb.action('onRefresh'),
   topLabel: '',
   value: '',
 }

@@ -640,10 +640,15 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	if arg.AccountID.IsNil() {
-		return res, errors.New("passed empty AccountID")
+	accountID := arg.AccountID
+	if accountID == nil {
+		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		if err != nil {
+			return res, err
+		}
+		accountID = &primaryAccountID
 	}
-	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, arg.AccountID)
+	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, *accountID)
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {

@@ -49,6 +49,7 @@ export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const loadWalletSettings = 'wallets:loadWalletSettings'
 export const markAsRead = 'wallets:markAsRead'
+export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
@@ -137,8 +138,9 @@ type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
+  accountID: ?Types.AccountID,
   currency: Types.Currency,
+  setBuildingCurrency?: boolean,
 |}>
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|
@@ -160,7 +162,10 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
-type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _LoadDisplayCurrencyPayload = $ReadOnly<{|
+  accountID: ?Types.AccountID,
+  setBuildingCurrency?: boolean,
+|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
   accountID: Types.AccountID,
@@ -176,6 +181,16 @@ type _LoadWalletSettingsPayload = void
 type _MarkAsReadPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   mostRecentID: Types.PaymentID,
+|}>
+type _OpenSendRequestFormPayload = $ReadOnly<{|
+  amount?: string,
+  currency?: string,
+  from?: Types.AccountID,
+  isRequest?: boolean,
+  publicMemo?: HiddenString,
+  recipientType?: Types.CounterpartyType,
+  secretNote?: HiddenString,
+  to?: string,
 |}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
@@ -315,6 +330,10 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({e
  * In response to a notification, resync payment info
  */
 export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({error: false, payload, type: refreshPayments})
+/**
+ * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
+ */
+export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload) => ({error: false, payload, type: openSendRequestForm})
 /**
  * Link an existing Stellar account with this Keybase user.
  */
@@ -537,6 +556,7 @@ export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _Lo
 export type LoadSendAssetChoicesPayload = $Call<typeof createLoadSendAssetChoices, _LoadSendAssetChoicesPayload>
 export type LoadWalletSettingsPayload = $Call<typeof createLoadWalletSettings, _LoadWalletSettingsPayload>
 export type MarkAsReadPayload = $Call<typeof createMarkAsRead, _MarkAsReadPayload>
+export type OpenSendRequestFormPayload = $Call<typeof createOpenSendRequestForm, _OpenSendRequestFormPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
@@ -611,6 +631,7 @@ export type Actions =
   | LoadSendAssetChoicesPayload
   | LoadWalletSettingsPayload
   | MarkAsReadPayload
+  | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
   | RefreshPaymentsPayload
