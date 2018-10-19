@@ -7,7 +7,7 @@ import Onboarding from '.'
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
-  onAcceptDisclaimer: (nextScreen: Types.NextScreen) =>
+  onAcceptDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
     dispatch(WalletsGen.createAcceptDisclaimer({nextScreen})),
   onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
 })

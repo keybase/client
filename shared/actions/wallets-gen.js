@@ -81,7 +81,7 @@ export const walletSettingsReceived = 'wallets:walletSettingsReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreen|}>
+type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,

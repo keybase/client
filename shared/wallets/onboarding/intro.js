@@ -7,7 +7,7 @@ import {WalletPopup} from '../common'
 
 type IntroProps = {|
   onClose: () => void,
-  setNextScreen: (nextScreen: Types.NextScreen) => void,
+  setNextScreen: (nextScreen: Types.NextScreenAfterAcceptance) => void,
 |}
 
 const Intro = (props: IntroProps) => {
@@ -70,6 +70,7 @@ const styles = Styles.styleSheetCreate({
   headerText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.medium,
+    textAlign: 'center',
   },
 })
 

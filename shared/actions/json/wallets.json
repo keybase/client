@@ -12,7 +12,7 @@
     },
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer",
-      "nextScreen": "Types.NextScreen"
+      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",

@@ -68,30 +68,42 @@ const build = (state: TypedState, action: any) =>
   })
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
-  Saga.sequentially(
-    [
-      WalletsGen.createClearBuilding(),
-      action.payload.isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment(),
-      WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-      WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
-      WalletsGen.createLoadDisplayCurrency({
-        accountID: action.payload.from || Types.noAccountID,
-        setBuildingCurrency: !action.payload.currency,
-      }),
-      WalletsGen.createLoadDisplayCurrencies(),
-      WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
-      WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
-      WalletsGen.createSetBuildingPublicMemo({publicMemo: action.payload.publicMemo || new HiddenString('')}),
-      WalletsGen.createSetBuildingRecipientType({
-        recipientType: action.payload.recipientType || 'keybaseUser',
-      }),
-      WalletsGen.createSetBuildingSecretNote({secretNote: action.payload.secretNote || new HiddenString('')}),
-      WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
-      RouteTreeGen.createNavigateAppend({
-        path: [Constants.sendReceiveFormRouteKey],
-      }),
-    ].map(a => Saga.put(a))
-  )
+  state.wallets.acceptedDisclaimer
+    ? Saga.sequentially(
+        [
+          WalletsGen.createClearBuilding(),
+          action.payload.isRequest
+            ? WalletsGen.createClearBuiltRequest()
+            : WalletsGen.createClearBuiltPayment(),
+          WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
+          WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
+          WalletsGen.createLoadDisplayCurrency({
+            accountID: action.payload.from || Types.noAccountID,
+            setBuildingCurrency: !action.payload.currency,
+          }),
+          WalletsGen.createLoadDisplayCurrencies(),
+          WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
+          WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
+          WalletsGen.createSetBuildingPublicMemo({
+            publicMemo: action.payload.publicMemo || new HiddenString(''),
+          }),
+          WalletsGen.createSetBuildingRecipientType({
+            recipientType: action.payload.recipientType || 'keybaseUser',
+          }),
+          WalletsGen.createSetBuildingSecretNote({
+            secretNote: action.payload.secretNote || new HiddenString(''),
+          }),
+          WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
+          RouteTreeGen.createNavigateAppend({
+            path: [Constants.sendReceiveFormRouteKey],
+          }),
+        ].map(a => Saga.put(a))
+      )
+    : Saga.put(
+        isMobile
+          ? Route.navigateTo([Tabs.settingsTab, SettingsConstants.walletsTab])
+          : Route.switchTo([Tabs.walletsTab])
+      )
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
@@ -522,11 +534,7 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
             Route.navigateTo(
               isMobile
                 ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
-                : [
-                    {props: {}, selected: Tabs.walletsTab},
-                    {props: {}, selected: 'wallet'},
-                    {props: {}, selected: 'linkExisting'},
-                  ]
+                : [Tabs.walletsTab, 'wallet', 'linkExisting']
             )
           )
         : undefined

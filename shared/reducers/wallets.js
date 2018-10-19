@@ -227,7 +227,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         I.Map(action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread]))
       )
     case WalletsGen.walletSettingsReceived:
-      return state.set('acceptedDisclaimer', action.payload.settings.acceptedDisclaimer)
+      return state.set('acceptedDisclaimer', false) // action.payload.settings.acceptedDisclaimer)
     // Saga only actions
     case WalletsGen.acceptDisclaimer:
     case WalletsGen.rejectDisclaimer:

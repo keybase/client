@@ -5,7 +5,7 @@ import Disclaimer from './disclaimer'
 import Intro from './intro'
 
 type OnboardingProps = {|
-  onAcceptDisclaimer: (nextScreen: Types.NextScreen) => void,
+  onAcceptDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void,
   onClose: () => void,
 |}
 
@@ -15,7 +15,7 @@ type OnboardingState = {|
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
   state = {nextScreen: ''}
-  _setNextScreen = (nextScreen: Types.NextScreen) => {
+  _setNextScreen = (nextScreen: Types.NextScreenAfterAcceptance) => {
     this.setState({nextScreen})
   }
   render() {

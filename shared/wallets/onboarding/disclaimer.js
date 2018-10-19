@@ -19,14 +19,18 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   state = {secondsLeft: 5}
   timer: ?TickerID = null
 
-  _setSecondsLeft = (secondsLeft: number) => this.setState({secondsLeft})
-
   tick = () => {
     this.setState({secondsLeft: this.state.secondsLeft - 1}, () => {
       if (this.state.secondsLeft === 0 && this.timer) {
         removeTicker(this.timer)
       }
     })
+  }
+
+  componentWillUnmount() {
+    if (!__STORYBOOK__) {
+      this.timer && removeTicker(this.timer)
+    }
   }
 
   componentDidMount() {
@@ -36,7 +40,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
 
   render() {
-    const label = `Yes, I agree (${this.state.secondsLeft})`
+    const label = 'Yes, I agree'.concat(this.state.secondsLeft ? ` (${this.state.secondsLeft})` : '')
     const buttons = [
       <Kb.WaitingButton
         waitingKey={Constants.acceptDisclaimerWaitingKey}
