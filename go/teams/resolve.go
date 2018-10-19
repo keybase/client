@@ -142,6 +142,13 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
+			if resErr, ok := err.(libkb.ResolutionError); ok && resErr.Kind == libkb.ResolutionErrorRateLimited {
+				// If we are rate limited, do not proceed further, so we don't
+				// create "dead" implicit team that will never get SBSed,
+				// because that assertion was already resolvable, just not for
+				// us.
+				return resErr
+			}
 			sa, err := expr.ToSocialAssertion()
 			if err != nil {
 				// Could not convert to a social assertion.

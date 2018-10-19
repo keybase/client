@@ -672,6 +672,15 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
+const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
+  Saga.put(
+    NotificationsGen.createSetBadgeCounts({
+      counts: I.Map({
+        [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
+      }),
+    })
+  )
+
 const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
@@ -694,6 +703,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+  yield Saga.actionToAction(FsGen.favoritesLoaded, updateFsBadge)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
   yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
