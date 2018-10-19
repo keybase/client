@@ -7,7 +7,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
 import {getRendererHTML} from './dev.desktop'
-import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
 
@@ -38,8 +37,8 @@ export default function() {
   const mainWindow = new Window(getRendererHTML('mainWindow'), {
     backgroundThrottling: false,
     height: appState.state.height,
-    minHeight: windowStyle.minHeight,
-    minWidth: windowStyle.minWidth,
+    minHeight: 600,
+    minWidth: 400,
     show: false,
     webPreferences: {
       devTools: showDevTools,
