@@ -67,6 +67,32 @@ const build = (state: TypedState, action: any) =>
     }
   })
 
+const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
+  Saga.sequentially(
+    [
+      WalletsGen.createClearBuilding(),
+      action.payload.isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment(),
+      WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
+      WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
+      WalletsGen.createLoadDisplayCurrency({
+        accountID: action.payload.from || Types.noAccountID,
+        setBuildingCurrency: !action.payload.currency,
+      }),
+      WalletsGen.createLoadDisplayCurrencies(),
+      WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
+      WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
+      WalletsGen.createSetBuildingPublicMemo({publicMemo: action.payload.publicMemo || new HiddenString('')}),
+      WalletsGen.createSetBuildingRecipientType({
+        recipientType: action.payload.recipientType || 'keybaseUser',
+      }),
+      WalletsGen.createSetBuildingSecretNote({secretNote: action.payload.secretNote || new HiddenString('')}),
+      WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
+      RouteTreeGen.createNavigateAppend({
+        path: [Constants.sendReceiveFormRouteKey],
+      }),
+    ].map(a => Saga.put(a))
+  )
+
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
   return RPCStellarTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
@@ -176,17 +202,18 @@ const loadAssets = (
     })
   )
 
-const createPaymentsReceived = (accountID, payments, pending) => WalletsGen.createPaymentsReceived({
-      accountID,
-      oldestUnread: payments.oldestUnread
-        ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
-        : Types.noPaymentID,
-      paymentCursor: payments.cursor,
-      payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem, 'history'))
-        .filter(Boolean),
-      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem, 'pending')).filter(Boolean),
-    })
+const createPaymentsReceived = (accountID, payments, pending) =>
+  WalletsGen.createPaymentsReceived({
+    accountID,
+    oldestUnread: payments.oldestUnread
+      ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
+      : Types.noPaymentID,
+    paymentCursor: payments.cursor,
+    payments: (payments.payments || [])
+      .map(elem => Constants.paymentResultToPayment(elem, 'history'))
+      .filter(Boolean),
+    pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem, 'pending')).filter(Boolean),
+  })
 
 const loadPayments = (
   state: TypedState,
@@ -200,8 +227,7 @@ const loadPayments = (
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-  ]).then(([pending, payments]) =>
-          createPaymentsReceived(action.payload.accountID, payments, pending))
+  ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
 
 const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
@@ -228,15 +254,21 @@ const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAsse
     res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   })
 
-const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
-  RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
-    accountID: action.payload.accountID,
+const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) => {
+  let accountID = action.payload.accountID
+  if (accountID && !Types.isValidAccountID(accountID)) {
+    accountID = null
+  }
+  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
+    accountID: accountID,
   }).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
-      accountID: action.payload.accountID,
+      accountID: accountID,
       currency: Constants.makeCurrencies(res),
+      setBuildingCurrency: action.payload.setBuildingCurrency,
     })
   )
+}
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
@@ -493,7 +525,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
-      WalletsGen.loadDisplayCurrency,
     ],
     loadAssets
   )
@@ -539,6 +570,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     build
   )
+  yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
