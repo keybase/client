@@ -900,10 +900,10 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 			c.diskVersion = int(i)
 		}
 
-		// It is not acceptable to digest sig_id from the server, but we do derived it
-		// as we unpack the server reply, and it is acceptable to read it out of a
-		// locally-stored chainlink. Note this field is required, and if we don't have it,
-		// there has been a major problem.
+		// It is not acceptable to digest sig_id from the server, but we do derive it
+		// as we unpack the server reply (see VerifyLink), and it is acceptable to
+		// read it out of a locally-stored chainlink. Note this field is required,
+		// and if we don't have it, there has been a major problem.
 		s, err := jsonparserw.GetString(packed, "sig_id")
 		if err != nil {
 			return err
