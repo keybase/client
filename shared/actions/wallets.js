@@ -67,28 +67,31 @@ const build = (state: TypedState, action: any) =>
     }
   })
 
-const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) => {
-  const arg = action.payload
-  return Saga.sequentially(
+const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
+  Saga.sequentially(
     [
       WalletsGen.createClearBuilding(),
-      arg.isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment(),
-      WalletsGen.createSetBuildingAmount({amount: arg.amount || ''}),
-      WalletsGen.createSetBuildingCurrency({currency: arg.currency || ''}),
+      action.payload.isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment(),
+      WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
+      WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
       WalletsGen.createLoadDisplayCurrency({
-        accountID: arg.from || Types.noAccountID,
-        setBuildingCurrency: !arg.currency,
+        accountID: action.payload.from || Types.noAccountID,
+        setBuildingCurrency: !action.payload.currency,
       }),
       WalletsGen.createLoadDisplayCurrencies(),
-      WalletsGen.createSetBuildingFrom({from: arg.from || Types.noAccountID}),
-      WalletsGen.createSetBuildingIsRequest({isRequest: !!arg.isRequest}),
-      WalletsGen.createSetBuildingPublicMemo({publicMemo: arg.publicMemo || new HiddenString('')}),
-      WalletsGen.createSetBuildingRecipientType({recipientType: arg.recipientType || 'keybaseUser'}),
-      WalletsGen.createSetBuildingSecretNote({secretNote: arg.secretNote || new HiddenString('')}),
-      WalletsGen.createSetBuildingTo({to: arg.to || ''}),
+      WalletsGen.createSetBuildingFrom({from: action.payload.from || Types.noAccountID}),
+      WalletsGen.createSetBuildingIsRequest({isRequest: !!action.payload.isRequest}),
+      WalletsGen.createSetBuildingPublicMemo({publicMemo: action.payload.publicMemo || new HiddenString('')}),
+      WalletsGen.createSetBuildingRecipientType({
+        recipientType: action.payload.recipientType || 'keybaseUser',
+      }),
+      WalletsGen.createSetBuildingSecretNote({secretNote: action.payload.secretNote || new HiddenString('')}),
+      WalletsGen.createSetBuildingTo({to: action.payload.to || ''}),
+      RouteTreeGen.createNavigateAppend({
+        path: [Constants.sendReceiveFormRouteKey],
+      }),
     ].map(a => Saga.put(a))
   )
-}
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload

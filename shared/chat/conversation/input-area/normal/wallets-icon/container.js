@@ -3,9 +3,7 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as WalletConstants from '../../../../../constants/wallets'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
 
 const mapStateToProps = state => ({
@@ -24,11 +22,6 @@ const mapDispatchToProps = dispatch => ({
         isRequest,
         recipientType: 'keybaseUser',
         to,
-      })
-    )
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [WalletConstants.sendReceiveFormRouteKey],
       })
     )
   },

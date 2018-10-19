@@ -10,8 +10,6 @@ import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
-import * as Route from '../actions/route-tree-gen'
-import * as WalletConstants from '../constants/wallets'
 import {noAccountID} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
@@ -117,14 +115,14 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
       )
     ),
   _onSendOrRequestLumens: (to: string, isRequest) => {
-    dispatch(WalletsGen.createClearBuilding())
-    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-    dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
-    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
-    dispatch(WalletsGen.createSetBuildingTo({to}))
-    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        from: noAccountID,
+        isRequest,
+        recipientType: 'keybaseUser',
+        to,
+      })
+    )
   },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
