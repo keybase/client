@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -73,14 +74,8 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 	}
 }
 
-func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
-	defer h.Trace(ctx, func() error { return err }, "FormatPushText")()
-
-	if !msg.IsValid() || msg.GetMessageType() != chat1.MessageType_TEXT {
-		h.Debug(ctx, "FormatPushText: unknown message type: %v", msg.GetMessageType())
-		return res, errors.New("invalid message")
-	}
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
@@ -98,6 +93,49 @@ func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID
 			msg.Valid().MessageBody.Text().Body), nil
 	default:
 		return fmt.Sprintf("%s: %s", msg.Valid().SenderUsername, msg.Valid().MessageBody.Text().Body), nil
+	}
+}
+
+func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
+	reaction, err := utils.GetReaction(msg)
+	if err != nil {
+		return res, err
+	}
+	switch membersType {
+	case chat1.ConversationMembersType_TEAM:
+		// Try to get the channel name
+		ib, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+		if err != nil || len(ib.Convs) == 0 {
+			h.Debug(ctx, "FormatPushText: failed to unbox convo, using team only")
+			return emoji.Sprintf("(%s): %s reacted to your message with %v", msg.Valid().ClientHeader.TlfName,
+				msg.Valid().SenderUsername, reaction), nil
+		}
+		return emoji.Sprintf("(%s#%s): %s reacted to your message with %v", msg.Valid().ClientHeader.TlfName,
+			utils.GetTopicName(ib.Convs[0]), msg.Valid().SenderUsername, reaction), nil
+	default:
+		return emoji.Sprintf("%s reacted to your message with %v", msg.Valid().SenderUsername,
+			reaction), nil
+	}
+}
+
+func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
+	defer h.Trace(ctx, func() error { return err }, "FormatPushText")()
+	if !msg.IsValid() {
+		h.Debug(ctx, "FormatPushText: message is not valid")
+		return res, errors.New("invalid message")
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_TEXT:
+		return h.formatTextPush(ctx, uid, convID, membersType, msg)
+	case chat1.MessageType_REACTION:
+		return h.formatReactionPush(ctx, uid, convID, membersType, msg)
+	default:
+		h.Debug(ctx, "FormatPushText: unknown message type: %v", msg.GetMessageType())
+		return res, errors.New("invalid message type for plaintxt")
 	}
 }
 
