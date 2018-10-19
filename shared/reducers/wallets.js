@@ -51,9 +51,15 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
-      return state
-        .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        .update('building', b => b.merge({currency: action.payload.currency.code}))
+      // $FlowIssue thinks state is _State
+      return state.withMutations(stateMutable => {
+        if (action.payload.accountID) {
+          stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
+        }
+        if (action.payload.setBuildingCurrency) {
+          stateMutable.update('building', b => b.merge({currency: action.payload.currency.code}))
+        }
+      })
     case WalletsGen.secretKeyReceived:
       return state
         .set('exportedSecretKey', action.payload.secretKey)
@@ -245,6 +251,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.requestedPayment:
     case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
+    case WalletsGen.openSendRequestForm:
       return state
     default:
       /*::
