@@ -52,7 +52,9 @@ class RemoteComponentLoader extends React.Component<Props> {
   }
 
   _onClose = () => {
-    this._window?.close?.()
+    if (this._window) {
+      this._window.close()
+    }
   }
 
   render() {

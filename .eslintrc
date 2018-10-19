@@ -56,6 +56,7 @@
         "jsx-quotes": "off",
         "no-duplicate-imports": "off",
         "no-mixed-operators": "off",
+        "no"-unused-expressions": ["error",  {"allowShortCircuit": true}],
         "react/jsx-boolean-value": ["error", "always"],
         "react/jsx-curly-spacing": "off",
         "react/jsx-equals-spacing": "error",
