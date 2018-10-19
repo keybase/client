@@ -188,14 +188,14 @@ type _OpenSendRequestFormPayload = $ReadOnly<{|
 |}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  payment: Types.Payment,
+  payment: Types.PaymentDetail,
 |}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentCursor: ?StellarRPCTypes.PageCursor,
   oldestUnread: Types.PaymentID,
-  payments: Array<Types.Payment>,
-  pending: Array<Types.Payment>,
+  payments: Array<Types.PaymentResult>,
+  pending: Array<Types.PaymentResult>,
 |}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>

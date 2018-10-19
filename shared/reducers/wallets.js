@@ -37,13 +37,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltRequest:
       return state.set('builtRequest', Constants.makeBuiltRequest())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
-        Constants.updatePaymentMap(payments, [action.payload.payment])
+      return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+        Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
       )
     case WalletsGen.paymentsReceived:
       return state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-          Constants.updatePaymentMap(paymentsMap, [...action.payload.payments, ...action.payload.pending])
+          Constants.updatePaymentsReceived(paymentsMap, [
+            ...action.payload.payments,
+            ...action.payload.pending,
+          ])
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)

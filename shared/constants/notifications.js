@@ -6,14 +6,12 @@ import * as Tabs from './tabs'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
 
-export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) => {
+export const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState, state: TypedState) => {
   const {
     homeTodoItems,
     conversations,
-    newTlfs,
     newDevices,
     revokedDevices,
-    rekeysNeeded,
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
     newTeamAccessRequests,
@@ -40,22 +38,24 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
   const newTeams =
     (newTeamNames || []).length + (newTeamAccessRequests || []).length + (teamsWithResetUsers || []).length
 
-  const navBadges = I.Map([
-    [Tabs.chatTab, totalMessages],
-    [Tabs.folderTab, newTlfs + rekeysNeeded],
-    [Tabs.fsTab, newTlfs + rekeysNeeded],
-    [Tabs.gitTab, newGit],
-    [Tabs.teamsTab, newTeams],
-    [Tabs.peopleTab, homeTodoItems],
-    [Tabs.walletsTab, totalPayments],
-    [Tabs.devicesTab, deviceChanges],
-  ])
-
   return {
-    desktopAppBadgeCount: navBadges.reduce((total, val) => total + val, 0),
-    mobileAppBadgeCount: totalMessages,
-    navBadges,
+    counts: I.Map([
+      [Tabs.chatTab, totalMessages],
+      [Tabs.gitTab, newGit],
+      [Tabs.teamsTab, newTeams],
+      [Tabs.peopleTab, homeTodoItems],
+      [Tabs.walletsTab, totalPayments],
+      [Tabs.devicesTab, deviceChanges],
+    ]),
   }
+}
+
+let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
+export const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
+  const {newTlfs, rekeysNeeded} = bs
+  const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
+  lastFsBadges = {newTlfs, rekeysNeeded}
+  return !same
 }
 
 export const makeState: I.RecordFactory<_State> = I.Record({

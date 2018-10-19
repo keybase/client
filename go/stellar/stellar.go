@@ -134,7 +134,7 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	if err != nil {
 		return err
 	}
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return err
 	}

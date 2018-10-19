@@ -853,6 +853,10 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
+func (u *userPlusDevice) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(*u.tc)
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	const workTimeSec = 1 // team_rekeyd delay before retrying job if it wasn't finished.
 	args := libkb.HTTPArgs{

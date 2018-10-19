@@ -875,6 +875,11 @@ type ChatSearchInboxDoneArg struct {
 	Res       ChatSearchInboxDone `codec:"res" json:"res"`
 }
 
+type ChatSearchIndexStatusArg struct {
+	SessionID int                   `codec:"sessionID" json:"sessionID"`
+	Status    ChatSearchIndexStatus `codec:"status" json:"status"`
+}
+
 type ChatConfirmChannelDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Channel   string `codec:"channel" json:"channel"`
@@ -893,6 +898,7 @@ type ChatUiInterface interface {
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
+	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
@@ -1092,6 +1098,22 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chatSearchIndexStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchIndexStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchIndexStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchIndexStatusArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchIndexStatus(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"chatConfirmChannelDelete": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatConfirmChannelDeleteArg
@@ -1175,6 +1197,11 @@ func (c ChatUiClient) ChatSearchInboxHit(ctx context.Context, __arg ChatSearchIn
 
 func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchInboxDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearchIndexStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil)
 	return
 }
 

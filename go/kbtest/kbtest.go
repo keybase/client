@@ -383,3 +383,24 @@ func GenerateTestPhoneNumber() string {
 	}
 	return fmt.Sprintf("487%s", string(ret))
 }
+
+type getCodeResponse struct {
+	libkb.AppStatusEmbed
+	VerificationCode string `json:"verification_code"`
+}
+
+func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "test/phone_number_code",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"phone_number": libkb.S{Val: phoneNumber.String()},
+		},
+	}
+	var resp getCodeResponse
+	err = mctx.G().API.GetDecode(arg, &resp)
+	if err != nil {
+		return "", err
+	}
+	return resp.VerificationCode, nil
+}

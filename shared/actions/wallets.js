@@ -213,9 +213,11 @@ const createPaymentsReceived = (accountID, payments, pending) =>
       : Types.noPaymentID,
     paymentCursor: payments.cursor,
     payments: (payments.payments || [])
-      .map(elem => Constants.paymentResultToPayment(elem, 'history'))
+      .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
       .filter(Boolean),
-    pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem, 'pending')).filter(Boolean),
+    pending: (pending || [])
+      .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'pending'))
+      .filter(Boolean),
   })
 
 const loadPayments = (
@@ -315,7 +317,7 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
   }).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
-      payment: Constants.paymentDetailResultToPayment(res),
+      payment: Constants.rpcPaymentDetailToPaymentDetail(res),
     })
   )
 

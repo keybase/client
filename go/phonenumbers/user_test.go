@@ -11,27 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type getCodeResponse struct {
-	libkb.AppStatusEmbed
-	VerificationCode string `json:"verification_code"`
-}
-
-func getVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
-	arg := libkb.APIArg{
-		Endpoint:    "test/phone_number_code",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"phone_number": libkb.S{Val: phoneNumber.String()},
-		},
-	}
-	var resp getCodeResponse
-	err = mctx.G().API.GetDecode(arg, &resp)
-	if err != nil {
-		return "", err
-	}
-	return resp.VerificationCode, nil
-}
-
 func TestSetPhoneNumber(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestPhoneNumbers", 1)
 	defer tc.Cleanup()
@@ -46,7 +25,7 @@ func TestSetPhoneNumber(t *testing.T) {
 	err = AddPhoneNumber(mctx, phoneNumber)
 	require.NoError(t, err)
 
-	code, err := getVerificationCode(mctx, phoneNumber)
+	code, err := kbtest.GetPhoneVerificationCode(mctx, phoneNumber)
 	require.NoError(t, err)
 	t.Logf("Got verification code: %q", code)
 
