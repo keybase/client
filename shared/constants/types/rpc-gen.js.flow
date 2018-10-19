@@ -1284,6 +1284,9 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  addPhoneNumber: 13,
+  verifyFirstPhoneNumber: 14,
+  verifyFirstEmail: 15,
 }
 
 export const identifyCommonIdentifyReasonType = {
@@ -2000,6 +2003,9 @@ export type HomeScreenTodoType =
   | 10 // TEAM_SHOWCASE_10
   | 11 // AVATAR_USER_11
   | 12 // AVATAR_TEAM_12
+  | 13 // ADD_PHONE_NUMBER_13
+  | 14 // VERIFY_FIRST_PHONE_NUMBER_14
+  | 15 // VERIFY_FIRST_EMAIL_15
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
 export type Identify2Res = $ReadOnly<{upk: UserPlusKeys, identifiedAt: Time, trackBreaks?: ?IdentifyTrackBreaks}>

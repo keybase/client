@@ -28,7 +28,10 @@ protocol home {
     GIT_REPO_9,
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
-    AVATAR_TEAM_12
+    AVATAR_TEAM_12,
+    ADD_PHONE_NUMBER_13,
+    VERIFY_FIRST_PHONE_NUMBER_14,
+    VERIFY_FIRST_EMAIL_15
   }
 
   variant HomeScreenTodo switch (HomeScreenTodoType t) {

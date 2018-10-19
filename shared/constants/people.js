@@ -26,6 +26,9 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
   folder: 'folder',
   gitRepo: 'gitRepo',
   teamShowcase: 'teamShowcase',
+  addPhoneNumber: 'addPhoneNumber',
+  verifyFirstPhoneNumber: 'verifyFirstPhoneNumber',
+  verifyFirstEmail: 'verifyFirstEmail'
 }
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
@@ -48,6 +51,12 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   gitRepo:
     'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
+  addPhoneNumber:
+    'NEW! Allow people to look you up with your phone number.',
+  verifyFirstPhoneNumber:
+    'Your phone number is still unverified.',
+  verifyFirstEmail:
+    'Your email address is still unverified.',
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   avatarTeam: 'Edit team avatar',
@@ -62,6 +71,9 @@ export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   folder: 'Open a private folder',
   gitRepo: isMobile ? 'Create a repo' : 'Create a personal git repo',
   teamShowcase: 'Set publicity settings',
+  addPhoneNumber: 'Add your phone number',
+  verifyFirstPhoneNumber: 'Verify your phone number',
+  verifyFirstEmail: 'Verify your email',
 }
 export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   avatarTeam: false,
@@ -76,6 +88,9 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   folder: true,
   gitRepo: true,
   teamShowcase: true,
+  addPhoneNumber: true,
+  verifyFirstPhoneNumber: true,
+  verifyFirstEmail: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   avatarTeam: isMobile ? 'icon-onboarding-team-avatar-48' : 'icon-onboarding-team-avatar-32',
@@ -90,6 +105,9 @@ export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   folder: isMobile ? 'icon-onboarding-folder-48' : 'icon-onboarding-folder-32',
   gitRepo: isMobile ? 'icon-onboarding-git-48' : 'icon-onboarding-git-32',
   teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
+  addPhoneNumber: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
+  verifyFirstPhoneNumber: isMobile ? 'icon-proof-success.png-48' : 'icon-proof-success.png-32',
+  verifyFirstEmail: isMobile ? 'icon-proof-success.png-48' : 'icon-proof-success.png-32',
 }
 
 export const reduceRPCItemToPeopleItem = (

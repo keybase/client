@@ -357,6 +357,9 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  addPhoneNumber: 13,
+  verifyFirstPhoneNumber: 14,
+  verifyFirstEmail: 15,
 }
 
 export const identifyCommonIdentifyReasonType = {

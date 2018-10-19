@@ -187,6 +187,42 @@ const teamShowcaseConnector = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )
 
+// ----- ADDPHONENUMBER ----- //
+const addPhoneNumberConnector = connect(
+  () => ({}),
+  dispatch => ({
+    onConfirm: () => {
+      dispatch(switchTo([Tabs.settingsTab]))
+    },
+    onDismiss: () => {},
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)
+
+// ----- VERIFYFIRSTPHONENUMBER ----- //
+const verifyFirstPhoneNumberConnector = connect(
+  () => ({}),
+  dispatch => ({
+    onConfirm: () => {
+      dispatch(switchTo([Tabs.settingsTab]))
+    },
+    onDismiss: () => {},
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)
+
+// ----- VERIFYFIRSTEMAIL ----- //
+const verifyFirstEmailConnector = connect(
+  () => ({}),
+  dispatch => ({
+    onConfirm: () => {
+      dispatch(switchTo([Tabs.settingsTab]))
+    },
+    onDismiss: () => {},
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)
+
 export default compose(
   // TODO remove all this branch and just make a component
   branch(props => props.todoType === todoTypes.avatarTeam, avatarTeamConnector),
@@ -201,5 +237,8 @@ export default compose(
   branch(props => props.todoType === todoTypes.folder, folderConnector),
   branch(props => props.todoType === todoTypes.gitRepo, gitRepoConnector),
   branch(props => props.todoType === todoTypes.teamShowcase, teamShowcaseConnector),
+  branch(props => props.todoType === todoTypes.addPhoneNumber, addPhoneNumberConnector),
+  branch(props => props.todoType === todoTypes.verifyFirstPhoneNumber, verifyFirstPhoneNumberConnector),
+  branch(props => props.todoType === todoTypes.verifyFirstEmail, verifyFirstEmailConnector),
   branch(props => !props.onConfirm, renderNothing)
 )(Task)

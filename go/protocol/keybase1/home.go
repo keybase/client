@@ -120,37 +120,43 @@ func (o HomeScreenItemData) DeepCopy() HomeScreenItemData {
 type HomeScreenTodoType int
 
 const (
-	HomeScreenTodoType_NONE          HomeScreenTodoType = 0
-	HomeScreenTodoType_BIO           HomeScreenTodoType = 1
-	HomeScreenTodoType_PROOF         HomeScreenTodoType = 2
-	HomeScreenTodoType_DEVICE        HomeScreenTodoType = 3
-	HomeScreenTodoType_FOLLOW        HomeScreenTodoType = 4
-	HomeScreenTodoType_CHAT          HomeScreenTodoType = 5
-	HomeScreenTodoType_PAPERKEY      HomeScreenTodoType = 6
-	HomeScreenTodoType_TEAM          HomeScreenTodoType = 7
-	HomeScreenTodoType_FOLDER        HomeScreenTodoType = 8
-	HomeScreenTodoType_GIT_REPO      HomeScreenTodoType = 9
-	HomeScreenTodoType_TEAM_SHOWCASE HomeScreenTodoType = 10
-	HomeScreenTodoType_AVATAR_USER   HomeScreenTodoType = 11
-	HomeScreenTodoType_AVATAR_TEAM   HomeScreenTodoType = 12
+	HomeScreenTodoType_NONE                      HomeScreenTodoType = 0
+	HomeScreenTodoType_BIO                       HomeScreenTodoType = 1
+	HomeScreenTodoType_PROOF                     HomeScreenTodoType = 2
+	HomeScreenTodoType_DEVICE                    HomeScreenTodoType = 3
+	HomeScreenTodoType_FOLLOW                    HomeScreenTodoType = 4
+	HomeScreenTodoType_CHAT                      HomeScreenTodoType = 5
+	HomeScreenTodoType_PAPERKEY                  HomeScreenTodoType = 6
+	HomeScreenTodoType_TEAM                      HomeScreenTodoType = 7
+	HomeScreenTodoType_FOLDER                    HomeScreenTodoType = 8
+	HomeScreenTodoType_GIT_REPO                  HomeScreenTodoType = 9
+	HomeScreenTodoType_TEAM_SHOWCASE             HomeScreenTodoType = 10
+	HomeScreenTodoType_AVATAR_USER               HomeScreenTodoType = 11
+	HomeScreenTodoType_AVATAR_TEAM               HomeScreenTodoType = 12
+	HomeScreenTodoType_ADD_PHONE_NUMBER          HomeScreenTodoType = 13
+	HomeScreenTodoType_VERIFY_FIRST_PHONE_NUMBER HomeScreenTodoType = 14
+	HomeScreenTodoType_VERIFY_FIRST_EMAIL        HomeScreenTodoType = 15
 )
 
 func (o HomeScreenTodoType) DeepCopy() HomeScreenTodoType { return o }
 
 var HomeScreenTodoTypeMap = map[string]HomeScreenTodoType{
-	"NONE":          0,
-	"BIO":           1,
-	"PROOF":         2,
-	"DEVICE":        3,
-	"FOLLOW":        4,
-	"CHAT":          5,
-	"PAPERKEY":      6,
-	"TEAM":          7,
-	"FOLDER":        8,
-	"GIT_REPO":      9,
-	"TEAM_SHOWCASE": 10,
-	"AVATAR_USER":   11,
-	"AVATAR_TEAM":   12,
+	"NONE":                      0,
+	"BIO":                       1,
+	"PROOF":                     2,
+	"DEVICE":                    3,
+	"FOLLOW":                    4,
+	"CHAT":                      5,
+	"PAPERKEY":                  6,
+	"TEAM":                      7,
+	"FOLDER":                    8,
+	"GIT_REPO":                  9,
+	"TEAM_SHOWCASE":             10,
+	"AVATAR_USER":               11,
+	"AVATAR_TEAM":               12,
+	"ADD_PHONE_NUMBER":          13,
+	"VERIFY_FIRST_PHONE_NUMBER": 14,
+	"VERIFY_FIRST_EMAIL":        15,
 }
 
 var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
@@ -167,6 +173,9 @@ var HomeScreenTodoTypeRevMap = map[HomeScreenTodoType]string{
 	10: "TEAM_SHOWCASE",
 	11: "AVATAR_USER",
 	12: "AVATAR_TEAM",
+	13: "ADD_PHONE_NUMBER",
+	14: "VERIFY_FIRST_PHONE_NUMBER",
+	15: "VERIFY_FIRST_EMAIL",
 }
 
 func (e HomeScreenTodoType) String() string {
