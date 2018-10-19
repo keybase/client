@@ -97,6 +97,7 @@ type repoDirNode struct {
 	repo      string
 	subdir    string
 	branch    plumbing.ReferenceName
+	once      sync.Once
 }
 
 var _ libkbfs.Node = (*repoDirNode)(nil)
@@ -121,7 +122,7 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	return true, ctx, libkbfs.FakeDir, ""
 }
 
-func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
+func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 	ctx = libkbfs.CtxWithRandomIDReplayable(
 		ctx, ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 	_, b, err := rdn.am.GetBrowserForRepo(
@@ -131,14 +132,25 @@ func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 		return nil
 	}
 
+	if rdn.subdir == "" && rdn.branch == "" {
+		// If this is the root node for the repo, register it exactly once.
+		rdn.once.Do(func() {
+			billyFS, err := rdn.gitRootFS.Chroot(rdn.repo)
+			if err != nil {
+				rdn.am.log.CDebugf(nil, "Error getting repo FS: %+v", err)
+				return
+			}
+			repoFS := billyFS.(*libfs.FS)
+			rdn.am.registerRepoNode(repoFS.RootNode(), rdn)
+		})
+	}
+
 	return b
 }
 
-func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
+func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rdn.Node.WrapChild(child)
 	name := child.GetBasename()
-	ctx := libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 
 	if rdn.subdir == "" && strings.HasPrefix(name, AutogitBranchPrefix) &&
 		rdn.gitRootFS != nil {
@@ -157,13 +169,7 @@ func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		}
 	}
 
-	fs := rdn.GetFS(ctx)
-	fi, err := fs.Lstat(name)
-	if err != nil {
-		rdn.am.log.CDebugf(nil, "Error getting type of child: %+v", err)
-		return child
-	}
-	if fi.IsDir() {
+	if child.EntryType() == libkbfs.Dir {
 		return &repoDirNode{
 			Node:      child,
 			am:        rdn.am,
@@ -216,7 +222,7 @@ func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
 func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = arn.Node.WrapChild(child)
 	repo := normalizeRepoName(child.GetBasename())
-	rdn := &repoDirNode{
+	return &repoDirNode{
 		Node:      child,
 		am:        arn.am,
 		gitRootFS: arn.fs,
@@ -224,16 +230,6 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		subdir:    "",
 		branch:    "",
 	}
-
-	billyFS, err := arn.fs.Chroot(repo)
-	if err != nil {
-		arn.am.log.CDebugf(nil, "Error getting repo FS: %+v", err)
-		return child
-	}
-	repoFS := billyFS.(*libfs.FS)
-
-	arn.am.registerRepoNode(repoFS.RootNode(), rdn)
-	return rdn
 }
 
 // rootNode is a Node wrapper around a TLF root node, that causes the
