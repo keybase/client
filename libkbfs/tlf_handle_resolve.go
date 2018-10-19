@@ -108,7 +108,7 @@ func makeTlfHandleHelper(
 
 	wc := make(chan nameIDPair, len(writers))
 	uwc := make(chan keybase1.SocialAssertion, len(writers))
-	// We are only expecting at most one ID.  `resolveOneError` should
+	// We are only expecting at most one ID.  `resolveOneUser` should
 	// error if it can't send an ID immediately.
 	idc := make(chan tlf.ID, 1)
 	for _, writer := range writers {
@@ -144,7 +144,7 @@ func makeTlfHandleHelper(
 		}
 	}
 	// It's safe to close the channel now before we receive from it,
-	// since the ID is always sent first, because the usernames and
+	// since the ID is always sent first, before the usernames and
 	// assertions.
 	close(idc)
 	tlfID := tlf.NullID
@@ -156,7 +156,7 @@ func makeTlfHandleHelper(
 
 	if more {
 		// Just make sure a second one didn't slip in (only possible if
-		// `resolveOneUser` has a bug.
+		// `resolveOneUser` has a bug).
 		select {
 		case tlfID2, more := <-idc:
 			if more {

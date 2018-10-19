@@ -550,16 +550,18 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	name := kbname.NormalizedUsername(res.DisplayName)
 
 	// Exactly one break callback is required for every identify call.
-	if len(res.TrackBreaks) > 0 {
-		// Iterate the map to get one entry, then break.
-		for userVer, breaks := range res.TrackBreaks {
-			// TODO: resolve the UID into a username so we don't have to
-			// pass in the full display name here?
-			ei.userBreak(ctx, name, userVer.Uid, &breaks)
-			break
+	if doIdentifies {
+		if len(res.TrackBreaks) > 0 {
+			// Iterate the map to get one entry, then break.
+			for userVer, breaks := range res.TrackBreaks {
+				// TODO: resolve the UID into a username so we don't have to
+				// pass in the full display name here?
+				ei.userBreak(ctx, name, userVer.Uid, &breaks)
+				break
+			}
+		} else {
+			ei.teamBreak(ctx, keybase1.TeamID(""), nil)
 		}
-	} else {
-		ei.teamBreak(ctx, keybase1.TeamID(""), nil)
 	}
 
 	iteamInfo := ImplicitTeamInfo{
