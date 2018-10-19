@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title><%= htmlWebpackPlugin.options.title ? 'Keybase DEV' : 'Keybase' %></title>
+        <title><%= htmlWebpackPlugin.options.isDev ? 'Keybase' : 'Keybase DEV' %></title>
         <meta charset="utf-8" http-equiv="Content-Security-Policy" content="
     default-src 'none';
     object-src 'self';
