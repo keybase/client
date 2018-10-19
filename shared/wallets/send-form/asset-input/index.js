@@ -6,12 +6,10 @@ import Available from '../available/container'
 
 type Props = {|
   bottomLabel: string,
-  defaultCurrencyCode: string,
   displayUnit: string,
   inputPlaceholder: string,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
-  onSetCurrency: () => void,
   topLabel: string,
   value: string,
   warningAsset?: string,
@@ -19,17 +17,9 @@ type Props = {|
   refresh: () => void,
 |}
 
-type AssetInputState = {
-  hasUserChangedDisplayUnit: boolean,
-}
 
-export default class AssetInput extends React.Component<Props, AssetInputState> {
-  state = {hasUserChangedDisplayUnit: false}
+export default class AssetInput extends React.Component<Props> {
 
-  _onChangeDisplayUnit = () => {
-    this.setState(s => ({hasUserChangedDisplayUnit: true}))
-    this.props.onChangeDisplayUnit()
-  }
 
   render() {
     return (
@@ -51,7 +41,7 @@ export default class AssetInput extends React.Component<Props, AssetInputState> 
               <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
                 {this.props.displayUnit}
               </Kb.Text>
-              <Kb.Text type="BodySmallPrimaryLink" onClick={this._onChangeDisplayUnit}>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onChangeDisplayUnit}>
                 Change
               </Kb.Text>
             </Kb.Box2>
@@ -90,16 +80,7 @@ export default class AssetInput extends React.Component<Props, AssetInputState> 
 
   componentDidMount() {
     this.props.refresh()
-    // If the currency code was already in the state, it is unlikely to change
-    // so explicitly set the payment currency to default
-    if (this.props.defaultCurrencyCode) this.props.onSetCurrency()
-  }
 
-  componentDidUpdate() {
-    // For changing the building payment based on default currency
-    if (!this.state.hasUserChangedDisplayUnit) {
-      this.props.onSetCurrency()
-    }
   }
 }
 

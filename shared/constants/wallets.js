@@ -25,7 +25,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 
 const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
-  currency: null, // send-payment dialog will populate
+  currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   isRequest: false,
   publicMemo: new HiddenString(''),

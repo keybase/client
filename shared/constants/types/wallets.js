@@ -79,7 +79,7 @@ export type _LocalCurrency = {
 
 export type _Building = {
   amount: string,
-  currency: string | null,
+  currency: string,
   from: AccountID,
   isRequest: boolean,
   publicMemo: HiddenString,

@@ -27,8 +27,7 @@ const build = (state: TypedState, action: any) =>
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
-          currency: !state.wallets.building.currency || state.wallets.building.currency === 'XLM' ? null
-            : state.wallets.building.currency,
+          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           secretNote: state.wallets.building.secretNote.stringValue(),
           to: state.wallets.building.to,
         },
@@ -42,8 +41,7 @@ const build = (state: TypedState, action: any) =>
     : RPCStellarTypes.localBuildPaymentLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
-          currency: !state.wallets.building.currency || state.wallets.building.currency === 'XLM' ? null
-            : state.wallets.building.currency,
+          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
           fromPrimaryAccount: state.wallets.building.from === Types.noAccountID,
           from: state.wallets.building.from === Types.noAccountID ? '' : state.wallets.building.from,
           fromSeqno: '',
@@ -89,7 +87,7 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
 const emptyAsset = {type: 'native', code: '', issuer: '', issuerName: '', verifiedDomain: ''}
 
 const sendPayment = (state: TypedState) => {
-  const notXLM = !!state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
+  const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
@@ -110,7 +108,6 @@ const sendPayment = (state: TypedState) => {
     Constants.sendPaymentWaitingKey
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
-    .then(res => WalletsGen.createSetLastSentXLM({lastSentXLM: !notXLM, writeFile: true}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
