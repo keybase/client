@@ -488,6 +488,21 @@ func FilterExploded(expunge *chat1.Expunge, msgs []chat1.MessageUnboxed, now tim
 	return res
 }
 
+func GetReaction(msg chat1.MessageUnboxed) (string, error) {
+	if !msg.IsValid() {
+		return "", errors.New("invalid message")
+	}
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return "", err
+	}
+	if typ != chat1.MessageType_REACTION {
+		return "", fmt.Errorf("not a reaction type: %v", typ)
+	}
+	return body.Reaction().Body, nil
+}
+
 // GetSupersedes must be called with a valid msg
 func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	if !msg.IsValidFull() {
@@ -891,13 +906,20 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if conv == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv, chat1.VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(*conv,
+		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_REACTION))
 	if err != nil || !msg.IsValid() {
 		return ""
 	}
 	mvalid := msg.Valid()
+	var snippet string
 	if !mvalid.IsEphemeral() {
-		snippet, _ := GetMsgSnippet(msg, *conv, currentUsername)
+		switch msg.GetMessageType() {
+		case chat1.MessageType_REACTION:
+			snippet = "reacted to your message."
+		default:
+			snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
+		}
 		return snippet
 	}
 
