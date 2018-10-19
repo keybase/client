@@ -201,7 +201,8 @@ protocol local {
   // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
   // supported currencies, returned from getDisplayCurrenciesLocal.
   void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
-  CurrencyLocal getDisplayCurrencyLocal(int sessionID, AccountID accountID);
+  // Gets display currency for primary account if no accountID is given.
+  CurrencyLocal getDisplayCurrencyLocal(int sessionID, union { null, AccountID } accountID);
 
   record WalletSettings {
     boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
@@ -354,7 +355,7 @@ protocol local {
 
     string amount, // Amount of the asset OR outside currency being requested. Example: "3.005"
 
-    // Exactly one of `asset` and `currency` should be set.
+    // At most one of `asset` and `currency` should be set.
     union { null, Asset } asset,
     // Note: Requesting non-XLM assets is not yet supported. (Miles: It may
     // actually be supported, but that would be a weird asymmetry)

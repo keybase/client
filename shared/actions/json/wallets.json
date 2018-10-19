@@ -7,7 +7,8 @@
   ],
   "actions": {
     "abandonPayment": {
-      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
+      "_description":
+        "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
@@ -58,7 +59,8 @@
       "setBuildingTo?": "boolean"
     },
     "createdNewAccount": {
-      "_description": "The service responded with an error or that the create new account operation succeeded",
+      "_description":
+        "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
@@ -110,7 +112,7 @@
     },
     "sendAssetChoicesReceived": {
       "_description": "Update valid send assets to choose from",
-      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>",
+      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>"
     },
     "changeAccountName": {
       "_description": "Change the name of an account",
@@ -142,12 +144,14 @@
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
-      "accountID": "Types.AccountID"
+      "accountID": "?Types.AccountID",
+      "setBuildingCurrency?": "boolean"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
-      "accountID": "Types.AccountID",
-      "currency": "Types.Currency"
+      "accountID": "?Types.AccountID",
+      "currency": "Types.Currency",
+      "setBuildingCurrency?": "boolean"
     },
     "changeDisplayCurrency": {
       "_description": "Change display currency for an account",
@@ -243,6 +247,18 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "openSendRequestForm": {
+      "_description":
+        "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",
+      "amount?": "string",
+      "currency?": "string",
+      "from?": "Types.AccountID",
+      "isRequest?": "boolean",
+      "publicMemo?": "HiddenString",
+      "recipientType?": "Types.CounterpartyType",
+      "secretNote?": "HiddenString",
+      "to?": "string"
+    },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
@@ -251,7 +267,8 @@
       "setBuildingTo?": "boolean"
     },
     "linkedExistingAccount": {
-      "_description": "The service responded with an error or that the link existing operation succeeded",
+      "_description":
+        "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",

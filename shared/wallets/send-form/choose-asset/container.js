@@ -3,8 +3,13 @@ import ChooseAsset, {type DisplayItem, type OtherItem} from '.'
 import {compose, connect, lifecycle, setDisplayName} from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {navigateUp} from '../../../actions/route-tree'
 import * as Types from '../../../constants/types/wallets'
+import type {NavigateUpPayload} from '../../../actions/route-tree-gen'
+
+type OwnProps = {
+  navigateUp?: () => NavigateUpPayload, // if routed
+  onBack?: () => void, // if direct
+}
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
@@ -20,17 +25,17 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
   _refresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
   },
   _onClose: () => {
-    dispatch(navigateUp())
+    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
   },
   _onChoose: (currency: string) => {
     dispatch(WalletsGen.createSetBuildingCurrency({currency}))
-    dispatch(navigateUp())
+    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
   },
 })
 
@@ -57,7 +62,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.refresh()
