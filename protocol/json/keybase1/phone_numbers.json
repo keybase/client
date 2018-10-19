@@ -1,0 +1,46 @@
+{
+  "protocol": "phoneNumbers",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "PhoneNumberAddedMsg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "phoneNumber",
+          "jsonkey": "phone"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PhoneNumberVerifiedMsg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "phoneNumber",
+          "jsonkey": "phone"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PhoneNumberSupersededMsg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "phoneNumber",
+          "jsonkey": "phone"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

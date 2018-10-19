@@ -1,0 +1,43 @@
+{
+  "protocol": "NotifyPhoneNumber",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "phoneNumberAdded": {
+      "request": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "phoneNumberVerified": {
+      "request": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "phoneNumberSuperseded": {
+      "request": [
+        {
+          "name": "phoneNumber",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

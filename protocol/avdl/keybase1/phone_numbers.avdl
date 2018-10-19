@@ -1,0 +1,19 @@
+@namespace("keybase.1")
+protocol phoneNumbers {
+    import idl "common.avdl";
+
+    record PhoneNumberAddedMsg {
+        @jsonkey("phone")
+        string phoneNumber;
+    }
+
+    record PhoneNumberVerifiedMsg {
+        @jsonkey("phone")
+        string phoneNumber;
+    }
+
+    record PhoneNumberSupersededMsg {
+        @jsonkey("phone")
+        string phoneNumber;
+    }
+}
