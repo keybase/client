@@ -5,6 +5,7 @@ package kbcrypto
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -82,11 +83,14 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 			return nil, VerificationError{}
 		}
 	case 2:
+		if !s.Prefix.IsWhitelisted() {
+			return nil, VerificationError{errors.New("unknown prefix")}
+		}
 		if !key.Verify(s.Prefix.Prefix(s.Payload), s.Sig) {
 			return nil, VerificationError{}
 		}
 	default:
-		return nil, UnhandledSignatureError{}
+		return nil, UnhandledSignatureError{s.Version}
 	}
 
 	return key, nil

@@ -282,6 +282,29 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	}
 }
 
+func TestNaclBadPrefix(t *testing.T) {
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("keyPair: Public: %+v, Private: %+v", keyPair.Public, keyPair.Private)
+
+	msg := []byte("test message")
+
+	sig, err := keyPair.Sign(append([]byte("AA\x00"), msg...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sig.Version = 2
+	sig.Prefix = kbcrypto.SignaturePrefix("AA")
+	sig.Payload = msg
+	_, err = sig.Verify()
+	if err == nil {
+		t.Fatal("expected a signature verification error")
+	}
+}
+
 func TestDeriveSymmetricKeyFromAsymmetricTooShort(t *testing.T) {
 	key1 := generateNaclDHKeyPrivate(t)
 	_, err := deriveSymmetricKeyFromAsymmetric(key1, EncryptionReason("x"))

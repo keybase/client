@@ -168,15 +168,15 @@
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "payment": "Types.Payment"
+      "payment": "Types.PaymentDetail"
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
       "paymentCursor": "?StellarRPCTypes.PageCursor",
       "oldestUnread": "Types.PaymentID",
-      "payments": "Array<Types.Payment>",
-      "pending": "Array<Types.Payment>"
+      "payments": "Array<Types.PaymentResult>",
+      "pending": "Array<Types.PaymentResult>"
     },
     "requestDetailReceived": {
       "_description": "Store a request's details",

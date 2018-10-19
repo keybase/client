@@ -522,7 +522,7 @@ func (a AssertionSocial) ToLookup() (key, value string, err error) {
 }
 
 func (a AssertionPhoneNumber) ToLookup() (key, value string, err error) {
-	return "phone", a.Value, nil
+	return "phone", "+" + a.Value, nil
 }
 
 func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {

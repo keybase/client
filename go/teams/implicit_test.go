@@ -550,3 +550,21 @@ func TestGetTeamIDRPC(t *testing.T) {
 		require.Equal(t, teamObj.ID, res)
 	}
 }
+
+func TestInvalidPhoneNumberAssertion(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// Make sure we are stopped from creating an implicit team with bad number.
+	// This will also stop a conversation from being created if someone tries
+	// to chat with invalid phone number assertion.
+	badNumbers := []string{"111", "012345678", "48111"}
+	for _, bad := range badNumbers {
+		displayName := fmt.Sprintf("%s@phone,%s", bad, fus[0].Username)
+		lookupName, err := ResolveImplicitTeamDisplayName(context.Background(), tcs[0].G, displayName, false)
+		require.NoError(t, err)
+		_, _, err = CreateImplicitTeam(context.Background(), tcs[0].G, lookupName)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "bad phone number given")
+	}
+}
