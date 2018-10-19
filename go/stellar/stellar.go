@@ -1441,10 +1441,23 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
 }
 
+func acctBundlesDisabled(m libkb.MetaContext) bool {
+	disabled := !m.G().FeatureFlags.Enabled(m, libkb.FeatureStellarAcctBundles)
+	if disabled {
+		m.CDebugf("stellar account bundles disabled")
+	}
+	return disabled
+}
+
 // MigrateBundleToAccountBundles migrates the existing stellar bundle that
 // contains all secrets to separate account bundles for each account.
-func MigrateBundleToAccountBundles(ctx context.Context, g *libkb.GlobalContext) error {
-	megaBundle, _, err := remote.Fetch(ctx, g)
+func MigrateBundleToAccountBundles(m libkb.MetaContext) error {
+	if acctBundlesDisabled(m) {
+		return nil
+	}
+	// megaBundle is the original stellar bundle that contains all secrets
+	// for all accounts.
+	megaBundle, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
@@ -1457,16 +1470,19 @@ func MigrateBundleToAccountBundles(ctx context.Context, g *libkb.GlobalContext) 
 		return err
 	}
 
-	// change the signers in the bundle from secret keys to public keys
-	nextBundle := bundle.AdvanceWithoutSigners(megaBundle)
-	for _, a := range nextBundle.Accounts {
+	// we can stop here as an intermediate step until we have confidence in
+	// the per-account bundles.
+
+	// remove the signers from the megaBundle
+	strippedBundle := bundle.AdvanceWithoutSigners(megaBundle)
+	for _, a := range strippedBundle.Accounts {
 		if len(a.Signers) > 0 {
 			return errors.New("AdvanceWithoutSigners didn't work")
 		}
 	}
 
-	// upload the big bundle
-	if err := remote.Post(ctx, g, nextBundle); err != nil {
+	// upload the stripped bundle
+	if err := remote.Post(ctx, g, strippedBundle); err != nil {
 		return err
 	}
 
