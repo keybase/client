@@ -1237,22 +1237,26 @@ type DiskBlockCache interface {
 
 // DiskMDCache caches encrypted MD objects to the disk.
 type DiskMDCache interface {
-	// Get gets the latest cached MD for the given TLF from the disk cache.
+	// Get gets the latest cached MD for the given TLF from the disk
+	// cache. `ver` is the version of the encoded MD, and `timestamp`
+	// is the server timestamp for the MD.
 	Get(ctx context.Context, tlfID tlf.ID) (
-		buf []byte, ver kbfsmd.MetadataVer, localTimestamp time.Time, err error)
+		buf []byte, ver kbfsmd.MetadataVer, timestamp time.Time, err error)
 	// Stage asks the disk cache to store the given MD in memory, but
 	// not yet write it to disk.  A later call to `Commit` or
 	// `Unstage` for `rev` or higher is required to avoid memory leaks.
 	Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte,
-		ver kbfsmd.MetadataVer, localTimestamp time.Time) error
+		ver kbfsmd.MetadataVer, timestamp time.Time) error
 	// Commit writes a previously-staged MD to disk.  Trying to commit
 	// a revision that hasn't been staged is a no-op, to allow callers
 	// to call Commit without knowing whether Stage was called first
 	// (e.g., if the revision came from the cache in the first place).
+	// If older revisions (or other copies of this same revision) are
+	// staged, they will become unstaged.
 	Commit(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Unstage unstages and forgets about a previously-staged MD.  (If
 	// multiple copies of the same revision have been staged, it only
-	// unstages one of them.)
+	// unstages the first of them.)
 	Unstage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Status returns the current status of the disk cache.
 	Status(ctx context.Context) DiskMDCacheStatus

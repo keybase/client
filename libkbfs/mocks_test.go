@@ -4360,15 +4360,15 @@ func (mr *MockDiskMDCacheMockRecorder) Get(ctx, tlfID interface{}) *gomock.Call 
 }
 
 // Stage mocks base method
-func (m *MockDiskMDCache) Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte, ver kbfsmd.MetadataVer, localTimestamp time.Time) error {
-	ret := m.ctrl.Call(m, "Stage", ctx, tlfID, rev, buf, ver, localTimestamp)
+func (m *MockDiskMDCache) Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte, ver kbfsmd.MetadataVer, timestamp time.Time) error {
+	ret := m.ctrl.Call(m, "Stage", ctx, tlfID, rev, buf, ver, timestamp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Stage indicates an expected call of Stage
-func (mr *MockDiskMDCacheMockRecorder) Stage(ctx, tlfID, rev, buf, ver, localTimestamp interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stage", reflect.TypeOf((*MockDiskMDCache)(nil).Stage), ctx, tlfID, rev, buf, ver, localTimestamp)
+func (mr *MockDiskMDCacheMockRecorder) Stage(ctx, tlfID, rev, buf, ver, timestamp interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stage", reflect.TypeOf((*MockDiskMDCache)(nil).Stage), ctx, tlfID, rev, buf, ver, timestamp)
 }
 
 // Commit mocks base method

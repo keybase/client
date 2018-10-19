@@ -1415,6 +1415,9 @@ func (c *ConfigLocal) resetDiskMDCacheLocked() error {
 	if err != nil {
 		return err
 	}
+	if c.diskMDCache != nil {
+		c.diskMDCache.Shutdown(context.TODO())
+	}
 	c.diskMDCache = dmc
 	return nil
 }

@@ -25,6 +25,7 @@ const (
 	initialDiskMDCacheVersion uint64 = 1
 	currentDiskMDCacheVersion uint64 = initialDiskMDCacheVersion
 	defaultMDCacheTableSize   int    = 50 * opt.MiB
+	mdCacheFolderName         string = "kbfs_md_cache"
 )
 
 // diskMDCacheConfig specifies the interfaces that a DiskMDCacheStandard
@@ -145,7 +146,6 @@ func newDiskMDCacheLocalFromStorage(
 		putMeter:   NewCountMeter(),
 		log:        log,
 		headsDb:    headsDb,
-		tlfsCached: map[tlf.ID]kbfsmd.Revision{},
 		tlfsStaged: make(map[tlf.ID][]diskMDBlock),
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
@@ -181,8 +181,9 @@ func newDiskMDCacheLocal(
 			log.Error("Error initializing MD cache: %+v", err)
 		}
 	}()
+	cachePath := filepath.Join(dirPath, mdCacheFolderName)
 	versionPath, err := getVersionedPathForDiskCache(
-		log, dirPath, "md", currentDiskMDCacheVersion)
+		log, cachePath, "md", currentDiskMDCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +298,7 @@ func (cache *DiskMDCacheLocal) checkCacheLocked(
 // Get implements the DiskMDCache interface for DiskMDCacheLocal.
 func (cache *DiskMDCacheLocal) Get(
 	ctx context.Context, tlfID tlf.ID) (
-	buf []byte, ver kbfsmd.MetadataVer, localTimestamp time.Time, err error) {
+	buf []byte, ver kbfsmd.MetadataVer, timestamp time.Time, err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	err = cache.checkCacheLocked(ctx, "Get")
@@ -320,7 +321,7 @@ func (cache *DiskMDCacheLocal) Get(
 // Stage implements the DiskMDCache interface for DiskMDCacheLocal.
 func (cache *DiskMDCacheLocal) Stage(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte,
-	ver kbfsmd.MetadataVer, localTimestamp time.Time) error {
+	ver kbfsmd.MetadataVer, timestamp time.Time) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err := cache.checkCacheLocked(ctx, "Stage")
@@ -336,7 +337,7 @@ func (cache *DiskMDCacheLocal) Stage(
 	md := diskMDBlock{
 		Buf:      buf,
 		Ver:      ver,
-		Time:     localTimestamp,
+		Time:     timestamp,
 		Revision: rev,
 	}
 
@@ -369,7 +370,7 @@ func (cache *DiskMDCacheLocal) Commit(
 			continue
 		} else if md.Revision < rev {
 			continue
-		} else if foundMD && md.Revision == rev {
+		} else if foundMD {
 			// Duplicate.
 			continue
 		}
