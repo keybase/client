@@ -191,6 +191,14 @@ const config = (_, {mode}) => {
       }),
     ].filter(Boolean)
 
+  const trackerConfig = merge(commonConfig, {
+    entry: {tracker: './tracker/main.desktop.js'},
+    module: {rules: makeRules(false)},
+    name: 'tracker',
+    plugins: makeViewPlugins('tracker'),
+    target: 'electron-renderer',
+  })
+
   const menubarConfig = merge(commonConfig, {
     entry: {menubar: './menubar/main.desktop.js'},
     module: {rules: makeRules(false)},
@@ -212,7 +220,7 @@ const config = (_, {mode}) => {
   // } else {
   // return [mainThreadConfig, renderThreadConfig, remoteThreadConfig]
   // }
-  return [nodeConfig, mainConfig, menubarConfig]
+  return [nodeConfig, mainConfig, menubarConfig, trackerConfig]
 }
 
 export default config

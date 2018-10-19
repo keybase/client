@@ -16,4 +16,10 @@ const style = {
   position: 'relative',
 }
 
-load(<Menubar />, deserialize, 'menubar', '', style, false)
+load({
+  child: <Menubar />,
+  deserialize,
+  name: 'menubar',
+  showOnProps: false,
+  style,
+})

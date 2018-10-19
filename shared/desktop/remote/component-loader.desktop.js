@@ -79,26 +79,26 @@ const styles = {
   },
 }
 
-export default function(
+export default function(options: {
   child: React.Node,
   deserialize: (any, any) => any,
   name: RemoteComponents,
-  params?: string = '',
-  style?: ?Styles.StylesDesktop = null,
-  showOnProps?: boolean = true
-) {
+  params?: string,
+  style?: Styles.StylesDesktop,
+  showOnProps?: boolean,
+}) {
   initDesktopStyles()
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.render(
       <RemoteComponentLoader
-        name={name}
-        params={params}
-        style={style}
-        showOnProps={showOnProps}
-        deserialize={deserialize}
+        name={options.name}
+        params={options.params || ''}
+        style={options.style}
+        showOnProps={options.showOnProps ?? true}
+        deserialize={options.deserialize}
       >
-        {child}
+        {options.child}
       </RemoteComponentLoader>,
       node
     )

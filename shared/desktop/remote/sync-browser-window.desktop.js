@@ -126,8 +126,8 @@ function SyncBrowserWindow(ComposedComponent: any) {
       SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
 
       const htmlFile = resolveRootAsURL(
-        'renderer',
-        `renderer${__DEV__ ? '.dev' : ''}.html?${this.props.windowComponent}`
+        'dist',
+        `${this.props.windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${this.props.windowParam || ''}`
       )
       remoteWindow.loadURL(htmlFile)
 
