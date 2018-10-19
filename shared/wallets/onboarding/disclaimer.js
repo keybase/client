@@ -38,7 +38,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   render() {
     const label = `Yes, I agree (${this.state.secondsLeft})`
     const buttons = [
-      <Kb.Button
+      <Kb.WaitingButton
         waitingKey={Constants.acceptDisclaimerWaitingKey}
         disabled={this.state.secondsLeft > 0}
         key={0}
