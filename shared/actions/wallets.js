@@ -486,6 +486,9 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       )
   )
 
+const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+  Saga.put(Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab]))
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -595,6 +598,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadWalletSettings
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
+  yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 }
 
 export default walletsSaga
