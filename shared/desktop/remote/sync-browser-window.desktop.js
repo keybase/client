@@ -2,7 +2,6 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-// import hotPath from '../app/hot-path.desktop'
 import menuHelper from '../app/menu-helper.desktop'
 import {resolveRootAsURL} from '../app/resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'

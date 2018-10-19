@@ -2,7 +2,6 @@
 import URL from 'url-parse'
 import AppState from './app-state.desktop'
 import Window from './window.desktop'
-// import hotPath from './hot-path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
