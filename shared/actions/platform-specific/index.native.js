@@ -261,9 +261,8 @@ function* loadStartupDetails() {
   }
 }
 
-
 const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) => {
-  action.payload.writeFile && 
+  action.payload.writeFile &&
     Saga.spawn(AsyncStorage.setItem, 'lastSentXLM', JSON.stringify(action.payload.lastSentXLM))
 }
 
