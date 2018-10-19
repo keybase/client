@@ -179,13 +179,14 @@ type _MarkAsReadPayload = $ReadOnly<{|
 |}>
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  payment: Types.Payment,
+  payment: Types.PaymentDetail,
 |}>
 type _PaymentsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentCursor: ?StellarRPCTypes.PageCursor,
-  payments: Array<Types.Payment>,
-  pending: Array<Types.Payment>,
+  oldestUnread: Types.PaymentID,
+  payments: Array<Types.PaymentResult>,
+  pending: Array<Types.PaymentResult>,
 |}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _RejectDisclaimerPayload = void

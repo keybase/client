@@ -116,19 +116,15 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false, true)
+	return tt.addUserHelper(pre, true, false)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true, true)
+	return tt.addUserHelper(pre, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false, true)
-}
-
-func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false, false)
+	return tt.addUserHelper(pre, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -151,13 +147,10 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
-	}
-	if !wallet {
-		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice
@@ -858,6 +851,10 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := engine.RunEngine2(m, eng)
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
+}
+
+func (u *userPlusDevice) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(*u.tc)
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {

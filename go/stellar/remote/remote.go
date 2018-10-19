@@ -14,18 +14,26 @@ import (
 
 type shouldCreateRes struct {
 	libkb.AppStatusEmbed
-	ShouldCreate bool `json:"shouldcreate"`
-	HasWallet    bool `json:"haswallet"`
+	ShouldCreateResult
+}
+
+type ShouldCreateResult struct {
+	ShouldCreate       bool `json:"shouldcreate"`
+	HasWallet          bool `json:"haswallet"`
+	AcceptedDisclaimer bool `json:"accepteddisclaimer"`
 }
 
 // ShouldCreate asks the server whether to create this user's initial wallet.
-func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (shouldCreate, hasWallet bool, err error) {
+func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreateResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.ShouldCreate", func() error { return err })()
+	defer func() {
+		g.Log.CDebugf(ctx, "Stellar.ShouldCreate: (res:%+v, err:%v)", res, err != nil)
+	}()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes shouldCreateRes
 	err = g.API.GetDecode(arg, &apiRes)
-	return apiRes.ShouldCreate, apiRes.HasWallet, err
+	return apiRes.ShouldCreateResult, err
 }
 
 // Post a bundle to the server with a chainlink.

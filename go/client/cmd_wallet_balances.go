@@ -121,7 +121,8 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 	return nil
 }
 
-func (c *cmdWalletBalances) Run() error {
+func (c *cmdWalletBalances) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err

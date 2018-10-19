@@ -349,7 +349,7 @@ protocol local {
   BuildRequestResLocal buildRequestLocal(
     int sessionID,
 
-    // Requestee username.  Examples: "russel", "t_alice"
+    // Requestee username or assertion.  Examples: "russel", "t_alice", "bob@twitter"
     string to,
 
     string amount, // Amount of the asset OR outside currency being requested. Example: "3.005"
