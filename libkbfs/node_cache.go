@@ -99,7 +99,8 @@ func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
 
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
-	ptr BlockPointer, name string, parent Node) (n Node, err error) {
+	ptr BlockPointer, name string, parent Node, et EntryType) (
+	n Node, err error) {
 	var rootWrappers []func(Node) Node
 	defer func() {
 		if n != nil {
@@ -143,7 +144,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	}
 
 	entry = &nodeCacheEntry{
-		core: newNodeCore(ptr, name, parent, ncs),
+		core: newNodeCore(ptr, name, parent, ncs, et),
 	}
 	ncs.nodes[ptr.Ref()] = entry
 	return ncs.makeNodeStandardForEntryLocked(entry), nil

@@ -249,6 +249,8 @@ type Node interface {
 	// provided context will be used, if possible, for any subsequent
 	// calls on the file.
 	GetFile(ctx context.Context) billy.File
+	// EntryType is the type of the entry represented by this node.
+	EntryType() EntryType
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -2228,7 +2230,8 @@ type NodeCache interface {
 	// support hard links, we will have to revisit the "name" and
 	// "parent" parameters here.  name must not be empty. Returns
 	// an error if parent cannot be found.
-	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
+	GetOrCreate(
+		ptr BlockPointer, name string, parent Node, et EntryType) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
 	Get(ref BlockRef) Node

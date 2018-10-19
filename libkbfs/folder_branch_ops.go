@@ -1865,7 +1865,7 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 
 	handle = md.GetTlfHandle()
 	node, err = fbo.nodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		string(handle.GetCanonicalName()), nil)
+		string(handle.GetCanonicalName()), nil, Dir)
 	if err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
@@ -3148,7 +3148,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 	co.AddRefBlock(newPtr)
 	co.AddSelfUpdate(parentPtr)
 
-	node, err := fbo.nodeCache.GetOrCreate(newPtr, name, dir)
+	node, err := fbo.nodeCache.GetOrCreate(newPtr, name, dir, entryType)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}

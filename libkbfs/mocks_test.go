@@ -1288,6 +1288,18 @@ func (mr *MockNodeMockRecorder) GetFile(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockNode)(nil).GetFile), ctx)
 }
 
+// EntryType mocks base method
+func (m *MockNode) EntryType() EntryType {
+	ret := m.ctrl.Call(m, "EntryType")
+	ret0, _ := ret[0].(EntryType)
+	return ret0
+}
+
+// EntryType indicates an expected call of EntryType
+func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
+}
+
 // MockKBFSOps is a mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller
@@ -8158,16 +8170,16 @@ func (m *MockNodeCache) EXPECT() *MockNodeCacheMockRecorder {
 }
 
 // GetOrCreate mocks base method
-func (m *MockNodeCache) GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error) {
-	ret := m.ctrl.Call(m, "GetOrCreate", ptr, name, parent)
+func (m *MockNodeCache) GetOrCreate(ptr BlockPointer, name string, parent Node, et EntryType) (Node, error) {
+	ret := m.ctrl.Call(m, "GetOrCreate", ptr, name, parent, et)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOrCreate indicates an expected call of GetOrCreate
-func (mr *MockNodeCacheMockRecorder) GetOrCreate(ptr, name, parent interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreate", reflect.TypeOf((*MockNodeCache)(nil).GetOrCreate), ptr, name, parent)
+func (mr *MockNodeCacheMockRecorder) GetOrCreate(ptr, name, parent, et interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrCreate", reflect.TypeOf((*MockNodeCache)(nil).GetOrCreate), ptr, name, parent, et)
 }
 
 // Get mocks base method

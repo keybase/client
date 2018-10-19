@@ -704,7 +704,9 @@ func nodeFromPath(t *testing.T, ops *folderBranchOps, p path) Node {
 	// populate the node cache with all the nodes we'll need
 	for _, pathNode := range p.path {
 		n, err := ops.nodeCache.GetOrCreate(pathNode.BlockPointer,
-			pathNode.Name, prevNode)
+			pathNode.Name, prevNode,
+			/* For the purposes of these tests, the type doesn't matter. */
+			Dir)
 		if err != nil {
 			t.Fatal(err)
 		}

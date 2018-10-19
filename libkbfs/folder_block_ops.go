@@ -1511,7 +1511,7 @@ func (fbo *folderBlockOps) getChildNodeLocked(
 		return nil, nil
 	}
 
-	return fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+	return fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir, de.Type)
 }
 
 func (fbo *folderBlockOps) GetChildNode(
@@ -3100,7 +3100,11 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 						childPath, childPath.path, i, name, de, nodeMap,
 						newPtrs, kmd)
 				}
-				n, err = cache.GetOrCreate(pn.BlockPointer, pn.Name, n)
+				et := Dir
+				if i == len(childPath.path)-2 {
+					et = de.Type
+				}
+				n, err = cache.GetOrCreate(pn.BlockPointer, pn.Name, n, et)
 				if err != nil {
 					return 0, err
 				}
@@ -3186,7 +3190,7 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 		// Root node may or may not exist.
 		var err error
 		node, err = cache.GetOrCreate(rootPtr,
-			string(kmd.GetTlfHandle().GetCanonicalName()), nil)
+			string(kmd.GetTlfHandle().GetCanonicalName()), nil, Dir)
 		if err != nil {
 			return nil, err
 		}

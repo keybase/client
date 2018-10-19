@@ -14,23 +14,26 @@ import (
 
 // nodeCore holds info shared among one or more nodeStandard objects.
 type nodeCore struct {
-	pathNode *pathNode
-	parent   Node
-	cache    *nodeCacheStandard
+	pathNode  *pathNode
+	parent    Node
+	cache     *nodeCacheStandard
+	entryType EntryType
 	// used only when parent is nil (the object has been unlinked)
 	cachedPath path
 	cachedDe   DirEntry
 }
 
-func newNodeCore(ptr BlockPointer, name string, parent Node,
-	cache *nodeCacheStandard) *nodeCore {
+func newNodeCore(
+	ptr BlockPointer, name string, parent Node,
+	cache *nodeCacheStandard, et EntryType) *nodeCore {
 	return &nodeCore{
 		pathNode: &pathNode{
 			BlockPointer: ptr,
 			Name:         name,
 		},
-		parent: parent,
-		cache:  cache,
+		parent:    parent,
+		cache:     cache,
+		entryType: et,
 	}
 }
 
@@ -112,4 +115,8 @@ func (n *nodeStandard) GetFS(_ context.Context) billy.Filesystem {
 
 func (n *nodeStandard) GetFile(_ context.Context) billy.File {
 	return nil
+}
+
+func (n *nodeStandard) EntryType() EntryType {
+	return n.core.entryType
 }
