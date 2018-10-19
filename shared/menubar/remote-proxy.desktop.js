@@ -3,7 +3,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
+// import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
@@ -25,21 +25,19 @@ type Props = {
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
-    _sendLoad = () => {
-      sendLoad(
-        this.props.externalRemoteWindow.webContents,
-        this.props.windowParam,
-        this.props.windowComponent,
-        this.props.windowTitle
-      )
-    }
+    // _sendLoad = () => {
+    // sendLoad(
+    // this.props.externalRemoteWindow.webContents,
+    // this.props.windowParam,
+    // this.props.windowComponent,
+    // this.props.windowTitle
+    // )
+    // }
 
     componentDidMount() {
-      this._sendLoad()
-
+      // this._sendLoad()
       // Allow reloads
-      this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
-
+      // this.props.externalRemoteWindow.webContents.on('did-finish-load', this._sendLoad)
       // uncomment to see menubar devtools
       // this.props.externalRemoteWindow.webContents.openDevTools({mode: 'detach'})
     }

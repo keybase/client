@@ -1,4 +1,5 @@
 // @flow
+// Entrypoint for the menubar node part
 import menubar from 'menubar'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
@@ -7,7 +8,7 @@ import type {BadgeType} from '../../constants/types/notifications'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
-const htmlFile = resolveRootAsURL('renderer', `renderer${__DEV__ ? '.dev' : ''}.html?menubar`)
+const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html`)
 
 let iconType: BadgeType = 'regular'
 

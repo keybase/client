@@ -96,7 +96,9 @@ const config = (_, {mode}) => {
 
     return {
       bail: true,
+      context: path.resolve(__dirname, '..'),
       devServer,
+      devtool: isDev ? 'eval' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
@@ -153,9 +155,6 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    context: path.resolve(__dirname, '..'),
-    // TEMP
-    devtool: 'source-map',
     entry: {node: './desktop/app/node.desktop.js'},
     module: {rules: makeRules(true)},
     name: 'node',
@@ -168,30 +167,43 @@ const config = (_, {mode}) => {
     },
     target: 'electron-main',
   })
-  const remoteConfig = merge(commonConfig, {
-    context: path.resolve(__dirname, '..'),
-    devtool: isDev ? 'eval' : 'source-map',
-    entry: {'component-loader': './desktop/remote/component-loader.desktop.js'},
+
+  // const remoteConfig = merge(commonConfig, {
+  // context: path.resolve(__dirname, '..'),
+  // devtool: isDev ? 'eval' : 'source-map',
+  // entry: {'component-loader': './desktop/remote/component-loader.desktop.js'},
+  // module: {rules: makeRules(false)},
+  // name: 'component-loader',
+  // plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])].filter(Boolean),
+  // target: 'electron-renderer',
+  // })
+  //
+  const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
+  const template = path.join(__dirname, './renderer/index.html.template')
+  const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
+  const makeViewPlugins = name =>
+    [
+      ...hmrPlugin,
+      new HtmlWebpackPlugin({
+        filename: makeHtmlName(name),
+        isDev,
+        template,
+      }),
+    ].filter(Boolean)
+
+  const menubarConfig = merge(commonConfig, {
+    entry: {menubar: './menubar/main.desktop.js'},
     module: {rules: makeRules(false)},
-    name: 'component-loader',
-    plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])].filter(Boolean),
+    name: 'menubar',
+    plugins: makeViewPlugins('menubar'),
     target: 'electron-renderer',
   })
 
   const mainConfig = merge(commonConfig, {
-    context: path.resolve(__dirname, '..'),
-    devtool: isDev ? 'eval' : 'source-map',
     entry: {main: './desktop/renderer/main.desktop.js'},
     module: {rules: makeRules(false)},
     name: 'main',
-    plugins: [
-      ...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []),
-      new HtmlWebpackPlugin({
-        filename: `main${isDev ? '.dev' : ''}.html`,
-        isDev,
-        template: path.join(__dirname, './renderer/index.html.template'),
-      }),
-    ].filter(Boolean),
+    plugins: makeViewPlugins('main'),
     target: 'electron-renderer',
   })
 
@@ -200,7 +212,7 @@ const config = (_, {mode}) => {
   // } else {
   // return [mainThreadConfig, renderThreadConfig, remoteThreadConfig]
   // }
-  return [nodeConfig, mainConfig]
+  return [nodeConfig, mainConfig, menubarConfig]
 }
 
 export default config
