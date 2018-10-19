@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"bytes"
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
@@ -99,7 +98,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	clock.Add(1 * time.Minute)
 	getBuf, getVer, getTime, err := cache.Get(ctx, tlf1)
 	require.NoError(t, err)
-	require.True(t, bytes.Equal(buf, getBuf))
+	require.Equal(t, buf, getBuf)
 	require.Equal(t, kbfsmd.ImplicitTeamsVer, getVer)
 	require.True(t, now.Equal(getTime))
 
@@ -119,7 +118,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	require.NoError(t, err)
 	getBuf2, getVer2, getTime2, err := cache.Get(ctx, tlf2)
 	require.NoError(t, err)
-	require.True(t, bytes.Equal(buf2, getBuf2))
+	require.Equal(t, buf2, getBuf2)
 	require.Equal(t, kbfsmd.ImplicitTeamsVer, getVer2)
 	require.True(t, now2.Equal(getTime2))
 
@@ -132,7 +131,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	require.NoError(t, err)
 	getBuf3, getVer3, getTime3, err := cache.Get(ctx, tlf1)
 	require.NoError(t, err)
-	require.True(t, bytes.Equal(buf3, getBuf3))
+	require.Equal(t, buf3, getBuf3)
 	require.Equal(t, kbfsmd.ImplicitTeamsVer, getVer3)
 	require.True(t, now2.Equal(getTime3))
 
@@ -144,4 +143,67 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	status = cache.Status(ctx)
 	require.Equal(t, uint64(2), status.NumMDs)
 	require.Equal(t, uint64(0), status.NumStaged)
+}
+
+func TestDiskMDCacheMultiStage(t *testing.T) {
+	t.Parallel()
+	t.Log("Stage multiple MDs, but only commit some of them.")
+	cache, tempdir := newDiskMDCacheLocalForTest(t)
+	defer func() {
+		shutdownDiskMDCacheTest(cache, tempdir)
+	}()
+	clock := newTestClockNow()
+
+	tlf1 := tlf.FakeID(0, tlf.Private)
+	ctx := context.Background()
+
+	buf1 := makeRandomMDBuf(t)
+	now := clock.Now()
+	rev1 := kbfsmd.Revision(1)
+
+	err := cache.Stage(ctx, tlf1, rev1, buf1, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+
+	t.Log("Out of order stages")
+	buf2 := makeRandomMDBuf(t)
+	rev2 := rev1 + 1
+	buf3 := makeRandomMDBuf(t)
+	rev3 := rev2 + 1
+	buf4 := makeRandomMDBuf(t)
+	rev4 := rev3 + 1
+	buf5 := makeRandomMDBuf(t)
+	rev5 := rev4 + 1
+
+	err = cache.Stage(ctx, tlf1, rev4, buf4, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+	err = cache.Stage(ctx, tlf1, rev5, buf5, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+	err = cache.Stage(ctx, tlf1, rev3, buf3, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+	err = cache.Stage(ctx, tlf1, rev2, buf2, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+
+	t.Log("Duplicate stage")
+	err = cache.Stage(ctx, tlf1, rev4, buf4, kbfsmd.ImplicitTeamsVer, now)
+	require.NoError(t, err)
+
+	status := cache.Status(ctx)
+	require.Equal(t, uint64(0), status.NumMDs)
+	require.Equal(t, uint64(6), status.NumStaged)
+
+	err = cache.Commit(ctx, tlf1, rev4)
+	require.NoError(t, err)
+	status = cache.Status(ctx)
+	require.Equal(t, uint64(1), status.NumMDs)
+	require.Equal(t, uint64(1), status.NumStaged)
+
+	err = cache.Unstage(ctx, tlf1, rev5)
+	require.NoError(t, err)
+	status = cache.Status(ctx)
+	require.Equal(t, uint64(1), status.NumMDs)
+	require.Equal(t, uint64(0), status.NumStaged)
+
+	getBuf, _, _, err := cache.Get(ctx, tlf1)
+	require.NoError(t, err)
+	require.Equal(t, buf4, getBuf)
 }

@@ -35,16 +35,12 @@ type diskMDCacheConfig interface {
 	logMaker
 }
 
-type diskMDCacheStageKey struct {
-	tlfID tlf.ID
-	rev   kbfsmd.Revision
-}
-
 type diskMDBlock struct {
 	// Exported only for serialization.
-	Buf  []byte
-	Ver  kbfsmd.MetadataVer
-	Time time.Time
+	Buf      []byte
+	Ver      kbfsmd.MetadataVer
+	Time     time.Time
+	Revision kbfsmd.Revision
 }
 
 // DiskMDCacheLocal is the standard implementation for DiskMDCache.
@@ -61,7 +57,7 @@ type DiskMDCacheLocal struct {
 	lock       sync.RWMutex
 	headsDb    *levelDb // tlfID -> metadata block
 	tlfsCached map[tlf.ID]bool
-	tlfsStaged map[diskMDCacheStageKey]diskMDBlock
+	tlfsStaged map[tlf.ID][]diskMDBlock
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -150,7 +146,7 @@ func newDiskMDCacheLocalFromStorage(
 		log:        log,
 		headsDb:    headsDb,
 		tlfsCached: map[tlf.ID]bool{},
-		tlfsStaged: make(map[diskMDCacheStageKey]diskMDBlock),
+		tlfsStaged: make(map[tlf.ID][]diskMDBlock),
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
 		shutdownCh: make(chan struct{}),
@@ -326,14 +322,14 @@ func (cache *DiskMDCacheLocal) Stage(
 		return err
 	}
 
-	key := diskMDCacheStageKey{tlfID, rev}
 	md := diskMDBlock{
-		Buf:  buf,
-		Ver:  ver,
-		Time: localTimestamp,
+		Buf:      buf,
+		Ver:      ver,
+		Time:     localTimestamp,
+		Revision: rev,
 	}
 
-	cache.tlfsStaged[key] = md
+	cache.tlfsStaged[tlfID] = append(cache.tlfsStaged[tlfID], md)
 	return nil
 }
 
@@ -347,24 +343,45 @@ func (cache *DiskMDCacheLocal) Commit(
 		return err
 	}
 
-	key := diskMDCacheStageKey{tlfID, rev}
-	md, ok := cache.tlfsStaged[key]
-	if !ok {
+	stagedMDs := cache.tlfsStaged[tlfID]
+	newStagedMDs := make([]diskMDBlock, 0, len(stagedMDs)-1)
+	foundMD := false
+	// The staged MDs list is unordered, so iterate through the whole
+	// thing to find what should remain after commiting `rev`.
+	for _, md := range stagedMDs {
+		if md.Revision > rev {
+			newStagedMDs = append(newStagedMDs, md)
+			continue
+		} else if md.Revision < rev {
+			continue
+		} else if foundMD && md.Revision == rev {
+			// Duplicate.
+			continue
+		}
+		foundMD = true
+
+		encodedMetadata, err := cache.config.Codec().Encode(&md)
+		if err != nil {
+			return err
+		}
+
+		err = cache.headsDb.PutWithMeter(
+			tlfID.Bytes(), encodedMetadata, cache.putMeter)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !foundMD {
 		return errors.New("Cannot commit an unstaged revision")
 	}
 
-	encodedMetadata, err := cache.config.Codec().Encode(&md)
-	if err != nil {
-		return err
-	}
-
-	err = cache.headsDb.PutWithMeter(
-		tlfID.Bytes(), encodedMetadata, cache.putMeter)
-	if err != nil {
-		return err
-	}
 	cache.tlfsCached[tlfID] = true
-	delete(cache.tlfsStaged, key)
+	if len(newStagedMDs) == 0 {
+		delete(cache.tlfsStaged, tlfID)
+	} else {
+		cache.tlfsStaged[tlfID] = newStagedMDs
+	}
 	return nil
 }
 
@@ -378,12 +395,25 @@ func (cache *DiskMDCacheLocal) Unstage(
 		return err
 	}
 
-	key := diskMDCacheStageKey{tlfID, rev}
-	_, ok := cache.tlfsStaged[key]
-	if !ok {
+	// Just remove the first one matching `rev`.
+	stagedMDs := cache.tlfsStaged[tlfID]
+	foundMD := false
+	for i, md := range stagedMDs {
+		if md.Revision == rev {
+			if len(stagedMDs) == 1 {
+				delete(cache.tlfsStaged, tlfID)
+			} else {
+				cache.tlfsStaged[tlfID] = append(
+					stagedMDs[:i], stagedMDs[i+1:]...)
+			}
+			foundMD = true
+			break
+		}
+	}
+
+	if !foundMD {
 		return errors.New("Cannot unstage an unstaged revision")
 	}
-	delete(cache.tlfsStaged, key)
 	return nil
 }
 
@@ -399,10 +429,15 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	numStaged := uint64(0)
+	for _, mds := range cache.tlfsStaged {
+		numStaged += uint64(len(mds))
+	}
+
 	return DiskMDCacheStatus{
 		StartState: DiskMDCacheStartStateStarted,
 		NumMDs:     uint64(len(cache.tlfsCached)),
-		NumStaged:  uint64(len(cache.tlfsStaged)),
+		NumStaged:  numStaged,
 		Hits:       rateMeterToStatus(cache.hitMeter),
 		Misses:     rateMeterToStatus(cache.missMeter),
 		Puts:       rateMeterToStatus(cache.putMeter),

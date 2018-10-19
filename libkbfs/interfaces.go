@@ -1242,14 +1242,14 @@ type DiskMDCache interface {
 		buf []byte, ver kbfsmd.MetadataVer, localTimestamp time.Time, err error)
 	// Stage asks the disk cache to store the given MD in memory, but
 	// not yet write it to disk.  A later call to `Commit` or
-	// `Unstage` is required to avoid memory leaks.  The cache doesn't
-	// enforce that revisions within a TLF are committed in order;
-	// that is up to the caller.
+	// `Unstage` for `rev` or higher is required to avoid memory leaks.
 	Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte,
 		ver kbfsmd.MetadataVer, localTimestamp time.Time) error
 	// Commit writes a previously-staged MD to disk.
 	Commit(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
-	// Unstage unstages and forgets about a previously-staged MD.
+	// Unstage unstages and forgets about a previously-staged MD.  (If
+	// multiple copies of the same revision have been staged, it only
+	// unstages one of them.)
 	Unstage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Status returns the current status of the disk cache.
 	Status(ctx context.Context) DiskMDCacheStatus
