@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
@@ -210,7 +210,7 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 }
 
 func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	// Weakly check. If the keyring was not initialized, don't worry about it.
 	if pukring.HasAnyKeys() == (expectedCurrentGeneration > 0) {
@@ -220,7 +220,7 @@ func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGe
 
 	// double check that the per-user-keyring is correct
 	g.ClearPerUserKeyring()
-	pukring, err = g.GetPerUserKeyring()
+	pukring, err = g.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	require.NoError(t, pukring.Sync(libkb.NewMetaContextTODO(g)))
 	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())

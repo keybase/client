@@ -120,7 +120,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	defer g.CTraceTimed(ctx, "publishNewUserEK", func() error { return err })()
 
 	// Sign the statement blob with the latest PUK.
-	pukKeyring, err := g.GetPerUserKeyring()
+	pukKeyring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return metadata, err
 	}
