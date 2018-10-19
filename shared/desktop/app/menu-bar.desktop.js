@@ -1,12 +1,13 @@
 // @flow
 import menubar from 'menubar'
-import {getRendererHTML} from './dev.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage} from './resolve-root.desktop'
+import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
+
+const htmlFile = resolveRootAsURL('renderer', `renderer${__DEV__ ? '.dev' : ''}.html?menubar`)
 
 let iconType: BadgeType = 'regular'
 
@@ -36,7 +37,7 @@ const getIcon = invertColors => {
 
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
-    index: getRendererHTML('menubar'),
+    index: htmlFile,
     width: 360,
     height: 480,
     resizable: false,

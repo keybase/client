@@ -7,6 +7,7 @@ import TerserPlugin from 'terser-webpack-plugin'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -99,8 +100,9 @@ const config = (_, {mode}) => {
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
-        filename: '[name].bundle.js',
+        filename: `[name]${isDev ? '.dev' : ''}.bundle.js`,
         path: path.resolve(__dirname, 'dist'),
+        // can be the same?
         publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
       },
       plugins: [
@@ -125,13 +127,17 @@ const config = (_, {mode}) => {
         : {
             optimization: {
               minimizer: [
+                // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
                 new TerserPlugin({
                   cache: true,
                   parallel: true,
                   sourceMap: true,
                   terserOptions: {
                     compress: {
-                      inline: false, // uglify has issues inlining code and handling variables https://github.com/mishoo/UglifyJS2/issues/2842
+                      ecma: 5,
+                      warnings: false,
+                      comparisons: false,
+                      inline: 2,
                     },
                     output: {
                       comments: false,
@@ -146,11 +152,13 @@ const config = (_, {mode}) => {
   }
 
   const commonConfig = makeCommonConfig()
-  const mainThreadConfig = merge(commonConfig, {
+  const nodeConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    entry: {main: './desktop/app/index.desktop.js'},
+    // TEMP
+    devtool: 'source-map',
+    entry: {node: './desktop/app/node.desktop.js'},
     module: {rules: makeRules(true)},
-    name: 'mainThread',
+    name: 'node',
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
       new webpack.IgnorePlugin(/^react$/),
@@ -160,24 +168,39 @@ const config = (_, {mode}) => {
     },
     target: 'electron-main',
   })
-  const renderThreadConfig = merge(commonConfig, {
+  const remoteConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
     devtool: isDev ? 'eval' : 'source-map',
-    entry: {
-      'component-loader': './desktop/remote/component-loader.desktop.js',
-      index: './desktop/renderer/index.desktop.js',
-    },
+    entry: {'component-loader': './desktop/remote/component-loader.desktop.js'},
     module: {rules: makeRules(false)},
-    name: 'renderThread',
-    plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
+    name: 'component-loader',
+    plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])].filter(Boolean),
     target: 'electron-renderer',
   })
 
-  if (isHot) {
-    return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
-  } else {
-    return [mainThreadConfig, renderThreadConfig]
-  }
+  const mainConfig = merge(commonConfig, {
+    context: path.resolve(__dirname, '..'),
+    devtool: isDev ? 'eval' : 'source-map',
+    entry: {main: './desktop/renderer/main.desktop.js'},
+    module: {rules: makeRules(false)},
+    name: 'main',
+    plugins: [
+      ...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []),
+      new HtmlWebpackPlugin({
+        filename: `main${isDev ? '.dev' : ''}.html`,
+        isDev,
+        template: path.join(__dirname, './renderer/index.html.template'),
+      }),
+    ].filter(Boolean),
+    target: 'electron-renderer',
+  })
+
+  // if (isHot) {
+  // return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
+  // } else {
+  // return [mainThreadConfig, renderThreadConfig, remoteThreadConfig]
+  // }
+  return [nodeConfig, mainConfig]
 }
 
 export default config

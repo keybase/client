@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import hotPath from '../app/hot-path.desktop'
 import menuHelper from '../app/menu-helper.desktop'
-import {getRendererHTML} from '../app/dev.desktop'
+import {resolveRootAsURL} from '../app/resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 type Props = {
@@ -125,7 +125,11 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
 
-      remoteWindow.loadURL(getRendererHTML(this.props.windowComponent))
+      const htmlFile = resolveRootAsURL(
+        'renderer',
+        `renderer${__DEV__ ? '.dev' : ''}.html?${this.props.windowComponent}`
+      )
+      remoteWindow.loadURL(htmlFile)
 
       this._setupWebContents()
       remoteWindow.on('close', this._onWindowClosed)
