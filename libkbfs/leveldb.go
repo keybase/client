@@ -22,6 +22,8 @@ import (
 
 const (
 	diskCacheVersionFilename string = "version"
+	metered                         = true
+	unmetered                       = false
 )
 
 var leveldbOptions = &opt.Options{

@@ -459,7 +459,7 @@ func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
-	err = cache.updateMetadataLocked(ctx, blockKey, md, false)
+	err = cache.updateMetadataLocked(ctx, blockKey, md, unmetered)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
@@ -595,7 +595,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 		md.BlockSize = uint32(encodedLen)
 		err = nil
 	}
-	return cache.updateMetadataLocked(ctx, blockKey, md, false)
+	return cache.updateMetadataLocked(ctx, blockKey, md, unmetered)
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -631,7 +631,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 		md.TriggeredPrefetch = true
 		md.FinishedPrefetch = true
 	}
-	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, true)
+	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, metered)
 }
 
 // deleteLocked deletes a set of blocks from the disk block cache.

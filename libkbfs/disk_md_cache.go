@@ -311,7 +311,7 @@ func (cache *DiskMDCacheLocal) Get(
 		return nil, -1, time.Time{}, errors.WithStack(ldberrors.ErrNotFound)
 	}
 
-	md, err := cache.getMetadataLocked(tlfID, true)
+	md, err := cache.getMetadataLocked(tlfID, metered)
 	if err != nil {
 		return nil, -1, time.Time{}, err
 	}
