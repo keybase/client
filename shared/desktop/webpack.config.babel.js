@@ -189,10 +189,7 @@ const config = (_, {mode}) => {
   const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders'].map(name =>
     merge(commonConfig, {
       entry: {
-        [name]: [
-          // ...(isHot ? ['react-hot-loader/patch', 'webpack-dev-server/client?http://localhost:4000'] : []),
-          `./${entryOverride[name] || name}/main.desktop.js`,
-        ],
+        [name]: `./${entryOverride[name] || name}/main.desktop.js`,
       },
       module: {rules: makeRules(false)},
       name,
