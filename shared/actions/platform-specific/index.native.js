@@ -8,8 +8,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
-import setLastSentXLM from '../wallets-gen'
-import {createSetLastSentXLM, SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
+import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
 
 // this CANNOT be an import *, totally screws up the packager
 import {
@@ -258,13 +257,16 @@ function* loadStartupDetails() {
       startupWasFromPush,
     })
   )
-  JSON.parse(lastSendXLM) && yield Saga.put(createSetLastSentXLM({lastSentXLM: true, writeFile: false}))
+  if (JSON.parse(lastSentXLM)) {
+    yield Saga.put(createSetLastSentXLM({lastSentXLM: true, writeFile: false}))
+  }
 }
 
 
-const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) =>
-  action.payload.writeFile &&
-  yield Saga.spawn(AsyncStorage.setItem, 'lastSentXLM', JSON.stringify(action.payload.lastSentXLM))
+const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) => {
+  action.payload.writeFile && 
+    Saga.spawn(AsyncStorage.setItem, 'lastSentXLM', JSON.stringify(action.payload.lastSentXLM))
+}
 
 const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   // loadStartupDetails finished already

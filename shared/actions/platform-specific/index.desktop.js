@@ -17,7 +17,7 @@ import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
-import {createSetLastSentXLM, SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
+import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
 
 export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')

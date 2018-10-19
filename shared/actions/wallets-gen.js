@@ -208,7 +208,10 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
-type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean|}>
+type _SetLastSentXLMPayload = $ReadOnly<{|
+  lastSentXLM: boolean,
+  writeFile: boolean,
+|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
