@@ -1060,7 +1060,10 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         }
       ],
       "response": "CurrencyLocal"
