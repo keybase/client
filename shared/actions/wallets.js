@@ -499,7 +499,11 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
     )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  Saga.put(Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab]))
+  Saga.put(
+    isMobile
+      ? Route.navigateTo([{props: {}, selected: Tabs.settingsTab}, {props: {}, selected: null}])
+      : Route.switchTo([state.routeTree.get('previousTab') || Tabs.peopleTab])
+  )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
