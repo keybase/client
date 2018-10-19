@@ -444,7 +444,7 @@ func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
 	prefetchStatus PrefetchStatus, err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	err = cache.checkCacheLocked("Get")
+	err = cache.checkCacheLocked("Block(Get)")
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
@@ -511,7 +511,7 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err = cache.checkCacheLocked("Put")
+	err = cache.checkCacheLocked("Block(Put)")
 	if err != nil {
 		return err
 	}
@@ -613,7 +613,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err = cache.checkCacheLocked("UpdateMetadata")
+	err = cache.checkCacheLocked("Block(UpdateMetadata)")
 	if err != nil {
 		return err
 	}
@@ -703,7 +703,7 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err = cache.checkCacheLocked("Delete")
+	err = cache.checkCacheLocked("Block(Delete)")
 	if err != nil {
 		return 0, 0, err
 	}

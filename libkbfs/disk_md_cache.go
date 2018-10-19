@@ -301,7 +301,7 @@ func (cache *DiskMDCacheLocal) Get(
 	buf []byte, ver kbfsmd.MetadataVer, timestamp time.Time, err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	err = cache.checkCacheLocked(ctx, "Get")
+	err = cache.checkCacheLocked(ctx, "MD(Get)")
 	if err != nil {
 		return nil, -1, time.Time{}, err
 	}
@@ -324,7 +324,7 @@ func (cache *DiskMDCacheLocal) Stage(
 	ver kbfsmd.MetadataVer, timestamp time.Time) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err := cache.checkCacheLocked(ctx, "Stage")
+	err := cache.checkCacheLocked(ctx, "MD(Stage)")
 	if err != nil {
 		return err
 	}
@@ -350,7 +350,7 @@ func (cache *DiskMDCacheLocal) Commit(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err := cache.checkCacheLocked(ctx, "Commit")
+	err := cache.checkCacheLocked(ctx, "MD(Commit)")
 	if err != nil {
 		return err
 	}
@@ -407,7 +407,7 @@ func (cache *DiskMDCacheLocal) Unstage(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	err := cache.checkCacheLocked(ctx, "Unstage")
+	err := cache.checkCacheLocked(ctx, "MD(Unstage)")
 	if err != nil {
 		return err
 	}
