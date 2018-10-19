@@ -75,7 +75,7 @@ func (c *CmdChatSearchInbox) Run() (err error) {
 	ctx := context.TODO()
 
 	arg := chat1.SearchInboxArg{
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		Query:            c.query,
 		Opts:             c.opts,
 	}
