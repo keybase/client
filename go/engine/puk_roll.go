@@ -91,7 +91,7 @@ func (e *PerUserKeyRoll) inner(m libkb.MetaContext) error {
 		return fmt.Errorf("encryption key not found: (%v)", err)
 	}
 
-	pukring, err := m.G().GetPerUserKeyring()
+	pukring, err := m.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return err
 	}
