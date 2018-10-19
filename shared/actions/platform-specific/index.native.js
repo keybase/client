@@ -247,7 +247,6 @@ function* loadStartupDetails() {
     }
   }
 
-
   yield Saga.put(
     ConfigGen.createSetStartupDetails({
       startupConversation,

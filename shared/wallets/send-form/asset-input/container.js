@@ -9,7 +9,7 @@ import * as Types from '../../../constants/types/wallets'
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const currency = state.wallets.building.currency
-  const displayUnit = Constants.getCurrencyAndSymbol(state, currency || 'XLM' )
+  const displayUnit = Constants.getCurrencyAndSymbol(state, currency || 'XLM')
   const defaultCurrencyCode = state.wallets.lastSentXLM ? 'XLM' : Constants.getDisplayCurrency(state, accountID).code
   return {
     accountID,
@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     // Only called before the user changes the currency selection.
     !stateProps.currency && stateProps.defaultCurrencyCode &&
       dispatchProps._onSetCurrency(stateProps.defaultCurrencyCode)
-  }
+  },
 })
 
 export default compose(

@@ -92,12 +92,12 @@ export default class AssetInput extends React.Component<Props, AssetInputState> 
     this.props.refresh()
     // If the currency code was already in the state, it is unlikely to change
     // so explicitly set the payment currency to default
-    if(this.props.defaultCurrencyCode) this.props.onSetCurrency()
+    if (this.props.defaultCurrencyCode) this.props.onSetCurrency()
   }
 
   componentDidUpdate() {
     // For changing the building payment based on default currency
-    if (! this.state.hasUserChangedDisplayUnit) {
+    if (!this.state.hasUserChangedDisplayUnit) {
       this.props.onSetCurrency()
     }
   }

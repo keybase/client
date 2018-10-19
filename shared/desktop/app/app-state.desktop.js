@@ -10,7 +10,7 @@ import logger from '../../logger'
 
 export type State = {
   displayBounds: ?any,
-  dockHidden: boolean,  
+  dockHidden: boolean,
   height: number,
   isFullScreen: ?boolean,
   isMaximized: ?boolean,
@@ -22,7 +22,7 @@ export type State = {
   width: number,
   windowHidden: boolean,
   x: ?number,
-  y: ?number,  
+  y: ?number,
 }
 
 export type Config = {
