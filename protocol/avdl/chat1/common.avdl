@@ -539,6 +539,7 @@
     int afterContext;
     // only used by in inbox search
     boolean forceReindex;
+    int maxConvs;
   }
 
   record ConversationIndexMetadata {
@@ -577,6 +578,10 @@
   record ChatSearchInboxDone {
     int numHits;
     int numConvs;
+    int percentIndexed;
+  }
+
+  record ChatSearchIndexStatus {
     int percentIndexed;
   }
 

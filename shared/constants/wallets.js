@@ -78,6 +78,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   linkExistingAccountError: '',
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
+  paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
   requests: I.Map(),
   secretKey: new HiddenString(''),
@@ -177,17 +178,13 @@ const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
     name: w.name,
   })
 
-const makePayment: I.RecordFactory<Types._Payment> = I.Record({
+const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none',
   error: '',
   id: Types.noPaymentID,
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
-  publicMemo: new HiddenString(''),
-  publicMemoType: '',
-  readState: 'read',
-  section: 'none',
   source: '',
   sourceAccountID: '',
   sourceType: '',
@@ -198,10 +195,33 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   targetAccountID: '',
   targetType: '',
   time: null,
-  txID: '',
   worth: '',
   worthCurrency: '',
-})
+}
+
+const _defaultPaymentResult = {
+  ..._defaultPaymentCommon,
+  unread: false,
+  section: 'none',
+}
+
+const _defaultPaymentDetail = {
+  ..._defaultPaymentCommon,
+  publicMemo: new HiddenString(''),
+  publicMemoType: '',
+  txID: '',
+}
+
+const _defaultPayment = {
+  ..._defaultPaymentResult,
+  ..._defaultPaymentDetail,
+}
+
+const makePaymentResult: I.RecordFactory<Types._PaymentResult> = I.Record(_defaultPaymentResult)
+
+const makePaymentDetail: I.RecordFactory<Types._PaymentDetail> = I.Record(_defaultPaymentDetail)
+
+const makePayment: I.RecordFactory<Types._Payment> = I.Record(_defaultPayment)
 
 const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   description: '',
@@ -223,36 +243,24 @@ const partyToDescription = (type, username, assertion, name, id): string => {
   }
 }
 
-const paymentResultToPayment = (
-  w: RPCTypes.PaymentOrErrorLocal,
-  section: Types.PaymentSection,
-  oldestUnread: ?RPCTypes.PaymentID
-) => {
+const rpcPaymentResultToPaymentResult = (w: RPCTypes.PaymentOrErrorLocal, section: Types.PaymentSection) => {
   if (!w) {
-    return makePayment({error: 'No payments returned'})
+    return makePaymentResult({error: 'No payments returned'})
   }
   if (!w.payment) {
-    return makePayment({error: w.err})
+    return makePaymentResult({error: w.err})
   }
-  let readState
-  if (w.payment.id === oldestUnread) {
-    readState = 'oldestUnread'
-  } else if (w.payment.unread) {
-    readState = 'unread'
-  } else {
-    readState = 'read'
-  }
-  return makePayment({
-    ...rpcPaymentToPaymentCommon(w.payment, section),
-    readState,
+  const unread = w.payment.unread
+  return makePaymentResult({
+    ...rpcPaymentToPaymentCommon(w.payment),
+    section,
+    unread,
   })
 }
 
-const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
-  makePayment({
+const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
+  makePaymentDetail({
     ...rpcPaymentToPaymentCommon(p),
-    // Payment details have no unread field.
-    readState: 'read',
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
@@ -260,7 +268,6 @@ const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) =>
 
 const rpcPaymentToPaymentCommon = (
   p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal,
-  section?: Types.PaymentSection
 ) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
@@ -274,7 +281,6 @@ const rpcPaymentToPaymentCommon = (
   )
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
-    ...(section ? {section} : null),
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
@@ -415,33 +421,18 @@ const paymentToYourRoleAndCounterparty = (
   }
 }
 
-// Update payment, take all new fields except any that contain the default value
-const emptyPayment = makePayment()
-// $FlowIssue thinks toSeq() has something to do with the `payment.delta` type
-const keys = emptyPayment
-  .toSeq()
-  .keySeq()
-  .toArray()
-const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
-  const res = oldPayment.withMutations(paymentMutable => {
-    keys.forEach(
-      key =>
-        newPayment.get(key) === emptyPayment.get(key) ? null : paymentMutable.set(key, newPayment.get(key))
-    )
-  })
-  return res
-}
-const updatePaymentMap = (
+const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
-  newPayments: Array<Types.Payment>,
-  clearExisting: boolean = false
+  paymentDetail: Types.PaymentDetail,
 ) => {
-  const baseMap = clearExisting ? map.clear() : map
-  return baseMap.withMutations(mapMutable =>
-    newPayments.forEach(newPayment =>
-      mapMutable.update(newPayment.id, makePayment(), oldPayment => updatePayment(oldPayment, newPayment))
-    )
-  )
+  return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
+}
+
+const updatePaymentsReceived = (
+  map: I.Map<Types.PaymentID, Types.Payment>,
+  paymentResults: Array<Types.PaymentResult>,
+) => {
+  return map.withMutations(mapMutable => paymentResults.forEach(paymentResult => mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))))
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
@@ -467,11 +458,14 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
-const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
+const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.currencyMap.get(accountID, makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+const getPayments = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.paymentsMap.get(accountID, null)
+
+const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
@@ -479,19 +473,19 @@ const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Ty
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)
 
-const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
+const getAccount = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.get(accountID, unknownAccount)
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
 }
 
-const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
+const getAssets = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.assetsMap.get(accountID, I.List())
 
-const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), unknownAccount)
+const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
+  const account = state.wallets.accountMap.get(accountID, unknownAccount)
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
@@ -564,6 +558,7 @@ export {
   getFederatedAddress,
   getPayment,
   getPayments,
+  getOldestUnread,
   getRequest,
   getSecretKey,
   getSelectedAccount,
@@ -579,15 +574,17 @@ export {
   makeBuilding,
   makeBuiltPayment,
   makeBuiltRequest,
+  makePaymentResult,
+  makePaymentDetail,
   makePayment,
   makeRequest,
   makeReserve,
   makeState,
-  paymentDetailResultToPayment,
-  paymentResultToPayment,
   paymentToYourRoleAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
+  rpcPaymentDetailToPaymentDetail,
+  rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
@@ -596,6 +593,6 @@ export {
   shortenAccountID,
   statusSimplifiedToString,
   unknownAccount,
-  updatePayment,
-  updatePaymentMap,
+  updatePaymentDetail,
+  updatePaymentsReceived,
 }

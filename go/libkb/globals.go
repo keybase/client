@@ -929,7 +929,7 @@ func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring()
+	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -1146,7 +1146,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	_, _ = g.GetPerUserKeyring()
+	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -1166,7 +1166,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 }
 
 // GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
-func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
+func (g *GlobalContext) GetPerUserKeyring(ctx context.Context) (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
 
 	myUID := g.ActiveDevice.UID()
@@ -1182,11 +1182,11 @@ func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	makeNew := func() (*PerUserKeyring, error) {
 		pukring, err := NewPerUserKeyring(g, myUID)
 		if err != nil {
-			g.Log.Warning("G#GetPerUserKeyring -> failed: %s", err)
+			g.Log.CWarningf(ctx, "G#GetPerUserKeyring -> failed: %s", err)
 			g.perUserKeyring = nil
 			return nil, err
 		}
-		g.Log.Debug("G#GetPerUserKeyring -> new")
+		g.Log.CDebugf(ctx, "G#GetPerUserKeyring -> new")
 		g.perUserKeyring = pukring
 		return g.perUserKeyring, nil
 	}

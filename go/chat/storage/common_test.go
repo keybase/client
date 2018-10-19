@@ -3,12 +3,15 @@ package storage
 import (
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
-func setupCommonTest(t testing.TB, name string) libkb.TestContext {
+func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 	tc := externalstest.SetupTest(t, name, 2)
 
 	// use an insecure triplesec in tests
@@ -19,6 +22,13 @@ func setupCommonTest(t testing.TB, name string) libkb.TestContext {
 		}
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
-
-	return tc
+	ctc := kbtest.ChatTestContext{
+		TestContext: tc,
+		ChatG: &globals.ChatContext{
+			EphemeralPurger: types.DummyEphemeralPurger{},
+			Indexer:         types.DummyIndexer{},
+		},
+	}
+	ctc.Context().ServerCacheVersions = NewServerVersions(ctc.Context())
+	return ctc
 }

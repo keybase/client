@@ -42,6 +42,7 @@ type Props = {
   shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
+  deleteFileOrFolder?: () => void,
 }
 
 const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: () => void) => (
@@ -146,6 +147,14 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           },
         ]
       : []),
+    ...(props.type === 'file' && props.deleteFileOrFolder
+      ? [
+        {
+          title: 'Delete',
+          danger: true,
+          onClick: hideMenuOnClick(props.deleteFileOrFolder, hideMenu),
+        },
+      ] : []),
   ]
 }
 

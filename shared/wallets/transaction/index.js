@@ -282,6 +282,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+type ReadState = 'read' | 'unread' | 'oldestUnread'
+
 export type Props = {|
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
@@ -297,7 +299,7 @@ export type Props = {|
   onChat: string => void,
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
-  readState: Types.ReadState,
+  readState: ReadState,
   selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
@@ -307,8 +309,8 @@ export type Props = {|
 |}
 
 export const Transaction = (props: Props) => {
-  let large
-  let showMemo
+  let large: boolean
+  let showMemo: boolean
   switch (props.counterpartyType) {
     case 'keybaseUser':
       large = true
@@ -320,7 +322,7 @@ export const Transaction = (props: Props) => {
       break
     case 'otherAccount':
       large = !!props.memo
-      showMemo = props.memo
+      showMemo = !!props.memo
       break
     default:
       /*::

@@ -49,6 +49,7 @@ func (c *cmdWalletImport) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletImport) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	ctx := context.TODO()
 	secKey, accountID, err := c.promptSecretKey()
 	if err != nil {

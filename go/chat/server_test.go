@@ -365,6 +365,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.FetchRetrier.Start(context.TODO(), uid)
 
 	g.ConvLoader = NewBackgroundConvLoader(g)
+	g.EphemeralPurger = types.DummyEphemeralPurger{}
 
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
@@ -4020,7 +4021,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		select {
 		case info := <-listener0.newMessageRemote:
 			require.False(t, info.DisplayDesktopNotification)
-			require.NotEqual(t, "", info.DesktopNotificationSnippet)
+			require.Equal(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}

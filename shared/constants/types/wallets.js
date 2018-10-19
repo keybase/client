@@ -12,9 +12,6 @@ export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
-// Possible read states a transaction can be in.
-export type ReadState = 'read' | 'unread' | 'oldestUnread'
-
 // Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
@@ -118,17 +115,18 @@ export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' |
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
-export type _Payment = {
+
+// The various payment types below are awkward, but they reflect the
+// protocol. We can clean this up once
+// https://keybase.atlassian.net/browse/CORE-9234 is fixed.
+
+export type _PaymentCommon = {
   amountDescription: string,
   delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
-  publicMemo: HiddenString,
-  publicMemoType: string,
-  readState: ReadState,
-  section: PaymentSection,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -139,10 +137,27 @@ export type _Payment = {
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
-  txID: string,
   worth: string,
   worthCurrency: string,
 }
+
+export type _PaymentResult = _PaymentCommon & {
+  // Ideally the section field would be in _PaymentCommon. We can
+  // derive it from statusDescription, which is either "pending",
+  // "completed", or "error", or once
+  // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
+  // might be a better way.
+  section: PaymentSection,
+  unread: boolean,
+}
+
+export type _PaymentDetail = _PaymentCommon & {
+  publicMemo: HiddenString,
+  publicMemoType: string,
+  txID: string,
+}
+
+export type _Payment = _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string,
@@ -186,6 +201,8 @@ export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
+export type PaymentResult = I.RecordOf<_PaymentResult>
+export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
@@ -212,6 +229,7 @@ export type _State = {
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
+  paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   secretKey: HiddenString,
   secretKeyError: string,

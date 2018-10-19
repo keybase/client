@@ -48,6 +48,10 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 				Name:  "force-reindex",
 				Usage: "Ensure inbox is fully indexed before executing the search.",
 			},
+			cli.IntFlag{
+				Name:  "max-convs",
+				Usage: fmt.Sprintf("Specify the maximum number conversations to find matches is. Default is all conversations."),
+			},
 		),
 	}
 }
@@ -71,7 +75,7 @@ func (c *CmdChatSearchInbox) Run() (err error) {
 	ctx := context.TODO()
 
 	arg := chat1.SearchInboxArg{
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		Query:            c.query,
 		Opts:             c.opts,
 	}
@@ -110,10 +114,7 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	if c.opts.MaxHits > search.MaxAllowedSearchHits {
 		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
 	}
-	c.opts.MaxMessages = ctx.Int("max-messages")
-	if c.opts.MaxMessages > search.MaxAllowedSearchMessages {
-		return fmt.Errorf("max-messages cannot exceed %d.", search.MaxAllowedSearchMessages)
-	}
+	c.opts.MaxConvs = ctx.Int("max-convs")
 
 	c.opts.AfterContext = ctx.Int("after-context")
 	c.opts.BeforeContext = ctx.Int("before-context")

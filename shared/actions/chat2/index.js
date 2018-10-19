@@ -18,7 +18,6 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
-import * as WalletConstants from '../../constants/wallets'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
@@ -279,15 +278,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       } else {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && desktopNotificationSnippet) {
-          actions.push(
-            Chat2Gen.createDesktopNotification({
-              author: message.author,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
-        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const valid = cMsg.valid
@@ -337,6 +327,21 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
       }
+    }
+    if (
+      !isMobile &&
+      displayDesktopNotification &&
+      desktopNotificationSnippet &&
+      cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
+      cMsg.valid
+    ) {
+      actions.push(
+        Chat2Gen.createDesktopNotification({
+          author: cMsg.valid.senderUsername,
+          body: desktopNotificationSnippet,
+          conversationIDKey,
+        })
+      )
     }
   }
 
@@ -1735,6 +1740,28 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
   }
 }
 
+// Handle an image pasted into a conversation
+function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
+  const {conversationIDKey, data} = action.payload
+  const outboxID = Constants.generateOutboxID()
+  const path = yield Saga.call(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
+    outboxID,
+    filename: 'paste.png',
+    data,
+  })
+  const pathAndOutboxIDs = [
+    {
+      path,
+      outboxID,
+    },
+  ]
+  yield Saga.put(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+    })
+  )
+}
+
 // Upload an attachment
 function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   const {conversationIDKey, paths, titles} = action.payload
@@ -1760,10 +1787,11 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ...ephemeralData,
         convID: Types.keyToConversationID(conversationIDKey),
         tlfName: meta.tlfname,
-        filename: p,
+        filename: p.path,
         title: titles[i],
         metadata: Buffer.from([]),
         visibility: RPCTypes.commonTLFVisibility.private,
+        outboxID: p.outboxID,
         clientPrev,
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       })
@@ -1782,9 +1810,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map((filename, i) =>
+    paths.map((p, i) =>
       Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
-        filename,
+        filename: p.path,
         outboxID: outboxIDs[i],
       })
     )
@@ -1810,7 +1838,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       state,
       conversationIDKey,
       titles[i],
-      FsTypes.getLocalPathName(paths[i]),
+      FsTypes.getLocalPathName(paths[i].path),
       previewURLs[i],
       previewSpecs[i],
       Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
@@ -1832,7 +1860,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
         convID: Types.keyToConversationID(conversationIDKey),
         outboxID: outboxIDs[i],
-        filename: path,
+        filename: path.path,
         title: titles[i],
         metadata: Buffer.from([]),
         callerPreview: previews[i],
@@ -2561,18 +2589,15 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return Saga.sequentially(
-    [
-      ...(requestInfo.currencyCode
-        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
-        : []),
-      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
-      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
-      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
-      WalletsGen.createSetBuildingTo({to: message.author}),
-      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
-      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
-    ].map(action => Saga.put(action))
+  return Saga.put(
+    WalletsGen.createOpenSendRequestForm({
+      amount: requestInfo.amount,
+      currency: requestInfo.currencyCode || 'XLM',
+      from: WalletTypes.noAccountID,
+      recipientType: 'keybaseUser',
+      to: message.author,
+      secretNote: message.note,
+    })
   )
 }
 
@@ -2666,6 +2691,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
