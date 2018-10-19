@@ -56,7 +56,7 @@ type DiskMDCacheLocal struct {
 	// accessed, and mutable data.
 	lock       sync.RWMutex
 	headsDb    *levelDb // tlfID -> metadata block
-	tlfsCached map[tlf.ID]bool
+	tlfsCached map[tlf.ID]kbfsmd.Revision
 	tlfsStaged map[tlf.ID][]diskMDBlock
 
 	startedCh  chan struct{}
@@ -145,7 +145,7 @@ func newDiskMDCacheLocalFromStorage(
 		putMeter:   NewCountMeter(),
 		log:        log,
 		headsDb:    headsDb,
-		tlfsCached: map[tlf.ID]bool{},
+		tlfsCached: map[tlf.ID]kbfsmd.Revision{},
 		tlfsStaged: make(map[tlf.ID][]diskMDBlock),
 		startedCh:  startedCh,
 		startErrCh: startErrCh,
@@ -217,7 +217,7 @@ func (cache *DiskMDCacheLocal) syncMDCountsFromDb() error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 
-	tlfsCached := make(map[tlf.ID]bool)
+	tlfsCached := make(map[tlf.ID]kbfsmd.Revision)
 	iter := cache.headsDb.NewIterator(nil, nil)
 	defer iter.Release()
 	for iter.Next() {
@@ -227,7 +227,13 @@ func (cache *DiskMDCacheLocal) syncMDCountsFromDb() error {
 			return err
 		}
 
-		tlfsCached[tlfID] = true
+		var md diskMDBlock
+		err = cache.config.Codec().Decode(iter.Value(), &md)
+		if err != nil {
+			return err
+		}
+
+		tlfsCached[tlfID] = md.Revision
 	}
 	cache.tlfsCached = tlfsCached
 	return nil
@@ -299,7 +305,7 @@ func (cache *DiskMDCacheLocal) Get(
 		return nil, -1, time.Time{}, err
 	}
 
-	if !cache.tlfsCached[tlfID] {
+	if _, ok := cache.tlfsCached[tlfID]; !ok {
 		cache.missMeter.Mark(1)
 		return nil, -1, time.Time{}, errors.WithStack(ldberrors.ErrNotFound)
 	}
@@ -320,6 +326,11 @@ func (cache *DiskMDCacheLocal) Stage(
 	err := cache.checkCacheLocked(ctx, "Stage")
 	if err != nil {
 		return err
+	}
+
+	if cachedRev, ok := cache.tlfsCached[tlfID]; ok && cachedRev >= rev {
+		// Ignore stages for older revisions
+		return nil
 	}
 
 	md := diskMDBlock{
@@ -344,6 +355,10 @@ func (cache *DiskMDCacheLocal) Commit(
 	}
 
 	stagedMDs := cache.tlfsStaged[tlfID]
+	if len(stagedMDs) == 0 {
+		// Nothing to do.
+		return nil
+	}
 	newStagedMDs := make([]diskMDBlock, 0, len(stagedMDs)-1)
 	foundMD := false
 	// The staged MDs list is unordered, so iterate through the whole
@@ -373,10 +388,11 @@ func (cache *DiskMDCacheLocal) Commit(
 	}
 
 	if !foundMD {
-		return errors.New("Cannot commit an unstaged revision")
+		// Nothing to do.
+		return nil
 	}
 
-	cache.tlfsCached[tlfID] = true
+	cache.tlfsCached[tlfID] = rev
 	if len(newStagedMDs) == 0 {
 		delete(cache.tlfsStaged, tlfID)
 	} else {
@@ -397,7 +413,6 @@ func (cache *DiskMDCacheLocal) Unstage(
 
 	// Just remove the first one matching `rev`.
 	stagedMDs := cache.tlfsStaged[tlfID]
-	foundMD := false
 	for i, md := range stagedMDs {
 		if md.Revision == rev {
 			if len(stagedMDs) == 1 {
@@ -406,14 +421,10 @@ func (cache *DiskMDCacheLocal) Unstage(
 				cache.tlfsStaged[tlfID] = append(
 					stagedMDs[:i], stagedMDs[i+1:]...)
 			}
-			foundMD = true
-			break
+			return nil
 		}
 	}
 
-	if !foundMD {
-		return errors.New("Cannot unstage an unstaged revision")
-	}
 	return nil
 }
 

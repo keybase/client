@@ -1245,7 +1245,10 @@ type DiskMDCache interface {
 	// `Unstage` for `rev` or higher is required to avoid memory leaks.
 	Stage(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision, buf []byte,
 		ver kbfsmd.MetadataVer, localTimestamp time.Time) error
-	// Commit writes a previously-staged MD to disk.
+	// Commit writes a previously-staged MD to disk.  Trying to commit
+	// a revision that hasn't been staged is a no-op, to allow callers
+	// to call Commit without knowing whether Stage was called first
+	// (e.g., if the revision came from the cache in the first place).
 	Commit(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Unstage unstages and forgets about a previously-staged MD.  (If
 	// multiple copies of the same revision have been staged, it only

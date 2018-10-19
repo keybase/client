@@ -125,6 +125,7 @@ func TestDiskMDCacheCommitAndGet(t *testing.T) {
 	t.Log("Override the first TLF")
 	now3 := clock.Now()
 	buf3 := makeRandomMDBuf(t)
+	rev++
 	err = cache.Stage(ctx, tlf1, rev, buf3, kbfsmd.ImplicitTeamsVer, now3)
 	require.NoError(t, err)
 	err = cache.Commit(ctx, tlf1, rev)
