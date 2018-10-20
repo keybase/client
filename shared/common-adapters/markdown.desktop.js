@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import ff from '../util/feature-flags'
+import flags from '../util/feature-flags'
 import Text from './text'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/chat2'
@@ -146,7 +146,7 @@ class OriginalMarkdown extends PureComponent<Props> {
 
 class Markdown extends PureComponent<Props> {
   render() {
-    const simple = this.props.simple === undefined ? ff.useSimpleMarkdown : this.props.simple
+    const simple = this.props.simple === undefined ? flags.useSimpleMarkdown : this.props.simple
     if (simple) {
       return <SimpleMarkdownComponent {...this.props} />
     } else {

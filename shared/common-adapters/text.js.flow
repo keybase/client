@@ -25,6 +25,7 @@ type Props = {
   onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
   onClickURL?: ?string,
   onLongPress?: () => void,
+  onLongPressUrl?: ?string,
   onPress?: void,
   plainText?: boolean,
   selectable?: boolean,

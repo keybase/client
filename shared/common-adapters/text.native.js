@@ -5,6 +5,8 @@ import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.met
 import {glamorous} from '../styles'
 import shallowEqual from 'shallowequal'
 import {StyleSheet} from 'react-native'
+import {Alert} from 'react-native'
+import {NativeClipboard} from './native-wrappers.native'
 
 import type {Props, TextType, Background} from './text'
 
@@ -56,6 +58,21 @@ class Text extends Component<Props> {
     openURL(this.props.onClickURL)
   }
 
+  _urlCopy = (url: ?string) => {
+    if (!url) return
+    NativeClipboard.setString(url)
+  }
+
+  _urlChooseOption = () => {
+    const url = this.props.onLongPressURL
+    if (!url) return
+    Alert.alert('', url, [
+      {style: 'cancel', text: 'Cancel'},
+      {onPress: () => openURL(url), text: 'Open Link'},
+      {onPress: () => _urlCopy(url), text: 'Copy Link'},
+    ])
+  }
+
   shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
@@ -90,6 +107,9 @@ class Text extends Component<Props> {
       // make a dummy one so that it shows the selection (on iOS).
       (this.props.selectable ? () => {} : undefined)
 
+    const onLongPress =
+      this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
+
     return (
       <StyledText
         ref={ref => {
@@ -99,7 +119,7 @@ class Text extends Component<Props> {
         style={style}
         {...lineClamp(this.props.lineClamp, this.props.ellipsizeMode)}
         onPress={onPress}
-        onLongPress={this.props.onLongPress}
+        onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}

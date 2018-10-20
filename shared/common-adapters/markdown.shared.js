@@ -2,8 +2,10 @@
 import logger from '../logger'
 import * as Styles from '../styles'
 import React, {PureComponent} from 'react'
+import {isMobile} from '../constants/platform'
 import Emoji from './emoji'
 import Text from './text'
+import {Box} from './box'
 import {
   reactOutputFontScaling,
   reactOutputNoFontScaling,
@@ -153,8 +155,28 @@ const codeSnippetBlockStyle = Styles.platformStyles({
   },
 })
 
-const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+// TODO, when named groups are supported on mobile, we can use this instead
+// const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+// This copies the functionality of this named group
+const linkRegex = {
+  exec: source => {
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+    const result = r.exec(source)
+    if (result) {
+      result.groups = {tld: result[4]}
+      return result
+    }
+    return null
+  },
+}
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
+
+const wrapInParagraph = (parse, content, state) => [
+  {
+    type: 'paragraph',
+    content: SimpleMarkdown.parseInline(parse, content, state),
+  },
+]
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules = (markdownMeta: ?MarkdownMeta) => ({
@@ -197,11 +219,14 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     order: SimpleMarkdown.defaultRules.blockQuote.order - 0.5,
     // Example: https://regex101.com/r/ZiDBsO/6
     match: SimpleMarkdown.anyScopeRegex(/^(?: *> *((?:[^\n](?!```))*)) ```\n?((?:\\[\s\S]|[^\\])+?)```\n?/),
-
     parse: function(capture, parse, state) {
+      const preContent =
+        isMobile && !!capture[1]
+          ? wrapInParagraph(parse, capture[1], state)
+          : SimpleMarkdown.parseInline(parse, capture[1], state)
       return {
         content: [
-          ...SimpleMarkdown.parseInline(parse, capture[1], state),
+          ...preContent,
           {
             content: capture[2],
             type: 'fence',
@@ -222,8 +247,15 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.paragraph,
     // original:
     // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
-    // ours: allow simple empty blocks
-    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)\n/),
+    // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
+    parse: (capture, parse, state) => {
+      // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
+      const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      return {
+        content: SimpleMarkdown.parseInline(parse, content, state),
+      }
+    },
   },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
@@ -254,6 +286,19 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // ours: Everything in the quote has to be preceded by >
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
+    parse: (capture, parse, state) => {
+      const content = capture[0].replace(/^ *> ?/gm, '')
+      // On mobile we can't have text that isn't wrapped in a Text tag
+      if (isMobile) {
+        return {
+          // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
+          content: wrapInParagraph(parse, content.replace(/\n$/, ''), state),
+        }
+      }
+      return {
+        content: parse(content, state),
+      }
+    },
     match: (source, state, lookbehind) => {
       const regex = /^( *>(?:[^\n](?!```))+\n?)+/
       // make sure the look behind is empty
@@ -363,18 +408,22 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
       // So we add our own new line
       disableAutoBlockNewlines: true,
     })
+    const inner = this.props.preview ? (
+      <Text type="BodySmall" style={markdownStyles.neutralPreviewStyle}>
+        {previewOutput(parseTree)}
+      </Text>
+    ) : isAllEmoji(parseTree) ? (
+      bigEmojiOutputForFontScaling(!!this.props.allowFontScaling)(parseTree)
+    ) : (
+      reactOutput(parseTree)
+    )
 
-    return (
+    // Mobile doesn't use a wrapper
+    return isMobile ? (
+      inner
+    ) : (
       <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
-        {this.props.preview ? (
-          <Text type="BodySmall" style={markdownStyles.neutralPreviewStyle}>
-            {previewOutput(parseTree)}
-          </Text>
-        ) : isAllEmoji(parseTree) ? (
-          bigEmojiOutputForFontScaling(!!this.props.allowFontScaling)(parseTree)
-        ) : (
-          reactOutput(parseTree)
-        )}
+        {inner}
       </Text>
     )
   }

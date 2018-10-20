@@ -10,6 +10,10 @@ import RandomSeed from 'random-seed'
 import RandExp from 'randexp'
 
 const cases = {
+  debugging: `> outside code
+
+  
+  foo`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
   paragraphs: `this is a sentence.
@@ -20,7 +24,8 @@ this is the one below.`,
   normal: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
   echo "foo";
-else echo "bar";\`\`\` How about *bold* and _italic?_ nice. :smile:
+else echo "bar";\`\`\`
+     How about *bold* and _italic?_ nice. :smile:
 a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
 a whole bunch of string emojis :thumbsup: :cry: :fireworks:
 Now youre thinking with ~portals~ crypto.
@@ -94,6 +99,8 @@ a = 1
 \`\`\`
 `,
   'Quotes 4': `> one _line_ *quote*`,
+  'Quotes 5': `> text here and a \`\`\`code blcok\`\`\``,
+  'Quotes 6': `> \`\`\`code block\`\`\``,
   'NOJIMACode block': `\`\`\`
 
 this is a code block with two newline above\`\`\``,
@@ -252,7 +259,25 @@ class ShowAST extends React.Component<
           label={`${this.state.visible ? 'Hide' : 'Show'} AST`}
           type="Primary"
         />
-        {this.state.visible && <Markdown>{'```\n' + JSON.stringify(parsed, null, 2) + '\n```'}</Markdown>}
+        {this.state.visible && (
+          <Markdown>
+            {'```\n' +
+              JSON.stringify(
+                parsed,
+                // Format so the type comes first and the content is ellipsized
+                (k, v) =>
+                  k === 'type'
+                    ? v
+                    : typeof v === 'string'
+                      ? v.substr(0, 8) + '...'
+                      : Array.isArray(v)
+                        ? v.map(o => ({type: o.type, content: o.content}))
+                        : v,
+                2
+              ) +
+              '\n```'}
+          </Markdown>
+        )}
       </Kb.Box2>
     )
   }
@@ -262,7 +287,7 @@ class ShowPreview extends React.Component<
   {text: string, simple: boolean, meta: ?MarkdownMeta},
   {visible: boolean}
 > {
-  state = {visible: true}
+  state = {visible: false}
   render = () => {
     return (
       <Kb.Box2 direction="vertical">

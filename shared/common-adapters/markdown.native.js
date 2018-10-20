@@ -1,5 +1,6 @@
 // @flow
-import * as React from 'react'
+import React, {PureComponent} from 'react'
+import flags from '../util/feature-flags'
 import * as Types from '../constants/types/chat2'
 import Text from './text'
 import Box from './box'
@@ -7,7 +8,7 @@ import Emoji from './emoji'
 import Channel from './channel-container'
 import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../styles'
-import {parseMarkdown} from './markdown.shared'
+import {parseMarkdown, SimpleMarkdownComponent} from './markdown.shared'
 import {EmojiIfExists} from './markdown-react'
 import {NativeClipboard} from './native-wrappers.native'
 import openURL from '../util/open-url'
@@ -176,7 +177,7 @@ function messageCreateComponent(style, allowFontScaling) {
   }
 }
 
-class Markdown extends React.PureComponent<Props> {
+class OriginalMarkdown extends React.PureComponent<Props> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)
@@ -194,6 +195,17 @@ class Markdown extends React.PureComponent<Props> {
       }
     }
     return content || null
+  }
+}
+
+class Markdown extends PureComponent<Props> {
+  render() {
+    const simple = this.props.simple === undefined ? flags.useSimpleMarkdown : this.props.simple
+    if (simple) {
+      return <SimpleMarkdownComponent {...this.props} />
+    } else {
+      return <OriginalMarkdown {...this.props} />
+    }
   }
 }
 

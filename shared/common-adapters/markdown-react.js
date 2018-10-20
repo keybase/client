@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
+import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/chat2'
 import Text from './text'
@@ -16,34 +17,67 @@ const wrapStyle = Styles.platformStyles({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
+  isMobile: {
+    color: undefined,
+  },
+})
+
+const bigTextBlockStyle = Styles.platformStyles({
+  common: {
+    ...wrapStyle,
+  },
+  isElectron: {
+    display: 'block',
+    color: 'inherit',
+    fontWeight: 'inherit',
+  },
+  isMobile: {
+    fontSize: 32,
+    lineHeight: undefined,
+  },
 })
 
 const textBlockStyle = Styles.platformStyles({
   common: {...wrapStyle},
   isElectron: {display: 'block', color: 'inherit', fontWeight: 'inherit'},
 })
+
 const linkStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
   },
   isElectron: {fontWeight: 'inherit'},
+  isMobile: {
+    fontWeight: undefined,
+  },
 })
 const neutralPreviewStyle = Styles.platformStyles({
   isElectron: {color: 'inherit', fontWeight: 'inherit'},
+  isMobile: {color: undefined, fontWeight: undefined},
 })
 
-const boldStyle = {...wrapStyle, color: 'inherit'}
+const boldStyle = Styles.platformStyles({
+  common: {...wrapStyle},
+  isMobile: {color: undefined},
+  isElectron: {color: 'inherit'},
+})
 
 const italicStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
+    fontStyle: 'italic',
   },
-  isElectron: {color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'},
+  isMobile: {color: undefined, fontWeight: undefined},
+  isElectron: {color: 'inherit', fontWeight: 'inherit'},
 })
 
 const strikeStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
+  },
+  isMobile: {
+    fontWeight: undefined,
+    textDecorationLine: 'line-through',
   },
   isElectron: {
     color: 'inherit',
@@ -51,28 +85,44 @@ const strikeStyle = Styles.platformStyles({
     textDecoration: 'line-through',
   },
 })
-const quoteStyle = {
-  borderLeft: `3px solid ${Styles.globalColors.lightGrey2}`,
-  paddingLeft: Styles.globalMargins.small,
-}
+const quoteStyle = Styles.platformStyles({
+  common: {
+    borderLeftWidth: 3,
+    borderStyle: 'solid',
+    borderLeftColor: Styles.globalColors.lightGrey2,
+  },
+  isElectron: {
+    paddingLeft: Styles.globalMargins.small,
+    display: 'block',
+  },
+  isMobile: {
+    paddingLeft: Styles.globalMargins.tiny,
+  },
+})
 
-const codeSnippetStyle = {
-  ...Styles.globalStyles.fontTerminal,
-  ...Styles.globalStyles.rounded,
-  ...wrapStyle,
-  backgroundColor: Styles.globalColors.beige,
-  color: Styles.globalColors.blue,
-  fontSize: 12,
-  paddingLeft: Styles.globalMargins.xtiny,
-  paddingRight: Styles.globalMargins.xtiny,
-}
+const codeSnippetStyle = Styles.platformStyles({
+  common: {
+    ...wrapStyle,
+    ...Styles.globalStyles.fontTerminal,
+    ...Styles.globalStyles.rounded,
+    backgroundColor: Styles.globalColors.beige,
+    color: Styles.globalColors.blue,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.xtiny,
+  },
+  isMobile: {
+    fontSize: 15,
+  },
+  isElectron: {
+    fontSize: 12,
+  },
+})
 
 const codeSnippetBlockStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
     ...codeSnippetStyle,
     backgroundColor: Styles.globalColors.beige,
-    color: Styles.globalColors.black_75,
     marginBottom: Styles.globalMargins.xtiny,
     marginTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,
@@ -82,6 +132,15 @@ const codeSnippetBlockStyle = Styles.platformStyles({
   },
   isElectron: {
     display: 'block',
+    color: Styles.globalColors.black_75,
+  },
+})
+
+const codeSnippetBlockTextStyle = Styles.platformStyles({
+  isMobile: {
+    ...Styles.globalStyles.fontTerminal,
+    fontSize: 15,
+    color: Styles.globalColors.black_75,
   },
 })
 
@@ -126,15 +185,25 @@ class EmojiIfExists extends PureComponent<
 }
 
 const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
-  newline: SimpleMarkdown.defaultRules.newline.react,
+  // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or block quote (parent text tag) or we return a new text tag. If it's not mobile we can short circuit and just return the string
+  newline: (node, outputFunc, state) =>
+    !isMobile || state.inParagraph ? (
+      '\n'
+    ) : (
+      <Text type="Body" key={state.key} style={textBlockStyle} allowFontScaling={allowFontScaling}>
+        {'\n'}
+      </Text>
+    ),
   fence: (node, output, state) => {
-    // return (
-    // <Box key={key} style={styles.codeSnippetBlock}>
-    // <Text type="Body" style={styles.codeSnippetBlockText} allowFontScaling={allowFontScaling}>
-    // {children}
-    // </Text>
-    // </Box>
-    // )
+    if (isMobile) {
+      return (
+        <Box key={state.key} style={codeSnippetBlockStyle}>
+          <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
+            {node.content}
+          </Text>
+        </Box>
+      )
+    }
     return (
       <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
         {node.content}
@@ -151,7 +220,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
   paragraph: (node, output, state) => {
     return (
       <Text type="Body" key={state.key} style={textBlockStyle} allowFontScaling={allowFontScaling}>
-        {output(node.content, state)}
+        {output(node.content, {...state, inParagraph: true})}
       </Text>
     )
   },
@@ -177,9 +246,16 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
     )
   },
   blockQuote: (node, output, state) => {
+    if (isMobile) {
+      return (
+        <Box key={state.key} style={quoteStyle}>
+          {output(node.content, {...state, inBlockQuote: true})}
+        </Box>
+      )
+    }
     return (
       <Box key={state.key} style={quoteStyle}>
-        {output(node.content, state)}
+        {output(node.content, {...state, inBlockQuote: true})}
       </Box>
     )
   },
@@ -210,7 +286,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
   },
   link: (node, output, state) => {
     return (
-      <>
+      <React.Fragment key={state.key}>
         {node.spaceInFront}
         <Text
           className="hover-underline"
@@ -219,10 +295,11 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
           style={linkStyle}
           title={node.content}
           onClickURL={node.content}
+          onLongPressURL={node.content}
         >
           {node.content}
         </Text>
-      </>
+      </React.Fragment>
     )
   },
 })
@@ -237,6 +314,11 @@ const bigEmojiOutputForFontScaling = (allowFontScaling: boolean) =>
   SimpleMarkdown.reactFor(
     ruleOutput({
       ...reactComponentsForMarkdownType(allowFontScaling),
+      paragraph: (node, output, state) => (
+        <Text type="Body" key={state.key} style={bigTextBlockStyle} allowFontScaling={allowFontScaling}>
+          {output(node.content, {...state, inParagraph: true})}
+        </Text>
+      ),
       emoji: (node, output, state) => {
         return (
           <EmojiIfExists
@@ -286,7 +368,6 @@ export {
 // Mobile styles to inherit
 /*
 const styles = styleSheetCreate({
-  big: {fontSize: 32, lineHeight: undefined},
   bold: {color: undefined},
   codeSnippet: {
     ...globalStyles.fontTerminal,
