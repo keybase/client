@@ -52,6 +52,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
 type Props = {
+  acceptedDisclaimer?: boolean,
   accountIDs: Array<AccountID>,
   style?: StylesCrossPlatform,
   onAddNew: () => void,
