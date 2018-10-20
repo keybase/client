@@ -117,8 +117,9 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	defer tt.cleanup()
 
 	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
 
-	email := "michal@keyba.se"
+	email := bob.userInfo.email
 	assertion := fmt.Sprintf("%s@email", url.QueryEscape(email))
 
 	impteamName := fmt.Sprintf("%s,%s", ann.username, assertion)
@@ -141,4 +142,7 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	require.Len(t, name.Writers.KeybaseUsers, 1)
 	require.Len(t, name.Writers.UnresolvedUsers, 1)
 	require.Equal(t, impteamName, name.String())
+
+	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
+	require.NoError(t, err)
 }
