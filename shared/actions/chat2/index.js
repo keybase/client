@@ -1031,10 +1031,11 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
     Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
     meta.isMuted // ignore muted convos
   ) {
+    logger.info('desktopNotify: not sending notification')
     return
   }
 
-  logger.info('Sending Chat notification')
+  logger.info('desktopNotify: sending chat notification')
   let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
   if (meta.teamType === 'big') {
     title += `#${meta.channelname}`
@@ -1061,6 +1062,7 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
           const onClose = () => {
             resolve()
           }
+          logger.info('desktopNotify: invoking NotifyPopup for chat notification')
           NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
         })
     )
