@@ -1714,6 +1714,68 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
 }
 
+function* getNextAttachmentMessage(
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  recent: boolean
+) {
+  const state: TypedState = yield Saga.select()
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  if (!message || message.type !== 'attachment') {
+    throw new Error('invalid attachment fullscreen message')
+  }
+  const getThreadRes = yield Saga.call(RPCChatTypes.localGetThreadLocalRpcPromise, {
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    reason: RPCChatTypes.commonGetThreadReason.general,
+    query: {
+      messageTypes: [RPCChatTypes.commonMessageType.attachment],
+      disableResolveSupersedes: false,
+      enableDeletePlaceholders: false,
+      disablePostProcessThread: false,
+      markAsRead: false,
+      messageIDControl: {
+        pivot: message.id,
+        recent,
+        num: 1,
+      },
+    },
+  })
+  if (getThreadRes.thread.messages.length > 0) {
+    const msg = getThreadRes.thread.messages[0]
+    if (msg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && msg.valid) {
+      return msg
+    }
+  }
+  return null
+}
+
+function* attachmentFullscreenPrev(action: Chat2Gen.AttachmentFullscreenNextPayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, ordinal, true)
+  if (nextMsg) {
+    yield Saga.put(
+      Chat2Gen.createAttachmentFullscreenSelection({
+        conversationIDKey,
+        ordinal: nextMsg.valid.serverHeader.messageID,
+      })
+    )
+  }
+}
+
+function* attachmentFullscreenNext(action: Chat2Gen.AttachmentFullscreenNextPayload) {
+  const {conversationIDKey, ordinal} = action.payload
+  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, ordinal, false)
+  if (nextMsg) {
+    yield Saga.put(
+      Chat2Gen.createAttachmentFullscreenSelection({
+        conversationIDKey,
+        ordinal: nextMsg.valid.serverHeader.messageID,
+      })
+    )
+  }
+}
+
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
@@ -1730,10 +1792,15 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
     )
   } else {
     yield Saga.put(
+      Chat2Gen.createAttachmentFullscreenSelection({
+        message,
+      })
+    )
+    yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            props: {},
             selected: 'attachmentFullscreen',
           },
         ],
@@ -2694,6 +2761,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentFullscreenNext, attachmentFullscreenNext)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentFullscreenPrev, attachmentFullscreenPrev)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)

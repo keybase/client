@@ -835,6 +835,10 @@ const rootReducer = (
       const {conversationIDKey, messageID, requestInfo} = action.payload
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
+    case Chat2Gen.attachmentFullscreenSelection: {
+      const {message} = action.payload
+      return state.set('attachmentFullscreenMessage', message)
+    }
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
@@ -879,6 +883,8 @@ const rootReducer = (
     case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
     case Chat2Gen.attachmentPasted:
+    case Chat2Gen.attachmentFullscreenNext:
+    case Chat2Gen.attachmentFullscreenPrev:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:

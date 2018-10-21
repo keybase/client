@@ -15,6 +15,9 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
+export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
+export const attachmentFullscreenPrev = 'chat2:attachmentFullscreenPrev'
+export const attachmentFullscreenSelection = 'chat2:attachmentFullscreenSelection'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
@@ -109,6 +112,15 @@ type _AttachmentDownloadedPayload = $ReadOnly<{|
   ordinal: Types.Ordinal,
   path?: string,
 |}>
+type _AttachmentFullscreenNextPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
+type _AttachmentFullscreenPrevPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
+type _AttachmentFullscreenSelectionPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentLoadingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -486,6 +498,9 @@ export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) 
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
+export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({error: false, payload, type: attachmentFullscreenNext})
+export const createAttachmentFullscreenPrev = (payload: _AttachmentFullscreenPrevPayload) => ({error: false, payload, type: attachmentFullscreenPrev})
+export const createAttachmentFullscreenSelection = (payload: _AttachmentFullscreenSelectionPayload) => ({error: false, payload, type: attachmentFullscreenSelection})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
 export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({error: false, payload, type: attachmentMobileSave})
 export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({error: false, payload, type: attachmentMobileSaved})
@@ -550,6 +565,9 @@ export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: fa
 // Action Payloads
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
+export type AttachmentFullscreenNextPayload = $Call<typeof createAttachmentFullscreenNext, _AttachmentFullscreenNextPayload>
+export type AttachmentFullscreenPrevPayload = $Call<typeof createAttachmentFullscreenPrev, _AttachmentFullscreenPrevPayload>
+export type AttachmentFullscreenSelectionPayload = $Call<typeof createAttachmentFullscreenSelection, _AttachmentFullscreenSelectionPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
 export type AttachmentMobileSavePayload = $Call<typeof createAttachmentMobileSave, _AttachmentMobileSavePayload>
 export type AttachmentMobileSavedPayload = $Call<typeof createAttachmentMobileSaved, _AttachmentMobileSavedPayload>
@@ -639,6 +657,9 @@ export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypers
 export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
+  | AttachmentFullscreenNextPayload
+  | AttachmentFullscreenPrevPayload
+  | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload

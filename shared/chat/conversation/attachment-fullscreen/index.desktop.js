@@ -21,11 +21,19 @@ import {
   platformStyles,
 } from '../../../styles'
 import type {Props} from './index.types'
+import KeyHandler from '../../../util/key-handler.desktop'
 
-type State = {loaded: boolean}
+type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
-  state = {loaded: false}
-  _setLoaded = () => this.setState({loaded: true})
+  state = {loaded: ''}
+  _setLoaded = (path: string) => {
+    console.log(`setting loaded to ${path}`)
+    this.setState({loaded: path})
+  }
+  _isLoaded = () => {
+    console.log(`props ${this.props.path} state ${this.state.loaded}`)
+    return this.props.path === this.state.loaded
+  }
   render() {
     return (
       <PopupDialog onClose={this.props.onClose} fill={true}>
@@ -56,18 +64,19 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
             <Box
               style={collapseStyles([
                 this.props.isZoomed ? styleContentsZoom : styleContentsFit,
-                this.state.loaded ? null : {display: 'none'},
+                this._isLoaded() ? null : {display: 'none'},
               ])}
               onClick={this.props.onToggleZoom}
+              key={this.props.path}
             >
               <OrientedImage
                 src={this.props.path}
                 style={this.props.isZoomed ? styleImageZoom : styleImageFit}
-                onLoad={this._setLoaded}
+                onLoad={() => this._setLoaded(this.props.path)}
               />
             </Box>
           )}
-          {!this.state.loaded && <ProgressIndicator style={{margin: 'auto'}} />}
+          {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
           <Box style={headerFooterStyle}>
             {!!this.props.progressLabel && (
               <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
@@ -92,7 +101,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen = OverlayParentHOC(_Fullscreen)
+const Fullscreen = KeyHandler(OverlayParentHOC(_Fullscreen))
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_60, cursor: 'pointer'},

@@ -4,17 +4,15 @@ import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
-import {compose, withStateHandlers, connect} from '../../../util/container'
+import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
-
-type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
-  const ordinal = ownProps.routeProps.get('ordinal')
-  const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage
+type OwnProps = RouteProps<{}, {}>
+
+const mapStateToProps = state => {
+  const message = state.chat2.attachmentFullscreenMessage || blankMessage
   return {
     message: message.type === 'attachment' ? message : blankMessage,
   }
@@ -28,6 +26,26 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
         ordinal: message.ordinal,
       })
     )
+  },
+  _onHotkey: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, cmd: string) => {
+    switch (cmd) {
+      case 'left':
+        dispatch(
+          Chat2Gen.createAttachmentFullscreenNext({
+            conversationIDKey: conversationIDKey,
+            ordinal: ordinal,
+          })
+        )
+        break
+      case 'right':
+        dispatch(
+          Chat2Gen.createAttachmentFullscreenPrev({
+            conversationIDKey: conversationIDKey,
+            ordinal: ordinal,
+          })
+        )
+        break
+    }
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
@@ -46,6 +64,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownloadAttachment: message.downloadPath
       ? undefined
       : () => dispatchProps._onDownloadAttachment(message),
+    hotkeys: ['left', 'right'],
+    onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.ordinal, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
     progress: message.transferProgress,
@@ -65,5 +85,8 @@ export default compose(
     {
       onToggleZoom: ({isZoomed}) => () => ({isZoomed: !isZoomed}),
     }
-  )
+  ),
+  withProps(props => ({
+    onHotkey: (cmd: string) => props.onHotkey(cmd),
+  }))
 )(Fullscreen)
