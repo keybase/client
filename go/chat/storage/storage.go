@@ -49,7 +49,7 @@ type storageEngine interface {
 	WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
-		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
+		convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID) Error
 	ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgIDs []chat1.MessageID) Error
 }
@@ -705,7 +705,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	rc := NewInsatiableResultCollector() // collect all messages
-	err := s.engine.ReadMessages(ctx, rc, convID, uid, expunge.Upto-1)
+	err := s.engine.ReadMessages(ctx, rc, convID, uid, expunge.Upto-1, 0)
 	switch err.(type) {
 	case nil:
 		// ok
@@ -847,7 +847,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	}
 
 	// Calculate seek parameters
-	var maxID chat1.MessageID
+	var maxID, minID chat1.MessageID
 	var num int
 	if pagination == nil {
 		maxID = msgID
@@ -863,6 +863,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 				return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 			}
 			maxID = pid - 1
+			minID = 0
 			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
@@ -870,6 +871,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 				return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
+			minID = pid
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
 		}
 	}
@@ -882,7 +884,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
-	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
+	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID, minID); err != nil {
 		return res, err
 	}
 	msgs := rc.Result()
@@ -1012,7 +1014,7 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 
 func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) (*chat1.MessageUnboxed, Error) {
 	rc := NewSimpleResultCollector(1)
-	if err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID); err != nil {
+	if err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID, 0); err != nil {
 		// If we don't have the message, just keep going
 		if _, ok := err.(MissError); ok {
 			return nil, nil
