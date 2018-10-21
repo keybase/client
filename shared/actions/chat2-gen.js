@@ -114,11 +114,11 @@ type _AttachmentDownloadedPayload = $ReadOnly<{|
 |}>
 type _AttachmentFullscreenNextPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
+  messageID: Types.MessageID,
 |}>
 type _AttachmentFullscreenPrevPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
+  messageID: Types.MessageID,
 |}>
 type _AttachmentFullscreenSelectionPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentLoadingPayload = $ReadOnly<{|

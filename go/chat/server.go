@@ -1032,6 +1032,41 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 	}, nil
 }
 
+func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
+	arg chat1.GetNextAttachmentMessageLocalArg) (res chat1.GetNextAttachmentMessageLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetNextAttachmentMessageLocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	var resMsg *chat1.UIMessage
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	if arg.BackInTime {
+		tv, err := h.G().ConvSource.Pull(ctx, arg.ConvID, uid, chat1.GetThreadReason_GENERAL,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
+				MessageIDControl: &chat1.MessageIDControl{
+					Pivot: &arg.MessageID,
+					Num:   1,
+				},
+			}, nil)
+		if err != nil {
+			return res, err
+		}
+		if len(tv.Messages) > 0 {
+			resMsg = new(chat1.UIMessage)
+			*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), tv.Messages[0], uid, arg.ConvID)
+		}
+	}
+	return chat1.GetNextAttachmentMessageLocalRes{
+		Message:          resMsg,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
 func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)

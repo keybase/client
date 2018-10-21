@@ -203,6 +203,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|maxUnbox?: ?Int, skipUnverified: Boolean, query?: ?GetInboxLocalQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: NonblockFetchRes,
   |},
+  'chat.1.local.getNextAttachmentMessageLocal': {|
+    inParam: $ReadOnly<{|convID: ConversationID, messageID: MessageID, backInTime: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    outParam: GetNextAttachmentMessageLocalRes,
+  |},
   'chat.1.local.getStaticConfig': {|
     inParam: void,
     outParam: StaticConfig,
@@ -742,6 +746,7 @@ export type GetInboxSummaryForCLILocalRes = $ReadOnly<{conversations?: ?Array<Co
 export type GetMessageBeforeRes = $ReadOnly<{msgID: MessageID, rateLimit?: ?RateLimit}>
 export type GetMessagesLocalRes = $ReadOnly<{messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type GetMessagesRemoteRes = $ReadOnly<{msgs?: ?Array<MessageBoxed>, rateLimit?: ?RateLimit}>
+export type GetNextAttachmentMessageLocalRes = $ReadOnly<{message?: ?UIMessage, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type GetPublicConversationsRes = $ReadOnly<{conversations?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
 export type GetTLFConversationsLocalRes = $ReadOnly<{convs?: ?Array<InboxUIItem>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type GetTLFConversationsRes = $ReadOnly<{conversations?: ?Array<Conversation>, rateLimit?: ?RateLimit}>
@@ -1056,6 +1061,7 @@ declare export function localFindConversationsLocalRpcPromise(params: $PropertyT
 declare export function localGetGlobalAppNotificationSettingsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getGlobalAppNotificationSettingsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getGlobalAppNotificationSettingsLocal'>, 'outParam'>>
 declare export function localGetInboxAndUnboxUILocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxAndUnboxUILocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxAndUnboxUILocal'>, 'outParam'>>
 declare export function localGetInboxNonblockLocalRpcSaga(p: {params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getInboxNonblockLocal'>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>
+declare export function localGetNextAttachmentMessageLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getNextAttachmentMessageLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getNextAttachmentMessageLocal'>, 'outParam'>>
 declare export function localGetStaticConfigRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getStaticConfig'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getStaticConfig'>, 'outParam'>>
 declare export function localGetTLFConversationsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTLFConversationsLocal'>, 'outParam'>>
 declare export function localGetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.getTeamRetentionLocal'>, 'outParam'>>

@@ -2351,6 +2351,37 @@
     },
     {
       "type": "record",
+      "name": "GetNextAttachmentMessageLocalRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "message"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
@@ -3501,6 +3532,27 @@
         }
       ],
       "response": null
+    },
+    "getNextAttachmentMessageLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageID",
+          "type": "MessageID"
+        },
+        {
+          "name": "backInTime",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetNextAttachmentMessageLocalRes"
     },
     "DownloadAttachmentLocal": {
       "request": [

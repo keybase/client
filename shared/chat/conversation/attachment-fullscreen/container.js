@@ -27,21 +27,21 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
       })
     )
   },
-  _onHotkey: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal, cmd: string) => {
+  _onHotkey: (conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, cmd: string) => {
     switch (cmd) {
       case 'left':
         dispatch(
           Chat2Gen.createAttachmentFullscreenNext({
-            conversationIDKey: conversationIDKey,
-            ordinal: ordinal,
+            conversationIDKey,
+            messageID,
           })
         )
         break
       case 'right':
         dispatch(
           Chat2Gen.createAttachmentFullscreenPrev({
-            conversationIDKey: conversationIDKey,
-            ordinal: ordinal,
+            conversationIDKey,
+            messageID,
           })
         )
         break
@@ -65,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? undefined
       : () => dispatchProps._onDownloadAttachment(message),
     hotkeys: ['left', 'right'],
-    onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.ordinal, cmd),
+    onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
     progress: message.transferProgress,

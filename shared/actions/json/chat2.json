@@ -349,11 +349,11 @@
     },
     "attachmentFullscreenNext": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "messageID": "Types.MessageID"
     },
     "attachmentFullscreenPrev": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "messageID": "Types.MessageID"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {

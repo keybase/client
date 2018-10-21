@@ -1716,61 +1716,40 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 
 function* getNextAttachmentMessage(
   conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  recent: boolean
+  messageID: Types.MessageID,
+  backInTime: boolean
 ) {
   const state: TypedState = yield Saga.select()
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
-  if (!message || message.type !== 'attachment') {
-    throw new Error('invalid attachment fullscreen message')
-  }
-  const getThreadRes = yield Saga.call(RPCChatTypes.localGetThreadLocalRpcPromise, {
-    conversationID: Types.keyToConversationID(conversationIDKey),
+  const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    messageID,
+    backInTime,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    reason: RPCChatTypes.commonGetThreadReason.general,
-    query: {
-      messageTypes: [RPCChatTypes.commonMessageType.attachment],
-      disableResolveSupersedes: false,
-      enableDeletePlaceholders: false,
-      disablePostProcessThread: false,
-      markAsRead: false,
-      messageIDControl: {
-        pivot: message.id,
-        recent,
-        num: 1,
-      },
-    },
   })
-  if (getThreadRes.thread.messages.length > 0) {
-    const msg = getThreadRes.thread.messages[0]
-    if (msg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && msg.valid) {
-      return msg
-    }
-  }
-  return null
+  return nextAttachmentRes.message
+    ? Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
+    : null
 }
 
 function* attachmentFullscreenPrev(action: Chat2Gen.AttachmentFullscreenNextPayload) {
-  const {conversationIDKey, ordinal} = action.payload
-  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, ordinal, true)
+  const {conversationIDKey, messageID} = action.payload
+  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, messageID, false)
   if (nextMsg) {
     yield Saga.put(
       Chat2Gen.createAttachmentFullscreenSelection({
-        conversationIDKey,
-        ordinal: nextMsg.valid.serverHeader.messageID,
+        message: nextMsg,
       })
     )
   }
 }
 
 function* attachmentFullscreenNext(action: Chat2Gen.AttachmentFullscreenNextPayload) {
-  const {conversationIDKey, ordinal} = action.payload
-  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, ordinal, false)
+  const {conversationIDKey, messageID} = action.payload
+  const nextMsg = yield Saga.call(getNextAttachmentMessage, conversationIDKey, messageID, true)
   if (nextMsg) {
     yield Saga.put(
       Chat2Gen.createAttachmentFullscreenSelection({
-        conversationIDKey,
-        ordinal: nextMsg.valid.serverHeader.messageID,
+        message: nextMsg,
       })
     )
   }
