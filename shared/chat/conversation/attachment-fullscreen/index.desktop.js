@@ -27,7 +27,7 @@ type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   state = {loaded: ''}
   _setLoaded = (path: string) => this.setState({loaded: path})
-  _isLoaded = () => this.props.path === this.state.loaded
+  _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
 
   render() {
     return (

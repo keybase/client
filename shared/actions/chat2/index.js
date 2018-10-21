@@ -1719,6 +1719,7 @@ function* getNextAttachmentMessage(
   backInTime: boolean
 ) {
   const state: TypedState = yield Saga.select()
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: Constants.makeMessageAttachment({})}))
   const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
     convID: Types.keyToConversationID(conversationIDKey),
     messageID,
