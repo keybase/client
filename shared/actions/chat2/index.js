@@ -1718,8 +1718,13 @@ function* getNextAttachmentMessage(
   messageID: Types.MessageID,
   backInTime: boolean
 ) {
+  const blankMessage = Constants.makeMessageAttachment({})
+  if (conversationIDKey === blankMessage.conversationIDKey) {
+    return null
+  }
   const state: TypedState = yield Saga.select()
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: Constants.makeMessageAttachment({})}))
+  const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
   const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
     convID: Types.keyToConversationID(conversationIDKey),
     messageID,
@@ -1727,9 +1732,11 @@ function* getNextAttachmentMessage(
     imagesOnly: true,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   })
-  return nextAttachmentRes.message
-    ? Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
-    : null
+  if (nextAttachmentRes.message) {
+    return Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
+  }
+  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: currentFullscreen}))
+  return null
 }
 
 function* attachmentFullscreenPrev(action: Chat2Gen.AttachmentFullscreenNextPayload) {
