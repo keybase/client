@@ -1036,7 +1036,8 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	arg chat1.GetNextAttachmentMessageLocalArg) (res chat1.GetNextAttachmentMessageLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetNextAttachmentMessageLocal")()
+	defer h.Trace(ctx, func() error { return err }, "GetNextAttachmentMessageLocal(%s,%d,%v)",
+		arg.ConvID, arg.MessageID, arg.BackInTime)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err := h.assertLoggedIn(ctx); err != nil {
@@ -1045,14 +1046,14 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	var resMsg *chat1.UIMessage
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	if arg.BackInTime {
+		pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
+			Pivot: &arg.MessageID,
+			Num:   1,
+		})
 		tv, err := h.G().ConvSource.Pull(ctx, arg.ConvID, uid, chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
-				MessageIDControl: &chat1.MessageIDControl{
-					Pivot: &arg.MessageID,
-					Num:   1,
-				},
-			}, nil)
+			}, pagination)
 		if err != nil {
 			return res, err
 		}
