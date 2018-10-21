@@ -3548,6 +3548,10 @@
           "type": "boolean"
         },
         {
+          "name": "imagesOnly",
+          "type": "boolean"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }

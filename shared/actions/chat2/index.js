@@ -1724,6 +1724,7 @@ function* getNextAttachmentMessage(
     convID: Types.keyToConversationID(conversationIDKey),
     messageID,
     backInTime,
+    imagesOnly: true,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   })
   return nextAttachmentRes.message

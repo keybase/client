@@ -61,14 +61,30 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                 this.props.isZoomed ? styleContentsZoom : styleContentsFit,
                 this._isLoaded() ? null : {display: 'none'},
               ])}
-              onClick={this.props.onToggleZoom}
+              onClick={() => {
+                if (!this.props.isVideo) {
+                  this.props.onToggleZoom()
+                }
+              }}
               key={this.props.path}
             >
-              <OrientedImage
-                src={this.props.path}
-                style={this.props.isZoomed ? styleImageZoom : styleImageFit}
-                onLoad={() => this._setLoaded(this.props.path)}
-              />
+              {!this.props.isVideo ? (
+                <OrientedImage
+                  src={this.props.path}
+                  style={this.props.isZoomed ? styleImageZoom : styleImageFit}
+                  onLoad={() => this._setLoaded(this.props.path)}
+                />
+              ) : (
+                <video
+                  style={styleVideoFit}
+                  onLoadedMetadata={() => this._setLoaded(this.props.path)}
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  controls={true}
+                >
+                  <source src={this.props.path} />
+                  <style>{showPlayButton}</style>
+                </video>
+              )}
             </Box>
           )}
           {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
@@ -135,11 +151,24 @@ const styleImageFit = {
   width: '100%',
 }
 
+const styleVideoFit = {
+  cursor: 'normal',
+  display: 'block',
+  objectFit: 'scale-down',
+  width: '100%',
+}
+
 const styleImageZoom = {
   cursor: 'zoom-out',
   display: 'block',
   minHeight: '100%',
   minWidth: '100%',
 }
+
+const showPlayButton = `
+video::-webkit-media-controls-play-button {
+  display: block;
+}
+`
 
 export default Fullscreen

@@ -204,7 +204,7 @@ export type MessageTypes = {|
     outParam: NonblockFetchRes,
   |},
   'chat.1.local.getNextAttachmentMessageLocal': {|
-    inParam: $ReadOnly<{|convID: ConversationID, messageID: MessageID, backInTime: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
+    inParam: $ReadOnly<{|convID: ConversationID, messageID: MessageID, backInTime: Boolean, imagesOnly: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior|}>,
     outParam: GetNextAttachmentMessageLocalRes,
   |},
   'chat.1.local.getStaticConfig': {|

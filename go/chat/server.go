@@ -1043,23 +1043,58 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
+	eligible := func(msg chat1.MessageUnboxed) bool {
+		if !msg.IsValid() {
+			return false
+		}
+		body := msg.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil || typ != chat1.MessageType_ATTACHMENT {
+			return false
+		}
+		if !arg.ImagesOnly {
+			return true
+		}
+		md := body.Attachment().Object.Metadata
+		atyp, err := md.AssetType()
+		if err != nil {
+			return false
+		}
+		return atyp == chat1.AssetMetadataType_IMAGE || atyp == chat1.AssetMetadataType_VIDEO
+	}
+
 	var resMsg *chat1.UIMessage
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	if arg.BackInTime {
 		pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
 			Pivot: &arg.MessageID,
-			Num:   1,
+			Num:   10,
 		})
-		tv, err := h.G().ConvSource.Pull(ctx, arg.ConvID, uid, chat1.GetThreadReason_GENERAL,
-			&chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
-			}, pagination)
-		if err != nil {
-			return res, err
-		}
-		if len(tv.Messages) > 0 {
-			resMsg = new(chat1.UIMessage)
-			*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), tv.Messages[0], uid, arg.ConvID)
+		for {
+			tv, err := h.G().ConvSource.Pull(ctx, arg.ConvID, uid, chat1.GetThreadReason_GENERAL,
+				&chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
+				}, pagination)
+			if err != nil {
+				return res, err
+			}
+			for _, m := range tv.Messages {
+				if !eligible(m) {
+					continue
+				}
+				resMsg = new(chat1.UIMessage)
+				*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), m, uid, arg.ConvID)
+				break
+			}
+			if resMsg != nil {
+				break
+			}
+			if tv.Pagination.Last {
+				break
+			}
+			pagination = tv.Pagination
+			pagination.Num = 10
+			pagination.Previous = nil
 		}
 	} else {
 		pivot := arg.MessageID
@@ -1082,10 +1117,17 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 				h.Debug(ctx, "GetNextAttachmentMessageLocal: hit: len: %d top: %d bottom: %d",
 					len(tv.Messages), tv.Messages[0].GetMessageID(),
 					tv.Messages[len(tv.Messages)-1].GetMessageID())
-				resMsg = new(chat1.UIMessage)
-				*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), tv.Messages[len(tv.Messages)-1], uid,
-					arg.ConvID)
-				break
+				for i := len(tv.Messages) - 1; i >= 0; i-- {
+					if !eligible(tv.Messages[i]) {
+						continue
+					}
+					resMsg = new(chat1.UIMessage)
+					*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), tv.Messages[i], uid, arg.ConvID)
+					break
+				}
+				if resMsg != nil {
+					break
+				}
 			}
 			if tv.Pagination.Last {
 				break

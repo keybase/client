@@ -71,6 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
+    isVideo: Constants.isVideoAttachment(message),
   }
 }
 
