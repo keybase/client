@@ -1656,7 +1656,7 @@ const updatePendingParticipants = (
   ])
 }
 
-function* downloadAttachment(fileName: string, message: any) {
+function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
     const conversationIDKey = message.conversationIDKey
     const ordinal = message.ordinal
@@ -2120,7 +2120,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   try {
     yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
   } catch (e) {
@@ -2136,7 +2136,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,

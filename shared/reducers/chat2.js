@@ -851,6 +851,7 @@ const rootReducer = (
     case Chat2Gen.attachmentDownloaded:
       const {message, path} = action.payload
       let nextState = state
+      // check fullscreen attachment message in case we downloaded it
       if (
         state.attachmentFullscreenMessage &&
         state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
@@ -864,7 +865,6 @@ const rootReducer = (
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
-
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
