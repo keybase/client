@@ -1656,8 +1656,10 @@ const updatePendingParticipants = (
   ])
 }
 
-function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
+function* downloadAttachment(fileName: string, message: any) {
   try {
+    const conversationIDKey = message.conversationIDKey
+    const ordinal = message.ordinal
     let lastRatioSent = -1 // force the first update to show no matter what
     const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
       const ratio = bytesComplete / bytesTotal
@@ -1686,7 +1688,7 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
     return rpcRes.filename
   } catch (e) {}
   return fileName
@@ -1694,10 +1696,7 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
 
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
-  const {conversationIDKey, ordinal} = action.payload
-
-  const state: TypedState = yield Saga.select()
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {message} = action.payload
 
   if (!message || message.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
@@ -1711,7 +1710,7 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 
   // Download it
   const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
+  yield Saga.call(downloadAttachment, destPath, message)
 }
 
 function* getNextAttachmentMessage(
