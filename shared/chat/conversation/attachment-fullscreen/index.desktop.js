@@ -26,14 +26,9 @@ import KeyHandler from '../../../util/key-handler.desktop'
 type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   state = {loaded: ''}
-  _setLoaded = (path: string) => {
-    console.log(`setting loaded to ${path}`)
-    this.setState({loaded: path})
-  }
-  _isLoaded = () => {
-    console.log(`props ${this.props.path} state ${this.state.loaded}`)
-    return this.props.path === this.state.loaded
-  }
+  _setLoaded = (path: string) => this.setState({loaded: path})
+  _isLoaded = () => this.props.path === this.state.loaded
+
   render() {
     return (
       <PopupDialog onClose={this.props.onClose} fill={true}>
