@@ -15,6 +15,7 @@ type WalletModalProps = {|
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.Node>,
   buttonBarDirection?: 'column' | 'row',
+  buttonBarStyle?: Styles.StylesCrossPlatform,
 |}
 
 const WalletPopup = (props: WalletModalProps) => (
@@ -38,7 +39,7 @@ const WalletPopup = (props: WalletModalProps) => (
               <Kb.ButtonBar
                 direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
                 fullWidth={Styles.isMobile}
-                style={styles.buttonBar}
+                style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
               >
                 {props.bottomButtons}
               </Kb.ButtonBar>

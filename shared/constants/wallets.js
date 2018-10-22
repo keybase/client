@@ -61,6 +61,7 @@ const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
+  acceptedDisclaimer: false,
   accountMap: I.OrderedMap(),
   accountName: '',
   accountNameError: '',
@@ -435,6 +436,7 @@ const updatePaymentsReceived = (
   return map.withMutations(mapMutable => paymentResults.forEach(paymentResult => mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))))
 }
 
+const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
@@ -530,6 +532,7 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
 }
 
 export {
+  acceptDisclaimerWaitingKey,
   accountResultToAccount,
   assetsResultToAssets,
   bannerLevelToBackground,

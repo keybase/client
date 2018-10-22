@@ -6,6 +6,7 @@ import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrapper
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
+import Meta from './meta'
 import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -79,6 +80,16 @@ const TabBarButton = (props: TabBarButtonProps) => {
         </Text>
       )}
       {badgeComponent}
+      {props.isNew && (
+        <Box style={styleBadgeNav}>
+          <Meta
+            title="new"
+            size="Small"
+            style={{alignSelf: 'center', marginRight: 4}}
+            backgroundColor={globalColors.blue2}
+          />
+        </Box>
+      )}
       {props.underlined && <UnderlineHighlight />}
     </Box>
   )
@@ -129,6 +140,12 @@ class TabBar extends React.Component<Props> {
       </Box>
     )
   }
+}
+
+const styleBadgeNav = {
+  position: 'absolute',
+  right: 12,
+  top: 4,
 }
 
 const stylesContainer = {
