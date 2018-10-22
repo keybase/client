@@ -110,3 +110,97 @@ func TestInvalidPhoneNumberResolve(t *testing.T) {
 	resErr := err.(libkb.ResolutionError)
 	require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
 }
+
+type mockListener struct {
+	libkb.NoopNotifyListener
+	addedPhones      []keybase1.PhoneNumber
+	verifiedPhones   []keybase1.PhoneNumber
+	supersededPhones []keybase1.PhoneNumber
+}
+
+var _ libkb.NotifyListener = (*mockListener)(nil)
+
+func (n *mockListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) {
+	n.addedPhones = append(n.addedPhones, phoneNumber)
+}
+
+func (n *mockListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber) {
+	n.verifiedPhones = append(n.verifiedPhones, phoneNumber)
+}
+
+func (n *mockListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {
+	n.supersededPhones = append(n.supersededPhones, phoneNumber)
+}
+
+func setupUserWithMockListener(user *userPlusDevice) *mockListener {
+	userListener := &mockListener{
+		addedPhones:      []keybase1.PhoneNumber(nil),
+		verifiedPhones:   []keybase1.PhoneNumber(nil),
+		supersededPhones: []keybase1.PhoneNumber(nil),
+	}
+	user.tc.G.SetService()
+	user.tc.G.NotifyRouter.SetListener(userListener)
+	return userListener
+}
+
+func TestPhoneNumberNotifications(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	ann := tt.addUser("ann")
+	annListener := setupUserWithMockListener(ann)
+	defer ann.tc.Cleanup()
+	bob := tt.addUser("bob")
+	bobListener := setupUserWithMockListener(bob)
+	defer bob.tc.Cleanup()
+	tt.logUserNames()
+
+	phone := "+" + kbtest.GenerateTestPhoneNumber()
+	kbPhone := keybase1.PhoneNumber(phone)
+	expectedNotification := []keybase1.PhoneNumber{kbPhone}
+	cli := &client.CmdAddPhoneNumber{
+		Contextified: libkb.NewContextified(ann.tc.G),
+		PhoneNumber:  phone,
+	}
+	err := cli.Run()
+	require.NoError(t, err)
+
+	// adding the phone number generates a notification
+	ann.drainGregor()
+	require.Equal(t, annListener.addedPhones, expectedNotification)
+
+	// verifying the phone number generates a notification
+	code, err := kbtest.GetPhoneVerificationCode(ann.MetaContext(), kbPhone)
+	require.NoError(t, err)
+	cli2 := &client.CmdVerifyPhoneNumber{
+		Contextified: libkb.NewContextified(ann.tc.G),
+		PhoneNumber:  phone,
+		Code:         code,
+	}
+	err = cli2.Run()
+	require.NoError(t, err)
+	ann.drainGregor()
+	require.Equal(t, annListener.verifiedPhones, expectedNotification)
+
+	// if bob now ands and verifies that same number, he should have new notifications for add and verify
+	// and ann should have one that her number was superseded
+	cli3 := &client.CmdAddPhoneNumber{
+		Contextified: libkb.NewContextified(bob.tc.G),
+		PhoneNumber:  phone,
+	}
+	err = cli3.Run()
+	require.NoError(t, err)
+	bob.drainGregor()
+	require.Equal(t, bobListener.addedPhones, expectedNotification)
+	code, err = kbtest.GetPhoneVerificationCode(bob.MetaContext(), kbPhone)
+	require.NoError(t, err)
+	cli4 := &client.CmdVerifyPhoneNumber{
+		Contextified: libkb.NewContextified(bob.tc.G),
+		PhoneNumber:  phone,
+		Code:         code,
+	}
+	err = cli4.Run()
+	require.NoError(t, err)
+	bob.drainGregor()
+	require.Equal(t, bobListener.verifiedPhones, expectedNotification)
+	require.Equal(t, annListener.supersededPhones, expectedNotification)
+}
