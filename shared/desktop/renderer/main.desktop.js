@@ -46,10 +46,6 @@ function setupApp(store) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
 
-  // if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  //   require('devtron').install()
-  // }
-
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
   // Listen for the menubarWindowID

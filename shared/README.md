@@ -37,10 +37,7 @@ You can set environment variables for debugging:
 | Env     | Description |
 |---------|-------------|
 | KEYBASE_RUN_MODE | Run mode: prod, staging, devel |
-| KEYBASE_LOCAL_DEBUG | For debugging |
 | KEYBASE_FEATURES | Feature flags |
-| KEYBASE_RPC_DELAY | Number of ms to delay all RPC calls (requires debug mode) |
-| KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
 | NO_DASHBOARD | Don't show dashboard |
 
 You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
