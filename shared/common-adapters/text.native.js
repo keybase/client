@@ -69,7 +69,7 @@ class Text extends Component<Props> {
     Alert.alert('', url, [
       {style: 'cancel', text: 'Cancel'},
       {onPress: () => openURL(url), text: 'Open Link'},
-      {onPress: () => _urlCopy(url), text: 'Copy Link'},
+      {onPress: () => this._urlCopy(url), text: 'Copy Link'},
     ])
   }
 
