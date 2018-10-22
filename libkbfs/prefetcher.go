@@ -42,6 +42,7 @@ type prefetchRequest struct {
 	lifetime       BlockCacheLifetime
 	prefetchStatus PrefetchStatus
 	isDeepSync     bool
+	sendCh         chan<- <-chan struct{}
 }
 
 type ctxPrefetcherTagKey int
@@ -61,9 +62,11 @@ type prefetch struct {
 	parents           map[kbfsblock.ID]bool
 	ctx               context.Context
 	cancel            context.CancelFunc
+	waitCh            chan struct{}
 }
 
 func (p *prefetch) Close() {
+	close(p.waitCh)
 	p.cancel()
 }
 
@@ -139,6 +142,7 @@ func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 		parents:           make(map[kbfsblock.ID]bool),
 		ctx:               ctx,
 		cancel:            cancel,
+		waitCh:            make(chan struct{}),
 	}
 }
 
@@ -277,7 +281,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			NoPrefetch, isDeepSync}
+			NoPrefetch, isDeepSync, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
 		ch := p.retriever.Request(pre.ctx, priority, kmd, ptr, block, lifetime)
@@ -496,6 +500,22 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// has a req associated with it.
 				pre.req = req
 			}
+
+			// If this request is just asking for the wait channel,
+			// send it now.  (This is processed in the same queue as
+			// the prefetch requests, to guarantee an initial prefetch
+			// request has always been processed before the wait
+			// channel request is processed.)
+			if req.sendCh != nil {
+				if !isPrefetchWaiting {
+					c := make(chan struct{})
+					close(c)
+					req.sendCh <- c
+				}
+				req.sendCh <- pre.waitCh
+				continue
+			}
+
 			ctx := context.TODO()
 			if isPrefetchWaiting {
 				ctx = pre.ctx
@@ -693,7 +713,7 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
 	isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
 	req := &prefetchRequest{ptr, block.NewEmpty(), kmd, priority, lifetime,
-		prefetchStatus, isDeepSync}
+		prefetchStatus, isDeepSync, nil}
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -724,6 +744,33 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		}
 	}
 	p.triggerPrefetch(req)
+}
+
+// WaitChannelForBlockPrefetch implements the Prefetcher interface for
+// blockPrefetcher.
+func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
+	ctx context.Context, ptr BlockPointer) (
+	waitCh <-chan struct{}, err error) {
+	c := make(chan (<-chan struct{}), 1)
+	req := &prefetchRequest{
+		ptr, nil, nil, 0, TransientEntry, 0, false, c}
+
+	select {
+	case p.prefetchRequestCh.In() <- req:
+	case <-p.shutdownCh:
+		return nil, errors.New("Already shut down")
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+	// Wait for response.
+	select {
+	case waitCh := <-c:
+		return waitCh, nil
+	case <-p.shutdownCh:
+		return nil, errors.New("Already shut down")
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {

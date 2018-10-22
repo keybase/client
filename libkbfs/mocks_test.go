@@ -5164,6 +5164,19 @@ func (mr *MockPrefetcherMockRecorder) ProcessBlockForPrefetch(ctx, ptr, block, k
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBlockForPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).ProcessBlockForPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
 }
 
+// WaitChannelForBlockPrefetch mocks base method
+func (m *MockPrefetcher) WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (<-chan struct{}, error) {
+	ret := m.ctrl.Call(m, "WaitChannelForBlockPrefetch", ctx, ptr)
+	ret0, _ := ret[0].(<-chan struct{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// WaitChannelForBlockPrefetch indicates an expected call of WaitChannelForBlockPrefetch
+func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitChannelForBlockPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).WaitChannelForBlockPrefetch), ctx, ptr)
+}
+
 // CancelPrefetch mocks base method
 func (m *MockPrefetcher) CancelPrefetch(arg0 kbfsblock.ID) {
 	m.ctrl.Call(m, "CancelPrefetch", arg0)

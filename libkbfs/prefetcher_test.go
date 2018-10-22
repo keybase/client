@@ -528,7 +528,17 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	require.Equal(t, rootDir, block)
 
 	t.Log("Release all the blocks.")
+	ctx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	defer cancel()
+	waitChCh := make(chan (<-chan struct{}), 1)
 	go func() {
+		waitCh, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, rootPtr)
+		if err != nil {
+			waitChCh <- nil
+		} else {
+			waitChCh <- waitCh
+		}
 		continueChFileC <- nil
 		continueChDirB <- nil
 		// After this, the prefetch worker can either pick up the third child of
@@ -540,8 +550,18 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		notifyContinueCh(continueChDirBfileDblock1)
 		notifyContinueCh(continueChDirBfileDblock2)
 	}()
+
 	t.Log("Wait for prefetching to complete.")
 	// Release after prefetching rootDir
+	notifySyncCh(t, prefetchSyncCh)
+	var waitCh <-chan struct{}
+	select {
+	case waitCh = <-waitChCh:
+		require.NotNil(t, waitCh)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	// Release after getting waitCh.
 	notifySyncCh(t, prefetchSyncCh)
 	// Release after prefetching fileC
 	notifySyncCh(t, prefetchSyncCh)
@@ -581,6 +601,13 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, FinishedPrefetch,
 		TransientEntry)
+
+	t.Log("Waiting for prefetcher to signal completion")
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	block = &DirBlock{}
 	ch = q.Request(context.Background(),

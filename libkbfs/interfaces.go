@@ -1504,6 +1504,14 @@ type Prefetcher interface {
 	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus)
+	// WaitChannelForBlockPrefetch returns a channel that can be used
+	// to wait for a block to finish prefetching or be canceled.  If
+	// the block isn't currently being prefetched, it will return an
+	// already-closed channel.  When the channel is closed, the caller
+	// should still verify that the prefetch status of the block is
+	// `FinishedPrefetch`, in case there was an error.
+	WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (
+		<-chan struct{}, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(kbfsblock.ID)
