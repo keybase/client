@@ -1,16 +1,16 @@
 // @flow
 import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
-import {isMobile} from '../constants/platform'
-import * as Styles from '../styles'
-import * as Types from '../constants/types/chat2'
-import Text from './text'
-import Channel from './channel-container'
-import Mention from './mention-container'
-import Box from './box'
-import Emoji from './emoji'
-import {emojiIndexByName} from '../markdown/parser'
-import type {Props as EmojiProps} from './emoji'
+import {isMobile} from '../../constants/platform'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/chat2'
+import Text from '../text'
+import Channel from '../channel-container'
+import Mention from '../mention-container'
+import Box from '../box'
+import Emoji from '../emoji'
+import {emojiIndexByName} from '../../markdown/parser'
+import type {Props as EmojiProps} from '../emoji'
 
 const wrapStyle = Styles.platformStyles({
   isElectron: {

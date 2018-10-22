@@ -1,24 +1,24 @@
 // @flow
-import logger from '../logger'
-import * as Styles from '../styles'
+import logger from '../../logger'
+import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
-import {isMobile} from '../constants/platform'
-import Text from './text'
+import {isMobile} from '../../constants/platform'
+import Text from '../text'
 import {
   reactOutputFontScaling,
   reactOutputNoFontScaling,
   previewOutput,
   bigEmojiOutputForFontScaling,
   markdownStyles,
-} from './markdown-react'
-import {type ConversationIDKey} from '../constants/types/chat2'
-import {isSpecialMention, specialMentions} from '../constants/chat2'
-import parser, {isPlainText} from '../markdown/parser'
-import {emojiRegex} from '../markdown/emoji'
-import {tldExp} from '../markdown/regex'
+} from './react'
+import {type ConversationIDKey} from '../../constants/types/chat2'
+import {isSpecialMention, specialMentions} from '../../constants/chat2'
+import parser, {isPlainText} from '../../markdown/parser'
+import {emojiRegex} from '../../markdown/emoji'
+import {tldExp} from '../../markdown/regex'
 import SimpleMarkdown from 'simple-markdown'
 
-import type {MarkdownCreateComponent, MarkdownMeta, Props as MarkdownProps} from './markdown'
+import type {MarkdownCreateComponent, MarkdownMeta, Props as MarkdownProps} from '../markdown'
 
 function processAST(ast, createComponent) {
   const stack = [ast]
@@ -403,4 +403,4 @@ export {
   parserFromMeta,
 }
 
-export {EmojiIfExists} from './markdown-react'
+export {EmojiIfExists} from './react'

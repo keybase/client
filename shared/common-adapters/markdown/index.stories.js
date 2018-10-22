@@ -1,11 +1,11 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import * as Sb from '../stories/storybook'
-import * as Kb from './index'
-import Markdown, {type MarkdownMeta} from './markdown'
-import {parserFromMeta} from './markdown.shared'
-import OriginalParser from '../markdown/parser'
+import * as Sb from '../../stories/storybook'
+import * as Kb from '../index'
+import Markdown, {type MarkdownMeta} from '.'
+import {parserFromMeta} from './shared'
+import OriginalParser from '../../markdown/parser'
 
 const cases = {
   debugging: `> outside code

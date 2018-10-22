@@ -1,20 +1,20 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../util/feature-flags'
-import * as Types from '../constants/types/chat2'
-import Text from './text'
-import Box from './box'
-import Emoji from './emoji'
-import Channel from './channel-container'
-import Mention from './mention-container'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../styles'
-import {parseMarkdown, SimpleMarkdownComponent} from './markdown.shared'
-import {EmojiIfExists} from './markdown-react'
-import {NativeClipboard} from './native-wrappers.native'
-import openURL from '../util/open-url'
+import flags from '../../util/feature-flags'
+import * as Types from '../../constants/types/chat2'
+import Text from '../text'
+import Box from '../box'
+import Emoji from '../emoji'
+import Channel from '../channel-container'
+import Mention from '../mention-container'
+import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../../styles'
+import {parseMarkdown, SimpleMarkdownComponent} from './shared'
+import {EmojiIfExists} from './react'
+import {NativeClipboard} from '../native-wrappers.native'
+import openURL from '../../util/open-url'
 import {Alert} from 'react-native'
 
-import type {Props} from './markdown'
+import type {Props} from '.'
 
 function previewCreateComponent(style) {
   return function(type, key, children, options) {

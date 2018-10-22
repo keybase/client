@@ -1,17 +1,17 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../util/feature-flags'
-import Text from './text'
-import * as Styles from '../styles'
-import * as Types from '../constants/types/chat2'
-import Channel from './channel-container'
-import Mention from './mention-container'
-import Box from './box'
-import Emoji from './emoji'
-import {markdownStyles, EmojiIfExists} from './markdown-react'
-import {parseMarkdown, SimpleMarkdownComponent} from './markdown.shared'
+import flags from '../../util/feature-flags'
+import Text from '../text'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/chat2'
+import Channel from '../channel-container'
+import Mention from '../mention-container'
+import Box from '../box'
+import Emoji from '../emoji'
+import {markdownStyles, EmojiIfExists} from './react'
+import {parseMarkdown, SimpleMarkdownComponent} from './shared'
 
-import type {Props} from './markdown'
+import type {Props} from '.'
 
 function previewCreateComponent(type, key, children, options) {
   switch (type) {

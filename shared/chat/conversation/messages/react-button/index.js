@@ -9,7 +9,7 @@ import {
   iconCastPlatformStyles,
   Text,
 } from '../../../../common-adapters'
-import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
+import {EmojiIfExists} from '../../../../common-adapters/markdown/shared'
 import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'

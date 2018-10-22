@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../constants/types/chat2'
+import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
