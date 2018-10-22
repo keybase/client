@@ -71,9 +71,11 @@ const onChangeSelectedSearchResultHoc = compose(
         // See whether the current search result term matches the last one submitted
         // -- unless we're showing search suggestions, which don't have a term.
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
-          props.selectedSearchId && props.disableListBuilding
-            ? props.onSelectUser(props.selectedSearchId)
-            : props.onAddUser(props.selectedSearchId)
+          if (props.selectedSearchId && props.disableListBuilding) {
+            props.onSelectUser(props.selectedSearchId)
+          } else {
+            props.onAddUser(props.selectedSearchId)
+          }
           props.onChangeSearchText && props.onChangeSearchText('')
         }
       },
