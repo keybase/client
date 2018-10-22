@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -28,6 +29,24 @@ func NewPhoneNumbersHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PhoneNu
 }
 
 var _ keybase1.PhoneNumbersInterface = (*PhoneNumbersHandler)(nil)
+
+func (h *PhoneNumbersHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#AddPhoneNumber", func() error { return err })()
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
+}
+
+func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#VerifyPhoneNumber", func() error { return err })()
+	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
+}
+
+func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()
+	return phonenumbers.GetPhoneNumbers(mctx)
+}
 
 const phoneNumbersGregorHandlerName = "phoneHandler"
 

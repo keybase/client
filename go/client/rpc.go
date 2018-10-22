@@ -145,6 +145,14 @@ func GetUserClient(g *libkb.GlobalContext) (cli keybase1.UserClient, err error) 
 	return
 }
 
+func GetPhoneNumbersClient(g *libkb.GlobalContext) (cli keybase1.PhoneNumbersClient, err error) {
+	var rcli *rpc.Client
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
+		cli = keybase1.PhoneNumbersClient{Cli: rcli}
+	}
+	return
+}
+
 func GetSigsClient(g *libkb.GlobalContext) (cli keybase1.SigsClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {

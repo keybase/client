@@ -2,7 +2,7 @@
 protocol NotifyPhoneNumber {
   import idl "common.avdl";
 
-  void phoneNumberAdded(string phoneNumber) oneway;
-  void phoneNumberVerified(string phoneNumber) oneway;
-  void phoneNumberSuperseded(string phoneNumber) oneway;
+  void phoneNumberAdded(PhoneNumber phoneNumber) oneway;
+  void phoneNumberVerified(PhoneNumber phoneNumber) oneway;
+  void phoneNumberSuperseded(PhoneNumber phoneNumber) oneway;
 }

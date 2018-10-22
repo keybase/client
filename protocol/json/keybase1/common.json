@@ -91,6 +91,12 @@
     },
     {
       "type": "record",
+      "name": "PhoneNumber",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "LinkID",
       "fields": [],
       "typedef": "string"

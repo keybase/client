@@ -9,21 +9,21 @@ import (
 )
 
 type PhoneNumberAddedArg struct {
-	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
 }
 
 type PhoneNumberVerifiedArg struct {
-	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
 }
 
 type PhoneNumberSupersededArg struct {
-	PhoneNumber string `codec:"phoneNumber" json:"phoneNumber"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
 }
 
 type NotifyPhoneNumberInterface interface {
-	PhoneNumberAdded(context.Context, string) error
-	PhoneNumberVerified(context.Context, string) error
-	PhoneNumberSuperseded(context.Context, string) error
+	PhoneNumberAdded(context.Context, PhoneNumber) error
+	PhoneNumberVerified(context.Context, PhoneNumber) error
+	PhoneNumberSuperseded(context.Context, PhoneNumber) error
 }
 
 func NotifyPhoneNumberProtocol(i NotifyPhoneNumberInterface) rpc.Protocol {
@@ -86,19 +86,19 @@ type NotifyPhoneNumberClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyPhoneNumberClient) PhoneNumberAdded(ctx context.Context, phoneNumber string) (err error) {
+func (c NotifyPhoneNumberClient) PhoneNumberAdded(ctx context.Context, phoneNumber PhoneNumber) (err error) {
 	__arg := PhoneNumberAddedArg{PhoneNumber: phoneNumber}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberAdded", []interface{}{__arg})
 	return
 }
 
-func (c NotifyPhoneNumberClient) PhoneNumberVerified(ctx context.Context, phoneNumber string) (err error) {
+func (c NotifyPhoneNumberClient) PhoneNumberVerified(ctx context.Context, phoneNumber PhoneNumber) (err error) {
 	__arg := PhoneNumberVerifiedArg{PhoneNumber: phoneNumber}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberVerified", []interface{}{__arg})
 	return
 }
 
-func (c NotifyPhoneNumberClient) PhoneNumberSuperseded(ctx context.Context, phoneNumber string) (err error) {
+func (c NotifyPhoneNumberClient) PhoneNumberSuperseded(ctx context.Context, phoneNumber PhoneNumber) (err error) {
 	__arg := PhoneNumberSupersededArg{PhoneNumber: phoneNumber}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyPhoneNumber.phoneNumberSuperseded", []interface{}{__arg})
 	return

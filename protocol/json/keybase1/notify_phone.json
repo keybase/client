@@ -12,7 +12,7 @@
       "request": [
         {
           "name": "phoneNumber",
-          "type": "string"
+          "type": "PhoneNumber"
         }
       ],
       "response": null,
@@ -22,7 +22,7 @@
       "request": [
         {
           "name": "phoneNumber",
-          "type": "string"
+          "type": "PhoneNumber"
         }
       ],
       "response": null,
@@ -32,7 +32,7 @@
       "request": [
         {
           "name": "phoneNumber",
-          "type": "string"
+          "type": "PhoneNumber"
         }
       ],
       "response": null,
