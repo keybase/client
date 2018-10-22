@@ -332,6 +332,25 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
 		if utils.IsNotifiableChatMessageType(typ, msg.Valid().AtMentions, msg.Valid().ChannelMention) {
+			// Check to make sure this is an eligible reaction message
+			if msg.GetMessageType() == chat1.MessageType_REACTION {
+				g.Debug(ctx, "shouldDisplayDesktopNotification: checking reaction")
+				supersedes, err := utils.GetSupersedes(msg)
+				if err != nil || len(supersedes) == 0 {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %s", err)
+					return false
+				}
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil)
+				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %s", err)
+					return false
+				}
+				if !supersedesMsg[0].Valid().ClientHeader.Sender.Eq(uid) {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: skipping reaction post, not sender")
+					return false
+				}
+			}
+
 			// Check for generic hit on desktop right off and return true if we hit
 			if conv.Notifications.Settings[apptype][kind] {
 				return true
@@ -447,13 +466,18 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
+				notificationSnippet := ""
+				if desktopNotification {
+					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
+						g.G().Env.GetUsername().String())
+				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
-					DesktopNotificationSnippet: utils.GetDesktopNotificationSnippet(conv, g.G().Env.GetUsername().String()),
+					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),
 				})
 			}

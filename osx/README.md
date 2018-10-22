@@ -39,9 +39,9 @@ To build the installer, view instructions at [Scripts/README.md](Scripts/README.
 ## macOS Installer Overview
 
 ```
-┌────────────────────────┐
-│desktop/app/installer.js│
-└────────────────────────┘
+┌────────────────────────────────┐
+│desktop/app/installer.desktop.js│
+└────────────────────────────────┘
              │
              │
              ▼
@@ -91,7 +91,7 @@ the native KeybaseInstaller.app (see below).
 
 ### keybase install-auto
 
-When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.js](shared/desktop/app/installer.js).
+When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.desktop.js](https://github.com/keybase/client/blob/master/shared/desktop/app/installer.desktop.js).
 
 By default this runs install with the components:
 - `cli`: Command line (to /usr/local/bin)

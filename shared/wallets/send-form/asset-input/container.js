@@ -4,7 +4,6 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import {compose, connect, setDisplayName} from '../../../util/container'
 import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
-import * as Types from '../../../constants/types/wallets'
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
@@ -22,10 +21,6 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _refresh: (accountID: Types.AccountID) => {
-    dispatch(WalletsGen.createLoadDisplayCurrencies())
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
-  },
   onChangeDisplayUnit: () => {
     dispatch(
       Route.navigateAppend([
@@ -45,13 +40,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   displayUnit: stateProps.displayUnit,
   inputPlaceholder: stateProps.inputPlaceholder,
   onChangeAmount: dispatchProps.onChangeAmount,
-  onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
-  refresh: () => dispatchProps._refresh(stateProps.accountID),
+  onChangeDisplayUnit: ownProps.onChooseAsset || dispatchProps.onChangeDisplayUnit,
   topLabel: stateProps.topLabel,
   value: stateProps.value,
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('AssetInput')
 )(AssetInput)

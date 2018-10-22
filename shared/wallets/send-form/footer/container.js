@@ -5,6 +5,10 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
 
+type OwnProps = {
+  onConfirm?: () => void, // if showing confirm form directly (not through routing)
+}
+
 const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   return {
@@ -20,20 +24,21 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
     dispatch(WalletsGen.createRequestPayment())
   },
-  onClickSend: () => {
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {},
-          selected: Constants.confirmFormRouteKey,
-        },
-      ])
-    )
-  },
+  onClickSend: () =>
+    onConfirm
+      ? onConfirm()
+      : dispatch(
+          Route.navigateAppend([
+            {
+              props: {},
+              selected: Constants.confirmFormRouteKey,
+            },
+          ])
+        ),
 })
 
 const mergeProps = (s, d, o) => ({

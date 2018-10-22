@@ -148,7 +148,7 @@ func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bund
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
@@ -196,7 +196,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return res, 0, err
 	}

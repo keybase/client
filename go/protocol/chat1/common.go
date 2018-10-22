@@ -1866,6 +1866,7 @@ type SearchOpts struct {
 	BeforeContext int          `codec:"beforeContext" json:"beforeContext"`
 	AfterContext  int          `codec:"afterContext" json:"afterContext"`
 	ForceReindex  bool         `codec:"forceReindex" json:"forceReindex"`
+	MaxConvs      int          `codec:"maxConvs" json:"maxConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -1878,6 +1879,7 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		BeforeContext: o.BeforeContext,
 		AfterContext:  o.AfterContext,
 		ForceReindex:  o.ForceReindex,
+		MaxConvs:      o.MaxConvs,
 	}
 }
 
@@ -2040,6 +2042,16 @@ func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
 	return ChatSearchInboxDone{
 		NumHits:        o.NumHits,
 		NumConvs:       o.NumConvs,
+		PercentIndexed: o.PercentIndexed,
+	}
+}
+
+type ChatSearchIndexStatus struct {
+	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+}
+
+func (o ChatSearchIndexStatus) DeepCopy() ChatSearchIndexStatus {
+	return ChatSearchIndexStatus{
 		PercentIndexed: o.PercentIndexed,
 	}
 }

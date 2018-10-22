@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
       WalletsGen.createCreateNewAccount({
         name,
         showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm,
+        setBuildingTo: fromSendForm ?? (!!routeProps && routeProps.get('fromSendForm')),
       })
     ),
   _onDone: (name: string) => {

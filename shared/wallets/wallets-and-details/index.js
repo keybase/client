@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box2} from '../common-adapters'
-import WalletList from './wallet-list/container'
-import {globalColors, styleSheetCreate} from '../styles'
+import {Box2} from '../../common-adapters'
+import WalletList from '../wallet-list/container'
+import {globalColors, styleSheetCreate} from '../../styles'
 
 type Props = {
   children: React.Node,

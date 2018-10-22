@@ -7,10 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -271,23 +269,6 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 	return h.G().GetOutOfDateInfo(), nil
 }
 
-func getNeedUpdate() (bool, error) {
-	updaterPath, err := install.UpdaterBinPath()
-	if err != nil {
-		return false, err
-	}
-	cmd := exec.Command(updaterPath, "need-update")
-	out, err := cmd.Output()
-	if err != nil {
-		return false, err
-	}
-	needUpdate, err := strconv.ParseBool(strings.TrimSpace(string(out)))
-	if err != nil {
-		return false, err
-	}
-	return needUpdate, nil
-}
-
 func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
 	outOfDateInfo := h.G().GetOutOfDateInfo()
 	if len(outOfDateInfo.UpgradeTo) != 0 {
@@ -298,7 +279,7 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 			Message: outOfDateInfo.CustomMessage,
 		}, nil
 	}
-	needUpdate, err := getNeedUpdate() // This is from the updater.
+	needUpdate, err := install.GetNeedUpdate() // This is from the updater.
 	if err != nil {
 		h.G().Log.Errorf("Error calling updater: %s", err)
 		return keybase1.UpdateInfo{
