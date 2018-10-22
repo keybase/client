@@ -16,12 +16,16 @@ type NextMessageOptions struct {
 type Gallery struct {
 	globals.Contextified
 	utils.DebugLabeler
+
+	PrevStride, NextStride int
 }
 
 func NewGallery(g *globals.Context) *Gallery {
 	return &Gallery{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Gallery", false),
+		NextStride:   10,
+		PrevStride:   50,
 	}
 }
 
@@ -49,9 +53,10 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	if opts.BackInTime {
 		pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
 			Pivot: &msgID,
-			Num:   10,
+			Num:   g.NextStride,
 		})
 		for {
+			g.Debug(ctx, "NextMessage: backintime starting scan: next: %x", pagination.Next)
 			tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
 				&chat1.GetThreadQuery{
 					MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
@@ -63,27 +68,24 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 				if !eligible(m) {
 					continue
 				}
-				res = &m
-				break
+				return &m, nil
 			}
-			if res != nil {
-				break
-			}
+			g.Debug(ctx, "NextMessage: missed all messages: len: %d", len(tv.Messages))
 			if tv.Pagination.Last {
 				break
 			}
 			pagination = tv.Pagination
-			pagination.Num = 10
+			pagination.Num = g.NextStride
 			pagination.Previous = nil
 		}
 	} else {
 		pivot := msgID
 		for {
-			g.Debug(ctx, "NextMessage: starting scan: pivot: %v", pivot)
+			g.Debug(ctx, "NextMessage: forwardintime starting scan: pivot: %v", pivot)
 			// Move forward in the thread looking for attachments, 50 messages at a time
 			pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
 				Pivot:  &pivot,
-				Num:    50,
+				Num:    g.PrevStride,
 				Recent: true,
 			})
 			tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
@@ -101,17 +103,13 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 					if !eligible(tv.Messages[i]) {
 						continue
 					}
-					res = &tv.Messages[i]
-					break
-				}
-				if res != nil {
-					break
+					return &tv.Messages[i], nil
 				}
 			}
 			if tv.Pagination.Last {
 				break
 			}
-			pivot += 50
+			pivot += chat1.MessageID(g.PrevStride)
 		}
 	}
 	return res, nil
