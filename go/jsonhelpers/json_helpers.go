@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -66,7 +65,7 @@ func jsonUnpackArray(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 }
 
 // Return the elements of an array or values of a map.
-func jsonGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
+func JSONGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 	dict, err := w.ToDictionary()
 	isDict := err == nil
 	array, err := w.ToArray()
@@ -94,7 +93,7 @@ func jsonGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 // ([], nil) will be returned.  This is because a selector may descend into
 // many subtrees and fail in all but one.
 func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.SelectorEntry,
-	logger func(format string, arg ...interface{})) ([]*jsonw.Wrapper, libkb.ProofError) {
+	logger func(format string, arg ...interface{}), mkErr func(selector keybase1.SelectorEntry) error) ([]*jsonw.Wrapper, error) {
 	// The terminating condition is when we've consumed all the selectors.
 	if len(selectors) == 0 {
 		return []*jsonw.Wrapper{selectedObject}, nil
@@ -120,7 +119,7 @@ func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.Selector
 			return nil, nil
 		}
 		nextobject := object.AtIndex(index)
-		return AtSelectorPath(nextobject, nextselectors, logger)
+		return AtSelectorPath(nextobject, nextselectors, logger, mkErr)
 	case selector.IsKey:
 		object, err := selectedObject.ToDictionary()
 		if err != nil {
@@ -129,16 +128,16 @@ func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.Selector
 		}
 
 		nextobject := object.AtKey(selector.Key)
-		return AtSelectorPath(nextobject, nextselectors, logger)
+		return AtSelectorPath(nextobject, nextselectors, logger, mkErr)
 	case selector.IsAll:
-		children, err := jsonGetChildren(selectedObject)
+		children, err := JSONGetChildren(selectedObject)
 		if err != nil {
 			logger("JSON select could not get children: %v (%v)", err, selectedObject)
 			return nil, nil
 		}
 		var results []*jsonw.Wrapper
 		for _, child := range children {
-			innerresults, perr := AtSelectorPath(child, nextselectors, logger)
+			innerresults, perr := AtSelectorPath(child, nextselectors, logger, mkErr)
 			if perr != nil {
 				return nil, perr
 			}
@@ -146,7 +145,6 @@ func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.Selector
 		}
 		return results, nil
 	default:
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"JSON selector entry must be a string, int, or 'all' %v", selector)
+		return nil, mkErr(selector)
 	}
 }

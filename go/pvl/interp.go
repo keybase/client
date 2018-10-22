@@ -1011,9 +1011,9 @@ func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *json
 	logger := func(format string, args ...interface{}) {
 		debugWithState(m, state, format, args)
 	}
-	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger)
-	if perr != nil {
-		return nil, perr
+	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger, libkb.NewInvalidPVLSelectorError)
+	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
+		return nil, perrInner
 	}
 	results := []string{}
 	for _, object := range jsonResults {
