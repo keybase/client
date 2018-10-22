@@ -29,13 +29,13 @@ const loadingProps = {
 const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
 
 // Get action phrase for sendPayment msg
-const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified) => {
+const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
     case 'pending': // fallthrough
-    case 'canceled':
       return 'sending'
+    case 'canceled':
     case 'cancelable':
-      return 'attempting to send'
+      return youAreSender ? 'sending' : 'attempting to send'
     default:
       return 'sent'
   }
@@ -64,7 +64,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const cancelable = paymentInfo.status === 'cancelable'
       const pending = cancelable || paymentInfo.status === 'pending'
       const canceled = paymentInfo.status === 'canceled'
-      const verb = makeSendPaymentVerb(paymentInfo.status)
+      const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
@@ -85,7 +85,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
-        pending,
+        pending: pending || canceled,
         sendButtonLabel: '',
       }
     }

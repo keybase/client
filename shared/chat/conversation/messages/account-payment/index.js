@@ -39,17 +39,21 @@ export type Props = {|
 
 const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
-    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
+    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
       <ProgressIndicator style={styles.progressIndicator} />
       <Text type="BodySmall">loading...</Text>
     </Box2>
   ) : (
     <React.Fragment>
-      <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
+      <Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
+      >
         <Box2
           direction="horizontal"
           gap="xtiny"
-          style={collapseStyles([styles.headingContainer, {marginBottom: globalMargins.xtiny}])}
+          style={collapseStyles([styles.alignItemsCenter, {marginBottom: globalMargins.xtiny}])}
         >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text
@@ -65,7 +69,7 @@ const AccountPayment = (props: Props) => {
           {props.canceled && <Text type="BodySmall">CANCELED</Text>}
         </Box2>
         {!!props.balanceChange && (
-          <Box2 direction="horizontal">
+          <Box2 direction="horizontal" style={styles.marginLeftAuto}>
             <Text
               type="BodyExtrabold"
               selectable={true}
@@ -121,12 +125,17 @@ const AccountPayment = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
-  headingContainer: {
+  alignItemsCenter: {
     alignItems: 'center',
-    flex: 1,
+  },
+  flexWrap: {
+    flexWrap: 'wrap',
   },
   lineThrough: {
     textDecorationLine: 'line-through',
+  },
+  marginLeftAuto: {
+    marginLeft: 'auto',
   },
   progressIndicator: platformStyles({
     // Match height of a line of text
