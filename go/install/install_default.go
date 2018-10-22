@@ -20,3 +20,8 @@ func Install(context Context, binPath string, sourcePath string, components []st
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	return keybase1.UninstallResult{}
 }
+
+// GetNeedUpdate always returns false, nil on this platform.
+func GetNeedUpdate() (bool, error) {
+	return false, nil
+}
