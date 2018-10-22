@@ -17,12 +17,14 @@ import (
 type baseLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
+	pipeline *localizerPipeline
 }
 
-func newBaseLocalizer(g *globals.Context) *baseLocalizer {
+func newBaseLocalizer(g *globals.Context, pipeline *localizerPipeline) *baseLocalizer {
 	return &baseLocalizer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
+		pipeline:     pipeline,
 	}
 }
 
@@ -45,29 +47,26 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	return res
 }
 
-type BlockingLocalizer struct {
+type blockingLocalizer struct {
 	globals.Contextified
 	*baseLocalizer
-	pipeline *localizerPipeline
 }
 
-func NewBlockingLocalizer(g *globals.Context) *BlockingLocalizer {
-	return &BlockingLocalizer{
+func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline) *blockingLocalizer {
+	return &blockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		baseLocalizer: newBaseLocalizer(g),
-		pipeline: newLocalizerPipeline(g,
-			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
+		baseLocalizer: newBaseLocalizer(g, pipeline),
 	}
 }
 
-func (b *BlockingLocalizer) SetOffline() {
+func (b *blockingLocalizer) SetOffline() {
 	b.pipeline.offline = true
 }
 
-func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
+func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
 	inbox = b.filterSelfFinalized(ctx, inbox)
-	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
-		nil, nil)
+	res, err = b.baseLocalizer.pipeline.localizeConversationsPipeline(ctx, uid,
+		utils.PluckConvs(inbox.ConvsUnverified), nil, nil)
 	if err != nil {
 		return res, err
 	}
@@ -75,7 +74,7 @@ func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	return res, nil
 }
 
-func (b *BlockingLocalizer) Name() string {
+func (b *blockingLocalizer) Name() string {
 	return "blocking"
 }
 
@@ -86,21 +85,20 @@ type NonblockInboxResult struct {
 	InboxRes *types.Inbox
 }
 
-type NonblockingLocalizer struct {
+type nonBlockingLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*baseLocalizer
 
-	pipeline   *localizerPipeline
 	localizeCb chan NonblockInboxResult
 	maxUnbox   *int
 }
 
-func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
-	maxUnbox *int) *NonblockingLocalizer {
-	return &NonblockingLocalizer{
+func newNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
+	maxUnbox *int) *nonBlockingLocalizer {
+	return &nonBlockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "nonBlockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g),
 		pipeline: newLocalizerPipeline(g,
 			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
@@ -109,11 +107,11 @@ func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxRe
 	}
 }
 
-func (b *NonblockingLocalizer) SetOffline() {
+func (b *nonBlockingLocalizer) SetOffline() {
 	b.pipeline.offline = true
 }
 
-func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
+func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
 	// Loop through and look for empty convs or known errors and skip them
@@ -134,7 +132,7 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 	}
 }
 
-func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
+func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
@@ -161,7 +159,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	return nil, nil
 }
 
-func (b *NonblockingLocalizer) Name() string {
+func (b *nonBlockingLocalizer) Name() string {
 	return "nonblocking"
 }
 
@@ -214,6 +212,7 @@ type baseInboxSource struct {
 	types.InboxSource
 
 	getChatInterface func() chat1.RemoteInterface
+	localizer        *localizerPipeline
 }
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
@@ -223,6 +222,8 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 		InboxSource:      ibs,
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false),
 		getChatInterface: getChatInterface,
+		localizer: newLocalizerPipeline(g, newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{}))),
 	}
 }
 
@@ -332,7 +333,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	p *chat1.Pagination) (types.Inbox, error) {
 
 	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G())
+		localizer = newBlockingLocalizer(s.G())
 	}
 	if s.IsOffline(ctx) {
 		localizer.SetOffline()

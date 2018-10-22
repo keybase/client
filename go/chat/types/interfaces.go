@@ -25,6 +25,11 @@ type Resumable interface {
 	Stop(ctx context.Context) chan struct{}
 }
 
+type Suspendable interface {
+	Suspend(ctx context.Context) bool
+	Resume(ctx context.Context) bool
+}
+
 type CryptKey interface {
 	Material() keybase1.Bytes32
 	Generation() int
@@ -133,6 +138,8 @@ type ChatLocalizer interface {
 
 type InboxSource interface {
 	Offlinable
+	Resumable
+	Suspendable
 
 	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
 		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, error)
@@ -215,10 +222,9 @@ type FetchRetrier interface {
 
 type ConvLoader interface {
 	Resumable
+	Suspendable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
-	Suspend(ctx context.Context) bool
-	Resume(ctx context.Context) bool
 }
 
 type PushHandler interface {

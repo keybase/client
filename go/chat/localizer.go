@@ -23,10 +23,18 @@ import (
 )
 
 type localizerPipelineJob struct {
+	sync.Mutex
+
 	ctx     context.Context
 	retCh   chan NonblockInboxResult
 	uid     gregor1.UID
 	pending []chat1.Conversation
+}
+
+func (l *localizerPipelineJob) complete(index int) {
+	l.Lock()
+	defer l.Unlock()
+	l.pending = append(l.pending[:index], l.pending[index+1:]...)
 }
 
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -134,10 +142,6 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 	uid := localizeJob.uid
 
 	// Fetch conversation local information in parallel
-	type jobRes struct {
-		conv  chat1.ConversationLocal
-		index int
-	}
 	type job struct {
 		conv  chat1.Conversation
 		index int
@@ -145,7 +149,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
-	retCh := make(chan jobRes)
+	retCh := make(chan int)
 	eg.Go(func() error {
 		defer close(convCh)
 		for i, conv := range localizeJob.pending {
@@ -163,12 +167,8 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		eg.Go(func() error {
 			for conv := range convCh {
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
-				jr := jobRes{
-					conv:  convLocal,
-					index: conv.index,
-				}
 				select {
-				case retCh <- jr:
+				case retCh <- conv.index:
 				case <-ctx.Done():
 					return ctx.Err()
 				}
@@ -193,14 +193,10 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		eg.Wait()
 		close(retCh)
 	}()
-	res := make([]chat1.ConversationLocal, len(localizeJob.pending))
-	for c := range retCh {
-		res[c.index] = c.conv
+	for index := range retCh {
+		localizeJob.complete(index)
 	}
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-	return res, nil
+	eg.Wait()
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
