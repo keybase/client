@@ -148,9 +148,9 @@ func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bund
 	return err
 }
 
-// PostAccountBundle encrypts and uploads an account bundle to the server.
-func PostAccountBundle(ctx context.Context, g *libkb.GlobalContext, acctBundle *stellar1.AccountBundle) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.PostAccountBundle", func() error { return err })()
+// PostBundleRestricted encrypts and uploads a restricted bundle to the server.
+func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.BundleRestricted) (err error) {
+	defer g.CTraceTimed(ctx, "Stellar.PostBundleRestricted", func() error { return err })()
 
 	pukGen, pukSeed, err := getLatestPuk(ctx, g)
 	if err != nil {
@@ -158,13 +158,18 @@ func PostAccountBundle(ctx context.Context, g *libkb.GlobalContext, acctBundle *
 	}
 
 	// XXX fix this
-	boxed, err := acctbundle.Box(acctBundle, stellar1.BundleVisibleEntryV2{}, pukGen, pukSeed)
+	boxed, err := acctbundle.BoxAndEncode(bundle, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}
 
 	payload := make(libkb.JSONPayload)
-	addWalletServerArg(payload, boxed.EncB64, boxed.VisB64, int(boxed.FormatVersion))
+	section := make(libkb.JSONPayload)
+	section["encrypted_parent"] = boxed.EncParentB64
+	section["visible_parent"] = boxed.VisParentB64
+	section["version_parent"] = boxed.FormatVersionParent
+	section["account_bundles"] = boxed.AcctBundles
+	payload["stellar"] = section
 	_, err = g.API.PostJSON(libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -174,7 +179,7 @@ func PostAccountBundle(ctx context.Context, g *libkb.GlobalContext, acctBundle *
 }
 
 // FetchAccountBundle gets an account bundle from the server and decrypts it.
-func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.AccountBundle, version stellar1.AccountBundleVersion, err error) {
+func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -183,13 +188,13 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
 		NetContext:  ctx,
 	}
-	var apiRes fetchRes
+	var apiRes fetchAcctRes
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
 		return nil, 0, err
 	}
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
-	return acctbundle.DecodeAndUnbox(m, finder, apiRes.EncryptedB64, apiRes.VisibleB64)
+	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncodedB64)
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
@@ -217,6 +222,11 @@ type fetchRes struct {
 	libkb.AppStatusEmbed
 	EncryptedB64 string `json:"encrypted"`
 	VisibleB64   string `json:"visible"`
+}
+
+type fetchAcctRes struct {
+	libkb.AppStatusEmbed
+	acctbundle.BundleEncodedB64
 }
 
 // Fetch and unbox the latest bundle from the server.
@@ -733,8 +743,8 @@ func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountI
 	if err != nil {
 		return err
 	}
-	if err := PostAccountBundle(ctx, g, bundle); err != nil {
-		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostAccountBundle error: %s", err)
+	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostBundleRestricted error: %s", err)
 		return err
 	}
 

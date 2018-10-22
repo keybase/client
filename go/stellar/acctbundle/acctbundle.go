@@ -95,9 +95,10 @@ type AcctBoxedEncoded struct {
 }
 
 type BundleEncodedB64 struct {
-	EncParent   string // base64 msgpacked Enc
-	VisParent   string
-	AcctBundles map[stellar1.AccountID]string
+	EncParent           string                        `json:"encrypted_parent"` // base64 msgpacked Enc
+	VisParent           string                        `json:"visible_parent"`
+	FormatVersionParent stellar1.AccountBundleVersion `json:"version_parent"`
+	AcctBundles         map[stellar1.AccountID]string `json:"account_bundles"`
 }
 
 // BoxAndEncode encrypts and encodes a BundleRestricted object.
@@ -252,7 +253,7 @@ var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 // MakeMobileOnly transforms a stellar1.AccountBundle into a mobile-only
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
-func MakeMobileOnly(a *stellar1.AccountBundle) error {
+func MakeMobileOnly(a *stellar1.BundleRestricted) error {
 	/*
 		if a.Mode == stellar1.AccountMode_MOBILE {
 			return ErrNoChangeNecessary
