@@ -107,7 +107,6 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 				Recent: true,
 			})
 		}
-
 	}
 	return res, nil
 }
