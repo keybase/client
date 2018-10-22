@@ -6,8 +6,6 @@ import * as Kb from './index'
 import Markdown, {type MarkdownMeta} from './markdown'
 import {parserFromMeta} from './markdown.shared'
 import OriginalParser from '../markdown/parser'
-import RandomSeed from 'random-seed'
-import RandExp from 'randexp'
 
 const cases = {
   debugging: `> outside code
@@ -389,11 +387,6 @@ const load = () => {
     s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{randomGenerated[k]}</MarkdownWithAst>)
     s = s.add(k + '[o]', () => <Markdown simple={false}>{randomGenerated[k]}</Markdown>)
   })
-
-  let perf = Sb.storiesOf('Common/Markdown - Perf', module)
-    .addDecorator(provider)
-    .addDecorator(Sb.perfDecorator())
-    .addDecorator(Sb.scrollViewDecorator)
 }
 
 export default load

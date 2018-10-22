@@ -9,16 +9,9 @@ import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
 import {markdownStyles, EmojiIfExists} from './markdown-react'
-import {
-  parseMarkdown,
-  channelNameToConvID,
-  createMentionRegex,
-  createChannelRegex,
-  SimpleMarkdownComponent,
-} from './markdown.shared'
-import SimpleMarkdown from 'simple-markdown'
+import {parseMarkdown, SimpleMarkdownComponent} from './markdown.shared'
 
-import type {Props, MarkdownMeta} from './markdown'
+import type {Props} from './markdown'
 
 function previewCreateComponent(type, key, children, options) {
   switch (type) {

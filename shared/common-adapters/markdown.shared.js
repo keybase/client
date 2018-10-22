@@ -112,42 +112,6 @@ function parseMarkdown(
   }
 }
 
-const wrapStyle = Styles.platformStyles({
-  isElectron: {
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-  },
-})
-
-const codeSnippetStyle = {
-  ...Styles.globalStyles.fontTerminal,
-  ...Styles.globalStyles.rounded,
-  ...wrapStyle,
-  backgroundColor: Styles.globalColors.beige,
-  color: Styles.globalColors.blue,
-  fontSize: 12,
-  paddingLeft: Styles.globalMargins.xtiny,
-  paddingRight: Styles.globalMargins.xtiny,
-}
-
-const codeSnippetBlockStyle = Styles.platformStyles({
-  common: {
-    ...wrapStyle,
-    ...codeSnippetStyle,
-    backgroundColor: Styles.globalColors.beige,
-    color: Styles.globalColors.black_75,
-    marginBottom: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-  isElectron: {
-    display: 'block',
-  },
-})
-
 // TODO, when named groups are supported on mobile, we can use this instead
 // const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // This copies the functionality of this named group
