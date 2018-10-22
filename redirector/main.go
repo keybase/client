@@ -300,12 +300,15 @@ func main() {
 	options := []fuse.MountOption{fuse.AllowOther()}
 	options = append(options, fuse.FSName("keybase-redirector"))
 	options = append(options, fuse.ReadOnly())
-	if runtime.GOOS == "darwin" {
+	switch runtime.GOOS {
+	case "darwin":
 		options = append(options, fuse.OSXFUSELocations(kbfusePath))
 		options = append(options, fuse.VolumeName("keybase"))
 		options = append(options, fuse.NoBrowse())
 		// Without NoLocalCaches(), OSX will cache symlinks for a long time.
 		options = append(options, fuse.NoLocalCaches())
+	case "linux":
+		os.Setenv("PATH", "/bin:/usr/bin:/usr/sbin:/usr/local/bin")
 	}
 
 	c, err := fuse.Mount(os.Args[1], options...)
