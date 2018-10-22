@@ -299,6 +299,16 @@ type PGPStorageDismissArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type PGPPushPrivateArg struct {
+	SessionID    int              `codec:"sessionID" json:"sessionID"`
+	Fingerprints []PGPFingerprint `codec:"fingerprints" json:"fingerprints"`
+}
+
+type PGPPullPrivateArg struct {
+	SessionID    int              `codec:"sessionID" json:"sessionID"`
+	Fingerprints []PGPFingerprint `codec:"fingerprints" json:"fingerprints"`
+}
+
 type PGPInterface interface {
 	PGPSign(context.Context, PGPSignArg) error
 	// Download PGP keys for tracked users and update the local GPG keyring.
@@ -322,6 +332,12 @@ type PGPInterface interface {
 	PGPPurge(context.Context, PGPPurgeArg) (PGPPurgeRes, error)
 	// Dismiss the PGP unlock via secret_store_file notification.
 	PGPStorageDismiss(context.Context, int) error
+	// push the PGP key that meets the given fingerprint to KBFS. If it is blank, then
+	// push all matching PGP keys in the user's sigchain.
+	PGPPushPrivate(context.Context, PGPPushPrivateArg) error
+	// pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then
+	// attempt to pull all matching PGP keys in the user's sigchain.
+	PGPPullPrivate(context.Context, PGPPullPrivateArg) error
 }
 
 func PGPProtocol(i PGPInterface) rpc.Protocol {
@@ -584,6 +600,38 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"pgpPushPrivate": {
+				MakeArg: func() interface{} {
+					var ret [1]PGPPushPrivateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PGPPushPrivateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PGPPushPrivateArg)(nil), args)
+						return
+					}
+					err = i.PGPPushPrivate(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"pgpPullPrivate": {
+				MakeArg: func() interface{} {
+					var ret [1]PGPPullPrivateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PGPPullPrivateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PGPPullPrivateArg)(nil), args)
+						return
+					}
+					err = i.PGPPullPrivate(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -677,5 +725,19 @@ func (c PGPClient) PGPPurge(ctx context.Context, __arg PGPPurgeArg) (res PGPPurg
 func (c PGPClient) PGPStorageDismiss(ctx context.Context, sessionID int) (err error) {
 	__arg := PGPStorageDismissArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpStorageDismiss", []interface{}{__arg}, nil)
+	return
+}
+
+// push the PGP key that meets the given fingerprint to KBFS. If it is blank, then
+// push all matching PGP keys in the user's sigchain.
+func (c PGPClient) PGPPushPrivate(ctx context.Context, __arg PGPPushPrivateArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPushPrivate", []interface{}{__arg}, nil)
+	return
+}
+
+// pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then
+// attempt to pull all matching PGP keys in the user's sigchain.
+func (c PGPClient) PGPPullPrivate(ctx context.Context, __arg PGPPullPrivateArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPullPrivate", []interface{}{__arg}, nil)
 	return
 }

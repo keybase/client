@@ -497,6 +497,40 @@
       ],
       "response": null,
       "doc": "Dismiss the PGP unlock via secret_store_file notification."
+    },
+    "pgpPushPrivate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "fingerprints",
+          "type": {
+            "type": "array",
+            "items": "PGPFingerprint"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "push the PGP key that meets the given fingerprint to KBFS. If it is blank, then\n   push all matching PGP keys in the user's sigchain."
+    },
+    "pgpPullPrivate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "fingerprints",
+          "type": {
+            "type": "array",
+            "items": "PGPFingerprint"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then\n   attempt to pull all matching PGP keys in the user's sigchain."
     }
   },
   "namespace": "keybase.1"
