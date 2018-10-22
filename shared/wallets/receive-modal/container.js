@@ -1,11 +1,8 @@
 // @flow
-import {connect, isMobile} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {walletsTab, settingsTab} from '../../constants/tabs'
-import {walletsTab as walletsSettingsTab} from '../../constants/settings'
 import Receive from '.'
 
 export type OwnProps = {
@@ -27,13 +24,11 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
   onRequest: () => {
     const accountID = routeProps.get('accountID')
-    dispatch(WalletsGen.createSetBuildingFrom({from: accountID}))
-    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest: true}))
-    // TODO DESKTOP-7961 navigate to separate receive form
+    dispatch(navigateUp())
     dispatch(
-      RouteTreeGen.createNavigateTo({
-        parentPath: [...(isMobile ? [settingsTab, walletsSettingsTab] : [walletsTab]), 'wallet'],
-        path: [{props: {}, selected: Constants.sendReceiveFormRouteKey}],
+      WalletsGen.createOpenSendRequestForm({
+        from: accountID,
+        isRequest: true,
       })
     )
   },

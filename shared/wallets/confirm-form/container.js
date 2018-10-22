@@ -3,6 +3,12 @@ import ConfirmSend from '.'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
+import type {NavigateUpPayload} from '../../actions/route-tree-gen'
+
+type OwnProps = {
+  navigateUp?: () => NavigateUpPayload, // if routed
+  onBack?: () => void, // if direct
+}
 
 const mapStateToProps = state => {
   const build = state.wallets.building
@@ -30,14 +36,13 @@ const mapStateToProps = state => {
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
     waitingKey: Constants.sendPaymentWaitingKey,
-    yourUsername: state.config.username,
     worthDescription: built.worthDescription,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
+  onBack: () => (navigateUp ? dispatch(navigateUp()) : onBack && onBack()),
+  onClose: () => (navigateUp ? dispatch(navigateUp()) : onBack && onBack()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 

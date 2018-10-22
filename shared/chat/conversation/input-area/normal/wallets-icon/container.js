@@ -3,9 +3,7 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as WalletConstants from '../../../../../constants/wallets'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
 
 const mapStateToProps = state => ({
@@ -19,14 +17,11 @@ const mapDispatchToProps = dispatch => ({
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
-    dispatch(WalletsGen.createClearBuilding())
-    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
-    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
-    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-    dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [WalletConstants.sendReceiveFormRouteKey],
+      WalletsGen.createOpenSendRequestForm({
+        isRequest,
+        recipientType: 'keybaseUser',
+        to,
       })
     )
   },

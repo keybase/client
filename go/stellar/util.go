@@ -32,7 +32,7 @@ func loadUvUpk(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVers
 }
 
 func loadOwnLatestPuk(ctx context.Context, g *libkb.GlobalContext) (gen keybase1.PerUserKeyGeneration, seed libkb.PerUserKeySeed, err error) {
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return 0, seed, err
 	}

@@ -276,16 +276,23 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "AcceptDisclaimerLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "AcceptDisclaimerLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
 		return err
 	}
 
-	return remote.SetAcceptedDisclaimer(ctx, s.G())
+	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	crg, err := stellar.CreateWalletGated(ctx, s.G())
+	if err != nil {
+		return err
+	}
+	if !crg.HasWallet {
+		return fmt.Errorf("user wallet not created")
+	}
+	return nil
 }
 
 func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
@@ -633,10 +640,15 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	if arg.AccountID.IsNil() {
-		return res, errors.New("passed empty AccountID")
+	accountID := arg.AccountID
+	if accountID == nil {
+		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		if err != nil {
+			return res, err
+		}
+		accountID = &primaryAccountID
 	}
-	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, arg.AccountID)
+	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, *accountID)
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {

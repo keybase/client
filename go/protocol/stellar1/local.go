@@ -798,8 +798,8 @@ type ChangeDisplayCurrencyLocalArg struct {
 }
 
 type GetDisplayCurrencyLocalArg struct {
-	SessionID int       `codec:"sessionID" json:"sessionID"`
-	AccountID AccountID `codec:"accountID" json:"accountID"`
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
 }
 
 type GetWalletSettingsLocalArg struct {

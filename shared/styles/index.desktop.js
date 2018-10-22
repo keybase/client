@@ -5,13 +5,6 @@ import path from 'path'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
-export const windowStyle = {
-  height: 600, // Default height
-  minHeight: 400,
-  minWidth: 600,
-  width: 800, // Default width
-}
-
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility',

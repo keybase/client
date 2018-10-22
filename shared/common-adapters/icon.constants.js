@@ -725,6 +725,12 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-history-clear-64.png'),
   },
+  'icon-illustration-stellar-payments-183-188': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-illustration-stellar-payments-183-188.png'),
+  },
   'icon-illustration-subteams-380': {
     isFont: false,
     extension: 'png',

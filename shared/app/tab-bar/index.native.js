@@ -16,11 +16,12 @@ const _icons = {
 
 const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
 
-const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
+const TabBarRender = ({selectedTab, onTabClick, badgeNumbers, isNew}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton
         badgeNumber={badgeNumbers[tab]}
+        isNew={isNew[tab] || false}
         badgePosition="top-right"
         key={tab}
         isNav={true}

@@ -56,11 +56,6 @@ func NewStellar(g *libkb.GlobalContext, remoter remote.Remoter, badger *badges.B
 	}
 }
 
-func (s *Stellar) CreateWalletGated(ctx context.Context) (err error) {
-	_, _, err = CreateWalletGated(ctx, s.G())
-	return err
-}
-
 func (s *Stellar) CreateWalletSoft(ctx context.Context) {
 	CreateWalletSoft(ctx, s.G())
 }

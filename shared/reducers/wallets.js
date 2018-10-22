@@ -37,22 +37,32 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltRequest:
       return state.set('builtRequest', Constants.makeBuiltRequest())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
-        Constants.updatePaymentMap(payments, [action.payload.payment])
+      return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
+        Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
       )
     case WalletsGen.paymentsReceived:
       return state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-          Constants.updatePaymentMap(paymentsMap, [...action.payload.payments, ...action.payload.pending])
+          Constants.updatePaymentsReceived(paymentsMap, [
+            ...action.payload.payments,
+            ...action.payload.pending,
+          ])
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
+        .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
-      return state
-        .update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        .update('building', b => b.merge({currency: action.payload.currency.code}))
+      // $FlowIssue thinks state is _State
+      return state.withMutations(stateMutable => {
+        if (action.payload.accountID) {
+          stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
+        }
+        if (action.payload.setBuildingCurrency) {
+          stateMutable.update('building', b => b.merge({currency: action.payload.currency.code}))
+        }
+      })
     case WalletsGen.secretKeyReceived:
       return state
         .set('exportedSecretKey', action.payload.secretKey)
@@ -216,7 +226,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         'unreadPaymentsMap',
         I.Map(action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread]))
       )
+    case WalletsGen.walletSettingsReceived:
+      return state.set('acceptedDisclaimer', action.payload.settings.acceptedDisclaimer)
     // Saga only actions
+    case WalletsGen.acceptDisclaimer:
+    case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
@@ -235,6 +249,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.deleteAccount:
     case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
+    case WalletsGen.loadWalletSettings:
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
@@ -244,6 +259,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.requestedPayment:
     case WalletsGen.abandonPayment:
     case WalletsGen.loadSendAssetChoices:
+    case WalletsGen.openSendRequestForm:
       return state
     default:
       /*::
