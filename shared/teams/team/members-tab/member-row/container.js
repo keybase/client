@@ -58,9 +58,11 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
   },
   _onShowTracker: (username: string) => {
-    isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+    if (isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+    }
   },
   onChat: () => {
     ownProps.username &&

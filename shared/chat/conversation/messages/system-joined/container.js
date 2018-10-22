@@ -12,15 +12,17 @@ const mapStateToProps = (state, {message}) => ({
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     isMobile
       ? dispatch(RouteTree.navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
       : dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onUsernameClicked: (username: string) => {
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+    if (isMobile) {
+      dispatch(createShowUserProfile({username}))
+    } else {
+      dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+    }
   },
 })
 
