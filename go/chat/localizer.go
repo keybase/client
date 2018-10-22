@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -21,12 +22,38 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type localizerPipelineJob struct {
+	ctx     context.Context
+	retCh   chan NonblockInboxResult
+	uid     gregor1.UID
+	pending []chat1.Conversation
+}
+
+func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convs []chat1.Conversation) *localizerPipelineJob {
+	return &localizerPipelineJob{
+		ctx:     BackgroundContext(ctx, g),
+		retCh:   make(chan NonblockInboxResult, len(convs)),
+		uid:     uid,
+		pending: convs,
+	}
+}
+
 type localizerPipeline struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
 	offline    bool
 	superXform supersedesTransform
+
+	started   bool
+	stopCh    chan struct{}
+	suspendCh chan chan struct{}
+	resumeCh  chan struct{}
+
+	currentJob *localizerPipelineJob
+	jobQueue   chan *localizerPipelineJob
 }
 
 func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *localizerPipeline {
@@ -36,8 +63,75 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 		superXform:   superXform,
 	}
 }
-func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
-	convs []chat1.Conversation, maxUnbox *int, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
+
+func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation) chan NonblockInboxResult {
+	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs)
+	s.jobQueue <- job
+	return job.retCh
+}
+
+func (s *localizerPipeline) clearQueue() {
+	s.jobQueue = make(chan *localizerPipelineJob, 100)
+}
+
+func (s *localizerPipeline) start(ctx context.Context) {
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "start")
+	if s.started {
+		close(s.stopCh)
+		s.stopCh = make(chan struct{})
+	}
+	s.clearQueue()
+	s.started = true
+	go s.localizeLoop()
+}
+
+func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "stop")
+	ch := make(chan struct{})
+	if s.started {
+		close(s.stopCh)
+		s.stopCh = make(chan struct{})
+		s.started = false
+	}
+	close(ch)
+	return ch
+}
+
+func (s *localizerPipeline) suspend() {
+
+}
+
+func (s *localizerPipeline) resume() {
+
+}
+
+func (s *localizerPipeline) localizeLoop() {
+	ctx := context.Background()
+	s.Debug(ctx, "localizeLoop: starting up")
+	s.Lock()
+	stopCh := s.stopCh
+	s.Unlock()
+	for {
+		select {
+		case job := <-s.jobQueue:
+			s.Lock()
+			s.currentJob = job
+			s.Unlock()
+			s.localizeConversationsPipeline(job)
+		case <-stopCh:
+			s.Debug(ctx, "localizeLoop: shutting down")
+			return
+		}
+	}
+}
+
+func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizerPipelineJob) {
+	ctx := localizeJob.ctx
+	uid := localizeJob.uid
 
 	// Fetch conversation local information in parallel
 	type jobRes struct {
@@ -49,20 +143,12 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		index int
 	}
 
-	if maxUnbox != nil {
-		s.Debug(ctx, "pipeline: maxUnbox set to: %d", *maxUnbox)
-	}
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
 	retCh := make(chan jobRes)
 	eg.Go(func() error {
 		defer close(convCh)
-		for i, conv := range convs {
-			if maxUnbox != nil && i >= *maxUnbox {
-				s.Debug(ctx, "pipeline: maxUnbox set and reached, early exit: %d",
-					*maxUnbox)
-				return nil
-			}
+		for i, conv := range localizeJob.pending {
 			select {
 			case convCh <- job{conv: conv, index: i}:
 			case <-ctx.Done():
@@ -77,7 +163,6 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		eg.Go(func() error {
 			for conv := range convCh {
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
-
 				jr := jobRes{
 					conv:  convLocal,
 					index: conv.index,
@@ -87,21 +172,17 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 				case <-ctx.Done():
 					return ctx.Err()
 				}
-
-				// If a localize callback channel exists, send along the result as well
-				if localizeCb != nil {
-					if convLocal.Error != nil {
-						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
-							convLocal.Error.Message)
-						*localizeCb <- NonblockInboxResult{
-							Err:  convLocal.Error,
-							Conv: conv.conv,
-						}
-					} else {
-						*localizeCb <- NonblockInboxResult{
-							ConvRes: &convLocal,
-							Conv:    conv.conv,
-						}
+				if convLocal.Error != nil {
+					s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
+						convLocal.Error.Message)
+					localizeJob.retCh <- NonblockInboxResult{
+						Err:  convLocal.Error,
+						Conv: conv.conv,
+					}
+				} else {
+					localizeJob.retCh <- NonblockInboxResult{
+						ConvRes: &convLocal,
+						Conv:    conv.conv,
 					}
 				}
 			}
@@ -112,7 +193,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		eg.Wait()
 		close(retCh)
 	}()
-	res := make([]chat1.ConversationLocal, len(convs))
+	res := make([]chat1.ConversationLocal, len(localizeJob.pending))
 	for c := range retCh {
 		res[c.index] = c.conv
 	}
