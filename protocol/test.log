@@ -1,607 +1,0 @@
-=== RUN   TestEmailHappyPath
-EMAILS[{Email:320108b7fc@example.org IsVerified:false IsPrimary:true} {Email:emai_ad3086805a@noemail.keybase.io IsVerified:false IsPrimary:false}]--- FAIL: TestEmailHappyPath (0.66s)
-	test_logger.go:79: 2018-10-22 14:46:59.66154 globals.go:235         : [I] GlobalContext#Init(0xc420183400)
-	test_logger.go:79: 2018-10-22 14:46:59.66157 test_common.go:216     : [I] SetupTest TestEmailHappyPath_3e4c013bb0
-	test_logger.go:79: 2018-10-22 14:46:59.66158 test_common.go:225     : [I] SetupTest home directory: /tmp/TestEmailHappyPath_3e4c013bb0780785356
-	test_logger.go:72: 2018-10-22 14:46:59.66161 secret_store.go:153    : [D] NewSecretStoreLocked: using os-specific SecretStore
-	test_logger.go:79: 2018-10-22 14:46:59.66166 json.go:53             : [I] + loading "config" file: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json
-	test_logger.go:79: 2018-10-22 14:46:59.66168 json.go:61             : [I] No "config" file found; tried /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json
-	test_logger.go:79: 2018-10-22 14:46:59.66172 globals.go:474         : [I] Created Identify2Cache, max age: 5m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66174 globals.go:477         : [I] Created LinkCache, max size: 4000, clean dur: 1m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66175 globals.go:479         : [I] Created CardCache, max age: 5m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66176 globals.go:497         : [I] made a new full self cache
-	test_logger.go:79: 2018-10-22 14:46:59.66180 globals.go:499         : [I] made a new cached UPAK loader (timeout=10m0s)
-	test_logger.go:72: 2018-10-22 14:46:59.66192 engine.go:99           : [D] + RunEngine(Signup) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.66197 signup.go:72           : [D] + SignupEngine#Run [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.66199 sigchain_guard.go:39   : [D] LocalSigchainGuard#Clear(Logout)
-	test_logger.go:79: 2018-10-22 14:46:59.66200 globals.go:1205        : [I] + G#ClearPerUserKeyring
-	test_logger.go:79: 2018-10-22 14:46:59.66201 globals.go:285         : [I] - G#ClearPerUserKeyring -> ok
-	test_logger.go:79: 2018-10-22 14:46:59.66203 globals.go:474         : [I] Created Identify2Cache, max age: 5m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66208 globals.go:477         : [I] Created LinkCache, max size: 4000, clean dur: 1m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66210 globals.go:479         : [I] Created CardCache, max age: 5m0s
-	test_logger.go:79: 2018-10-22 14:46:59.66213 globals.go:497         : [I] made a new full self cache
-	test_logger.go:79: 2018-10-22 14:46:59.66215 globals.go:499         : [I] made a new cached UPAK loader (timeout=10m0s)
-	test_logger.go:79: 2018-10-22 14:46:59.66218 json.go:53             : [I] + loading "config" file: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json
-	test_logger.go:79: 2018-10-22 14:46:59.66220 json.go:61             : [I] No "config" file found; tried /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json
-	test_logger.go:79: 2018-10-22 14:46:59.66221 json.go:53             : [I] + loading "updater config" file: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/updater.json
-	test_logger.go:79: 2018-10-22 14:46:59.66222 json.go:61             : [I] No "updater config" file found; tried /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/updater.json
-	test_logger.go:72: 2018-10-22 14:46:59.74953 signup.go:169          : [D] SignupEngine#join [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.74969 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,API=fjKZ5OY2GaQu]
-	test_logger.go:79: 2018-10-22 14:46:59.74973 api.go:141             : [I] | Cli wasn't found; remaking for cookied=false
-	test_logger.go:72: 2018-10-22 14:46:59.78608 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/signup.json: err=ok, status="200 OK", jsonwBytes=721 [tags:ENG=3nsa_DgRAAOD,API=fjKZ5OY2GaQu]
-	test_logger.go:72: 2018-10-22 14:46:59.78619 api.go:851             : [D] - api.doRequestShared -> <nil> [time=36.462881ms] [tags:ENG=3nsa_DgRAAOD,API=fjKZ5OY2GaQu]
-	test_logger.go:72: 2018-10-22 14:46:59.78633 api.go:872             : [D] - API call signup success [tags:ENG=3nsa_DgRAAOD,API=fjKZ5OY2GaQu]
-	test_logger.go:72: 2018-10-22 14:46:59.78640 provisional_login_context.go:112: [D] + ProvisionalLoginContext#SaveState [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.78643 signup_join.go:120     : [D] - ProvisionalLoginContext#SaveState -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.78646 config.go:364          : [I] | SetUserConfig(emai_ad3086805a)
-	test_logger.go:79: 2018-10-22 14:46:59.78656 json.go:195            : [I] + saving config file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.Z6F6DVJYLNO6WNCNN2OXV4KB
-	test_logger.go:79: 2018-10-22 14:46:59.78666 util.go:85             : [I] Created parent directory /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel
-	test_logger.go:79: 2018-10-22 14:46:59.78683 json.go:255            : [I] - saved config file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.Z6F6DVJYLNO6WNCNN2OXV4KB
-	test_logger.go:79: 2018-10-22 14:46:59.78687 json.go:337            : [I] + Commit config rewrite /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.Z6F6DVJYLNO6WNCNN2OXV4KB
-	test_logger.go:79: 2018-10-22 14:46:59.78690 json.go:340            : [I] | Commit: making parent directories for "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json"
-	test_logger.go:79: 2018-10-22 14:46:59.78694 json.go:344            : [I] | Commit : renaming "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.Z6F6DVJYLNO6WNCNN2OXV4KB" => "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json"
-	test_logger.go:79: 2018-10-22 14:46:59.78705 json.go:338            : [I] - Commit config rewrite ok
-	test_logger.go:72: 2018-10-22 14:46:59.78718 loaduser.go:276        : [D] + LoadUser({UID:b7bff05349c05c804aedb0c95c5c6619 Name:"" PublicKeyOptional:true NoCacheResult:false Self:true ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78727 loaduser.go:299        : [D] LoadUser(uid=b7bff05349c05c804aedb0c95c5c6619, name=) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78731 loaduser.go:310        : [D] | resolved to b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78736 sig_hints.go:145       : [D] + + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.78740 leveldb.go:130         : [I] + LevelDb.open
-	test_logger.go:79: 2018-10-22 14:46:59.78743 leveldb.go:132         : [I] | Opening LevelDB for local cache: &{{{0 0} 0 0 1 0} <nil> 0xc4201bff00 /tmp/TestEmailHappyPath_3e4c013bb0780785356/.local/share/keybase.devel/keybase.leveldb {0xc420183400}} /tmp/TestEmailHappyPath_3e4c013bb0780785356/.local/share/keybase.devel/keybase.leveldb
-	test_logger.go:79: 2018-10-22 14:46:59.78750 leveldb.go:133         : [I] | Opening LevelDB options: &{AltFilters:[] BlockCacher:<nil> BlockCacheCapacity:0 BlockRestartInterval:0 BlockSize:0 CompactionExpandLimitFactor:0 CompactionGPOverlapsFactor:0 CompactionL0Trigger:0 CompactionSourceLimitFactor:0 CompactionTableSize:0 CompactionTableSizeMultiplier:0 CompactionTableSizeMultiplierPerLevel:[] CompactionTotalSize:0 CompactionTotalSizeMultiplier:0 CompactionTotalSizeMultiplierPerLevel:[] Comparer:<nil> Compression:default DisableBufferPool:false DisableBlockCache:false DisableCompactionBackoff:false DisableLargeBatchTransaction:false ErrorIfExist:false ErrorIfMissing:false Filter:10 IteratorSamplingRate:0 NoSync:false NoWriteMerge:false OpenFilesCacher:<nil> OpenFilesCacheCapacity:64 ReadOnly:false Strict:0 WriteBuffer:0 WriteL0PauseTrigger:0 WriteL0SlowdownTrigger:0}
-	test_logger.go:79: 2018-10-22 14:46:59.78923 leveldb.go:146         : [I] - LevelDb.open -> ok
-	test_logger.go:72: 2018-10-22 14:46:59.78942 sig_hints.go:155       : [D] | SigHints loaded @v0 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78952 sig_hints.go:157       : [D] - LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78960 loaduser.go:323        : [D] - + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.78967 loaduser.go:431        : [D] + LoadUserFromLocalStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.79004 loaduser.go:438        : [D] - loadUserFromLocalStorage(b7bff05349c05c804aedb0c95c5c6619): Not found [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.79025 api.go:249             : [D] + api.doRequestShared [tags:API=2S5BN7mlZxJM,ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81206 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/merkle/path.json?load_deleted=1&load_reset_chain=1&poll=10&sig_hints_low=0&uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=12562 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=2S5BN7mlZxJM]
-	test_logger.go:72: 2018-10-22 14:46:59.81214 api.go:851             : [D] - api.doRequestShared -> <nil> [time=21.847276ms] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=2S5BN7mlZxJM]
-	test_logger.go:72: 2018-10-22 14:46:59.81221 api.go:872             : [D] - API call merkle/path success [tags:LU=PUltN8-Mn_dT,API=2S5BN7mlZxJM,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.81228 sig_hints.go:180       : [D] + RefreshWith [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81230 sig_hints.go:187       : [D] | No changes; version 0 was up-to-date [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81233 merkle_client.go:683   : [D] - RefreshWith -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81275 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=e1NY9UHpRVQ2]
-	test_logger.go:72: 2018-10-22 14:46:59.81624 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/merkle/first_root_with_skips.json: err=ok, status="200 OK", jsonwBytes=0 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=e1NY9UHpRVQ2]
-	test_logger.go:72: 2018-10-22 14:46:59.81632 api.go:720             : [D] - api.doRequestShared -> <nil> [time=3.531941ms] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=e1NY9UHpRVQ2]
-	test_logger.go:72: 2018-10-22 14:46:59.81647 merkle_client.go:994   : [D] Got back seqno=12 as first merkle root with skips [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.81655 special_keys.go:69     : [I] + SpecialKeyRing.Load(0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a)
-	test_logger.go:79: 2018-10-22 14:46:59.81658 special_keys.go:77     : [I] - SpecialKeyRing.Load(0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a) -> hit inmem cache
-	test_logger.go:72: 2018-10-22 14:46:59.81824 loaduser.go:402        : [D] | No local user stored for b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81828 loaduser.go:411        : [D] | Freshness: basics=false; for b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81830 loaduser.go:500        : [D] Load User from server: b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.81837 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=--lYMuco0c--]
-	test_logger.go:72: 2018-10-22 14:46:59.82684 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/user/lookup.json?load_deleted=1&uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=468 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=--lYMuco0c--]
-	test_logger.go:72: 2018-10-22 14:46:59.82690 api.go:851             : [D] - api.doRequestShared -> <nil> [time=8.502704ms] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=--lYMuco0c--]
-	test_logger.go:72: 2018-10-22 14:46:59.82696 api.go:872             : [D] - API call user/lookup success [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=--lYMuco0c--]
-	test_logger.go:79: 2018-10-22 14:46:59.82702 keyfamily.go:420       : [I] + ParseKeyFamily
-	test_logger.go:79: 2018-10-22 14:46:59.82711 user.go:77             : [I] - ParseKeyFamily -> ok
-	test_logger.go:72: 2018-10-22 14:46:59.82713 loaduser.go:525        : [D] - Load user from server: b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82716 sig_chain.go:1306      : [D] + SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82718 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) GetFingerprint [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.82720 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) AccessPreload [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.82724 sig_chain.go:1037      : [I] | Preload not provided
-	test_logger.go:72: 2018-10-22 14:46:59.82728 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) LoadLinksFromStorage [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82732 sig_chain.go:1049      : [D] + SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.82737 sig_chain.go:1028      : [I] | LastLinkId was null
-	test_logger.go:72: 2018-10-22 14:46:59.82739 sig_chain.go:1054      : [D] | short-circuting LoadLinksFromStorage: LoadLastLinkIDFromStorage returned err=<nil> [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.82742 sig_chain.go:1056      : [D] | mt (MerkleTriple) nil result from load last link ID from storage [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82745 sig_chain.go:1325      : [D] - SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) -> <nil> [time=100.447µs] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82748 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) MakeSigChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82750 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82753 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82755 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.82758 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.82761 sig_chain.go:1336      : [D] - SigChain#VerifyChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82764 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) CheckFreshness [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.82766 sig_chain.go:1160      : [I] + CheckFreshness
-	test_logger.go:79: 2018-10-22 14:46:59.82769 sig_chain.go:1169      : [I] | Server triple=nil
-	test_logger.go:79: 2018-10-22 14:46:59.82771 sig_chain.go:1175      : [I] | Client triple=nil
-	test_logger.go:79: 2018-10-22 14:46:59.82773 sig_chain.go:1180      : [I] | Future triple=nil
-	test_logger.go:79: 2018-10-22 14:46:59.82775 sig_chain.go:1189      : [I] - CheckFreshness (b7bff05349c05c804aedb0c95c5c6619) -> (false,ok)
-	test_logger.go:72: 2018-10-22 14:46:59.82778 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) LoadFromServer [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.82781 sig_chain.go:491       : [I] + GetLastLoadedSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.82783 sig_chain.go:493       : [I] - GetLastLoadedSeqno() -> 0
-	test_logger.go:72: 2018-10-22 14:46:59.82785 sig_chain.go:239       : [D] + Load SigChain from server (uid=b7bff05349c05c804aedb0c95c5c6619, low=0) [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.82795 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr]
-	test_logger.go:72: 2018-10-22 14:46:59.82800 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr]
-	test_logger.go:72: 2018-10-22 14:46:59.82805 api.go:231             : [D] active device couldn't generate a NIST [tags:API=qtNrXwbvQ5yr,ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.82808 api.go:612             : [D] fixHeaders: falling back to legacy session management [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr]
-	test_logger.go:72: 2018-10-22 14:46:59.82811 api.go:503             : [D] using provisional session args [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr]
-	test_logger.go:79: 2018-10-22 14:46:59.82817 api.go:141             : [I] | Cli wasn't found; remaking for cookied=true
-	test_logger.go:72: 2018-10-22 14:46:59.83884 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/sig/get.json?low=0&read_deleted=0&uid=b7bff05349c05c804aedb0c95c5c6619&v2_compressed=1: err=ok, status="200 OK", jsonwBytes=0 [tags:LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83889 api.go:720             : [D] - api.doRequestShared -> <nil> [time=10.904535ms] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT,API=qtNrXwbvQ5yr]
-	test_logger.go:72: 2018-10-22 14:46:59.83897 sig_chain.go:327       : [D] | Got back 0 new entries [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83899 sig_chain.go:240       : [D] - Loaded SigChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83901 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83902 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83903 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83904 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83906 sig_chain.go:1376      : [D] - SigChain#VerifyChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83908 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) StoreChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83910 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifySig [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83911 sig_chain.go:1247      : [D] VerifySigsAndComputeKeys(): l.leaf: &{<nil> <nil> 0 emai_ad3086805a b7bff05349c05c804aedb0c95c5c6619  <nil>}, l.leaf.eldest: , l.ckf: {{<nil>} 0xc42034e3c0 <nil>} [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83914 sig_chain.go:798       : [D] + verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 (eldest = ) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83916 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83918 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83920 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83921 sig_chain.go:803       : [D] - SigChain#VerifyChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83923 sig_chain.go:828       : [D] | VerifyWithKey short-circuit, since no Key available [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83925 sig_chain.go:800       : [D] - verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83926 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) Store [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83928 sig_chain.go:1308      : [D] - SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) -> (true, ok) [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.83930 sig_chain.go:1300      : [I] time> SigChainLoader#Load: emai_ad3086805a: 12.140459ms
-	test_logger.go:79: 2018-10-22 14:46:59.83932 sig_chain.go:1300      : [I] time> LoadSigChains: emai_ad3086805a: 12.170201ms
-	test_logger.go:72: 2018-10-22 14:46:59.83934 user.go:332            : [D] + Store user emai_ad3086805a [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83935 sig_hints.go:133       : [D] + SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83937 sig_hints.go:138       : [D] | SigHints.Store() skipped; wasn't dirty [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83938 sig_hints.go:140       : [D] - SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:LU=PUltN8-Mn_dT,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83949 user.go:354            : [D] - Store user emai_ad3086805a -> OK [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:79: 2018-10-22 14:46:59.83950 user.go:537            : [I] + HasActiveKey
-	test_logger.go:79: 2018-10-22 14:46:59.83952 user.go:542            : [I] | no eldest KID; must have reset or be new
-	test_logger.go:79: 2018-10-22 14:46:59.83953 user.go:539            : [I] - HasActiveKey -> false
-	test_logger.go:72: 2018-10-22 14:46:59.83955 signup.go:196          : [D] - LoadUser({UID:b7bff05349c05c804aedb0c95c5c6619 Name:"" PublicKeyOptional:true NoCacheResult:false Self:true ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) -> <nil> [time=52.296313ms] [tags:ENG=3nsa_DgRAAOD,LU=PUltN8-Mn_dT]
-	test_logger.go:72: 2018-10-22 14:46:59.83957 signup.go:206          : [D] SignupEngine#registerDevice [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83965 engine.go:99           : [D] + RunEngine(DeviceWrap) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83968 device_wrap.go:159     : [D] + DeviceWrap#Run [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83969 device_wrap.go:67      : [D] + DeviceWrap#registerDevice [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83972 device_wrap.go:76      : [D] Device name: my device [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83974 device_wrap.go:77      : [D] Device ID: ab0449a9e6aee89af318bc704b7ad718 [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83976 device_wrap.go:161     : [D] - DeviceWrap#registerDevice -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83977 device_wrap.go:82      : [D] + DeviceWrap#genKeys [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83979 engine.go:99           : [D] + RunEngine(DeviceKeygen) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83981 context.go:614         : [D] + MetaContext#HasAnySession [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83986 context.go:618         : [D] | has temporary login session [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83988 engine.go:78           : [D] - MetaContext#HasAnySession -> true [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83990 device_keygen.go:100   : [D] + DeviceKeygen#Run [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83992 device_keygen.go:204   : [D] + DeviceKeygen#setup [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83994 device_keygen.go:102   : [D] - DeviceKeygen#setup -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.83995 device_keygen.go:228   : [D] + DeviceKeygen#generate [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84015 device_keygen.go:103   : [D] - DeviceKeygen#generate -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84017 device_keygen.go:253   : [D] + DeviceKeygen#localSave [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84019 lksec.go:514           : [D] + WriteLksSKBToKeyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84021 lksec.go:487           : [D] + LKSec#ToSKB [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84023 lksec.go:334           : [D] + LKsec:Encrypt() [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84024 lksec.go:266           : [D] + LKSec::Load() [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84025 lksec.go:292           : [D] + LKSec::LoadServerHalf() [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84026 lksec.go:295           : [D] | short-circuit: already have serverHalf [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84027 lksec.go:278           : [D] - LKSec::LoadServerHalf() -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84028 lksec.go:287           : [D] | Making XOR'ed secret key for Local Key Security (LKS) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84029 lksec.go:335           : [D] - LKSec::Load() -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84030 lksec.go:501           : [D] - LKsec:Encrypt() -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84032 lksec.go:515           : [D] - LKSec#ToSKB -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84034 generickey.go:74       : [D] + skbPushAndSave [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84035 context.go:660         : [D] + MetaContext#Keyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84037 provisional_login_context.go:122: [D] + ProvisionalLoginContext#Keyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84038 provisional_login_context.go:130: [D] Account: loading keyring for emai_ad3086805a [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84043 skb_keyring.go:123     : [I] + Loading SKB keyring: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:79: 2018-10-22 14:46:59.84047 skb_keyring.go:128     : [I] | Keybase secret keyring doesn't exist: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:72: 2018-10-22 14:46:59.84050 context.go:662         : [D] - ProvisionalLoginContext#Keyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84051 generickey.go:75       : [D] - MetaContext#Keyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84053 skb_keyring.go:310     : [I] SKBKeyringFile: saveLocked /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack: dirty, safe saving
-	test_logger.go:79: 2018-10-22 14:46:59.84055 util.go:186            : [I] + SafeWriteToFile("/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack")
-	test_logger.go:79: 2018-10-22 14:46:59.84059 util.go:195            : [I] | Temporary file generated: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.M3QAKMPQQJOFXXJHRMRAKE3LECVJL7JR
-	test_logger.go:79: 2018-10-22 14:46:59.84060 util.go:199            : [I] | WriteTo /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.M3QAKMPQQJOFXXJHRMRAKE3LECVJL7JR
-	test_logger.go:79: 2018-10-22 14:46:59.84062 skb_keyring.go:375     : [I] + SKBKeyringFile WriteTo
-	test_logger.go:79: 2018-10-22 14:46:59.84088 skb_keyring.go:388     : [I] SKBKeyringFile: b64 stream closed successfully
-	test_logger.go:79: 2018-10-22 14:46:59.84089 skb_keyring.go:396     : [I] - SKBKeyringFile WriteTo
-	test_logger.go:79: 2018-10-22 14:46:59.84092 util.go:222            : [I] | Renaming temporary file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.M3QAKMPQQJOFXXJHRMRAKE3LECVJL7JR -> permanent file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:79: 2018-10-22 14:46:59.84096 util.go:243            : [I] | Done writing to file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:79: 2018-10-22 14:46:59.84098 util.go:188            : [I] - SafeWriteToFile("/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack") -> ok
-	test_logger.go:79: 2018-10-22 14:46:59.84100 skb_keyring.go:316     : [I] SKBKeyringFile: saveLocked success for /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:72: 2018-10-22 14:46:59.84102 lksec.go:519           : [D] - skbPushAndSave -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84104 naclgen.go:45          : [D] - WriteLksSKBToKeyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84106 lksec.go:514           : [D] + WriteLksSKBToKeyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84108 lksec.go:487           : [D] + LKSec#ToSKB [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84109 lksec.go:334           : [D] + LKsec:Encrypt() [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84110 lksec.go:266           : [D] + LKSec::Load() [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84111 lksec.go:269           : [D] | Short-circuit; we already know the full secret [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84112 lksec.go:335           : [D] - LKSec::Load() -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84114 lksec.go:501           : [D] - LKsec:Encrypt() -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84115 lksec.go:515           : [D] - LKSec#ToSKB -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84116 generickey.go:74       : [D] + skbPushAndSave [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84118 context.go:660         : [D] + MetaContext#Keyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84119 provisional_login_context.go:122: [D] + ProvisionalLoginContext#Keyring [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84121 context.go:662         : [D] - ProvisionalLoginContext#Keyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84123 generickey.go:75       : [D] - MetaContext#Keyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84126 skb_keyring.go:310     : [I] SKBKeyringFile: saveLocked /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack: dirty, safe saving
-	test_logger.go:79: 2018-10-22 14:46:59.84128 util.go:186            : [I] + SafeWriteToFile("/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack")
-	test_logger.go:79: 2018-10-22 14:46:59.84132 util.go:195            : [I] | Temporary file generated: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.MXMXZPKA6BMWDVOSYHUEMIXZUN66W7GU
-	test_logger.go:79: 2018-10-22 14:46:59.84140 util.go:199            : [I] | WriteTo /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.MXMXZPKA6BMWDVOSYHUEMIXZUN66W7GU
-	test_logger.go:79: 2018-10-22 14:46:59.84141 skb_keyring.go:375     : [I] + SKBKeyringFile WriteTo
-	test_logger.go:79: 2018-10-22 14:46:59.84159 skb_keyring.go:388     : [I] SKBKeyringFile: b64 stream closed successfully
-	test_logger.go:79: 2018-10-22 14:46:59.84160 skb_keyring.go:396     : [I] - SKBKeyringFile WriteTo
-	test_logger.go:79: 2018-10-22 14:46:59.84164 util.go:222            : [I] | Renaming temporary file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack.MXMXZPKA6BMWDVOSYHUEMIXZUN66W7GU -> permanent file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:79: 2018-10-22 14:46:59.84168 util.go:243            : [I] | Done writing to file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:79: 2018-10-22 14:46:59.84170 util.go:188            : [I] - SafeWriteToFile("/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack") -> ok
-	test_logger.go:79: 2018-10-22 14:46:59.84171 skb_keyring.go:316     : [I] SKBKeyringFile: saveLocked success for /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/secretkeys.emai_ad3086805a.mpack
-	test_logger.go:72: 2018-10-22 14:46:59.84172 lksec.go:519           : [D] - skbPushAndSave -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84173 naclgen.go:45          : [D] - WriteLksSKBToKeyring -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84174 device_keygen.go:104   : [D] - DeviceKeygen#localSave -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84175 engine.go:111          : [D] - DeviceKeygen#Run -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84177 device_wrap.go:96      : [D] - RunEngine(DeviceKeygen) -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84178 device_keygen.go:133   : [D] DeviceKeygen#Push PUK(upgrade:true) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84190 device_keygen.go:279   : [D] + DeviceKeygen#appendEldest [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84192 device_keygen.go:161   : [D] - DeviceKeygen#appendEldest -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84193 device_keygen.go:311   : [D] + DeviceKeygen#appendEncKey [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84194 device_keygen.go:171   : [D] - DeviceKeygen#appendEncKey -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84195 delegatekey.go:160     : [D] + Delegator#Run [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84196 delegatekey.go:83      : [D] + Delegator#CheckArgs [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84197 delegatekey.go:97      : [D] | Picking new key for an eldest self-sig [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84198 delegatekey.go:109     : [D] | Picked key 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a for signing [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84199 delegatekey.go:162     : [D] - Delegator#CheckArgs -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84200 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84201 sig_chain.go:491       : [I] + GetLastLoadedSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84202 sig_chain.go:493       : [I] - GetLastLoadedSeqno() -> 0
-	test_logger.go:79: 2018-10-22 14:46:59.84203 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 0
-	test_logger.go:79: 2018-10-22 14:46:59.84234 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84235 sig_chain.go:491       : [I] + GetLastLoadedSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84236 sig_chain.go:493       : [I] - GetLastLoadedSeqno() -> 0
-	test_logger.go:79: 2018-10-22 14:46:59.84237 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 0
-	test_logger.go:79: 2018-10-22 14:46:59.84238 sig_chain.go:225       : [I] | Bumping SigChain LastKnownSeqno to 1
-	test_logger.go:79: 2018-10-22 14:46:59.84240 sig_chain.go:94        : [I] SigChain#LocalDelegate(key: 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a, sigID: 6ffdf5bad746b56baf324a57726a70d1e4585556f54a3ebf1690db218cd5cdcb0f, signingKid: , isSibkey: true)
-	test_logger.go:79: 2018-10-22 14:46:59.84242 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a with  at sig 6ffdf5bad746b56baf324a57726a70d1e4585556f54a3ebf1690db218cd5cdcb0f
-	test_logger.go:72: 2018-10-22 14:46:59.84243 delegatekeyaggregator.go:33: [D] - Delegator#Run -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84246 delegatekey.go:160     : [D] + Delegator#Run [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84247 delegatekey.go:83      : [D] + Delegator#CheckArgs [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84248 delegatekey.go:95      : [D] | Picked passed-in signing key [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84249 delegatekey.go:109     : [D] | Picked key 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a for signing [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84250 delegatekey.go:162     : [D] - Delegator#CheckArgs -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84251 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84252 sig_chain.go:482       : [I] | Cached in last summary object...
-	test_logger.go:79: 2018-10-22 14:46:59.84252 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 1
-	test_logger.go:79: 2018-10-22 14:46:59.84275 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84276 sig_chain.go:482       : [I] | Cached in last summary object...
-	test_logger.go:79: 2018-10-22 14:46:59.84277 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 1
-	test_logger.go:79: 2018-10-22 14:46:59.84278 sig_chain.go:225       : [I] | Bumping SigChain LastKnownSeqno to 2
-	test_logger.go:79: 2018-10-22 14:46:59.84279 sig_chain.go:94        : [I] SigChain#LocalDelegate(key: 012107d6cf8f9e9df85cdc950b77506c3f62cf6a4bf6a019a9189d827730d20a246c0a, sigID: bd51a774e97b951d5e11d571346e86d92d5ab12841715a13b922bdbedf82c3fd0f, signingKid: 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a, isSibkey: false)
-	test_logger.go:79: 2018-10-22 14:46:59.84281 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 012107d6cf8f9e9df85cdc950b77506c3f62cf6a4bf6a019a9189d827730d20a246c0a with 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a at sig bd51a774e97b951d5e11d571346e86d92d5ab12841715a13b922bdbedf82c3fd0f
-	test_logger.go:72: 2018-10-22 14:46:59.84282 delegatekeyaggregator.go:33: [D] - Delegator#Run -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:46:59.84300 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84300 sig_chain.go:482       : [I] | Cached in last summary object...
-	test_logger.go:79: 2018-10-22 14:46:59.84302 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 2
-	test_logger.go:79: 2018-10-22 14:46:59.84366 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84367 sig_chain.go:482       : [I] | Cached in last summary object...
-	test_logger.go:79: 2018-10-22 14:46:59.84368 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 2
-	test_logger.go:79: 2018-10-22 14:46:59.84369 sig_chain.go:225       : [I] | Bumping SigChain LastKnownSeqno to 3
-	test_logger.go:79: 2018-10-22 14:46:59.84370 sig_chain.go:477       : [I] + GetLastKnownSeqno()
-	test_logger.go:79: 2018-10-22 14:46:59.84371 sig_chain.go:482       : [I] | Cached in last summary object...
-	test_logger.go:79: 2018-10-22 14:46:59.84372 sig_chain.go:479       : [I] - GetLastKnownSeqno() -> 3
-	test_logger.go:79: 2018-10-22 14:46:59.84373 user.go:669            : [I] User LocalDelegatePerUserKey gen:1 seqno:3 sig:012079009d327ef3a9a3c570035ed91eb8b5b47c735672249bebab1813c0d4eada8d0a enc:0121eba968ac7af7e43f0d2cfe28d006976d843711cab8e51d4cd1d5149eabd726350a
-	test_logger.go:72: 2018-10-22 14:46:59.84386 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:46:59.84389 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:46:59.84390 api.go:231             : [D] active device couldn't generate a NIST [tags:API=FbUQU6szokgV,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:46:59.84391 api.go:612             : [D] fixHeaders: falling back to legacy session management [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:46:59.84392 api.go:503             : [D] using provisional session args [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:47:00.06547 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/key/multi.json: err=ok, status="200 OK", jsonwBytes=157 [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:47:00.06552 api.go:851             : [D] - api.doRequestShared -> <nil> [time=221.63844ms] [tags:ENG=3nsa_DgRAAOD,API=FbUQU6szokgV]
-	test_logger.go:72: 2018-10-22 14:47:00.06557 api.go:872             : [D] - API call key/multi success [tags:API=FbUQU6szokgV,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.06560 device_keygen.go:336   : [D] + DeviceKeygen#pushLKS [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.06562 device_keygen.go:328   : [D] + DeviceKeygen#generateClientHalfRecovery [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.06586 device_keygen.go:355   : [D] - DeviceKeygen#generateClientHalfRecovery -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.06588 post.go:197            : [D] | PostDeviceLKS: ab0449a9e6aee89af318bc704b7ad718 [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.06595 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.06598 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.06600 api.go:231             : [D] active device couldn't generate a NIST [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.06601 api.go:612             : [D] fixHeaders: falling back to legacy session management [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.06603 api.go:503             : [D] using provisional session args [tags:API=9o0_ndhqaKnP,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07597 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/device/update.json: err=ok, status="200 OK", jsonwBytes=157 [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.07600 api.go:851             : [D] - api.doRequestShared -> <nil> [time=10.02672ms] [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.07603 api.go:872             : [D] - API call device/update success [tags:ENG=3nsa_DgRAAOD,API=9o0_ndhqaKnP]
-	test_logger.go:72: 2018-10-22 14:47:00.07605 device_keygen.go:198   : [D] - DeviceKeygen#pushLKS -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07607 device_wrap.go:165     : [D] - DeviceWrap#genKeys -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07609 engine.go:111          : [D] - DeviceWrap#Run -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07610 signup.go:230          : [D] - RunEngine(DeviceWrap) -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07611 device_wrap.go:129     : [D] + DeviceWrap#SetActiveDevice [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07612 device_wrap.go:116     : [D] + DeviceWrap#refreshMe [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07614 device_wrap.go:120     : [D] reloading Me because we just bumped eldest seqno or self provisioned [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07617 loaduser.go:276        : [D] + LoadUser({UID: Name:"" PublicKeyOptional:false NoCacheResult:false Self:true ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07618 loaduser.go:299        : [D] LoadUser(uid=b7bff05349c05c804aedb0c95c5c6619, name=) [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07619 loaduser.go:310        : [D] | resolved to b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07620 sig_hints.go:145       : [D] + + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07621 sig_hints.go:155       : [D] | SigHints loaded @v0 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07623 sig_hints.go:157       : [D] - LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07624 loaduser.go:323        : [D] - + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07626 loaduser.go:431        : [D] + LoadUserFromLocalStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07631 loaduser.go:442        : [D] | Loaded successfully [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.07632 keyfamily.go:420       : [I] + ParseKeyFamily
-	test_logger.go:79: 2018-10-22 14:47:00.07635 user.go:77             : [I] - ParseKeyFamily -> ok
-	test_logger.go:72: 2018-10-22 14:47:00.07637 loaduser.go:452        : [D] | Loaded username emai_ad3086805a (uid=b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.07638 loaduser.go:453        : [D] - LoadUserFromLocalStorage(emai_ad3086805a,b7bff05349c05c804aedb0c95c5c6619) [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.07659 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6cJOg9BgSd3S]
-	test_logger.go:72: 2018-10-22 14:47:00.08993 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/merkle/path.json?last=1633&load_deleted=1&load_reset_chain=1&poll=10&sig_hints_low=0&uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=12839 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6cJOg9BgSd3S]
-	test_logger.go:72: 2018-10-22 14:47:00.08996 api.go:851             : [D] - api.doRequestShared -> <nil> [time=13.353078ms] [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6cJOg9BgSd3S]
-	test_logger.go:72: 2018-10-22 14:47:00.09000 api.go:872             : [D] - API call merkle/path success [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6cJOg9BgSd3S]
-	test_logger.go:72: 2018-10-22 14:47:00.09002 sig_hints.go:180       : [D] + RefreshWith [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09003 sig_hints.go:187       : [D] | No changes; version 0 was up-to-date [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09004 merkle_client.go:683   : [D] - RefreshWith -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.09015 special_keys.go:69     : [I] + SpecialKeyRing.Load(0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a)
-	test_logger.go:79: 2018-10-22 14:47:00.09016 special_keys.go:77     : [I] - SpecialKeyRing.Load(0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a) -> hit inmem cache
-	test_logger.go:79: 2018-10-22 14:47:00.09073 user.go:298            : [I] | Local basics version is out-of-date: 0 < 1
-	test_logger.go:72: 2018-10-22 14:47:00.09074 loaduser.go:411        : [D] | Freshness: basics=false; for b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09075 loaduser.go:500        : [D] Load User from server: b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09078 api.go:249             : [D] + api.doRequestShared [tags:LU=maU5f1oJzES3,API=0No1_blcXMoE,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.09490 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/user/lookup.json?load_deleted=1&uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=1043 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=0No1_blcXMoE]
-	test_logger.go:72: 2018-10-22 14:47:00.09494 api.go:851             : [D] - api.doRequestShared -> <nil> [time=4.147006ms] [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=0No1_blcXMoE]
-	test_logger.go:72: 2018-10-22 14:47:00.09499 api.go:872             : [D] - API call user/lookup success [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=0No1_blcXMoE]
-	test_logger.go:79: 2018-10-22 14:47:00.09502 keyfamily.go:420       : [I] + ParseKeyFamily
-	test_logger.go:79: 2018-10-22 14:47:00.09507 user.go:77             : [I] - ParseKeyFamily -> ok
-	test_logger.go:72: 2018-10-22 14:47:00.09508 loaduser.go:525        : [D] - Load user from server: b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.09510 sig_chain.go:1306      : [D] + SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09511 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) GetFingerprint [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09512 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) AccessPreload [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:47:00.09513 sig_chain.go:1037      : [I] | Preload not provided
-	test_logger.go:72: 2018-10-22 14:47:00.09513 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) LoadLinksFromStorage [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09514 sig_chain.go:1049      : [D] + SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.09516 sig_chain.go:1028      : [I] | LastLinkId was null
-	test_logger.go:72: 2018-10-22 14:47:00.09517 sig_chain.go:1054      : [D] | short-circuting LoadLinksFromStorage: LoadLastLinkIDFromStorage returned err=<nil> [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09518 sig_chain.go:1056      : [D] | mt (MerkleTriple) nil result from load last link ID from storage [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09519 sig_chain.go:1325      : [D] - SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) -> <nil> [time=36.595µs] [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09520 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) MakeSigChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09521 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09522 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09523 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09523 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09524 sig_chain.go:1336      : [D] - SigChain#VerifyChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09525 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) CheckFreshness [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.09526 sig_chain.go:1160      : [I] + CheckFreshness
-	test_logger.go:79: 2018-10-22 14:47:00.09527 sig_chain.go:1166      : [I] | Server triple: &{3 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 63d88098b4115030996f13b7e3a771b3b5308060bf16ec822f54424b9d3b7d6a0f}
-	test_logger.go:79: 2018-10-22 14:47:00.09529 sig_chain.go:1175      : [I] | Client triple=nil
-	test_logger.go:79: 2018-10-22 14:47:00.09530 sig_chain.go:1180      : [I] | Future triple=nil
-	test_logger.go:79: 2018-10-22 14:47:00.09531 sig_chain.go:1209      : [I] | Local chain version is out-of-date: -1 < 3
-	test_logger.go:79: 2018-10-22 14:47:00.09532 sig_chain.go:1218      : [I] - CheckFreshness (b7bff05349c05c804aedb0c95c5c6619) -> (false,ok)
-	test_logger.go:72: 2018-10-22 14:47:00.09533 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) LoadFromServer [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.09534 sig_chain.go:491       : [I] + GetLastLoadedSeqno()
-	test_logger.go:79: 2018-10-22 14:47:00.09535 sig_chain.go:493       : [I] - GetLastLoadedSeqno() -> 0
-	test_logger.go:72: 2018-10-22 14:47:00.09535 sig_chain.go:239       : [D] + Load SigChain from server (uid=b7bff05349c05c804aedb0c95c5c6619, low=0) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.09539 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.09541 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.09543 api.go:231             : [D] active device couldn't generate a NIST [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.09544 api.go:612             : [D] fixHeaders: falling back to legacy session management [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.09545 api.go:503             : [D] using provisional session args [tags:API=6lzOPyJLt4QA,ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10124 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/sig/get.json?low=0&read_deleted=0&uid=b7bff05349c05c804aedb0c95c5c6619&v2_compressed=1: err=ok, status="200 OK", jsonwBytes=0 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.10127 api.go:720             : [D] - api.doRequestShared -> <nil> [time=5.866152ms] [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3,API=6lzOPyJLt4QA]
-	test_logger.go:72: 2018-10-22 14:47:00.10169 sig_chain.go:309       : [D] | Setting isOwnNewLinkFromServer=true for seqno 1 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10203 sig_chain.go:309       : [D] | Setting isOwnNewLinkFromServer=true for seqno 2 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10243 sig_chain.go:309       : [D] | Setting isOwnNewLinkFromServer=true for seqno 3 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.10244 chain_link.go:508      : [I] | Found chain tail advertised in Merkle tree @3
-	test_logger.go:72: 2018-10-22 14:47:00.10245 sig_chain.go:327       : [D] | Got back 3 new entries [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10249 sig_chain.go:240       : [D] - Loaded SigChain -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10251 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10252 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10253 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10254 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10256 sig_chain.go:1376      : [D] - SigChain#VerifyChain -> ok [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10256 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) StoreChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10272 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifySig [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10273 sig_chain.go:1247      : [D] VerifySigsAndComputeKeys(): l.leaf: &{0xc420479c50 <nil> 1 emai_ad3086805a b7bff05349c05c804aedb0c95c5c6619 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a <nil>}, l.leaf.eldest: 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a, l.ckf: {{<nil>} 0xc4228320f0 <nil>} [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10274 sig_chain.go:798       : [D] + verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 (eldest = 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a) [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10275 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10276 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10277 sig_chain.go:384       : [D] | short-circuit at link 2 [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10278 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10279 sig_chain.go:803       : [D] - SigChain#VerifyChain -> ok [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10280 sig_chain.go:651       : [D] + verifySubchain [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.10294 keyfamily.go:378       : [I] ComputedKeyFamily#InsertEldestLink uid=b7bff05349c05c804aedb0c95c5c6619, seq=1, link=f99374077ac724c5ec6b8b1e0cf47e08fcda557aad21162c3d0df3ddf93e8cd1
-	test_logger.go:79: 2018-10-22 14:47:00.10332 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a with 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a at sig 6ffdf5bad746b56baf324a57726a70d1e4585556f54a3ebf1690db218cd5cdcb0f
-	test_logger.go:79: 2018-10-22 14:47:00.10345 keyfamily.go:1057      : [I] + UpdateDevice
-	test_logger.go:79: 2018-10-22 14:47:00.10346 keyfamily.go:1062      : [I] | Device ID=ab0449a9e6aee89af318bc704b7ad718; KID=0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a
-	test_logger.go:79: 2018-10-22 14:47:00.10346 keyfamily.go:1071      : [I] | New insert
-	test_logger.go:79: 2018-10-22 14:47:00.10348 sig_chain.go:781       : [I] - UpdateDevice -> ok
-	test_logger.go:79: 2018-10-22 14:47:00.10384 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 012107d6cf8f9e9df85cdc950b77506c3f62cf6a4bf6a019a9189d827730d20a246c0a with 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a at sig bd51a774e97b951d5e11d571346e86d92d5ab12841715a13b922bdbedf82c3fd0f
-	test_logger.go:79: 2018-10-22 14:47:00.10488 chain_link.go:1204     : [I] Caching SigCheck for link 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 (version: 4)
-	test_logger.go:72: 2018-10-22 14:47:00.10490 sig_chain.go:653       : [D] - verifySubchain -> false, ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10491 sig_chain.go:800       : [D] - verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10492 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) Store [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10499 sig_chain.go:1271      : [D] | Storing dirtyTail @ 3 (&{3 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 63d88098b4115030996f13b7e3a771b3b5308060bf16ec822f54424b9d3b7d6a0f}) [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10524 sig_chain.go:1308      : [D] - SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) -> (true, ok) [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.10525 sig_chain.go:1300      : [I] time> SigChainLoader#Load: emai_ad3086805a: 10.15055ms
-	test_logger.go:79: 2018-10-22 14:47:00.10526 sig_chain.go:1300      : [I] time> LoadSigChains: emai_ad3086805a: 10.160499ms
-	test_logger.go:72: 2018-10-22 14:47:00.10527 user.go:332            : [D] + Store user emai_ad3086805a [tags:LU=maU5f1oJzES3,ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10527 sig_hints.go:133       : [D] + SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10528 sig_hints.go:138       : [D] | SigHints.Store() skipped; wasn't dirty [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10529 sig_hints.go:140       : [D] - SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10533 user.go:354            : [D] - Store user emai_ad3086805a -> OK [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.10534 user.go:537            : [I] + HasActiveKey
-	test_logger.go:79: 2018-10-22 14:47:00.10535 user.go:547            : [I] | Checking user's ComputedKeyFamily
-	test_logger.go:79: 2018-10-22 14:47:00.10536 user.go:539            : [I] - HasActiveKey -> true
-	test_logger.go:72: 2018-10-22 14:47:00.10537 id_table.go:1311       : [D] + IdentityTable#populate [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10539 id_table.go:1306       : [D] - IdentityTable#populate -> ok [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:79: 2018-10-22 14:47:00.10539 user.go:512            : [I] + VerifySelfSig for user emai_ad3086805a
-	test_logger.go:79: 2018-10-22 14:47:00.10540 id_table.go:1373       : [I] | Found self-signature for emai_ad3086805a @uid=b7bff05349c05c804aedb0c95c5c6619, seq=3, link=9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224
-	test_logger.go:79: 2018-10-22 14:47:00.10541 user.go:515            : [I] - VerifySelfSig via SigChain
-	test_logger.go:72: 2018-10-22 14:47:00.10542 loaduser.go:261        : [D] - LoadUser({UID: Name:"" PublicKeyOptional:false NoCacheResult:false Self:true ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) -> <nil> [time=29.24101ms] [tags:ENG=3nsa_DgRAAOD,LU=maU5f1oJzES3]
-	test_logger.go:72: 2018-10-22 14:47:00.10543 device_wrap.go:131     : [D] - DeviceWrap#refreshMe -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:47:00.10544 config.go:364          : [I] | SetUserConfig(emai_ad3086805a)
-	test_logger.go:79: 2018-10-22 14:47:00.10546 json.go:195            : [I] + saving config file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.UIKGPU5AGOOVFJLUQ2FSK5KR
-	test_logger.go:79: 2018-10-22 14:47:00.10552 json.go:255            : [I] - saved config file /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.UIKGPU5AGOOVFJLUQ2FSK5KR
-	test_logger.go:79: 2018-10-22 14:47:00.10552 json.go:337            : [I] + Commit config rewrite /tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.UIKGPU5AGOOVFJLUQ2FSK5KR
-	test_logger.go:79: 2018-10-22 14:47:00.10553 json.go:340            : [I] | Commit: making parent directories for "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json"
-	test_logger.go:79: 2018-10-22 14:47:00.10554 json.go:344            : [I] | Commit : renaming "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json.UIKGPU5AGOOVFJLUQ2FSK5KR" => "/tmp/TestEmailHappyPath_3e4c013bb0780785356/.config/keybase.devel/config.json"
-	test_logger.go:79: 2018-10-22 14:47:00.10557 json.go:338            : [I] - Commit config rewrite ok
-	test_logger.go:72: 2018-10-22 14:47:00.10558 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10558 active_device.go:407   : [D] + ActiveDevice#SyncSecrets [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10559 active_device.go:384   : [D] + ActiveDevice#SyncSecretsForUID [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10560 syncer.go:31           : [D] + RunSyncer(b7bff05349c05c804aedb0c95c5c6619) [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10561 sync_secret.go:97      : [D] | loadFromStorage -> found=false, err=ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10562 sync_secret.go:102     : [D] | Loaded empty record set [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.10565 api.go:249             : [D] + api.doRequestShared [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10566 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10567 nist.go:94             : [D] | NISTFactory#NIST: nil NIST, making new one [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10569 nist.go:223            : [D] + NIST#generate [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10570 nist.go:255            : [D] NIST: uid=b7bff05349c05c804aedb0c95c5c6619; kid=0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a; deviceID=ab0449a9e6aee89af318bc704b7ad718 [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10585 nist.go:109            : [D] - NIST#generate -> ok [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.10586 nist.go:114            : [D] | NISTFactory#NIST: Installing new NIST; expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.13791 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/key/fetch_private.json: err=ok, status="200 OK", jsonwBytes=1228 [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.13794 api.go:851             : [D] - api.doRequestShared -> <nil> [time=32.284827ms] [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.13798 api.go:872             : [D] - API call key/fetch_private success [tags:ENG=3nsa_DgRAAOD,API=E8tYRQdlO6jD]
-	test_logger.go:72: 2018-10-22 14:47:00.13800 sync_secret.go:137     : [D] | syncFromServer -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13815 sync_secret.go:147     : [D] | Returned object: {Status: {0 OK}, Version: 3, #pgpkeys: 0, #devices: 1} [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13817 sync_secret.go:149     : [D] | upgrade to version -> 3 [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13824 active_device.go:400   : [D] - RunSyncer(b7bff05349c05c804aedb0c95c5c6619) -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13826 active_device.go:409   : [D] - ActiveDevice#SyncSecretsForUID -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13827 device_wrap.go:149     : [D] - ActiveDevice#SyncSecrets -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13828 signup.go:233          : [D] - DeviceWrap#SetActiveDevice -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:47:00.13829 session.go:94          : [I] Local Session: setting provisioned device id: ab0449a9e6aee89af318bc704b7ad718
-	test_logger.go:72: 2018-10-22 14:47:00.13830 signup.go:254          : [D] + SignupEngine#storeSecret [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13831 signup.go:259          : [D] not storing secret; disabled [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13831 signup.go:245          : [D] - SignupEngine#storeSecret -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13832 signup.go:247          : [D] registered new device: ab0449a9e6aee89af318bc704b7ad718 [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13833 signup.go:248          : [D] eldest kid: 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13834 context.go:245         : [D] MetaContext#CommitProvisionalLogin [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13835 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:79: 2018-10-22 14:47:00.13836 globals.go:929         : [I] G#CallLoginHooks
-	test_logger.go:79: 2018-10-22 14:47:00.13837 globals.go:1170        : [I] + G#GetPerUserKeyring
-	test_logger.go:72: 2018-10-22 14:47:00.13837 globals.go:1189        : [D] G#GetPerUserKeyring -> new
-	test_logger.go:79: 2018-10-22 14:47:00.13838 globals.go:932         : [I] - G#GetPerUserKeyring -> ok
-	test_logger.go:72: 2018-10-22 14:47:00.13839 stellar_stub.go:25     : [E] null stellar impl [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13840 engine.go:111          : [D] - SignupEngine#Run -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13840 kbtest.go:113          : [D] - RunEngine(Signup) -> ok [tags:ENG=3nsa_DgRAAOD]
-	test_logger.go:72: 2018-10-22 14:47:00.13843 loaduser.go:276        : [D] + LoadUser({UID: Name:"emai_ad3086805a" PublicKeyOptional:false NoCacheResult:false Self:false ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.13844 loaduser.go:299        : [D] LoadUser(uid=, name=emai_ad3086805a) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.13845 resolve.go:135         : [D] + Resolving username "emai_ad3086805a"
-	test_logger.go:72: 2018-10-22 14:47:00.13852 api.go:249             : [D] + api.doRequestShared [tags:API=GzDWOv6_HsNC]
-	test_logger.go:72: 2018-10-22 14:47:00.14371 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/user/lookup.json?fields=basics%2Cpublic_keys%2Cpictures&load_deleted_v2=1&multi=1&username=emai_ad3086805a: err=ok, status="200 OK", jsonwBytes=1045 [tags:API=GzDWOv6_HsNC]
-	test_logger.go:72: 2018-10-22 14:47:00.14374 api.go:851             : [D] - api.doRequestShared -> <nil> [time=5.214986ms] [tags:API=GzDWOv6_HsNC]
-	test_logger.go:72: 2018-10-22 14:47:00.14378 api.go:872             : [D] - API call user/lookup success [tags:API=GzDWOv6_HsNC]
-	test_logger.go:72: 2018-10-22 14:47:00.14384 resolve.go:599         : [D] | Resolver#putToDiskCache(keybase:emai_ad3086805a) -> {uid:b7bff05349c05c804aedb0c95c5c6619 teamID: err:ok mutable:false}
-	test_logger.go:72: 2018-10-22 14:47:00.14386 resolve.go:240         : [D] | Resolver#resolveURL(keybase:emai_ad3086805a) -> {uid:b7bff05349c05c804aedb0c95c5c6619 teamID: err:ok mutable:false} [trace:sp]
-	test_logger.go:72: 2018-10-22 14:47:00.14387 resolve.go:127         : [D] - Resolving username "emai_ad3086805a" -> <nil> [time=5.419378ms]
-	test_logger.go:72: 2018-10-22 14:47:00.14391 loaduser.go:310        : [D] | resolved to b7bff05349c05c804aedb0c95c5c6619 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14392 sig_hints.go:145       : [D] + + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14393 sig_hints.go:155       : [D] | SigHints loaded @v0 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14394 sig_hints.go:157       : [D] - LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14395 loaduser.go:323        : [D] - + LoadSigHints(b7bff05349c05c804aedb0c95c5c6619) -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14396 loaduser.go:431        : [D] + LoadUserFromLocalStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14400 loaduser.go:442        : [D] | Loaded successfully [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.14401 keyfamily.go:420       : [I] + ParseKeyFamily
-	test_logger.go:79: 2018-10-22 14:47:00.14406 user.go:77             : [I] - ParseKeyFamily -> ok
-	test_logger.go:72: 2018-10-22 14:47:00.14406 loaduser.go:452        : [D] | Loaded username emai_ad3086805a (uid=b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14407 loaduser.go:453        : [D] - LoadUserFromLocalStorage(emai_ad3086805a,b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.14428 api.go:249             : [D] + api.doRequestShared [tags:LU=Y3I4_zY6BgQv,API=66ZDuswvNymQ]
-	test_logger.go:72: 2018-10-22 14:47:00.15300 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/merkle/path.json?last=1634&load_deleted=1&load_reset_chain=1&poll=10&sig_hints_low=0&uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=12828 [tags:LU=Y3I4_zY6BgQv,API=66ZDuswvNymQ]
-	test_logger.go:72: 2018-10-22 14:47:00.15303 api.go:851             : [D] - api.doRequestShared -> <nil> [time=8.735785ms] [tags:LU=Y3I4_zY6BgQv,API=66ZDuswvNymQ]
-	test_logger.go:72: 2018-10-22 14:47:00.15305 api.go:872             : [D] - API call merkle/path success [tags:LU=Y3I4_zY6BgQv,API=66ZDuswvNymQ]
-	test_logger.go:72: 2018-10-22 14:47:00.15307 sig_hints.go:180       : [D] + RefreshWith [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15308 sig_hints.go:187       : [D] | No changes; version 0 was up-to-date [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15309 merkle_client.go:683   : [D] - RefreshWith -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15347 user.go:296            : [I] | Local basics version is up-to-date @ version 1
-	test_logger.go:72: 2018-10-22 14:47:00.15348 loaduser.go:411        : [D] | Freshness: basics=true; for b7bff05349c05c804aedb0c95c5c6619 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15350 sig_chain.go:1306      : [D] + SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15350 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) GetFingerprint [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15351 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) AccessPreload [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15352 sig_chain.go:1037      : [I] | Preload not provided
-	test_logger.go:72: 2018-10-22 14:47:00.15353 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) LoadLinksFromStorage [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15353 sig_chain.go:1049      : [D] + SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15358 sig_chain.go:1114      : [D] | Loaded 3 links [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15359 sig_chain.go:1325      : [D] - SigChainLoader.LoadFromStorage(b7bff05349c05c804aedb0c95c5c6619) -> <nil> [time=49.156µs] [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15360 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) MakeSigChain [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15361 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifyChain [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15362 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15363 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15364 sig_chain.go:382       : [D] Continuing verification at link 2 due to uncomputed high skip. [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15365 sig_chain.go:382       : [D] Continuing verification at link 1 due to uncomputed high skip. [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15366 sig_chain.go:384       : [D] | short-circuit at link 0 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15367 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15368 sig_chain.go:1336      : [D] - SigChain#VerifyChain -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15368 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) CheckFreshness [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15369 sig_chain.go:1160      : [I] + CheckFreshness
-	test_logger.go:79: 2018-10-22 14:47:00.15370 sig_chain.go:1166      : [I] | Server triple: &{3 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 63d88098b4115030996f13b7e3a771b3b5308060bf16ec822f54424b9d3b7d6a0f}
-	test_logger.go:79: 2018-10-22 14:47:00.15371 sig_chain.go:1172      : [I] | Client triple: &{3 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 63d88098b4115030996f13b7e3a771b3b5308060bf16ec822f54424b9d3b7d6a0f}
-	test_logger.go:79: 2018-10-22 14:47:00.15372 sig_chain.go:1180      : [I] | Future triple=nil
-	test_logger.go:79: 2018-10-22 14:47:00.15373 sig_chain.go:1198      : [I] | Local chain version is up-to-date @ version 3
-	test_logger.go:79: 2018-10-22 14:47:00.15374 sig_chain.go:1218      : [I] - CheckFreshness (b7bff05349c05c804aedb0c95c5c6619) -> (false,ok)
-	test_logger.go:72: 2018-10-22 14:47:00.15374 sig_chain.go:1360      : [D] | Sigchain was fully cached. Short-circuiting verification. [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15375 sig_chain.go:1312      : [D] | SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) VerifySig (in fully cached) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15376 sig_chain.go:1247      : [D] VerifySigsAndComputeKeys(): l.leaf: &{0xc420504ff0 <nil> 1 emai_ad3086805a b7bff05349c05c804aedb0c95c5c6619 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a <nil>}, l.leaf.eldest: 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a, l.ckf: {{<nil>} 0xc4200c8a50 <nil>} [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15378 sig_chain.go:798       : [D] + verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 (eldest = 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15379 sig_chain.go:365       : [D] + SigChain#VerifyChain [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15379 sig_chain.go:366       : [D] + SigChain#VerifyChain() [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15380 sig_chain.go:384       : [D] | short-circuit at link 2 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15381 sig_chain.go:368       : [D] - SigChain#VerifyChain() -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15382 sig_chain.go:803       : [D] - SigChain#VerifyChain -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15382 sig_chain.go:651       : [D] + verifySubchain [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15386 keyfamily.go:378       : [I] ComputedKeyFamily#InsertEldestLink uid=b7bff05349c05c804aedb0c95c5c6619, seq=1, link=f99374077ac724c5ec6b8b1e0cf47e08fcda557aad21162c3d0df3ddf93e8cd1
-	test_logger.go:79: 2018-10-22 14:47:00.15434 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a with 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a at sig 6ffdf5bad746b56baf324a57726a70d1e4585556f54a3ebf1690db218cd5cdcb0f
-	test_logger.go:79: 2018-10-22 14:47:00.15443 keyfamily.go:1057      : [I] + UpdateDevice
-	test_logger.go:79: 2018-10-22 14:47:00.15444 keyfamily.go:1062      : [I] | Device ID=ab0449a9e6aee89af318bc704b7ad718; KID=0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a
-	test_logger.go:79: 2018-10-22 14:47:00.15444 keyfamily.go:1071      : [I] | New insert
-	test_logger.go:79: 2018-10-22 14:47:00.15446 sig_chain.go:781       : [I] - UpdateDevice -> ok
-	test_logger.go:79: 2018-10-22 14:47:00.15475 keyfamily.go:643       : [I] ComputeKeyInfos#Delegate To 012107d6cf8f9e9df85cdc950b77506c3f62cf6a4bf6a019a9189d827730d20a246c0a with 0120a2439eb7e7020d49069530bbaf4c8cadd27ad903fbea7daceee1bc65cd0fd9220a at sig bd51a774e97b951d5e11d571346e86d92d5ab12841715a13b922bdbedf82c3fd0f
-	test_logger.go:79: 2018-10-22 14:47:00.15560 chain_link.go:1204     : [I] Caching SigCheck for link 9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224 (version: 4)
-	test_logger.go:72: 2018-10-22 14:47:00.15561 sig_chain.go:653       : [D] - verifySubchain -> false, ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15562 sig_chain.go:800       : [D] - verifySigsAndComputeKeysCurrent for user b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15563 sig_chain.go:1308      : [D] - SigChainLoader#Load(b7bff05349c05c804aedb0c95c5c6619) -> (true, ok) [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15564 sig_chain.go:1300      : [I] time> SigChainLoader#Load: emai_ad3086805a: 2.139147ms
-	test_logger.go:79: 2018-10-22 14:47:00.15564 sig_chain.go:1300      : [I] time> LoadSigChains: emai_ad3086805a: 2.148057ms
-	test_logger.go:72: 2018-10-22 14:47:00.15565 user.go:332            : [D] + Store user emai_ad3086805a [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15566 sig_hints.go:133       : [D] + SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15566 sig_hints.go:138       : [D] | SigHints.Store() skipped; wasn't dirty [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15567 sig_hints.go:140       : [D] - SigHints.Store() for uid=b7bff05349c05c804aedb0c95c5c6619 -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15569 user.go:341            : [D] - Store for emai_ad3086805a skipped; user wasn't dirty [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15570 user.go:537            : [I] + HasActiveKey
-	test_logger.go:79: 2018-10-22 14:47:00.15570 user.go:547            : [I] | Checking user's ComputedKeyFamily
-	test_logger.go:79: 2018-10-22 14:47:00.15571 user.go:539            : [I] - HasActiveKey -> true
-	test_logger.go:72: 2018-10-22 14:47:00.15572 id_table.go:1311       : [D] + IdentityTable#populate [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15573 id_table.go:1306       : [D] - IdentityTable#populate -> ok [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:79: 2018-10-22 14:47:00.15574 user.go:512            : [I] + VerifySelfSig for user emai_ad3086805a
-	test_logger.go:79: 2018-10-22 14:47:00.15574 id_table.go:1373       : [I] | Found self-signature for emai_ad3086805a @uid=b7bff05349c05c804aedb0c95c5c6619, seq=3, link=9c45582adf4c4cc1540a6f0b6358bab7c6d7d83084693bf38adae9bab6ab6224
-	test_logger.go:79: 2018-10-22 14:47:00.15575 user.go:515            : [I] - VerifySelfSig via SigChain
-	test_logger.go:72: 2018-10-22 14:47:00.15576 kbtest.go:116          : [D] - LoadUser({UID: Name:"emai_ad3086805a" PublicKeyOptional:false NoCacheResult:false Self:false ForceReload:false ForcePoll:false StaleOK:false AbortIfSigchainUnchanged:false CachedOnly:false}) -> <nil> [time=17.320025ms] [tags:LU=Y3I4_zY6BgQv]
-	test_logger.go:72: 2018-10-22 14:47:00.15581 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.15583 api.go:249             : [D] + api.doRequestShared [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.15585 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.15586 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.94983723s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.20314 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/email/add.json: err=ok, status="200 OK", jsonwBytes=33 [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.20323 api.go:851             : [D] - api.doRequestShared -> <nil> [time=47.377692ms] [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.20333 api.go:872             : [D] - API call email/add success [tags:API=CZ4d8nfg7Z14]
-	test_logger.go:72: 2018-10-22 14:47:00.20345 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.20355 api.go:249             : [D] + api.doRequestShared [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.20364 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.20368 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.902028524s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.25176 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/email/edit.json: err=ok, status="200 OK", jsonwBytes=33 [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.25181 api.go:851             : [D] - api.doRequestShared -> <nil> [time=48.199597ms] [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.25185 api.go:872             : [D] - API call email/edit success [tags:API=SiXDQIs5YCm_]
-	test_logger.go:72: 2018-10-22 14:47:00.25191 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.25195 api.go:249             : [D] + api.doRequestShared [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.25198 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.25200 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.853705116s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.27322 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/user/lookup.json?uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=3527 [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.27325 api.go:851             : [D] - api.doRequestShared -> <nil> [time=21.290116ms] [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.27329 api.go:872             : [D] - API call user/lookup success [tags:API=7K9oL9oHYTVI]
-	test_logger.go:72: 2018-10-22 14:47:00.27336 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.27339 api.go:249             : [D] + api.doRequestShared [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.27341 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.27342 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.832274777s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.29494 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/email/set-primary.json: err=ok, status="200 OK", jsonwBytes=33 [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.29498 api.go:851             : [D] - api.doRequestShared -> <nil> [time=21.57368ms] [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.29501 api.go:872             : [D] - API call email/set-primary success [tags:API=bS35V2a3m8RS]
-	test_logger.go:72: 2018-10-22 14:47:00.29505 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.29507 api.go:249             : [D] + api.doRequestShared [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.29509 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.29510 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.810595115s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.30917 api.go:281             : [D] - API GET http://localhost:3000/_/api/1.0/user/lookup.json?uid=b7bff05349c05c804aedb0c95c5c6619: err=ok, status="200 OK", jsonwBytes=3515 [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.30920 api.go:851             : [D] - api.doRequestShared -> <nil> [time=14.12056ms] [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.30923 api.go:872             : [D] - API call user/lookup success [tags:API=RQ9C1hoW1yys]
-	test_logger.go:72: 2018-10-22 14:47:00.30930 context.go:164         : [D] installing background context.Context
-	test_logger.go:72: 2018-10-22 14:47:00.30932 api.go:249             : [D] + api.doRequestShared [tags:API=BgYpOBKSNTOD]
-	test_logger.go:72: 2018-10-22 14:47:00.30934 context.go:110         : [D] MetaContext#ActiveDevice: global [tags:API=BgYpOBKSNTOD]
-	test_logger.go:72: 2018-10-22 14:47:00.30935 nist.go:100            : [D] | NISTFactory#NIST: returning existing NIST (expires conservatively in 25h59m59.796348925s, expiresAt: 2018-10-24 18:47:00.105699003 -0400 EDT) [tags:API=BgYpOBKSNTOD]
-	test_logger.go:72: 2018-10-22 14:47:00.31815 api.go:281             : [D] - API POST http://localhost:3000/_/api/1.0/email/delete.json: err=ok, status="200 OK", jsonwBytes=97 [tags:API=BgYpOBKSNTOD]
-	test_logger.go:72: 2018-10-22 14:47:00.31819 api.go:851             : [D] - api.doRequestShared -> <nil> [time=8.853249ms] [tags:API=BgYpOBKSNTOD]
-	test_logger.go:72: 2018-10-22 14:47:00.31822 api.go:867             : [D] - API call email/delete error: Cannot delete primary email (error 716) [tags:API=BgYpOBKSNTOD]
-	user_test.go:81: 
-			Error Trace:	user_test.go:81
-			Error:      	Received unexpected error:
-			            	Cannot delete primary email (error 716)
-			Test:       	TestEmailHappyPath
-	test_logger.go:56: TEST FAILED: TestEmailHappyPath
-	test_logger.go:79: 2018-10-22 14:47:00.31829 [X] test_common.go:103     : [I] global context shutdown:
-	test_logger.go:79: 2018-10-22 14:47:00.31830 [X] globals.go:628         : [I] GlobalContext#Shutdown(0xc420183400)
-	test_logger.go:79: 2018-10-22 14:47:00.31831 [X] leveldb.go:208         : [I] Closing LevelDB local cache: /tmp/TestEmailHappyPath_3e4c013bb0780785356/.local/share/keybase.devel/keybase.leveldb
-	test_logger.go:79: 2018-10-22 14:47:00.31839 [X] globals.go:672         : [I] exiting shutdown code=0; err=<nil>
-	test_logger.go:79: 2018-10-22 14:47:00.31841 [X] test_common.go:106     : [I] cleaning up /tmp/TestEmailHappyPath_3e4c013bb0780785356
-	test_logger.go:79: 2018-10-22 14:47:00.31861 [X] test_common.go:108     : [I] clearing stored secrets:
-	test_logger.go:79: 2018-10-22 14:47:00.31864 [X] test_common.go:111     : [I] cleanup complete
-FAIL
-FAIL	github.com/keybase/client/go/emails	0.665s
