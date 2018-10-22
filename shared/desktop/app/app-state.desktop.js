@@ -131,6 +131,7 @@ export default class AppState {
     }
 
     if (process.platform === 'darwin' || process.platform === 'win32') {
+      logger.info('Setting login item state', this.state.openAtLogin)
       SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
     }
   }
