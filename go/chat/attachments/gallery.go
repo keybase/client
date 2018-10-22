@@ -91,7 +91,7 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	}
 
 	for {
-		g.Debug(ctx, "NextMessage: starting scan: next: %x", pagination.Next)
+		g.Debug(ctx, "NextMessage: starting scan: p: %s pivot: %d", pagination, pivot)
 		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
