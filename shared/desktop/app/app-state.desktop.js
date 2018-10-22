@@ -3,7 +3,6 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
-import {appBundlePath} from './paths.desktop'
 import {isEqual} from 'lodash-es'
 import logger from '../../logger'
 
