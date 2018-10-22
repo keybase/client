@@ -3,9 +3,7 @@ import logger from '../logger'
 import * as Styles from '../styles'
 import React, {PureComponent} from 'react'
 import {isMobile} from '../constants/platform'
-import Emoji from './emoji'
 import Text from './text'
-import {Box} from './box'
 import {
   reactOutputFontScaling,
   reactOutputNoFontScaling,
@@ -83,12 +81,7 @@ function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
     return null
   }
 
-  return new RegExp(
-    `^#(${meta.mentionsChannelName
-      .keySeq()
-      .toArray()
-      .join('|')})\\b`
-  )
+  return new RegExp(`^#(${meta.mentionsChannelName.keySeq().join('|')})\\b`)
 }
 
 function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?ConversationIDKey {
@@ -240,7 +233,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.inlineCode,
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
-    // ours: onlyh allow a single backtick
+    // ours: only allow a single backtick
     match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*([\s\S]*?[^`\n])\s*\1(?!`)/),
   },
   paragraph: {
@@ -274,8 +267,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.del,
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
-    // ours: single tidle doesn't cross a newline
-    // match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
+    // ours: single tilde doesn't cross a newline
     match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/),
   },
   blockQuote: {

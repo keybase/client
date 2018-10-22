@@ -220,9 +220,8 @@ const perfTestCase = new RegExp(`
 `)
 
 const generateCase = (seed: string) => {
-  const random = RandomSeed.create(seed)
-  RandExp.prototype.randInt = random.intBetween
-  return new RandExp(perfTestCase).gen()
+  const random = new Sb.Rnd(seed)
+  return random.generateString(perfTestCase)
 }
 
 const randomGenerated = {

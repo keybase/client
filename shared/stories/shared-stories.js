@@ -5,7 +5,6 @@ import devices from '../devices/index.stories'
 import fs from '../fs/index.stories'
 import git from '../git/index.stories'
 import login from '../login/index.stories'
-import markdown from '../common-adapters/markdown.stories.js'
 import provision from '../provision/index.stories'
 import people from '../people/index.stories'
 import profile from '../profile/index.stories'
@@ -25,7 +24,6 @@ const stories = {
   fs,
   git,
   login,
-  markdown,
   people,
   profile,
   provision,
