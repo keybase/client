@@ -124,10 +124,6 @@ export default class AppState {
     this.setOSLoginState()
   }
 
-  getDarwinAppName() {
-    return __DEV__ ? 'Electron Helper' : 'Keybase'
-  }
-
   setOSLoginState() {
     if (__DEV__) {
       logger.info('Skipping auto login state change due to dev env. ')
