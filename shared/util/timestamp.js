@@ -123,10 +123,10 @@ moment.defineLocale('people', {
 // When we define a locale, moment uses it. So reset it to use the default
 moment.locale(defaultLocale)
 
-const peopleItemFormatter = moment().locale('people')
-
 export function formatTimeForPeopleItem(time: number): string {
-  return peopleItemFormatter.set(moment(time)).fromNow(true)
+  return moment(time)
+    .locale('people')
+    .fromNow(true)
 }
 
 const oneMinuteInMs = 60 * 1000

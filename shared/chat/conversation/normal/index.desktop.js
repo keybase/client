@@ -114,18 +114,21 @@ class Conversation extends React.PureComponent<Props, State> {
       >
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
+          isPending={this.props.isPending}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
           infoPanelOpen={this.props.infoPanelOpen}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
+          isPending={this.props.isPending}
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
+          isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
           onScrollDown={this.props.onScrollDown}
           conversationIDKey={this.props.conversationIDKey}

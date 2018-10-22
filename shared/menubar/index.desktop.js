@@ -228,14 +228,10 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
-        {Flags.fileWidgetEnabled ? (
-          <Kb.ScrollView>
-            <ChatContainer convLimit={3} />
-            <FilesPreview />
-          </Kb.ScrollView>
-        ) : (
-          <ChatContainer />
-        )}
+        <Kb.ScrollView>
+          <ChatContainer convLimit={3} />
+          <FilesPreview />
+        </Kb.ScrollView>
         <UploadWithCountdown
           endEstimate={this.props.endEstimate}
           files={this.props.files}
