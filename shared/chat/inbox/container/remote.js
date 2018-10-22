@@ -7,7 +7,7 @@ import type {TypedState} from '../../../constants/reducer'
 import Flags from '../../../util/feature-flags'
 import memoize from 'memoize-one'
 
-export const maxShownConversations = Flags.fileWidgetEnabled ? 3 : 7
+export const maxShownConversations = 3
 
 export type RemoteConvMeta = $Diff<
   {|
