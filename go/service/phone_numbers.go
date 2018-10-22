@@ -48,6 +48,18 @@ func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int
 	return phonenumbers.GetPhoneNumbers(mctx)
 }
 
+func (h *PhoneNumbersHandler) DeletePhoneNumber(ctx context.Context, arg keybase1.DeletePhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#DeletePhoneNumber", func() error { return err })()
+	return phonenumbers.DeletePhoneNumber(mctx, arg.PhoneNumber)
+}
+
+func (h *PhoneNumbersHandler) SetVisibilityPhoneNumber(ctx context.Context, arg keybase1.SetVisibilityPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("PhoneNumbersHandler#SetVisibilityPhoneNumber", func() error { return err })()
+	return phonenumbers.SetVisibilityPhoneNumber(mctx, arg.PhoneNumber, arg.Visibility)
+}
+
 const phoneNumbersGregorHandlerName = "phoneHandler"
 
 type phoneNumbersGregorHandler struct {

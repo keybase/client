@@ -73,6 +73,10 @@
         {
           "name": "phoneNumber",
           "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
         }
       ],
       "response": null
@@ -105,6 +109,36 @@
         "type": "array",
         "items": "UserPhoneNumber"
       }
+    },
+    "deletePhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityPhoneNumber": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "PhoneNumber"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

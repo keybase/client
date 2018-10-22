@@ -340,4 +340,9 @@ protocol Common {
     string username;
     UnixTime ctime;
   }
+
+  enum IdentityVisibility {
+      PRIVATE_0,
+      PUBLIC_1
+  }
 }

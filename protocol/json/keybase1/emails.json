@@ -1,0 +1,111 @@
+{
+  "protocol": "emails",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "addEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "deleteEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "editEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "oldEmail",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "setPrimaryEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "sendVerificationEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "setVisibilityEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "visibility",
+          "type": "IdentityVisibility"
+        }
+      ],
+      "response": null
+    },
+    "getEmails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Email"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

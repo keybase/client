@@ -54,8 +54,9 @@ func (o PhoneNumberSupersededMsg) DeepCopy() PhoneNumberSupersededMsg {
 }
 
 type AddPhoneNumberArg struct {
-	SessionID   int         `codec:"sessionID" json:"sessionID"`
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
+	SessionID   int                `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
+	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
 type VerifyPhoneNumberArg struct {
@@ -68,10 +69,23 @@ type GetPhoneNumbersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DeletePhoneNumberArg struct {
+	SessionID   int         `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
+}
+
+type SetVisibilityPhoneNumberArg struct {
+	SessionID   int                `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phoneNumber"`
+	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
+}
+
 type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
+	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
+	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
 }
 
 func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
@@ -123,6 +137,38 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					return
 				},
 			},
+			"deletePhoneNumber": {
+				MakeArg: func() interface{} {
+					var ret [1]DeletePhoneNumberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DeletePhoneNumberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DeletePhoneNumberArg)(nil), args)
+						return
+					}
+					err = i.DeletePhoneNumber(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setVisibilityPhoneNumber": {
+				MakeArg: func() interface{} {
+					var ret [1]SetVisibilityPhoneNumberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetVisibilityPhoneNumberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetVisibilityPhoneNumberArg)(nil), args)
+						return
+					}
+					err = i.SetVisibilityPhoneNumber(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -144,5 +190,15 @@ func (c PhoneNumbersClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyP
 func (c PhoneNumbersClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
 	__arg := GetPhoneNumbersArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.getPhoneNumbers", []interface{}{__arg}, &res)
+	return
+}
+
+func (c PhoneNumbersClient) DeletePhoneNumber(ctx context.Context, __arg DeletePhoneNumberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.deletePhoneNumber", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg SetVisibilityPhoneNumberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil)
 	return
 }

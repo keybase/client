@@ -59,3 +59,32 @@ func GetPhoneNumbers(mctx libkb.MetaContext) ([]keybase1.UserPhoneNumber, error)
 	}
 	return resp.PhoneNumbers, nil
 }
+
+func DeletePhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) error {
+	payload := make(libkb.JSONPayload)
+	payload["phone_number"] = phoneNumber
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_numbers",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.Delete(arg)
+	return err
+}
+
+func SetVisibilityPhoneNumber(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber, visibility keybase1.IdentityVisibility) error {
+	payload := make(libkb.JSONPayload)
+	payload["phone_number"] = phoneNumber
+	payload["visibility"] = visibility
+
+	arg := libkb.APIArg{
+		Endpoint:    "user/phone_number_visibility",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := mctx.G().API.PostJSON(arg)
+	return err
+}

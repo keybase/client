@@ -14,9 +14,11 @@ protocol phoneNumbers {
       UnixTime ctime;
     }
 
-    void addPhoneNumber(int sessionID, PhoneNumber phoneNumber);
+    void addPhoneNumber(int sessionID, PhoneNumber phoneNumber, IdentityVisibility visibility);
     void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
     array<UserPhoneNumber> getPhoneNumbers(int sessionID);
+    void deletePhoneNumber(int sessionID, PhoneNumber phoneNumber);
+    void setVisibilityPhoneNumber(int sessionID, PhoneNumber phoneNumber, IdentityVisibility visibility);
 
     record PhoneNumberAddedMsg {
         @jsonkey("phone")

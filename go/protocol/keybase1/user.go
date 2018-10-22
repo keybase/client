@@ -129,14 +129,16 @@ func (o UserSummary) DeepCopy() UserSummary {
 }
 
 type Email struct {
-	Email      string `codec:"email" json:"email"`
-	IsVerified bool   `codec:"isVerified" json:"isVerified"`
+	Email      EmailAddress `codec:"email" json:"email"`
+	IsVerified bool         `codec:"isVerified" json:"isVerified"`
+	IsPrimary  bool         `codec:"isPrimary" json:"isPrimary"`
 }
 
 func (o Email) DeepCopy() Email {
 	return Email{
-		Email:      o.Email,
+		Email:      o.Email.DeepCopy(),
 		IsVerified: o.IsVerified,
+		IsPrimary:  o.IsPrimary,
 	}
 }
 
@@ -230,6 +232,12 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 			return &tmp
 		})(o.Res),
 	}
+}
+
+type EmailAddress string
+
+func (o EmailAddress) DeepCopy() EmailAddress {
+	return o
 }
 
 type ListTrackersArg struct {

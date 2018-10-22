@@ -766,6 +766,14 @@
           "name": "ctime"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "IdentityVisibility",
+      "symbols": [
+        "PRIVATE_0",
+        "PUBLIC_1"
+      ]
     }
   ],
   "messages": {},
