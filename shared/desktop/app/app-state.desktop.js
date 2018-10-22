@@ -133,103 +133,10 @@ export default class AppState {
       logger.info('Skipping auto login state change due to dev env. ')
       return
     }
-    // Comment this out if you want to test auto login stuff
 
-    const isDarwin = process.platform === 'darwin'
-    const isWindows = process.platform === 'win32'
-    // Electron has a bug where app.setLoginItemSettings() to false fails!
-    // https://github.com/electron/electron/issues/10880
-    if (isDarwin) {
-      this.setDarwinLoginState()
-    } else if (isWindows) {
-      this.setWinLoginState()
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
     }
-  }
-
-  setDarwinLoginState() {
-    const applescript = require('applescript')
-
-    try {
-      this.checkMultiDarwinLoginItems()
-      const appName = this.getDarwinAppName()
-      if (this.state.openAtLogin) {
-        applescript.execString(
-          `tell application "System Events" to get the name of login item "${appName}"`,
-          (err, result) => {
-            if (!err) {
-              // our login item is there, nothing to do
-              return
-            }
-            try {
-              applescript.execString(
-                `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
-                  ''}", hidden:false, name:"${appName}"}`,
-                (err, result) => {
-                  if (err) {
-                    logger.info(`apple script error making login item: ${err}, ${result}`)
-                  }
-                }
-              )
-            } catch (e) {
-              logger.info('Error setting apple startup prefs: ', e)
-            }
-          }
-        )
-      } else {
-        try {
-          applescript.execString(
-            `tell application "System Events" to delete login item "${appName}"`,
-            (err, result) => {
-              if (err) {
-                logger.info(`apple script error removing login item: ${err}, ${result}`)
-              }
-            }
-          )
-        } catch (e) {
-          logger.info('Error setting apple startup prefs: ', e)
-        }
-      }
-    } catch (e) {
-      logger.info('Error setting apple startup prefs: ', e)
-    }
-  }
-
-  // Remove all our entries but one to repair a previous bug. Can eventually be removed.
-  checkMultiDarwinLoginItems() {
-    const applescript = require('applescript')
-    const appName = this.getDarwinAppName()
-
-    applescript.execString(
-      `tell application "System Events" to get the name of every login item`,
-      (err, result) => {
-        if (err) {
-          logger.info(`Error getting every login item: ${err}, ${result}`)
-          return
-        }
-        var foundApp = false
-        for (var loginItem in result) {
-          if (result[loginItem] === appName) {
-            if (!foundApp) {
-              foundApp = true
-              continue
-            }
-            logger.info('login items: deleting ', appName)
-            applescript.execString(
-              `tell application "System Events" to delete login item "${appName}"`,
-              (err, result) => {
-                if (err) {
-                  logger.info(`apple script error deleting multi login items: ${err}, ${result}`)
-                }
-              }
-            )
-          }
-        }
-      }
-    )
-  }
-
-  setWinLoginState() {
-    SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {
