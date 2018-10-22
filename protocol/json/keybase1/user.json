@@ -134,12 +134,16 @@
       "name": "Email",
       "fields": [
         {
-          "type": "string",
+          "type": "EmailAddress",
           "name": "email"
         },
         {
           "type": "boolean",
           "name": "isVerified"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
         }
       ]
     },
@@ -304,6 +308,12 @@
           "jsonkey": "ctime"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailAddress",
+      "fields": [],
+      "typedef": "string"
     }
   ],
   "messages": {
@@ -730,6 +740,87 @@
       "response": {
         "type": "array",
         "items": "UserPhoneNumber"
+      }
+    },
+    "addEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "deleteEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "editEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "oldEmail",
+          "type": "EmailAddress"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "setPrimaryEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "sendVerificationEmail": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null
+    },
+    "getEmails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Email"
       }
     }
   },

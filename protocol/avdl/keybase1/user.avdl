@@ -42,8 +42,9 @@ protocol user {
   }
 
   record Email {
-    string email;
+    EmailAddress email;
     boolean isVerified;
+    boolean isPrimary;
   }
 
   record UserSettings {
@@ -196,4 +197,15 @@ protocol user {
   void addPhoneNumber(int sessionID, PhoneNumber phoneNumber);
   void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
   array<UserPhoneNumber> getPhoneNumbers(int sessionID);
+
+  // Phone number in E.164 format.
+  @typedef("string")
+  record EmailAddress {}
+
+  void addEmail(int sessionID, EmailAddress email);
+  void deleteEmail(int sessionID, EmailAddress email);
+  void editEmail(int sessionID, EmailAddress oldEmail, EmailAddress email);
+  void setPrimaryEmail(int sessionID, EmailAddress email);
+  void sendVerificationEmail(int sessionID, EmailAddress email);
+  array<Email> getEmails(int sessionID);
 }

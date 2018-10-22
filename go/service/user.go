@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/phonenumbers"
@@ -391,4 +392,41 @@ func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret [
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.CTraceTimed("UserHandler#GetPhoneNumbers", func() error { return err })()
 	return phonenumbers.GetPhoneNumbers(mctx)
+}
+
+func (h *UserHandler) AddEmail(ctx context.Context, arg keybase1.AddEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#AddEmail", func() error { return err })()
+	return emails.AddEmail(mctx, arg.Email)
+}
+
+func (h *UserHandler) DeleteEmail(ctx context.Context, arg keybase1.DeleteEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#DeleteEmail", func() error { return err })()
+	return emails.DeleteEmail(mctx, arg.Email)
+}
+
+func (h *UserHandler) SetPrimaryEmail(ctx context.Context, arg keybase1.SetPrimaryEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#SetPrimaryEmail", func() error { return err })()
+	return emails.SetPrimaryEmail(mctx, arg.Email)
+}
+
+func (h *UserHandler) EditEmail(ctx context.Context, arg keybase1.EditEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#EditEmail", func() error { return err })()
+	return emails.EditEmail(mctx, arg.OldEmail, arg.Email)
+}
+
+func (h *UserHandler) SendVerificationEmail(ctx context.Context, arg keybase1.SendVerificationEmailArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#SendVerificationEmail", func() error { return err })()
+	return emails.SendVerificationEmail(mctx, arg.Email)
+}
+
+func (h *UserHandler) GetEmails(ctx context.Context, sessionID int) ([]keybase1.Email, error) {
+	var err error
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.CTraceTimed("UserHandler#GetEmails", func() error { return err })()
+	return emails.GetEmails(mctx)
 }

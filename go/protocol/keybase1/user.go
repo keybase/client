@@ -129,14 +129,16 @@ func (o UserSummary) DeepCopy() UserSummary {
 }
 
 type Email struct {
-	Email      string `codec:"email" json:"email"`
-	IsVerified bool   `codec:"isVerified" json:"isVerified"`
+	Email      EmailAddress `codec:"email" json:"email"`
+	IsVerified bool         `codec:"isVerified" json:"isVerified"`
+	IsPrimary  bool         `codec:"isPrimary" json:"isPrimary"`
 }
 
 func (o Email) DeepCopy() Email {
 	return Email{
-		Email:      o.Email,
+		Email:      o.Email.DeepCopy(),
 		IsVerified: o.IsVerified,
+		IsPrimary:  o.IsPrimary,
 	}
 }
 
@@ -293,6 +295,12 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	}
 }
 
+type EmailAddress string
+
+func (o EmailAddress) DeepCopy() EmailAddress {
+	return o
+}
+
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -433,6 +441,36 @@ type GetPhoneNumbersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type AddEmailArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Email     EmailAddress `codec:"email" json:"email"`
+}
+
+type DeleteEmailArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Email     EmailAddress `codec:"email" json:"email"`
+}
+
+type EditEmailArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	OldEmail  EmailAddress `codec:"oldEmail" json:"oldEmail"`
+	Email     EmailAddress `codec:"email" json:"email"`
+}
+
+type SetPrimaryEmailArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Email     EmailAddress `codec:"email" json:"email"`
+}
+
+type SendVerificationEmailArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Email     EmailAddress `codec:"email" json:"email"`
+}
+
+type GetEmailsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -484,6 +522,12 @@ type UserInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
+	AddEmail(context.Context, AddEmailArg) error
+	DeleteEmail(context.Context, DeleteEmailArg) error
+	EditEmail(context.Context, EditEmailArg) error
+	SetPrimaryEmail(context.Context, SetPrimaryEmailArg) error
+	SendVerificationEmail(context.Context, SendVerificationEmailArg) error
+	GetEmails(context.Context, int) ([]Email, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -922,6 +966,102 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"addEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]AddEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddEmailArg)(nil), args)
+						return
+					}
+					err = i.AddEmail(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deleteEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]DeleteEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DeleteEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DeleteEmailArg)(nil), args)
+						return
+					}
+					err = i.DeleteEmail(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"editEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]EditEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EditEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EditEmailArg)(nil), args)
+						return
+					}
+					err = i.EditEmail(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setPrimaryEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]SetPrimaryEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetPrimaryEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetPrimaryEmailArg)(nil), args)
+						return
+					}
+					err = i.SetPrimaryEmail(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"sendVerificationEmail": {
+				MakeArg: func() interface{} {
+					var ret [1]SendVerificationEmailArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SendVerificationEmailArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SendVerificationEmailArg)(nil), args)
+						return
+					}
+					err = i.SendVerificationEmail(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getEmails": {
+				MakeArg: func() interface{} {
+					var ret [1]GetEmailsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetEmailsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetEmailsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetEmails(ctx, typedArgs[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1092,5 +1232,36 @@ func (c UserClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumb
 func (c UserClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
 	__arg := GetPhoneNumbersArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.getPhoneNumbers", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) AddEmail(ctx context.Context, __arg AddEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.addEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) DeleteEmail(ctx context.Context, __arg DeleteEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.deleteEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) EditEmail(ctx context.Context, __arg EditEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.editEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) SetPrimaryEmail(ctx context.Context, __arg SetPrimaryEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.setPrimaryEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) SendVerificationEmail(ctx context.Context, __arg SendVerificationEmailArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.sendVerificationEmail", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) GetEmails(ctx context.Context, sessionID int) (res []Email, err error) {
+	__arg := GetEmailsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.getEmails", []interface{}{__arg}, &res)
 	return
 }
