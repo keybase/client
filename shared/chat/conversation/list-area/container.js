@@ -55,21 +55,20 @@ class ListArea extends React.PureComponent<Props> {
 
 const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
-const mapStateToProps = (state, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   let type
-  let conversationIDKeyToShow = conversationIDKey
   if (
-    conversationIDKey === Constants.pendingConversationIDKey &&
+    isPending &&
     state.chat2.pendingMode === 'searchingForUsers' &&
     !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
   ) {
     // There are search results; show list
     type = 'search'
   } else {
-    if (conversationIDKey === Constants.pendingConversationIDKey) {
-      const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
+    if (isPending) {
       const inputResults = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
-      switch (resolvedPendingConversationIDKey) {
+      switch (conversationIDKey) {
+        case Constants.pendingConversationIDKey: // fallthrough
         case Constants.noConversationIDKey:
           if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.length) {
             // No search results + no users in input; show spinner
@@ -86,7 +85,6 @@ const mapStateToProps = (state, {conversationIDKey}) => {
         default:
           // No search results + convo exists; show thread
           type = 'normal'
-          conversationIDKeyToShow = resolvedPendingConversationIDKey
           break
       }
     } else {
@@ -95,7 +93,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   }
 
   return {
-    conversationIDKey: conversationIDKeyToShow,
+    conversationIDKey,
     type,
   }
 }
