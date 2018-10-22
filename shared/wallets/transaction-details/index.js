@@ -120,7 +120,8 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-      return Styles.globalColors.black_75
+    case 'cancelable':
+      return Styles.globalColors.purple2
     case 'error':
     case 'canceled':
       return Styles.globalColors.red
@@ -240,7 +241,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
                   ? 'iconfont-close'
                   : props.status === 'completed'
                     ? 'iconfont-success'
-                    : 'icon-transaction-pending-16'
+                    : 'iconfont-clock'
               }
             />
             <Kb.Text

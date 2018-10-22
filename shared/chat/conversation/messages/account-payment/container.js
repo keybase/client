@@ -26,8 +26,20 @@ const loadingProps = {
 }
 
 // Tooltip text for cancelable payments
-const makeCancelButtonInfo = (username: string) =>
-  `This transaction can be canceled because ${username} does not yet have a wallet. Encourage ${username} to claim this and set up a wallet.`
+const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
+
+// Get action phrase for sendPayment msg
+const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified) => {
+  switch (status) {
+    case 'pending': // fallthrough
+    case 'canceled':
+      return 'sending'
+    case 'cancelable':
+      return 'attempting to send'
+    default:
+      return 'sent'
+  }
+}
 
 type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment,
@@ -49,10 +61,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
       const theirUsername = conv.participants.find(p => p !== you) || ''
 
-      const pending = ['pending', 'cancelable'].includes(paymentInfo.status)
-      const canceled = paymentInfo.status === 'canceled'
       const cancelable = paymentInfo.status === 'cancelable'
-      const verb = pending || canceled ? 'sending' : 'sent'
+      const pending = cancelable || paymentInfo.status === 'pending'
+      const canceled = paymentInfo.status === 'canceled'
+      const verb = makeSendPaymentVerb(paymentInfo.status)
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
@@ -70,7 +82,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
             ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
                 paymentInfo.amountDescription}`
             : '',
-        icon: paymentInfo.status === 'pending' ? 'icon-transaction-pending-16' : 'iconfont-stellar-send',
+        icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
         pending,

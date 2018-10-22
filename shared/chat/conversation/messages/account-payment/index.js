@@ -7,14 +7,12 @@ import {
   ProgressIndicator,
   Text,
   WaitingButton,
-  WithTooltip,
   type IconType,
 } from '../../../../common-adapters'
 import {
   collapseStyles,
   globalColors,
   globalMargins,
-  isMobile,
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
@@ -101,7 +99,8 @@ const AccountPayment = (props: Props) => {
         />
       )}
       {!!props.cancelButtonLabel && (
-        <Box2 direction="horizontal" centerChildren={true} gap="tiny" style={{alignSelf: 'flex-start'}}>
+        <Box2 direction="vertical" fullWidth={true} gap="xtiny">
+          <Text type="BodySmall">{props.cancelButtonInfo}</Text>
           <WaitingButton
             waitingKey={null}
             type="Danger"
@@ -110,16 +109,6 @@ const AccountPayment = (props: Props) => {
             small={true}
             style={{alignSelf: 'flex-start'}}
           />
-          {!isMobile && (
-            <WithTooltip
-              multiline={true}
-              position="top center"
-              text={props.cancelButtonInfo}
-              textStyle={styles.tooltipText}
-            >
-              <Icon type="iconfont-question-mark" />
-            </WithTooltip>
-          )}
         </Box2>
       )}
     </React.Fragment>
