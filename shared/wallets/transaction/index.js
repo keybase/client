@@ -384,44 +384,39 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {showMemo && <MarkdownMemo style={styles.marginVerticalXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
-              {props.counterpartyType === 'keybaseUser' && (
-                <Button
-                  type="Secondary"
-                  label="Chat"
-                  small={true}
-                  style={styles.chatButton}
-                  onClick={() => props.onChat(props.counterparty)}
-                />
-              )}
-              {props.onCancelPayment && (
-                <Box2 direction="vertical" gap="tiny">
+              <Box2 direction="vertical" gap="tiny">
+                {props.onCancelPayment && (
                   <Text type="BodySmall">
                     {props.counterparty} can claim this when they set up their wallet.
                   </Text>
+                )}
+                <Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                   {props.counterpartyType === 'keybaseUser' && (
                     <Button
                       type="Secondary"
                       label="Chat"
                       small={true}
-                      style={styles.chatButton}
                       onClick={() => props.onChat(props.counterparty)}
                     />
                   )}
-                  <WaitingButton
-                    type="Danger"
-                    label="Cancel"
-                    small={true}
-                    style={styles.cancelButton}
-                    onClick={evt => {
-                      evt.stopPropagation()
-                      props.onCancelPayment && props.onCancelPayment()
-                    }}
-                    waitingKey={props.onCancelPaymentWaitingKey}
-                  />
+                  {props.onCancelPayment && (
+                    <WaitingButton
+                      type="Danger"
+                      label="Cancel"
+                      small={true}
+                      style={styles.cancelButton}
+                      onClick={evt => {
+                        evt.stopPropagation()
+                        props.onCancelPayment && props.onCancelPayment()
+                      }}
+                      waitingKey={props.onCancelPaymentWaitingKey}
+                    />
+                  )}
                 </Box2>
-              )}
+              </Box2>
+
               <Box2 direction="horizontal" style={{flex: 1}} />
               <AmountXLM
                 selectableText={props.selectableText}
@@ -445,11 +440,6 @@ const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
   },
-  chatButton: {
-    alignSelf: 'flex-start',
-    marginTop: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
-  },
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
@@ -457,7 +447,8 @@ const styles = styleSheetCreate({
   lineThrough: {
     textDecorationLine: 'line-through',
   },
-  marginTopXTiny: {
+  marginVerticalXTiny: {
+    marginBottom: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
