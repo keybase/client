@@ -12,7 +12,7 @@ import (
 
 type NextMessageOptions struct {
 	BackInTime bool
-	ImagesOnly bool
+	AssetTypes []chat1.AssetMetadataType
 }
 
 type Gallery struct {
@@ -40,15 +40,20 @@ func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, opts NextMessage
 	if err != nil || typ != chat1.MessageType_ATTACHMENT {
 		return false
 	}
-	if !opts.ImagesOnly {
-		return true
-	}
 	md := body.Attachment().Object.Metadata
 	atyp, err := md.AssetType()
 	if err != nil {
 		return false
 	}
-	return atyp == chat1.AssetMetadataType_IMAGE || atyp == chat1.AssetMetadataType_VIDEO
+	if len(opts.AssetTypes) == 0 {
+		return true
+	}
+	for _, a := range opts.AssetTypes {
+		if atyp == a {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,

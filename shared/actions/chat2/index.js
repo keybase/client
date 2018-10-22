@@ -1729,7 +1729,7 @@ function* getNextAttachmentMessage(
     convID: Types.keyToConversationID(conversationIDKey),
     messageID,
     backInTime,
-    imagesOnly: true,
+    assetTypes: [RPCChatTypes.localAssetMetadataType.image, RPCChatTypes.localAssetMetadataType.video],
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   })
   if (nextAttachmentRes.message) {

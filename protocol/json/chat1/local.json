@@ -3548,8 +3548,11 @@
           "type": "boolean"
         },
         {
-          "name": "imagesOnly",
-          "type": "boolean"
+          "name": "assetTypes",
+          "type": {
+            "type": "array",
+            "items": "AssetMetadataType"
+          }
         },
         {
           "name": "identifyBehavior",

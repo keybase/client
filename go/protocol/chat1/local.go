@@ -4707,7 +4707,7 @@ type GetNextAttachmentMessageLocalArg struct {
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
 	BackInTime       bool                         `codec:"backInTime" json:"backInTime"`
-	ImagesOnly       bool                         `codec:"imagesOnly" json:"imagesOnly"`
+	AssetTypes       []AssetMetadataType          `codec:"assetTypes" json:"assetTypes"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 

@@ -71,7 +71,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	nm, err = gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
-			ImagesOnly: true,
+			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
 		})
 	require.NoError(t, err)
 	require.NotNil(t, nm)
@@ -88,7 +88,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	nm, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
-			ImagesOnly: true,
+			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
 		})
 	require.NoError(t, err)
 	require.NotNil(t, nm)
@@ -114,7 +114,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	nm, err = gallery.NextMessage(ctx, uid, conv.Id, m3Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: true,
-			ImagesOnly: true,
+			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
 		})
 	require.NoError(t, err)
 	require.NotNil(t, nm)
@@ -123,7 +123,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	nm, err = gallery.NextMessage(ctx, uid, conv.Id, m0Res.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: false,
-			ImagesOnly: true,
+			AssetTypes: []chat1.AssetMetadataType{chat1.AssetMetadataType_IMAGE, chat1.AssetMetadataType_VIDEO},
 		})
 	require.NoError(t, err)
 	require.NotNil(t, nm)

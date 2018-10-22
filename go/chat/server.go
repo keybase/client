@@ -1048,7 +1048,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 	unboxed, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
 		attachments.NextMessageOptions{
 			BackInTime: arg.BackInTime,
-			ImagesOnly: arg.ImagesOnly,
+			AssetTypes: arg.AssetTypes,
 		},
 	)
 	if err != nil {
