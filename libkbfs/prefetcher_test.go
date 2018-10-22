@@ -576,9 +576,12 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	// Release after prefetching dirBfileDblock2
 	notifySyncCh(t, prefetchSyncCh)
 	// Then we wait for the pending prefetches to complete.
-	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
-	q.TogglePrefetcher(true, prefetchSyncCh)
-	notifySyncCh(t, prefetchSyncCh)
+	t.Log("Waiting for prefetcher to signal completion")
+	select {
+	case <-waitCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
@@ -601,13 +604,6 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, FinishedPrefetch,
 		TransientEntry)
-
-	t.Log("Waiting for prefetcher to signal completion")
-	select {
-	case <-waitCh:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
 
 	block = &DirBlock{}
 	ch = q.Request(context.Background(),
