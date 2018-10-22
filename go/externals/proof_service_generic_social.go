@@ -179,10 +179,11 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf)
-	if perr != nil {
-		return nil, perr
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf, libkb.NewInvalidPVLSelectorError)
+	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
+		return nil, perrInner
 	}
+
 	if len(results) != 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Json selector did not match any values")
