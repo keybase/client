@@ -55,6 +55,7 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, err error) {
 
 	var reverseFn func(chat1.ThreadView) []chat1.MessageUnboxed
+	var nextPageFn func(*chat1.Pagination) *chat1.Pagination
 	pivot := msgID
 	pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
 		Pivot:  &pivot,
@@ -64,6 +65,12 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 		reverseFn = func(tv chat1.ThreadView) []chat1.MessageUnboxed {
 			return tv.Messages
 		}
+		nextPageFn = func(p *chat1.Pagination) (res *chat1.Pagination) {
+			res = p
+			res.Num = g.NextStride
+			res.Previous = nil
+			return res
+		}
 		pagination.Num = g.NextStride
 	} else {
 		reverseFn = func(tv chat1.ThreadView) (res []chat1.MessageUnboxed) {
@@ -71,6 +78,14 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 			copy(res, tv.Messages)
 			sort.Sort(sort.Reverse(utils.ByMsgUnboxedMsgID(res)))
 			return res
+		}
+		nextPageFn = func(p *chat1.Pagination) (res *chat1.Pagination) {
+			pivot += chat1.MessageID(g.PrevStride)
+			return utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
+				Pivot:  &pivot,
+				Num:    g.PrevStride,
+				Recent: true,
+			})
 		}
 		pagination.Num = g.PrevStride
 	}
@@ -95,18 +110,7 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 		if tv.Pagination.Last {
 			break
 		}
-		if opts.BackInTime {
-			pagination = tv.Pagination
-			pagination.Num = g.NextStride
-			pagination.Previous = nil
-		} else {
-			pivot += chat1.MessageID(g.PrevStride)
-			pagination = utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
-				Pivot:  &pivot,
-				Num:    g.PrevStride,
-				Recent: true,
-			})
-		}
+		pagination = nextPageFn(tv.Pagination)
 	}
 	return res, nil
 }
