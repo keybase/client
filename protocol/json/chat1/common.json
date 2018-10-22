@@ -1398,6 +1398,14 @@
         {
           "type": "int",
           "name": "afterContext"
+        },
+        {
+          "type": "boolean",
+          "name": "forceReindex"
+        },
+        {
+          "type": "int",
+          "name": "maxConvs"
         }
       ]
     },
@@ -1446,6 +1454,103 @@
           "name": "metadata",
           "mpackkey": "m",
           "jsonkey": "m"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "beforeMessages"
+        },
+        {
+          "type": "UIMessage",
+          "name": "hitMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "afterMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxHit",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchInboxHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxDone",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numHits"
+        },
+        {
+          "type": "int",
+          "name": "numConvs"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchIndexStatus",
+      "fields": [
+        {
+          "type": "int",
+          "name": "percentIndexed"
         }
       ]
     }

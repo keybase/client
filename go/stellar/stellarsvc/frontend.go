@@ -274,18 +274,25 @@ func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret
 	return ret, nil
 }
 
-func (s *Server) SetAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
+func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName:       "SetAcceptedDisclaimerLocal",
-		Err:           &err,
-		RequireWallet: true,
+		RPCName: "AcceptDisclaimerLocal",
+		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
 		return err
 	}
 
-	return remote.SetAcceptedDisclaimer(ctx, s.G())
+	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	crg, err := stellar.CreateWalletGated(ctx, s.G())
+	if err != nil {
+		return err
+	}
+	if !crg.HasWallet {
+		return fmt.Errorf("user wallet not created")
+	}
+	return nil
 }
 
 func (s *Server) LinkNewWalletAccountLocal(ctx context.Context, arg stellar1.LinkNewWalletAccountLocalArg) (accountID stellar1.AccountID, err error) {
@@ -633,10 +640,15 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	if arg.AccountID.IsNil() {
-		return res, errors.New("passed empty AccountID")
+	accountID := arg.AccountID
+	if accountID == nil {
+		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(ctx, s.G())
+		if err != nil {
+			return res, err
+		}
+		accountID = &primaryAccountID
 	}
-	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, arg.AccountID)
+	return stellar.GetCurrencySetting(s.mctx(ctx), s.remoter, *accountID)
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
@@ -886,8 +898,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				})
 			}
 			bannerThem := "their"
-			if recipient.User != nil {
-				res.ToUsername = recipient.User.Username.String()
+			if recipient.User != nil && !arg.ToIsAccountID {
 				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
 			}
 			if recipient.AccountID == nil {
@@ -922,6 +933,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	res.AmountErrMsg = amountX.amountErrMsg
 	res.WorthDescription = amountX.worthDescription
 	res.WorthInfo = amountX.worthInfo
+	res.WorthCurrency = amountX.worthCurrency
 
 	if amountX.haveAmount {
 		if !amountX.asset.IsNativeXLM() {
@@ -993,6 +1005,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		} else {
 			res.AmountFormatted = amountFormatted
 		}
+		res.WorthAmount = amountX.amountOfAsset
 	}
 
 	// -------------------- note + memo --------------------
@@ -1037,6 +1050,7 @@ type buildPaymentAmountResult struct {
 	amountErrMsg     string
 	worthDescription string
 	worthInfo        string
+	worthCurrency    string
 	// Rate may be nil if there was an error fetching it.
 	rate *stellar1.OutsideExchangeRate
 }
@@ -1085,6 +1099,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.worthDescription = xlmAmountFormatted
+		res.worthCurrency = string(*arg.Currency)
 		if convertAmountOutside != "0" {
 			// haveAmount gates whether the send button is enabled.
 			// Only enable after `worthDescription` is set.
@@ -1146,6 +1161,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			return res
 		}
 		res.worthDescription = outsideAmountFormatted
+		res.worthCurrency = string(currency)
 		res.worthInfo, err = s.buildPaymentWorthInfo(ctx, xrate)
 		if err != nil {
 			log("error making worth info: %v", err)

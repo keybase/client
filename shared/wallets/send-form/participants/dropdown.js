@@ -68,14 +68,15 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   spinner: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.small,
-    },
     isElectron: {
+      marginRight: Styles.globalMargins.small,
       height: 20,
+      width: 20,
     },
     isMobile: {
+      marginRight: Styles.globalMargins.xtiny,
       height: 28,
+      width: 28,
     },
   }),
   dropdownEntry: {

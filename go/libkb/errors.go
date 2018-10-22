@@ -1641,6 +1641,8 @@ const (
 	ResolutionErrorGeneral ResolutionErrorKind = iota
 	ResolutionErrorNotFound
 	ResolutionErrorAmbiguous
+	ResolutionErrorRateLimited
+	ResolutionErrorInvalidInput
 )
 
 type ResolutionError struct {

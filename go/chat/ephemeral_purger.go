@@ -278,7 +278,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		now := b.clock.Now()
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
-			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
+			job := types.NewConvLoaderJob(purgeInfo.ConvID, nil /* query */, nil, /* pagination */
 				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.uid, &purgeInfo))
 			if err := b.G().ConvLoader.Queue(ctx, job); err != nil {
 				b.Debug(ctx, "convLoader Queue error %s", err)

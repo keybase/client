@@ -522,7 +522,7 @@ const resetReason = "hardcoded reset"
 
 var hardcodedResets = map[keybase1.LinkID]SpecialChainLink{
 	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": SpecialChainLink{UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
-	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": SpecialChainLink{UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(18), Reason: resetReason},
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": SpecialChainLink{UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(8), Reason: resetReason},
 	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": SpecialChainLink{UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
 	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": SpecialChainLink{UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
 	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": SpecialChainLink{UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},

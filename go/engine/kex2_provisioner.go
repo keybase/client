@@ -443,7 +443,7 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 
 // Returns nil if there are no per-user-keys.
 func (e *Kex2Provisioner) syncPUK(m libkb.MetaContext) (*libkb.PerUserKeyring, error) {
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return nil, err
 	}

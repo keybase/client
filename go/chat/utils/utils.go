@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	emoji "gopkg.in/kyokomi/emoji.v1"
+
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
@@ -360,20 +362,22 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
-func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID, chanMention chat1.ChannelMention) bool {
+func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
+	chanMention chat1.ChannelMention) bool {
 	if IsVisibleChatMessageType(messageType) {
 		return true
 	}
-
-	if messageType != chat1.MessageType_EDIT {
-		return false
-	}
-
-	// an edit with atMention or channel mention should generate notifications
-	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+	switch messageType {
+	case chat1.MessageType_EDIT:
+		// an edit with atMention or channel mention should generate notifications
+		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+			return true
+		}
+	case chat1.MessageType_REACTION:
+		// effect of this is all reactions will notify if they are sent to a person that
+		// is notified for any messages in the conversation
 		return true
 	}
-
 	return false
 }
 
@@ -484,6 +488,21 @@ func FilterExploded(expunge *chat1.Expunge, msgs []chat1.MessageUnboxed, now tim
 		res = append(res, msg)
 	}
 	return res
+}
+
+func GetReaction(msg chat1.MessageUnboxed) (string, error) {
+	if !msg.IsValid() {
+		return "", errors.New("invalid message")
+	}
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return "", err
+	}
+	if typ != chat1.MessageType_REACTION {
+		return "", fmt.Errorf("not a reaction type: %v", typ)
+	}
+	return body.Reaction().Body, nil
 }
 
 // GetSupersedes must be called with a valid msg
@@ -813,18 +832,20 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
-// Sender prefix for msg snippets. Will show if a conversation has > 2 members
-// or is of type TEAM
-func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
-	var showPrefix bool
+func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal) (showPrefix bool) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		showPrefix = true
 	default:
 		showPrefix = len(conv.Names()) > 2
 	}
+	return showPrefix
+}
 
-	if showPrefix {
+// Sender prefix for msg snippets. Will show if a conversation has > 2 members
+// or is of type TEAM
+func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
+	if showSenderPrefix(mvalid, conv) {
 		sender := mvalid.SenderUsername
 		if sender == currentUsername {
 			senderPrefix = "You: "
@@ -889,13 +910,29 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if conv == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv, chat1.VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(*conv,
+		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_REACTION))
 	if err != nil || !msg.IsValid() {
 		return ""
 	}
 	mvalid := msg.Valid()
+	var snippet string
 	if !mvalid.IsEphemeral() {
-		snippet, _ := GetMsgSnippet(msg, *conv, currentUsername)
+		switch msg.GetMessageType() {
+		case chat1.MessageType_REACTION:
+			reaction, err := GetReaction(msg)
+			if err != nil {
+				snippet = ""
+			} else {
+				var prefix string
+				if showSenderPrefix(mvalid, *conv) {
+					prefix = mvalid.SenderUsername + " "
+				}
+				snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
+			}
+		default:
+			snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
+		}
 		return snippet
 	}
 

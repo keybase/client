@@ -34,6 +34,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	if !loggedInUsername.IsValid() {
 		return false, fmt.Errorf("could not get logged-in username")
 	}
+	perUserKeyUpgradeSoft(ctx, g, "create-wallet")
 	clearBundle, err := bundle.NewInitialBundle(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
 		return false, err
@@ -62,45 +63,56 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	return true, nil
 }
 
+type CreateWalletGatedResult struct {
+	JustCreated        bool // whether the user's wallet was created by this call
+	HasWallet          bool // whether the user now has a wallet
+	AcceptedDisclaimer bool // whether the user has accepted the disclaimer
+}
+
 // CreateWalletGated may create a wallet for the user.
-// Taking into account settings from the server and env.
+// Taking into account settings from the server.
 // It should be speedy to call repeatedly _if_ the user gets a wallet.
-// `hasWallet` returns whether the user has by the time this call returns.
-func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (justCreated, hasWallet bool, err error) {
+func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateWalletGatedResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWalletGated", func() error { return err })()
 	defer func() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: (justCreated:%v, hasWallet:%v, err:%v)", justCreated, hasWallet, err != nil)
+		g.Log.CDebugf(ctx, "CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
 	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
-		return false, false, err
+		return res, err
 	}
 	if getGlobal(g).CachedHasWallet(ctx, meUV) {
 		g.Log.CDebugf(ctx, "CreateWalletGated: local cache says we already have a wallet")
-		return false, true, nil
+		return CreateWalletGatedResult{
+			JustCreated:        false,
+			HasWallet:          true,
+			AcceptedDisclaimer: true, // because it should be impossible to have created a wallet without accepting.
+		}, nil
 	}
-	shouldCreate, hasWallet, err := remote.ShouldCreate(ctx, g)
+	scr, err := remote.ShouldCreate(ctx, g)
 	if err != nil {
-		return false, false, err
+		return res, err
 	}
-	if hasWallet {
+	res.HasWallet = scr.HasWallet
+	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
+	if scr.HasWallet {
 		g.Log.CDebugf(ctx, "CreateWalletGated: server says we already have a wallet")
 		getGlobal(g).InformHasWallet(ctx, meUV)
-		return false, hasWallet, nil
+		return res, nil
 	}
-	if !shouldCreate {
+	if !scr.ShouldCreate {
 		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
-		return false, hasWallet, nil
+		return res, nil
 	}
-	if !g.Env.GetAutoWallet() {
-		g.Log.CDebugf(ctx, "CreateWalletGated: disabled by env setting")
-		return false, hasWallet, nil
-	}
-	justCreated, err = CreateWallet(ctx, g)
+	justCreated, err := CreateWallet(ctx, g)
 	if err != nil {
-		return false, hasWallet, err
+		return res, nil
 	}
-	return justCreated, true, nil
+	res.JustCreated = justCreated
+	if justCreated {
+		res.HasWallet = true
+	}
+	return res, nil
 }
 
 // CreateWalletSoft creates a user's initial wallet if they don't already have one.
@@ -112,7 +124,7 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}
-	_, _, err = CreateWalletGated(ctx, g)
+	_, err = CreateWalletGated(ctx, g)
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -122,7 +134,7 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	if err != nil {
 		return err
 	}
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return err
 	}
@@ -149,10 +161,14 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err != nil {
 		return err
 	}
+
 	if makePrimary {
-		return remote.PostWithChainlink(ctx, g, nextBundle)
+		// primary account changes need sigchain link
+		// (so other users can find user's primary account id)
+		err = remote.PostWithChainlink(ctx, g, nextBundle)
+	} else {
+		err = remote.Post(ctx, g, nextBundle)
 	}
-	err = remote.Post(ctx, g, nextBundle)
 	if err != nil {
 		return err
 	}
@@ -259,6 +275,8 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
+// LookupRecipient finds a recipient.
+// `to` can be a username, social assertion, account ID, or federation address.
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
@@ -281,6 +299,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return nil
 	}
 
+	// Federation address
 	if strings.Contains(string(to), stellarAddress.Separator) {
 		name, domain, err := stellarAddress.Split(string(to))
 		if err != nil {
@@ -315,27 +334,10 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		}
 	}
 
-	// A Stellar address
+	// Stellar account ID
 	if to[0] == 'G' && len(to) > 16 {
 		err := storeAddress(string(to))
-		if err != nil {
-			return res, err
-		}
-		uv, username, err := LookupUserByAccountID(m, stellar1.AccountID(to))
-		switch err.(type) {
-		case nil:
-			res.User = &stellarcommon.User{
-				UV:       uv,
-				Username: username,
-			}
-			return res, nil
-		case libkb.NotFoundError:
-			// common case
-		default:
-			m.CDebugf("LookupRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
-			// log and ignore
-		}
-		return res, nil
+		return res, err
 	}
 
 	idRes, err := identifyRecipient(m, string(to), isCLI)
@@ -457,6 +459,25 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return sendRelayPayment(m, remoter,
 			senderSeed, sendArg.FromSeqno, recipient, sendArg.Amount, sendArg.DisplayBalance,
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
+	}
+
+	ownRecipient, err := OwnAccount(m.Ctx(), m.G(),
+		stellar1.AccountID(recipient.AccountID.String()))
+	if err != nil {
+		m.CDebugf("error determining if user own's recipient: %v", err)
+		return res, err
+	}
+	if ownRecipient {
+		// When sending to an account that we own, act as though sending to a user as opposed to just an account ID.
+		uv, un := m.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
+		if uv.IsNil() || un.IsNil() {
+			m.CDebugf("error finding self: uv:%v un:%v", uv, un)
+			return res, fmt.Errorf("error getting logged-in user")
+		}
+		recipient.User = &stellarcommon.User{
+			UV:       uv,
+			Username: un,
+		}
 	}
 
 	senderSeed2, err := stellarnet.NewSeedStr(senderSeed.SecureNoLogString())
@@ -1404,4 +1425,16 @@ func RefreshUnreadCount(g *libkb.GlobalContext, accountID stellar1.AccountID) {
 	s.UpdateUnreadCount(ctx, accountID, details.UnreadPayments)
 
 	g.Log.Debug("RefreshUnreadCount UpdateUnreadCount => %d for stellar account %s", details.UnreadPayments, accountID)
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
+	m := libkb.NewMetaContext(ctx, g)
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
+	}
 }

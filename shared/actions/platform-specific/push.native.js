@@ -12,7 +12,7 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import logger from '../../logger'
-import {NativeModules, AsyncStorage, NativeEventEmitter} from 'react-native'
+import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
@@ -260,7 +260,10 @@ const checkPermissionsFromNative = () =>
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 const neverShowMonsterAgain = (state: TypedState) =>
-  !state.push.showPushPrompt && Saga.fork(AsyncStorage.setItem, monsterStorageKey, 'true')
+  !state.push.showPushPrompt &&
+  Saga.spawn(() =>
+    RPCTypes.configSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
+  )
 
 const requestPermissions = () =>
   Saga.call(function*() {
@@ -298,11 +301,14 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
     yield Saga.fork(requestPermissionsFromNative)
   } else {
     const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
-    const shownMonsterPushPromptTask = yield Saga.fork(AsyncStorage.getItem, monsterStorageKey)
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
+    const shownMonsterPushPromptTask = yield Saga.fork(() =>
+      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`}).catch(() => false)
+    )
+    const [shownNativePushPrompt, _shownMonsterPushPrompt] = yield Saga.join(
       shownNativePushPromptTask,
       shownMonsterPushPromptTask
     )
+    const shownMonsterPushPrompt = !!_shownMonsterPushPrompt?.b
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
       shownNativePushPrompt,

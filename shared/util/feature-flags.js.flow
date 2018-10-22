@@ -4,8 +4,6 @@ export type FeatureFlags = {|
   avatarUploadsEnabled: boolean,
   chatIndexProfilingEnabled: boolean,
   explodingMessagesEnabled: boolean,
-  fileWidgetEnabled: boolean,
-  fileWidgetEnabled?: boolean,
   foldersInProfileTab: boolean,
   newTeamBuildingForChat: boolean,
   newTeamBuildingForChat: boolean,

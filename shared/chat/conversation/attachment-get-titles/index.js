@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {
   Box,
   Box2,
@@ -20,6 +21,7 @@ export type PathToInfo = {
     type: 'image' | 'file',
     title: string,
     filename: string,
+    outboxID: RPCChatTypes.OutboxID,
   },
 }
 

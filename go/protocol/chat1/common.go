@@ -1865,6 +1865,8 @@ type SearchOpts struct {
 	MaxMessages   int          `codec:"maxMessages" json:"maxMessages"`
 	BeforeContext int          `codec:"beforeContext" json:"beforeContext"`
 	AfterContext  int          `codec:"afterContext" json:"afterContext"`
+	ForceReindex  bool         `codec:"forceReindex" json:"forceReindex"`
+	MaxConvs      int          `codec:"maxConvs" json:"maxConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
@@ -1876,6 +1878,8 @@ func (o SearchOpts) DeepCopy() SearchOpts {
 		MaxMessages:   o.MaxMessages,
 		BeforeContext: o.BeforeContext,
 		AfterContext:  o.AfterContext,
+		ForceReindex:  o.ForceReindex,
+		MaxConvs:      o.MaxConvs,
 	}
 }
 
@@ -1933,6 +1937,122 @@ func (o ConversationIndex) DeepCopy() ConversationIndex {
 			return ret
 		})(o.Index),
 		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type ChatSearchHit struct {
+	BeforeMessages []UIMessage `codec:"beforeMessages" json:"beforeMessages"`
+	HitMessage     UIMessage   `codec:"hitMessage" json:"hitMessage"`
+	AfterMessages  []UIMessage `codec:"afterMessages" json:"afterMessages"`
+	Matches        []string    `codec:"matches" json:"matches"`
+}
+
+func (o ChatSearchHit) DeepCopy() ChatSearchHit {
+	return ChatSearchHit{
+		BeforeMessages: (func(x []UIMessage) []UIMessage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIMessage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BeforeMessages),
+		HitMessage: o.HitMessage.DeepCopy(),
+		AfterMessages: (func(x []UIMessage) []UIMessage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIMessage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AfterMessages),
+		Matches: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Matches),
+	}
+}
+
+type ChatSearchInboxHit struct {
+	ConvID   ConversationID  `codec:"convID" json:"convID"`
+	ConvName string          `codec:"convName" json:"convName"`
+	Hits     []ChatSearchHit `codec:"hits" json:"hits"`
+}
+
+func (o ChatSearchInboxHit) DeepCopy() ChatSearchInboxHit {
+	return ChatSearchInboxHit{
+		ConvID:   o.ConvID.DeepCopy(),
+		ConvName: o.ConvName,
+		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+	}
+}
+
+type ChatSearchInboxResults struct {
+	Hits           []ChatSearchInboxHit `codec:"hits" json:"hits"`
+	PercentIndexed int                  `codec:"percentIndexed" json:"percentIndexed"`
+}
+
+func (o ChatSearchInboxResults) DeepCopy() ChatSearchInboxResults {
+	return ChatSearchInboxResults{
+		Hits: (func(x []ChatSearchInboxHit) []ChatSearchInboxHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatSearchInboxHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		PercentIndexed: o.PercentIndexed,
+	}
+}
+
+type ChatSearchInboxDone struct {
+	NumHits        int `codec:"numHits" json:"numHits"`
+	NumConvs       int `codec:"numConvs" json:"numConvs"`
+	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+}
+
+func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
+	return ChatSearchInboxDone{
+		NumHits:        o.NumHits,
+		NumConvs:       o.NumConvs,
+		PercentIndexed: o.PercentIndexed,
+	}
+}
+
+type ChatSearchIndexStatus struct {
+	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+}
+
+func (o ChatSearchIndexStatus) DeepCopy() ChatSearchIndexStatus {
+	return ChatSearchIndexStatus{
+		PercentIndexed: o.PercentIndexed,
 	}
 }
 

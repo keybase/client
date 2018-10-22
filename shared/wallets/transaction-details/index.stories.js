@@ -25,6 +25,7 @@ const props = {
   onBack: Sb.action('onBack'),
   onCancelPayment: null,
   onCancelPaymentWaitingKey: '',
+  onChat: Sb.action('onChat'),
   onLoadPaymentDetail: Sb.action('onLoadPaymentDetail'),
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),

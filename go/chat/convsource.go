@@ -64,7 +64,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil, types.ConvLoaderPriorityHigh,
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
@@ -108,6 +108,9 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
+	if q != nil && q.DisablePostProcessThread {
+		return nil
+	}
 	s.Debug(ctx, "postProcessThread: thread messages starting out: %d", len(thread.Messages))
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -1218,7 +1221,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			if len(tv.Messages) == 0 {
 				return

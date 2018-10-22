@@ -6,7 +6,8 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
 const mapStateToProps = state => {
-  const selectedAccount = Constants.getAccount(state)
+  const accountID = Constants.getSelectedAccount(state)
+  const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
@@ -17,18 +18,12 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType, isRequest: boolean) => {
-    dispatch(WalletsGen.createClearBuilding())
-    dispatch(isRequest ? WalletsGen.createClearBuiltRequest() : WalletsGen.createClearBuiltPayment())
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(WalletsGen.createSetBuildingIsRequest({isRequest}))
-    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
-    dispatch(WalletsGen.createSetBuildingFrom({from}))
     dispatch(
-      ownProps.navigateAppend([
-        {
-          selected: Constants.sendReceiveFormRouteKey,
-        },
-      ])
+      WalletsGen.createOpenSendRequestForm({
+        from,
+        isRequest,
+        recipientType,
+      })
     )
   },
   _onReceive: (accountID: Types.AccountID) =>

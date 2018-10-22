@@ -146,9 +146,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	if idxer := s.G().Indexer; idxer != nil {
-		go idxer.Remove(ctx, convID, uid, allPurged)
-	}
+	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
 
 	s.Debug(ctx, "purging %v ephemeral messages", len(explodedMsgs))
 	if err = s.engine.WriteMessages(ctx, convID, uid, explodedMsgs); err != nil {

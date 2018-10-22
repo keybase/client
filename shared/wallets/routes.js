@@ -4,7 +4,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
-import WalletsAndDetails from './wallets-and-details'
+import WalletsAndDetails from './wallets-and-details/container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
@@ -51,7 +51,7 @@ const walletChildren = {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
       },
       createNewAccount,
       linkExisting,
@@ -62,7 +62,7 @@ const walletChildren = {
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
   },
   settings: {
     children: {

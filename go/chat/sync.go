@@ -440,7 +440,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			if expunge, ok := expunges[conv.GetConvID().String()]; ok {
 				// Run expunges on the background loader
 				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())
-				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 					types.ConvLoaderPriorityHighest,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
@@ -454,7 +454,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				}
 			} else {
 				// Everything else just queue up here
-				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 					types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, 5))
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)

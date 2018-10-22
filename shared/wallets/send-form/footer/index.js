@@ -1,12 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../styles'
+import * as Styles from '../../../styles'
 
 type Props = {
+  calculating: boolean,
   disabled?: boolean,
   onClickRequest?: Function,
   onClickSend?: Function,
+  waitingKey: string,
   worthDescription?: string,
 }
 
@@ -20,15 +22,21 @@ const Footer = (props: Props) => (
       fullWidth={true}
       style={styles.background}
     >
-      {!!props.worthDescription && (
+      {(!!props.worthDescription || props.calculating) && (
         <Kb.Box2 direction="horizontal">
-          <Kb.Text style={styles.worthDescription} type="BodySmall">
-            This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
-          </Kb.Text>
+          {props.worthDescription ? (
+            <Kb.Text style={styles.worthDescription} type="BodySmall">
+              This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+            </Kb.Text>
+          ) : (
+            <Kb.Text style={styles.worthDescription} type="BodySmallItalic">
+              Calculating...
+            </Kb.Text>
+          )}
           {/* <Kb.Icon
             type="iconfont-question-mark"
-            color={globalColors.black_20}
-            hoverColor={globalColors.black_40}
+            color={Styles.globalColors.black_20}
+            hoverColor={Styles.globalColors.black_40}
             fontSize={12}
             style={Kb.iconCastPlatformStyles(styles.questionIcon)}
             onClick={() => {
@@ -49,14 +57,15 @@ const Footer = (props: Props) => (
               <Kb.Icon
                 type="iconfont-stellar-request"
                 style={Kb.iconCastPlatformStyles(styles.icon)}
-                color={globalColors.white}
+                color={Styles.globalColors.white}
               />
             }
           />
         )}
         {!!props.onClickSend && (
-          <Kb.Button
+          <Kb.WaitingButton
             type="Wallet"
+            waitingKey={props.waitingKey}
             label="Send"
             onClick={props.onClickSend}
             disabled={props.disabled}
@@ -66,7 +75,7 @@ const Footer = (props: Props) => (
               <Kb.Icon
                 type="iconfont-stellar-send"
                 style={Kb.iconCastPlatformStyles(styles.icon)}
-                color={globalColors.white}
+                color={Styles.globalColors.white}
               />
             }
           />
@@ -76,31 +85,33 @@ const Footer = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   button: {
     flex: 1,
   },
-  container: {
-    flexGrow: 1,
-    flexShrink: 0,
-    justifyContent: 'flex-end',
-  },
-  buttonBox: {
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 0,
-    paddingBottom: globalMargins.tiny, // total bottom padding (this + box2 gapEnd) = globalMargins.small = 16
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-  },
-  icon: {marginRight: globalMargins.tiny},
-  background: platformStyles({
+  container: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.blue5,
+      flexShrink: 0,
+      justifyContent: 'flex-end',
+    },
+  }),
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      minHeight: 0,
+    },
+    isElectron: {},
+  }),
+  icon: {marginRight: Styles.globalMargins.tiny},
+  background: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue5,
     },
     isElectron: {
-      borderBottomLeftRadius: '4px',
-      borderBottomRightRadius: '4px',
+      borderBottomLeftRadius: 4,
+      borderBottomRightRadius: 4,
     },
   }),
   questionIcon: {

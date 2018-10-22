@@ -102,21 +102,20 @@ type MessageDeliverer interface {
 	NextFailure() (chan []chat1.OutboxRecord, func())
 }
 
-type Searcher interface {
-	SearchRegexp(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+type RegexpSearcher interface {
+	Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
 }
 
 type Indexer interface {
 	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
-		uiCh chan chat1.ChatInboxSearchHit) ([]chat1.ChatInboxSearchHit, error)
+		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
 	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
 	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	// For devel/testing
-	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.IndexSearchConvStats, error)
-	IndexConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.IndexSearchConvStats, error)
+	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
 
 type Sender interface {

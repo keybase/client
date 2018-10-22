@@ -851,9 +851,6 @@ func (o SocialAssertionService) DeepCopy() SocialAssertionService {
 // user.
 //
 // For server trust assertion, we have to trust the server.
-//
-// TODO: SocialAssertion is historical name for this type, but it's not
-// correct since we do phone/email assertions as well.
 type SocialAssertion struct {
 	User    string                 `codec:"user" json:"user"`
 	Service SocialAssertionService `codec:"service" json:"service"`
@@ -932,6 +929,20 @@ func (o ImageCropRect) DeepCopy() ImageCropRect {
 		Y0: o.Y0,
 		X1: o.X1,
 		Y1: o.Y1,
+	}
+}
+
+type PhoneLookupResult struct {
+	Uid      UID      `codec:"uid" json:"uid"`
+	Username string   `codec:"username" json:"username"`
+	Ctime    UnixTime `codec:"ctime" json:"ctime"`
+}
+
+func (o PhoneLookupResult) DeepCopy() PhoneLookupResult {
+	return PhoneLookupResult{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		Ctime:    o.Ctime.DeepCopy(),
 	}
 }
 

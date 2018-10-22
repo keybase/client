@@ -38,6 +38,11 @@ protocol device {
     */
   boolean checkDeviceNameFormat(int sessionID, string name);
 
+  /**
+    Dismisses the notifications for a new or revoked device
+    assuming this is not that device.
+  */
+  void dismissDeviceChangeNotifications();
 
   /**
     Checks a given device against all of user's past devices,

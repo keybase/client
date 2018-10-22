@@ -35,6 +35,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
+  deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
@@ -58,6 +59,7 @@ type actions = {
   shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
+  deleteFileOrFolder?: () => void,
 }
 type MenuItemAppender = (
   menuActions: actions,
@@ -112,9 +114,13 @@ const aDownload: MenuItemAppender = (menuActions, stateProps, dispatchProps, pat
   }
 }
 
+const aDelete: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
+  menuActions.deleteFileOrFolder = dispatchProps.deleteFileOrFolder
+}
+
 const tlfListAppenders: Array<MenuItemAppender> = [aShowIn, aCopyPath]
 const tlfAppenders: Array<MenuItemAppender> = [aShowIn, aIgnore, aCopyPath]
-const inTlfAppenders: Array<MenuItemAppender> = [aShowIn, aSave, aShareNative, aDownload, aCopyPath]
+const inTlfAppenders: Array<MenuItemAppender> = [aShowIn, aSave, aShareNative, aDownload, aCopyPath, aDelete]
 
 const getRootMenuActionsByAppenders = (
   appenders: Array<MenuItemAppender>,
@@ -181,6 +187,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     shareNative,
     download,
     copyPath,
+    deleteFileOrFolder,
   } = getRootMenuActionsByPathLevel(pathElements.length, stateProps, dispatchProps, path)
   return {
     type,
@@ -210,6 +217,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     shareNative,
     download,
     copyPath,
+    deleteFileOrFolder,
   }
 }
 

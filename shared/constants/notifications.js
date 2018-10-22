@@ -6,12 +6,12 @@ import * as Tabs from './tabs'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
 
-export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) => {
+export const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState, state: TypedState) => {
   const {
     homeTodoItems,
     conversations,
-    newTlfs,
-    rekeysNeeded,
+    newDevices,
+    revokedDevices,
     newGitRepoGlobalUniqueIDs,
     newTeamNames,
     newTeamAccessRequests,
@@ -25,6 +25,9 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
   }
 
   const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
+  const allDeviceChanges = I.Set((newDevices || []).concat(revokedDevices || []))
+  // don't see badges related to this device
+  const deviceChanges = allDeviceChanges.remove(state.config.deviceID).size
   const totalMessages = (conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
     0
@@ -35,21 +38,24 @@ export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) =
   const newTeams =
     (newTeamNames || []).length + (newTeamAccessRequests || []).length + (teamsWithResetUsers || []).length
 
-  const navBadges = I.Map([
-    [Tabs.chatTab, totalMessages],
-    [Tabs.folderTab, newTlfs + rekeysNeeded],
-    [Tabs.fsTab, newTlfs + rekeysNeeded],
-    [Tabs.gitTab, newGit],
-    [Tabs.teamsTab, newTeams],
-    [Tabs.peopleTab, homeTodoItems],
-    [Tabs.walletsTab, totalPayments],
-  ])
-
   return {
-    desktopAppBadgeCount: navBadges.reduce((total, val) => total + val, 0),
-    mobileAppBadgeCount: totalMessages,
-    navBadges,
+    counts: I.Map([
+      [Tabs.chatTab, totalMessages],
+      [Tabs.gitTab, newGit],
+      [Tabs.teamsTab, newTeams],
+      [Tabs.peopleTab, homeTodoItems],
+      [Tabs.walletsTab, totalPayments],
+      [Tabs.devicesTab, deviceChanges],
+    ]),
   }
+}
+
+let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
+export const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
+  const {newTlfs, rekeysNeeded} = bs
+  const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
+  lastFsBadges = {newTlfs, rekeysNeeded}
+  return !same
 }
 
 export const makeState: I.RecordFactory<_State> = I.Record({

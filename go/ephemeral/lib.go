@@ -129,7 +129,7 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
 	}
 
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring(ctx)
 	if err != nil {
 		return err
 	}
