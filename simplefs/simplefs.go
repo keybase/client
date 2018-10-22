@@ -1897,7 +1897,7 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 	return k.config.KBFSOps().GetEditHistory(ctx, fb)
 }
 
-// SimpleFSFolderEditHistory resets the given TLF.
+// SimpleFSReset resets the given TLF.
 func (k *SimpleFS) SimpleFSReset(
 	ctx context.Context, path keybase1.Path) error {
 	t, tlfName, _, _, err := remoteTlfAndPath(path)
