@@ -1897,6 +1897,22 @@ func (k *SimpleFS) SimpleFSFolderEditHistory(
 	return k.config.KBFSOps().GetEditHistory(ctx, fb)
 }
 
+// SimpleFSFolderEditHistory resets the given TLF.
+func (k *SimpleFS) SimpleFSReset(
+	ctx context.Context, path keybase1.Path) error {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return k.config.KBFSOps().Reset(ctx, tlfHandle)
+}
+
 var _ libkbfs.Observer = (*SimpleFS)(nil)
 
 // LocalChange implements the libkbfs.Observer interface for SimpleFS.

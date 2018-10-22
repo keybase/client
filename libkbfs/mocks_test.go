@@ -1917,6 +1917,18 @@ func (mr *MockKBFSOpsMockRecorder) NewNotificationChannel(ctx, handle, convID, c
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewNotificationChannel", reflect.TypeOf((*MockKBFSOps)(nil).NewNotificationChannel), ctx, handle, convID, channelName)
 }
 
+// Reset mocks base method
+func (m *MockKBFSOps) Reset(ctx context.Context, handle *TlfHandle) error {
+	ret := m.ctrl.Call(m, "Reset", ctx, handle)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Reset indicates an expected call of Reset
+func (mr *MockKBFSOpsMockRecorder) Reset(ctx, handle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockKBFSOps)(nil).Reset), ctx, handle)
+}
+
 // MockmerkleRootGetter is a mock of merkleRootGetter interface
 type MockmerkleRootGetter struct {
 	ctrl     *gomock.Controller

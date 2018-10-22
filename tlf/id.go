@@ -5,6 +5,7 @@
 package tlf
 
 import (
+	"bytes"
 	"encoding"
 	"encoding/hex"
 	"fmt"
@@ -331,4 +332,22 @@ func MakeIDFromTeam(t Type, tid keybase1.TeamID, epoch byte) (ID, error) {
 		return NullID, err
 	}
 	return id, nil
+}
+
+// GetEpochFromTeamTLF returns 1) whether this ID matches the given
+// team TID, and 2) if so, which epoch it is.
+func (id ID) GetEpochFromTeamTLF(tid keybase1.TeamID) (
+	matches bool, epoch byte, err error) {
+	tidBytes := tid.ToBytes()
+	if len(tidBytes) != idByteLen {
+		return false, 0, errors.Errorf(
+			"The length of team ID %s doesn't match that of a TLF ID", tid)
+	}
+
+	epochIndex := idByteLen - 2
+	if !bytes.Equal(tidBytes[:epochIndex], id.id[:epochIndex]) {
+		return false, 0, nil
+	}
+
+	return true, id.id[epochIndex], nil
 }

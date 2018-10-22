@@ -3904,3 +3904,65 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	require.Equal(t, int64(5), n)
 	require.Equal(t, "ddata", string(data))
 }
+
+type mdServerShutdownOverride struct {
+	mdServerLocal
+	override bool
+}
+
+func (md mdServerShutdownOverride) isShutdown() bool {
+	if md.override {
+		return true
+	}
+	return md.mdServerLocal.isShutdown()
+}
+
+func TestKBFSOpsReset(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	md := &mdServerShutdownOverride{config.MDServer().(mdServerLocal), false}
+	config.SetMDServer(md)
+
+	err := EnableImplicitTeamsForTest(config)
+	require.NoError(t, err)
+
+	t.Log("Create a private folder.")
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+
+	oldID := h.tlfID
+	t.Logf("Make a new revision for TLF ID %s", oldID)
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Reset the TLF")
+	// Pretend the mdserver is shutdown, to avoid checking merged
+	// state when shutting down the FBO (which causes a deadlock).
+	md.override = true
+	err = kbfsOps.Reset(ctx, h)
+	require.NoError(t, err)
+	require.NotEqual(t, oldID, h.tlfID)
+	md.override = false
+
+	t.Logf("Make a new revision for new TLF ID %s", h.tlfID)
+	rootNode, _, err = kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, children, 0)
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+}

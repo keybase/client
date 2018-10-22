@@ -529,6 +529,10 @@ type KBFSOps interface {
 	NewNotificationChannel(
 		ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 		channelName string)
+	// Reset completely resets the given folder.  Should only be
+	// called after explicit user confirmation.  After the call,
+	// `handle` has the new TLF ID.
+	Reset(ctx context.Context, handle *TlfHandle) error
 }
 
 type merkleRootGetter interface {

@@ -3583,22 +3583,17 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	return changes, affectedNodeIDs, nil
 }
 
-func (fbo *folderBlockOps) GetInvalidationChanges(
-	ctx context.Context, lState *lockState, node Node) (
+func (fbo *folderBlockOps) getInvalidationChangesForNodes(
+	ctx context.Context, lState *lockState, nodes []Node) (
 	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
-	if fbo.nodeCache == nil {
+	fbo.blockLock.AssertLocked(lState)
+	if len(nodes) == 0 {
 		// Nothing needs to be done!
 		return nil, nil, nil
 	}
 
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
-	fbo.log.CDebugf(ctx, "About to get all children for node %p", node)
-	childNodes := fbo.nodeCache.AllNodeChildren(node)
-	fbo.log.CDebugf(ctx, "Found %d children for node %p", len(childNodes), node)
-
-	_, children := fbo.makeChildrenTreeFromNodesLocked(lState, childNodes)
-	for _, node := range append(childNodes, node) {
+	_, children := fbo.makeChildrenTreeFromNodesLocked(lState, nodes)
+	for _, node := range nodes {
 		p := fbo.nodeCache.PathFromNode(node)
 		prefix := p.String()
 		childNodes := children[prefix]
@@ -3618,6 +3613,42 @@ func (fbo *folderBlockOps) GetInvalidationChanges(
 		}
 	}
 	return changes, affectedNodeIDs, nil
+}
+
+// GetInvalidationChangesForNode returns the list of invalidation
+// notifications for all the nodes rooted at the given node.
+func (fbo *folderBlockOps) GetInvalidationChangesForNode(
+	ctx context.Context, lState *lockState, node Node) (
+	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
+	if fbo.nodeCache == nil {
+		// Nothing needs to be done!
+		return nil, nil, nil
+	}
+
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.log.CDebugf(ctx, "About to get all children for node %p", node)
+	childNodes := fbo.nodeCache.AllNodeChildren(node)
+	fbo.log.CDebugf(ctx, "Found %d children for node %p", len(childNodes), node)
+	return fbo.getInvalidationChangesForNodes(
+		ctx, lState, append(childNodes, node))
+}
+
+// GetInvalidationChangesForAll returns the list of invalidation
+// notifications for the entire TLF.
+func (fbo *folderBlockOps) GetInvalidationChangesForAll(
+	ctx context.Context, lState *lockState) (
+	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
+	if fbo.nodeCache == nil {
+		// Nothing needs to be done!
+		return nil, nil, nil
+	}
+
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	childNodes := fbo.nodeCache.AllNodes()
+	fbo.log.CDebugf(ctx, "Found %d nodes", len(childNodes))
+	return fbo.getInvalidationChangesForNodes(ctx, lState, childNodes)
 }
 
 type chainsPathPopulator interface {

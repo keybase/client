@@ -1121,7 +1121,7 @@ func (fbo *folderBranchOps) getMDForRead(
 }
 
 // GetTLFHandle implements the KBFSOps interface for folderBranchOps.
-func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, node Node) (
+func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
 	*TlfHandle, error) {
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(lState)
@@ -7147,6 +7147,57 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 	}()
 }
 
+// Reset implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) Reset(
+	ctx context.Context, handle *TlfHandle) error {
+	currHandle, err := fbo.GetTLFHandle(ctx, nil)
+	if err != nil {
+		return err
+	}
+	equal, err := currHandle.Equals(fbo.config.Codec(), *handle)
+	if err != nil {
+		return err
+	}
+	if !equal {
+		return errors.Errorf("Can't reset %#v given bad handle %#v",
+			currHandle, handle)
+	}
+
+	oldHandle := handle.deepCopy()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	fbo.log.CDebugf(ctx, "Resetting")
+	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChangesForAll(
+		ctx, lState)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate all the affected nodes.
+	if len(changes) > 0 {
+		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
+	}
+
+	// Make up a finalized name for the old handle, and broadcast it
+	// to all observers.  This is to move it out of the way of the
+	// next iteration of the folder.
+	now := fbo.config.Clock().Now()
+	finalizedInfo, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, kbname.NormalizedUsername("<unknown>"),
+		now)
+	if err != nil {
+		return err
+	}
+	oldHandle.SetFinalizedInfo(finalizedInfo)
+	go fbo.observers.tlfHandleChange(ctx, oldHandle)
+	return nil
+}
+
 // InvalidateNodeAndChildren implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) InvalidateNodeAndChildren(
@@ -7158,7 +7209,7 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 	}()
 
 	lState := makeFBOLockState()
-	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChanges(
+	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChangesForNode(
 		ctx, lState, node)
 	if err != nil {
 		return err

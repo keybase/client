@@ -1198,3 +1198,15 @@ func (e RevGarbageCollectedError) Error() string {
 	return fmt.Sprintf("Requested revision %d has already been garbage "+
 		"collected (last GC'd rev=%d)", e.rev, e.lastGCRev)
 }
+
+// FolderNotResetOnServer indicates that a folder can't be reset by
+// the user, because it hasn't yet been reset on the mdserver.
+type FolderNotResetOnServer struct {
+	h *TlfHandle
+}
+
+// Error implements the Error interface for FolderNotResetOnServer.
+func (e FolderNotResetOnServer) Error() string {
+	return fmt.Sprintf("Folder %s is not yet reset on the server; "+
+		"contact Keybase for help", e.h.GetCanonicalPath())
+}

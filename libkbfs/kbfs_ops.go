@@ -407,16 +407,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
-// createAndStoreTlfIDIfNeeded creates a TLF ID for a team-backed
-// handle that doesn't have one yet, and associates it in the service
-// with the team.  If it returns a `nil` error, it may have modified
-// `h` to include the new TLF ID.
-func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
-	ctx context.Context, h *TlfHandle) error {
-	if h.tlfID != tlf.NullID {
-		return nil
-	}
-
+func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *TlfHandle) error {
 	if !h.IsBackedByTeam() {
 		return errors.New("Can't create TLF ID for non-team-backed handle")
 	}
@@ -426,10 +417,20 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 		return err
 	}
 
+	matches, epoch, err := h.tlfID.GetEpochFromTeamTLF(teamID)
+	if err != nil {
+		return err
+	}
+	if matches {
+		epoch++
+	} else {
+		epoch = 0
+	}
+
 	// When creating a new TLF for an implicit team, always start with
 	// epoch 0.  A different path will handle TLF resets with an
 	// increased epoch, if necessary.
-	tlfID, err := tlf.MakeIDFromTeam(h.Type(), teamID, 0)
+	tlfID, err := tlf.MakeIDFromTeam(h.Type(), teamID, epoch)
 	if err != nil {
 		return err
 	}
@@ -443,7 +444,20 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 	}
 
 	h.tlfID = tlfID
-	return nil
+	return fs.config.MDCache().PutIDForHandle(h, tlfID)
+}
+
+// createAndStoreTlfIDIfNeeded creates a TLF ID for a team-backed
+// handle that doesn't have one yet, and associates it in the service
+// with the team.  If it returns a `nil` error, it may have modified
+// `h` to include the new TLF ID.
+func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
+	ctx context.Context, h *TlfHandle) error {
+	if h.tlfID != tlf.NullID {
+		return nil
+	}
+
+	return fs.resetTlfID(ctx, h)
 }
 
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
@@ -1191,6 +1205,54 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 			"Handle %s for existing folder unexpectedly has no TLF ID",
 			handle.GetCanonicalName())
 	}
+}
+
+// Reset implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) Reset(
+	ctx context.Context, handle *TlfHandle) error {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	// First, make sure the folder has been reset according to the
+	// mdserver.
+	bareHandle, err := handle.ToBareHandle()
+	if err != nil {
+		return err
+	}
+	id, _, err := fs.config.MDServer().GetForHandle(
+		ctx, bareHandle, kbfsmd.Merged, nil)
+	if err == nil {
+		fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
+			handle.GetCanonicalPath(), id)
+		return errors.WithStack(FolderNotResetOnServer{handle})
+	} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
+		// Return errors if they don't indicate the folder is new.
+		return err
+	}
+
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	fs.log.CDebugf(ctx, "Reset %s", handle.GetCanonicalPath())
+	fb := FolderBranch{handle.tlfID, MasterBranch}
+	ops, ok := fs.ops[fb]
+	if ok {
+		err := ops.Reset(ctx, handle)
+		if err != nil {
+			return err
+		}
+		delete(fs.ops, fb)
+		fav := handle.ToFavorite()
+		delete(fs.opsByFav, fav)
+		err = ops.Shutdown(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Reset the TLF by overwriting the TLF ID in the sigchain.  This
+	// assumes that the server is in implicit team mode for new TLFs,
+	// which at this point it should always be.
+	return fs.resetTlfID(ctx, handle)
 }
 
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
