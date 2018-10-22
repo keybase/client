@@ -7,10 +7,9 @@ import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 
-const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
-  const _isPending = conversationIDKey === Constants.pendingConversationIDKey
+const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) => {
   let meta = Constants.getMeta(state, conversationIDKey)
-  if (_isPending) {
+  if (isPending) {
     const resolved = Constants.getResolvedPendingConversationIDKey(state)
     if (Constants.isValidConversationIDKey(resolved)) {
       meta = Constants.getMeta(state, resolved)
@@ -21,7 +20,7 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey}) => {
   return {
     _badgeMap: state.chat2.badgeMap,
     _conversationIDKey: conversationIDKey,
-    _isPending,
+    isPending,
     _participants,
     channelName: meta.channelname,
     infoPanelOpen,
@@ -47,13 +46,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       currentConvID !== stateProps._conversationIDKey ? res + currentValue : res,
     0
   ),
-  canOpenInfoPanel: !stateProps._isPending,
+  canOpenInfoPanel: !stateProps.isPending,
   channelName: stateProps.channelName,
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onCancelPending: stateProps._isPending ? dispatchProps._onCancel : null,
-  onOpenFolder: stateProps._isPending ? null : dispatchProps._onOpenFolder,
+  onCancelPending: stateProps.isPending ? dispatchProps._onCancel : null,
+  onOpenFolder: stateProps.isPending ? null : dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   participants: stateProps._participants.toArray(),

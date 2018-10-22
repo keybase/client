@@ -9,14 +9,19 @@ import Normal from '.'
 import {compose, connect, withStateHandlers} from '../../../util/container'
 import {chatTab} from '../../../constants/tabs'
 
-const mapStateToProps = (state, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
-  const isSearching =
-    state.chat2.pendingMode === 'searchingForUsers' &&
-    conversationIDKey === Constants.pendingConversationIDKey
-  return {conversationIDKey, infoPanelOpen, isSearching, showLoader, threadLoadedOffline: meta.offline}
+  const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
+  return {
+    conversationIDKey,
+    infoPanelOpen,
+    isSearching,
+    showLoader,
+    threadLoadedOffline: meta.offline,
+    isPending,
+  }
 }
 
 const mapDispatchToProps = dispatch => ({
@@ -51,6 +56,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     infoPanelOpen: stateProps.infoPanelOpen,
     isSearching: stateProps.isSearching,
+    isPending: stateProps.isPending,
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
