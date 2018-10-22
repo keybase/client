@@ -1,6 +1,8 @@
 package attachments
 
 import (
+	"sort"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -29,88 +31,83 @@ func NewGallery(g *globals.Context) *Gallery {
 	}
 }
 
+func (g *Gallery) eligibleNextMessage(msg chat1.MessageUnboxed, opts NextMessageOptions) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil || typ != chat1.MessageType_ATTACHMENT {
+		return false
+	}
+	if !opts.ImagesOnly {
+		return true
+	}
+	md := body.Attachment().Object.Metadata
+	atyp, err := md.AssetType()
+	if err != nil {
+		return false
+	}
+	return atyp == chat1.AssetMetadataType_IMAGE || atyp == chat1.AssetMetadataType_VIDEO
+}
+
 func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, opts NextMessageOptions) (res *chat1.MessageUnboxed, err error) {
-	eligible := func(msg chat1.MessageUnboxed) bool {
-		if !msg.IsValid() {
-			return false
-		}
-		body := msg.Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil || typ != chat1.MessageType_ATTACHMENT {
-			return false
-		}
-		if !opts.ImagesOnly {
-			return true
-		}
-		md := body.Attachment().Object.Metadata
-		atyp, err := md.AssetType()
-		if err != nil {
-			return false
-		}
-		return atyp == chat1.AssetMetadataType_IMAGE || atyp == chat1.AssetMetadataType_VIDEO
-	}
+
+	var reverseFn func(chat1.ThreadView) []chat1.MessageUnboxed
+	pivot := msgID
+	pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
+		Pivot:  &pivot,
+		Recent: !opts.BackInTime,
+	})
 	if opts.BackInTime {
-		pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
-			Pivot: &msgID,
-			Num:   g.NextStride,
-		})
-		for {
-			g.Debug(ctx, "NextMessage: backintime starting scan: next: %x", pagination.Next)
-			tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
-				&chat1.GetThreadQuery{
-					MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
-				}, pagination)
-			if err != nil {
-				return res, err
+		reverseFn = func(tv chat1.ThreadView) []chat1.MessageUnboxed {
+			return tv.Messages
+		}
+		pagination.Num = g.NextStride
+	} else {
+		reverseFn = func(tv chat1.ThreadView) (res []chat1.MessageUnboxed) {
+			res = make([]chat1.MessageUnboxed, len(tv.Messages))
+			copy(res, tv.Messages)
+			sort.Sort(sort.Reverse(utils.ByMsgUnboxedMsgID(res)))
+			return res
+		}
+		pagination.Num = g.PrevStride
+	}
+
+	for {
+		g.Debug(ctx, "NextMessage: starting scan: next: %x", pagination.Next)
+		tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
+			&chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
+			}, pagination)
+		if err != nil {
+			return res, err
+		}
+		messages := reverseFn(tv)
+		for _, m := range messages {
+			if !g.eligibleNextMessage(m, opts) {
+				continue
 			}
-			for _, m := range tv.Messages {
-				if !eligible(m) {
-					continue
-				}
-				return &m, nil
-			}
-			g.Debug(ctx, "NextMessage: missed all messages: len: %d", len(tv.Messages))
-			if tv.Pagination.Last {
-				break
-			}
+			return &m, nil
+		}
+		g.Debug(ctx, "NextMessage: missed all messages: len: %d", len(tv.Messages))
+		if tv.Pagination.Last {
+			break
+		}
+		if opts.BackInTime {
 			pagination = tv.Pagination
 			pagination.Num = g.NextStride
 			pagination.Previous = nil
-		}
-	} else {
-		pivot := msgID
-		for {
-			g.Debug(ctx, "NextMessage: forwardintime starting scan: pivot: %v", pivot)
-			// Move forward in the thread looking for attachments, 50 messages at a time
-			pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
+		} else {
+			pivot += chat1.MessageID(g.PrevStride)
+			pagination = utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
 				Pivot:  &pivot,
 				Num:    g.PrevStride,
 				Recent: true,
 			})
-			tv, err := g.G().ConvSource.Pull(ctx, convID, uid, chat1.GetThreadReason_GENERAL,
-				&chat1.GetThreadQuery{
-					MessageTypes: []chat1.MessageType{chat1.MessageType_ATTACHMENT},
-				}, pagination)
-			if err != nil {
-				return res, err
-			}
-			if len(tv.Messages) > 0 && tv.Messages[0].GetMessageID() != msgID {
-				g.Debug(ctx, "NextMessage: hit: len: %d top: %d bottom: %d",
-					len(tv.Messages), tv.Messages[0].GetMessageID(),
-					tv.Messages[len(tv.Messages)-1].GetMessageID())
-				for i := len(tv.Messages) - 1; i >= 0; i-- {
-					if !eligible(tv.Messages[i]) {
-						continue
-					}
-					return &tv.Messages[i], nil
-				}
-			}
-			if tv.Pagination.Last {
-				break
-			}
-			pivot += chat1.MessageID(g.PrevStride)
 		}
+
 	}
 	return res, nil
 }
