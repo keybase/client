@@ -91,7 +91,7 @@ the native KeybaseInstaller.app (see below).
 
 ### keybase install-auto
 
-When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.desktop.js](shared/desktop/app/installer.desktop.js).
+When the Electron app starts up it runs `keybase install-auto` in [shared/desktop/app/installer.desktop.js](/keybase/client/blob/master/shared/desktop/app/installer.desktop.js).
 
 By default this runs install with the components:
 - `cli`: Command line (to /usr/local/bin)
