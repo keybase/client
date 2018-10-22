@@ -35,6 +35,9 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
+  const preload = resolveRootAsURL('app', `main-preload${__DEV__ ? '.dev' : ''}.js`)
+  console.log('aaaaa preload file is', preload)
+
   const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
     height: appState.state.height,
@@ -43,7 +46,9 @@ export default function() {
     show: false,
     webPreferences: {
       devTools: showDevTools,
-      nodeIntegration: true,
+      // preload: resolveRootAsURL('dist', `main-preload${__DEV__ ? '.dev' : ''}.js`),
+      preload,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
     },
     width: appState.state.width,
