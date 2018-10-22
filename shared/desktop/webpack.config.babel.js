@@ -71,6 +71,8 @@ const config = (_, {mode}) => {
     ]
   }
 
+  const publicPath = isHot ? 'http://localhost:4000/dist/' : '../dist/'
+
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
     const devServer = {
@@ -105,7 +107,7 @@ const config = (_, {mode}) => {
         filename: `[name]${isDev ? '.dev' : ''}.bundle.js`,
         path: path.resolve(__dirname, 'dist'),
         // can be the same?
-        publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
+        publicPath,
       },
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
@@ -171,14 +173,20 @@ const config = (_, {mode}) => {
   const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
   const template = path.join(__dirname, './renderer/index.html.template')
   const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
-  const makeViewPlugins = name =>
+  const makeViewPlugins = names =>
     [
       ...hmrPlugin,
-      new HtmlWebpackPlugin({
-        filename: makeHtmlName(name),
-        isDev,
-        template,
-      }),
+      // Map since we generate multiple html files
+      ...names.map(
+        name =>
+          new HtmlWebpackPlugin({
+            filename: makeHtmlName(name),
+            name,
+            inject: false,
+            isDev,
+            template,
+          })
+      ),
     ].filter(Boolean)
 
   // just keeping main in its old place
@@ -186,19 +194,21 @@ const config = (_, {mode}) => {
     main: 'desktop/renderer',
   }
 
-  const viewConfigs = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders'].map(name =>
-    merge(commonConfig, {
-      entry: {
-        [name]: `./${entryOverride[name] || name}/main.desktop.js`,
-      },
-      module: {rules: makeRules(false)},
-      name,
-      plugins: makeViewPlugins(name),
-      target: 'electron-renderer',
-    })
-  )
+  // multiple entries so we can chunk shared parts
+  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders']
+  const viewConfig = merge(commonConfig, {
+    entry: entries.reduce((map, name) => {
+      map[name] = `./${entryOverride[name] || name}/main.desktop.js`
+      return map
+    }, {}),
+    optimization: {splitChunks: {chunks: 'all'}},
+    module: {rules: makeRules(false)},
+    name: 'Keybase',
+    plugins: makeViewPlugins(entries),
+    target: 'electron-renderer',
+  })
 
-  return [nodeConfig, ...viewConfigs]
+  return [nodeConfig, viewConfig]
 }
 
 export default config
