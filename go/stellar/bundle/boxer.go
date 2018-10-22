@@ -199,14 +199,14 @@ func Decrypt(encBundle stellar1.EncryptedBundle,
 	return res, err
 }
 
-func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibleEntry, sec []stellar1.BundleSecretEntry) {
+func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibleEntryV1, sec []stellar1.BundleSecretEntryV1) {
 	for _, acc := range accounts {
-		vis = append(vis, stellar1.BundleVisibleEntry{
+		vis = append(vis, stellar1.BundleVisibleEntryV1{
 			AccountID: acc.AccountID,
 			Mode:      acc.Mode,
 			IsPrimary: acc.IsPrimary,
 		})
-		sec = append(sec, stellar1.BundleSecretEntry{
+		sec = append(sec, stellar1.BundleSecretEntryV1{
 			AccountID: acc.AccountID,
 			Signers:   acc.Signers,
 			Name:      acc.Name,

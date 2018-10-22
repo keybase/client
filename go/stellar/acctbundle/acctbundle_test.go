@@ -3,6 +3,7 @@ package acctbundle
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -13,11 +14,12 @@ import (
 
 // TestInitialAccountBundle makes sure we can make a brand-new account bundle
 // with a new random secret.
-func TestInitialAccountBundle(t *testing.T) {
+func TestInitialBundle(t *testing.T) {
 	b, err := NewInitial("hello")
 	require.NoError(t, err)
 	require.NotNil(t, b)
-	require.Len(t, b.Signers, 1)
+	require.Len(t, b.Accounts, 1)
+	require.Len(t, b.AccountBundles, 1)
 }
 
 // TestBoxAccountBundle checks boxing an account bundle and that DecodeAndUnbox
@@ -29,25 +31,31 @@ func TestBoxAccountBundle(t *testing.T) {
 
 	ring := newPukRing()
 	seed, gen := ring.makeGen(t, 1)
-	boxed, err := Box(b, gen, seed)
+	boxed, err := BoxAndEncode(b, gen, seed)
 	require.NoError(t, err)
-	require.NotNil(t, boxed, "b.Box() should return something")
-	require.Equal(t, stellar1.AccountBundleVersion_V1, boxed.FormatVersion, "should be V1")
-	require.NotEmpty(t, boxed.EncB64)
-	require.NotEmpty(t, boxed.VisB64)
-	require.Equal(t, 1, boxed.Enc.V)
-	require.NotEmpty(t, boxed.Enc.E)
-	require.NotZero(t, boxed.Enc.N)
-	require.Equal(t, gen, boxed.Enc.Gen)
+	require.NotNil(t, boxed, "BoxAndEncode() should return something")
+	fmt.Printf("boxed: %+v\n", boxed)
+	require.Equal(t, stellar1.BundleVersion_V2, boxed.FormatVersionParent, "should be V2")
+	require.NotEmpty(t, boxed.VisParentB64)
+	require.NotEmpty(t, boxed.EncParentB64)
+	require.Equal(t, 2, boxed.EncParent.V)
+	require.NotEmpty(t, boxed.EncParent.E)
+	require.NotZero(t, boxed.EncParent.N)
+	require.Equal(t, gen, boxed.EncParent.Gen)
+	require.Len(t, boxed.AcctBundles, 1)
 
 	m := libkb.NewMetaContext(context.Background(), nil)
-	bundle, version, err := DecodeAndUnbox(m, ring, boxed.EncB64, boxed.VisB64)
+	bundle, version, err := DecodeAndUnbox(m, ring, boxed.toBundleEncodedB64())
 	require.NoError(t, err)
 	require.NotNil(t, bundle)
-	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
-	require.Len(t, bundle.Signers, 1)
-	require.Equal(t, bundle.Signers[0], b.Signers[0])
-	require.Equal(t, stellar1.AccountMode_USER, bundle.Mode)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Len(t, bundle.Accounts, 1)
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
+	acctBundle, ok := bundle.AccountBundles[bundle.Accounts[0].AccountID]
+	require.True(t, ok)
+	acctBundleOriginal, ok := b.AccountBundles[bundle.Accounts[0].AccountID]
+	require.True(t, ok)
+	require.Equal(t, acctBundle.Signers[0], acctBundleOriginal.Signers[0])
 }
 
 // pukRing is a convenience type for puks in these tests.

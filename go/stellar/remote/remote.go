@@ -157,7 +157,8 @@ func PostAccountBundle(ctx context.Context, g *libkb.GlobalContext, acctBundle *
 		return err
 	}
 
-	boxed, err := acctbundle.Box(acctBundle, pukGen, pukSeed)
+	// XXX fix this
+	boxed, err := acctbundle.Box(acctBundle, stellar1.BundleVisibleEntryV2{}, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}

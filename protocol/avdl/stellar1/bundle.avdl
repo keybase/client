@@ -5,6 +5,12 @@ protocol bundle {
 
   @typedef("uint64") @lint("ignore") record BundleRevision {}
 
+  enum AccountMode {
+    NONE_0,
+    USER_1,  // Each of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices have access to the keys
+  }
+
   // The same format as in chat1.EncryptedData (and KBFS, Git)
   record EncryptedBundle {
     // v=1 Used an incorrect context string. No longer supported. (CORE-8135)
@@ -15,49 +21,155 @@ protocol bundle {
     keybase1.PerUserKeyGeneration gen; // PUK generation that was used
   }
 
-  // Version of the DATA.
+  // ==========================================================================
+  // BundleSecretVersioned
+  // ==========================================================================
+
+  // Version of the BundleSecret data.
   enum BundleVersion {
-    V1_1
+    V1_1,
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
   }
 
   variant BundleSecretVersioned switch (BundleVersion version) {
     case V1 : BundleSecretV1;
+    case V2 : BundleSecretV2;
+    case V3 : BundleSecretUnsupported;
+    case V4 : BundleSecretUnsupported;
+    case V5 : BundleSecretUnsupported;
+    case V6 : BundleSecretUnsupported;
+    case V7 : BundleSecretUnsupported;
+    case V8 : BundleSecretUnsupported;
+    case V9 : BundleSecretUnsupported;
+    case V10 : BundleSecretUnsupported;
   }
 
-  // There is no versioned form of BundleVisible because it is versioned
+  // Note: there is no versioned form of BundleVisible because it is versioned
   // by BundleSecret's version field.
+
+  // --------------------------------------------------------------------------
+  // V1 
+  // --------------------------------------------------------------------------
+
   record BundleVisibleV1 {
     BundleRevision revision;
     Hash prev; // SHA256 of previous msgpack(EncryptedBundle)
-    array<BundleVisibleEntry> accounts;
+    array<BundleVisibleEntryV1> accounts;
   }
 
   record BundleSecretV1 {
     Hash visibleHash; // SHA256 of msgpack(BundleVisibleV1)
-    array<BundleSecretEntry> accounts;
+    array<BundleSecretEntryV1> accounts;
   }
 
-  enum AccountMode {
-    NONE_0,
-    USER_1,  // Each of the user's devices has access to the keys
-    MOBILE_2 // Only the user's mobile devices have access to the keys
-  }
-
-  // Server-visible attributes of an account.
-  record BundleVisibleEntry {
+  // V1 Server-visible attributes of an account.
+  record BundleVisibleEntryV1 {
     AccountID accountID;
     AccountMode mode;
-    boolean isPrimary; // whether this is the primary account (public)
+    boolean isPrimary;        // whether this is the primary account (public)
   }
 
-  // Secret attributes of an account.
-  record BundleSecretEntry {
+  // V1 Secret attributes of an account.
+  record BundleSecretEntryV1 {
     AccountID accountID;
     array<SecretKey> signers;
     string name;
   }
 
-  // Unversioned struct for local use only.
+  // --------------------------------------------------------------------------
+  // V2
+  // --------------------------------------------------------------------------
+
+  record BundleVisibleV2 {
+    BundleRevision revision;
+    Hash prev; // SHA256 of previous msgpack(EncryptedBundle)
+    array<BundleVisibleEntryV2> accounts;
+  }
+  
+  record BundleSecretV2 {
+    Hash visibleHash; // SHA256 of msgpack(BundleVisibleV2)
+    array<BundleSecretEntryV2> accounts;
+  }
+
+  // V2 Server-visible attributes of an account.
+  record BundleVisibleEntryV2 {
+    AccountID accountID;
+    AccountMode mode;
+    boolean isPrimary;        // whether this is the primary account (public)
+    BundleRevision acctBundleRevision; // revision of AccountBundleSecret
+    Hash encAcctBundleHash;   // SHA256 of msgpack(EncryptedAccountBundle) for this account
+  }
+  
+  // V2 Secret attributes of an account.
+  record BundleSecretEntryV2 {
+    string name;
+  }
+
+  // --------------------------------------------------------------------------
+  // Unsupported 
+  // --------------------------------------------------------------------------
+
+  record BundleSecretUnsupported {}
+
+  // ==========================================================================
+  // AccountBundles
+  // ==========================================================================
+
+  // The same format as in chat1.EncryptedData (and KBFS, Git)
+  record EncryptedAccountBundle {
+    int   v;                           // Version of the CRYPT.
+    bytes e;                           // encrypted msgpacked AccountBundleSecretVersioned (output of secretbox)
+    keybase1.BoxNonce n;               // nonce
+    keybase1.PerUserKeyGeneration gen; // PUK generation that was used
+  }
+
+  // Version of the AccountBundleSecret data.
+  enum AccountBundleVersion {
+    V1_1,
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
+  }
+
+  variant AccountBundleSecretVersioned switch (AccountBundleVersion version) {
+    case V1 : AccountBundleSecretV1;
+    case V2 : AccountBundleSecretUnsupported;
+    case V3 : AccountBundleSecretUnsupported;
+    case V4 : AccountBundleSecretUnsupported;
+    case V5 : AccountBundleSecretUnsupported;
+    case V6 : AccountBundleSecretUnsupported;
+    case V7 : AccountBundleSecretUnsupported;
+    case V8 : AccountBundleSecretUnsupported;
+    case V9 : AccountBundleSecretUnsupported;
+    case V10 : AccountBundleSecretUnsupported;
+  }
+
+  record AccountBundleSecretV1 {
+    Hash visibleHash; // SHA256 of msgpack(BundleVisibleEntryV2)
+    AccountID accountID;
+    array<SecretKey> signers;
+  }
+
+  record AccountBundleSecretUnsupported {}
+ 
+  // ==========================================================================
+  // Unversioned structs for local use only.
+  // ==========================================================================
+
   record Bundle {
     BundleRevision revision;
     Hash prev;
@@ -78,38 +190,27 @@ protocol bundle {
     string name;
   }
 
-  // --------------------------------------------------------------------------
-  // AccountBundles
-  // --------------------------------------------------------------------------
-
-  // The same format as in chat1.EncryptedData (and KBFS, Git)
-  record EncryptedAccountBundle {
-    int   v;                           // Version of the CRYPT.
-    bytes e;                           // encrypted msgpacked AccountBundleSecretVersioned (output of secretbox)
-    keybase1.BoxNonce n;               // nonce
-    keybase1.PerUserKeyGeneration gen; // PUK generation that was used
-  }
-
-  // Version of the DATA.
-  enum AccountBundleVersion {
-    V1_1
-  }
-
-  variant AccountBundleSecretVersioned switch (AccountBundleVersion version) {
-    case V1 : AccountBundleSecretV1;
-  }
-
-  record AccountBundleVisibleV1 {
+  // BundleRestricted does not necessarily contain account secrets
+  // for all accounts.
+  record BundleRestricted {
     BundleRevision revision;
-    Hash prev; // SHA256 of previous msgpack(EncryptedAccountBundle)
+    Hash prev;
+    // SHA256 of this msgpack(EncryptedBundle)
+    // Not serialized. Only set if this bundle was decrypted.
+    Hash ownHash;
+    // AccountID and name should be unique.
+    // At most one account should be primary.
+    array<BundleEntryRestricted> accounts;
+
+    // bundles containing secret keys
+    map<AccountID, AccountBundle> accountBundles;
+  }
+  
+  // Combined account entry for local use only.
+  record BundleEntryRestricted {
     AccountID accountID;
     AccountMode mode;
-  }
-
-  record AccountBundleSecretV1 {
-    Hash visibleHash; // SHA256 of msgpack(AccountBundleVisibleV1)
-    AccountID accountID;
-    array<SecretKey> signers;
+    boolean isPrimary; // whether this is the primary account
     string name;
   }
 
@@ -117,13 +218,11 @@ protocol bundle {
   record AccountBundle {
     BundleRevision revision;
     Hash prev;
-    // SHA256 of this msgpack(EncryptedBundle)
+    // SHA256 of this msgpack(EncryptedAccountBundle)
     // Not serialized. Only set if this bundle was decrypted.
     Hash ownHash;
     AccountID accountID;
-    AccountMode mode;
     array<SecretKey> signers;
-    string name;
   }
 
 }

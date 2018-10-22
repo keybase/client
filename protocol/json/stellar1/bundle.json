@@ -20,6 +20,15 @@
       "lint": "ignore"
     },
     {
+      "type": "enum",
+      "name": "AccountMode",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "MOBILE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "EncryptedBundle",
       "fields": [
@@ -45,7 +54,16 @@
       "type": "enum",
       "name": "BundleVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
       ]
     },
     {
@@ -62,6 +80,69 @@
             "def": false
           },
           "body": "BundleSecretV1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "BundleSecretV2"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
+          },
+          "body": "BundleSecretUnsupported"
         }
       ]
     },
@@ -80,7 +161,7 @@
         {
           "type": {
             "type": "array",
-            "items": "BundleVisibleEntry"
+            "items": "BundleVisibleEntryV1"
           },
           "name": "accounts"
         }
@@ -97,24 +178,15 @@
         {
           "type": {
             "type": "array",
-            "items": "BundleSecretEntry"
+            "items": "BundleSecretEntryV1"
           },
           "name": "accounts"
         }
       ]
     },
     {
-      "type": "enum",
-      "name": "AccountMode",
-      "symbols": [
-        "NONE_0",
-        "USER_1",
-        "MOBILE_2"
-      ]
-    },
-    {
       "type": "record",
-      "name": "BundleVisibleEntry",
+      "name": "BundleVisibleEntryV1",
       "fields": [
         {
           "type": "AccountID",
@@ -132,7 +204,7 @@
     },
     {
       "type": "record",
-      "name": "BundleSecretEntry",
+      "name": "BundleSecretEntryV1",
       "fields": [
         {
           "type": "AccountID",
@@ -150,6 +222,229 @@
           "name": "name"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BundleVisibleV2",
+      "fields": [
+        {
+          "type": "BundleRevision",
+          "name": "revision"
+        },
+        {
+          "type": "Hash",
+          "name": "prev"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BundleVisibleEntryV2"
+          },
+          "name": "accounts"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BundleSecretV2",
+      "fields": [
+        {
+          "type": "Hash",
+          "name": "visibleHash"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BundleSecretEntryV2"
+          },
+          "name": "accounts"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BundleVisibleEntryV2",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "BundleRevision",
+          "name": "revision"
+        },
+        {
+          "type": "AccountMode",
+          "name": "mode"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
+        },
+        {
+          "type": "Hash",
+          "name": "encAcctBundleHash"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BundleSecretEntryV2",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BundleSecretUnsupported",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "EncryptedAccountBundle",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.PerUserKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AccountBundleVersion",
+      "symbols": [
+        "V1_1",
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "AccountBundleSecretVersioned",
+      "switch": {
+        "type": "AccountBundleVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "AccountBundleSecretV1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
+          },
+          "body": "AccountBundleSecretUnsupported"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountBundleSecretV1",
+      "fields": [
+        {
+          "type": "Hash",
+          "name": "visibleHash"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SecretKey"
+          },
+          "name": "signers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountBundleSecretUnsupported",
+      "fields": []
     },
     {
       "type": "record",
@@ -207,53 +502,7 @@
     },
     {
       "type": "record",
-      "name": "EncryptedAccountBundle",
-      "fields": [
-        {
-          "type": "int",
-          "name": "v"
-        },
-        {
-          "type": "bytes",
-          "name": "e"
-        },
-        {
-          "type": "keybase1.BoxNonce",
-          "name": "n"
-        },
-        {
-          "type": "keybase1.PerUserKeyGeneration",
-          "name": "gen"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "AccountBundleVersion",
-      "symbols": [
-        "V1_1"
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "AccountBundleSecretVersioned",
-      "switch": {
-        "type": "AccountBundleVersion",
-        "name": "version"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "V1",
-            "def": false
-          },
-          "body": "AccountBundleSecretV1"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AccountBundleVisibleV1",
+      "name": "BundleRestricted",
       "fields": [
         {
           "type": "BundleRevision",
@@ -264,33 +513,41 @@
           "name": "prev"
         },
         {
+          "type": "Hash",
+          "name": "ownHash"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BundleEntryRestricted"
+          },
+          "name": "accounts"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AccountBundle",
+            "keys": "AccountID"
+          },
+          "name": "accountBundles"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BundleEntryRestricted",
+      "fields": [
+        {
           "type": "AccountID",
           "name": "accountID"
         },
         {
           "type": "AccountMode",
           "name": "mode"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AccountBundleSecretV1",
-      "fields": [
-        {
-          "type": "Hash",
-          "name": "visibleHash"
         },
         {
-          "type": "AccountID",
-          "name": "accountID"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SecretKey"
-          },
-          "name": "signers"
+          "type": "boolean",
+          "name": "isPrimary"
         },
         {
           "type": "string",
@@ -319,19 +576,11 @@
           "name": "accountID"
         },
         {
-          "type": "AccountMode",
-          "name": "mode"
-        },
-        {
           "type": {
             "type": "array",
             "items": "SecretKey"
           },
           "name": "signers"
-        },
-        {
-          "type": "string",
-          "name": "name"
         }
       ]
     }
