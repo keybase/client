@@ -831,6 +831,18 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 		t.Fatalf("invalid error type %T", err)
 	}
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+
+	// can fetch the bundle, but it won't have secrets
+	bundle, _, err := remote.Fetch(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleRevision(3), bundle.Revision)
+	require.Len(t, bundle.Accounts, 2)
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
+	require.True(t, bundle.Accounts[0].IsPrimary)
+	require.Len(t, bundle.Accounts[0].Signers, 0)
+	require.Equal(t, stellar1.AccountMode_MOBILE, bundle.Accounts[1].Mode)
+	require.False(t, bundle.Accounts[1].IsPrimary)
+	require.Len(t, bundle.Accounts[1].Signers, 0)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then

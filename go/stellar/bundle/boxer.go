@@ -155,6 +155,25 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 		if err != nil {
 			return res, version, err
 		}
+	case stellar1.BundleVersion_V2:
+		visiblePack, err := base64.StdEncoding.DecodeString(visibleBundleB64)
+		if err != nil {
+			return res, version, err
+		}
+		visibleHash := sha256.Sum256(visiblePack)
+		secretV2 := versioned.V2()
+		if !hmac.Equal(visibleHash[:], secretV2.VisibleHash) {
+			return res, version, errors.New("corrupted bundle: visible hash mismatch")
+		}
+		var visibleV2 stellar1.BundleVisibleV2
+		err = libkb.MsgpackDecode(&visibleV2, visiblePack)
+		if err != nil {
+			return res, version, fmt.Errorf("error unpacking visible bundle: %v", err)
+		}
+		res, err = mergeV2(secretV2, visibleV2)
+		if err != nil {
+			return res, version, err
+		}
 	default:
 		return res, version, fmt.Errorf("unsupported stellar secret bundle version: %v", version)
 	}
@@ -232,6 +251,30 @@ func merge(secret stellar1.BundleSecretV1, visible stellar1.BundleVisibleV1) (re
 			Signers:   sec.Signers,
 			Name:      sec.Name,
 		})
+	}
+	return stellar1.Bundle{
+		Revision: visible.Revision,
+		Prev:     visible.Prev,
+		Accounts: accounts,
+	}, nil
+}
+
+func mergeV2(secret stellar1.BundleSecretV2, visible stellar1.BundleVisibleV2) (res stellar1.Bundle, err error) {
+	if len(secret.Accounts) != len(visible.Accounts) {
+		return res, errors.New("corrupted bundle: secret and visible have different counts")
+	}
+	accounts := make([]stellar1.BundleEntry, len(secret.Accounts))
+	for i, sec := range secret.Accounts {
+		vis := visible.Accounts[i]
+		if sec.AccountID != vis.AccountID {
+			return res, errors.New("corrupted bundle: mismatched account ID")
+		}
+		accounts[i] = stellar1.BundleEntry{
+			AccountID: vis.AccountID,
+			Mode:      vis.Mode,
+			IsPrimary: vis.IsPrimary,
+			Name:      sec.Name,
+		}
 	}
 	return stellar1.Bundle{
 		Revision: visible.Revision,

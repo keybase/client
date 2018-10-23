@@ -110,6 +110,7 @@ protocol bundle {
   
   // V2 Secret attributes of an account.
   record BundleSecretEntryV2 {
+    AccountID accountID; // this is here to check that the bundle isn't corrupt
     string name;
   }
 

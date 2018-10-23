@@ -292,6 +292,10 @@
       "name": "BundleSecretEntryV2",
       "fields": [
         {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
           "type": "string",
           "name": "name"
         }

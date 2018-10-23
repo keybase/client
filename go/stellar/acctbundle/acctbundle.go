@@ -191,7 +191,8 @@ func visibilitySplit(a *stellar1.BundleRestricted) ([]stellar1.BundleVisibleEntr
 			EncAcctBundleHash:  acct.EncAcctBundleHash,
 		}
 		sec[i] = stellar1.BundleSecretEntryV2{
-			Name: acct.Name,
+			AccountID: acct.AccountID,
+			Name:      acct.Name,
 		}
 	}
 	return vis, sec

@@ -580,12 +580,14 @@ func (o BundleVisibleEntryV2) DeepCopy() BundleVisibleEntryV2 {
 }
 
 type BundleSecretEntryV2 struct {
-	Name string `codec:"name" json:"name"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Name      string    `codec:"name" json:"name"`
 }
 
 func (o BundleSecretEntryV2) DeepCopy() BundleSecretEntryV2 {
 	return BundleSecretEntryV2{
-		Name: o.Name,
+		AccountID: o.AccountID.DeepCopy(),
+		Name:      o.Name,
 	}
 }
 
