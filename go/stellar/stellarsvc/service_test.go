@@ -811,6 +811,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
+	// NOTE: we're using this acctBundle later...
 
 	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
 	require.NoError(t, err)
@@ -843,6 +844,16 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.AccountMode_MOBILE, bundle.Accounts[1].Mode)
 	require.False(t, bundle.Accounts[1].IsPrimary)
 	require.Len(t, bundle.Accounts[1].Signers, 0)
+
+	// try posting an old bundle we got previously
+	err = remote.PostBundleRestricted(context.Background(), tc.G, acctBundle)
+	require.Error(t, err)
+
+	// tinker with it
+	acctBundle.Revision = 4
+	err = remote.PostBundleRestricted(context.Background(), tc.G, acctBundle)
+	require.Error(t, err)
+	fmt.Printf("error: %s (%T)\n", err, err)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
