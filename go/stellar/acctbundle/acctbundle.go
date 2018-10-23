@@ -20,7 +20,7 @@ func New(secret stellar1.SecretKey, name string) (*stellar1.BundleRestricted, er
 	if err != nil {
 		return nil, err
 	}
-	entry := newEntry(accountID, name)
+	entry := newEntry(accountID, name, false)
 	r := &stellar1.BundleRestricted{
 		Revision:       1,
 		Accounts:       []stellar1.BundleEntryRestricted{entry},
@@ -48,12 +48,26 @@ func NewInitial(name string) (*stellar1.BundleRestricted, error) {
 	return x, nil
 }
 
-func newEntry(accountID stellar1.AccountID, name string) stellar1.BundleEntryRestricted {
+func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
+	r := &stellar1.BundleRestricted{
+		Revision:       bundle.Revision,
+		Prev:           bundle.Prev,
+		AccountBundles: make(map[stellar1.AccountID]stellar1.AccountBundle),
+	}
+	for _, acct := range bundle.Accounts {
+		r.Accounts = append(r.Accounts, newEntry(acct.AccountID, acct.Name, acct.IsPrimary))
+		// XXX multiple signers
+		r.AccountBundles[acct.AccountID] = newAccountBundle(acct.AccountID, acct.Signers[0])
+	}
+	return r, nil
+}
+
+func newEntry(accountID stellar1.AccountID, name string, isPrimary bool) stellar1.BundleEntryRestricted {
 	return stellar1.BundleEntryRestricted{
 		AccountID: accountID,
 		Name:      name,
 		Mode:      stellar1.AccountMode_USER,
-		IsPrimary: false,
+		IsPrimary: isPrimary,
 	}
 }
 
@@ -89,7 +103,7 @@ func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 }
 
 type AcctBoxedEncoded struct {
-	Enc           stellar1.EncryptedAccountBundle
+	// Enc           stellar1.EncryptedAccountBundle
 	EncB64        string // base64 msgpacked Enc
 	FormatVersion stellar1.AccountBundleVersion
 }
@@ -240,7 +254,8 @@ func accountBoxAndEncode(visEntry stellar1.BundleVisibleEntryV2, accountBundle s
 		}
 		secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 	*/
-	res := AcctBoxedEncoded{Enc: encBundle, EncB64: b64, FormatVersion: 999 /* where is this */}
+	_ = encBundle
+	res := AcctBoxedEncoded{ /*Enc: encBundle,*/ EncB64: b64, FormatVersion: 999 /* where is this */}
 
 	return &res, nil
 }
