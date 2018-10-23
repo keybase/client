@@ -212,7 +212,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""
 		loc.ToAccountName = ""
-		if loc.StatusSimplified == stellar1.PaymentStatus_CANCELED {
+		if p.Claim.ToPaymentStatus() == stellar1.PaymentStatus_CANCELED {
 			// canceled payment. blank out toAssertion and stow in originalToAssertion
 			// set delta to what it would have been had the payment completed
 			loc.ToAssertion = ""
