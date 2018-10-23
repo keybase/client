@@ -127,10 +127,6 @@ func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGenera
 
 	accountsVisible, accountsSecret := visibilitySplit(a)
 
-	for i, a := range accountsVisible {
-		fmt.Printf("%d. account visible %+v\n", i, a)
-	}
-
 	// visible portion parent
 	visibleV2 := stellar1.BundleVisibleV2{
 		Revision: a.Revision,
@@ -328,7 +324,6 @@ func DecodeAndUnbox(m libkb.MetaContext, finder PukFinder, encodedBundle BundleE
 	if err != nil {
 		return nil, 0, err
 	}
-	fmt.Printf("encodedBundle.AcctBundles: %+v\n", encodedBundle.AcctBundles)
 	parent.AccountBundles = make(map[stellar1.AccountID]stellar1.AccountBundle)
 	for _, parentEntry := range parent.Accounts {
 		if acctEncB64, ok := encodedBundle.AcctBundles[parentEntry.AccountID]; ok {
@@ -643,8 +638,6 @@ func convertVisibleAccounts(in []stellar1.BundleVisibleEntryV2) []stellar1.Bundl
 // merge combines the versioned secret account bundle and the visible account bundle into
 // a stellar1.AccountBundle for local use.
 func merge(secret stellar1.BundleSecretV2, visible stellar1.BundleVisibleV2) (stellar1.BundleRestricted, error) {
-	fmt.Printf("secret: %+v\n", secret)
-	fmt.Printf("visible: %+v\n", visible)
 	return stellar1.BundleRestricted{
 		Revision: visible.Revision,
 		Prev:     visible.Prev,
