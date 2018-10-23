@@ -4,8 +4,11 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as WalletTypes from '../../../../constants/types/wallets'
+import * as Tabs from '../../../../constants/tabs'
+import * as SettingsTabs from '../../../../constants/settings'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -25,15 +28,15 @@ const loadingProps = {
   pending: false,
 }
 
-// Tooltip text for cancelable payments
+// Info text for cancelable payments
 const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
 
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
-    case 'pending': // fallthrough
+    case 'pending':
       return 'sending'
-    case 'canceled':
+    case 'canceled': // fallthrough
     case 'cancelable':
       return youAreSender ? 'sending' : 'attempting to send'
     default:
@@ -128,7 +131,12 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
       dispatch(WalletsGen.createCancelPayment({paymentID}))
     }
   },
-  onClaim: () => {}, // TODO nav to wallets accept disclaimer flow
+  onClaim: () =>
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+      })
+    ),
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 

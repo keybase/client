@@ -152,8 +152,12 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: NotLoadingProps) => {
-  const counterpartyAccountID =
+  let counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
+  if (props.status === 'canceled') {
+    // Canceled relay, recipient might not have accountID. Don't show.
+    counterpartyAccountID = null
+  }
   const you = <YourAccount {...props} />
 
   const counterparty = (
