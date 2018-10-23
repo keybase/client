@@ -91,8 +91,7 @@ const styles = Styles.styleSheetCreate({
   rowContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     height: rowHeight,
-    minHeight: rowHeight,
-    maxHeight: rowHeight,
+    flexShrink: 0,
   },
   divider: {
     marginLeft: 48,
