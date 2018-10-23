@@ -185,7 +185,7 @@ class EmojiIfExists extends PureComponent<
 }
 
 const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
-  // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or block quote (parent text tag) or we return a new text tag. If it's not mobile we can short circuit and just return the string
+  // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   newline: (node, outputFunc, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
@@ -365,49 +365,3 @@ export {
   reactOutputFontScaling,
   reactOutputNoFontScaling,
 }
-// Mobile styles to inherit
-/*
-const styles = styleSheetCreate({
-  bold: {color: undefined},
-  codeSnippet: {
-    ...globalStyles.fontTerminal,
-    ...globalStyles.rounded,
-    backgroundColor: globalColors.beige,
-    color: globalColors.blue,
-    fontSize: 15,
-    // FIXME not yet supported for nested <Text>:
-    // ...globalStyles.rounded,
-    // paddingLeft: globalMargins.xtiny,
-    // paddingRight: globalMargins.xtiny,
-  },
-  codeSnippetBlock: {
-    ...globalStyles.rounded,
-    backgroundColor: globalColors.beige,
-    marginBottom: globalMargins.xtiny,
-    marginTop: globalMargins.xtiny,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
-  },
-  codeSnippetBlockText: {
-    ...globalStyles.fontTerminal,
-    fontSize: 15,
-    color: globalColors.black_75,
-  },
-  italic: {color: undefined, fontStyle: 'italic', fontWeight: undefined},
-  // The Text component adds default styles which we need to unset so that
-  // styles applied to Markdown parent take effect. For instance, we need
-  // to unset the default color applied by <Text type="body"> so that
-  // <Markdown style={{color: ...}}> works.
-  link: {fontWeight: undefined},
-  neutral: {color: undefined, fontWeight: undefined},
-  quoteBlock: {
-    borderLeftColor: globalColors.lightGrey2,
-    borderLeftWidth: 3,
-    paddingLeft: 8,
-  },
-  strike: {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'},
-})
-
-*/
