@@ -130,25 +130,21 @@ type Sender interface {
 		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error)
 }
 
-type ChatLocalizer interface {
-	Localize(ctx context.Context, uid gregor1.UID, inbox Inbox) ([]chat1.ConversationLocal, error)
-	Name() string
-	SetOffline()
-}
-
 type InboxSource interface {
 	Offlinable
 	Resumable
 	Suspendable
 
-	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, error)
+	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp, useLocalData bool,
+		maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
-	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
+	Localize(ctx context.Context, uid gregor1.UID, convs []RemoteConversation,
+		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
+	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
 	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error)
 	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -164,7 +160,8 @@ type InboxSource interface {
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
-	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
+	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,

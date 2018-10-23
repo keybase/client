@@ -173,12 +173,12 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 	// Create localized conversation callback channel
 	chatUI := h.getChatUI(arg.SessionID)
-	localizeCb := make(chan NonblockInboxResult, 1)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back
 	// as our result
-	localizer := NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox)
-	if _, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination); err != nil {
+	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), types.ConversationLocalizerNonblocking,
+		true, arg.MaxUnbox, arg.Query, arg.Pagination)
+	if err != nil {
 		// If this is a convID based query, let's go ahead and drop those onto
 		// the retrier
 		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
@@ -196,7 +196,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	}
 
 	// Wait for inbox to get sent to us
-	var lres NonblockInboxResult
+	var lres types.AsyncInboxResult
 	if arg.SkipUnverified {
 		select {
 		case lres = <-localizeCb:
@@ -243,31 +243,31 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	convLocalsCh := make(chan chat1.ConversationLocal, len(lres.InboxRes.ConvsUnverified))
 	for convRes := range localizeCb {
 		wg.Add(1)
-		go func(convRes NonblockInboxResult) {
-			if convRes.Err != nil {
+		go func(convRes types.AsyncInboxResult) {
+			if convRes.ConvLocal.Error != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
-					convRes.Conv.GetConvID(), convRes.Err.Message)
+					convRes.Conv.GetConvID(), convRes.ConvLocal.Error.Message)
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     utils.PresentConversationErrorLocal(*convRes.Err),
+					Error:     utils.PresentConversationErrorLocal(*convRes.ConvLocal.Error),
 				})
 
 				// If we get a transient failure, add this to the retrier queue
-				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
+				if convRes.ConvLocal.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
 					h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
 						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
-			} else if convRes.ConvRes != nil {
-				pconv := utils.PresentConversationLocal(*convRes.ConvRes, h.G().Env.GetUsername().String())
+			} else {
+				pconv := utils.PresentConversationLocal(convRes.ConvLocal, h.G().Env.GetUsername().String())
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
 						err.Error())
 				} else {
 					h.Debug(ctx, "GetInboxNonblockLocal: sending verified conv: id: %s tlf: %s bytes: %d",
-						convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded(), len(jbody))
+						convRes.Conv.GetConvID(), convRes.ConvLocal.Info.TLFNameExpanded(), len(jbody))
 					start := time.Now()
 					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 						SessionID: arg.SessionID,
@@ -276,7 +276,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
 						convRes.Conv.GetConvID(), time.Now().Sub(start))
 				}
-				convLocalsCh <- *convRes.ConvRes
+				convLocalsCh <- convRes.ConvLocal
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
@@ -368,8 +368,8 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 		return res, err
 	}
 	// Read inbox from the source
-	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), types.ConversationLocalizerBlocking, true, nil,
+		arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -403,8 +403,8 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		return res, err
 	}
 	// Read inbox from the source
-	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), types.ConversationLocalizerBlocking, true, nil,
+		arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
@@ -1090,9 +1090,10 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 
 		// Get TLF name to post
 		uid := h.G().Env.GetUID()
-		ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{arg.ConversationID},
-		}, nil)
+		ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), types.ConversationLocalizerBlocking, true,
+			nil, &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{arg.ConversationID},
+			}, nil)
 		if err != nil {
 			h.Debug(ctx, "SetConversationStatusLocal: failed to fetch conversation: %s", err.Error())
 		} else {
@@ -1833,9 +1834,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(teamConvs.Conversations),
-	})
+	teamConvsLocal, _, err := h.G().InboxSource.Localize(ctx, uid,
+		utils.RemoteConvs(teamConvs.Conversations), types.ConversationLocalizerBlocking)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
 		return res, err
@@ -2099,9 +2099,10 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Lookup conversation to get team ID
-	iboxRes, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{arg.ConvID},
-	}, nil)
+	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{arg.ConvID},
+		}, nil)
 	if err != nil {
 		return err
 	}
@@ -2186,9 +2187,10 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 		return err
 	}
 
-	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
 	if err != nil {
 		return err
 	}

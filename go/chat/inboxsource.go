@@ -14,155 +14,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type baseLocalizer struct {
-	globals.Contextified
-	utils.DebugLabeler
-	pipeline *localizerPipeline
-}
-
-func newBaseLocalizer(g *globals.Context, pipeline *localizerPipeline) *baseLocalizer {
-	return &baseLocalizer{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
-		pipeline:     pipeline,
-	}
-}
-
-func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inbox) (res types.Inbox) {
-	username := b.G().Env.GetUsername().String()
-	res = inbox
-	res.ConvsUnverified = nil
-	for _, conv := range inbox.ConvsUnverified {
-		if conv.Conv.GetMembersType() == chat1.ConversationMembersType_KBFS &&
-			conv.Conv.GetFinalizeInfo() != nil &&
-			// If reset user is the current user, or is blank (only way such a thing could be in our
-			// inbox is if the current user is the one that reset)
-			(conv.Conv.GetFinalizeInfo().ResetUser == username ||
-				conv.Conv.GetFinalizeInfo().ResetUser == "") {
-			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
-			continue
-		}
-		res.ConvsUnverified = append(res.ConvsUnverified, conv)
-	}
-	return res
-}
-
-type blockingLocalizer struct {
-	globals.Contextified
-	*baseLocalizer
-}
-
-func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline) *blockingLocalizer {
-	return &blockingLocalizer{
-		Contextified:  globals.NewContextified(g),
-		baseLocalizer: newBaseLocalizer(g, pipeline),
-	}
-}
-
-func (b *blockingLocalizer) SetOffline() {
-	b.pipeline.offline = true
-}
-
-func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
-	inbox = b.filterSelfFinalized(ctx, inbox)
-	res, err = b.baseLocalizer.pipeline.localizeConversationsPipeline(ctx, uid,
-		utils.PluckConvs(inbox.ConvsUnverified), nil, nil)
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
-}
-
-func (b *blockingLocalizer) Name() string {
-	return "blocking"
-}
-
-type NonblockInboxResult struct {
-	Conv     chat1.Conversation
-	Err      *chat1.ConversationErrorLocal
-	ConvRes  *chat1.ConversationLocal
-	InboxRes *types.Inbox
-}
-
-type nonBlockingLocalizer struct {
-	globals.Contextified
-	utils.DebugLabeler
-	*baseLocalizer
-
-	localizeCb chan NonblockInboxResult
-	maxUnbox   *int
-}
-
-func newNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
-	maxUnbox *int) *nonBlockingLocalizer {
-	return &nonBlockingLocalizer{
-		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "nonBlockingLocalizer", false),
-		baseLocalizer: newBaseLocalizer(g),
-		pipeline: newLocalizerPipeline(g,
-			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
-		localizeCb: localizeCb,
-		maxUnbox:   maxUnbox,
-	}
-}
-
-func (b *nonBlockingLocalizer) SetOffline() {
-	b.pipeline.offline = true
-}
-
-func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
-	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
-
-	// Loop through and look for empty convs or known errors and skip them
-	var res []types.RemoteConversation
-	for _, conv := range inbox.ConvsUnverified {
-		if utils.IsConvEmpty(conv.Conv) {
-			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.Conv.GetConvID())
-			continue
-		}
-		res = append(res, conv)
-	}
-
-	return types.Inbox{
-		Version:         inbox.Version,
-		ConvsUnverified: res,
-		Convs:           inbox.Convs,
-		Pagination:      inbox.Pagination,
-	}
-}
-
-func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
-	defer b.Trace(ctx, func() error { return err }, "Localize")()
-
-	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
-	inbox = b.filterSelfFinalized(ctx, inbox)
-	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
-
-	// Send inbox over localize channel
-	b.localizeCb <- NonblockInboxResult{
-		InboxRes: &filteredInbox,
-	}
-
-	// Spawn off localization into its own goroutine and use cb to communicate with outside world
-	bctx := BackgroundContext(ctx, b.G())
-	go func() {
-		b.Debug(bctx, "Localize: starting background localization: convs: %d",
-			len(inbox.ConvsUnverified))
-		b.pipeline.localizeConversationsPipeline(bctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
-			b.maxUnbox, &b.localizeCb)
-
-		// Shutdown localize channel
-		close(b.localizeCb)
-	}()
-
-	return nil, nil
-}
-
-func (b *nonBlockingLocalizer) Name() string {
-	return "nonblocking"
-}
-
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
 	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
 
@@ -222,8 +73,8 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 		InboxSource:      ibs,
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false),
 		getChatInterface: getChatInterface,
-		localizer: newLocalizerPipeline(g, newLocalizerPipeline(g,
-			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{}))),
+		localizer: newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
 	}
 }
 
@@ -299,6 +150,34 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 	}
 }
 
+func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
+	localizerTyp types.ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan types.AsyncInboxResult, error) {
+	localizeCb := make(chan types.AsyncInboxResult, len(convs))
+	localizer := b.createConversationLocalizer(ctx, localizerTyp, localizeCb)
+	b.Debug(ctx, "Localize: using localizer: %s", localizer.Name())
+
+	res, err := localizer.Localize(ctx, uid, types.Inbox{
+		ConvsUnverified: convs,
+	}, nil)
+	if err != nil {
+		return res, localizeCb, err
+	}
+	return res, localizeCb, nil
+}
+
+func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
+	localizeCb chan types.AsyncInboxResult) conversationLocalizer {
+	switch typ {
+	case types.ConversationLocalizerBlocking:
+		return newBlockingLocalizer(b.G(), b.localizer, localizeCb)
+	case types.ConversationLocalizerNonblocking:
+		return newNonblockingLocalizer(b.G(), b.localizer, localizeCb)
+	default:
+		b.Debug(ctx, "createConversationLocalizer: warning unknown typ, using default: %v", typ)
+		return newBlockingLocalizer(b.G(), b.localizer, localizeCb)
+	}
+}
+
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (*types.NameInfoUntrusted, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
@@ -329,34 +208,30 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 }
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (types.Inbox, error) {
-
-	if localizer == nil {
-		localizer = newBlockingLocalizer(s.G())
-	}
-	if s.IsOffline(ctx) {
-		localizer.SetOffline()
-	}
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+	localizerTyp types.ConversationLocalizerTyp, useLocalData bool, maxLocalize *int,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
 
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
-		return types.Inbox{}, err
+		return types.Inbox{}, nil, err
 	}
 	inbox, err := s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
-		return types.Inbox{}, err
+		return types.Inbox{}, nil, err
 	}
 
-	res, err := localizer.Localize(ctx, uid, inbox)
+	localizeCb := make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified))
+	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
+	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+
+	res, err := localizer.Localize(ctx, uid, inbox, maxLocalize)
 	if err != nil {
-		return types.Inbox{}, err
+		return types.Inbox{}, localizeCb, err
 	}
 
 	res, err = filterConvLocals(res, rquery, query, tlfInfo)
 	if err != nil {
-		return types.Inbox{}, err
+		return types.Inbox{}, localizeCb, err
 	}
 
 	return types.Inbox{
@@ -364,7 +239,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		Convs:           res,
 		ConvsUnverified: inbox.ConvsUnverified,
 		Pagination:      inbox.Pagination,
-	}, nil
+	}, localizeCb, nil
 }
 
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
@@ -535,38 +410,35 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 }
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (inbox types.Inbox, err error) {
+	localizerTyp types.ConversationLocalizerTyp, useLocalData bool, maxLocalize *int,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
 
 	defer s.Trace(ctx, func() error { return err }, "Read")()
-	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G())
-	}
-	if s.IsOffline(ctx) {
-		localizer.SetOffline()
-	}
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	// Read unverified inbox
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
-		return inbox, err
+		return inbox, localizeCb, err
 	}
 	inbox, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
-		return inbox, err
+		return inbox, localizeCb, err
 	}
 
+	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified))
+	localizer := s.createConversationLocalizer(ctx, localizerTyp, localizeCb)
+	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
+
 	// Localize
-	inbox.Convs, err = localizer.Localize(ctx, uid, inbox)
+	inbox.Convs, err = localizer.Localize(ctx, uid, inbox, maxLocalize)
 	if err != nil {
-		return inbox, err
+		return inbox, localizeCb, err
 	}
 
 	// Run post filters
 	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
 	if err != nil {
-		return inbox, err
+		return inbox, localizeCb, err
 	}
 
 	// Write metadata to the inbox cache
@@ -575,7 +447,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		s.Debug(ctx, "Read: unable to write inbox local metadata: %s", err)
 	}
 
-	return inbox, nil
+	return inbox, localizeCb, nil
 }
 
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
@@ -666,7 +538,7 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	// Read back affected conversation so we can send it to the frontend
-	ib, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+	ib, _, err := s.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
@@ -685,7 +557,7 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error) {
 	// Read back affected conversation so we can send it to the frontend
-	ib, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+	ib, _, err := s.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}, nil)
 	return ib.Convs, err
@@ -846,9 +718,10 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	var userJoinedConvs []chat1.Conversation
 	if len(userJoined) > 0 {
 		var ibox types.Inbox
-		ibox, err = s.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
-			ConvIDs: userJoined,
-		}, nil)
+		ibox, _, err = s.Read(ctx, uid, types.ConversationLocalizerBlocking, false, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: userJoined,
+			}, nil)
 		if err != nil {
 			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
 			return
