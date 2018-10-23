@@ -1,7 +1,7 @@
 // @flow
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import path from 'path'
+import * as Path from '../util/path.desktop'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
@@ -90,8 +90,8 @@ export const backgroundURL = (...to: Array<string>) => {
 
   if (goodPath && goodPath.length) {
     const last = goodPath[goodPath.length - 1]
-    const ext = path.extname(last)
-    goodPath[goodPath.length - 1] = path.basename(last, ext)
+    const ext = Path.extname(last)
+    goodPath[goodPath.length - 1] = Path.basename(last, ext)
 
     const images = [1, 2, 3].map(
       mult => `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`

@@ -1,6 +1,6 @@
 // @flow
 import jsonfile from 'jsonfile'
-import path from 'path'
+import * as Path from '../../util/path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
 export default class UserData<State> {
@@ -23,7 +23,7 @@ export default class UserData<State> {
   }
 
   configPath = (): string => {
-    return path.join(SafeElectron.getApp().getPath('userData'), this.file)
+    return Path.join(SafeElectron.getApp().getPath('userData'), this.file)
   }
 
   save = () => {

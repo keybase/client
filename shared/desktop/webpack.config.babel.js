@@ -100,7 +100,9 @@ const config = (_, {mode}) => {
       bail: true,
       context: path.resolve(__dirname, '..'),
       devServer,
-      devtool: isDev ? 'eval' : 'source-map',
+      // TEMP
+      devtool: 'source-map',
+      // devtool: isDev ? 'eval' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {

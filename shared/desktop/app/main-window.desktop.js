@@ -7,7 +7,7 @@ import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRootAsURL, resolveRoot} from './resolve-root.desktop'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -35,7 +35,7 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
-  const preload = resolveRootAsURL('app', `main-preload${__DEV__ ? '.dev' : ''}.js`)
+  const preload = resolveRoot('app', `main-preload${__DEV__ ? '.dev' : ''}.js`)
   console.log('aaaaa preload file is', preload)
 
   const mainWindow = new Window(htmlFile, {

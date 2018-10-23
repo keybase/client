@@ -6,13 +6,13 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
-import path from 'path'
+import * as Path from '../../util/path.desktop'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
 import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath} from '../../constants/platform.desktop'
-import {kbfsNotification} from '../../util/kbfs-notifications'
+import {kbfsNotification} from '../../util/kbfs-notifications.desktop'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
@@ -121,7 +121,7 @@ const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
       logger.info('Checking RPC ownership')
 
       const localAppData = String(process.env.LOCALAPPDATA)
-      var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+      var binPath = localAppData ? Path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
       const args = ['pipeowner', socketPath]
       yield Saga.call(
         () =>

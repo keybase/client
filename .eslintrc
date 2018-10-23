@@ -14,7 +14,8 @@
     "globals": {
         "__DEV__": false,
         "__STORYBOOK__": false,
-        "__STORYSHOT__": false
+        "__STORYSHOT__": false,
+        "keybase": false,
     },
     "plugins": [
         "filenames", "babel", "import", "flowtype"

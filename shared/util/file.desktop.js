@@ -2,7 +2,7 @@
 import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
-import path from 'path'
+import * as Path from '../util/path.desktop'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 
@@ -13,7 +13,7 @@ export function tmpDir(): string {
 }
 
 export function tmpFile(suffix: string): string {
-  return path.join(tmpDir(), suffix)
+  return Path.join(tmpDir(), suffix)
 }
 
 export function tmpRandFile(suffix: string): Promise<string> {
@@ -23,21 +23,21 @@ export function tmpRandFile(suffix: string): Promise<string> {
         reject(err)
         return
       }
-      resolve(path.join(tmpDir(), buf.toString('hex') + suffix))
+      resolve(Path.join(tmpDir(), buf.toString('hex') + suffix))
     })
   })
 }
 
 export const downloadFolder = __STORYBOOK__
   ? ''
-  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
+  : process.env.XDG_DOWNLOAD_DIR || Path.join(os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
-  return path.join(downloadFolder, filename)
+  return Path.join(downloadFolder, filename)
 }
 
 export function downloadFilePath(suffix: string): Promise<string> {
-  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
+  return findAvailableFilename(exists, Path.join(downloadFolder, suffix))
 }
 
 export function exists(filepath: string): Promise<boolean> {
@@ -60,9 +60,9 @@ export function stat(filepath: string): Promise<StatResult> {
 }
 
 export function mkdirp(target: string) {
-  const initDir = path.isAbsolute(target) ? path.sep : ''
+  const initDir = Path.isAbsolute(target) ? path.sep : ''
   target.split(path.sep).reduce((parentDir, childDir) => {
-    const curDir = path.resolve(parentDir, childDir)
+    const curDir = Path.resolve(parentDir, childDir)
     if (!fs.existsSync(curDir)) {
       fs.mkdirSync(curDir)
     }
@@ -73,7 +73,7 @@ export function mkdirp(target: string) {
 
 export function copy(from: string, to: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    mkdirp(path.dirname(to))
+    mkdirp(Path.dirname(to))
     fs.readFile(from, (err, data) => {
       if (err) {
         reject(err)

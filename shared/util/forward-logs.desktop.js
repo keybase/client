@@ -3,7 +3,7 @@ import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {isWindows, logFileName} from '../constants/platform.desktop'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
-import path from 'path'
+import * as Path from '../util/path.desktop'
 
 const fileDoesNotExist = err => {
   if (isWindows && err.errno === -4058) {
@@ -26,7 +26,7 @@ const setupFileWritable = () => {
   }
 
   // Ensure log directory exists
-  mkdirp.sync(path.dirname(logFile))
+  mkdirp.sync(Path.dirname(logFile))
 
   // Check if we can write to log file
   try {
