@@ -493,6 +493,11 @@ export type PlaceholderRowItem = {
   type: 'folder' | 'file',
 }
 
+export type EmptyRowItem = {
+  rowType: 'empty',
+  name: string,
+}
+
 export type RowItem =
   | TlfTypeRowItem
   | TlfRowItem
@@ -500,6 +505,7 @@ export type RowItem =
   | EditingRowItem
   | UploadingRowItem
   | PlaceholderRowItem
+  | EmptyRowItem
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing

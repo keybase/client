@@ -46,7 +46,13 @@ const getDownloadingText = (intent: Types.DownloadIntent) => {
 }
 
 const Still = (props: StillProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
+  <StillCommon
+    itemStyles={props.itemStyles}
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+  >
     <RowMeta intentIfDownloading={props.intentIfDownloading} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
