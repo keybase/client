@@ -205,3 +205,40 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	require.Equal(t, bobListener.verifiedPhones, expectedNotification)
 	require.Equal(t, annListener.supersededPhones, expectedNotification)
 }
+
+func TestImplicitTeamWithEmail(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	email := bob.userInfo.email
+	assertion := fmt.Sprintf("%s@email", email)
+
+	impteamName := fmt.Sprintf("%s,%s", ann.username, assertion)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	_ = teamID
+
+	// teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	// require.Equal(t, 1, teamObj.NumActiveInvites())
+	// var invite keybase1.TeamInvite
+	// for _, invite = range teamObj.GetActiveAndObsoleteInvites() {
+	// 	// Get first invite to local var
+	// }
+	// require.EqualValues(t, email, invite.Name)
+	// invCat, err := invite.Type.C()
+	// require.NoError(t, err)
+	// require.Equal(t, keybase1.TeamInviteCategory_EMAIL, invCat)
+
+	// name, err := teamObj.ImplicitTeamDisplayName(context.Background())
+	// require.NoError(t, err)
+	// require.Len(t, name.Writers.KeybaseUsers, 1)
+	// require.Len(t, name.Writers.UnresolvedUsers, 1)
+	// require.Equal(t, impteamName, name.String())
+
+	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
+	require.NoError(t, err)
+}
