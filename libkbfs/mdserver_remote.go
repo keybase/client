@@ -501,6 +501,21 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id tlf
 	delete(md.observers, id)
 }
 
+func (md *MDServerRemote) getLatestFromCache(
+	ctx context.Context, tlfID tlf.ID) (*RootMetadataSigned, error) {
+	if md.config.DiskMDCache() == nil {
+		return nil, nil
+	}
+
+	buf, ver, timestamp, err := md.config.DiskMDCache().Get(ctx, tlfID)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeRootMetadataSigned(
+		md.config.Codec(), tlfID, ver, md.config.MetadataVersion(), buf,
+		timestamp)
+}
+
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) (
 	tlfID tlf.ID, rmdses []*RootMetadataSigned, err error) {
@@ -518,8 +533,10 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 
 	// deserialize blocks
 	rmdses = make([]*RootMetadataSigned, len(response.MdBlocks))
+	diskMDCache := md.config.DiskMDCache()
 	for i, block := range response.MdBlocks {
 		ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
+		timestamp := keybase1.FromTime(block.Timestamp)
 		rmds, err := DecodeRootMetadataSigned(
 			md.config.Codec(), tlfID, ver, max, block.Block,
 			keybase1.FromTime(block.Timestamp))
@@ -527,6 +544,14 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 			return tlf.ID{}, nil, err
 		}
 		rmdses[i] = rmds
+		if diskMDCache != nil && rmds.MD.MergedStatus() == kbfsmd.Merged {
+			err = diskMDCache.Stage(
+				ctx, tlfID, rmds.MD.RevisionNumber(), block.Block, ver,
+				timestamp)
+			if err != nil {
+				return tlf.ID{}, nil, err
+			}
+		}
 	}
 	return tlfID, rmdses, nil
 }
@@ -575,6 +600,16 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s done (err=%v)", id, bid, mStatus, err)
 	}()
+
+	if mStatus == kbfsmd.Merged && lockBeforeGet == nil {
+		rmds, err := md.getLatestFromCache(ctx, id)
+		if err == nil && rmds != nil {
+			md.log.CDebugf(ctx,
+				"Read revision %d for TLF %s from the disk cache",
+				rmds.MD.RevisionNumber(), id)
+			return rmds, nil
+		}
+	}
 
 	arg := keybase1.GetMetadataArg{
 		FolderID:      id.String(),
@@ -715,7 +750,29 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		}
 	}
 
-	return md.getClient().PutMetadata(ctx, arg)
+	err = md.getClient().PutMetadata(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	// Stage the new MD if needed.
+	diskMDCache := md.config.DiskMDCache()
+	if diskMDCache != nil && rmds.MD.MergedStatus() == kbfsmd.Merged {
+		// Guess the server timestamp by using the local offset.
+		// TODO: the server should return this, and/or we should fetch
+		// it explicitly.
+		revTime := md.config.Clock().Now()
+		if offset, ok := md.OffsetFromServerTime(); ok {
+			revTime = revTime.Add(-offset)
+		}
+		err = diskMDCache.Stage(
+			ctx, rmds.MD.TlfID(), rmds.MD.RevisionNumber(), rmdsBytes,
+			rmds.Version(), revTime)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Lock implements the MDServer interface for MDServerRemote.
