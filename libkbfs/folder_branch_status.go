@@ -69,6 +69,7 @@ type KBFSStatus struct {
 	JournalServer        *JournalServerStatus            `json:",omitempty"`
 	DiskBlockCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`
 	DiskMDCacheStatus    DiskMDCacheStatus               `json:",omitempty"`
+	DiskQuotaCacheStatus DiskQuotaCacheStatus            `json:",omitempty"`
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.

@@ -1108,7 +1108,10 @@ func (e NoUpdatesWhileDirtyError) Error() string {
 const (
 	// StatusCodeDiskBlockCacheError is a generic disk cache error.
 	StatusCodeDiskBlockCacheError = 0x666
-	StatusCodeDiskMDCacheError    = 0x667
+	// StatusCodeDiskMDCacheError is a generic disk cache error.
+	StatusCodeDiskMDCacheError = 0x667
+	// StatusCodeDiskQuotaCacheError is a generic disk cache error.
+	StatusCodeDiskQuotaCacheError = 0x668
 )
 
 // DiskBlockCacheError is a generic disk cache error.
@@ -1153,6 +1156,28 @@ func (e DiskMDCacheError) ToStatus() (s keybase1.Status) {
 // Error implements the Error interface for DiskMDCacheError.
 func (e DiskMDCacheError) Error() string {
 	return "DiskMDCacheError{" + e.Msg + "}"
+}
+
+// DiskQuotaCacheError is a generic disk cache error.
+type DiskQuotaCacheError struct {
+	Msg string
+}
+
+func newDiskQuotaCacheError(err error) DiskQuotaCacheError {
+	return DiskQuotaCacheError{err.Error()}
+}
+
+// ToStatus implements the ExportableError interface for DiskQuotaCacheError.
+func (e DiskQuotaCacheError) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeDiskQuotaCacheError
+	s.Name = "DISK_QUOTA_CACHE_ERROR"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for DiskQuotaCacheError.
+func (e DiskQuotaCacheError) Error() string {
+	return "DiskQuotaCacheError{" + e.Msg + "}"
 }
 
 // RevokedDeviceVerificationError indicates that the user is trying to

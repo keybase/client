@@ -614,6 +614,76 @@ func (mr *MockdiskMDCacheSetterMockRecorder) MakeDiskMDCacheIfNotExists() *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskMDCacheIfNotExists", reflect.TypeOf((*MockdiskMDCacheSetter)(nil).MakeDiskMDCacheIfNotExists))
 }
 
+// MockdiskQuotaCacheGetter is a mock of diskQuotaCacheGetter interface
+type MockdiskQuotaCacheGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskQuotaCacheGetterMockRecorder
+}
+
+// MockdiskQuotaCacheGetterMockRecorder is the mock recorder for MockdiskQuotaCacheGetter
+type MockdiskQuotaCacheGetterMockRecorder struct {
+	mock *MockdiskQuotaCacheGetter
+}
+
+// NewMockdiskQuotaCacheGetter creates a new mock instance
+func NewMockdiskQuotaCacheGetter(ctrl *gomock.Controller) *MockdiskQuotaCacheGetter {
+	mock := &MockdiskQuotaCacheGetter{ctrl: ctrl}
+	mock.recorder = &MockdiskQuotaCacheGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskQuotaCacheGetter) EXPECT() *MockdiskQuotaCacheGetterMockRecorder {
+	return m.recorder
+}
+
+// DiskQuotaCache mocks base method
+func (m *MockdiskQuotaCacheGetter) DiskQuotaCache() DiskQuotaCache {
+	ret := m.ctrl.Call(m, "DiskQuotaCache")
+	ret0, _ := ret[0].(DiskQuotaCache)
+	return ret0
+}
+
+// DiskQuotaCache indicates an expected call of DiskQuotaCache
+func (mr *MockdiskQuotaCacheGetterMockRecorder) DiskQuotaCache() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskQuotaCache", reflect.TypeOf((*MockdiskQuotaCacheGetter)(nil).DiskQuotaCache))
+}
+
+// MockdiskQuotaCacheSetter is a mock of diskQuotaCacheSetter interface
+type MockdiskQuotaCacheSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskQuotaCacheSetterMockRecorder
+}
+
+// MockdiskQuotaCacheSetterMockRecorder is the mock recorder for MockdiskQuotaCacheSetter
+type MockdiskQuotaCacheSetterMockRecorder struct {
+	mock *MockdiskQuotaCacheSetter
+}
+
+// NewMockdiskQuotaCacheSetter creates a new mock instance
+func NewMockdiskQuotaCacheSetter(ctrl *gomock.Controller) *MockdiskQuotaCacheSetter {
+	mock := &MockdiskQuotaCacheSetter{ctrl: ctrl}
+	mock.recorder = &MockdiskQuotaCacheSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskQuotaCacheSetter) EXPECT() *MockdiskQuotaCacheSetterMockRecorder {
+	return m.recorder
+}
+
+// MakeDiskQuotaCacheIfNotExists mocks base method
+func (m *MockdiskQuotaCacheSetter) MakeDiskQuotaCacheIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskQuotaCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskQuotaCacheIfNotExists indicates an expected call of MakeDiskQuotaCacheIfNotExists
+func (mr *MockdiskQuotaCacheSetterMockRecorder) MakeDiskQuotaCacheIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskQuotaCacheIfNotExists", reflect.TypeOf((*MockdiskQuotaCacheSetter)(nil).MakeDiskQuotaCacheIfNotExists))
+}
+
 // MockclockGetter is a mock of clockGetter interface
 type MockclockGetter struct {
 	ctrl     *gomock.Controller
@@ -4481,6 +4551,76 @@ func (mr *MockDiskMDCacheMockRecorder) Shutdown(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskMDCache)(nil).Shutdown), ctx)
 }
 
+// MockDiskQuotaCache is a mock of DiskQuotaCache interface
+type MockDiskQuotaCache struct {
+	ctrl     *gomock.Controller
+	recorder *MockDiskQuotaCacheMockRecorder
+}
+
+// MockDiskQuotaCacheMockRecorder is the mock recorder for MockDiskQuotaCache
+type MockDiskQuotaCacheMockRecorder struct {
+	mock *MockDiskQuotaCache
+}
+
+// NewMockDiskQuotaCache creates a new mock instance
+func NewMockDiskQuotaCache(ctrl *gomock.Controller) *MockDiskQuotaCache {
+	mock := &MockDiskQuotaCache{ctrl: ctrl}
+	mock.recorder = &MockDiskQuotaCacheMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDiskQuotaCache) EXPECT() *MockDiskQuotaCacheMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockDiskQuotaCache) Get(ctx context.Context, id keybase1.UserOrTeamID) (kbfsblock.QuotaInfo, error) {
+	ret := m.ctrl.Call(m, "Get", ctx, id)
+	ret0, _ := ret[0].(kbfsblock.QuotaInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockDiskQuotaCacheMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDiskQuotaCache)(nil).Get), ctx, id)
+}
+
+// Put mocks base method
+func (m *MockDiskQuotaCache) Put(ctx context.Context, id keybase1.UserOrTeamID, info kbfsblock.QuotaInfo) error {
+	ret := m.ctrl.Call(m, "Put", ctx, id, info)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Put indicates an expected call of Put
+func (mr *MockDiskQuotaCacheMockRecorder) Put(ctx, id, info interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDiskQuotaCache)(nil).Put), ctx, id, info)
+}
+
+// Status mocks base method
+func (m *MockDiskQuotaCache) Status(ctx context.Context) DiskQuotaCacheStatus {
+	ret := m.ctrl.Call(m, "Status", ctx)
+	ret0, _ := ret[0].(DiskQuotaCacheStatus)
+	return ret0
+}
+
+// Status indicates an expected call of Status
+func (mr *MockDiskQuotaCacheMockRecorder) Status(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockDiskQuotaCache)(nil).Status), ctx)
+}
+
+// Shutdown mocks base method
+func (m *MockDiskQuotaCache) Shutdown(ctx context.Context) {
+	m.ctrl.Call(m, "Shutdown", ctx)
+}
+
+// Shutdown indicates an expected call of Shutdown
+func (mr *MockDiskQuotaCacheMockRecorder) Shutdown(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskQuotaCache)(nil).Shutdown), ctx)
+}
+
 // MockcryptoPure is a mock of cryptoPure interface
 type MockcryptoPure struct {
 	ctrl     *gomock.Controller
@@ -7505,6 +7645,30 @@ func (m *MockConfig) MakeDiskMDCacheIfNotExists() error {
 // MakeDiskMDCacheIfNotExists indicates an expected call of MakeDiskMDCacheIfNotExists
 func (mr *MockConfigMockRecorder) MakeDiskMDCacheIfNotExists() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskMDCacheIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskMDCacheIfNotExists))
+}
+
+// DiskQuotaCache mocks base method
+func (m *MockConfig) DiskQuotaCache() DiskQuotaCache {
+	ret := m.ctrl.Call(m, "DiskQuotaCache")
+	ret0, _ := ret[0].(DiskQuotaCache)
+	return ret0
+}
+
+// DiskQuotaCache indicates an expected call of DiskQuotaCache
+func (mr *MockConfigMockRecorder) DiskQuotaCache() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskQuotaCache", reflect.TypeOf((*MockConfig)(nil).DiskQuotaCache))
+}
+
+// MakeDiskQuotaCacheIfNotExists mocks base method
+func (m *MockConfig) MakeDiskQuotaCacheIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskQuotaCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskQuotaCacheIfNotExists indicates an expected call of MakeDiskQuotaCacheIfNotExists
+func (mr *MockConfigMockRecorder) MakeDiskQuotaCacheIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskQuotaCacheIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskQuotaCacheIfNotExists))
 }
 
 // Clock mocks base method

@@ -15,6 +15,13 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	// quotaServerTimeoutWhenCached defines how long we wait for the
+	// quota usage to return from the server, when we've already read
+	// it from the disk cache.
+	quotaServerTimeoutWhenCached = 500 * time.Millisecond
+)
+
 // ECQUCtxTagKey is the type for unique ECQU background operation IDs.
 type ECQUCtxTagKey struct{}
 
@@ -70,18 +77,69 @@ func NewEventuallyConsistentTeamQuotaUsage(
 	return q
 }
 
+func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	return q.cached
+}
+
+func (q *EventuallyConsistentQuotaUsage) getID(
+	ctx context.Context) (keybase1.UserOrTeamID, error) {
+	if q.tid.IsNil() {
+		session, err := q.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return keybase1.UserOrTeamID(""), err
+		}
+		return session.UID.AsUserOrTeam(), nil
+	}
+	return q.tid.AsUserOrTeam(), nil
+}
+
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	ctx context.Context) (err error) {
 	defer func() {
 		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
+
+	// Try pulling the quota from the disk cache.  If it exists, still
+	// try the servers, but give it a short timeout.
+	var quotaInfoFromCache *kbfsblock.QuotaInfo
+	id, err := q.getID(ctx)
+	if err != nil {
+		return err
+	}
+	getCtx := ctx
+	dqc := q.config.DiskQuotaCache()
+	if dqc != nil {
+		qi, err := dqc.Get(ctx, id)
+		if err == nil {
+			q.log.CDebugf(ctx, "Read quota for %s from disk cache", id)
+			quotaInfoFromCache = &qi
+			var cancel context.CancelFunc
+			getCtx, cancel = context.WithTimeout(
+				ctx, quotaServerTimeoutWhenCached)
+			defer cancel()
+		}
+	}
+
 	var quotaInfo *kbfsblock.QuotaInfo
 	if q.tid.IsNil() {
-		quotaInfo, err = q.config.BlockServer().GetUserQuotaInfo(ctx)
+		quotaInfo, err = q.config.BlockServer().GetUserQuotaInfo(getCtx)
 	} else {
-		quotaInfo, err = q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
+		quotaInfo, err = q.config.BlockServer().GetTeamQuotaInfo(getCtx, q.tid)
 	}
-	if err != nil {
+	doCacheToDisk := dqc != nil
+	switch err {
+	case nil:
+	case context.DeadlineExceeded:
+		if quotaInfoFromCache != nil {
+			q.log.CDebugf(ctx, "Can't contact server; using cached quota")
+			quotaInfo = quotaInfoFromCache
+			doCacheToDisk = false
+		} else {
+			return err
+		}
+	default:
 		return err
 	}
 
@@ -100,13 +158,13 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	}
 	q.cached.timestamp = q.config.Clock().Now()
 
+	if doCacheToDisk {
+		err := dqc.Put(ctx, id, *quotaInfo)
+		if err != nil {
+			q.log.CDebugf(ctx, "Can't cache quota for %s: %+v", id, err)
+		}
+	}
 	return nil
-}
-
-func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
-	q.mu.RLock()
-	defer q.mu.RUnlock()
-	return q.cached
 }
 
 // Get returns KBFS bytes used and limit for user, for the current

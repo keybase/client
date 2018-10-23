@@ -80,6 +80,7 @@ type ConfigLocal struct {
 	dirtyBcache      DirtyBlockCache
 	diskBlockCache   DiskBlockCache
 	diskMDCache      DiskMDCache
+	diskQuotaCache   DiskQuotaCache
 	codec            kbfscodec.Codec
 	mdops            MDOps
 	kops             KeyOps
@@ -612,6 +613,13 @@ func (c *ConfigLocal) DiskMDCache() DiskMDCache {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.diskMDCache
+}
+
+// DiskQuotaCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DiskQuotaCache() DiskQuotaCache {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.diskQuotaCache
 }
 
 // DiskLimiter implements the Config interface for ConfigLocal.
@@ -1436,6 +1444,29 @@ func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
 		return nil
 	}
 	return c.resetDiskMDCacheLocked()
+}
+
+func (c *ConfigLocal) resetDiskQuotaCacheLocked() error {
+	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot)
+	if err != nil {
+		return err
+	}
+	if c.diskQuotaCache != nil {
+		c.diskQuotaCache.Shutdown(context.TODO())
+	}
+	c.diskQuotaCache = dqc
+	return nil
+}
+
+// MakeDiskQuotaCacheIfNotExists implements the Config interface for
+// ConfigLocal.
+func (c *ConfigLocal) MakeDiskQuotaCacheIfNotExists() error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.diskQuotaCache != nil {
+		return nil
+	}
+	return c.resetDiskQuotaCacheLocked()
 }
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {

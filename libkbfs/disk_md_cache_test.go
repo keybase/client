@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"crypto/rand"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -31,9 +30,6 @@ func newDiskMDCacheLocalForTestWithStorage(
 		newTestCodecGetter(),
 		newTestLogMaker(t),
 	}, s)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 	require.NoError(t, err)
 	err = cache.WaitUntilStarted()
 	require.NoError(t, err)

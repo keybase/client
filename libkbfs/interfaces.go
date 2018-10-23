@@ -91,6 +91,14 @@ type diskMDCacheSetter interface {
 	MakeDiskMDCacheIfNotExists() error
 }
 
+type diskQuotaCacheGetter interface {
+	DiskQuotaCache() DiskQuotaCache
+}
+
+type diskQuotaCacheSetter interface {
+	MakeDiskQuotaCacheIfNotExists() error
+}
+
 type clockGetter interface {
 	Clock() Clock
 }
@@ -1285,6 +1293,22 @@ type DiskMDCache interface {
 	Shutdown(ctx context.Context)
 }
 
+// DiskQuotaCache caches encrypts per-ID quotas to the disk.
+type DiskQuotaCache interface {
+	// Get gets the latest cached quota for the given ID from the disk
+	// cache.
+	Get(ctx context.Context, id keybase1.UserOrTeamID) (
+		info kbfsblock.QuotaInfo, err error)
+	// Put stores the latest cached quota for the given ID to the disk
+	// cache.
+	Put(ctx context.Context, id keybase1.UserOrTeamID,
+		info kbfsblock.QuotaInfo) (err error)
+	// Status returns the current status of the disk cache.
+	Status(ctx context.Context) DiskQuotaCacheStatus
+	// Shutdown cleanly shuts down the disk quota cache.
+	Shutdown(ctx context.Context)
+}
+
 // cryptoPure contains all methods of Crypto that don't depend on
 // implicit state, i.e. they're pure functions of the input.
 type cryptoPure interface {
@@ -2145,6 +2169,8 @@ type Config interface {
 	syncBlockCacheFractionSetter
 	diskMDCacheGetter
 	diskMDCacheSetter
+	diskQuotaCacheGetter
+	diskQuotaCacheSetter
 	clockGetter
 	diskLimiterGetter
 	syncedTlfGetterSetter

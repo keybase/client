@@ -1029,6 +1029,11 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	if dmc != nil {
 		dmcStatus = dmc.Status(ctx)
 	}
+	dqc := fs.config.DiskQuotaCache()
+	var dqcStatus DiskQuotaCacheStatus
+	if dqc != nil {
+		dqcStatus = dqc.Status(ctx)
+	}
 
 	return KBFSStatus{
 		CurrentUser:          session.Name.String(),
@@ -1043,6 +1048,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		JournalServer:        jServerStatus,
 		DiskBlockCacheStatus: dbcStatus,
 		DiskMDCacheStatus:    dmcStatus,
+		DiskQuotaCacheStatus: dqcStatus,
 	}, ch, err
 }
 
