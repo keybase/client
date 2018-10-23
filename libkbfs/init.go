@@ -745,6 +745,19 @@ func doInit(
 			params.DiskCacheMode.String())
 	}
 
+	err = config.MakeDiskMDCacheIfNotExists()
+	if err != nil {
+		log.CWarningf(ctx, "Could not initialize MD cache: %+v", err)
+		notification := &keybase1.FSNotification{
+			StatusCode:       keybase1.FSStatusCode_ERROR,
+			NotificationType: keybase1.FSNotificationType_INITIALIZED,
+			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
+		}
+		defer config.Reporter().Notify(ctx, notification)
+	} else {
+		log.CDebugf(ctx, "Disk MD cache enabled")
+	}
+
 	if config.Mode().KBFSServiceEnabled() {
 		// Initialize kbfsService only when we run a full KBFS process.
 		// This requires the disk block cache to have been initialized, if it
