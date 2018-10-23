@@ -57,17 +57,18 @@ type FolderBranchStatus struct {
 // suitable for encoding directly as JSON.
 // TODO: implement magical status update like FolderBranchStatus
 type KBFSStatus struct {
-	CurrentUser     string
-	IsConnected     bool
-	UsageBytes      int64
-	ArchiveBytes    int64
-	LimitBytes      int64
-	GitUsageBytes   int64
-	GitArchiveBytes int64
-	GitLimitBytes   int64
-	FailingServices map[string]error
-	JournalServer   *JournalServerStatus            `json:",omitempty"`
-	DiskCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`
+	CurrentUser          string
+	IsConnected          bool
+	UsageBytes           int64
+	ArchiveBytes         int64
+	LimitBytes           int64
+	GitUsageBytes        int64
+	GitArchiveBytes      int64
+	GitLimitBytes        int64
+	FailingServices      map[string]error
+	JournalServer        *JournalServerStatus            `json:",omitempty"`
+	DiskBlockCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`
+	DiskMDCacheStatus    DiskMDCacheStatus               `json:",omitempty"`
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.
