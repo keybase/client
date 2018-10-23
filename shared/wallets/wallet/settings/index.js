@@ -58,7 +58,7 @@ const AccountSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
-      <Kb.ScrollView style={styles.scrollView}>
+      <Kb.ScrollView contentContainerStyle={styles.scrollViewcontainer} style={styles.scrollView}>
         <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
           <Kb.ClickableBox onClick={props.onEditName} style={styles.nameBox}>
@@ -116,27 +116,27 @@ const AccountSettings = (props: SettingsProps) => {
           <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
           <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
           <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
-            <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
-              <Kb.Icon
-                type="iconfont-trash"
-                style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-                color={Styles.globalColors.red}
-              />
-              <Kb.Text
-                type="BodySemibold"
-                style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-                className={Styles.classNames({'hover-underline': !props.isDefault})}
-              >
-                Remove account
-              </Kb.Text>
-            </Kb.ClickableBox>
-            {props.isDefault && (
-              <Kb.Text style={styles.centerText} type="BodySmall">
-                You can’t remove your default account.
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
+          <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
+            <Kb.Icon
+              type="iconfont-trash"
+              style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
+              color={Styles.globalColors.red}
+            />
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+              className={Styles.classNames({'hover-underline': !props.isDefault})}
+            >
+              Remove account
+            </Kb.Text>
+          </Kb.ClickableBox>
+          {props.isDefault && (
+            <Kb.Text style={styles.centerText} type="BodySmall">
+              You can’t remove your default account.
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.Box2>
@@ -191,8 +191,9 @@ const styles = Styles.styleSheetCreate({
     borderColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
     borderTopWidth: 1,
-    marginTop: Styles.globalMargins.medium,
+    marginTop: 'auto',
     paddingTop: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.small,
   },
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
@@ -203,8 +204,9 @@ const styles = Styles.styleSheetCreate({
   },
   settingsPage: Styles.platformStyles({
     common: {
-      alignSelf: 'flex-start',
+      ...Styles.globalStyles.flexBoxColumn,
       backgroundColor: Styles.globalColors.white,
+      flex: 1,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
@@ -226,7 +228,13 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   scrollView: {
-    flexGrow: 1,
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
+    width: '100%',
+  },
+  scrollViewcontainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flex: 1,
     width: '100%',
   },
 })
