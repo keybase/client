@@ -120,9 +120,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	// Fetch a new list if:
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
-	//  * The user wants the list of favorites.  TODO: use the cached list
-	//    once we have proper invalidation from the server.
-	if req.refresh || f.cache == nil || req.favs != nil {
+	if req.refresh || f.cache == nil {
 		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
 			return err
@@ -340,8 +338,9 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 	}
 }
 
-// Get returns the logged-in users list of favorites. It
-// doesn't use the cache.
+// Get returns the logged-in user's list of favorites. It uses the cache.
+// TODO: decide on behavior if we've gotten an invalidation but not an updated
+// list yet
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	if f.disabled {
 		session, err := f.config.KBPKI().GetCurrentSession(ctx)
