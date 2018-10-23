@@ -43,20 +43,21 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     const label = 'Yes, I agree'.concat(this.state.secondsLeft ? ` (${this.state.secondsLeft})` : '')
     const buttons = [
       <Kb.WaitingButton
+        labelStyle={styles.labelStyle}
+        style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
         waitingKey={Constants.acceptDisclaimerWaitingKey}
         disabled={this.state.secondsLeft > 0}
         key={0}
-        style={{width: '100%'}}
         fullWidth={true}
         type="Secondary"
         onClick={this.props.onAcceptDisclaimer}
         label={label}
       />,
       <Kb.Button
+        style={styles.buttonStyle}
         key={1}
         fullWidth={true}
-        style={{width: '100%'}}
-        type="Wallet"
+        type="SecondaryColoredBackground"
         onClick={this.props.onNotNow}
         label="Not now"
       />,
@@ -74,11 +75,9 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         <Kb.Text type="Header" style={styles.headerText}>
           Almost done.
         </Kb.Text>
-
         <Kb.Text type="Header" style={styles.headerText}>
           It's important you read this.
         </Kb.Text>
-
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
           <Kb.Text type="Body" style={styles.bodyText}>
             We believe Keybase can help make cryptocurrency usable for 2 reasons:
@@ -169,6 +168,8 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
             6. FINALLY HAVE FUN WHILE YOU CAN. Something is coming.
           </Kb.Text>
         </Kb.ScrollView>
+
+        <Kb.Box style={styles.gradient} />
       </WalletPopup>
     )
   }
@@ -182,21 +183,41 @@ const styles = Styles.styleSheetCreate({
   },
   buttonBar: Styles.platformStyles({
     isElectron: {
-      minHeight: 60,
+      minHeight: 40,
     },
   }),
+  buttonLabelStyle: {color: Styles.globalColors.purple},
+  buttonStyle: {width: '100%'},
   container: {
     backgroundColor: Styles.globalColors.purple2,
     padding: Styles.globalMargins.medium,
   },
+  gradient: Styles.platformStyles({
+    isElectron: {
+      backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple2_01}, ${
+        Styles.globalColors.purple2
+      })`,
+      height: Styles.globalMargins.large,
+      position: 'relative',
+      top: -30,
+      width: '100%',
+    },
+  }),
   headerText: {
     color: Styles.globalColors.white,
   },
   scrollView: {
-    marginBottom: Styles.globalMargins.large,
+    marginBottom: 0,
     marginTop: Styles.globalMargins.small,
   },
-  scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn},
+  scrollViewContentContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+    },
+    isElectron: {
+      height: '300px',
+    },
+  }),
 })
 
 export default Disclaimer
