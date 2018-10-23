@@ -1430,7 +1430,7 @@ func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
 	if c.diskMDCache != nil {
 		return nil
 	}
-	return c.resetDiskBlockCacheLocked()
+	return c.resetDiskMDCacheLocked()
 }
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
