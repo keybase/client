@@ -111,9 +111,9 @@ export const updateMeta = (
 ): Types.ConversationMeta => {
   // Older/same version and same state?
   if (meta.inboxVersion === old.inboxVersion) {
-    return old.withMutations(m => {
-      m.set('snippet', meta.snippet)
-      m.set('snippetDecoration', meta.snippetDecoration)
+    return old.merge({
+      snippet: meta.snippet,
+      snippetDecoration: meta.snippetDecoration,
     })
   } else if (meta.inboxVersion <= old.inboxVersion && meta.trustedState === old.trustedState) {
     return old
