@@ -906,7 +906,6 @@ const rootReducer = (
     case Chat2Gen.attachmentsUpload:
     case Chat2Gen.attachmentPasted:
     case Chat2Gen.attachmentFullscreenNext:
-    case Chat2Gen.attachmentFullscreenPrev:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:
