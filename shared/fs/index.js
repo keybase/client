@@ -21,7 +21,6 @@ type FolderProps = {
 
 class Files extends React.PureComponent<FolderProps> {
   render() {
-    console.log({songgao: 'Files', path: this.props.path, props: this.props})
     const content = this.props.isUserReset ? (
       <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
         <Kb.Box style={styles.resetContainer}>
@@ -43,7 +42,7 @@ class Files extends React.PureComponent<FolderProps> {
     )
     return (
       <Kb.Box style={styles.outerContainer}>
-        <Kb.Box style={styles.container}>
+        <Kb.Box2 direction="vertical" fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <SortBar path={this.props.path} />
           {isMobile && this.props.resetParticipants.length > 0 ? (
@@ -55,7 +54,7 @@ class Files extends React.PureComponent<FolderProps> {
             content
           )}
           <Footer />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box>
     )
   }
