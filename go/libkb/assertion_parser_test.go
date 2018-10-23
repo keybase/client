@@ -151,6 +151,10 @@ func TestParseAssertionsWithReaders(t *testing.T) {
 			writers: "alice",
 		},
 		{
+			input:   "alice#",
+			writers: "alice",
+		},
+		{
 			// doesn't dedup at the moment
 			input:   "alice#alice",
 			writers: "alice",

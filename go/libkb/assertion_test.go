@@ -167,7 +167,8 @@ func TestNeedsParens(t *testing.T) {
 }
 
 func TestPrecedence(t *testing.T) {
-	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+gubble.social:max"
+	//a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+gubble.social:max"
+	a := "web://maxk.org"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"twitter", "kbtester1"},
@@ -181,10 +182,4 @@ func TestPrecedence(t *testing.T) {
 		//require.True(t, expr.MatchSet(proofset))
 		_ = proofset
 	}
-
-	expr2, err := AssertionPegParse(testAssertionContext{}, a)
-	require.NoError(t, err)
-	spew.Dump(expr2)
-
-	require.Equal(t, expr.String(), expr2.String())
 }

@@ -39,7 +39,7 @@ func (a *AssertionAnd) simplify() {
 func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	parser, err := peg.NewParser(`
 		EXPR         ← ATOM (BINOP ATOM)*
-		ATOM         ← URL / '(' EXPR ')'
+		ATOM         ← _ ( URL / '(' EXPR ')' ) _
 
 		BINOP        ← AND / OR
 
@@ -49,13 +49,15 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 		URL          ← AT_URL / COL_URL / NAME_URL
 
 		AT_URL       ← NAME_STR '@' SERVICE_STR
-		COL_URL      ← SERVICE_STR ':' NAME_STR
+		COL_URL      ← SERVICE_STR ':' '//'? NAME_STR
 		NAME_URL     ← NAME_STR
 
 		NAME_STR     ←  NAME_LONG / NAME_SIMPLE
 		NAME_SIMPLE  ←  < [-_a-zA-Z0-9.]+ >
 		NAME_LONG    ←  '(' < [-_a-zA-Z0-9.@+]+ > ')'
 		SERVICE_STR  ←  < [a-zA-Z.]+ >
+
+		~_           ← [ \t\n]*
 
 		---
 		# Expression parsing option
@@ -70,6 +72,9 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	g := parser.Grammar
 
 	g["EXPR"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
+		if len(v.Vs) != 3 {
+			return nil, fmt.Errorf("Unexpected parsing action at EXPR, with %d tokens", len(v.Vs))
+		}
 		op := v.Vs[1].(binOp)
 		if op.isAnd {
 			ret := AssertionAnd{
@@ -113,16 +118,7 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	return parser, nil
 }
 
-func AssertionPegParse(ctx AssertionContext, s string) (AssertionExpression, error) {
-	// lexer := NewLexer(s)
-	// parser := Parser{
-	// 	lexer:   lexer,
-	// 	err:     nil,
-	// 	andOnly: false,
-	// }
-	// ret := parser.Parse(ctx)
-	// return ret, parser.err
-
+func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
 	parser, err := initPegParser(ctx)
 	if err != nil {
 		return nil, err
@@ -132,4 +128,19 @@ func AssertionPegParse(ctx AssertionContext, s string) (AssertionExpression, err
 		return nil, err
 	}
 	return ret.(AssertionExpression), nil
+}
+
+func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {
+	// TODO: This shouldn't work - we are not doing anything to ensure `AND` ONLY.
+
+	// lexer := NewLexer(s)
+	// parser := Parser{
+	// 	lexer:   lexer,
+	// 	err:     nil,
+	// 	andOnly: true,
+	// }
+	// ret := parser.Parse(ctx)
+	// return ret, parser.err
+
+	return AssertionParse(ctx, s)
 }
