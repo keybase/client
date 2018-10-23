@@ -95,7 +95,7 @@ protocol local {
     union { null, AccountID } toAccountID; // Optional.
     string    toAccountName;               // Optional. Filled if toType = OWNACCOUNT
     string    toUsername;                  // Optional. Filled if KEYBASE.
-    string    toAssertion;                 // Optional. Filled if SBS.
+    string    toAssertion;                 // Optional. Filled if SBS and statusSimplified != 'canceled'
     string    originalToAssertion;         // Optional. Username or SBS. Filled if statusSimplified == 'canceled'
 
     string note;                    // secret note
@@ -156,7 +156,7 @@ protocol local {
     union { null, AccountID } toAccountID; // Optional.
     string    toAccountName;               // Optional. Filled if toType = OWNACCOUNT
     string    toUsername;                  // Optional. Filled if KEYBASE.
-    string    toAssertion;                 // Optional. Filled if SBS.
+    string    toAssertion;                 // Optional. Filled if SBS and statusSimplified != 'canceled'
     string    originalToAssertion;         // Optional. Username or SBS. Filled if statusSimplified == 'canceled'
 
     string note;                    // secret note
