@@ -1113,6 +1113,7 @@ type BundleEntryRestricted struct {
 	IsPrimary          bool           `codec:"isPrimary" json:"isPrimary"`
 	Name               string         `codec:"name" json:"name"`
 	AcctBundleRevision BundleRevision `codec:"acctBundleRevision" json:"acctBundleRevision"`
+	EncAcctBundleHash  Hash           `codec:"encAcctBundleHash" json:"encAcctBundleHash"`
 }
 
 func (o BundleEntryRestricted) DeepCopy() BundleEntryRestricted {
@@ -1122,6 +1123,7 @@ func (o BundleEntryRestricted) DeepCopy() BundleEntryRestricted {
 		IsPrimary:          o.IsPrimary,
 		Name:               o.Name,
 		AcctBundleRevision: o.AcctBundleRevision.DeepCopy(),
+		EncAcctBundleHash:  o.EncAcctBundleHash.DeepCopy(),
 	}
 }
 

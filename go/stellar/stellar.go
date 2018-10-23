@@ -177,24 +177,6 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 		return err
 	}
 
-	if g.GetRunMode() != libkb.ProductionRunMode {
-		// XXX temporary code path to send a stellar account bundle to the server
-		xBundle, _, err := remote.Fetch(ctx, g)
-		if err != nil {
-			return err
-		}
-		g.Log.CDebugf(ctx, "creating a new account bundle and posting it to the server")
-		nextNextBundle := bundle.Advance(xBundle)
-		acctBundle, err := acctbundle.NewFromBundle(nextNextBundle)
-		if err != nil {
-			return err
-		}
-		if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
-			g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
-			return err
-		}
-	}
-
 	// after import, mark all the transactions in this account as "read"
 	// any errors in this process are not fatal, since the important task
 	// has been accomplished.
@@ -219,6 +201,36 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
 		return nil
+	}
+
+	return nil
+}
+
+// Temporary function.
+// This is just to check PostBundleRestricted.
+// It does not attempt to do a full migration from V1 to V2.
+func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {
+	if g.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("this doesn't work in production")
+	}
+
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
+	if err != nil {
+		return err
+	}
+
+	acctBundle, err := acctbundle.NewFromBundle(nextBundle)
+	if err != nil {
+		return err
+	}
+	if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
+		return err
 	}
 
 	return nil

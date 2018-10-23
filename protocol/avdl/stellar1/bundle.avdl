@@ -213,6 +213,7 @@ protocol bundle {
     boolean isPrimary; // whether this is the primary account
     string name;
     BundleRevision acctBundleRevision;
+    Hash encAcctBundleHash;
   }
 
   // Unversioned struct for local use only.

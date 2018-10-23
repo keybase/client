@@ -107,7 +107,7 @@ func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 }
 
 type AcctBoxedEncoded struct {
-	// Enc           stellar1.EncryptedAccountBundle
+	Enc           stellar1.EncryptedAccountBundle
 	EncB64        string // base64 msgpacked Enc
 	FormatVersion stellar1.AccountBundleVersion
 }
@@ -127,12 +127,42 @@ func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGenera
 
 	accountsVisible, accountsSecret := visibilitySplit(a)
 
+	for i, a := range accountsVisible {
+		fmt.Printf("%d. account visible %+v\n", i, a)
+	}
+
 	// visible portion parent
 	visibleV2 := stellar1.BundleVisibleV2{
 		Revision: a.Revision,
 		Prev:     a.Prev,
 		Accounts: accountsVisible,
 	}
+
+	// encrypted account bundles
+	boxed.AcctBundles = make(map[stellar1.AccountID]AcctBoxedEncoded)
+
+	for i, acctEntry := range visibleV2.Accounts {
+		secret, ok := a.AccountBundles[acctEntry.AccountID]
+		if !ok {
+			continue
+		}
+		ab, err := accountBoxAndEncode(acctEntry.AccountID, secret, pukGen, puk)
+		if err != nil {
+			return nil, err
+		}
+		if ab != nil {
+			boxed.AcctBundles[acctEntry.AccountID] = *ab
+		}
+
+		encPack, err := libkb.MsgpackEncode(ab.Enc)
+		if err != nil {
+			return nil, err
+		}
+		encHash := sha256.Sum256(encPack)
+		visibleV2.Accounts[i].EncAcctBundleHash = encHash[:]
+	}
+
+	// have to do this after to get hashes of encrypted account bundles
 	visiblePack, err := libkb.MsgpackEncode(visibleV2)
 	if err != nil {
 		return nil, err
@@ -150,23 +180,6 @@ func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGenera
 		return nil, err
 	}
 
-	// encrypted account bundles
-	boxed.AcctBundles = make(map[stellar1.AccountID]AcctBoxedEncoded)
-
-	for _, acctEntry := range visibleV2.Accounts {
-		secret, ok := a.AccountBundles[acctEntry.AccountID]
-		if !ok {
-			continue
-		}
-		ab, err := accountBoxAndEncode(acctEntry, secret, pukGen, puk)
-		if err != nil {
-			return nil, err
-		}
-		if ab != nil {
-			boxed.AcctBundles[acctEntry.AccountID] = *ab
-		}
-	}
-
 	return boxed, nil
 }
 
@@ -179,6 +192,7 @@ func visibilitySplit(a *stellar1.BundleRestricted) ([]stellar1.BundleVisibleEntr
 			Mode:               acct.Mode,
 			IsPrimary:          acct.IsPrimary,
 			AcctBundleRevision: acct.AcctBundleRevision,
+			EncAcctBundleHash:  acct.EncAcctBundleHash,
 		}
 		sec[i] = stellar1.BundleSecretEntryV2{
 			Name: acct.Name,
@@ -225,16 +239,16 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 	return res, resB64, nil
 }
 
-func accountBoxAndEncode(visEntry stellar1.BundleVisibleEntryV2, accountBundle stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AcctBoxedEncoded, error) {
-	visiblePack, err := libkb.MsgpackEncode(visEntry)
-	if err != nil {
-		return nil, err
-	}
-	visibleHash := sha256.Sum256(visiblePack)
+func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AcctBoxedEncoded, error) {
+	// visiblePack, err := libkb.MsgpackEncode(visEntry)
+	// if err != nil {
+	//		return nil, err
+	//	}
+	// visibleHash := sha256.Sum256(visiblePack)
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
-		VisibleHash: visibleHash[:],
-		AccountID:   visEntry.AccountID,
-		Signers:     accountBundle.Signers,
+		// VisibleHash: visibleHash[:],
+		AccountID: accountID,
+		Signers:   accountBundle.Signers,
 	})
 
 	encBundle, b64, err := accountEncrypt(versionedSecret, pukGen, puk)
@@ -242,24 +256,7 @@ func accountBoxAndEncode(visEntry stellar1.BundleVisibleEntryV2, accountBundle s
 		return nil, err
 	}
 
-	/*
-		clearpack, err := libkb.MsgpackEncode(versionedSecret)
-		if err != nil {
-			return nil, err
-		}
-		symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
-		if err != nil {
-			return nil, err
-		}
-		var nonce [libkb.NaclDHNonceSize]byte
-		nonce, err = libkb.RandomNaclDHNonce()
-		if err != nil {
-			return res, resB64, err
-		}
-		secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
-	*/
-	_ = encBundle
-	res := AcctBoxedEncoded{ /*Enc: encBundle,*/ EncB64: b64, FormatVersion: 999 /* where is this */}
+	res := AcctBoxedEncoded{Enc: encBundle, EncB64: b64, FormatVersion: 999 /* where is this */}
 
 	return &res, nil
 }
@@ -272,7 +269,7 @@ var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 // MakeMobileOnly transforms a stellar1.AccountBundle into a mobile-only
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
-func MakeMobileOnly(a *stellar1.BundleRestricted) error {
+func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
 	/*
 		if a.Mode == stellar1.AccountMode_MOBILE {
 			return ErrNoChangeNecessary
@@ -283,6 +280,27 @@ func MakeMobileOnly(a *stellar1.BundleRestricted) error {
 		a.Prev = a.OwnHash
 		a.OwnHash = nil
 	*/
+	ws, err := AccountWithSecret(a, accountID)
+	if err != nil {
+		return err
+	}
+	if ws.Mode == stellar1.AccountMode_MOBILE {
+		return ErrNoChangeNecessary
+	}
+	a.Revision++
+	a.Prev = a.OwnHash
+	a.OwnHash = nil
+
+	for i, vis := range a.Accounts {
+		if vis.AccountID == accountID {
+			if vis.Mode == stellar1.AccountMode_MOBILE {
+				return ErrNoChangeNecessary
+			}
+			vis.Mode = stellar1.AccountMode_MOBILE
+			vis.AcctBundleRevision++
+			a.Accounts[i] = vis
+		}
+	}
 
 	return nil
 }
@@ -612,9 +630,11 @@ func convertVisibleAccounts(in []stellar1.BundleVisibleEntryV2) []stellar1.Bundl
 	out := make([]stellar1.BundleEntryRestricted, len(in))
 	for i, e := range in {
 		out[i] = stellar1.BundleEntryRestricted{
-			AccountID: e.AccountID,
-			Mode:      e.Mode,
-			IsPrimary: e.IsPrimary,
+			AccountID:          e.AccountID,
+			Mode:               e.Mode,
+			IsPrimary:          e.IsPrimary,
+			AcctBundleRevision: e.AcctBundleRevision,
+			EncAcctBundleHash:  e.EncAcctBundleHash,
 		}
 	}
 	return out

@@ -769,31 +769,27 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	srv := tcs[0].Srv
-
 	a1, s1 := randomStellarKeypair()
-	arg := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   s1,
-		MakePrimary: false,
-		Name:        "qq",
-	}
-	err = srv.ImportSecretKeyLocal(context.Background(), arg)
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tcs[0].G, s1, false, "qq")
 	require.NoError(t, err)
 
 	// for now, let's just get it directly from `remote`:
 	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
 	require.NoError(t, err)
 	require.NotNil(t, acctBundle)
-	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
-	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
-	/*
-		require.Equal(t, a1, acctBundle.AccountID)
-		require.Len(t, acctBundle.Signers, 1)
-		require.Equal(t, s1, acctBundle.Signers[0])
-		require.Empty(t, acctBundle.Prev)
-		require.NotEmpty(t, acctBundle.OwnHash)
-		require.Equal(t, arg.Name, acctBundle.Name)
-	*/
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
+	secret, err := acctbundle.AccountWithSecret(acctBundle, a1)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, stellar1.AccountMode_USER, secret.Mode, "account mode should be USER")
+	require.Equal(t, a1, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, s1, secret.Signers[0])
+	require.Equal(t, stellar1.BundleRevision(1), secret.Revision)
+	require.NotEmpty(t, acctBundle.Prev)
+	require.NotEmpty(t, acctBundle.OwnHash)
+	require.Equal(t, "", secret.Name)
 }
 
 // TestMakeAccountMobileOnlyOnDesktop imports a new secret stellar key, then makes it
@@ -807,27 +803,14 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tc.G)
 	require.NoError(t, err)
 
-	srv := tc.Srv
-
 	a1, s1 := randomStellarKeypair()
-	arg := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   s1,
-		MakePrimary: false,
-		Name:        "vault",
-	}
-	err = srv.ImportSecretKeyLocal(context.Background(), arg)
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
 	require.NoError(t, err)
 
 	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
 	require.NoError(t, err)
-	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
-	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
-	/*
-		require.Equal(t, a1, acctBundle.AccountID)
-		require.Equal(t, stellar1.AccountMode_USER, acctBundle.Mode, "account mode should be USER")
-		require.Len(t, acctBundle.Signers, 1)
-		require.Equal(t, s1, acctBundle.Signers[0])
-	*/
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
 
 	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
 	require.NoError(t, err)
@@ -853,22 +836,15 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	_, err := stellar.CreateWallet(context.Background(), tc.G)
 	require.NoError(t, err)
 
-	srv := tc.Srv
-
 	a1, s1 := randomStellarKeypair()
-	arg := stellar1.ImportSecretKeyLocalArg{
-		SecretKey:   s1,
-		MakePrimary: false,
-		Name:        "vault",
-	}
-	err = srv.ImportSecretKeyLocal(context.Background(), arg)
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
 	require.NoError(t, err)
 
 	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
 	require.NoError(t, err)
 	t.Logf("acctBundle: %+v", acctBundle)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
-	require.Equal(t, stellar1.BundleRevision(3), acctBundle.Revision)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
 	require.Len(t, acctBundle.AccountBundles, 1)
 	secret, err := acctbundle.AccountWithSecret(acctBundle, a1)
 	require.NoError(t, err)
@@ -877,8 +853,7 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.Equal(t, a1, secret.AccountID)
 	require.Len(t, secret.Signers, 1)
 	require.Equal(t, s1, secret.Signers[0])
-
-	return
+	require.Equal(t, stellar1.BundleRevision(1), secret.Revision)
 
 	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
 	require.NoError(t, err)
@@ -897,14 +872,17 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	// so now the fetch will work
 	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
 	require.NoError(t, err)
-	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
-	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
-	/*
-		require.Equal(t, a1, acctBundle.AccountID)
-		require.Equal(t, stellar1.AccountMode_MOBILE, acctBundle.Mode, "account mode should be MOBILE")
-		require.Len(t, acctBundle.Signers, 1)
-		require.Equal(t, s1, acctBundle.Signers[0])
-	*/
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(3), acctBundle.Revision)
+
+	secret, err = acctbundle.AccountWithSecret(acctBundle, a1)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, stellar1.AccountMode_MOBILE, secret.Mode, "account mode should be USER")
+	require.Equal(t, a1, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, s1, secret.Signers[0])
+	require.Equal(t, stellar1.BundleRevision(2), secret.Revision)
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {

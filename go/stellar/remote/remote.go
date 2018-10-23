@@ -736,7 +736,7 @@ func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountI
 	}
 	_ = version
 
-	err = acctbundle.MakeMobileOnly(bundle)
+	err = acctbundle.MakeMobileOnly(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
 		g.Log.CDebugf(ctx, "MakeAccountMobileOnly account %s is already mobile-only", accountID)
 		return nil

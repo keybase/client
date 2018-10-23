@@ -556,6 +556,10 @@
         {
           "type": "BundleRevision",
           "name": "acctBundleRevision"
+        },
+        {
+          "type": "Hash",
+          "name": "encAcctBundleHash"
         }
       ]
     },
