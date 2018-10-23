@@ -3,6 +3,7 @@ package teams
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -182,6 +183,17 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 	return needRepoll, err
 }
 
+func refreshKBFSFavoritesCache(g *libkb.GlobalContext) error {
+	// TODO: determine if there is a better place to put this code
+	uid := g.GetMyUID().ToBytes()
+	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid))
+	if err != nil {
+		return err
+	}
+	g.NotifyRouter.HandleFavoritesChanged(kbUID)
+	return nil
+}
+
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
@@ -200,9 +212,17 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		err = nil // non-fatal
 	}
 
-	// If we're handling a rename we should also purge the resolver cache
+	// If we're handling a rename we should also purge the resolver cache and
+	// the KBFS favorites cache
 	if change.Renamed {
-		PurgeResolverTeamID(ctx, g, row.Id)
+		if err = PurgeResolverTeamID(ctx, g, row.Id); err != nil {
+			m.CWarningf("error in PurgeResolverTeamID: %v", err)
+			err = nil // non-fatal
+		}
+		if err = refreshKBFSFavoritesCache(g); err != nil {
+			m.CWarningf("error in refreshKBFSFavoritesCache: %v", err)
+			err = nil // non-fatal
+		}
 	}
 	// Send teamID and teamName in two separate notifications. It is
 	// server-trust that they are the same team.
@@ -240,7 +260,10 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 		}
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
-	return nil
+
+	// refresh the KBFS Favorites cache since it no longer should contain
+	// this team.
+	return refreshKBFSFavoritesCache(g)
 }
 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
@@ -255,6 +278,13 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 			ekLib.PurgeCachesForTeamID(ctx, row.Id)
 		}
 		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+
+		// refresh the KBFS Favorites cache since it no longer should contain
+		// this team.
+		err = refreshKBFSFavoritesCache(g)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -267,6 +297,13 @@ func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalCont
 			ekLib.PurgeCachesForTeamID(ctx, row.Id)
 		}
 		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
+
+		// refresh the KBFS Favorites cache since it now should contain
+		// this team.
+		err = refreshKBFSFavoritesCache(g)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
