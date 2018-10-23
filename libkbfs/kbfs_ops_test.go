@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 
@@ -3962,4 +3963,252 @@ func TestKBFSOpsReset(t *testing.T) {
 	children, err = kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
+}
+
+// diskMDCacheWithCommitChan notifies a channel whenever an MD is committed.
+type diskMDCacheWithCommitChan struct {
+	DiskMDCache
+	commitCh chan<- kbfsmd.Revision
+
+	lock sync.Mutex
+	seen map[kbfsmd.Revision]bool
+}
+
+func newDiskMDCacheWithCommitChan(
+	dmc DiskMDCache, commitCh chan<- kbfsmd.Revision) DiskMDCache {
+	return &diskMDCacheWithCommitChan{
+		DiskMDCache: dmc,
+		commitCh:    commitCh,
+		seen:        make(map[kbfsmd.Revision]bool),
+	}
+}
+
+func (dmc *diskMDCacheWithCommitChan) Commit(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	err := dmc.DiskMDCache.Commit(ctx, tlfID, rev)
+	if err != nil {
+		return err
+	}
+	dmc.lock.Lock()
+	defer dmc.lock.Unlock()
+	if !dmc.seen[rev] {
+		dmc.commitCh <- rev
+		dmc.seen[rev] = true
+	}
+	return nil
+}
+
+func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	dmcLocal, tempdir := newDiskMDCacheLocalForTest(t)
+	defer shutdownDiskMDCacheTest(dmcLocal, tempdir)
+	commitCh := make(chan kbfsmd.Revision)
+	dmc := newDiskMDCacheWithCommitChan(dmcLocal, commitCh)
+	config.diskMDCache = dmc
+
+	t.Log("Create a private, unsynced TLF and make sure updates are committed")
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(1), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(2), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	t.Log("Write using a different device")
+	config2 := ConfigAsUser(config, u1)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "b")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(3), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+}
+
+// bserverPutToDiskCache is a simple shim over a block server that
+// adds blocks to the disk cache.
+type bserverPutToDiskCache struct {
+	BlockServer
+	dbc DiskBlockCache
+}
+
+func (b bserverPutToDiskCache) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	buf, serverHalf, err = b.BlockServer.Get(ctx, tlfID, id, context)
+	if err != nil {
+		return buf, serverHalf, err
+	}
+
+	b.dbc.Put(ctx, tlfID, id, buf, serverHalf)
+	return buf, serverHalf, nil
+}
+
+func (b bserverPutToDiskCache) Put(ctx context.Context, tlfID tlf.ID,
+	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	err = b.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf)
+	if err != nil {
+		return err
+	}
+
+	b.dbc.Put(ctx, tlfID, id, buf, serverHalf)
+	return nil
+}
+
+func TestKBFSOpsSyncedMDCommit(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	config2 := ConfigAsUser(config, u1)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	dmcLocal, tempdir := newDiskMDCacheLocalForTest(t)
+	defer shutdownDiskMDCacheTest(dmcLocal, tempdir)
+	commitCh := make(chan kbfsmd.Revision)
+	dmc := newDiskMDCacheWithCommitChan(dmcLocal, commitCh)
+	config.diskMDCache = dmc
+
+	dbc, err := newDiskBlockCacheWrapped(config, "")
+	require.NoError(t, err)
+	config.diskBlockCache = dbc
+	err = dbc.workingSetCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = dbc.syncCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.loadSyncedTlfsLocked()
+
+	t.Log("Create a private, synced TLF")
+	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(1), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(2), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	t.Log("Stall any block gets from the device")
+	staller := NewNaïveStaller(config)
+	staller.StallBlockOp(StallableBlockGet, 4)
+	defer staller.UndoStallBlockOp(StallableBlockGet)
+
+	go func() {
+		// Let the first (root fetch) block op through, but not the second.
+		staller.WaitForStallBlockOp(StallableBlockGet)
+		staller.UnstallOneBlockOp(StallableBlockGet)
+	}()
+
+	t.Log("Write using a different device")
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "b")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Sync the new revision, but ensure no MD commits yet")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	staller.WaitForStallBlockOp(StallableBlockGet)
+	select {
+	case rev := <-commitCh:
+		t.Fatalf("No commit expected; rev=%d", rev)
+	default:
+	}
+
+	t.Log("Unstall the final block get, and the commit should finish")
+	staller.UnstallOneBlockOp(StallableBlockGet)
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(3), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+
+	go func() {
+		// Let the first (root fetch) block op through, but not the second.
+		staller.WaitForStallBlockOp(StallableBlockGet)
+		staller.UnstallOneBlockOp(StallableBlockGet)
+	}()
+
+	t.Log("Write again, and this time read the MD to force a commit")
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "c")
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	staller.WaitForStallBlockOp(StallableBlockGet)
+	select {
+	case rev := <-commitCh:
+		t.Fatalf("No commit expected; rev=%d", rev)
+	default:
+	}
+
+	_, err = kbfsOps.GetDirChildren(ctx, rootNode)
+	require.NoError(t, err)
+	// Since we read the MD, it should be committed, before the
+	// prefetch completes.
+	select {
+	case rev := <-commitCh:
+		require.Equal(t, kbfsmd.Revision(4), rev)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	staller.UnstallOneBlockOp(StallableBlockGet)
 }
