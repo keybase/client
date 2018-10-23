@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
@@ -163,4 +164,27 @@ func TestNeedsParens(t *testing.T) {
 		require.Equal(t, expr.NeedsParens(), test.needsParens)
 	}
 
+}
+
+func TestPrecedence(t *testing.T) {
+	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+gubble.social:max"
+	goodProofsets := []ProofSet{
+		*NewProofSet([]Proof{
+			{"twitter", "kbtester1"},
+			{"keybase", "t_bob"},
+		}),
+	}
+	expr, err := AssertionParse(testAssertionContext{}, a)
+	require.NoError(t, err)
+	spew.Dump(expr)
+	for _, proofset := range goodProofsets {
+		//require.True(t, expr.MatchSet(proofset))
+		_ = proofset
+	}
+
+	expr2, err := AssertionPegParse(testAssertionContext{}, a)
+	require.NoError(t, err)
+	spew.Dump(expr2)
+
+	require.Equal(t, expr.String(), expr2.String())
 }
