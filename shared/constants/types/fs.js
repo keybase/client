@@ -51,7 +51,13 @@ export type _Tlf = {
   needsRekey: boolean,
   resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
+  // Following two fields are calculated but not in-use today yet.
+  //
+  // waitingForParticipantUnlock is the list of participants that can unlock
+  // this folder, when this folder needs a rekey.
   waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+  // youCanUnlock has a list of devices that can unlock this folder, when this
+  // folder needs a rekey.
   youCanUnlock?: I.List<Device>,
 }
 export type Tlf = I.RecordOf<_Tlf>

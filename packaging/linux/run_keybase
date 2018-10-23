@@ -179,7 +179,7 @@ run_redirector() {
 }
 
 start_systemd() {
-  echo Starting via systemd.
+  echo Starting via systemd...
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
   systemctl --user daemon-reload

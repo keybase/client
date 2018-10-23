@@ -87,7 +87,6 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
-	t.Skip("CORE-9018 blockade required for relays to be sent")
 	if disable {
 		t.Skip(disableMsg)
 	}

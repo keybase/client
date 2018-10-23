@@ -55,9 +55,9 @@ function setupApp(store, runSagas) {
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas?.()
 
-  if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-    require('devtron').install()
-  }
+  // if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
+  //   require('devtron').install()
+  // }
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 

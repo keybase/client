@@ -18,7 +18,7 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
-import * as WalletConstants from '../../constants/wallets'
+import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
@@ -26,7 +26,6 @@ import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} 
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../util/container'
-import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {switchTo} from '../route-tree'
@@ -279,15 +278,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       } else {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && desktopNotificationSnippet) {
-          actions.push(
-            Chat2Gen.createDesktopNotification({
-              author: message.author,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
-        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const valid = cMsg.valid
@@ -337,6 +327,21 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
       }
+    }
+    if (
+      !isMobile &&
+      displayDesktopNotification &&
+      desktopNotificationSnippet &&
+      cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
+      cMsg.valid
+    ) {
+      actions.push(
+        Chat2Gen.createDesktopNotification({
+          author: cMsg.valid.senderUsername,
+          body: desktopNotificationSnippet,
+          conversationIDKey,
+        })
+      )
     }
   }
 
@@ -1026,10 +1031,11 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
     Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
     meta.isMuted // ignore muted convos
   ) {
+    logger.info('desktopNotify: not sending notification')
     return
   }
 
-  logger.info('Sending Chat notification')
+  logger.info('desktopNotify: sending chat notification')
   let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
   if (meta.teamType === 'big') {
     title += `#${meta.channelname}`
@@ -1048,7 +1054,7 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
                     reason: 'desktopNotification',
                   })
                 ),
-                Saga.put(RouteTreeGen.createSwitchTo({path: [chatTab]})),
+                Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
                 Saga.put(ConfigGen.createShowMain()),
               ])
             )
@@ -1056,6 +1062,7 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
           const onClose = () => {
             resolve()
           }
+          logger.info('desktopNotify: invoking NotifyPopup for chat notification')
           NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
         })
     )
@@ -1997,7 +2004,7 @@ const navigateToInbox = (
     return
   }
   const resetRouteAction = Saga.put(
-    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
+    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}]})
   )
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
     const {context, teamname} = action.payload
@@ -2007,7 +2014,7 @@ const navigateToInbox = (
           // If we're leaving a team from somewhere else and we have a team convo
           // selected, reset the chat tab to the root
           logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
-          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [chatTab]}))
+          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.chatTab]}))
         }
         break
       case TeamsGen.leftTeam:
@@ -2048,7 +2055,7 @@ const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, stat
 
 const mobileChangeSelection = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
-  const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
+  const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
@@ -2504,7 +2511,7 @@ const openChatFromWidget = (
 ) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    Saga.put(switchTo([chatTab])),
+    Saga.put(switchTo([Tabs.chatTab])),
     ...(conversationIDKey
       ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
       : []),
@@ -2584,18 +2591,15 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return Saga.sequentially(
-    [
-      ...(requestInfo.currencyCode
-        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
-        : []),
-      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
-      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
-      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
-      WalletsGen.createSetBuildingTo({to: message.author}),
-      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
-      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
-    ].map(action => Saga.put(action))
+  return Saga.put(
+    WalletsGen.createOpenSendRequestForm({
+      amount: requestInfo.amount,
+      currency: requestInfo.currencyCode || 'XLM',
+      from: WalletTypes.noAccountID,
+      recipientType: 'keybaseUser',
+      to: message.author,
+      secretNote: message.note,
+    })
   )
 }
 

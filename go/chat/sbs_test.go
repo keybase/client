@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -203,6 +204,18 @@ func TestChatSrvSBS(t *testing.T) {
 
 }
 
+func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
+	mctx := libkb.NewMetaContextTODO(g)
+	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber))
+
+	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
+	require.NoError(t, err)
+
+	require.NoError(t, phonenumbers.VerifyPhoneNumber(mctx, phoneNumber, code))
+
+	t.Logf("Added and verified phone number: %s", phoneNumber.String())
+}
+
 func TestChatSrvPhoneNumber(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for imp teams
@@ -210,14 +223,17 @@ func TestChatSrvPhoneNumber(t *testing.T) {
 			return
 		}
 
-		ctc := makeChatTestContext(t, "TestChatSrvPhoneNumber", 1)
+		ctc := makeChatTestContext(t, "TestChatSrvPhoneNumber", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
+		tc1 := ctc.world.Tcs[users[1].Username]
 
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
 		phone := kbtest.GenerateTestPhoneNumber()
 		name := fmt.Sprintf("%s,%s@phone", users[0].Username, phone)
@@ -244,5 +260,30 @@ func TestChatSrvPhoneNumber(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(tvres.Thread.Messages))
+
+		t.Logf("Verifying phone numbers now")
+
+		kickTeamRekeyd(tc1.Context().ExternalG(), t)
+		addAndVerifyPhone(t, tc1.Context().ExternalG(), keybase1.PhoneNumber("+"+phone))
+
+		t.Logf("uid1: %s", users[1].User.GetUID())
+		t.Logf("teamID: %s", ncres.Conv.Info.Triple.Tlfid)
+		t.Logf("convID: %x", ncres.Conv.GetConvID().DbShortForm())
+
+		select {
+		case rres := <-listener0.membersUpdate:
+			require.Equal(t, ncres.Conv.GetConvID(), rres.ConvID)
+			require.Equal(t, 1, len(rres.Members))
+			require.Equal(t, users[1].Username, rres.Members[0].Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no resolve")
+		}
+		select {
+		case rres := <-listener1.joinedConv:
+			require.Equal(t, ncres.Conv.GetConvID().String(), rres.ConvID)
+			require.Equal(t, 2, len(rres.Participants))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no resolve")
+		}
 	})
 }

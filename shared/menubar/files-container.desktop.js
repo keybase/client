@@ -6,7 +6,7 @@ import * as FsUtil from '../util/kbfs'
 import * as FsConstants from '../constants/fs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview, type UserTlfUpdateRowProps} from './files.desktop'
-import {remoteConnect, compose} from '../util/container'
+import {remoteConnect, setDisplayName, compose} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash'
 
@@ -66,5 +66,6 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
 
 export default compose(
   remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('FilesPreview'),
   TlfUpdateHoc
 )(FilesPreview)

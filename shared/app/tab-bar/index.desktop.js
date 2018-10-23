@@ -30,13 +30,14 @@ const _labels = {
   [Tabs.walletsTab]: 'Wallet',
 }
 
-const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
+const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers, isNew}: Props) => (
   <Box style={stylesTabBar}>
     {Tabs.desktopTabOrder.map(tab => (
       <TabBarButton
         className="keybase-nav"
         badgeNumber={badgeNumbers[tab]}
         isNav={true}
+        isNew={isNew[tab] || false}
         key={tab}
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
@@ -49,6 +50,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
     <TabBarButton
       label={username || ''}
       isNav={true}
+      isNew={false}
       selected={false}
       onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.profileTab]}

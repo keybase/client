@@ -4021,7 +4021,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		select {
 		case info := <-listener0.newMessageRemote:
 			require.False(t, info.DisplayDesktopNotification)
-			require.NotEqual(t, "", info.DesktopNotificationSnippet)
+			require.Equal(t, "", info.DesktopNotificationSnippet)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}

@@ -150,7 +150,7 @@ const load = () =>
             error={true}
           />
         </WrapRow>
-        <WrapRow key="12">
+        <WrapRow key="download-normal">
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/bar')}
             name="bar"
@@ -158,7 +158,35 @@ const load = () =>
             lastModifiedTimestamp={Date.now()}
             lastWriter="alice"
             itemStyles={fileItemStyles}
-            isDownloading={true}
+            intentIfDownloading="none"
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="download-save">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar')}
+            name="bar"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="alice"
+            itemStyles={fileItemStyles}
+            intentIfDownloading="camera-roll"
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="download-share">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar')}
+            name="bar"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="alice"
+            itemStyles={fileItemStyles}
+            intentIfDownloading="share"
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
@@ -186,7 +214,6 @@ const load = () =>
             lastModifiedTimestamp={Date.now()}
             lastWriter="bob"
             itemStyles={fileItemStyles}
-            isDownloading={false}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}

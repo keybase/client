@@ -4,6 +4,9 @@ import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
+// When accepting the Stellar disclaimer, next path after acceptance
+export type NextScreenAfterAcceptance = 'linkExisting' | 'openWallet'
+
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
@@ -115,16 +118,18 @@ export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' |
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
 export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
-export type _Payment = {
+
+// The various payment types below are awkward, but they reflect the
+// protocol. We can clean this up once
+// https://keybase.atlassian.net/browse/CORE-9234 is fixed.
+
+export type _PaymentCommon = {
   amountDescription: string,
   delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
-  publicMemo: HiddenString,
-  publicMemoType: string,
-  section: PaymentSection,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -135,11 +140,27 @@ export type _Payment = {
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
-  txID: string,
-  unread: boolean,
   worth: string,
   worthCurrency: string,
 }
+
+export type _PaymentResult = _PaymentCommon & {
+  // Ideally the section field would be in _PaymentCommon. We can
+  // derive it from statusDescription, which is either "pending",
+  // "completed", or "error", or once
+  // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
+  // might be a better way.
+  section: PaymentSection,
+  unread: boolean,
+}
+
+export type _PaymentDetail = _PaymentCommon & {
+  publicMemo: HiddenString,
+  publicMemoType: string,
+  txID: string,
+}
+
+export type _Payment = _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string,
@@ -183,6 +204,8 @@ export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
+export type PaymentResult = I.RecordOf<_PaymentResult>
+export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
@@ -191,6 +214,7 @@ export type Request = I.RecordOf<_Request>
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
+  acceptedDisclaimer: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,

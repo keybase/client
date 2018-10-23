@@ -978,6 +978,16 @@
       "request": [],
       "response": "SimpleFSQuotaUsage",
       "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+    },
+    "simpleFSReset": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
     }
   },
   "namespace": "keybase.1"

@@ -506,12 +506,10 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, false, userSettings.AcceptedDisclaimer)
 
-	if false { // CORE-9108 have to wait for server PR to land for this
-		t.Logf("can't create wallet before disclaimer")
-		_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
-		require.Error(t, err)
-		require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
-	}
+	t.Logf("can't create wallet before disclaimer")
+	_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.Error(t, err)
+	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
 	userSettings, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
 	require.NoError(t, err)

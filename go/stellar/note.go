@@ -85,7 +85,7 @@ func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, 
 	if mePukGen == 0 {
 		return res, fmt.Errorf("note not encrypted for logged-in user")
 	}
-	pukring, err := g.GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
 		return res, err
 	}

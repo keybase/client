@@ -1,6 +1,4 @@
 // @flow
-
-import getenv from 'getenv'
 import {featureFlagsOverride} from '../local-debug.desktop'
 import type {FeatureFlags} from './feature-flags'
 
@@ -8,7 +6,8 @@ import type {FeatureFlags} from './feature-flags'
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
 let features =
-  (featureFlagsOverride && featureFlagsOverride.split(',')) || getenv.array('KEYBASE_FEATURES', 'string', '')
+  (featureFlagsOverride && featureFlagsOverride.split(',')) ||
+  (process.env['KEYBASE_FEATURES'] || '').split(',')
 
 const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
@@ -17,7 +16,6 @@ const ff: FeatureFlags = {
   avatarUploadsEnabled: true,
   chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
-  fileWidgetEnabled: false,
   foldersInProfileTab: false,
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
@@ -27,7 +25,6 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
-  fileWidgetEnabled: true,
   walletsEnabled: true,
 }
 
