@@ -54,6 +54,9 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 		Prev:           bundle.Prev,
 		AccountBundles: make(map[stellar1.AccountID]stellar1.AccountBundle),
 	}
+	if r.Revision > 1 && (r.Prev == nil || len(r.Prev) == 0) {
+		return nil, fmt.Errorf("NewFromBundle missing Prev: %+v", bundle)
+	}
 	for _, acct := range bundle.Accounts {
 		r.Accounts = append(r.Accounts, newEntry(acct.AccountID, acct.Name, acct.IsPrimary))
 		// XXX multiple signers
@@ -64,10 +67,11 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 
 func newEntry(accountID stellar1.AccountID, name string, isPrimary bool) stellar1.BundleEntryRestricted {
 	return stellar1.BundleEntryRestricted{
-		AccountID: accountID,
-		Name:      name,
-		Mode:      stellar1.AccountMode_USER,
-		IsPrimary: isPrimary,
+		AccountID:          accountID,
+		Name:               name,
+		Mode:               stellar1.AccountMode_USER,
+		IsPrimary:          isPrimary,
+		AcctBundleRevision: 1,
 	}
 }
 
@@ -171,10 +175,10 @@ func visibilitySplit(a *stellar1.BundleRestricted) ([]stellar1.BundleVisibleEntr
 	sec := make([]stellar1.BundleSecretEntryV2, len(a.Accounts))
 	for i, acct := range a.Accounts {
 		vis[i] = stellar1.BundleVisibleEntryV2{
-			AccountID: acct.AccountID,
-			Mode:      acct.Mode,
-			IsPrimary: acct.IsPrimary,
-			// XXX revision???
+			AccountID:          acct.AccountID,
+			Mode:               acct.Mode,
+			IsPrimary:          acct.IsPrimary,
+			AcctBundleRevision: acct.AcctBundleRevision,
 		}
 		sec[i] = stellar1.BundleSecretEntryV2{
 			Name: acct.Name,
@@ -433,7 +437,7 @@ func unboxParent(encBundle stellar1.EncryptedBundle, hash stellar1.Hash, visB64 
 			return nil, 0, err
 		}
 	default:
-		return nil, 0, fmt.Errorf("unsupported parent bundler version: %d", version)
+		return nil, 0, fmt.Errorf("unsupported parent bundle version: %d", version)
 	}
 
 	bundleOut.OwnHash = hash
@@ -568,6 +572,40 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 		return empty, err
 	}
 	return bver, nil
+}
+
+type WithSecret struct {
+	AccountID stellar1.AccountID
+	Mode      stellar1.AccountMode
+	Name      string
+	Revision  stellar1.BundleRevision
+	Signers   []stellar1.SecretKey
+}
+
+func AccountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*WithSecret, error) {
+	secret, ok := bundle.AccountBundles[accountID]
+	if !ok {
+		return nil, libkb.NotFoundError{}
+	}
+	// ugh
+	var found *stellar1.BundleEntryRestricted
+	for _, a := range bundle.Accounts {
+		if a.AccountID == accountID {
+			found = &a
+			break
+		}
+	}
+	if found == nil {
+		// this is bad: secret found but not visible portion
+		return nil, libkb.NotFoundError{}
+	}
+	return &WithSecret{
+		AccountID: found.AccountID,
+		Mode:      found.Mode,
+		Name:      found.Name,
+		Revision:  found.AcctBundleRevision,
+		Signers:   secret.Signers,
+	}, nil
 }
 
 func convertVisibleAccounts(in []stellar1.BundleVisibleEntryV2) []stellar1.BundleEntryRestricted {

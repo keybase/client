@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -865,12 +866,19 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 
 	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
 	require.NoError(t, err)
-	require.Equal(t, stellar1.AccountBundleVersion_V1, version)
-	require.Equal(t, stellar1.BundleRevision(1), acctBundle.Revision)
-	/*
-		require.Equal(t, a1, acctBundle.AccountID)
-		require.Equal(t, stellar1.AccountMode_USER, acctBundle.Mode, "account mode should be USER")
-	*/
+	t.Logf("acctBundle: %+v", acctBundle)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(3), acctBundle.Revision)
+	require.Len(t, acctBundle.AccountBundles, 1)
+	secret, err := acctbundle.AccountWithSecret(acctBundle, a1)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, stellar1.AccountMode_USER, secret.Mode, "account mode should be USER")
+	require.Equal(t, a1, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, s1, secret.Signers[0])
+
+	return
 
 	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
 	require.NoError(t, err)

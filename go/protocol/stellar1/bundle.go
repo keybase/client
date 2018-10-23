@@ -562,20 +562,20 @@ func (o BundleSecretV2) DeepCopy() BundleSecretV2 {
 }
 
 type BundleVisibleEntryV2 struct {
-	AccountID         AccountID      `codec:"accountID" json:"accountID"`
-	Revision          BundleRevision `codec:"revision" json:"revision"`
-	Mode              AccountMode    `codec:"mode" json:"mode"`
-	IsPrimary         bool           `codec:"isPrimary" json:"isPrimary"`
-	EncAcctBundleHash Hash           `codec:"encAcctBundleHash" json:"encAcctBundleHash"`
+	AccountID          AccountID      `codec:"accountID" json:"accountID"`
+	Mode               AccountMode    `codec:"mode" json:"mode"`
+	IsPrimary          bool           `codec:"isPrimary" json:"isPrimary"`
+	AcctBundleRevision BundleRevision `codec:"acctBundleRevision" json:"acctBundleRevision"`
+	EncAcctBundleHash  Hash           `codec:"encAcctBundleHash" json:"encAcctBundleHash"`
 }
 
 func (o BundleVisibleEntryV2) DeepCopy() BundleVisibleEntryV2 {
 	return BundleVisibleEntryV2{
-		AccountID:         o.AccountID.DeepCopy(),
-		Revision:          o.Revision.DeepCopy(),
-		Mode:              o.Mode.DeepCopy(),
-		IsPrimary:         o.IsPrimary,
-		EncAcctBundleHash: o.EncAcctBundleHash.DeepCopy(),
+		AccountID:          o.AccountID.DeepCopy(),
+		Mode:               o.Mode.DeepCopy(),
+		IsPrimary:          o.IsPrimary,
+		AcctBundleRevision: o.AcctBundleRevision.DeepCopy(),
+		EncAcctBundleHash:  o.EncAcctBundleHash.DeepCopy(),
 	}
 }
 
@@ -1108,18 +1108,20 @@ func (o BundleRestricted) DeepCopy() BundleRestricted {
 }
 
 type BundleEntryRestricted struct {
-	AccountID AccountID   `codec:"accountID" json:"accountID"`
-	Mode      AccountMode `codec:"mode" json:"mode"`
-	IsPrimary bool        `codec:"isPrimary" json:"isPrimary"`
-	Name      string      `codec:"name" json:"name"`
+	AccountID          AccountID      `codec:"accountID" json:"accountID"`
+	Mode               AccountMode    `codec:"mode" json:"mode"`
+	IsPrimary          bool           `codec:"isPrimary" json:"isPrimary"`
+	Name               string         `codec:"name" json:"name"`
+	AcctBundleRevision BundleRevision `codec:"acctBundleRevision" json:"acctBundleRevision"`
 }
 
 func (o BundleEntryRestricted) DeepCopy() BundleEntryRestricted {
 	return BundleEntryRestricted{
-		AccountID: o.AccountID.DeepCopy(),
-		Mode:      o.Mode.DeepCopy(),
-		IsPrimary: o.IsPrimary,
-		Name:      o.Name,
+		AccountID:          o.AccountID.DeepCopy(),
+		Mode:               o.Mode.DeepCopy(),
+		IsPrimary:          o.IsPrimary,
+		Name:               o.Name,
+		AcctBundleRevision: o.AcctBundleRevision.DeepCopy(),
 	}
 }
 

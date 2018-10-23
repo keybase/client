@@ -270,16 +270,16 @@
           "name": "accountID"
         },
         {
-          "type": "BundleRevision",
-          "name": "revision"
-        },
-        {
           "type": "AccountMode",
           "name": "mode"
         },
         {
           "type": "boolean",
           "name": "isPrimary"
+        },
+        {
+          "type": "BundleRevision",
+          "name": "acctBundleRevision"
         },
         {
           "type": "Hash",
@@ -552,6 +552,10 @@
         {
           "type": "string",
           "name": "name"
+        },
+        {
+          "type": "BundleRevision",
+          "name": "acctBundleRevision"
         }
       ]
     },

@@ -179,8 +179,13 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 
 	if g.GetRunMode() != libkb.ProductionRunMode {
 		// XXX temporary code path to send a stellar account bundle to the server
+		xBundle, _, err := remote.Fetch(ctx, g)
+		if err != nil {
+			return err
+		}
 		g.Log.CDebugf(ctx, "creating a new account bundle and posting it to the server")
-		acctBundle, err := acctbundle.NewFromBundle(nextBundle)
+		nextNextBundle := bundle.Advance(xBundle)
+		acctBundle, err := acctbundle.NewFromBundle(nextNextBundle)
 		if err != nil {
 			return err
 		}

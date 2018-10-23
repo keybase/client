@@ -192,6 +192,7 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
 		return nil, 0, err
 	}
+	g.Log.CDebugf(ctx, "FetchAccountBundle apiRes: %+v\n", apiRes)
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
 	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncodedB64)

@@ -212,6 +212,7 @@ protocol bundle {
     AccountMode mode;
     boolean isPrimary; // whether this is the primary account
     string name;
+    BundleRevision acctBundleRevision;
   }
 
   // Unversioned struct for local use only.
