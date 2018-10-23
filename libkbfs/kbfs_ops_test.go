@@ -3200,10 +3200,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	rootNode2 := GetRootNodeOrBust(ctx, t, config2, "test_user", tlf.Private)
-	// Lookup the file, which should fail on block ID verification
-	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	_, err = GetRootNodeForTest(ctx, config2, "test_user", tlf.Private)
 	if _, ok := errors.Cause(err).(kbfshash.HashMismatchError); !ok {
 		t.Fatalf("Could unexpectedly lookup the file: %+v", err)
 	}

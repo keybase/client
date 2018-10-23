@@ -267,6 +267,7 @@ type folderBranchOps struct {
 	headStatus headTrustStatus
 	// latestMergedRevision tracks the latest heard merged revision on server
 	latestMergedRevision kbfsmd.Revision
+	latestMergedUpdated  chan struct{}
 	// Has this folder ever been cleared?
 	hasBeenCleared bool
 
@@ -544,7 +545,7 @@ func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	favorites *Favorites, created bool) (err error) {
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(lState)
+	head := fbo.getTrustedHead(ctx, lState)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
@@ -571,7 +572,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(lState)
+	head := fbo.getTrustedHead(ctx, lState)
 	if head == (ImmutableRootMetadata{}) {
 		// This can happen when identifies fail and the head is never set.
 		return OpsCantHandleFavorite{"Can't delete a favorite without a handle"}
@@ -609,10 +610,32 @@ func (fbo *folderBranchOps) updateLastGetHeadTimestamp() {
 	fbo.lastGetHead = fbo.config.Clock().Now()
 }
 
+func (fbo *folderBranchOps) commitHeadLocked(
+	ctx context.Context, lState *lockState) {
+	fbo.headLock.AssertRLocked(lState)
+	diskMDCache := fbo.config.DiskMDCache()
+	if diskMDCache == nil {
+		return
+	}
+
+	if !fbo.head.putToServer {
+		return
+	}
+	rev := fbo.head.Revision()
+
+	go func() {
+		err := diskMDCache.Commit(ctx, fbo.id(), rev)
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
+		}
+	}()
+}
+
 // getTrustedHead should not be called outside of folder_branch_ops.go.
 // Returns ImmutableRootMetadata{} when the head is not trusted.
 // See the comment on headTrustedStatus for more information.
-func (fbo *folderBranchOps) getTrustedHead(lState *lockState) ImmutableRootMetadata {
+func (fbo *folderBranchOps) getTrustedHead(
+	ctx context.Context, lState *lockState) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
 	if fbo.headStatus == headUntrusted {
@@ -626,12 +649,14 @@ func (fbo *folderBranchOps) getTrustedHead(lState *lockState) ImmutableRootMetad
 	// called this method would get latest MD.
 	fbo.config.MDServer().FastForwardBackoff()
 	fbo.updateLastGetHeadTimestamp()
+	fbo.commitHeadLocked(ctx, lState)
 
 	return fbo.head
 }
 
 // getHead should not be called outside of folder_branch_ops.go.
-func (fbo *folderBranchOps) getHead(lState *lockState) (
+func (fbo *folderBranchOps) getHead(
+	ctx context.Context, lState *lockState) (
 	ImmutableRootMetadata, headTrustStatus) {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
@@ -639,6 +664,7 @@ func (fbo *folderBranchOps) getHead(lState *lockState) (
 	// See getTrustedHead for explanation.
 	fbo.config.MDServer().FastForwardBackoff()
 	fbo.updateLastGetHeadTimestamp()
+	fbo.commitHeadLocked(ctx, lState)
 
 	return fbo.head, fbo.headStatus
 }
@@ -738,6 +764,109 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
 		go fbo.monitorEditsChat(tlfName)
 	})
+}
+
+func (fbo *folderBranchOps) kickOffRootBlockFetch(
+	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
+	ptr := rmd.Data().Dir.BlockPointer
+	return fbo.config.BlockOps().BlockRetriever().Request(
+		ctx, defaultOnDemandRequestPriority, rmd, ptr, NewDirBlock(),
+		TransientEntry)
+}
+
+func (fbo *folderBranchOps) waitForRootBlockFetch(
+	ctx context.Context, rmd ImmutableRootMetadata,
+	fetchChan <-chan error) error {
+	fbo.log.CDebugf(ctx, "Ensuring that the latest root directory "+
+		"block for revision %d is available", rmd.Revision())
+	select {
+	case err := <-fetchChan:
+		fbo.log.CDebugf(ctx, "Root block fetch complete: +%v", err)
+		return err
+	case <-ctx.Done():
+		return errors.WithStack(ctx.Err())
+	}
+}
+
+func (fbo *folderBranchOps) commitFlushedMD(
+	rmd ImmutableRootMetadata, updatedCh <-chan struct{}) {
+	diskMDCache := fbo.config.DiskMDCache()
+	if diskMDCache == nil {
+		return
+	}
+
+	// Bail out if the latest merged revision has already been updated.
+	select {
+	case <-updatedCh:
+		return
+	default:
+	}
+
+	ctx := fbo.ctxWithFBOID(context.Background())
+	rev := rmd.Revision()
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		// For synced TLFs, wait for prefetching to complete for
+		// `rootPtr`. When it's successfully done, commit the
+		// corresponding MD.
+		rootPtr := rmd.Data().Dir.BlockPointer
+		fbo.log.CDebugf(ctx, "Fetching root block of revision %d, ptr %v",
+			rev, rootPtr)
+		rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
+		select {
+		case err := <-rootCh:
+			if err != nil {
+				fbo.log.CDebugf(ctx, "Error getting root block: %+v", err)
+				return
+			}
+		case <-updatedCh:
+			fbo.log.CDebugf(ctx, "The latest merged rev has been updated")
+			return
+		case <-fbo.shutdownChan:
+			fbo.log.CDebugf(ctx, "Shutdown, canceling root block wait")
+			return
+		}
+
+		fbo.log.CDebugf(ctx, "Waiting for prefetch of revision %d, ptr %v",
+			rev, rootPtr)
+		waitCh, err := fbo.config.BlockOps().Prefetcher().
+			WaitChannelForBlockPrefetch(ctx, rootPtr)
+		if err != nil {
+			fbo.log.CDebugf(ctx,
+				"Error getting wait channel for prefetch: %+v", err)
+			return
+		}
+
+		select {
+		case <-waitCh:
+		case <-updatedCh:
+			fbo.log.CDebugf(ctx, "The latest merged rev has been updated")
+			fbo.config.BlockOps().Prefetcher().CancelPrefetch(rootPtr.ID)
+			return
+		case <-fbo.shutdownChan:
+			fbo.log.CDebugf(ctx, "Shutdown, canceling prefetch wait")
+			return
+		}
+
+		_, prefetchStatus, _, err := fbo.config.BlockCache().GetWithPrefetch(
+			rootPtr)
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error getting prefetched block: %+v", err)
+			return
+		}
+		if prefetchStatus != FinishedPrefetch {
+			fbo.log.CDebugf(ctx, "Revision was not fully prefetched: status=%s",
+				prefetchStatus)
+			return
+		}
+
+		fbo.log.CDebugf(ctx, "Prefetch for revision %d complete; commiting",
+			rev)
+	}
+
+	err := diskMDCache.Commit(ctx, fbo.id(), rev)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
+	}
 }
 
 func (fbo *folderBranchOps) setHeadLocked(
@@ -866,6 +995,10 @@ func (fbo *folderBranchOps) setHeadLocked(
 			// well.
 			fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
 		}
+	}
+
+	if md.putToServer {
+		go fbo.commitFlushedMD(md, fbo.latestMergedUpdated)
 	}
 
 	// Make sure that any unembedded block changes have been swapped
@@ -1111,7 +1244,7 @@ func (fbo *folderBranchOps) getMDForRead(
 		panic("Invalid rtype in getMDLockedForRead")
 	}
 
-	md = fbo.getTrustedHead(lState)
+	md = fbo.getTrustedHead(ctx, lState)
 	if md != (ImmutableRootMetadata{}) {
 		if rtype != mdReadNoIdentify {
 			err = fbo.identifyOnce(ctx, md.ReadOnly())
@@ -1126,7 +1259,7 @@ func (fbo *folderBranchOps) getMDForRead(
 func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
 	*TlfHandle, error) {
 	lState := makeFBOLockState()
-	md, _ := fbo.getHead(lState)
+	md, _ := fbo.getHead(ctx, lState)
 	return md.GetTlfHandle(), nil
 }
 
@@ -1144,7 +1277,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 		err = fbo.identifyOnce(ctx, md.ReadOnly())
 	}()
 
-	md = fbo.getTrustedHead(lState)
+	md = fbo.getTrustedHead(ctx, lState)
 	if md != (ImmutableRootMetadata{}) {
 		return md, nil
 	}
@@ -1571,7 +1704,7 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// Some other thread got here first, so give up and let it go
 	// before we push anything to the servers.
-	if h, _ := fbo.getHead(lState); h != (ImmutableRootMetadata{}) {
+	if h, _ := fbo.getHead(ctx, lState); h != (ImmutableRootMetadata{}) {
 		fbo.log.CDebugf(ctx, "Head was already set, aborting")
 		return nil
 	}
@@ -1700,6 +1833,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			md.Revision(), md.MergedStatus(), err)
 	}()
 
+	var latestRootBlockFetch <-chan error
 	if md.IsReadable() && fbo.config.Mode().PrefetchWorkers() > 0 {
 		// We `Get` the root block to ensure downstream prefetches
 		// occur.  Use a fresh context, in case `ctx` is canceled by
@@ -1708,9 +1842,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		fbo.log.CDebugf(ctx,
 			"Prefetching root block with a new context: FBOID=%s",
 			prefetchCtx.Value(CtxFBOIDKey))
-		_ = fbo.config.BlockOps().BlockRetriever().Request(prefetchCtx,
-			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,
-			&DirBlock{}, TransientEntry)
+		latestRootBlockFetch = fbo.kickOffRootBlockFetch(ctx, md)
 	} else {
 		fbo.log.CDebugf(ctx,
 			"Setting an unreadable head with revision=%d", md.Revision())
@@ -1721,7 +1853,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	// (e.g., calling `identifyOnce` and downloading the merged
 	// head) if head is already set.
 	lState := makeFBOLockState()
-	head, headStatus := fbo.getHead(lState)
+	head, headStatus := fbo.getHead(ctx, lState)
 	if headStatus == headTrusted && head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
 		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
 			"need to set initial head again", md.Revision(), md.MergedStatus())
@@ -1764,6 +1896,13 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 				fbo.setLatestMergedRevisionLocked(ctx, lState,
 					mergedMD.Revision(), false)
 			}()
+		}
+
+		if latestRootBlockFetch != nil {
+			err := fbo.waitForRootBlockFetch(ctx, md, latestRootBlockFetch)
+			if err != nil {
+				return err
+			}
 		}
 
 		fbo.headLock.Lock(lState)
@@ -4689,7 +4828,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// All originals never made it to the server, so don't unmerged
 	// them.
 	syncChains.doNotUnrefPointers = syncChains.createdOriginals
-	head, _ := fbo.getHead(lState)
+	head, _ := fbo.getHead(ctx, lState)
 	dummyHeadChains := newCRChainsEmpty()
 	dummyHeadChains.mostRecentChainMDInfo = head
 
@@ -5238,6 +5377,11 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	lState *lockState, rmds []ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
+	if len(rmds) == 0 {
+		return nil
+	}
+	latestMerged := rmds[len(rmds)-1]
+
 	// If there's anything in the journal, don't apply these MDs.
 	// Wait for CR to happen.
 	if !fbo.isUnmergedLocked(lState) {
@@ -5257,7 +5401,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 					fbo.headLock.Lock(lState)
 					defer fbo.headLock.Unlock(lState)
 					fbo.setLatestMergedRevisionLocked(
-						ctx, lState, rmds[len(rmds)-1].Revision(), false)
+						ctx, lState, latestMerged.Revision(), false)
 				}()
 			}
 
@@ -5273,28 +5417,31 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
 	if fbo.isUnmergedLocked(lState) {
-		if len(rmds) > 0 {
-			latestMerged := rmds[len(rmds)-1]
-			// Don't trust un-put updates here because they might have
-			// come from our own journal before the conflict was
-			// detected.  Assume we'll hear about the conflict via
-			// callbacks from the journal.
-			if !latestMerged.putToServer {
-				return UnmergedError{}
-			}
-
-			// setHeadLocked takes care of merged case
-			fbo.setLatestMergedRevisionLocked(
-				ctx, lState, latestMerged.Revision(), false)
-
-			unmergedRev := kbfsmd.RevisionUninitialized
-			if fbo.head != (ImmutableRootMetadata{}) {
-				unmergedRev = fbo.head.Revision()
-			}
-			fbo.cr.Resolve(ctx, unmergedRev, latestMerged.Revision())
+		// Don't trust un-put updates here because they might have
+		// come from our own journal before the conflict was
+		// detected.  Assume we'll hear about the conflict via
+		// callbacks from the journal.
+		if !latestMerged.putToServer {
+			return UnmergedError{}
 		}
+
+		// setHeadLocked takes care of merged case
+		fbo.setLatestMergedRevisionLocked(
+			ctx, lState, latestMerged.Revision(), false)
+
+		unmergedRev := kbfsmd.RevisionUninitialized
+		if fbo.head != (ImmutableRootMetadata{}) {
+			unmergedRev = fbo.head.Revision()
+		}
+		fbo.cr.Resolve(ctx, unmergedRev, latestMerged.Revision())
 		return UnmergedError{}
 	}
+
+	// Kick off a fetch of the latest root directory block, to make
+	// sure we have it locally before we expose these changes to the
+	// user.  That way, if we go offline we can be reasonably sure the
+	// user can at least list the root directory.
+	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, latestMerged)
 
 	// Don't allow updates while we're in the dirty state; the next
 	// sync will put us into an unmerged state anyway and we'll
@@ -5304,7 +5451,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	}
 
 	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))
-	for _, rmd := range rmds {
+	for i, rmd := range rmds {
 		// check that we're applying the expected MD revision
 		if rmd.Revision() <= fbo.getCurrMDRevisionLocked(lState) {
 			// Already caught up!
@@ -5312,6 +5459,14 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		}
 		if err := isReadableOrError(ctx, fbo.config.KBPKI(), rmd.ReadOnly()); err != nil {
 			return err
+		}
+
+		if i == len(rmds)-1 {
+			err := fbo.waitForRootBlockFetch(
+				ctx, latestMerged, latestRootBlockFetch)
+			if err != nil {
+				return err
+			}
 		}
 
 		err := fbo.setHeadSuccessorLocked(ctx, lState, rmd, false)
@@ -5435,6 +5590,11 @@ func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, l
 		fbo.log.CDebugf(ctx, "Local latestMergedRevision (%d) is higher than "+
 			"the new revision (%d); won't update.", fbo.latestMergedRevision, rev)
 	}
+
+	if fbo.latestMergedUpdated != nil {
+		close(fbo.latestMergedUpdated)
+	}
+	fbo.latestMergedUpdated = make(chan struct{})
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -5702,7 +5862,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	}
 
 	// untrusted head is ok here.
-	head, _ := fbo.getHead(lState)
+	head, _ := fbo.getHead(ctx, lState)
 	if head != (ImmutableRootMetadata{}) {
 		// If we already have a cached revision, make sure we're
 		// up-to-date with the latest revision before inspecting the
@@ -6018,6 +6178,12 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 		fbo.latestMergedRevision, currHead.Revision())
 	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
 		ctx, lState, currHead.ReadOnly())
+	if err != nil {
+		return err
+	}
+
+	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, currHead)
+	err = fbo.waitForRootBlockFetch(ctx, currHead, latestRootBlockFetch)
 	if err != nil {
 		return err
 	}
@@ -6697,10 +6863,12 @@ func (fbo *folderBranchOps) handleMDFlush(
 		"Considering archiving references for flushed MD revision %d", rev)
 
 	lState := makeFBOLockState()
+	var latestMergedUpdated <-chan struct{}
 	func() {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
 		fbo.setLatestMergedRevisionLocked(ctx, lState, rev, false)
+		latestMergedUpdated = fbo.latestMergedUpdated
 	}()
 
 	// Get that revision.
@@ -6732,8 +6900,9 @@ func (fbo *folderBranchOps) handleMDFlush(
 			ctx, "Skipping archiving references for flushed MD revision %d: %s", rev, err)
 		return
 	}
-
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
+
+	go fbo.commitFlushedMD(rmd, latestMergedUpdated)
 }
 
 func (fbo *folderBranchOps) onMDFlush(
@@ -7026,7 +7195,7 @@ func (fbo *folderBranchOps) GetEditHistory(
 	}
 
 	lState := makeFBOLockState()
-	md, _ := fbo.getHead(lState)
+	md, _ := fbo.getHead(ctx, lState)
 	name := md.GetTlfHandle().GetCanonicalName()
 	return fbo.config.UserHistory().GetTlfHistory(name, fbo.id().Type()), nil
 }
