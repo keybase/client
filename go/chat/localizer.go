@@ -218,6 +218,18 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 	}
 }
 
+func (s *localizerPipeline) Connected() {
+	s.Lock()
+	defer s.Unlock()
+	s.offline = true
+}
+
+func (s *localizerPipeline) Disconnected() {
+	s.Lock()
+	defer s.Unlock()
+	s.offline = false
+}
+
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
 	retCh chan types.AsyncInboxResult) {
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
@@ -255,12 +267,12 @@ func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (s *localizerPipeline) suspend() {
-
+func (s *localizerPipeline) suspend(ctx context.Context) bool {
+	return false
 }
 
-func (s *localizerPipeline) resume() {
-
+func (s *localizerPipeline) resume(ctx context.Context) bool {
+	return false
 }
 
 func (s *localizerPipeline) localizeLoop() {

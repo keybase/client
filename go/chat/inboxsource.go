@@ -60,19 +60,22 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 type baseInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
-	types.InboxSource
 
+	so               *sourceOfflinable
+	sub              types.InboxSource
 	getChatInterface func() chat1.RemoteInterface
 	localizer        *localizerPipeline
 }
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 	getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false)
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
-		InboxSource:      ibs,
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false),
+		sub:              ibs,
+		DebugLabeler:     labeler,
 		getChatInterface: getChatInterface,
+		so:               newSourceOfflinable(g, labeler),
 		localizer: newLocalizerPipeline(g,
 			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
 	}
@@ -132,7 +135,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 }
 
 func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error) {
-	ib, err := b.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
+	ib, err := b.sub.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
 		ConvID: &convID,
 	}, nil)
 	if err != nil {
@@ -178,6 +181,36 @@ func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ t
 	}
 }
 
+func (b *baseInboxSource) Start(ctx context.Context, uid gregor1.UID) {
+	b.localizer.start(ctx)
+}
+
+func (b *baseInboxSource) Stop(ctx context.Context) chan struct{} {
+	return b.localizer.stop(ctx)
+}
+
+func (b *baseInboxSource) Suspend(ctx context.Context) bool {
+	return b.localizer.suspend(ctx)
+}
+
+func (b *baseInboxSource) Resume(ctx context.Context) bool {
+	return b.localizer.resume(ctx)
+}
+
+func (b *baseInboxSource) IsOffline(ctx context.Context) bool {
+	return b.so.IsOffline(ctx)
+}
+
+func (b *baseInboxSource) Connected(ctx context.Context) {
+	b.so.Connected(ctx)
+	b.localizer.Connected()
+}
+
+func (b *baseInboxSource) Disconnected(ctx context.Context) {
+	b.so.Disconnected(ctx)
+	b.localizer.Disconnected()
+}
+
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (*types.NameInfoUntrusted, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
@@ -191,7 +224,6 @@ type RemoteInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
-	*sourceOfflinable
 }
 
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
@@ -199,9 +231,8 @@ var _ types.InboxSource = (*RemoteInboxSource)(nil)
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false)
 	s := &RemoteInboxSource{
-		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     labeler,
-		sourceOfflinable: newSourceOfflinable(g, labeler),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: labeler,
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, ri)
 	return s
@@ -322,12 +353,17 @@ func (s *RemoteInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID
 	return res, err
 }
 
+func (s *RemoteInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	return convs, err
+}
+
 func (s *RemoteInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
 	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
 	return conv, err
 }
 
-func (s *RemoteInboxSource) UpdateKBFSToImpteam(ctx context.Context, uid gregor1.UID,
+func (s *RemoteInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID,
 	vers chat1.InboxVers, convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	return conv, err
 }
@@ -336,7 +372,6 @@ type HybridInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
-	*sourceOfflinable
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -345,9 +380,8 @@ func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
-		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     labeler,
-		sourceOfflinable: newSourceOfflinable(g, labeler),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: labeler,
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
