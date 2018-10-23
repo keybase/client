@@ -192,7 +192,6 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
 		return nil, 0, err
 	}
-	g.Log.CDebugf(ctx, "FetchAccountBundle apiRes: %+v\n", apiRes)
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
 	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncodedB64)
@@ -746,6 +745,32 @@ func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountI
 	}
 	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
 		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostBundleRestricted error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+// MakeAccountAllDevices will fetch the account bundle and flip the mobile-only switch to off
+// (so that any device can get the account secret keys) then send the new account bundle
+// to the server.
+func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	bundle, version, err := FetchAccountBundle(ctx, g, accountID)
+	if err != nil {
+		return err
+	}
+	_ = version
+
+	err = acctbundle.MakeAllDevices(bundle, accountID)
+	if err == acctbundle.ErrNoChangeNecessary {
+		g.Log.CDebugf(ctx, "MakeAccountAllDevices account %s is already in all-device mode", accountID)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountAllDevices PostBundleRestricted error: %s", err)
 		return err
 	}
 

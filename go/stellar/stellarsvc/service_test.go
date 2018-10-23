@@ -823,6 +823,14 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 		t.Fatalf("invalid error type %T", err)
 	}
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+
+	// try to make it accessible on all devices, which shouldn't work
+	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	aerr, ok = err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
@@ -878,11 +886,36 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	secret, err = acctbundle.AccountWithSecret(acctBundle, a1)
 	require.NoError(t, err)
 	require.NotNil(t, secret)
-	require.Equal(t, stellar1.AccountMode_MOBILE, secret.Mode, "account mode should be USER")
+	require.Equal(t, stellar1.AccountMode_MOBILE, secret.Mode, "account mode should be MOBILE")
 	require.Equal(t, a1, secret.AccountID)
 	require.Len(t, secret.Signers, 1)
 	require.Equal(t, s1, secret.Signers[0])
 	require.Equal(t, stellar1.BundleRevision(2), secret.Revision)
+
+	// this should not post a new bundle
+	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(3), acctBundle.Revision)
+
+	// make it accessible on all devices
+	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(4), acctBundle.Revision)
+	secret, err = acctbundle.AccountWithSecret(acctBundle, a1)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, stellar1.AccountMode_USER, secret.Mode, "account mode should be USER")
+	require.Equal(t, a1, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, s1, secret.Signers[0])
+	require.Equal(t, stellar1.BundleRevision(3), secret.Revision)
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {

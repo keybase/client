@@ -261,21 +261,10 @@ func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.Ac
 // actually necessary.
 var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 
-// XXX FIX
 // MakeMobileOnly transforms a stellar1.AccountBundle into a mobile-only
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
 func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	/*
-		if a.Mode == stellar1.AccountMode_MOBILE {
-			return ErrNoChangeNecessary
-		}
-
-		a.Mode = stellar1.AccountMode_MOBILE
-		a.Revision++
-		a.Prev = a.OwnHash
-		a.OwnHash = nil
-	*/
 	ws, err := AccountWithSecret(a, accountID)
 	if err != nil {
 		return err
@@ -293,6 +282,35 @@ func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) 
 				return ErrNoChangeNecessary
 			}
 			vis.Mode = stellar1.AccountMode_MOBILE
+			vis.AcctBundleRevision++
+			a.Accounts[i] = vis
+		}
+	}
+
+	return nil
+}
+
+// MakeAllDevices transforms a stellar1.AccountBundle into an all-device
+// bundle.  This advances the revision.  If it's already all-device,
+// this function will return ErrNoChangeNecessary.
+func MakeAllDevices(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
+	ws, err := AccountWithSecret(a, accountID)
+	if err != nil {
+		return err
+	}
+	if ws.Mode == stellar1.AccountMode_USER {
+		return ErrNoChangeNecessary
+	}
+	a.Revision++
+	a.Prev = a.OwnHash
+	a.OwnHash = nil
+
+	for i, vis := range a.Accounts {
+		if vis.AccountID == accountID {
+			if vis.Mode == stellar1.AccountMode_USER {
+				return ErrNoChangeNecessary
+			}
+			vis.Mode = stellar1.AccountMode_USER
 			vis.AcctBundleRevision++
 			a.Accounts[i] = vis
 		}
