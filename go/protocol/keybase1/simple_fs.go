@@ -1212,6 +1212,10 @@ type SimpleFSFolderEditHistoryArg struct {
 type SimpleFSGetUserQuotaUsageArg struct {
 }
 
+type SimpleFSResetArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1307,6 +1311,9 @@ type SimpleFSInterface interface {
 	// user.  It results in an RPC to the server, and any usage includes
 	// local journal usage as well.
 	SimpleFSGetUserQuotaUsage(context.Context) (SimpleFSQuotaUsage, error)
+	// simpleFSReset completely resets the KBFS folder referenced in `path`.
+	// It should only be called after explicit user confirmation.
+	SimpleFSReset(context.Context, Path) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1747,6 +1754,22 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSReset": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSResetArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSReset(ctx, typedArgs[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1970,5 +1993,13 @@ func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path
 // local journal usage as well.
 func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res SimpleFSQuotaUsage, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUserQuotaUsage", []interface{}{SimpleFSGetUserQuotaUsageArg{}}, &res)
+	return
+}
+
+// simpleFSReset completely resets the KBFS folder referenced in `path`.
+// It should only be called after explicit user confirmation.
+func (c SimpleFSClient) SimpleFSReset(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSResetArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReset", []interface{}{__arg}, nil)
 	return
 }

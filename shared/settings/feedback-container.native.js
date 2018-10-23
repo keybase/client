@@ -7,16 +7,14 @@ import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, connect} from '../util/container'
-import {
-  isAndroid,
-  appVersionName,
-  appVersionCode,
-  mobileOsVersion,
-  version,
-  logFileName,
-  pprofDir,
-} from '../constants/platform'
+import {isAndroid, version, logFileName, pprofDir} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
+import {Platform, NativeModules} from 'react-native'
+
+const nativeBridge = NativeModules.KeybaseEngine
+const appVersionName = nativeBridge.appVersionName || ''
+const appVersionCode = nativeBridge.appVersionCode || ''
+const mobileOsVersion = Platform.Version
 
 type State = {
   sentFeedback: boolean,
@@ -67,10 +65,10 @@ class FeedbackContainer extends Component<Props, State> {
 
       maybeDump
         .then(() => {
-          const logPath = logFileName()
+          const logPath = logFileName
           logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
-          const traceDir = pprofDir()
+          const traceDir = pprofDir
           const cpuProfileDir = traceDir
           return logSend(
             JSON.stringify(extra),

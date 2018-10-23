@@ -412,4 +412,10 @@ protocol SimpleFS {
    local journal usage as well.
    */
   SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+
+  /**
+   simpleFSReset completely resets the KBFS folder referenced in `path`.
+   It should only be called after explicit user confirmation.
+   */
+  void simpleFSReset(Path path);
 }
