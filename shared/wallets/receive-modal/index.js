@@ -91,12 +91,12 @@ const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
   <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
     {!!federatedAddress && (
       <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-        <Text type="BodyTinySemibold">Your "federated" Stellar address:</Text>
+        <Text type="BodySmallSemibold">Your "federated" Stellar address:</Text>
         <CopyText buttonType="Wallet" text={federatedAddress} />
       </Box2>
     )}
     <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-      <Text type="BodyTinySemibold">Your public Stellar address:</Text>
+      <Text type="BodySmallSemibold">Your public Stellar address:</Text>
       <CopyText buttonType="Wallet" text={stellarAddress} />
     </Box2>
   </Box2>

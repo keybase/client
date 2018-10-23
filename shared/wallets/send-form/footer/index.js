@@ -29,7 +29,7 @@ const Footer = (props: Props) => (
               This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
             </Kb.Text>
           ) : (
-            <Kb.Text style={styles.worthDescription} type="BodySmallItalic">
+            <Kb.Text style={styles.worthDescription} type="BodySmall">
               Calculating...
             </Kb.Text>
           )}
