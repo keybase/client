@@ -185,13 +185,17 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
-    case ConfigGen.outOfDate:
+    case ConfigGen.updateNow:
+      return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
+    case ConfigGen.updateInfo:
       return state.set(
         'outOfDate',
-        Constants.makeOutOfDate({
-          critical: action.payload.critical,
-          message: action.payload.message,
-        })
+        action.payload.isOutOfDate
+          ? Constants.makeOutOfDate({
+              critical: action.payload.critical,
+              message: action.payload.message,
+            })
+          : null
       )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
@@ -206,7 +210,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
-    case ConfigGen.updateNow:
+    case ConfigGen.checkForUpdate:
       return state
     default:
       /*::
