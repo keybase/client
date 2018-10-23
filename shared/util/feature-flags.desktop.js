@@ -16,7 +16,6 @@ const ff: FeatureFlags = {
   avatarUploadsEnabled: true,
   chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
-  fileWidgetEnabled: false,
   foldersInProfileTab: false,
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
@@ -26,7 +25,6 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
-  fileWidgetEnabled: true,
   walletsEnabled: true,
 }
 

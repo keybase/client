@@ -1,11 +1,12 @@
-• Inbox performance improvements
-• More polish around the app
-• Better feedback on buttons that are waiting for the server to respond
-
-Improved error handling in these flows:
-    • Loading the home page on spotty networks
-    • Various operations on the files tab
-    • Creating / deleting git repositories
-    • Leaving a team
-
-• 64 bit windows build
+New features:
+• See recent file activity in the widget
+• Enabled zooming to change app font size
+• Get notified when devices get added or revoked
+• Better pasting images from clipboard
+• Better looking image attachments
+Fixes:
+• Fix launching on startup on OSX
+• Fix pasting attachments on new conversations
+• Fix missing timestamps
+• Better performance in chat
+• Inbox wouldn't load after sign in/out sometimes

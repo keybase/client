@@ -207,6 +207,11 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	return keybase1.FSFolderEditHistory{}, nil
 }
 
+// SimpleFSReset implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
+	return nil
+}
+
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	keybase1.SimpleFSQuotaUsage, error) {
