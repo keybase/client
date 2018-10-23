@@ -1,183 +1,200 @@
 // @flow
-import React from 'react'
-import {compose, withStateHandlers, lifecycle, withPropsOnChange, withProps} from '../../../../util/container'
-import {
-  Avatar,
-  Box,
-  Box2,
-  ClickableBox,
-  List,
-  ProgressIndicator,
-  Text,
-  ConnectedUsernames,
-  Icon,
-} from '../../../../common-adapters/index'
-import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
-import {isSpecialMention} from '../../../../constants/chat2'
-import type {MentionDatum, HudProps} from '.'
+import * as React from 'react'
+import * as Kb from '../../../../common-adapters/index'
+import * as Styles from '../../../../styles'
+import * as Constants from '../../../../constants/chat2'
+import type {MentionDatum, HudProps, MentionHudProps} from '.'
 
 const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: MentionDatum) => (
-  <ClickableBox
+  <Kb.ClickableBox
     style={{
-      ...globalStyles.flexBoxRow,
-      height: 40,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
-      backgroundColor: selected && !isMobile ? globalColors.blue4 : undefined,
+      backgroundColor: selected && !Styles.isMobile ? Styles.globalColors.blue4 : undefined,
+      height: 40,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     }}
     onClick={onClick}
     onMouseOver={onHover}
   >
-    {!isSpecialMention(username) ? (
-      <Avatar username={username} size={32} />
+    {!Constants.isSpecialMention(username) ? (
+      <Kb.Avatar username={username} size={32} />
     ) : (
-      <Icon
+      <Kb.Icon
         type="iconfont-people"
         style={{
-          padding: globalMargins.xtiny,
+          padding: Styles.globalMargins.xtiny,
         }}
-        color={globalColors.blue}
+        color={Styles.globalColors.blue}
         fontSize={24}
       />
     )}
 
-    <Box style={{width: globalMargins.small}} />
+    <Kb.Box style={{width: Styles.globalMargins.small}} />
 
-    <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-    <Text type="BodySmall" style={{marginLeft: globalMargins.tiny}}>
+    <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+    <Kb.Text type="BodySmall" style={{marginLeft: Styles.globalMargins.tiny}}>
       {fullName}
-    </Text>
-  </ClickableBox>
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
-// $FlowIssue doens't like star now
-const Hud = ({style, data, loading, rowRenderer, selectedIndex}: HudProps<*>) =>
+const Hud = ({style, data, loading, rowRenderer, selectedIndex}: HudProps<any>) =>
   data.length ? (
-    <Box style={collapseStyles([hudStyle, style])}>
+    <Kb.Box style={Styles.collapseStyles([hudStyle, style])}>
       {loading ? (
-        <Box2
+        <Kb.Box2
           direction="horizontal"
           fullWidth={true}
           style={{alignItems: 'center', justifyContent: 'center'}}
         >
-          <ProgressIndicator style={{width: 40, height: 40}} />
-        </Box2>
+          <Kb.ProgressIndicator style={{height: 40, width: 40}} />
+        </Kb.Box2>
       ) : (
-        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+        <Kb.List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
       )}
-    </Box>
+    </Kb.Box>
   ) : null
 
 const hudStyle = {
-  ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.white,
+  ...Styles.globalStyles.flexBoxRow,
+  backgroundColor: Styles.globalColors.white,
 }
 
-const _withProps = ({users, teamType, selectedIndex, filter}) => {
-  const usersList = users.map((u, i) => ({
+type State = {
+  selectedIndex: number,
+}
+
+type Data = {
+  key: string,
+  username: string,
+  fullName: string,
+  selected: boolean,
+}
+
+class MentionHud extends React.Component<MentionHudProps, State> {
+  state = {selectedIndex: 0}
+  _setSelectedIndex = selectedIndex =>
+    this.setState(p => (p.selectedIndex !== selectedIndex ? {selectedIndex} : null))
+  render() {
+    const fullList = makeFullList(this.props)
+    const data = makeData(fullList, this.props.filter, this.state.selectedIndex)
+    return (
+      <MentionHudImpl
+        {...this.props}
+        fullList={fullList}
+        data={data}
+        setSelectedIndex={this._setSelectedIndex}
+        selectedIndex={this.state.selectedIndex}
+      />
+    )
+  }
+}
+
+type ImplProps = MentionHudProps & {data: Array<Data>, fullList: Array<Data>}
+class MentionHudImpl extends React.Component<ImplProps> {
+  componentDidUpdate(prevProps: ImplProps) {
+    if (this.props.data.length === 0) {
+      if (prevProps.selectedIndex === 0) {
+        // We've already done this, so just get out of here so we don't infinite loop
+        return
+      }
+      this.props.setSelectedIndex(0)
+    }
+    if (this.props.data.length && this.props.data.length !== prevProps.data.length) {
+      this.props.setSelectedIndex(Math.min(this.props.selectedIndex, this.props.data.length - 1))
+    }
+
+    if (this.props.selectUpCounter !== prevProps.selectUpCounter) {
+      let next = this.props.selectedIndex - 1
+      if (next < 0) {
+        next = Math.max(this.props.data.length - 1, 0)
+      }
+      this.props.setSelectedIndex(next)
+    } else if (this.props.selectDownCounter !== prevProps.selectDownCounter) {
+      let next = this.props.selectedIndex + 1
+      if (next >= this.props.data.length) {
+        next = 0
+      }
+      this.props.setSelectedIndex(next)
+    }
+
+    if (this.props.pickSelectedUserCounter !== prevProps.pickSelectedUserCounter) {
+      if (this.props.selectedIndex < this.props.data.length) {
+        this.props.onPickUser(this.props.data[this.props.selectedIndex].username)
+      } else {
+        // Just exit
+        this.props.onPickUser(this.props.filter, {notUser: true})
+      }
+    }
+
+    if (this.props.selectedIndex !== prevProps.selectedIndex) {
+      if (this.props.selectedIndex < this.props.data.length) {
+        // Check if the previously selected entry matches the currently selected one
+        // we do this to prevent replace the user's text if the currently selected
+        // moves around in the list
+        const prevUser = prevProps.fullList[prevProps.selectedIndex]
+        const prevUsername = prevUser && prevUser.username
+        const nextUsername = this.props.data[this.props.selectedIndex].username
+        if (prevUsername !== nextUsername) {
+          this.props.onSelectUser(nextUsername)
+        }
+      }
+    }
+  }
+
+  rowRenderer = (index: number, props: Data) => {
+    return (
+      <MentionRowRenderer
+        key={props.key}
+        onClick={() => this.props.onPickUser(props.username)}
+        onHover={() => this.props.setSelectedIndex(index)}
+        {...props}
+      />
+    )
+  }
+
+  render() {
+    return <Hud {...this.props} rowRenderer={this.rowRenderer} />
+  }
+}
+
+const makeFullList = props => {
+  const usersList = props.users.map((u, i) => ({
     fullName: u.fullName,
     key: u.username,
+    selected: false,
     username: u.username,
   }))
 
   const bigList =
-    teamType === 'big'
+    props.teamType === 'big'
       ? [
-          {fullName: 'Everyone in this channel', key: 'channel', username: 'channel'},
-          {fullName: 'Everyone in this channel', key: 'here', username: 'here'},
+          {fullName: 'Everyone in this channel', key: 'channel', selected: false, username: 'channel'},
+          {fullName: 'Everyone in this channel', key: 'here', selected: false, username: 'here'},
         ]
       : []
 
   const smallList =
-    teamType === 'small'
+    props.teamType === 'small'
       ? [
-          {fullName: 'Everyone in this team', key: 'channel', username: 'channel'},
-          {fullName: 'Everyone in this team', key: 'here', username: 'here'},
+          {fullName: 'Everyone in this team', key: 'channel', selected: false, username: 'channel'},
+          {fullName: 'Everyone in this team', key: 'here', selected: false, username: 'here'},
         ]
       : []
 
-  const fullList = [...usersList, ...bigList, ...smallList]
-
-  return {
-    data: fullList
-      .filter(u => {
-        return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
-      })
-      .map((u, i) => ({...u, selected: i === selectedIndex})),
-    fullList,
-  }
+  return [...usersList, ...bigList, ...smallList]
 }
 
-const MentionHud = compose(
-  withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
-  withProps(_withProps),
-  lifecycle({
-    componentDidUpdate(prevProps, prevState) {
-      if (this.props.data.length === 0) {
-        if (prevProps.selectedIndex === 0) {
-          // We've already done this, so just get out of here so we don't infinite loop
-          return
-        }
-        this.props.setSelectedIndex(0)
-      }
-      if (this.props.data.length && this.props.data.length !== prevProps.data.length) {
-        this.props.setSelectedIndex(Math.min(this.props.selectedIndex, this.props.data.length - 1))
-      }
-
-      if (this.props.selectUpCounter !== prevProps.selectUpCounter) {
-        let next = this.props.selectedIndex - 1
-        if (next < 0) {
-          next = Math.max(this.props.data.length - 1, 0)
-        }
-        this.props.setSelectedIndex(next)
-      } else if (this.props.selectDownCounter !== prevProps.selectDownCounter) {
-        let next = this.props.selectedIndex + 1
-        if (next >= this.props.data.length) {
-          next = 0
-        }
-        this.props.setSelectedIndex(next)
-      }
-
-      if (this.props.pickSelectedUserCounter !== prevProps.pickSelectedUserCounter) {
-        if (this.props.selectedIndex < this.props.data.length) {
-          this.props.onPickUser(this.props.data[this.props.selectedIndex].username)
-        } else {
-          // Just exit
-          this.props.onPickUser(this.props.filter, {notUser: true})
-        }
-      }
-
-      if (this.props.selectedIndex !== prevProps.selectedIndex) {
-        if (this.props.selectedIndex < this.props.data.length) {
-          // Check if the previously selected entry matches the currently selected one
-          // we do this to prevent replace the user's text if the currently selected
-          // moves around in the list
-          const prevUser = prevProps.fullList[prevProps.selectedIndex]
-          const prevUsername = prevUser && prevUser.username
-          const nextUsername = this.props.data[this.props.selectedIndex].username
-          if (prevUsername !== nextUsername) {
-            this.props.onSelectUser(nextUsername)
-          }
-        }
-      }
-    },
-  }),
-  withPropsOnChange(['onPickUser'], ownerProps => ({
-    rowRenderer: (index, props) => {
-      return (
-        <MentionRowRenderer
-          key={props.key}
-          onClick={() => ownerProps.onPickUser(props.username)}
-          onHover={() => ownerProps.setSelectedIndex(index)}
-          {...props}
-        />
-      )
-    },
-  }))
-)(Hud)
+const makeData = (fullList, filter, selectedIndex) =>
+  fullList
+    .filter(u => {
+      return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
+    })
+    .map((u, i) => ({...u, selected: i === selectedIndex}))
 
 export {MentionRowRenderer, MentionHud}
 export default Hud

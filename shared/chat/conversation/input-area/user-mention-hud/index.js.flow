@@ -48,7 +48,7 @@ export type HudProps<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<any>,
   data: Array<D>,
   loading: boolean,
-  style: Object,
+  style?: ?Object,
   selectedIndex: number,
 }
 
