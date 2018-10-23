@@ -17,7 +17,7 @@ const fileDoesNotExist = err => {
 }
 
 const setupFileWritable = () => {
-  const logFile = logFileName()
+  const logFile = logFileName
   const logLimit = 5e6
 
   if (!logFile) {

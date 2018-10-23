@@ -84,7 +84,7 @@ class AggregateLoggerImpl implements AggregateLogger {
 
     const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
     if (!__STORYBOOK__) {
-      deleteFileIfOlderThanMs(olderThanMs, logFileName())
+      deleteFileIfOlderThanMs(olderThanMs, logFileName)
     }
   }
 

@@ -12,6 +12,7 @@ import Rekey from './rekey/container'
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
@@ -38,7 +39,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
         return isMobile ? null : <NoConversation />
       case 'normal':
-        return <Normal conversationIDKey={this.props.conversationIDKey} />
+        return <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
       case 'youAreReset':
         return <YouAreReset />
       case 'rekey':
@@ -56,10 +57,21 @@ class Conversation extends React.PureComponent<SwitchProps> {
 const mapStateToProps = state => {
   let conversationIDKey = Constants.getSelectedConversation(state)
   let _meta = Constants.getMeta(state, conversationIDKey)
+  let isPending = false
+
+  // If its a pending thats been resolved, treat it as the resolved one and pass down pending as a boolean
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    isPending = true
+    const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
+    if (Constants.isValidConversationIDKey(resolvedPendingConversationIDKey)) {
+      conversationIDKey = resolvedPendingConversationIDKey
+    }
+  }
 
   return {
     _meta,
     conversationIDKey,
+    isPending,
   }
 }
 
@@ -73,7 +85,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       type = 'normal'
       break
     default:
-      if (stateProps._meta.membershipType === 'youAreReset') {
+      if (stateProps.isPending) {
+        type = 'normal'
+      } else if (stateProps._meta.membershipType === 'youAreReset') {
         type = 'youAreReset'
       } else if (stateProps._meta.rekeyers.size > 0) {
         type = 'rekey'
@@ -86,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   return {
     conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    isPending: stateProps.isPending,
     type,
   }
 }

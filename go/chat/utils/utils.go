@@ -832,18 +832,20 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
-// Sender prefix for msg snippets. Will show if a conversation has > 2 members
-// or is of type TEAM
-func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
-	var showPrefix bool
+func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal) (showPrefix bool) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		showPrefix = true
 	default:
 		showPrefix = len(conv.Names()) > 2
 	}
+	return showPrefix
+}
 
-	if showPrefix {
+// Sender prefix for msg snippets. Will show if a conversation has > 2 members
+// or is of type TEAM
+func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
+	if showSenderPrefix(mvalid, conv) {
 		sender := mvalid.SenderUsername
 		if sender == currentUsername {
 			senderPrefix = "You: "
@@ -922,7 +924,11 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 			if err != nil {
 				snippet = ""
 			} else {
-				snippet = emoji.Sprintf("reacted to your message with %v", reaction)
+				var prefix string
+				if showSenderPrefix(mvalid, *conv) {
+					prefix = mvalid.SenderUsername + " "
+				}
+				snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
 			}
 		default:
 			snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)

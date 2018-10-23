@@ -371,7 +371,7 @@ const _traceSaga = (action: SettingsGen.TracePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
     Saga.call(RPCTypes.pprofLogTraceRpcPromise, {
-      logDirForMobile: pprofDir(),
+      logDirForMobile: pprofDir,
       traceDurationSeconds: durationSeconds,
     }),
     Saga.put(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey})),
@@ -384,7 +384,7 @@ const _processorProfileSaga = (action: SettingsGen.ProcessorProfilePayload) => {
   const durationSeconds = action.payload.durationSeconds
   return Saga.sequentially([
     Saga.call(RPCTypes.pprofLogProcessorProfileRpcPromise, {
-      logDirForMobile: pprofDir(),
+      logDirForMobile: pprofDir,
       profileDurationSeconds: durationSeconds,
     }),
     Saga.put(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey})),

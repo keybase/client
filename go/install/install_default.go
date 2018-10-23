@@ -27,3 +27,8 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 func StartUpdateIfNeeded(context.Context, logger.Logger) error {
 	return nil
 }
+
+// GetNeedUpdate always returns false, nil on this platform.
+func GetNeedUpdate() (bool, error) {
+	return false, nil
+}
