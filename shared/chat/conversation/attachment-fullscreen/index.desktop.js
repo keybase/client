@@ -25,9 +25,18 @@ import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
+  _mounted = false
   state = {loaded: ''}
   _setLoaded = (path: string) => this.setState({loaded: path})
   _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
+
+  componentDidMount() {
+    this._mounted = true
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
 
   render() {
     return (
@@ -72,7 +81,11 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                 <OrientedImage
                   src={this.props.path}
                   style={this.props.isZoomed ? styleImageZoom : styleImageFit}
-                  onLoad={() => this._setLoaded(this.props.path)}
+                  onLoad={() => {
+                    if (this._mounted) {
+                      this._setLoaded(this.props.path)
+                    }
+                  }}
                 />
               ) : (
                 <video
