@@ -7,7 +7,7 @@ import type {
   LogLineWithLevel,
   LogLineWithLevelISOTimestamp,
 } from './types'
-import {isMobile, logFileName} from '../constants/platform'
+import {isMobile} from '../constants/platform'
 import {toISOTimestamp} from './types'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
@@ -15,8 +15,7 @@ import RingLogger from './ring-logger'
 import NativeLogger from './native-logger'
 import NullLogger from './null-logger'
 import DumpPeriodicallyLogger from './dump-periodically-logger'
-import {writeLogLinesToFile} from '../util/forward-logs'
-import {stat, unlink} from '../util/file'
+import {writeLogLinesToFile, deleteOldLog} from '../util/forward-logs'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concatenating all the arrays and calling .sort() but could be faster
@@ -26,22 +25,7 @@ function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: 
   return [].concat(...arrays).sort(sortFn)
 }
 
-function deleteFileIfOlderThanMs(olderThanMs: number, filepath: string): Promise<void> {
-  return stat(filepath)
-    .then(({lastModified}) => {
-      if (Date.now() - lastModified > olderThanMs) {
-        return unlink(filepath)
-      }
-    })
-    .catch(() => {})
-}
-
 class AggregateLoggerImpl implements AggregateLogger {
-  _error: Logger
-  _warn: Logger
-  _info: Logger
-  _action: Logger
-  _debug: Logger
   error: LogFn
   warn: LogFn
   info: LogFn
@@ -49,42 +33,24 @@ class AggregateLoggerImpl implements AggregateLogger {
   debug: LogFn
   _allLoggers: {[key: LogLevel]: Logger}
 
-  constructor({
-    error,
-    warn,
-    info,
-    action,
-    debug,
-  }: {
-    error: Logger,
-    warn: Logger,
-    info: Logger,
-    action: Logger,
-    debug: Logger,
-  }) {
-    this._error = error
-    this._warn = warn
-    this._info = info
-    this._action = action
-    this._debug = debug
-
+  constructor(o: {error: Logger, warn: Logger, info: Logger, action: Logger, debug: Logger}) {
     this._allLoggers = {
-      Error: error,
-      Warn: warn,
-      Info: info,
-      Action: action,
-      Debug: debug,
+      Error: o.error,
+      Warn: o.warn,
+      Info: o.info,
+      Action: o.action,
+      Debug: o.debug,
     }
 
-    this.error = error.log
-    this.warn = warn.log
-    this.info = info.log
-    this.action = action.log
-    this.debug = debug.log
+    this.error = o.error.log
+    this.warn = o.warn.log
+    this.info = o.info.log
+    this.action = o.action.log
+    this.debug = o.debug.log
 
     const olderThanMs = 1e3 * 60 * 60 * 24 // 24 hours
     if (!__STORYBOOK__) {
-      deleteFileIfOlderThanMs(olderThanMs, logFileName())
+      deleteOldLog(olderThanMs)
     }
   }
 

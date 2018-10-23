@@ -4,11 +4,16 @@ declare var __STORYSHOT__: boolean
 declare var __VERSION__: string
 declare var __DEV__: boolean
 declare var keybase: {
+  _debugFs: any,
+  writeLogLinesToFile: (lines: Array<any>) => Promise<void>,
+  deleteOldLog: number => void,
   path: {
+    basename: (string, ?string) => string,
     dirname: string => string,
+    extname: string => string,
     isAbsolute: string => boolean,
     join: (...Array<string>) => string,
-    resolve: string => string,
+    resolve: (...Array<string>) => string,
     sep: string,
   },
   process: {

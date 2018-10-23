@@ -5,12 +5,13 @@ import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'
 import {serialPromises} from './promise'
 import {logFileName, logFileDir} from '../constants/platform.native'
+import {stat, unlink} from '../util/file'
 
-const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
-const localWarn = window.console.warn.bind(window.console)
-const localError = window.console.error.bind(window.console)
+export const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
+export const localWarn = window.console.warn.bind(window.console)
+export const localError = window.console.error.bind(window.console)
 
-const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
+export const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
   lines: Array<LogLineWithLevelISOTimestamp>
 ) =>
   new Promise((resolve, reject) => {
@@ -45,4 +46,14 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
       })
   })
 
-export {localLog, localWarn, localError, writeLogLinesToFile}
+function deleteFileIfOlderThanMs(olderThanMs: number): Promise<void> {
+  return stat(logFileName())
+    .then(({lastModified}) => {
+      if (Date.now() - lastModified > olderThanMs) {
+        return unlink(logFileName())
+      }
+    })
+    .catch(() => {})
+}
+
+export const deleteOldLog = (olderThanMs: number) => deleteFileIfOlderThanMs(olderThanMs)

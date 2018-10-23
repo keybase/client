@@ -47,11 +47,10 @@ if (__DEV__) {
 }
 
 if (!__STORYBOOK__) {
-  const fs = require('fs')
   // Load overrides from server config
-  if (fs.existsSync(serverConfigFileName)) {
+  if (keybase._debugFs.existsSync(serverConfigFileName)) {
     try {
-      const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
+      const serverConfig = JSON.parse(keybase._debugFs.readFileSync(serverConfigFileName, 'utf8'))
       if (serverConfig.lastLoggedInUser) {
         const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
         if (userConfig.walletsEnabled) {
@@ -67,9 +66,9 @@ if (!__STORYBOOK__) {
   }
 
   // Load overrides from a local json file
-  if (fs.existsSync(jsonDebugFileName)) {
+  if (keybase._debugFs.existsSync(jsonDebugFileName)) {
     try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
+      const pathJson = JSON.parse(keybase._debugFs.readFileSync(jsonDebugFileName, 'utf8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
       if (pathJson.hasOwnProperty('PERF')) {

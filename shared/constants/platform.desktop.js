@@ -76,7 +76,7 @@ function linuxSocketDialPath(): string {
     )
   }
 
-  return keybase.pathJoin(cacheDir, `keybase${suffix}`, socketName)
+  return keybase.path.join(cacheDir, `keybase${suffix}`, socketName)
 }
 
 const darwinCacheRoot = `${homeEnv}/Library/Caches/${envedPathOSX[runMode]}/`
