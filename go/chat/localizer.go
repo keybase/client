@@ -163,10 +163,11 @@ func (b *nonBlockingLocalizer) Name() string {
 type localizerPipelineJob struct {
 	sync.Mutex
 
-	ctx     context.Context
-	retCh   chan types.AsyncInboxResult
-	uid     gregor1.UID
-	pending []chat1.Conversation
+	ctx      context.Context
+	cancelFn context.CancelFunc
+	retCh    chan types.AsyncInboxResult
+	uid      gregor1.UID
+	pending  []chat1.Conversation
 }
 
 func (l *localizerPipelineJob) closeIfDone() {
@@ -175,6 +176,14 @@ func (l *localizerPipelineJob) closeIfDone() {
 	if len(l.pending) == 0 {
 		close(l.retCh)
 	}
+}
+
+func (l *localizerPipelineJob) getPending() (res []chat1.Conversation) {
+	l.Lock()
+	defer l.Unlock()
+	res = make([]chat1.Conversation, len(l.pending))
+	copy(res, l.pending)
+	return res
 }
 
 func (l *localizerPipelineJob) complete(index int) {
@@ -201,13 +210,14 @@ type localizerPipeline struct {
 	offline    bool
 	superXform supersedesTransform
 
-	started   bool
-	stopCh    chan struct{}
-	suspendCh chan chan struct{}
-	resumeCh  chan struct{}
+	started      bool
+	suspendCount int
+	cancelCh     chan chan bool
+	stopCh       chan struct{}
+	suspendCh    chan chan struct{}
+	resumeCh     chan struct{}
 
-	currentJob *localizerPipelineJob
-	jobQueue   chan *localizerPipelineJob
+	jobQueue chan *localizerPipelineJob
 }
 
 func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *localizerPipeline {
@@ -215,6 +225,9 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
 		superXform:   superXform,
+		stopCh:       make(chan struct{}),
+		suspendCh:    make(chan chan struct{}),
+		cancelCh:     make(chan chan bool),
 	}
 }
 
@@ -233,6 +246,7 @@ func (s *localizerPipeline) Disconnected() {
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
 	retCh chan types.AsyncInboxResult) {
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
+	job.ctx, job.cancelFn = context.WithCancel(ctx)
 	s.jobQueue <- job
 }
 
@@ -268,14 +282,54 @@ func (s *localizerPipeline) stop(ctx context.Context) chan struct{} {
 }
 
 func (s *localizerPipeline) suspend(ctx context.Context) bool {
-	return false
+	defer s.Trace(ctx, func() error { return nil }, "suspend")()
+	s.Lock()
+	defer s.Unlock()
+	if !s.started {
+		return false
+	}
+	if s.suspendCount == 0 {
+		s.Debug(ctx, "suspend: sending on suspendCh")
+		s.resumeCh = make(chan struct{})
+		select {
+		case s.suspendCh <- s.resumeCh:
+		default:
+			s.Debug(ctx, "suspend: failed to suspend loop")
+		}
+	}
+	s.suspendCount++
+	cancelResCh := make(chan bool, 1)
+	s.cancelCh <- cancelResCh
+	return <-cancelResCh
 }
 
 func (s *localizerPipeline) resume(ctx context.Context) bool {
+	defer s.Trace(ctx, func() error { return nil }, "resume")()
+	s.Lock()
+	defer s.Unlock()
+	if s.suspendCount > 0 {
+		s.suspendCount--
+		if s.suspendCount == 0 && s.resumeCh != nil {
+			s.Debug(ctx, "resume: closing resumeCh")
+			close(s.resumeCh)
+			return true
+		}
+	}
+	return false
+}
+
+func (s *localizerPipeline) waitForResume(ch chan struct{}, stopCh chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	case <-stopCh:
+		return false
+	}
 	return false
 }
 
 func (s *localizerPipeline) localizeLoop() {
+	var currentJob *localizerPipelineJob
 	ctx := context.Background()
 	s.Debug(ctx, "localizeLoop: starting up")
 	s.Lock()
@@ -284,11 +338,30 @@ func (s *localizerPipeline) localizeLoop() {
 	for {
 		select {
 		case job := <-s.jobQueue:
-			s.Lock()
-			s.currentJob = job
-			s.Unlock()
-			s.localizeConversationsPipeline(job)
+			s.Debug(ctx, "localizeLoop: pulling job")
+			currentJob = job
+			if err := s.localizeConversationsPipeline(job); err != nil && err == context.Canceled {
+				// just put this right back if we canceled it
+				job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(job.ctx, s.G()))
+				s.jobQueue <- job
+			}
 			job.closeIfDone()
+			currentJob = nil
+		case ch := <-s.suspendCh:
+			s.Debug(ctx, "localizeLoop: suspended")
+			select {
+			case <-ch:
+			case <-stopCh:
+				return
+			}
+		case ch := <-s.cancelCh:
+			s.Debug(ctx, "localizeLoop: canceling current job")
+			if currentJob != nil && currentJob.cancelFn != nil {
+				currentJob.cancelFn()
+				ch <- true
+			} else {
+				ch <- false
+			}
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
 			return
@@ -296,7 +369,7 @@ func (s *localizerPipeline) localizeLoop() {
 	}
 }
 
-func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizerPipelineJob) {
+func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizerPipelineJob) error {
 	ctx := localizeJob.ctx
 	uid := localizeJob.uid
 
@@ -309,9 +382,13 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
 	retCh := make(chan int)
+	pending := localizeJob.getPending()
+	if len(pending) == 0 {
+		return nil
+	}
 	eg.Go(func() error {
 		defer close(convCh)
-		for i, conv := range localizeJob.pending {
+		for i, conv := range pending {
 			select {
 			case convCh <- job{conv: conv, index: i}:
 			case <-ctx.Done():
@@ -350,7 +427,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 	for index := range retCh {
 		localizeJob.complete(index)
 	}
-	eg.Wait()
+	return eg.Wait()
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
