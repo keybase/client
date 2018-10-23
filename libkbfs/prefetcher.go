@@ -21,7 +21,6 @@ const (
 	fileIndirectBlockPrefetchPriority int           = -100
 	dirEntryPrefetchPriority          int           = -200
 	updatePointerPrefetchPriority     int           = lowestTriggerPrefetchPriority
-	defaultPrefetchPriority           int           = -1024
 	prefetchTimeout                   time.Duration = 24 * time.Hour
 	maxNumPrefetches                  int           = 10000
 )
@@ -511,8 +510,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					c := make(chan struct{})
 					close(c)
 					req.sendCh <- c
+				} else {
+					req.sendCh <- pre.waitCh
 				}
-				req.sendCh <- pre.waitCh
 				continue
 			}
 
