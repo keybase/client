@@ -534,16 +534,7 @@ func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret Asserti
 	return ParseAssertionURLKeyValue(ctx, key, val, strict)
 }
 
-func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
-
-	if len(key) == 0 {
-		if strict {
-			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
-			return nil, err
-		}
-		key = "keybase"
-	}
-
+func makeAssertionURLFromKeyAndVal(key string, val string) (ret AssertionURL) {
 	base := AssertionURLBase{key, val}
 	switch key {
 	case "keybase":
@@ -569,6 +560,19 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 	default:
 		ret = AssertionSocial{base}
 	}
+	return ret
+}
+
+func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
+	if len(key) == 0 {
+		if strict {
+			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
+			return nil, err
+		}
+		key = "keybase"
+	}
+
+	ret = makeAssertionURLFromKeyAndVal(key, val)
 	return ret.CheckAndNormalize(ctx)
 }
 

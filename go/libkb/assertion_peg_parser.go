@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 
 	peg "github.com/yhirose/go-peg"
 )
@@ -70,7 +71,6 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	}
 
 	g := parser.Grammar
-
 	g["EXPR"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
 		if len(v.Vs) != 3 {
 			return nil, fmt.Errorf("Unexpected parsing action at EXPR, with %d tokens", len(v.Vs))
@@ -89,7 +89,7 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 			ret.simplify()
 			return ret, nil
 		}
-		return nil, fmt.Errorf("Cannot parse expression %+v", v)
+		return nil, fmt.Errorf("don't know how to parse %+v", v)
 	}
 
 	g["URL"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
@@ -97,13 +97,15 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	}
 
 	g["AT_URL"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
-		return ParseAssertionURLKeyValue(ctx, v.ToStr(1), v.ToStr(0), false)
+		key := strings.ToLower(v.ToStr(1))
+		return makeAssertionURLFromKeyAndVal(key, v.ToStr(0)), nil
 	}
 	g["COL_URL"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
-		return ParseAssertionURLKeyValue(ctx, v.ToStr(0), v.ToStr(1), false)
+		key := strings.ToLower(v.ToStr(0))
+		return makeAssertionURLFromKeyAndVal(key, v.ToStr(1)), nil
 	}
 	g["NAME_URL"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) {
-		return ParseAssertionURLKeyValue(ctx, "keybase", v.ToStr(0), false)
+		return makeAssertionURLFromKeyAndVal("keybase", v.ToStr(0)), nil
 	}
 
 	g["AND"].Action = func(v *peg.Values, d peg.Any) (peg.Any, error) { return binOp{token: v.Token(), isAnd: true}, nil }
@@ -118,6 +120,31 @@ func initPegParser(ctx AssertionContext) (*peg.Parser, error) {
 	return parser, nil
 }
 
+func normalizeExpressionTree(ctx AssertionContext, expr AssertionExpression) (ret AssertionExpression, err error) {
+	switch e := expr.(type) {
+	case AssertionOr:
+		for i, v := range e.terms {
+			e.terms[i], err = normalizeExpressionTree(ctx, v)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return e, nil
+	case AssertionAnd:
+		for i, v := range e.factors {
+			e.factors[i], err = normalizeExpressionTree(ctx, v)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return e, nil
+	case AssertionURL:
+		return e.CheckAndNormalize(ctx)
+	default:
+		return nil, fmt.Errorf("don't know how to normalize %T", e)
+	}
+}
+
 func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
 	parser, err := initPegParser(ctx)
 	if err != nil {
@@ -127,7 +154,8 @@ func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error)
 	if err != nil {
 		return nil, err
 	}
-	return ret.(AssertionExpression), nil
+	expr := ret.(AssertionExpression)
+	return normalizeExpressionTree(ctx, expr)
 }
 
 func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {

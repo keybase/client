@@ -16,7 +16,7 @@ func TestNormalization(t *testing.T) {
 	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid,josh@gubble.social"
 	expr, err := AssertionParse(tc.G, inp)
 	require.NoError(t, err)
-	require.Equal(t, expr.String(), outp)
+	require.Equal(t, outp, expr.String())
 }
 
 type Pair struct {
