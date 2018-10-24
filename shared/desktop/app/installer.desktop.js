@@ -1,37 +1,37 @@
 // @flow
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import fs from 'fs'
+import path from 'path'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
-import {isLinux, isWindows} from '../../constants/platform'
+import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
-import UserData from './user-data.desktop'
-
 import type {InstallResult} from '../../constants/types/rpc-gen'
 
-// Copied from old constants/favorite.js
-//
-// See Installer.m: KBExitFuseKextError
-const ExitCodeFuseKextError = 4
-// See Installer.m: KBExitFuseKextPermissionError
-const ExitCodeFuseKextPermissionError = 5
-// See Installer.m: KBExitAuthCanceledError
-const ExitCodeAuthCanceledError = 6
+const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
+let state = {promptedForCLI: false}
 
-type State = {
-  promptedForCLI: boolean,
-}
-class InstallerData extends UserData<State> {}
-// prevent error spewage on windows by not instantiating
-// InstallerData. Flow seems to require this fake stub.
-const installerState = isWindows
-  ? {
-      save: () => {},
-      state: {
-        promptedForCLI: false,
-      },
+const load = () => {
+  try {
+    const data = fs.readFileSync(file, 'utf8')
+    state = JSON.parse(data)
+  } catch (err) {
+    if (err && err.code === 'ENOENT') {
+      console.log('No installer.json file')
+    } else {
+      console.warn('Error loading state:', err)
     }
-  : new InstallerData('installer.json', {promptedForCLI: false})
+  }
+}
+
+const save = () => {
+  try {
+    fs.writeFileSync(file, JSON.stringify(state))
+  } catch (err) {
+    console.warn('Error saving state:', err)
+  }
+}
 
 type CheckErrorsResult = {
   errors: Array<string>,
@@ -40,76 +40,15 @@ type CheckErrorsResult = {
   hasKBNMError: boolean,
 }
 
-// Install.
-//
-// To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
-// to a place where keybase bin is bundled, for example:
-//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
-//
-// Reminder: hot-server doesn't reload code in here (/desktop)
-export default (callback: (err: any) => void): void => {
-  logger.info('Installer check starting now')
-  if (isWindows || isLinux) {
-    logger.info('Skipping installer on this platform')
-    callback(null)
-    return
-  }
-  const keybaseBin = keybaseBinPath()
-  if (!keybaseBin) {
-    callback(new Error('No keybase bin path'))
-    return
-  }
-  let timeout = 30
-  // If the app was opened at login, there might be contention for lots
-  // of resources, so let's bump the install timeout to something large.
-  if (SafeElectron.getApp().getLoginItemSettings().wasOpenedAtLogin) {
-    timeout = 90
-  }
-  const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
-
-  exec(keybaseBin, args, 'darwin', 'prod', true, (err, attempted, stdout, stderr) => {
-    let errorsResult: CheckErrorsResult = {
-      errors: [],
-      hasCLIError: false,
-      hasFUSEError: false,
-      hasKBNMError: false,
-    }
-    if (err) {
-      errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
-    } else if (stdout !== '') {
-      try {
-        const result = JSON.parse(stdout)
-        if (result) {
-          errorsResult = checkErrors(result)
-        } else {
-          errorsResult.errors = [`There was an error trying to run the install. No output.`]
-        }
-      } catch (err) {
-        errorsResult.errors = [
-          `There was an error trying to run the install. We were unable to parse the output of keybase install-auto.`,
-        ]
-      }
-    }
-
-    if (errorsResult.errors.length > 0) {
-      logger.info(errorsResult.errors.join('\n'))
-      logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
-      showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
-      return
-    }
-
-    // If we had an error install CLI, let's prompt and try to do it via
-    // privileged install.
-    if (errorsResult.hasCLIError && !installerState.state.promptedForCLI) {
-      promptForInstallCLIPrivileged(keybaseBin, callback)
-      return
-    }
-
-    callback(null)
-  })
-}
-
 function checkErrors(result: InstallResult): CheckErrorsResult {
+  // Copied from old constants/favorite.js
+  // See Installer.m: KBExitFuseKextError
+  const ExitCodeFuseKextError = 4
+  // See Installer.m: KBExitFuseKextPermissionError
+  const ExitCodeFuseKextPermissionError = 5
+  // See Installer.m: KBExitAuthCanceledError
+  const ExitCodeAuthCanceledError = 6
+
   let errors = []
   let hasCLIError = false
   let hasFUSEError = false
@@ -152,32 +91,100 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
   return {errors, hasCLIError, hasFUSEError, hasKBNMError}
 }
 
-function showError(errors: Array<string>, showOkay: boolean, callback: (err: ?Error) => void) {
-  const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
-  SafeElectron.getDialog().showMessageBox(
-    null,
-    {
-      buttons: showOkay ? ['Okay'] : ['Ignore', 'Quit'],
-      detail,
-      message: 'Keybase Install Error',
-    },
-    resp => {
-      if (resp === 1) {
-        quit()
-      } else {
-        callback(null)
+// To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
+// to a place where keybase bin is bundled, for example:
+//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
+//
+// Reminder: hot-server doesn't reload code in here (/desktop)
+const install = isDarwin
+  ? (callback: (err: any) => void): void => {
+      load()
+      logger.info('Installer check starting now')
+      const keybaseBin = keybaseBinPath()
+      if (!keybaseBin) {
+        callback(new Error('No keybase bin path'))
+        return
       }
+      let timeout = 30
+      // If the app was opened at login, there might be contention for lots
+      // of resources, so let's bump the install timeout to something large.
+      if (SafeElectron.getApp().getLoginItemSettings().wasOpenedAtLogin) {
+        timeout = 90
+      }
+      exec(
+        keybaseBin,
+        ['--debug', 'install-auto', '--format=json', `--timeout=${timeout}s`],
+        'darwin',
+        'prod',
+        true,
+        (err, attempted, stdout, stderr) => {
+          let errorsResult: CheckErrorsResult = {
+            errors: [],
+            hasCLIError: false,
+            hasFUSEError: false,
+            hasKBNMError: false,
+          }
+          if (err) {
+            errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
+          } else if (stdout !== '') {
+            try {
+              const result = JSON.parse(stdout)
+              if (result) {
+                errorsResult = checkErrors(result)
+              } else {
+                errorsResult.errors = [`There was an error trying to run the install. No output.`]
+              }
+            } catch (err) {
+              errorsResult.errors = [
+                `There was an error trying to run the install. We were unable to parse the output of keybase install-auto.`,
+              ]
+            }
+          }
+
+          if (errorsResult.errors.length > 0) {
+            logger.info(errorsResult.errors.join('\n'))
+            logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
+            const showOkay = errorsResult.hasFUSEError || errorsResult.hasKBNMError
+            const detail =
+              errorsResult.errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
+            SafeElectron.getDialog().showMessageBox(
+              null,
+              {
+                buttons: showOkay ? ['Okay'] : ['Ignore', 'Quit'],
+                detail,
+                message: 'Keybase Install Error',
+              },
+              resp => {
+                if (resp === 1) {
+                  quit()
+                } else {
+                  callback(null)
+                }
+              }
+            )
+            return
+          }
+
+          // If we had an error install CLI, let's prompt and try to do it via
+          // privileged install.
+          if (errorsResult.hasCLIError && !state.promptedForCLI) {
+            state.promptedForCLI = true
+            save()
+            exec(
+              keybaseBin,
+              ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
+              'darwin',
+              'prod',
+              true,
+              callback
+            )
+            return
+          }
+
+          callback(null)
+        }
+      )
     }
-  )
-}
+  : callback => callback(null) // nothing on other platforms
 
-function promptForInstallCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {
-  installerState.state.promptedForCLI = true
-  installerState.save()
-  installCLIPrivileged(keybaseBin, callback)
-}
-
-function installCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {
-  const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
-  exec(keybaseBin, args, 'darwin', 'prod', true, callback)
-}
+export default install

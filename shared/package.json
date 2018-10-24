@@ -138,7 +138,6 @@
     "glamorous-native": "1.4.0",
     "iced-runtime": "1.0.3",
     "immutable": "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71",
-    "jsonfile": "4.0.0",
     "lodash-es": "4.17.11",
     "memoize-one": "4.0.2",
     "menubar": "5.2.3",
