@@ -429,10 +429,6 @@
       "name": "AccountBundleSecretV1",
       "fields": [
         {
-          "type": "Hash",
-          "name": "visibleHash"
-        },
-        {
           "type": "AccountID",
           "name": "accountID"
         },

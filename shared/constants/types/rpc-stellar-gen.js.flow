@@ -234,7 +234,7 @@ export const remotePaymentSummaryType = {
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, issuerVerifiedDomain: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
 export type AccountBundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accountID: AccountID, signers?: ?Array<SecretKey>}>
 export type AccountBundleSecretUnsupported = $ReadOnly<{}>
-export type AccountBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accountID: AccountID, signers?: ?Array<SecretKey>}>
+export type AccountBundleSecretV1 = $ReadOnly<{accountID: AccountID, signers?: ?Array<SecretKey>}>
 export type AccountBundleSecretVersioned = {version: 1, v1: ?AccountBundleSecretV1} | {version: 2, v2: ?AccountBundleSecretUnsupported} | {version: 3, v3: ?AccountBundleSecretUnsupported} | {version: 4, v4: ?AccountBundleSecretUnsupported} | {version: 5, v5: ?AccountBundleSecretUnsupported} | {version: 6, v6: ?AccountBundleSecretUnsupported} | {version: 7, v7: ?AccountBundleSecretUnsupported} | {version: 8, v8: ?AccountBundleSecretUnsupported} | {version: 9, v9: ?AccountBundleSecretUnsupported} | {version: 10, v10: ?AccountBundleSecretUnsupported}
 export type AccountBundleVersion =
   | 1 // V1_1

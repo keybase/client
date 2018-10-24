@@ -160,7 +160,6 @@ protocol bundle {
   }
 
   record AccountBundleSecretV1 {
-    Hash visibleHash; // SHA256 of msgpack(BundleVisibleEntryV2)
     AccountID accountID;
     array<SecretKey> signers;
   }

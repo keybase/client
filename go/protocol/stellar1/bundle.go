@@ -986,15 +986,13 @@ func (o AccountBundleSecretVersioned) DeepCopy() AccountBundleSecretVersioned {
 }
 
 type AccountBundleSecretV1 struct {
-	VisibleHash Hash        `codec:"visibleHash" json:"visibleHash"`
-	AccountID   AccountID   `codec:"accountID" json:"accountID"`
-	Signers     []SecretKey `codec:"signers" json:"signers"`
+	AccountID AccountID   `codec:"accountID" json:"accountID"`
+	Signers   []SecretKey `codec:"signers" json:"signers"`
 }
 
 func (o AccountBundleSecretV1) DeepCopy() AccountBundleSecretV1 {
 	return AccountBundleSecretV1{
-		VisibleHash: o.VisibleHash.DeepCopy(),
-		AccountID:   o.AccountID.DeepCopy(),
+		AccountID: o.AccountID.DeepCopy(),
 		Signers: (func(x []SecretKey) []SecretKey {
 			if x == nil {
 				return nil
