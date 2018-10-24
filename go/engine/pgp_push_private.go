@@ -137,6 +137,10 @@ func (e *PGPPushPrivate) remove(m libkb.MetaContext, fs *keybase1.SimpleFSClient
 		OpID: opid,
 		Path: keybase1.NewPathWithKbfs(file),
 	})
+	if err != nil {
+		return err
+	}
+	err = fs.SimpleFSWait(m.Ctx(), opid)
 	return err
 }
 
