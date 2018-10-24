@@ -252,7 +252,7 @@ const startOutOfDateCheckLoop = () =>
         yield Saga.delay(3600 * 1000) // 1 hr
       } catch (err) {
         logger.warn('error getting update info: ', err)
-        yield Saga.delay(60 * 1000) // 1 min
+        yield Saga.delay(3600 * 1000) // 1 hr
       }
     }
   })
