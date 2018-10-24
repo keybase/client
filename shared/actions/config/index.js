@@ -396,10 +396,10 @@ const updateServerConfig = (state: TypedState) =>
     Saga.spawn(() => RPCTypes.configSetValueRpcPromise({
       path: 'stellar.lastSentXLM',
       value: {lastSentXLM: action.payload.lastSentXLM},
-    }).catch(() => {})
+    })).catch(() => {})
 
   const readLastSentXLM = () =>
-    Saga.spawn(() => RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+    Saga.call(RPCTypes.configGetValueRpcPromise, {path: 'stellar.lastSentXLM'})
     .then((result) => { !result.isNull && createSetLastSentXLM({lastSentXLM: result.b, writeFile: false})})
     .catch(() => false)
 
