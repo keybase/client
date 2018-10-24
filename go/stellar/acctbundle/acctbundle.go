@@ -557,28 +557,7 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash /* visB
 	var bundleOut stellar1.AccountBundle
 	switch version {
 	case stellar1.AccountBundleVersion_V1:
-		/*
-			visiblePack, err := base64.StdEncoding.DecodeString(visB64)
-			if err != nil {
-				return nil, 0, err
-			}
-			visibleHash := sha256.Sum256(visiblePack)
-		*/
 		secretV1 := versioned.V1()
-		/*
-			if !hmac.Equal(visibleHash[:], secretV1.VisibleHash) {
-				return nil, 0, errors.New("corrupted bundle: visible hash mismatch")
-			}
-			var visibleV1 stellar1.AccountBundleVisibleV1
-			err = libkb.MsgpackDecode(&visibleV1, visiblePack)
-			if err != nil {
-				return nil, 0, err
-			}
-		*/
-		// bundleOut, err = merge(secretV1, visibleV1)
-		// if err != nil {
-		//	return nil, 0, err
-		// }
 		bundleOut = stellar1.AccountBundle{Signers: secretV1.Signers}
 	default:
 		return nil, 0, err
