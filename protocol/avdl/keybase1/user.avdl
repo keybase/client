@@ -58,6 +58,13 @@ protocol user {
   array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
   /**
+    Load user summaries for the supplied uids.
+    They are "checked" in that the client is verifying the info from loadUncheckedUserSummaries,
+    which comes from the server. If len(uids) > 15, the first 15 will be returned.
+    */
+  array<UserSummary> loadCheckedUserSummaries(int sessionID, array<UID> uids);
+
+  /**
     Load a user from the server.
     */
   User loadUser(int sessionID, UID uid);

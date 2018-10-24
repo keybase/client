@@ -291,6 +291,11 @@ type LoadUncheckedUserSummariesArg struct {
 	Uids      []UID `codec:"uids" json:"uids"`
 }
 
+type LoadCheckedUserSummariesArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Uids      []UID `codec:"uids" json:"uids"`
+}
+
 type LoadUserArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -405,6 +410,10 @@ type UserInterface interface {
 	// They are "unchecked" in that the client is not verifying the info from the server.
 	// If len(uids) > 500, the first 500 will be returned.
 	LoadUncheckedUserSummaries(context.Context, LoadUncheckedUserSummariesArg) ([]UserSummary, error)
+	// Load user summaries for the supplied uids.
+	// They are "checked" in that the client is verifying the info from loadUncheckedUserSummaries,
+	// which comes from the server. If len(uids) > 15, the first 15 will be returned.
+	LoadCheckedUserSummaries(context.Context, LoadCheckedUserSummariesArg) ([]UserSummary, error)
 	// Load a user from the server.
 	LoadUser(context.Context, LoadUserArg) (User, error)
 	LoadUserByName(context.Context, LoadUserByNameArg) (User, error)
@@ -511,6 +520,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LoadUncheckedUserSummaries(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loadCheckedUserSummaries": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadCheckedUserSummariesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadCheckedUserSummariesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadCheckedUserSummariesArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadCheckedUserSummaries(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -864,6 +889,14 @@ func (c UserClient) ListTrackersSelf(ctx context.Context, sessionID int) (res []
 // If len(uids) > 500, the first 500 will be returned.
 func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	return
+}
+
+// Load user summaries for the supplied uids.
+// They are "checked" in that the client is verifying the info from loadUncheckedUserSummaries,
+// which comes from the server. If len(uids) > 15, the first 15 will be returned.
+func (c UserClient) LoadCheckedUserSummaries(ctx context.Context, __arg LoadCheckedUserSummariesArg) (res []UserSummary, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadCheckedUserSummaries", []interface{}{__arg}, &res)
 	return
 }
 

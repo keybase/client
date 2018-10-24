@@ -507,7 +507,8 @@ const (
 	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
 )
 
-const UserSummaryLimit = 500 // max number of user summaries in one request
+const UserSummaryLimit = 500       // max number of user summaries in one request
+const CheckedUserSummaryLimit = 15 // max number of user summaries per request that will be verified
 
 const MinPassphraseLength = 8
 

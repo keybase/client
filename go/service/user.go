@@ -66,7 +66,17 @@ func (h *UserHandler) listTrackers(ctx context.Context, sessionID int, eng *engi
 }
 
 func (h *UserHandler) LoadUncheckedUserSummaries(ctx context.Context, arg keybase1.LoadUncheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
-	eng := engine.NewUserSummary(h.G(), arg.Uids)
+	eng := engine.NewUserSummary(h.G(), arg.Uids, false /*dont verify server response*/)
+	m := libkb.NewMetaContext(ctx, h.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return nil, err
+	}
+	res := eng.ExportedSummariesList()
+	return res, nil
+}
+
+func (h *UserHandler) LoadCheckedUserSummaries(ctx context.Context, arg keybase1.LoadCheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
+	eng := engine.NewUserSummary(h.G(), arg.Uids, true /*verify server response*/)
 	m := libkb.NewMetaContext(ctx, h.G())
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err

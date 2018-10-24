@@ -343,6 +343,26 @@
       },
       "doc": "Load user summaries for the supplied uids.\n    They are \"unchecked\" in that the client is not verifying the info from the server.\n    If len(uids) > 500, the first 500 will be returned."
     },
+    "loadCheckedUserSummaries": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSummary"
+      },
+      "doc": "Load user summaries for the supplied uids.\n    They are \"checked\" in that the client is verifying the info from loadUncheckedUserSummaries,\n    which comes from the server. If len(uids) > 15, the first 15 will be returned."
+    },
     "loadUser": {
       "request": [
         {

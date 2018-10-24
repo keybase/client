@@ -70,7 +70,7 @@ func UserSummariesForSearchResults(results []keybase1.SearchResult,
 	for i := range results {
 		uids[i] = results[i].Uid
 	}
-	userSummaries, err := cli.LoadUncheckedUserSummaries(context.TODO(), keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
+	userSummaries, err := cli.LoadCheckedUserSummaries(context.TODO(), keybase1.LoadCheckedUserSummariesArg{Uids: uids})
 	if err != nil {
 		return nil, err
 	}

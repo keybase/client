@@ -11,15 +11,17 @@ import (
 )
 
 type UserSummary struct {
-	uids      []keybase1.UID
-	summaries map[keybase1.UID]*Summary
+	uids              []keybase1.UID
+	summaries         map[keybase1.UID]*Summary
+	needsVerification bool
 	libkb.Contextified
 }
 
-func NewUserSummary(g *libkb.GlobalContext, uids []keybase1.UID) *UserSummary {
+func NewUserSummary(g *libkb.GlobalContext, uids []keybase1.UID, needsVerification bool) *UserSummary {
 	return &UserSummary{
-		uids:         uids,
-		Contextified: libkb.NewContextified(g),
+		uids:              uids,
+		needsVerification: needsVerification,
+		Contextified:      libkb.NewContextified(g),
 	}
 }
 
@@ -163,7 +165,7 @@ func (d *displayInfo) GetAppStatus() *libkb.AppStatus {
 	return &d.Status
 }
 
-func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
+func (e *UserSummary) get() (res map[keybase1.UID]*Summary, err error) {
 
 	args := libkb.APIArg{
 		Endpoint: "user/display_info",
@@ -173,21 +175,40 @@ func (e *UserSummary) get() (map[keybase1.UID]*Summary, error) {
 	}
 	// using POST because uids list might be long...
 	var j displayInfo
-	if err := e.G().API.PostDecode(args, &j); err != nil {
+	if err = e.G().API.PostDecode(args, &j); err != nil {
 		return nil, err
 	}
 
-	// XXX necessary?
 	for k, v := range j.Users {
 		v.UID = k
+		includeUser := true
+		if e.needsVerification {
+			includeUser, err = e.verifyUID(k)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if includeUser {
+			res[k] = v
+		}
 	}
+	return res, nil
+}
 
-	return j.Users, nil
+func (e *UserSummary) verifyUID(uid keybase1.UID) (bool, error) {
+	// do verification here. load user or whatevs.
+	return true, nil
 }
 
 func (e *UserSummary) uidlist() string {
-	if len(e.uids) > libkb.UserSummaryLimit {
-		e.uids = e.uids[0:libkb.UserSummaryLimit]
+	var limit int
+	if e.needsVerification {
+		limit = libkb.CheckedUserSummaryLimit
+	} else {
+		limit = libkb.UserSummaryLimit
+	}
+	if len(e.uids) > limit {
+		e.uids = e.uids[0:limit]
 	}
 	s := make([]string, len(e.uids))
 	for i, u := range e.uids {
