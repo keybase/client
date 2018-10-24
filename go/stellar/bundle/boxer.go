@@ -125,7 +125,7 @@ func Decode(encryptedBundleB64 string) (res DecodeResult, err error) {
 // Unbox decrypts the stellar key bundle.
 // And decodes and verifies the visible bundle.
 // Does not check the prev hash.
-func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
+func Unbox(g *libkb.GlobalContext, decodeRes DecodeResult, visibleBundleB64 string,
 	puk libkb.PerUserKeySeed) (res stellar1.Bundle, version stellar1.BundleVersion, err error) {
 	versioned, err := Decrypt(decodeRes.Enc, puk)
 	if err != nil {
@@ -156,6 +156,9 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 			return res, version, err
 		}
 	case stellar1.BundleVersion_V2:
+		if g == nil || g.GetRunMode() == libkb.ProductionRunMode {
+			return res, version, fmt.Errorf("unsupported stellar secret bundle version: %v", version)
+		}
 		visiblePack, err := base64.StdEncoding.DecodeString(visibleBundleB64)
 		if err != nil {
 			return res, version, err

@@ -259,7 +259,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	res, _, err = bundle.Unbox(decodeRes, apiRes.VisibleB64, puk)
+	res, _, err = bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
 	return res, decodeRes.Enc.Gen, err
 }
 
