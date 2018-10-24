@@ -32,7 +32,7 @@ const Input = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
     <Kb.PlainInput
       style={styles.input}
-      placeholder={'Find people by name, email, or phone'}
+      placeholder={'Enter any username'}
       onChangeText={props.onChangeText}
       value={props.searchString}
       onEnterKeyDown={props.onEnterKeyDown}

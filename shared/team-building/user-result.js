@@ -119,11 +119,11 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={19} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={18} color={Styles.globalColors.black_75} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type="iconfont-arrow-right" fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-return" fontSize={19} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
