@@ -134,16 +134,24 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
+func (h *Server) suspendComponent(ctx context.Context, suspendable types.Suspendable) func() {
+	if canceled := suspendable.Suspend(ctx); canceled {
+		h.Debug(ctx, "suspendComponent: canceled background task")
+	}
+	return func() {
+		suspendable.Resume(ctx)
+	}
+}
+
 // suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
 // a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
 // conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	if canceled := h.G().ConvLoader.Suspend(ctx); canceled {
-		h.Debug(ctx, "suspendConvLoader: canceled background task")
-	}
-	return func() {
-		h.G().ConvLoader.Resume(ctx)
-	}
+	return h.suspendComponent(ctx, h.G().ConvLoader)
+}
+
+func (h *Server) suspendInboxSource(ctx context.Context) func() {
+	return h.suspendComponent(ctx, h.G().InboxSource)
 }
 
 func (h *Server) getUID() gregor1.UID {
@@ -641,6 +649,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 	}()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	// Lock conversation while this is running
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
 		return res, err

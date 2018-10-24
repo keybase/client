@@ -76,8 +76,7 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 		DebugLabeler:     labeler,
 		getChatInterface: getChatInterface,
 		so:               newSourceOfflinable(g, labeler),
-		localizer: newLocalizerPipeline(g,
-			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
+		localizer:        newLocalizerPipeline(g),
 	}
 }
 
@@ -855,11 +854,10 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 }
 
 func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {
-	remoteInbox := NewRemoteInboxSource(g, ri)
 	switch typ {
 	case "hybrid":
 		return NewHybridInboxSource(g, ri)
 	default:
-		return remoteInbox
+		return NewRemoteInboxSource(g, ri)
 	}
 }

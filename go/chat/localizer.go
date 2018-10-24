@@ -70,6 +70,7 @@ func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []chat1.Co
 
 type blockingLocalizer struct {
 	globals.Contextified
+	utils.DebugLabeler
 	*baseLocalizer
 
 	localizeCb chan types.AsyncInboxResult
@@ -79,12 +80,15 @@ func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	localizeCb chan types.AsyncInboxResult) *blockingLocalizer {
 	return &blockingLocalizer{
 		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "blockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g, pipeline),
+		localizeCb:    localizeCb,
 	}
 }
 
 func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox,
 	maxLocalize *int) (res []chat1.ConversationLocal, err error) {
+	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	b.baseLocalizer.pipeline.queue(ctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb)
 	if err != nil {
@@ -163,11 +167,25 @@ func (b *nonBlockingLocalizer) Name() string {
 type localizerPipelineJob struct {
 	sync.Mutex
 
-	ctx      context.Context
-	cancelFn context.CancelFunc
-	retCh    chan types.AsyncInboxResult
-	uid      gregor1.UID
-	pending  []chat1.Conversation
+	ctx       context.Context
+	cancelFn  context.CancelFunc
+	retCh     chan types.AsyncInboxResult
+	uid       gregor1.UID
+	completed int
+	pending   []chat1.Conversation
+}
+
+func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipelineJob) {
+	l.Lock()
+	defer l.Unlock()
+	res = new(localizerPipelineJob)
+	res.ctx, res.cancelFn = context.WithCancel(BackgroundContext(l.ctx, g))
+	res.retCh = l.retCh
+	res.uid = l.uid
+	res.completed = l.completed
+	res.pending = make([]chat1.Conversation, len(l.pending))
+	copy(res.pending, l.pending)
+	return res
 }
 
 func (l *localizerPipelineJob) closeIfDone() {
@@ -186,10 +204,28 @@ func (l *localizerPipelineJob) getPending() (res []chat1.Conversation) {
 	return res
 }
 
-func (l *localizerPipelineJob) complete(index int) {
+func (l *localizerPipelineJob) numPending() int {
 	l.Lock()
 	defer l.Unlock()
-	l.pending = append(l.pending[:index], l.pending[index+1:]...)
+	return len(l.pending)
+}
+
+func (l *localizerPipelineJob) numCompleted() int {
+	l.Lock()
+	defer l.Unlock()
+	return l.completed
+}
+
+func (l *localizerPipelineJob) complete(convID chat1.ConversationID) {
+	l.Lock()
+	defer l.Unlock()
+	for index, j := range l.pending {
+		if j.GetConvID().Eq(convID) {
+			l.completed++
+			l.pending = append(l.pending[:index], l.pending[index+1:]...)
+			return
+		}
+	}
 }
 
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -207,26 +243,21 @@ type localizerPipeline struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	offline    bool
-	superXform supersedesTransform
+	offline bool
 
-	started      bool
-	suspendCount int
-	cancelCh     chan chan bool
-	stopCh       chan struct{}
-	suspendCh    chan chan struct{}
-	resumeCh     chan struct{}
+	started   bool
+	stopCh    chan struct{}
+	cancelCh  chan chan bool
+	suspendWg sync.WaitGroup
 
 	jobQueue chan *localizerPipelineJob
 }
 
-func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *localizerPipeline {
+func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
-		superXform:   superXform,
 		stopCh:       make(chan struct{}),
-		suspendCh:    make(chan chan struct{}),
 		cancelCh:     make(chan chan bool),
 	}
 }
@@ -234,20 +265,26 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 func (s *localizerPipeline) Connected() {
 	s.Lock()
 	defer s.Unlock()
-	s.offline = true
+	s.offline = false
 }
 
 func (s *localizerPipeline) Disconnected() {
 	s.Lock()
 	defer s.Unlock()
-	s.offline = false
+	s.offline = true
 }
 
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
 	retCh chan types.AsyncInboxResult) {
+	s.Lock()
+	defer s.Unlock()
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
-	job.ctx, job.cancelFn = context.WithCancel(ctx)
-	s.jobQueue <- job
+	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
+	select {
+	case s.jobQueue <- job:
+	default:
+		s.Debug(ctx, "queue: dropped job, queue full")
+	}
 }
 
 func (s *localizerPipeline) clearQueue() {
@@ -288,16 +325,7 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	if !s.started {
 		return false
 	}
-	if s.suspendCount == 0 {
-		s.Debug(ctx, "suspend: sending on suspendCh")
-		s.resumeCh = make(chan struct{})
-		select {
-		case s.suspendCh <- s.resumeCh:
-		default:
-			s.Debug(ctx, "suspend: failed to suspend loop")
-		}
-	}
-	s.suspendCount++
+	s.suspendWg.Add(1)
 	cancelResCh := make(chan bool, 1)
 	s.cancelCh <- cancelResCh
 	return <-cancelResCh
@@ -307,19 +335,11 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	defer s.Trace(ctx, func() error { return nil }, "resume")()
 	s.Lock()
 	defer s.Unlock()
-	if s.suspendCount > 0 {
-		s.suspendCount--
-		if s.suspendCount == 0 && s.resumeCh != nil {
-			s.Debug(ctx, "resume: closing resumeCh")
-			close(s.resumeCh)
-			return true
-		}
-	}
+	s.suspendWg.Done()
 	return false
 }
 
 func (s *localizerPipeline) localizeLoop() {
-	var currentJob *localizerPipelineJob
 	ctx := context.Background()
 	s.Debug(ctx, "localizeLoop: starting up")
 	s.Lock()
@@ -328,30 +348,33 @@ func (s *localizerPipeline) localizeLoop() {
 	for {
 		select {
 		case job := <-s.jobQueue:
-			s.Debug(ctx, "localizeLoop: pulling job")
-			currentJob = job
-			if err := s.localizeConversationsPipeline(job); err != nil && err == context.Canceled {
-				// just put this right back if we canceled it
-				job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(job.ctx, s.G()))
-				s.jobQueue <- job
-			}
-			job.closeIfDone()
-			currentJob = nil
-		case ch := <-s.suspendCh:
-			s.Debug(ctx, "localizeLoop: suspended")
+			s.Debug(ctx, "localizeLoop: pulling job: pending: %d completed: %d",
+				job.numPending(), job.numCompleted())
+			s.suspendWg.Wait()
+			doneCh := make(chan struct{})
+			go func() {
+				defer close(doneCh)
+				if err := s.localizeConversationsPipeline(job); err != nil && err == context.Canceled {
+					// just put this right back if we canceled it
+					s.Debug(ctx, "localizeLoop: re-enqueuing canceled job")
+					s.jobQueue <- job.retry(s.G())
+				}
+				job.closeIfDone()
+			}()
 			select {
-			case <-ch:
+			case <-doneCh:
+				job.cancelFn()
+			case ch := <-s.cancelCh:
+				s.Debug(ctx, "localizeLoop: canceled a live job")
+				job.cancelFn()
+				ch <- true
 			case <-stopCh:
+				job.cancelFn()
 				return
 			}
+			s.Debug(ctx, "localizeLoop: job complete")
 		case ch := <-s.cancelCh:
-			s.Debug(ctx, "localizeLoop: canceling current job")
-			if currentJob != nil && currentJob.cancelFn != nil {
-				currentJob.cancelFn()
-				ch <- true
-			} else {
-				ch <- false
-			}
+			ch <- false
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
 			return
@@ -371,8 +394,8 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
-	retCh := make(chan int)
 	pending := localizeJob.getPending()
+	retCh := make(chan chat1.ConversationID, len(pending))
 	if len(pending) == 0 {
 		return nil
 	}
@@ -394,7 +417,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 			for conv := range convCh {
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
 				select {
-				case retCh <- conv.index:
+				case retCh <- conv.conv.GetConvID():
 				case <-ctx.Done():
 					return ctx.Err()
 				}
@@ -414,8 +437,8 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		eg.Wait()
 		close(retCh)
 	}()
-	for index := range retCh {
-		localizeJob.complete(index)
+	for convID := range retCh {
+		localizeJob.complete(convID)
 	}
 	return eg.Wait()
 }
@@ -626,6 +649,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 	var maxValidID chat1.MessageID
 	var newMaxMsgs []chat1.MessageUnboxed
+	superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
@@ -648,7 +672,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 			// Resolve edits/deletes
 			var newMsg []chat1.MessageUnboxed
-			if newMsg, err = s.superXform.Run(ctx, conversationRemote, uid, []chat1.MessageUnboxed{mm}); err != nil {
+			if newMsg, err = superXform.Run(ctx, conversationRemote, uid, []chat1.MessageUnboxed{mm}); err != nil {
 				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
 					err.Error())
 			} else {
