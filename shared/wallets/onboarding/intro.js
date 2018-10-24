@@ -21,7 +21,7 @@ const Intro = (props: IntroProps) => {
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
     >
-      <Kb.Icon style={styles.icon} type="icon-wallet-open-48" />
+      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
     </Kb.Button>,
 
     <Kb.Button
@@ -62,7 +62,11 @@ const Intro = (props: IntroProps) => {
           .
         </Kb.Text>
 
-        <Kb.Icon style={styles.illustration} type="icon-illustration-stellar-payments-183-188" />
+        <Kb.Icon
+          color={Styles.globalColors.black}
+          style={Kb.iconCastPlatformStyles(styles.illustration)}
+          type="icon-illustration-stellar-payments-183-188"
+        />
       </Kb.Box2>
     </WalletPopup>
   )
