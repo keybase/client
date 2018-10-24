@@ -172,14 +172,6 @@ const load = () => {
     ))
 
   Sb.storiesOf('Team-Building/Service Tab Bar', module)
-    .add('Plain', () => (
-      <ServiceTabBar
-        selectedService="keybase"
-        onChangeService={Sb.action('onChangeService')}
-        serviceResultCount={{}}
-        showServiceResultCount={false}
-      />
-    ))
     .add('With Service Results counts', () => (
       <ServiceTabBar
         selectedService="keybase"
@@ -199,6 +191,19 @@ const load = () => {
         showServiceResultCount={true}
       />
     ))
+
+  // Add active for every service
+  const servicesToDisplay = ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
+  servicesToDisplay.forEach(service => {
+    Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
+      <ServiceTabBar
+        selectedService={service}
+        onChangeService={Sb.action('onChangeService')}
+        serviceResultCount={{}}
+        showServiceResultCount={false}
+      />
+    ))
+  })
 
   Sb.storiesOf('Team-Building/User Result', module)
     .addDecorator(provider)

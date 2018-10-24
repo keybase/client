@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {serviceIdToLogo16} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor} from './shared'
 import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -31,10 +31,10 @@ const ServiceIcon = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
-        type={serviceIdToLogo16(props.service, props.isActive)}
+        type={serviceIdToIconFont(props.service)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
-          props.isActive ? styles.activeIcon : styles.inactiveIcon,
+          {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
         ])}
       />
       {!!props.showCount &&
