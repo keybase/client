@@ -391,17 +391,23 @@ const updateServerConfig = (state: TypedState) =>
     }
   })
 
-  const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) =>
-    action.payload.writeFile &&
-    Saga.spawn(() => RPCTypes.configSetValueRpcPromise({
-      path: 'stellar.lastSentXLM',
-      value: {lastSentXLM: action.payload.lastSentXLM},
-    })).catch(() => {})
+const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) =>
+  Saga.call(function*() {
+    if (action.payload.writeFile) {
+      yield Saga.call(RPCTypes.configSetValueRpcPromise, {
+        path: 'stellar.lastSentXLM',
+        value: {isNull: false, b: action.payload.lastSentXLM},
+      })
+    }
+  })
 
-  const readLastSentXLM = () =>
-    Saga.call(RPCTypes.configGetValueRpcPromise, {path: 'stellar.lastSentXLM'})
-    .then((result) => { !result.isNull && createSetLastSentXLM({lastSentXLM: result.b, writeFile: false})})
-    .catch(() => false)
+const readLastSentXLM = () =>
+  Saga.call(function*() {
+    const result = yield Saga.call(RPCTypes.configGetValueRpcPromise, {path: 'stellar.lastSentXLM'})
+    yield Saga.put(
+      createSetLastSentXLM({lastSentXLM: result && !result.isNull && result.b, writeFile: false})
+    )
+  })
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
@@ -445,7 +451,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.link, handleAppLink)
 
   yield Saga.actionToAction(setLastSentXLM, writeLastSentXLM)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, readLastSentXLM)
+  yield Saga.actionToAction(ConfigGen.daemonHandshakeDone, readLastSentXLM)
 
   // Kick off platform specific stuff
   yield Saga.fork(PlatformSpecific.platformConfigSaga)
