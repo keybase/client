@@ -22,26 +22,26 @@ type FolderProps = {
 class Files extends React.PureComponent<FolderProps> {
   render() {
     const content = this.props.isUserReset ? (
-      <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-        <Kb.Box style={styles.resetContainer}>
+      <Kb.Box2 direction="vertical" fullHeight={true}>
+        <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
           <Kb.Icon type="icon-access-denied-266" />
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     ) : (
       <Rows
         path={this.props.path}
         routePath={this.props.routePath}
         sortSetting={this.props.sortSetting}
         ifEmpty={
-          <Kb.Box style={styles.emptyContainer}>
+          <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
             <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         }
       />
     )
     return (
-      <Kb.Box style={styles.outerContainer}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <SortBar path={this.props.path} />
@@ -55,33 +55,16 @@ class Files extends React.PureComponent<FolderProps> {
           )}
           <Footer />
         </Kb.Box2>
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: {
-    height: '100%',
+  container: {
     position: 'relative',
   },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.fullHeight,
-    flex: 1,
-  },
-  emptyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.globalStyles.fullHeight,
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   resetContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
     marginTop: 2 * Styles.globalMargins.xlarge,
   },
 })
