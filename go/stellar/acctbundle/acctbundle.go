@@ -623,6 +623,8 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	return bver, nil
 }
 
+// WithSecret is a convenient summary of an individual account
+// that includes the secret keys.
 type WithSecret struct {
 	AccountID stellar1.AccountID
 	Mode      stellar1.AccountMode
@@ -631,6 +633,10 @@ type WithSecret struct {
 	Signers   []stellar1.SecretKey
 }
 
+// AccountWithSecret finds an account in bundle and its associated secret
+// and extracts them into a convenience type acctbundle.WithSecret.
+// It will return libkb.NotFoundError if it can't find the secret or the
+// account in the bundle.
 func AccountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*WithSecret, error) {
 	secret, ok := bundle.AccountBundles[accountID]
 	if !ok {
