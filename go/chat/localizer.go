@@ -325,7 +325,6 @@ func (s *localizerPipeline) waitForResume(ch chan struct{}, stopCh chan struct{}
 	case <-stopCh:
 		return false
 	}
-	return false
 }
 
 func (s *localizerPipeline) localizeLoop() {
