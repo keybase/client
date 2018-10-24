@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
+import {AccountPageHeader} from '../../common'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -57,8 +58,12 @@ const HoverText = Styles.isMobile
 const AccountSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
-      <Kb.ScrollView contentContainerStyle={styles.scrollViewcontainer} style={styles.scrollView}>
+      <Kb.HeaderHocHeader
+        customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
+        onBack={props.onBack}
+        headerStyle={styles.header}
+      />
+      <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
           <Kb.ClickableBox onClick={props.onEditName} style={styles.nameBox}>
