@@ -46,7 +46,13 @@ func getCurrentUserPGPKeys(m libkb.MetaContext) ([]libkb.PGPFingerprint, error) 
 	}
 	var res []libkb.PGPFingerprint
 	for _, key := range upk.Current.PGPKeys {
+		if key.Base.Revocation != nil {
+			continue
+		}
 		res = append(res, libkb.PGPFingerprint(key.Fingerprint))
+	}
+	if len(res) == 0 {
+		return nil, errors.New("The --all flag only works if you have PGP keys linked to your Keybase account")
 	}
 	return res, nil
 }
