@@ -452,7 +452,7 @@ const rootReducer = (
         }
 
         // Editing your last message
-        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
+        const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
           return message && message.type === 'text' && message.author === editLastUser && !message.exploded
@@ -550,7 +550,7 @@ const rootReducer = (
       }
 
       const messageOrdinals = oldMessageOrdinals.withMutations(
-        (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) => {
+        (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
@@ -582,9 +582,12 @@ const rootReducer = (
               return arr
             }, [])
 
-            map.update(conversationIDKey, I.SortedSet(), (set: I.SortedSet<Types.Ordinal>) =>
-              // add new ones, remove deleted ones
-              set.concat(ordinals).subtract(convoToDeletedOrdinals[cid])
+            map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
+              // add new ones, remove deleted ones, sort
+              set
+                .concat(ordinals)
+                .subtract(convoToDeletedOrdinals[cid])
+                .sort()
             )
           })
         }

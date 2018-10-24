@@ -45,7 +45,7 @@ function followStateHelper(state: TypedState, _username: ?string, _service: ?Typ
 }
 
 function maybeUpgradeSearchResultIdToKeybaseId(
-  searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
+  searchResultMap: I.Map<Types.SearchResultId, I.RecordOf<Types.SearchResult>>,
   id: Types.SearchResultId
 ): Types.SearchResultId {
   const searchResult = searchResultMap.get(id)
