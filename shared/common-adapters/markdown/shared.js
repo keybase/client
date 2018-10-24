@@ -128,6 +128,19 @@ const linkRegex = {
 }
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 
+const emailRegex = {
+  exec: source => {
+    const r = /^( *)(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b/i
+    const result = r.exec(source)
+    if (result) {
+      result.groups = {tld: result[5], emailAdress: result[2]}
+      return result
+    }
+    return null
+  },
+}
+const inlineEmailMatch = SimpleMarkdown.inlineRegex(emailRegex)
+
 const wrapInParagraph = (parse, content, state) => [
   {
     type: 'paragraph',
@@ -316,8 +329,8 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.text,
     // original:
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
-    // ours: stop on single new lines
-    match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n|\w+:\S|$)/),
+    // ours: stop on single new lines. stop before text with an @ (in case of emails)
+    match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n|\w+:\S|[\w-_.]+@|$)/),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
@@ -338,6 +351,20 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     },
     parse: function(capture, parse, state) {
       return {spaceInFront: capture[1], content: capture[2]}
+    },
+  },
+  mailto: {
+    order: SimpleMarkdown.defaultRules.text.order - 0.4,
+    match: (source, state, lookBehind) => {
+      const matches = inlineEmailMatch(source, state, lookBehind)
+      // If there is a match, let's also check if it's a valid tld
+      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+        return matches
+      }
+      return null
+    },
+    parse: function(capture, parse, state) {
+      return {spaceInFront: capture[1], content: capture[2], mailto: `mailto:${capture[2]}`}
     },
   },
 })
