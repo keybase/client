@@ -358,13 +358,14 @@ export const uiPaymentInfoToChatPaymentInfo = (
   if (!p) {
     return null
   }
+  const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
-    status: WalletConstants.statusSimplifiedToString[p.status],
+    status: serviceStatus === 'claimable' ? 'cancelable' : serviceStatus,
     statusDescription: p.statusDescription,
     worth: p.worth,
   })

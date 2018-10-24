@@ -120,8 +120,10 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-      return Styles.globalColors.black_75
+    case 'cancelable':
+      return Styles.globalColors.purple2
     case 'error':
+    case 'canceled':
       return Styles.globalColors.red
     default:
       return Styles.globalColors.black
@@ -150,8 +152,12 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: NotLoadingProps) => {
-  const counterpartyAccountID =
+  let counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
+  if (props.status === 'canceled') {
+    // Canceled relay, recipient might not have accountID. Don't show.
+    counterpartyAccountID = null
+  }
   const you = <YourAccount {...props} />
 
   const counterparty = (
@@ -235,11 +241,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
               color={colorForStatus(props.status)}
               fontSize={16}
               type={
-                props.status === 'error'
+                ['error', 'canceled'].includes(props.status)
                   ? 'iconfont-close'
                   : props.status === 'completed'
                     ? 'iconfont-success'
-                    : 'icon-transaction-pending-16'
+                    : 'iconfont-clock'
               }
             />
             <Kb.Text

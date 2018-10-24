@@ -702,6 +702,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		From:            caller,
 		FromDeviceID:    post.FromDeviceID,
 		To:              post.To,
+		ToAssertion:     post.ToAssertion,
 		RelayAccount:    extract.To,
 		Amount:          extract.Amount,
 		DisplayAmount:   &post.DisplayAmount,

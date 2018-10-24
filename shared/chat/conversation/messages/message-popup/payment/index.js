@@ -31,7 +31,9 @@ type HeaderProps = {|
 type Props = {|
   ...HeaderProps,
   attachTo?: () => ?React.Component<any>,
+  cancelButtonLabel: string,
   onCancel: ?() => void, // if falsy tx is not cancelable
+  onClaimLumens: ?() => void, // if falsy disclaimer has already been accepted
   onHidden: () => void,
   onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
@@ -99,7 +101,7 @@ const PaymentPopup = (props: Props) => {
               {
                 danger: true,
                 onClick: props.onCancel,
-                title: 'Cancel request',
+                title: props.cancelButtonLabel,
               },
             ]
           : []),
@@ -111,11 +113,22 @@ const PaymentPopup = (props: Props) => {
               },
             ]
           : []),
+        ...(props.onClaimLumens ? [{onClick: props.onClaimLumens, title: 'Claim lumens'}] : []),
       ]
     : []
 
   // separate out header props
-  const {attachTo, onCancel, onHidden, onSeeDetails, position, visible, ...headerProps} = props
+  const {
+    attachTo,
+    cancelButtonLabel,
+    onCancel,
+    onClaimLumens,
+    onHidden,
+    onSeeDetails,
+    position,
+    visible,
+    ...headerProps
+  } = props
   const header = {
     title: 'header',
     view: (

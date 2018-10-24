@@ -9,8 +9,10 @@ const receiveIcon = 'receiving'
 const sendIcon = 'sending'
 
 const commonProps = {
+  cancelButtonLabel: '',
   loading: false,
   onCancel: null,
+  onClaimLumens: null,
   onHidden: Sb.action('onHidden'),
   onSeeDetails: null,
   position: 'bottom left',

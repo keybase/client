@@ -1853,12 +1853,6 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-terminal-48.png'),
   },
-  'icon-transaction-pending-16': {
-    isFont: false,
-    extension: 'png',
-    // $FlowIssue https://github.com/facebook/flow/issues/6628
-    require: require('../images/icons/icon-transaction-pending-16.png'),
-  },
   'icon-twitter-logo-16': {
     isFont: false,
     extension: 'png',

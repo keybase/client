@@ -212,6 +212,10 @@
         },
         {
           "type": "string",
+          "name": "originalToAssertion"
+        },
+        {
+          "type": "string",
           "name": "note"
         },
         {
@@ -365,6 +369,10 @@
         {
           "type": "string",
           "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "originalToAssertion"
         },
         {
           "type": "string",
