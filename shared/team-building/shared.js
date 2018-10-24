@@ -1,4 +1,5 @@
 // @flow
+import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import type {IconType} from '../common-adapters/icon.constants'
 
@@ -32,6 +33,34 @@ const serviceIdToLogo16 = (service: ServiceIdWithContact, isActive: boolean): Ic
 
   return map[service]
 }
+const _serviceIdToIconFont = {
+  contact: 'iconfont-identity-twitter',
+  facebook: 'iconfont-identity-facebook',
+  github: 'iconfont-identity-github',
+  hackernews: 'iconfont-identity-hn',
+  keybase: 'iconfont-keybase',
+  pgp: 'iconfont-identity-pgp',
+  reddit: 'iconfont-identity-reddit',
+  twitter: 'iconfont-identity-twitter',
+}
+const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => _serviceIdToIconFont[service]
+
+// Color for an active service id
+// These are custom per service so they may not be associated with the keybase color scheme
+const _serviceIdToAccentColor = {
+  contact: Styles.globalColors.black,
+  facebook: '#3B5998',
+  github: '#333',
+  hackernews: '#FF6600',
+  keybase: Styles.globalColors.blue,
+  pgp: Styles.globalColors.black,
+  reddit: '#ff4500',
+  twitter: '#1DA1F2',
+}
+
+const serviceIdToAccentColor = (service: ServiceIdWithContact): string => _serviceIdToAccentColor[service]
+
+const inactiveServiceAccentColor = Styles.globalColors.black_20
 
 const serviceIdToLogo14 = (service: ServiceIdWithContact): IconType =>
   ({
@@ -45,4 +74,10 @@ const serviceIdToLogo14 = (service: ServiceIdWithContact): IconType =>
     twitter: 'icon-twitter-logo-32',
   }[service])
 
-export {serviceIdToLogo16, serviceIdToLogo14}
+export {
+  serviceIdToLogo16,
+  serviceIdToLogo14,
+  serviceIdToIconFont,
+  serviceIdToAccentColor,
+  inactiveServiceAccentColor,
+}
