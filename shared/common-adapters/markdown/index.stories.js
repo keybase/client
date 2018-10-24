@@ -18,6 +18,7 @@ const cases = {
   transparentEmojis: ` 😀 😁 😍 ☝️ `,
   transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
   transparentEmojis3: `😶`,
+  mailto: `email bob@keybase.io`,
   nonemoji: `:party-parrot:`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
