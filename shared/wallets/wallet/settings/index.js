@@ -165,8 +165,9 @@ const AccountSettings = (props: SettingsProps) => {
             <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
             <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
           </Kb.Box2>
-          {Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />}
+          {Styles.isMobile && <Kb.Divider />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
+            {!Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.small}} />}
             <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
               <Kb.Icon
                 type="iconfont-trash"
