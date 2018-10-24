@@ -202,6 +202,12 @@ function setupHMR(store) {
 }
 
 function load() {
+  if (global.loaded) {
+    // only load once
+    console.log('Bail on load() on HMR')
+    return
+  }
+  global.loaded = true
   initDesktopStyles()
   const store = setupStore()
   setupRoutes(store)
