@@ -126,13 +126,8 @@ func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 	return benc
 }
 
-type AcctBoxedEncoded struct {
-	Enc           stellar1.EncryptedAccountBundle
-	EncHash       stellar1.Hash
-	EncB64        string // base64 msgpacked Enc
-	FormatVersion stellar1.AccountBundleVersion
-}
-
+// BundleEncodedB64 contains all the encoded fields for communicating
+// with the api server to post and get account bundles.
 type BundleEncodedB64 struct {
 	EncParent           string                        `json:"encrypted_parent"` // base64 msgpacked Enc
 	VisParent           string                        `json:"visible_parent"`
@@ -245,6 +240,14 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 	return res, resB64, nil
 }
 
+// AcctBoxedEncoded is the result of boxing and encoding the per-account secrets.
+type AcctBoxedEncoded struct {
+	Enc           stellar1.EncryptedAccountBundle
+	EncHash       stellar1.Hash
+	EncB64        string // base64 msgpacked Enc
+	FormatVersion stellar1.AccountBundleVersion
+}
+
 func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AcctBoxedEncoded, error) {
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
 		AccountID: accountID,
@@ -275,7 +278,7 @@ var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
 func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := AccountWithSecret(a, accountID)
+	ws, err := accountWithSecret(a, accountID)
 	if err != nil {
 		return err
 	}
@@ -304,7 +307,7 @@ func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) 
 // bundle.  This advances the revision.  If it's already all-device,
 // this function will return ErrNoChangeNecessary.
 func MakeAllDevices(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := AccountWithSecret(a, accountID)
+	ws, err := accountWithSecret(a, accountID)
 	if err != nil {
 		return err
 	}
@@ -617,7 +620,7 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	return bver, nil
 }
 
-type WithSecret struct {
+type withSecret struct {
 	AccountID stellar1.AccountID
 	Mode      stellar1.AccountMode
 	Name      string
@@ -625,7 +628,7 @@ type WithSecret struct {
 	Signers   []stellar1.SecretKey
 }
 
-func AccountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*WithSecret, error) {
+func accountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*withSecret, error) {
 	secret, ok := bundle.AccountBundles[accountID]
 	if !ok {
 		return nil, libkb.NotFoundError{}
@@ -642,7 +645,7 @@ func AccountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.Acc
 		// this is bad: secret found but not visible portion
 		return nil, libkb.NotFoundError{}
 	}
-	return &WithSecret{
+	return &withSecret{
 		AccountID: found.AccountID,
 		Mode:      found.Mode,
 		Name:      found.Name,

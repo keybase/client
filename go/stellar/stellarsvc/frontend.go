@@ -132,7 +132,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		// add an empty xlm balance
 		s.G().Log.CDebugf(ctx, "Account has no balances - adding default 0 XLM balance")
 		details.Balances = []stellar1.Balance{
-			stellar1.Balance{
+			{
 				Amount: "0",
 				Asset:  stellar1.Asset{Type: "native"},
 			},
