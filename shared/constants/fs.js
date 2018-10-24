@@ -809,6 +809,12 @@ export const usernameInPath = (username: string, path: Types.Path) => {
 // If we add more badges, this function should be updated.
 export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
 
+export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
+  const elemsA = Types.getPathElements(a)
+  const elemsB = Types.getPathElements(b)
+  return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:

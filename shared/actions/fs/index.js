@@ -694,32 +694,31 @@ const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
     .catch(makeRetriableErrorHandler(action))
 }
 
-const stateToMoveOrCopyParams = state => ({
-  src: {
-    PathType: RPCTypes.simpleFSPathType.kbfs,
-    kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
-  },
-  dest: {
-    PathType: RPCTypes.simpleFSPathType.kbfs,
-    kbfs: Constants.fsPathToRpcPathString(
-      Types.pathConcat(
-        state.fs.moveOrCopy.destinationParentPath,
-        Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
-      )
-    ),
-  },
-})
-
 const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   const opID = Constants.makeUUID()
+  const params = {
+    src: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
+    },
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(
+        Types.pathConcat(
+          state.fs.moveOrCopy.destinationParentPath,
+          Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
+        )
+      ),
+    },
+  }
   return (action.type === FsGen.move
     ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
         opID,
-        ...stateToMoveOrCopyParams(state),
+        ...params,
       })
     : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
         opID,
-        ...stateToMoveOrCopyParams(state),
+        ...params,
       })
   )
     .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))

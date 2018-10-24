@@ -32,20 +32,15 @@ const destinationParentPathIsWritable = memoize(
       .writable
 )
 
-const destinationAndSourceAreInSameTLF = memoize(stateProps => {
-  if (!stateProps._moveOrCopy.sourceItemPath) {
-    return false
-  }
-  const src = Types.getPathElements(stateProps._moveOrCopy.sourceItemPath)
-  const dst = Types.getPathElements(stateProps._moveOrCopy.destinationParentPath)
-  return src.length >= 3 && dst.length >= 3 && src[1] === dst[1] && src[2] === dst[2]
-})
-
 const mergeProps = (stateProps, dispatchProps) => ({
   onCancel: dispatchProps.onCancel,
   onCopyHere: destinationParentPathIsWritable(stateProps) ? dispatchProps._onCopyHere : null,
   onMoveHere:
-    destinationParentPathIsWritable(stateProps) && destinationAndSourceAreInSameTLF(stateProps)
+    destinationParentPathIsWritable(stateProps) &&
+    Constants.pathsInSameTlf(
+      stateProps._moveOrCopy.sourceItemPath,
+      stateProps._moveOrCopy.destinationParentPath
+    )
       ? dispatchProps._onMoveHere
       : null,
   onNewFolder: destinationParentPathIsWritable(stateProps)
