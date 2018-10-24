@@ -163,13 +163,7 @@ function updateConstants() {
           icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
           icon.charCode ? [`charCode: 0x${icons[name].charCode.toString(16)}`] : [],
           icon.extension ? [`extension: '${icons[name].extension}'`] : [],
-          icon.require
-            ? [
-                `// $FlowIssue https://github.com/facebook/flow/issues/6628\nrequire: require(${
-                  icons[name].require
-                })`,
-              ]
-            : [],
+          icon.require ? [`require: require(${icons[name].require})`] : [],
         ]
 
         return `'${name}': {
