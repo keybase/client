@@ -14,7 +14,7 @@ const unlockFolderMapPropsToState = state => {
     paperkeyError,
     phase,
     waiting,
-    windowComponent: 'unlockFolders',
+    windowComponent: 'unlock-folders',
     windowOpts,
     windowParam: '',
     windowTitle: 'UnlockFolders',

@@ -374,6 +374,18 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 	return cli.SimpleFSFolderEditHistory(ctx, path)
 }
 
+// SimpleFSReset implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSReset(
+	ctx context.Context, path keybase1.Path) (err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSReset(ctx, path)
+}
+
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	keybase1.SimpleFSQuotaUsage, error) {

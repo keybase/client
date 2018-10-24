@@ -31,7 +31,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
       Route.navigateAppend([
@@ -55,8 +55,7 @@ const mapDispatchToProps = (dispatch) => ({
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },

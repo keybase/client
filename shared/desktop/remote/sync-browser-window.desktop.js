@@ -2,9 +2,8 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll make a BrowserWindow
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import hotPath from '../app/hot-path.desktop'
 import menuHelper from '../app/menu-helper.desktop'
-import {getRendererHTML} from '../app/dev.desktop'
+import {resolveRootAsURL} from '../app/resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 type Props = {
@@ -30,20 +29,6 @@ const defaultWindowOpts = {
 
 type State = {
   remoteWindow: ?SafeElectron.BrowserWindowType,
-}
-
-const sendLoad = (webContents: any, windowParam: string, windowComponent: string, windowTitle: ?string) => {
-  webContents.send('load', {
-    scripts: [
-      {
-        async: false,
-        src: hotPath('component-loader.bundle.js'),
-      },
-    ],
-    windowComponent,
-    windowParam,
-    windowTitle,
-  })
 }
 
 function SyncBrowserWindow(ComposedComponent: any) {
@@ -88,10 +73,6 @@ function SyncBrowserWindow(ComposedComponent: any) {
         return
       }
       const webContents = this._remoteWindow.webContents
-      webContents.on('did-finish-load', () => {
-        sendLoad(webContents, this.props.windowParam, this.props.windowComponent, this.props.windowTitle)
-      })
-
       if (showDevTools && !skipSecondaryDevtools) {
         webContents.openDevTools({mode: 'detach'})
       }
@@ -125,7 +106,11 @@ function SyncBrowserWindow(ComposedComponent: any) {
 
       SafeElectron.getIpcRenderer().send('showDockIconForRemoteWindow', this._remoteWindowId)
 
-      remoteWindow.loadURL(getRendererHTML(this.props.windowComponent))
+      const htmlFile = resolveRootAsURL(
+        'dist',
+        `${this.props.windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${this.props.windowParam || ''}`
+      )
+      remoteWindow.loadURL(htmlFile)
 
       this._setupWebContents()
       remoteWindow.on('close', this._onWindowClosed)
@@ -147,4 +132,3 @@ function SyncBrowserWindow(ComposedComponent: any) {
 }
 
 export default SyncBrowserWindow
-export {sendLoad}

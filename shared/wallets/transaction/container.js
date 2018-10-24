@@ -20,7 +20,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onCancelPayment: (paymentID: Types.PaymentID) =>
+    dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true})),
   _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([

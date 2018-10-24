@@ -3,6 +3,7 @@ import * as React from 'react'
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTree from '../../actions/route-tree'
+import openURL from '../../util/open-url'
 import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 import Onboarding from '../onboarding/container'
@@ -24,6 +25,7 @@ const mapDispatchToProps = dispatch => ({
   onLinkExisting: () => {
     dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
   },
+  onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
@@ -32,6 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
+  onWhatIsStellar: dispatchProps.onWhatIsStellar,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   style: ownProps.style,

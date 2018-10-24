@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {styleSheetCreate, globalColors, globalMargins, isMobile, type StylesCrossPlatform} from '../../styles'
+import * as Styles from '../../styles'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -10,7 +10,7 @@ type AddProps = {
   onLinkExisting: () => void,
 }
 
-const rowHeight = isMobile ? 56 : 48
+const rowHeight = Styles.isMobile ? 56 : 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
@@ -33,7 +33,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         className="hover_background_color_blueGrey2"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Text type="BodySemibold" style={{color: globalColors.purple}}>
+        <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.purple}}>
           Add an account
         </Kb.Text>
       </Kb.Box2>
@@ -51,17 +51,29 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
+const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
+  <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
+    <Kb.Box2 centerChildren={true} direction="horizontal">
+      <Kb.Icon size={16} type="iconfont-info" />
+      <Kb.Text style={styles.infoText} type="BodySemibold">
+        What is Stellar?
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
+)
+
 type Props = {
   acceptedDisclaimer?: boolean,
   accountIDs: Array<AccountID>,
-  style?: StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
   onAddNew: () => void,
   onLinkExisting: () => void,
+  onWhatIsStellar: () => void,
   refresh: () => void,
   title: string,
 }
 
-type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'what is stellar'}
 
 class _WalletList extends React.Component<Props> {
   componentDidMount() {
@@ -80,6 +92,8 @@ class _WalletList extends React.Component<Props> {
             onLinkExisting={this.props.onLinkExisting}
           />
         )
+      case 'what is stellar':
+        return <WhatIsStellar key={row.type} onWhatIsStellar={this.props.onWhatIsStellar} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -99,7 +113,10 @@ class _WalletList extends React.Component<Props> {
       )
     }
     const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
-    rows.push({type: 'add wallet', key: 'add wallet'})
+    const addWallet = 'add wallet'
+    const whatIsStellar = 'what is stellar'
+    rows.push({key: addWallet, type: addWallet})
+    rows.push({key: whatIsStellar, type: whatIsStellar})
 
     return <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
   }
@@ -107,15 +124,28 @@ class _WalletList extends React.Component<Props> {
 
 const WalletList = Kb.HeaderOnMobile(_WalletList)
 
-const styles = styleSheetCreate({
-  icon: {
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
-    width: 32,
-    height: 32,
-  },
+const styles = Styles.styleSheetCreate({
   addContainerBox: {height: rowHeight, alignItems: 'center'},
+  icon: {
+    height: Styles.globalMargins.mediumLarge,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    width: Styles.globalMargins.mediumLarge,
+  },
+  infoText: {
+    paddingLeft: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: -1,
+  },
   progressIndicator: {height: 30, width: 30},
+  whatIsStellar: {
+    backgroundColor: Styles.globalColors.blue5,
+    bottom: 0,
+    height: Styles.globalMargins.large,
+    justifyContent: 'center',
+    position: 'absolute',
+    width: '100%',
+  },
 })
 
 export type {Props}

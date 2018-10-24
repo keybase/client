@@ -296,8 +296,7 @@
     },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // Saving an attachment to mobile storage
     "attachmentMobileSave": {
@@ -318,8 +317,7 @@
     },
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "message": "Types.Message",
       "path?": "string"
     },
     // We want to upload some attachments
@@ -343,6 +341,14 @@
     "attachmentPasted": {
       "conversationIDKey": "Types.ConversationIDKey",
       "data": "Buffer"
+    },
+    "attachmentFullscreenSelection": {
+      "message": "Types.Message"
+    },
+    "attachmentFullscreenNext": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "backInTime": "boolean"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {

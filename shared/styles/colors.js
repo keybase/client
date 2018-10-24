@@ -52,6 +52,7 @@ const colors = {
   orange: '#ff6f21',
   purple: '#704eba',
   purple2: '#845cdb',
+  purple2_01: 'rgba(132, 92, 219, 0.01)',
   purple2_40: 'rgba(132, 92, 219, 0.4)',
   purple3: '#9f7bec',
   red: '#ff4d61',

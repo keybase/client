@@ -458,16 +458,18 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
     .catch(err => logger.error(`Error loading request detail: ${err.message}`))
 
 const cancelPayment = (state: TypedState, action: WalletsGen.CancelPaymentPayload) => {
-  const {paymentID} = action.payload
+  const {paymentID, showAccount} = action.payload
   const pid = Types.paymentIDToString(paymentID)
   logger.info(`cancelPayment: cancelling payment with ID ${pid}`)
   return RPCStellarTypes.localCancelPaymentLocalRpcPromise(
-    {paymentID: Types.paymentIDToRPCPaymentID(action.payload.paymentID)},
-    Constants.cancelPaymentWaitingKey(action.payload.paymentID)
+    {paymentID: Types.paymentIDToRPCPaymentID(paymentID)},
+    Constants.cancelPaymentWaitingKey(paymentID)
   )
     .then(_ => {
       logger.info(`cancelPayment: successfully cancelled payment with ID ${pid}`)
-      return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
+      if (showAccount) {
+        return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
+      }
     })
     .catch(err => {
       logger.error(`cancelPayment: failed to cancel payment with ID ${pid}. Error: ${err.message}`)
