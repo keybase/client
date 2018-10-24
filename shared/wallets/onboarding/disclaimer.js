@@ -217,7 +217,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
     },
     isElectron: {
-      height: '300px',
+      height: 300,
     },
   }),
 })
