@@ -318,15 +318,6 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	return false
 }
 
-func (s *localizerPipeline) waitForResume(ch chan struct{}, stopCh chan struct{}) bool {
-	select {
-	case <-ch:
-		return true
-	case <-stopCh:
-		return false
-	}
-}
-
 func (s *localizerPipeline) localizeLoop() {
 	var currentJob *localizerPipelineJob
 	ctx := context.Background()
