@@ -20,14 +20,15 @@ func New(secret stellar1.SecretKey, name string) (*stellar1.BundleRestricted, er
 	if err != nil {
 		return nil, err
 	}
-	entry := newEntry(accountID, name, false)
-	r := &stellar1.BundleRestricted{
-		Revision:       1,
-		Accounts:       []stellar1.BundleEntryRestricted{entry},
-		AccountBundles: make(map[stellar1.AccountID]stellar1.AccountBundle),
-	}
-	r.AccountBundles[accountID] = newAccountBundle(accountID, secretKey)
-	return r, nil
+	return &stellar1.BundleRestricted{
+		Revision: 1,
+		Accounts: []stellar1.BundleEntryRestricted{
+			newEntry(accountID, name, false),
+		},
+		AccountBundles: map[stellar1.AccountID]stellar1.AccountBundle{
+			accountID: newAccountBundle(accountID, secretKey),
+		},
+	}, nil
 }
 
 // NewInitial creates a BundleRestricted with a new random secret key.
@@ -36,9 +37,8 @@ func NewInitial(name string) (*stellar1.BundleRestricted, error) {
 	if err != nil {
 		return nil, err
 	}
-	masterKey := stellar1.SecretKey(full.Seed())
 
-	x, err := New(masterKey, name)
+	x, err := New(stellar1.SecretKey(full.Seed()), name)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +48,7 @@ func NewInitial(name string) (*stellar1.BundleRestricted, error) {
 	return x, nil
 }
 
+// NewFromBundle creates a BundleRestricted from a Bundle.
 func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 	r := &stellar1.BundleRestricted{
 		Revision:       bundle.Revision,
@@ -57,10 +58,14 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 	if r.Revision > 1 && (r.Prev == nil || len(r.Prev) == 0) {
 		return nil, fmt.Errorf("NewFromBundle missing Prev: %+v", bundle)
 	}
-	for _, acct := range bundle.Accounts {
-		r.Accounts = append(r.Accounts, newEntry(acct.AccountID, acct.Name, acct.IsPrimary))
-		// XXX multiple signers
-		r.AccountBundles[acct.AccountID] = newAccountBundle(acct.AccountID, acct.Signers[0])
+	r.Accounts = make([]stellar1.BundleEntryRestricted, len(bundle.Accounts))
+	for i, acct := range bundle.Accounts {
+		r.Accounts[i] = newEntry(acct.AccountID, acct.Name, acct.IsPrimary)
+		r.AccountBundles[acct.AccountID] = stellar1.AccountBundle{
+			Revision:  1,
+			AccountID: acct.AccountID,
+			Signers:   acct.Signers,
+		}
 	}
 	return r, nil
 }
@@ -92,6 +97,21 @@ type BoxedEncoded struct {
 	AcctBundles         map[stellar1.AccountID]AcctBoxedEncoded
 }
 
+func newBoxedEncoded() *BoxedEncoded {
+	return &BoxedEncoded{
+		FormatVersionParent: stellar1.BundleVersion_V2,
+		AcctBundles:         make(map[stellar1.AccountID]AcctBoxedEncoded),
+	}
+}
+
+func newVisibleParent(a *stellar1.BundleRestricted, accountsVisible []stellar1.BundleVisibleEntryV2) stellar1.BundleVisibleV2 {
+	return stellar1.BundleVisibleV2{
+		Revision: a.Revision,
+		Prev:     a.Prev,
+		Accounts: accountsVisible,
+	}
+}
+
 func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 	benc := BundleEncodedB64{
 		EncParent:   b.EncParentB64,
@@ -108,6 +128,7 @@ func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 
 type AcctBoxedEncoded struct {
 	Enc           stellar1.EncryptedAccountBundle
+	EncHash       stellar1.Hash
 	EncB64        string // base64 msgpacked Enc
 	FormatVersion stellar1.AccountBundleVersion
 }
@@ -121,22 +142,15 @@ type BundleEncodedB64 struct {
 
 // BoxAndEncode encrypts and encodes a BundleRestricted object.
 func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*BoxedEncoded, error) {
-	boxed := &BoxedEncoded{
-		FormatVersionParent: stellar1.BundleVersion_V2,
-	}
 
 	accountsVisible, accountsSecret := visibilitySplit(a)
 
 	// visible portion parent
-	visibleV2 := stellar1.BundleVisibleV2{
-		Revision: a.Revision,
-		Prev:     a.Prev,
-		Accounts: accountsVisible,
-	}
+	visibleV2 := newVisibleParent(a, accountsVisible)
+
+	boxed := newBoxedEncoded()
 
 	// encrypted account bundles
-	boxed.AcctBundles = make(map[stellar1.AccountID]AcctBoxedEncoded)
-
 	for i, acctEntry := range visibleV2.Accounts {
 		secret, ok := a.AccountBundles[acctEntry.AccountID]
 		if !ok {
@@ -150,12 +164,7 @@ func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGenera
 			boxed.AcctBundles[acctEntry.AccountID] = *ab
 		}
 
-		encPack, err := libkb.MsgpackEncode(ab.Enc)
-		if err != nil {
-			return nil, err
-		}
-		encHash := sha256.Sum256(encPack)
-		visibleV2.Accounts[i].EncAcctBundleHash = encHash[:]
+		visibleV2.Accounts[i].EncAcctBundleHash = ab.EncHash
 	}
 
 	// have to do this after to get hashes of encrypted account bundles
@@ -237,13 +246,7 @@ func parentBoxAndEncode(bundle stellar1.BundleSecretVersioned, pukGen keybase1.P
 }
 
 func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.AccountBundle, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*AcctBoxedEncoded, error) {
-	// visiblePack, err := libkb.MsgpackEncode(visEntry)
-	// if err != nil {
-	//		return nil, err
-	//	}
-	// visibleHash := sha256.Sum256(visiblePack)
 	versionedSecret := stellar1.NewAccountBundleSecretVersionedWithV1(stellar1.AccountBundleSecretV1{
-		// VisibleHash: visibleHash[:],
 		AccountID: accountID,
 		Signers:   accountBundle.Signers,
 	})
@@ -253,7 +256,13 @@ func accountBoxAndEncode(accountID stellar1.AccountID, accountBundle stellar1.Ac
 		return nil, err
 	}
 
-	res := AcctBoxedEncoded{Enc: encBundle, EncB64: b64, FormatVersion: 999 /* where is this */}
+	encPack, err := libkb.MsgpackEncode(encBundle)
+	if err != nil {
+		return nil, err
+	}
+	encHash := sha256.Sum256(encPack)
+
+	res := AcctBoxedEncoded{Enc: encBundle, EncHash: encHash[:], EncB64: b64, FormatVersion: 1}
 
 	return &res, nil
 }
@@ -450,24 +459,7 @@ func unboxParent(encBundle stellar1.EncryptedBundle, hash stellar1.Hash, visB64 
 	var bundleOut stellar1.BundleRestricted
 	switch version {
 	case stellar1.BundleVersion_V2:
-		visiblePack, err := base64.StdEncoding.DecodeString(visB64)
-		if err != nil {
-			return nil, 0, err
-		}
-		visibleHash := sha256.Sum256(visiblePack)
-		secretV2 := versioned.V2()
-		if !hmac.Equal(visibleHash[:], secretV2.VisibleHash) {
-			return nil, 0, errors.New("corrupted bundle: visible hash mismatch")
-		}
-		var visibleV2 stellar1.BundleVisibleV2
-		err = libkb.MsgpackDecode(&visibleV2, visiblePack)
-		if err != nil {
-			return nil, 0, err
-		}
-		bundleOut, err = merge(secretV2, visibleV2)
-		if err != nil {
-			return nil, 0, err
-		}
+		bundleOut, err = unboxParentV2(versioned, visB64)
 	default:
 		return nil, 0, fmt.Errorf("unsupported parent bundle version: %d", version)
 	}
@@ -478,6 +470,25 @@ func unboxParent(encBundle stellar1.EncryptedBundle, hash stellar1.Hash, visB64 
 	}
 
 	return &bundleOut, version, nil
+}
+
+func unboxParentV2(versioned stellar1.BundleSecretVersioned, visB64 string) (stellar1.BundleRestricted, error) {
+	var empty stellar1.BundleRestricted
+	visiblePack, err := base64.StdEncoding.DecodeString(visB64)
+	if err != nil {
+		return empty, err
+	}
+	visibleHash := sha256.Sum256(visiblePack)
+	secretV2 := versioned.V2()
+	if !hmac.Equal(visibleHash[:], secretV2.VisibleHash) {
+		return empty, errors.New("corrupted bundle: visible hash mismatch")
+	}
+	var visibleV2 stellar1.BundleVisibleV2
+	err = libkb.MsgpackDecode(&visibleV2, visiblePack)
+	if err != nil {
+		return empty, err
+	}
+	return merge(secretV2, visibleV2)
 }
 
 // decryptParent decrypts an encrypted parent bundle with the provided puk.
