@@ -173,7 +173,7 @@
     "reselect": "3.0.1",
     "rn-fetch-blob": "0.10.13",
     "shallowequal": "1.1.0",
-    "simple-markdown": "^0.4.2",
+    "simple-markdown": "0.4.2",
     "tlds": "1.203.1",
     "typedarray-to-buffer": "3.1.5",
     "url-parse": "1.4.3",

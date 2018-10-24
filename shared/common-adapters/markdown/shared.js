@@ -402,5 +402,3 @@ export {
   parseMarkdown,
   parserFromMeta,
 }
-
-export {EmojiIfExists} from './react'

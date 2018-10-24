@@ -194,22 +194,18 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
         {'\n'}
       </Text>
     ),
-  fence: (node, output, state) => {
-    if (isMobile) {
-      return (
-        <Box key={state.key} style={codeSnippetBlockStyle}>
-          <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
-            {node.content}
-          </Text>
-        </Box>
-      )
-    }
-    return (
+  fence: (node, output, state) =>
+    isMobile ? (
+      <Box key={state.key} style={codeSnippetBlockStyle}>
+        <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
+          {node.content}
+        </Text>
+      </Box>
+    ) : (
       <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
         {node.content}
       </Text>
-    )
-  },
+    ),
   inlineCode: (node, output, state) => {
     return (
       <Text type="Body" key={state.key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
@@ -245,20 +241,16 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
       </Text>
     )
   },
-  blockQuote: (node, output, state) => {
-    if (isMobile) {
-      return (
-        <Box key={state.key} style={quoteStyle}>
-          {output(node.content, {...state, inBlockQuote: true})}
-        </Box>
-      )
-    }
-    return (
+  blockQuote: (node, output, state) =>
+    isMobile ? (
       <Box key={state.key} style={quoteStyle}>
         {output(node.content, {...state, inBlockQuote: true})}
       </Box>
-    )
-  },
+    ) : (
+      <Box key={state.key} style={quoteStyle}>
+        {output(node.content, {...state, inBlockQuote: true})}
+      </Box>
+    ),
   mention: (node, output, state) => {
     // style={{color: undefined}}
     return (

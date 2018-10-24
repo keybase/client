@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Box, Text, Icon, ConnectedUsernames} from '../../../../common-adapters'
-import {EmojiIfExists} from '../../../../common-adapters/markdown/shared'
+import {Box, Text, Icon, ConnectedUsernames, EmojiIfExists} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
