@@ -92,6 +92,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
             multiline={true}
             rowsMin={2}
             rowsMax={3}
+            value={this.props.recipientPublicKey}
           />
         </Kb.Box2>
         {!!this.props.errorMessage && (
