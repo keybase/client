@@ -180,8 +180,9 @@ func TestPhoneNumberNotifications(t *testing.T) {
 	require.NoError(t, err)
 	ann.drainGregor()
 	require.Equal(t, annListener.verifiedPhones, expectedNotification)
+	require.Equal(t, annListener.supersededPhones, []keybase1.PhoneNumber(nil))
 
-	// if bob now ands and verifies that same number, he should have new notifications for add and verify
+	// if bob now adds and verifies that same number, he should have new notifications for add and verify
 	// and ann should have one that her number was superseded
 	cli3 := &client.CmdAddPhoneNumber{
 		Contextified: libkb.NewContextified(bob.tc.G),
