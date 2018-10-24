@@ -48,13 +48,13 @@ const AccountPayment = (props: Props) => {
       <Box2
         direction="horizontal"
         fullWidth={true}
-        style={collapseStyles([styles.alignItemsCenter, styles.flexWrap])}
+        style={collapseStyles([
+          styles.alignItemsCenter,
+          styles.flexWrap,
+          {marginBottom: globalMargins.xtiny},
+        ])}
       >
-        <Box2
-          direction="horizontal"
-          gap="xtiny"
-          style={collapseStyles([styles.alignItemsCenter, {marginBottom: globalMargins.xtiny}])}
-        >
+        <Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text
             type="BodySmall"
@@ -66,8 +66,8 @@ const AccountPayment = (props: Props) => {
             </Text>
             {props.pending ? '...' : '.'}
           </Text>
-          {props.canceled && <Text type="BodySmall">CANCELED</Text>}
         </Box2>
+        {props.canceled && <Text type="BodySmall">CANCELED</Text>}
         {!!props.balanceChange && (
           <Box2 direction="horizontal" style={styles.marginLeftAuto}>
             <Text
