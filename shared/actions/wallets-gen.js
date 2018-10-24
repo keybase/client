@@ -96,7 +96,10 @@ type _BuiltRequestReceivedPayload = $ReadOnly<{|
   build: Types.BuiltRequest,
   forBuilding: Types.Building,
 |}>
-type _CancelPaymentPayload = $ReadOnly<{|paymentID: Types.PaymentID|}>
+type _CancelPaymentPayload = $ReadOnly<{|
+  showAccount?: boolean,
+  paymentID: Types.PaymentID,
+|}>
 type _CancelRequestPayload = $ReadOnly<{|
   conversationIDKey?: ChatTypes.ConversationIDKey,
   ordinal?: ChatTypes.Ordinal,
@@ -275,7 +278,7 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
 /**
- * Cancel a payment. Valid for payments of status 'cancelable'.
+ * Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.
  */
 export const createCancelPayment = (payload: _CancelPaymentPayload) => ({error: false, payload, type: cancelPayment})
 /**

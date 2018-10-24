@@ -21,6 +21,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const makeOutOfDate: I.RecordFactory<Types._OutOfDate> = I.Record({
   critical: false,
   message: undefined,
+  updating: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

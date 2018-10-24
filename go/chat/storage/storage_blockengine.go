@@ -399,7 +399,7 @@ func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.Conv
 }
 
 func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
+	convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID) (err Error) {
 
 	// Run all errors through resultCollector
 	defer func() {
@@ -445,6 +445,9 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 					b.BlockID, be.getMsgID(b.BlockID, index))
 				return MissError{}
 			}
+		} else if msg.GetMessageID() <= minID {
+			// If we drop below the min ID, just bail out of here with no error
+			return nil
 		}
 		bMsgID := msg.GetMessageID()
 
@@ -463,7 +466,7 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 	// again. We check if lastAdded > 0 to avoid overflowing chat1.MessageID
 	// which is a uint type
 	if !res.Done() && b.BlockID > 0 && lastAdded > 0 {
-		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
+		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1, minID)
 	}
 	return nil
 }

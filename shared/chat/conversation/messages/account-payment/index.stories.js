@@ -5,13 +5,19 @@ import {Box} from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import Payment from '.'
 
-const sendCommon = {
+const common = {
+  cancelButtonInfo: '',
+  cancelButtonLabel: '',
+  canceled: false,
+  claimButtonLabel: '',
+  onCancel: action('onCancel'),
+  onClaim: action('onClaim'),
   onSend: action('onSend'),
   sendButtonLabel: '',
 }
 
 const sentProps = {
-  ...sendCommon,
+  ...common,
   action: 'sent Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
@@ -23,7 +29,7 @@ const sentProps = {
 }
 
 const sendingProps = {
-  ...sendCommon,
+  ...common,
   action: 'sending Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
@@ -34,8 +40,19 @@ const sendingProps = {
   pending: true,
 }
 
+const claimableProps = {
+  ...sendingProps,
+  claimButtonLabel: 'Claim lumens worth $35',
+}
+
+const cancelableProps = {
+  ...sendingProps,
+  cancelButtonInfo: `This transaction can be canceled because barb does not yet have a wallet. Encourage barb to claim this and set up a wallet.`,
+  cancelButtonLabel: 'Cancel',
+}
+
 const requestCommon = {
-  ...sendCommon,
+  ...common,
   action: 'requested Lumens worth',
   balanceChange: '',
   balanceChangeColor: '',
@@ -60,7 +77,7 @@ const theyRequestProps = {
 }
 
 const sentAssetProps = {
-  ...sendCommon,
+  ...common,
   action: 'sent',
   amount: '1 BTC/Abc.def',
   balanceChange: '-1 BTC',
@@ -72,7 +89,7 @@ const sentAssetProps = {
 }
 
 const loadingProps = {
-  ...sendCommon,
+  ...common,
   action: '',
   amount: '',
   balanceChange: '',
@@ -88,6 +105,8 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
     .add('Sent', () => <Payment {...sentProps} />)
     .add('Sending', () => <Payment {...sendingProps} />)
+    .add(`Relay from sender's perspective`, () => <Payment {...cancelableProps} />)
+    .add(`Relay from recipient's perspective`, () => <Payment {...claimableProps} />)
     .add('You request', () => <Payment {...youRequestProps} />)
     .add('They request', () => <Payment {...theyRequestProps} />)
     .add('Sent non-native', () => <Payment {...sentAssetProps} />)

@@ -44,6 +44,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
+  attachmentFullscreenMessage: null,
 
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
