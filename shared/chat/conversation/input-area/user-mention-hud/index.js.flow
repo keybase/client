@@ -1,22 +1,7 @@
 // @flow
 import React from 'react'
 
-/*
- * This Flow type file exists because of a Flow error in
- * `user-mention-hud/index.js` where Flow will get confused when attempting to
- * type the incoming props to MentionHud.
- *
- * The issue is that recompose relies on Flow to correctly infer the types for
- * the higher order component composition.
- *
- * compoose(hoc1, hoc2, hoc3)(component) becomes Hoc1(Hoc2(Hoc3(component))).
- * Flow will lose typing on Hoc1.
- *
- * Adding this Flow file successfully adds types back to MentionHud via compose(...).
- *
- * TODO: Investigate if another typing stategy for Input > PlatformInput >
- * MentionHudContainer > MentionHud that will not cause a Flow error
- */
+// TODO remove this file and fix the types in index.js
 export type MentionContainer = {}
 
 export type MentionHudProps = {

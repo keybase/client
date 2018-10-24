@@ -1,4 +1,5 @@
 // @flow
+// TODO the hierarchy of this component is too confusing, clean this up
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters/index'
 import * as Styles from '../../../../styles'
@@ -64,16 +65,16 @@ const hudStyle = {
   backgroundColor: Styles.globalColors.white,
 }
 
-type State = {
+type State = {|
   selectedIndex: number,
-}
+|}
 
-type Data = {
+type Data = {|
   key: string,
   username: string,
   fullName: string,
   selected: boolean,
-}
+|}
 
 class MentionHud extends React.Component<MentionHudProps, State> {
   state = {selectedIndex: 0}
@@ -83,6 +84,7 @@ class MentionHud extends React.Component<MentionHudProps, State> {
     const fullList = makeFullList(this.props)
     const data = makeData(fullList, this.props.filter, this.state.selectedIndex)
     return (
+      // $FlowIssue these types are all messed up
       <MentionHudImpl
         {...this.props}
         fullList={fullList}
@@ -94,7 +96,7 @@ class MentionHud extends React.Component<MentionHudProps, State> {
   }
 }
 
-type ImplProps = MentionHudProps & {data: Array<Data>, fullList: Array<Data>}
+type ImplProps = MentionHudProps & {|data: Array<Data>, fullList: Array<Data>|}
 class MentionHudImpl extends React.Component<ImplProps> {
   componentDidUpdate(prevProps: ImplProps) {
     if (this.props.data.length === 0) {
