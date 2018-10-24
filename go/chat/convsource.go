@@ -1147,7 +1147,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, &act, chat1.ChatActivitySource_LOCAL)
 
 		// Send an additional notification to refresh the thread
-		go s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
 			chat1.ConversationStaleUpdate{
 				ConvID:     convID,
 				UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
