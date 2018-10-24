@@ -293,24 +293,6 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
       </React.Fragment>
     )
   },
-  mailto: (node, output, state) => {
-    return (
-      <React.Fragment key={state.key}>
-        {node.spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          key={state.key}
-          style={linkStyle}
-          title={node.content}
-          onClickURL={node.mailto}
-          onLongPressURL={node.content}
-        >
-          {node.content}
-        </Text>
-      </React.Fragment>
-    )
-  },
 })
 
 const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (

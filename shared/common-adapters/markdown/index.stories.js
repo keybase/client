@@ -12,43 +12,6 @@ const cases = {
 
   
   foo`,
-
-  mailto: `email bob@keybase.io`,
-  previousIssues: `
-Handled incorrectly:
-https://www.google.com/search?q=full+circle+bar&oq=full+circle+bar&aqs=chrome..69i57j0j69i60l3j69i61.2262j0j7&sourceid=chrome&ie=UTF-8
-
-https://github.com/keybase/client/compare/master...miles/team-test
-
-https://groups.google.com/forum/#!topic/golang-dev/1ZV7mIj_Du8
-
-https://en.wikipedia.org/wiki/Redshirt_(character)
-
-(single character domains)
-https://t.co
-https://g.co
-
-wrapped in quotes
-"http://google.com"
-
-check out foo.json
-
-On *hey*'s profile page
-
-email this: bob@keybase.io
-
-
-\`a\`/\`b\` gets parsed into a/b
-
-Quotes with a blank or whitespace line will break a contiguous quote.
-
-For example:
-
-> Hi Andrey,
-> 
-> This is some email body.
-
-Bolding numbers: *test9* *9*`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
   paragraphs: `this is a sentence.
@@ -303,7 +266,7 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
+                      ? v.substr(0, 8) + '...'
                       : Array.isArray(v)
                         ? v.map(o => ({type: o.type, content: o.content}))
                         : v,

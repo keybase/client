@@ -5,10 +5,9 @@ import type {FeatureFlags} from './feature-flags'
 // To enable a feature, include it in the environment variable KEYBASE_FEATURES.
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
-let features = [
-  ...(featureFlagsOverride && featureFlagsOverride.split(',')),
-  ...(process.env['KEYBASE_FEATURES'] || '').split(','),
-]
+let features =
+  (featureFlagsOverride && featureFlagsOverride.split(',')) ||
+  (process.env['KEYBASE_FEATURES'] || '').split(',')
 
 const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
