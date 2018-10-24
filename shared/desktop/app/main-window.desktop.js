@@ -35,7 +35,7 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
-  const preload = resolveRoot('app', `main-preload${__DEV__ ? '.dev' : ''}.js`)
+  const preload = resolveRoot('app', `preload.js`) // maybe a .dev one thats bundled?
   console.log('aaaaa preload file is', preload)
 
   const mainWindow = new Window(htmlFile, {

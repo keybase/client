@@ -1,5 +1,6 @@
 // @flow
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
+
 type Log = (...args: Array<any>) => void
 
 export const localLog: Log = console.log.bind(console)

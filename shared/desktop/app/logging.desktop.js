@@ -3,14 +3,16 @@ import type {LogLineWithLevelISOTimestamp} from '../../logger/types'
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import path from 'path'
+console.log('aaa loggingdeskstop start')
 
 const isWindows = process.platform === 'win32'
 // TODO clean up logfilename
 
 export function deleteOldLog(olderThanMs: number): void {
-  return fs.stat(logFileName(), (err, stats) => {
+  const {logFileName} = require('../../constants/platform.desktop')
+  return fs.stat(logFileName, (err, stats) => {
     if (!err && Date.now() - stats.mtime.getTime() > olderThanMs) {
-      return fs.unlink(logFileName())
+      return fs.unlink(logFileName)
     }
   })
 }
@@ -27,7 +29,8 @@ const fileDoesNotExist = err => {
 }
 
 const setupFileWritable = () => {
-  const logFile = logFileName()
+  const {logFileName} = require('../../constants/platform.desktop')
+  const logFile = logFileName
   const logLimit = 5e6
 
   if (!logFile) {
@@ -76,7 +79,7 @@ const localLog: Log = console.log.bind(console)
 const localWarn: Log = console.warn.bind(console)
 const localError: Log = console.error.bind(console)
 
-const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
+export const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
   lines: Array<LogLineWithLevelISOTimestamp>
 ) =>
   new Promise((resolve, reject) => {
@@ -118,4 +121,10 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
     }
   })
 
-export {localLog, localWarn, localError, writeLogLinesToFile}
+// console.log('aaaaa injejct real logger calls')
+// // Inject into the global space
+// global.keybase.writeLogLinesToFile = writeLogLinesToFile
+// global.keybase.deleteOldLog = deleteOldLog
+
+// export {localLog, localWarn, localError}
+console.log('aaa loggingdeskstop end')

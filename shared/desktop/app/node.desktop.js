@@ -1,8 +1,9 @@
 // @flow
 // Entry point for the node part of the electron app
-// MUST get imported first
+// MUST be in this very specific order, DONT CHANGE
 import './preload'
-//
+// import './logging.desktop'
+// end of DONT CHANGE
 import MainWindow from './main-window.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
