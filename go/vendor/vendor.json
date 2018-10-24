@@ -737,6 +737,12 @@
 			"revisionTime": "2017-04-09T01:48:31Z"
 		},
 		{
+			"checksumSHA1": "LNSI13Xkej61jxgd+eGum2RZWC0=",
+			"path": "github.com/yhirose/go-peg",
+			"revision": "c8117740a0f61db237cc43aa03aadfcb437d9df5",
+			"revisionTime": "2017-11-04T16:33:33Z"
+		},
+		{
 			"checksumSHA1": "AFGQ/FSbG7cFzFu/QvAFMzWj4Ak=",
 			"path": "go4.org/readerutil",
 			"revision": "09d86de304dc27e636298361bbfee4ac6ab04f21",
