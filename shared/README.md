@@ -37,7 +37,6 @@ You can set environment variables for debugging:
 | Env     | Description |
 |---------|-------------|
 | KEYBASE_RUN_MODE | Run mode: prod, staging, devel |
-| KEYBASE_FEATURES | Feature flags |
 | NO_DASHBOARD | Don't show dashboard |
 
 You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,

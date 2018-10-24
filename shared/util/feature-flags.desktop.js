@@ -2,12 +2,11 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
 import type {FeatureFlags} from './feature-flags'
 
-// To enable a feature, include it in the environment variable KEYBASE_FEATURES.
-// For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
+if (process.env['KEYBASE_FEATURES']) {
+  console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
+}
 
-let features =
-  (featureFlagsOverride && featureFlagsOverride.split(',')) ||
-  (process.env['KEYBASE_FEATURES'] || '').split(',')
+let features = featureFlagsOverride && featureFlagsOverride.split(',')
 
 const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
