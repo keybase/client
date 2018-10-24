@@ -75,9 +75,11 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         <Kb.Text type="Header" style={styles.headerText}>
           Almost done.
         </Kb.Text>
+
         <Kb.Text type="Header" style={styles.headerText}>
           It's important you read this.
         </Kb.Text>
+
         <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContentContainer}>
           <Kb.Text type="Body" style={styles.bodyText}>
             We believe Keybase can help make cryptocurrency usable for 2 reasons:
