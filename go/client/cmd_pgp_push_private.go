@@ -29,7 +29,7 @@ func parsePGPFingerprints(ctx *cli.Context) ([]keybase1.PGPFingerprint, error) {
 	all := ctx.Bool("all")
 	fps := ctx.Args()
 	if (all && len(fps) > 0) || (!all && len(fps) == 0) {
-		return nil, errors.New("You must one of specify --all or fingerprints")
+		return nil, errors.New("You must specify either the --all flag, or pass individual PGP fingerprints")
 	}
 	if all {
 		return nil, nil
@@ -90,7 +90,7 @@ func NewCmdPGPPushPrivate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	return cli.Command{
 		Name:         "push-private",
 		ArgumentHelp: "[<fingerprints...>]",
-		Usage:        "Export PGP keys from GnuPG keychain, and write them  to KBFS.",
+		Usage:        "Export PGP keys from GnuPG keychain, and write them to KBFS.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "all",
@@ -103,6 +103,7 @@ func NewCmdPGPPushPrivate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPPushPrivate{Contextified: libkb.NewContextified(g)}, "push-private", c)
+			cl.SetNoStandalone()
 		},
 		Description: `"keybase pgp push-private" exports the given private keys from the GnuPG
    keychain and pushes them to KBFS, at /keybase/private/<you>/.keys/pgp. Here,

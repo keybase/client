@@ -74,11 +74,11 @@ func NewCmdPGPPullPrivate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPPullPrivate{Contextified: libkb.NewContextified(g)}, "pull-private", c)
+			cl.SetNoStandalone()
 		},
-		Description: `"keybase pgp pull-private" exports the given private keys from the GnuPG
-   keychain and pus them to KBFS, at /keybase/private/<you>/.keys/pgp. Here,
-   they are protected with your Keybase device keys, and cannot be broken
-   via brute-force passphrase guessing.`,
+		Description: `"keybase pgp pull-private" pulls PGP secret keys from /keybase/private/<you>/.keys/pgp,
+  and imports them into your local GnuPG keychain. See "keybase pgp push-private" for the command
+  that pushes keys to that KBFS location.`,
 	}
 }
 

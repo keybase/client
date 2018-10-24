@@ -123,13 +123,13 @@ protocol pgp {
   void pgpStorageDismiss(int sessionID);
 
   /**
-   push the PGP key that meets the given fingerprint to KBFS. If it is blank, then
+   push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then
    push all matching PGP keys in the user's sigchain.
    */
   void pgpPushPrivate(int sessionID, array<PGPFingerprint> fingerprints);
 
   /**
-   pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then
+   pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then
    attempt to pull all matching PGP keys in the user's sigchain.
    */
   void pgpPullPrivate(int sessionID, array<PGPFingerprint> fingerprints);
