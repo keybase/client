@@ -418,7 +418,7 @@ export const createSelectAccount = (payload: _SelectAccountPayload) => ({payload
 /**
  * Send a potential payment to the service for validation
  */
-export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
+export const createBuildPayment = (payload: _BuildPaymentPayload) => ({payload, type: buildPayment})
 /**
  * Set building amount
  */

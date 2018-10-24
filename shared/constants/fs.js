@@ -175,6 +175,11 @@ export const makeError = (record?: {
   })
 }
 
+export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
+  destinationParentPath: Types.stringToPath('/keybase'),
+  sourceItemPath: Types.stringToPath(''),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -188,6 +193,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: null,
   errors: I.Map(),
   tlfUpdates: I.List(),
+  moveOrCopy: makeMoveOrCopy(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -831,6 +837,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to open path: ${action.payload.path}.`
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.move:
+      return `Failed to move file(s).`
+    case FsGen.copy:
+      return `Failed to copy file(s).`
     default:
       return 'An unexplainable error has occurred.'
   }

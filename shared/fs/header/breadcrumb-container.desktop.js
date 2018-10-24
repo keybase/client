@@ -4,18 +4,22 @@ import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
+import * as FsGen from '../../actions/fs-gen'
 import Breadcrumb from './breadcrumb.desktop'
 
 type OwnProps = {
   path: Types.Path,
+  inDestinationPicker?: boolean,
 }
 
 const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = dispatch => ({
-  _navigateToPath: (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
+const mapDispatchToProps = (dispatch, {inDestinationPicker}: OwnProps) => ({
+  _navigateToPath: inDestinationPicker
+    ? (path: Types.Path) => dispatch(FsGen.createSetMoveOrCopyDestinationParent({path}))
+    : (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
 })
 
 export const makeBreadcrumbProps = (

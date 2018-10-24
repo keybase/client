@@ -45,6 +45,7 @@
   "keybase.1.SimpleFS.simpleFSCancel": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCheck": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCopyRecursive": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSMove": {"promise": true},
   "keybase.1.SimpleFS.simpleFSList": {"promise": true},
   "keybase.1.SimpleFS.simpleFSListRecursiveToDepth": {"promise": true},
   "keybase.1.SimpleFS.simpleFSOpen": {"promise": true},
