@@ -187,14 +187,21 @@ const styles = Styles.styleSheetCreate({
   red: {
     color: Styles.globalColors.red,
   },
-  removeContainer: {
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: 'solid',
-    borderTopWidth: 1,
-    marginTop: 'auto',
-    paddingTop: Styles.globalMargins.small,
-    paddingBottom: Styles.globalMargins.small,
-  },
+  removeContainer: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.black_10,
+      borderStyle: 'solid',
+      borderTopWidth: 1,
+      paddingTop: Styles.globalMargins.small,
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      marginTop: 'auto',
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.medium,
+    },
+  }),
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
   },
