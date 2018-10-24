@@ -252,7 +252,6 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
       </Box>
     ),
   mention: (node, output, state) => {
-    // style={{color: undefined}}
     return (
       <Mention
         username={node.content}
