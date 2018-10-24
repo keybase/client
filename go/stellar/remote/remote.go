@@ -157,7 +157,6 @@ func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *s
 		return err
 	}
 
-	// XXX fix this
 	boxed, err := acctbundle.BoxAndEncode(bundle, pukGen, pukSeed)
 	if err != nil {
 		return err
