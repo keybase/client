@@ -1092,8 +1092,8 @@ type backpressureDiskLimiterStatus struct {
 
 func (bdl *backpressureDiskLimiter) getStatus(
 	ctx context.Context, chargedTo keybase1.UserOrTeamID) interface{} {
-	bdl.lock.RLock()
-	defer bdl.lock.RUnlock()
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
 
 	currentDelay := bdl.getDelayLocked(
 		context.Background(), time.Now(), chargedTo)
