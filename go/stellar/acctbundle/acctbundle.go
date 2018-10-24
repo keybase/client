@@ -278,7 +278,7 @@ var ErrNoChangeNecessary = errors.New("no account mode change is necessary")
 // bundle.  This advances the revision.  If it's already mobile-only,
 // this function will return ErrNoChangeNecessary.
 func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := accountWithSecret(a, accountID)
+	ws, err := AccountWithSecret(a, accountID)
 	if err != nil {
 		return err
 	}
@@ -307,7 +307,7 @@ func MakeMobileOnly(a *stellar1.BundleRestricted, accountID stellar1.AccountID) 
 // bundle.  This advances the revision.  If it's already all-device,
 // this function will return ErrNoChangeNecessary.
 func MakeAllDevices(a *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	ws, err := accountWithSecret(a, accountID)
+	ws, err := AccountWithSecret(a, accountID)
 	if err != nil {
 		return err
 	}
@@ -463,6 +463,9 @@ func unboxParent(encBundle stellar1.EncryptedBundle, hash stellar1.Hash, visB64 
 	switch version {
 	case stellar1.BundleVersion_V2:
 		bundleOut, err = unboxParentV2(versioned, visB64)
+		if err != nil {
+			return nil, 0, err
+		}
 	default:
 		return nil, 0, fmt.Errorf("unsupported parent bundle version: %d", version)
 	}
@@ -620,7 +623,7 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	return bver, nil
 }
 
-type withSecret struct {
+type WithSecret struct {
 	AccountID stellar1.AccountID
 	Mode      stellar1.AccountMode
 	Name      string
@@ -628,7 +631,7 @@ type withSecret struct {
 	Signers   []stellar1.SecretKey
 }
 
-func accountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*withSecret, error) {
+func AccountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.AccountID) (*WithSecret, error) {
 	secret, ok := bundle.AccountBundles[accountID]
 	if !ok {
 		return nil, libkb.NotFoundError{}
@@ -645,7 +648,7 @@ func accountWithSecret(bundle *stellar1.BundleRestricted, accountID stellar1.Acc
 		// this is bad: secret found but not visible portion
 		return nil, libkb.NotFoundError{}
 	}
-	return &withSecret{
+	return &WithSecret{
 		AccountID: found.AccountID,
 		Mode:      found.Mode,
 		Name:      found.Name,
