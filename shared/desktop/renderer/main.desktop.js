@@ -1,7 +1,5 @@
 // @flow
-/*
- * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
- */
+// Entry point to the chrome part of the app
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -47,10 +45,6 @@ function setupStore() {
 function setupApp(store) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
-
-  // if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  //   require('devtron').install()
-  // }
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
@@ -208,6 +202,12 @@ function setupHMR(store) {
 }
 
 function load() {
+  if (global.loaded) {
+    // only load once
+    console.log('Bail on load() on HMR')
+    return
+  }
+  global.loaded = true
   initDesktopStyles()
   const store = setupStore()
   setupRoutes(store)
@@ -216,4 +216,4 @@ function load() {
   render(store, Main)
 }
 
-window.load = load
+load()

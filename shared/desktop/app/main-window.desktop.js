@@ -2,13 +2,14 @@
 import URL from 'url-parse'
 import AppState from './app-state.desktop'
 import Window from './window.desktop'
-import hotPath from './hot-path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
-import {getRendererHTML} from './dev.desktop'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
+import {resolveRootAsURL} from './resolve-root.desktop'
+
+const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
 export default function() {
   // We are not using partitions on webviews, so this essentially disables
@@ -18,7 +19,7 @@ export default function() {
   // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      const ourURL = new URL(getRendererHTML('mainWindow'))
+      const ourURL = new URL(htmlFile)
       const requestURL = new URL(webContents.getURL())
       if (
         permission === 'notifications' &&
@@ -34,7 +35,7 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
-  const mainWindow = new Window(getRendererHTML('mainWindow'), {
+  const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
     height: appState.state.height,
     minHeight: 600,
@@ -51,16 +52,6 @@ export default function() {
   })
 
   const webContents = mainWindow.window.webContents
-  webContents.on('did-finish-load', () => {
-    webContents.send('load', {
-      scripts: [
-        {
-          async: false,
-          src: hotPath('index.bundle.js'),
-        },
-      ],
-    })
-  })
 
   if (showDevTools) {
     webContents.openDevTools({mode: 'detach'})

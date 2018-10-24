@@ -1,4 +1,5 @@
 // @flow
+// Entry point for the node part of the electron app
 import MainWindow from './main-window.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'

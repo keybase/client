@@ -171,7 +171,11 @@ class OrientedImage extends React.Component<Props, State> {
       // EXIF.readFromBinaryFile takes an ArrayBuffer
       const data = fs.readFileSync(src)
       const tags = EXIF.readFromBinaryFile(data.buffer)
-      tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
+      if (tags) {
+        resolve(tags['Orientation'])
+      } else {
+        reject(new Error('EXIF failed to read exif data'))
+      }
     })
   }
 

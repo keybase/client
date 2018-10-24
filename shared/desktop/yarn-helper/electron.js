@@ -22,7 +22,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: `electron ${path.resolve(__dirname, '../dist/main.bundle.js')}`,
+    shell: `electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
   },
   'start-hot': {
     code: startHot,
@@ -40,7 +40,7 @@ function startHot() {
     fs.mkdirSync(path.join(__dirname, '../dist'))
   } catch (i) {}
 
-  const name = path.join(__dirname, '..', 'dist', 'main.bundle.js')
+  const name = path.join(__dirname, '..', 'dist', 'node.dev.bundle.js')
   const params = [name]
 
   // Find extensions
@@ -61,7 +61,7 @@ function startHot() {
   }
 
   const hitServer = () => {
-    var req = http.get('http://localhost:4000/dist/index.bundle.js', () => {
+    var req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
       const electron = require('electron')
       // $FlowIssue

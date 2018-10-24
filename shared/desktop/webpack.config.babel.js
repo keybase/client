@@ -7,6 +7,7 @@ import TerserPlugin from 'terser-webpack-plugin'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -16,7 +17,7 @@ const config = (_, {mode}) => {
 
   !isStats && console.error('Flags: ', {isDev, isHot})
 
-  const makeRules = mainThread => {
+  const makeRules = nodeThread => {
     const fileLoaderRule = {
       loader: 'file-loader',
       options: {name: '[name].[ext]'},
@@ -27,7 +28,7 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
-        plugins: [...(isHot && !mainThread ? ['react-hot-loader/babel'] : [])],
+        plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '3.0.2'}}]],
       },
     }
@@ -70,6 +71,8 @@ const config = (_, {mode}) => {
     ]
   }
 
+  const publicPath = isHot ? 'http://localhost:4000/dist/' : '../dist/'
+
   const makeCommonConfig = () => {
     // If we use the hot server it pulls in this config
     const devServer = {
@@ -95,13 +98,16 @@ const config = (_, {mode}) => {
 
     return {
       bail: true,
+      context: path.resolve(__dirname, '..'),
       devServer,
+      devtool: isDev ? 'eval' : 'source-map',
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
-        filename: '[name].bundle.js',
+        filename: `[name]${isDev ? '.dev' : ''}.bundle.js`,
         path: path.resolve(__dirname, 'dist'),
-        publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
+        // can be the same?
+        publicPath,
       },
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
@@ -125,13 +131,17 @@ const config = (_, {mode}) => {
         : {
             optimization: {
               minimizer: [
+                // options from create react app: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.prod.js
                 new TerserPlugin({
                   cache: true,
                   parallel: true,
                   sourceMap: true,
                   terserOptions: {
                     compress: {
-                      inline: false, // uglify has issues inlining code and handling variables https://github.com/mishoo/UglifyJS2/issues/2842
+                      ecma: 5,
+                      warnings: false,
+                      comparisons: false,
+                      inline: 2,
                     },
                     output: {
                       comments: false,
@@ -146,11 +156,10 @@ const config = (_, {mode}) => {
   }
 
   const commonConfig = makeCommonConfig()
-  const mainThreadConfig = merge(commonConfig, {
-    context: path.resolve(__dirname, '..'),
-    entry: {main: './desktop/app/index.desktop.js'},
+  const nodeConfig = merge(commonConfig, {
+    entry: {node: './desktop/app/node.desktop.js'},
     module: {rules: makeRules(true)},
-    name: 'mainThread',
+    name: 'node',
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
       new webpack.IgnorePlugin(/^react$/),
@@ -160,24 +169,46 @@ const config = (_, {mode}) => {
     },
     target: 'electron-main',
   })
-  const renderThreadConfig = merge(commonConfig, {
-    context: path.resolve(__dirname, '..'),
-    devtool: isDev ? 'eval' : 'source-map',
-    entry: {
-      'component-loader': './desktop/remote/component-loader.desktop.js',
-      index: './desktop/renderer/index.desktop.js',
-    },
+
+  const hmrPlugin = isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : []
+  const template = path.join(__dirname, './renderer/index.html.template')
+  const makeHtmlName = name => `${name}${isDev ? '.dev' : ''}.html`
+  const makeViewPlugins = names =>
+    [
+      ...hmrPlugin,
+      // Map since we generate multiple html files
+      ...names.map(
+        name =>
+          new HtmlWebpackPlugin({
+            filename: makeHtmlName(name),
+            name,
+            inject: false,
+            isDev,
+            template,
+          })
+      ),
+    ].filter(Boolean)
+
+  // just keeping main in its old place
+  const entryOverride = {
+    main: 'desktop/renderer',
+  }
+
+  // multiple entries so we can chunk shared parts
+  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders']
+  const viewConfig = merge(commonConfig, {
+    entry: entries.reduce((map, name) => {
+      map[name] = `./${entryOverride[name] || name}/main.desktop.js`
+      return map
+    }, {}),
+    optimization: {splitChunks: {chunks: 'all'}},
     module: {rules: makeRules(false)},
-    name: 'renderThread',
-    plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
+    name: 'Keybase',
+    plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })
 
-  if (isHot) {
-    return process.env['BEFORE_HOT'] ? mainThreadConfig : renderThreadConfig
-  } else {
-    return [mainThreadConfig, renderThreadConfig]
-  }
+  return [nodeConfig, viewConfig]
 }
 
 export default config
