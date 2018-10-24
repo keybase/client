@@ -20,6 +20,7 @@
 <PROJECT_ROOT>/node_modules/react-navigation/src/views/CardStack/CardStackTransitioner.js
 <PROJECT_ROOT>/node_modules/electron-packager
 <PROJECT_ROOT>/node_modules/react-window
+<PROJECT_ROOT>/node_modules/simple-markdown
 .*memoize-one.*
 <PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
 .*[.]gif$
@@ -30,6 +31,7 @@
 [libs]
 ./libs/flow-interface.js.flow
 ./libs/electron_vx.x.x.js.flow
+./libs/simple-markdown.js.flow
 ./flow-typed
 
 [options]

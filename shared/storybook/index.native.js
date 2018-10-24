@@ -27,7 +27,6 @@ const load = () => {
 const stories = {...sharedStories, ...nativeStories}
 
 // Load common-adapter stories
-// TODO(mm) is the configure necessary here? It breaks HMR on desktop
 const loadStories = () => {
   configure(() => {
     addDecorator(rootDecorator)
