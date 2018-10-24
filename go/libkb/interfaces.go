@@ -417,6 +417,7 @@ type TerminalUI interface {
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptPasswordMaybeScripted(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	TerminalSize() (width int, height int)
 }
