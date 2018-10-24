@@ -7,20 +7,19 @@ import {isEqual} from 'lodash-es'
 import logger from '../../logger'
 
 export type State = {
-  displayBounds: ?any,
-  dockHidden: boolean,
-  height: number,
-  isFullScreen: ?boolean,
-  isMaximized: ?boolean,
-  isUserActive: ?boolean,
-  lastSentXLM: false,
-  notifySound: boolean,
-  openAtLogin: boolean,
-  tab: ?string,
-  width: number,
-  windowHidden: boolean,
   x: ?number,
   y: ?number,
+  width: number,
+  height: number,
+  windowHidden: boolean,
+  isMaximized: ?boolean,
+  isFullScreen: ?boolean,
+  displayBounds: ?any,
+  tab: ?string,
+  dockHidden: boolean,
+  notifySound: boolean,
+  openAtLogin: boolean,
+  isUserActive: ?boolean,
 }
 
 export type Config = {
@@ -55,7 +54,6 @@ export default class AppState {
       height: 600,
       isFullScreen: null,
       isMaximized: null,
-      lastSentXLM: false,
       notifySound: false,
       openAtLogin: true,
       isUserActive: true,

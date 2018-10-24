@@ -19,6 +19,7 @@ import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -390,6 +391,18 @@ const updateServerConfig = (state: TypedState) =>
     }
   })
 
+  const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) =>
+    action.payload.writeFile &&
+    Saga.spawn(() => RPCTypes.configSetValueRpcPromise({
+      path: 'stellar.lastSentXLM',
+      value: {lastSentXLM: action.payload.lastSentXLM},
+    }).catch(() => {})
+
+  const readLastSentXLM = () =>
+    Saga.spawn(() => RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+    .then((result) => { !result.isNull && createSetLastSentXLM({lastSentXLM: result.b, writeFile: false})})
+    .catch(() => false)
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield Saga.actionToAction(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -430,6 +443,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.actionToAction(ConfigGen.link, handleAppLink)
+
+  yield Saga.actionToAction(setLastSentXLM, writeLastSentXLM)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, readLastSentXLM)
 
   // Kick off platform specific stuff
   yield Saga.fork(PlatformSpecific.platformConfigSaga)

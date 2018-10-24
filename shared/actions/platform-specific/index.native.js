@@ -8,8 +8,6 @@ import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
-import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
-
 // this CANNOT be an import *, totally screws up the packager
 import {
   NetInfo,
@@ -218,8 +216,7 @@ function* loadStartupDetails() {
   const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
   const linkTask = yield Saga.fork(Linking.getInitialURL)
   const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
-  const lastSentXLMTask = yield Saga.fork(AsyncStorage.getItem, 'lastSentXLM')
-  const [routeState, link, push, lastSentXLM] = yield Saga.join(routeStateTask, linkTask, initialPush, lastSentXLMTask)
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Top priority, push
   if (push) {
@@ -256,14 +253,6 @@ function* loadStartupDetails() {
       startupWasFromPush,
     })
   )
-  if (JSON.parse(lastSentXLM)) {
-    yield Saga.put(createSetLastSentXLM({lastSentXLM: true, writeFile: false}))
-  }
-}
-
-const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) => {
-  action.payload.writeFile &&
-    Saga.spawn(AsyncStorage.setItem, 'lastSentXLM', JSON.stringify(action.payload.lastSentXLM))
 }
 
 const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
@@ -302,7 +291,6 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield Saga.actionToAction(setLastSentXLM, writeLastSentXLM)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel

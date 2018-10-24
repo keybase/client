@@ -17,7 +17,6 @@ import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
-import {createSetLastSentXLM, type SetLastSentXLMPayload, setLastSentXLM} from '../wallets-gen'
 
 export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -82,10 +81,6 @@ const writeElectronSettingsNotifySound = (_: any, action: ConfigGen.SetNotifySou
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
 
-const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) =>
-  action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {lastSentXLM: action.payload.lastSentXLM})
-
 // get this value from electron and update our store version
 function* initializeAppSettingsState(): Generator<any, void, any> {
   const getAppState = () =>
@@ -98,7 +93,6 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
     yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
-    yield Saga.put(createSetLastSentXLM({lastSentXLM: state.lastSentXLM, writeFile: false}))
   }
 }
 
@@ -275,7 +269,6 @@ const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
-  yield Saga.actionToAction(setLastSentXLM, writeLastSentXLM)
   yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
