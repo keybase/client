@@ -17,13 +17,10 @@ const mapDispatchToProps = dispatch => ({
     isMobile
       ? dispatch(RouteTree.navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
       : dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  onUsernameClicked: (username: string) => {
-    if (isMobile) {
-      dispatch(createShowUserProfile({username}))
-    } else {
-      dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
-    }
-  },
+  onUsernameClicked: (username: string) =>
+    isMobile
+      ? dispatch(createShowUserProfile({username}))
+      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
