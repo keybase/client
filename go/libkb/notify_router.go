@@ -83,6 +83,9 @@ type NotifyListener interface {
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
+	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
+	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
+	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
 }
 
 type NoopNotifyListener struct{}
@@ -165,6 +168,9 @@ func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)               {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)            {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)          {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1682,6 +1688,63 @@ func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, for
 	})
 	if n.listener != nil {
 		n.listener.AvatarUpdated(name, formats)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberAdded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberAdded(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberAdded(phoneNumber)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberVerified(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberVerified(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberVerified(phoneNumber)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberSuperseded(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberSuperseded(phoneNumber)
 	}
 }
 

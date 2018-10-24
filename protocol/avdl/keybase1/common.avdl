@@ -42,6 +42,10 @@ protocol Common {
   @typedef("string")
   record KID {}
 
+  // Phone number in E.164 format.
+  @typedef("string")
+  record PhoneNumber {}
+
   // Chain link IDs
   @typedef("string")
   record LinkID {}
