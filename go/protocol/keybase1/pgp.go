@@ -332,10 +332,10 @@ type PGPInterface interface {
 	PGPPurge(context.Context, PGPPurgeArg) (PGPPurgeRes, error)
 	// Dismiss the PGP unlock via secret_store_file notification.
 	PGPStorageDismiss(context.Context, int) error
-	// push the PGP key that meets the given fingerprint to KBFS. If it is blank, then
+	// push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then
 	// push all matching PGP keys in the user's sigchain.
 	PGPPushPrivate(context.Context, PGPPushPrivateArg) error
-	// pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then
+	// pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then
 	// attempt to pull all matching PGP keys in the user's sigchain.
 	PGPPullPrivate(context.Context, PGPPullPrivateArg) error
 }
@@ -728,14 +728,14 @@ func (c PGPClient) PGPStorageDismiss(ctx context.Context, sessionID int) (err er
 	return
 }
 
-// push the PGP key that meets the given fingerprint to KBFS. If it is blank, then
+// push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then
 // push all matching PGP keys in the user's sigchain.
 func (c PGPClient) PGPPushPrivate(ctx context.Context, __arg PGPPushPrivateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPushPrivate", []interface{}{__arg}, nil)
 	return
 }
 
-// pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then
+// pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then
 // attempt to pull all matching PGP keys in the user's sigchain.
 func (c PGPClient) PGPPullPrivate(ctx context.Context, __arg PGPPullPrivateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPullPrivate", []interface{}{__arg}, nil)

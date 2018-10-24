@@ -513,7 +513,7 @@
         }
       ],
       "response": null,
-      "doc": "push the PGP key that meets the given fingerprint to KBFS. If it is blank, then\n   push all matching PGP keys in the user's sigchain."
+      "doc": "push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then\n   push all matching PGP keys in the user's sigchain."
     },
     "pgpPullPrivate": {
       "request": [
@@ -530,7 +530,7 @@
         }
       ],
       "response": null,
-      "doc": "pull the given PGP keys from KBFS to the local PGP keychain. If it is blank, then\n   attempt to pull all matching PGP keys in the user's sigchain."
+      "doc": "pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then\n   attempt to pull all matching PGP keys in the user's sigchain."
     }
   },
   "namespace": "keybase.1"
