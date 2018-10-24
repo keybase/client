@@ -206,7 +206,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return nil
 }
 
-// Temporary function.
+// ImportSecretKeyAccountBundle is a temporary function.
 // This is just to check PostBundleRestricted.
 // It does not attempt to do a full migration from V1 to V2.
 func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {

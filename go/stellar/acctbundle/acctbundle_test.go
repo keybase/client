@@ -3,7 +3,6 @@ package acctbundle
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -34,7 +33,6 @@ func TestBoxAccountBundle(t *testing.T) {
 	boxed, err := BoxAndEncode(b, gen, seed)
 	require.NoError(t, err)
 	require.NotNil(t, boxed, "BoxAndEncode() should return something")
-	fmt.Printf("boxed: %+v\n", boxed)
 	require.Equal(t, stellar1.BundleVersion_V2, boxed.FormatVersionParent, "should be V2")
 	require.NotEmpty(t, boxed.VisParentB64)
 	require.NotEmpty(t, boxed.EncParentB64)

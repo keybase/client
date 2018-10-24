@@ -842,35 +842,6 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	acctBundle.Revision = 4
 	err = remote.PostBundleRestricted(context.Background(), tc.G, acctBundle)
 	require.Error(t, err)
-	fmt.Printf("error: %s (%T)\n", err, err)
-}
-
-type acctBundleChecker struct {
-	accountID stellar1.AccountID
-	secretKey stellar1.SecretKey
-}
-
-func newAcctBundleChecker(a stellar1.AccountID, s stellar1.SecretKey) *acctBundleChecker {
-	return &acctBundleChecker{
-		accountID: a,
-		secretKey: s,
-	}
-}
-
-func (a *acctBundleChecker) assertBundle(t *testing.T, bundle *stellar1.BundleRestricted, revisionParent, revisionAccount stellar1.BundleRevision, mode stellar1.AccountMode) {
-	require.NotNil(t, bundle)
-	require.Equal(t, revisionParent, bundle.Revision)
-	require.Len(t, bundle.AccountBundles, 1)
-	secret, err := acctbundle.AccountWithSecret(bundle, a.accountID)
-	require.NoError(t, err)
-	require.NotNil(t, secret)
-	require.Equal(t, mode, secret.Mode)
-	require.Equal(t, a.accountID, secret.AccountID)
-	require.Len(t, secret.Signers, 1)
-	require.Equal(t, a.secretKey, secret.Signers[0])
-	require.Equal(t, revisionAccount, secret.Revision)
-	require.NotEmpty(t, bundle.Prev)
-	require.NotEmpty(t, bundle.OwnHash)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
@@ -946,6 +917,34 @@ func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
 	}
 	_, err := g.API.Post(apiArg)
 	require.NoError(t, err)
+}
+
+type acctBundleChecker struct {
+	accountID stellar1.AccountID
+	secretKey stellar1.SecretKey
+}
+
+func newAcctBundleChecker(a stellar1.AccountID, s stellar1.SecretKey) *acctBundleChecker {
+	return &acctBundleChecker{
+		accountID: a,
+		secretKey: s,
+	}
+}
+
+func (a *acctBundleChecker) assertBundle(t *testing.T, bundle *stellar1.BundleRestricted, revisionParent, revisionAccount stellar1.BundleRevision, mode stellar1.AccountMode) {
+	require.NotNil(t, bundle)
+	require.Equal(t, revisionParent, bundle.Revision)
+	require.Len(t, bundle.AccountBundles, 1)
+	secret, err := acctbundle.AccountWithSecret(bundle, a.accountID)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, mode, secret.Mode)
+	require.Equal(t, a.accountID, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, a.secretKey, secret.Signers[0])
+	require.Equal(t, revisionAccount, secret.Revision)
+	require.NotEmpty(t, bundle.Prev)
+	require.NotEmpty(t, bundle.OwnHash)
 }
 
 type TestContext struct {
