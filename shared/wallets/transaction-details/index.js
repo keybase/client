@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {CounterpartyText, TimestampLine} from '../transaction'
+import Transaction, {StellarPublicKey, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
 export type NotLoadingProps = {|
@@ -73,6 +73,55 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       */
       return null
   }
+}
+
+type CounterpartyTextProps = {|
+  large: boolean,
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
+  showFullKey: boolean,
+  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
+  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
+|}
+
+export const CounterpartyText = (props: CounterpartyTextProps) => {
+  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
+
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return (
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          colorBroken={true}
+          inline={true}
+          onUsernameClicked={props.onShowProfile}
+          type={textTypeSemibold}
+          underline={true}
+          usernames={[props.counterparty]}
+        />
+      )
+    case 'stellarPublicKey':
+      return (
+        <StellarPublicKey
+          publicKey={props.counterparty}
+          showFullKey={props.showFullKey}
+          textType={textTypeSemibold}
+        />
+      )
+    case 'otherAccount':
+      return <Kb.Text type={textTypeSemiboldItalic}>{props.counterparty}</Kb.Text>
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      break
+  }
+  return null
 }
 
 type CounterpartyProps = {|

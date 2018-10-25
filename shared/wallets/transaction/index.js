@@ -53,7 +53,7 @@ type StellarPublicKeyProps = {|
   textType: TextType,
 |}
 
-const StellarPublicKey = (props: StellarPublicKeyProps) => {
+export const StellarPublicKey = (props: StellarPublicKeyProps) => {
   const key = props.publicKey
   return (
     <Text type={props.textType} selectable={props.showFullKey} title={key}>
