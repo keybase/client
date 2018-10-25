@@ -298,7 +298,7 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 }
 
 func (s *localizerPipeline) clearQueue() {
-	s.jobQueue = make(chan *localizerPipelineJob, 1000)
+	s.jobQueue = make(chan *localizerPipelineJob, 500)
 }
 
 func (s *localizerPipeline) start(ctx context.Context) {
