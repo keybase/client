@@ -63,21 +63,15 @@ export const StellarPublicKey = (props: StellarPublicKeyProps) => {
 }
 
 type CounterpartyTextProps = {|
-  large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
-  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
-  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
+  textType: 'Body' | 'BodySmall',
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
-  const textTypeSemiboldItalic =
-    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
-
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -86,7 +80,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={textTypeSemibold}
+          type={props.textTypeSemibold}
           underline={true}
           usernames={[props.counterparty]}
         />
@@ -95,12 +89,12 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
       return (
         <StellarPublicKey
           publicKey={props.counterparty}
-          showFullKey={props.showFullKey}
-          textType={textTypeSemibold}
+          showFullKey={false}
+          textType={props.textTypeSemibold}
         />
       )
     case 'otherAccount':
-      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
+      return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -127,6 +121,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const amount = props.isXLM ? (
@@ -146,11 +141,10 @@ const Detail = (props: DetailProps) => {
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
-      large={props.large}
       onShowProfile={props.onShowProfile}
-      showFullKey={false}
       textType={textType}
       textTypeSemibold={textTypeSemibold}
+      textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
   )
 

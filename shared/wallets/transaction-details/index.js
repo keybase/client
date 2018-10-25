@@ -79,7 +79,6 @@ type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  showFullKey: boolean,
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
@@ -97,13 +96,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'stellarPublicKey':
-      return (
-        <StellarPublicKey
-          publicKey={props.counterparty}
-          showFullKey={props.showFullKey}
-          textType="BodySemibold"
-        />
-      )
+      return <StellarPublicKey publicKey={props.counterparty} showFullKey={true} textType="BodySemibold" />
     case 'otherAccount':
       return <Kb.Text type="BodySemiboldItalic">{props.counterparty}</Kb.Text>
     default:
@@ -151,7 +144,6 @@ const Counterparty = (props: CounterpartyProps) => {
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           onShowProfile={props.onShowProfile}
-          showFullKey={true}
         />
         {props.counterpartyType !== 'stellarPublicKey' &&
           props.accountID && <SmallAccountID accountID={props.accountID} />}
