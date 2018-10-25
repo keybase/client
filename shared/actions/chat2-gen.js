@@ -271,7 +271,6 @@ type _MetasReceivedPayload = $ReadOnly<{|
   neverCreate?: boolean,
   clearExistingMetas?: boolean,
   clearExistingMessages?: boolean,
-  fromEphemeralPurge?: boolean,
   fromExpunge?: boolean,
   fromInboxRefresh?: boolean,
 |}>

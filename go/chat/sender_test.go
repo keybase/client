@@ -216,7 +216,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
-		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
+		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 10),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
