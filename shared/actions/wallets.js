@@ -76,8 +76,14 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
             ? WalletsGen.createClearBuiltRequest()
             : WalletsGen.createClearBuiltPayment(),
           WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-          WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
+          WalletsGen.createSetBuildingCurrency({
+            currency:
+              action.payload.currency ||
+              (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
+              'XLM',
+          }),
           WalletsGen.createLoadDisplayCurrency({
+            // in case from account differs
             accountID: action.payload.from || Types.noAccountID,
             setBuildingCurrency: !action.payload.currency,
           }),
@@ -201,11 +207,17 @@ const loadAccounts = (
     | ConfigGen.LoggedInPayload
 ) =>
   !action.error &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
-    WalletsGen.createAccountsReceived({
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
+    // load the display currency of each wallet, now that we have the IDs
+    action.type === WalletsGen.loadAccounts &&
+      res &&
+      res.map(account =>
+        WalletsGen.createLoadDisplayCurrency({accountID: ((account.accountID: any): Types.AccountID)})
+      )
+    return WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
     })
-  )
+  })
 
 const loadAssets = (
   state: TypedState,

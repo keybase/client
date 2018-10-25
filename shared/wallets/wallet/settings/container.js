@@ -34,7 +34,6 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) 
   },
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
   },
   _onDelete: (accountID: Types.AccountID) =>
     dispatch(
