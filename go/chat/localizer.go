@@ -257,8 +257,11 @@ type localizerPipeline struct {
 	stopCh    chan struct{}
 	cancelCh  chan struct{}
 	suspendWg sync.WaitGroup
+	jobQueue  chan *localizerPipelineJob
 
-	jobQueue chan *localizerPipelineJob
+	// testing
+	pipelineGateCh chan struct{}
+	passCompleteCh chan struct{}
 }
 
 func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
@@ -392,7 +395,7 @@ func (s *localizerPipeline) localizeLoop() {
 			doneCh := make(chan struct{})
 			go func() {
 				defer close(doneCh)
-				if err := s.localizeConversationsPipeline(job); s.isContextCanceled(err) {
+				if err := s.localizeConversations(job); s.isContextCanceled(err) {
 					// just put this right back if we canceled it
 					s.Debug(job.ctx, "localizeLoop: re-enqueuing canceled job")
 					s.jobQueue <- job.retry(s.G())
@@ -412,6 +415,7 @@ func (s *localizerPipeline) localizeLoop() {
 				job.cancelFn()
 				return
 			}
+			s.passComplete(job.ctx)
 			s.Debug(job.ctx, "localizeLoop: job pass complete")
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
@@ -420,9 +424,26 @@ func (s *localizerPipeline) localizeLoop() {
 	}
 }
 
-func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizerPipelineJob) error {
+func (s *localizerPipeline) gateCheck(ctx context.Context, index int) {
+	if s.pipelineGateCh != nil {
+		select {
+		case <-s.pipelineGateCh:
+			s.Debug(ctx, "localizeConversations: gate check received: %d", index)
+		case <-ctx.Done():
+		}
+	}
+}
+
+func (s *localizerPipeline) passComplete(ctx context.Context) {
+	if s.passCompleteCh != nil {
+		s.passCompleteCh <- struct{}{}
+	}
+}
+
+func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipelineJob) (err error) {
 	ctx := localizeJob.ctx
 	uid := localizeJob.uid
+	defer s.Trace(ctx, func() error { return err }, "localizeConversations")()
 
 	// Fetch conversation local information in parallel
 	type job struct {
@@ -434,6 +455,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 	convCh := make(chan job)
 	pending := localizeJob.getPending()
 	retCh := make(chan chat1.ConversationID, len(pending))
+
 	if len(pending) == 0 {
 		return nil
 	}
@@ -442,7 +464,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		for i, conv := range pending {
 			select {
 			case <-ctx.Done():
-				s.Debug(ctx, "pipeline: context is done, bailing (producer)")
+				s.Debug(ctx, "localizeConversations: context is done, bailing (producer)")
 				return ctx.Err()
 			default:
 			}
@@ -451,27 +473,33 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		return nil
 	})
 	nthreads := s.G().Env.GetChatInboxSourceLocalizeThreads()
-	s.Debug(ctx, "pipeline: using %d threads", nthreads)
 	for i := 0; i < nthreads; i++ {
+		index := i
 		eg.Go(func() error {
+			s.Debug(ctx, "localizeConversations: newthread: %d", index)
 			for conv := range convCh {
+				s.Debug(ctx, "localizeConversations: gate check: %d convID: %s", index, conv.conv.GetConvID())
+				s.gateCheck(ctx, index)
+				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.conv.GetConvID())
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
+				s.Debug(ctx, "localizeConversations: complete: %d convID: %s", index, conv.conv.GetConvID())
 				select {
 				case <-ctx.Done():
-					s.Debug(ctx, "pipeline: context is done, bailing (consumer)")
+					s.Debug(ctx, "localizeConversations: context is done, bailing (consumer): %d", index)
 					return ctx.Err()
 				default:
 				}
 				retCh <- conv.conv.GetConvID()
 				if convLocal.Error != nil {
-					s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
-						convLocal.Error.Message)
+					s.Debug(ctx, "localizeConversations: error localizing: convID: %s err: %s",
+						conv.conv.GetConvID(), convLocal.Error.Message)
 				}
 				localizeJob.retCh <- types.AsyncInboxResult{
 					ConvLocal: convLocal,
 					Conv:      conv.conv,
 				}
 			}
+			s.Debug(ctx, "localizeConversations: endthread: %d", index)
 			return nil
 		})
 	}

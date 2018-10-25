@@ -4,6 +4,7 @@ import SimpleMarkdown from 'simple-markdown'
 import {isMobile} from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import Text from '../text'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
@@ -265,7 +266,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
     return (
       <Channel
         name={node.content}
-        convID={Types.stringToConversationIDKey(node.convID)}
+        convID={node.convID ? Types.stringToConversationIDKey(node.convID) : Constants.noConversationIDKey}
         key={state.key}
         style={linkStyle}
       />
