@@ -394,7 +394,7 @@ const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
   }
 }
 
-const paymentToYourRoleAndCounterparty = (
+const paymentToYourInfoAndCounterparty = (
   p: Types.Payment
 ): {
   yourAccountName: string,
@@ -614,7 +614,7 @@ export {
   makeRequest,
   makeReserve,
   makeState,
-  paymentToYourRoleAndCounterparty,
+  paymentToYourInfoAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
   rpcPaymentDetailToPaymentDetail,

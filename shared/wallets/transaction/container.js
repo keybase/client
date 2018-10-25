@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const {yourRole, counterparty, counterpartyType} = Constants.paymentToYourRoleAndCounterparty(tx)
+  const {yourRole, counterparty, counterpartyType} = Constants.paymentToYourInfoAndCounterparty(tx)
   const memo = tx.note.stringValue()
 
   let readState
