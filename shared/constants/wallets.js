@@ -83,6 +83,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
+  lastSentXLM: false,
   linkExistingAccountError: '',
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
