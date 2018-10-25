@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"os/user"
 	"path/filepath"
@@ -34,6 +35,7 @@ var kbfusePath = fuse.OSXFUSEPaths{
 const (
 	mountpointTimeout = 5 * time.Second
 	notRunningName    = "KBFS_NOT_RUNNING"
+	mountAsUser       = "root"
 )
 
 type symlink struct {
@@ -64,6 +66,8 @@ type root struct {
 	mountpointCache map[uint32]cacheEntry
 
 	getMountsLock sync.Mutex
+
+	shutdownCh chan struct{}
 }
 
 func newRoot() *root {
@@ -82,6 +86,7 @@ func newRoot() *root {
 		runmodeStr:      runmodeStr,
 		runmodeStrFancy: runmodeStrFancy,
 		mountpointCache: make(map[uint32]cacheEntry),
+		shutdownCh:      make(chan struct{}),
 	}
 }
 
@@ -207,6 +212,12 @@ func (r *root) findKBFSMount(ctx context.Context) (
 }
 
 func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	select {
+	case <-r.shutdownCh:
+		return nil, nil
+	default:
+	}
+
 	_, err := r.findKBFSMount(ctx)
 	if err != nil {
 		if err == fuse.ENOENT {
@@ -246,6 +257,12 @@ func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 func (r *root) Lookup(
 	ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (
 	n fs.Node, err error) {
+	select {
+	case <-r.shutdownCh:
+		return nil, fuse.ENOENT
+	default:
+	}
+
 	mountpoint, err := r.findKBFSMount(ctx)
 	if err != nil {
 		if req.Name == notRunningName {
@@ -267,6 +284,32 @@ func (r *root) Lookup(
 	return nil, fuse.ENOENT
 }
 
+func unmount(currUID, mountAsUID uint64, dir string) {
+	if currUID != mountAsUID {
+		// Unmounting requires escalating the effective user to the
+		// mounting user.  But we leave the real user ID the same.
+		err := syscall.Setreuid(int(currUID), int(mountAsUID))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	err := fuse.Unmount(dir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Couldn't unmount cleanly: %+v\n", err)
+	}
+
+	// Set it back.
+	if currUID != mountAsUID {
+		err := syscall.Setreuid(int(currUID), int(currUID))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", err)
+			os.Exit(1)
+		}
+	}
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s <mountpoint>\n", os.Args[0])
@@ -284,17 +327,29 @@ func main() {
 		os.Exit(1)
 	}
 
+	u, err := user.Lookup(mountAsUser)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: can't find %s user: %v\n",
+			mountAsUser, err)
+		os.Exit(1)
+	}
+	mountAsUID, err := strconv.ParseUint(u.Uid, 10, 32)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: can't convert %s's UID %s: %v",
+			mountAsUser, u.Uid, err)
+		os.Exit(1)
+	}
+
 	currUser, err := user.Current()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "ERROR: can't get the current user: %v", err)
+		os.Exit(1)
 	}
-	if currUser.Uid != "0" {
-		runtime.LockOSThread()
-		_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, 0, 0, 0)
-		if errNo != 0 {
-			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
-			os.Exit(1)
-		}
+	currUID, err := strconv.ParseUint(currUser.Uid, 10, 32)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: can't convert %s's UID %s: %v",
+			currUser.Username, currUser.Uid, err)
+		os.Exit(1)
 	}
 
 	options := []fuse.MountOption{fuse.AllowOther()}
@@ -308,7 +363,27 @@ func main() {
 		// Without NoLocalCaches(), OSX will cache symlinks for a long time.
 		options = append(options, fuse.NoLocalCaches())
 	case "linux":
-		os.Setenv("PATH", "/bin:/usr/bin:/usr/sbin:/usr/local/bin")
+		err := disableDumpable()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to prctl: %v", err)
+		}
+	}
+
+	// Clear the environment to harden ourselves against any
+	// unforeseen environmnent variables exposing vulnerabilities
+	// during the effective user escalation below.
+	os.Clearenv()
+
+	if currUser.Uid != u.Uid {
+		runtime.LockOSThread()
+		// Escalate privileges of the effective user to the mounting
+		// user briefly, just for the `Mount` call.  Keep the real
+		// user the same throughout.
+		err := syscall.Setreuid(int(currUID), int(mountAsUID))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't setreuid: %+v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	c, err := fuse.Mount(os.Args[1], options...)
@@ -317,24 +392,64 @@ func main() {
 		os.Exit(0)
 	}
 
+	if currUser.Uid != u.Uid {
+		runtime.LockOSThread()
+		err := syscall.Setreuid(int(currUID), int(currUID))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't setreuid: %+v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
 	signal.Notify(interruptChan, syscall.SIGTERM)
 	go func() {
-		_ = <-interruptChan
+		select {
+		case <-interruptChan:
+		case <-r.shutdownCh:
+			return
+		}
 
-		// This might be a different system thread than above, so we
-		// might need to setuid again.
+		// This might be a different system thread than the main code, so
+		// we might need to setuid again.
 		runtime.LockOSThread()
-		_, _, errNo := syscall.Syscall(syscall.SYS_SETUID, 0, 0, 0)
-		if errNo != 0 {
-			fmt.Fprintf(os.Stderr, "Can't setuid: %+v\n", errNo)
+		unmount(currUID, mountAsUID, os.Args[1])
+	}()
+
+	restartChan := make(chan os.Signal, 1)
+	signal.Notify(restartChan, syscall.SIGUSR1)
+	go func() {
+		_ = <-restartChan
+
+		fmt.Printf("Relaunching after an upgrade\n")
+
+		// Make this mount look empty, so if we race with the new
+		// process, it will be able to mount over us.  (Note that we
+		// can't unmount first, because that causes this process to
+		// exit immediately, before launching the new process.)
+		close(r.shutdownCh)
+
+		ex, err := os.Executable()
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"Couldn't get the current executable: %v", err)
 			os.Exit(1)
 		}
-		err := fuse.Unmount(os.Args[1])
+		cmd := exec.Command(ex, os.Args[1])
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err = cmd.Start()
 		if err != nil {
-			fmt.Printf("Couldn't unmount cleanly: %+v", err)
+			fmt.Fprintf(os.Stderr, "Can't start upgraded copy: %+v\n", err)
+			os.Exit(1)
 		}
+
+		// This might be a different system thread than the main code, so
+		// we might need to setuid again.
+		runtime.LockOSThread()
+		unmount(currUID, mountAsUID, os.Args[1])
+		os.Exit(0)
 	}()
 
 	srv := fs.New(c, &fs.Config{

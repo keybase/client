@@ -3,11 +3,11 @@
 	"ignore": "test appenginevm",
 	"package": [
 		{
-			"checksumSHA1": "FCasIexhOSYqzSMSYL0LLHvAztM=",
+			"checksumSHA1": "RPtpMc3jUR9RZC/Ccxw+NuVWWV4=",
 			"origin": "github.com/keybase/fuse",
 			"path": "bazil.org/fuse",
-			"revision": "7906bf0143593669930f29dea20667526aaa5000",
-			"revisionTime": "2018-03-06T00:43:11Z"
+			"revision": "e3996deee1b03bec702b6a4d4f5b6f2154895e41",
+			"revisionTime": "2018-11-12T20:58:52Z"
 		},
 		{
 			"checksumSHA1": "389JFJTJADMtZkTIfdSnsmHVOUs=",
