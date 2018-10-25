@@ -478,6 +478,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 	if key == "email" && !wasLogName {
 		err = fmt.Errorf("expected [...] syntax for email assertion")
 		return
+	} else if key != "email" && wasLogName {
+		err = fmt.Errorf("unexpected [...] syntax for assertion: %s", key)
+		return
 	}
 
 	if key == "" {

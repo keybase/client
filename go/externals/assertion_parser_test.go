@@ -36,25 +36,42 @@ func TestParserFail1(t *testing.T) {
 		{"&& aa", "Unexpected token: &&"},
 		{"|| aa", "Unexpected token: ||"},
 		{"aa)", "Found junk at end of input: )"},
+
+		// Invalid usernames
 		{"()", "Illegal parenthetical expression"},
 		{"dns://a", "Invalid hostname: a"},
-		{"f@reddit", "Bad username: 'f'"},
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
+
+		// Username missing
+		{"f@reddit", "Bad username: 'f'"},
 		{"http://", "Bad assertion, no value given (key=http)"},
 		{"reddit:", "Bad username: ''"},
 		{"reddit://", "Bad username: ''"},
 		{"gubble.social:", "username must be at least 2 characters, was 0"},
+
+		// Service name missing
 		{"hello@", "Invalid key-value identity: hello@"},
 		{"://", "Invalid key-value identity: ://"},
 		{"://what", "Invalid key-value identity: ://what"},
 		{":illegal", "Invalid key-value identity: :illegal"},
+
+		// Not the greatest of error messages, but I take them.
+		{"alice@rooter@email", "Found junk at end of input: @email"},
+		{"alice@keybase.io@email", "Unknown social network: keybase.io"},
+
 		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
-		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"}, // excuse me, now, that's mr. junk for you
-		{"bob,[al#ice@kb.io]@email", "Syntax error when parsing: [al#ice@kb.io]@email"},
+		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"},
+		{"bob,[al#ice@kb.io]@email", "Syntax error when parsing: [al#ice@kb.io]@email"}, // `bob,` parsed successfully, but lexer did not match anything after
 		{"[al#ice@keybase.io]@email", "Syntax error when parsing: [al#ice@keybase.io]@email"},
+
+		// Always require [] syntax for emails, even though this is theoretically { service: "email", name : "spam" }.
 		{"spam@email", "expected [...] syntax for email assertion"},
+		{"email:alice@keybase.io", "expected [...] syntax for email assertion"}, // same here but this gets matched to colon syntax
+		{"email://alice@keybase.io", "expected [...] syntax for email assertion"},
+
+		{"[alice]@rooter", "unexpected [...] syntax for assertion: rooter"},
 	}
 
 	for _, bad := range bads {
