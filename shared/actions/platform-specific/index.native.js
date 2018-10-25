@@ -11,7 +11,6 @@ import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
 import {
   NetInfo,
-  AsyncStorage,
   Linking,
   NativeModules,
   ActionSheetIOS,
@@ -175,7 +174,10 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
   return Saga.put(ConfigGen.createChangedFocus({appFocused}))
 }
 
-const clearRouteState = () => Saga.call(AsyncStorage.removeItem, 'routeState')
+const clearRouteState = () =>
+  Saga.spawn(() =>
+    RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
+  )
 
 const persistRouteState = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
@@ -188,9 +190,14 @@ const persistRouteState = (state: TypedState) => {
       tab: selectedTab,
     }
 
-    return Saga.spawn(AsyncStorage.setItem, 'routeState', JSON.stringify(item))
+    return Saga.spawn(() =>
+      RPCTypes.configSetValueRpcPromise({
+        path: 'ui.routeState',
+        value: {isNull: false, s: JSON.stringify(item)},
+      }).catch(() => {})
+    )
   } else {
-    return Saga.spawn(AsyncStorage.removeItem, 'routeState')
+    return clearRouteState()
   }
 }
 
@@ -213,7 +220,11 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = null
 
-  const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
+  const routeStateTask = yield Saga.fork(() =>
+    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState'})
+      .then(v => v.s || '')
+      .catch(e => {})
+  )
   const linkTask = yield Saga.fork(Linking.getInitialURL)
   const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
