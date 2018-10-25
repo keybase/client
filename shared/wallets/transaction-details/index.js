@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
+import Transaction, {CounterpartyText, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
 export type NotLoadingProps = {|
@@ -44,6 +44,37 @@ export type NotLoadingProps = {|
 export type Props =
   | NotLoadingProps
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
+
+type CounterpartyIconProps = {|
+  large: boolean,
+  onShowProfile: string => void,
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+|}
+
+export const CounterpartyIcon = (props: CounterpartyIconProps) => {
+  const size = props.large ? 48 : 32
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return (
+        <Kb.Avatar
+          onClick={() => props.onShowProfile(props.counterparty)}
+          username={props.counterparty}
+          size={size}
+        />
+      )
+    case 'stellarPublicKey':
+      return <Kb.Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
+    case 'otherAccount':
+      return <Kb.Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      return null
+  }
+}
 
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
