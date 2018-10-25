@@ -109,6 +109,7 @@ const load = () => {
         counterpartyMeta={null}
         amountUser="$100"
         amountXLM="545.2562704 XLM"
+        yourAccountName="First account"
         yourRole="receiverOnly"
         memo=""
       />
@@ -121,6 +122,7 @@ const load = () => {
         counterpartyMeta={null}
         amountUser="$100"
         amountXLM="545.2562704 XLM"
+        yourAccountName="First account"
         yourRole="receiverOnly"
       />
     ))
