@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/fs'
 import {Box, Icon, Text, WithTooltip} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
@@ -11,7 +12,7 @@ import {PathItemAction, OpenInSystemFileManager} from '../common'
 const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styles.headerContainer}>
     <Box style={styles.folderHeader}>
-      {path === '/keybase' ? (
+      {Types.pathToString(path) === '/keybase' ? (
         <Box style={styles.folderHeaderContainer}>
           <Box style={styles.folderHeaderRoot}>
             <Text type="BodyBig">Keybase Files</Text>

@@ -40,12 +40,12 @@ class Wallet extends React.Component<Props> {
     const children = []
     if (item === 'notLoadedYet') {
       children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+    } else if (item === 'noPayments') {
+      children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'Your assets') {
       children.push(
         <Asset accountID={this.props.accountID} index={item} key={`${this.props.accountID}:${item}`} />
       )
-    } else if (item === 'noPayments') {
-      children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
         <Transaction
