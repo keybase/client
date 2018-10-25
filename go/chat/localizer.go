@@ -90,12 +90,18 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	maxLocalize *int) (res []chat1.ConversationLocal, err error) {
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
-	b.baseLocalizer.pipeline.queue(ctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb)
+	convs := b.getConvs(inbox, maxLocalize)
+	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
 	if err != nil {
 		return res, err
 	}
+	res = make([]chat1.ConversationLocal, len(convs))
+	indexMap := make(map[string]int)
+	for index, c := range convs {
+		indexMap[c.GetConvID().String()] = index
+	}
 	for ar := range b.localizeCb {
-		res = append(res, ar.ConvLocal)
+		res[indexMap[ar.ConvLocal.GetConvID().String()]] = ar.ConvLocal
 	}
 	return res, nil
 }
