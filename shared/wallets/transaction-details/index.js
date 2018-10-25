@@ -76,21 +76,13 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
 }
 
 type CounterpartyTextProps = {|
-  large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
   showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
-  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
-  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
-  const textTypeSemiboldItalic =
-    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
-
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -99,7 +91,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={textTypeSemibold}
+          type="BodySmallSemibold"
           underline={true}
           usernames={[props.counterparty]}
         />
@@ -109,11 +101,11 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textTypeSemibold}
+          textType="BodySemibold"
         />
       )
     case 'otherAccount':
-      return <Kb.Text type={textTypeSemiboldItalic}>{props.counterparty}</Kb.Text>
+      return <Kb.Text type="BodySemiboldItalic">{props.counterparty}</Kb.Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -158,10 +150,8 @@ const Counterparty = (props: CounterpartyProps) => {
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={false}
           onShowProfile={props.onShowProfile}
           showFullKey={true}
-          textType="BodySemibold"
         />
         {props.counterpartyType !== 'stellarPublicKey' &&
           props.accountID && <SmallAccountID accountID={props.accountID} />}
