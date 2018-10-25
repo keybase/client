@@ -61,7 +61,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         }
         if (action.payload.setBuildingCurrency) {
           stateMutable.update('building', b =>
-            b.merge({currency: state.get('lastSentXLM') ? 'XLM' : action.payload.currency.code})
+            b.merge({currency: state.lastSentXLM ? 'XLM' : action.payload.currency.code})
           )
         }
       })
