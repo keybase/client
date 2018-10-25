@@ -41,6 +41,8 @@ func TestParserFail1(t *testing.T) {
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
+		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
+		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"}, // excuse me, now, that's mr. junk for you
 	}
 
 	for _, bad := range bads {

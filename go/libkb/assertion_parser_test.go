@@ -15,6 +15,10 @@ func testLexer(t *testing.T, name string, s string, expected []Token) {
 	i := 0
 	for {
 		tok := lexer.Get()
+		if i >= len(expected) {
+			t.Errorf("%s, unexpected token %d [T%v: '%v']", name, i, tok.Typ, string(tok.value))
+			break
+		}
 		if !tok.Eq(expected[i]) {
 			t.Errorf("%s, token %d: [T%v: '%v'] != [T%v: '%v']",
 				name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
@@ -67,6 +71,46 @@ func TestLexer3(t *testing.T) {
 		{EOF, []byte{}},
 	}
 	testLexer(t, "test3", s, expected)
+}
+
+func TestLexerSquareBrackets(t *testing.T) {
+	s := "michal,[michal@zapu.net]@email"
+	expected := []Token{
+		{URL, []byte("michal")},
+		{OR, []byte(",")},
+		{URL, []byte("[michal@zapu.net]@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets", s, expected)
+}
+
+func TestLexerEmailParentheses(t *testing.T) {
+	// Rejected proposal for round brackets, but make sure
+	// there is expected way in which it is parsed.
+
+	s := "michal,(michal@zapu.net)@email"
+	expected := []Token{
+		{URL, []byte("michal")},
+		{OR, []byte(",")},
+		{LPAREN, []byte("(")},
+		{URL, []byte("michal@zapu.net")},
+		{RPAREN, []byte(")")},
+		{URL, []byte("@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "round brackets", s, expected)
+
+	s = "twitter://alice&&(alice@keybasers.de)@email"
+	expected = []Token{
+		{URL, []byte("twitter://alice")},
+		{AND, []byte("&&")},
+		{LPAREN, []byte("(")},
+		{URL, []byte("alice@keybasers.de")},
+		{RPAREN, []byte(")")},
+		{URL, []byte("@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "round brackets", s, expected)
 }
 
 func TestParser1(t *testing.T) {
