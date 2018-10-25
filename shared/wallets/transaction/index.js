@@ -23,7 +23,7 @@ type CounterpartyIconProps = {|
   counterpartyType: Types.CounterpartyType,
 |}
 
-export const CounterpartyIcon = (props: CounterpartyIconProps) => {
+const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
