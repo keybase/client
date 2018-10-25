@@ -14,8 +14,10 @@ declare export function createPropProviderWithCommon(...maps: SelectorMap[]): ((
 declare export function unexpected(name: string): () => void
 
 declare export class Rnd {
-  constructor(seed: number): Rnd;
+  constructor(seed: number | string): Rnd;
   next(): number;
+  randInt(low: number, high: number): number;
+  generateString(regex: RegExp): string;
 }
 
 export {PropProviders}

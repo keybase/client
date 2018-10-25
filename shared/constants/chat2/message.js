@@ -963,7 +963,7 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.OrderedSet()).findLast(o =>
       // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
       mm.getIn([o, 'id'])
     )
@@ -979,6 +979,8 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
+
+export const specialMentions = ['here', 'channel', 'everyone']
 
 export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
   if (!old) {

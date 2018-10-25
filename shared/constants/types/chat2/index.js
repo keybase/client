@@ -1,6 +1,5 @@
 // @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -49,7 +48,7 @@ export type _State = {
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
+  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
   orangeLineMap: I.Map<Common.ConversationIDKey, number>, // last message we've seen

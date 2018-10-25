@@ -66,7 +66,7 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.SortedSet())
+  state.chat2.messageOrdinals.get(id, I.OrderedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
 export const getMessageKey = (message: Types.Message) =>
@@ -266,6 +266,7 @@ export {
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   showAuthorMessageTypes,
+  specialMentions,
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,

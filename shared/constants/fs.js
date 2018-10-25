@@ -602,7 +602,10 @@ export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
+export const generateFileURL = (
+  path: Types.Path,
+  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
+): string => {
   if (localHTTPServerInfo === null) {
     return 'about:blank'
   }

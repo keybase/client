@@ -1,5 +1,4 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
@@ -130,7 +129,7 @@ export type PaymentSection = 'pending' | 'history' | 'none' // where does the pa
 // protocol. We can clean this up once
 // https://keybase.atlassian.net/browse/CORE-9234 is fixed.
 
-export type _PaymentCommon = {
+export type _PaymentCommon = {|
   amountDescription: string,
   delta: PaymentDelta,
   error: ?string,
@@ -149,9 +148,10 @@ export type _PaymentCommon = {
   time: ?number,
   worth: string,
   worthCurrency: string,
-}
+|}
 
-export type _PaymentResult = _PaymentCommon & {
+export type _PaymentResult = {|
+  ..._PaymentCommon,
   // Ideally the section field would be in _PaymentCommon. We can
   // derive it from statusDescription, which is either "pending",
   // "completed", or "error", or once
@@ -159,15 +159,16 @@ export type _PaymentResult = _PaymentCommon & {
   // might be a better way.
   section: PaymentSection,
   unread: boolean,
-}
+|}
 
-export type _PaymentDetail = _PaymentCommon & {
+export type _PaymentDetail = {|
+  ..._PaymentCommon,
   publicMemo: HiddenString,
   publicMemoType: string,
   txID: string,
-}
+|}
 
-export type _Payment = _PaymentResult & _PaymentDetail
+export type _Payment = {|..._PaymentResult, ..._PaymentDetail|}
 
 export type _AssetDescription = {
   code: string,
