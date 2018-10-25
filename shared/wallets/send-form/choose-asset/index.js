@@ -131,7 +131,7 @@ class ChooseAsset extends React.Component<Props, State> {
       displayChoicesData.unshift({
         key: 'XLM',
         currencyCode: 'XLM',
-        selected: !this.props.selected,
+        selected: this.props.selected === 'XLM',
         symbol: 'XLM',
         type: 'display choice',
       })

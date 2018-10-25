@@ -1,0 +1,8 @@
+@namespace("keybase.1")
+protocol NotifyPhoneNumber {
+  import idl "common.avdl";
+
+  void phoneNumberAdded(PhoneNumber phoneNumber) oneway;
+  void phoneNumberVerified(PhoneNumber phoneNumber) oneway;
+  void phoneNumberSuperseded(PhoneNumber phoneNumber) oneway;
+}

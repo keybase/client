@@ -17,7 +17,7 @@ import * as Types from '../../constants/types/fs'
 
 export type SortBarProps = {
   folderIsPending: boolean,
-  sortSetting: Types._SortSetting,
+  sortSetting: Types.SortSetting,
   sortSettingToAction: Types.SortSetting => () => void,
 }
 

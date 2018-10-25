@@ -61,8 +61,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onDownload: () =>
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onEdit: () =>

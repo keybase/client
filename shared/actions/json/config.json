@@ -7,8 +7,7 @@
   ],
   "actions": {
     "setupEngineListeners": {
-      "_description":
-        "when sagas should start creating their incoming handlers / onConnect handlers"
+      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
     },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
@@ -17,14 +16,12 @@
       "_description": "internal to config. should restart the handshake process"
     },
     "daemonHandshake": {
-      "_description":
-        "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
+      "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
       "version": "number"
     },
     "daemonHandshakeWait": {
-      "_description":
-        "subsystems that need to do things during boot need to call this to register that we should wait.",
+      "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
       "increment": "boolean",
@@ -38,13 +35,11 @@
       "_description": "someone wants to log out"
     },
     "logoutHandshake": {
-      "_description":
-        "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
+      "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
     },
     "logoutHandshakeWait": {
-      "_description":
-        "subsystems that need to do things during logout need to call this to register that we should wait.",
+      "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
       "name": "string",
       "version": "number",
       "increment": "boolean"
@@ -107,7 +102,8 @@
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "_avatarQueue": {},
-    "outOfDate": {"critical": "boolean", "message?": "string"},
+    "checkForUpdate": {},
+    "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {}
   }
 }

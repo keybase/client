@@ -1,0 +1,35 @@
+@namespace("keybase.1")
+protocol phoneNumbers {
+    import idl "common.avdl";
+
+    /**
+     Phone number support for TOFU chats.
+    */
+    record UserPhoneNumber {
+      @jsonkey("phone_number")
+      PhoneNumber phoneNumber;
+      @jsonkey("verified")
+      boolean verified;
+      @jsonkey("ctime")
+      UnixTime ctime;
+    }
+
+    void addPhoneNumber(int sessionID, PhoneNumber phoneNumber);
+    void verifyPhoneNumber(int sessionID, PhoneNumber phoneNumber, string code);
+    array<UserPhoneNumber> getPhoneNumbers(int sessionID);
+
+    record PhoneNumberAddedMsg {
+        @jsonkey("phone")
+        PhoneNumber phoneNumber;
+    }
+
+    record PhoneNumberVerifiedMsg {
+        @jsonkey("phone")
+        PhoneNumber phoneNumber;
+    }
+
+    record PhoneNumberSupersededMsg {
+        @jsonkey("phone")
+        PhoneNumber phoneNumber;
+    }
+}

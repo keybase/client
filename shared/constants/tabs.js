@@ -49,8 +49,8 @@ const desktopTabOrder = [
   fsTab,
   teamsTab,
   flags.walletsEnabled ? walletsTab : null,
-  devicesTab,
   gitTab,
+  devicesTab,
   settingsTab,
 ].filter(Boolean)
 

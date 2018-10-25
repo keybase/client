@@ -363,7 +363,7 @@ type sortSettingDisplayParams = {
   sortSettingIconType: IconType,
 }
 
-export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDisplayParams => {
+export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
   switch (s.sortBy) {
     case 'name':
       return s.sortOrder === 'asc'

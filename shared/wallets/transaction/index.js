@@ -12,7 +12,7 @@ import {
   WaitingButton,
 } from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
 
@@ -115,6 +115,7 @@ type DetailProps = {|
   large: boolean,
   pending: boolean,
   yourRole: Types.Role,
+  canceled: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
@@ -153,19 +154,21 @@ const Detail = (props: DetailProps) => {
     />
   )
 
+  const textStyle = props.canceled ? styles.lineThrough : null
+
   switch (props.yourRole) {
     case 'senderOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold}>
+          <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}.
           </Text>
         )
       } else {
-        const verbPhrase = props.pending ? 'Sending' : 'You sent'
+        const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
-          <Text type={textTypeSemibold}>
+          <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}.
           </Text>
         )
@@ -174,14 +177,14 @@ const Detail = (props: DetailProps) => {
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold}>
+          <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} from {counterparty()} to this account.
           </Text>
         )
       } else {
-        const verbPhrase = props.pending ? 'sending' : 'sent you'
+        const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
-          <Text type={textTypeSemibold}>
+          <Text type={textTypeSemibold} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}.
           </Text>
         )
@@ -189,7 +192,7 @@ const Detail = (props: DetailProps) => {
     case 'senderAndReceiver':
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
-        <Text type={textTypeSemibold}>
+        <Text type={textTypeSemibold} style={textStyle}>
           {verbPhrase} {amount} from this account to itself.
         </Text>
       )
@@ -205,6 +208,7 @@ const Detail = (props: DetailProps) => {
 type AmountXLMProps = {|
   yourRole: Types.Role,
   amountXLM: string,
+  canceled: boolean,
   pending: boolean,
   selectableText: boolean,
 |}
@@ -244,11 +248,18 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
 }
 
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
+  const color = props.pending || props.canceled ? globalColors.black_20 : roleToColor(props.yourRole)
 
   const amount = getAmount(props.yourRole, props.amountXLM)
   return (
-    <Text selectable={props.selectableText} style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text
+      selectable={props.selectableText}
+      style={collapseStyles([
+        {color, flexShrink: 0, textAlign: 'right'},
+        props.canceled && styles.lineThrough,
+      ])}
+      type="BodyExtrabold"
+    >
       {amount}
     </Text>
   )
@@ -274,10 +285,20 @@ export const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(props.timestamp)
   const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
+  let status = capitalize(props.status)
+  // 'cancelable' -> show 'pending' and completed -> show nothing
+  switch (status) {
+    case 'Completed':
+      status = null
+      break
+    case 'Cancelable':
+      status = 'Pending'
+      break
+  }
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
+      {status ? ` • ${status}` : null}
     </Text>
   )
 }
@@ -331,7 +352,7 @@ export const Transaction = (props: Props) => {
       */
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
-  const pending = !props.timestamp || props.status !== 'completed'
+  const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
   const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
   const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
   return (
@@ -354,6 +375,7 @@ export const Transaction = (props: Props) => {
             <Detail
               large={large}
               pending={pending}
+              canceled={props.status === 'canceled'}
               yourRole={props.yourRole}
               counterparty={props.counterparty}
               counterpartyType={props.counterpartyType}
@@ -362,33 +384,43 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            {showMemo && <MarkdownMemo style={styles.marginVerticalXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true}>
-              {props.counterpartyType === 'keybaseUser' && (
-                <Button
-                  type="Secondary"
-                  label="Chat"
-                  small={true}
-                  style={styles.chatButton}
-                  onClick={() => props.onChat(props.counterparty)}
-                />
-              )}
-              {props.onCancelPayment && (
-                <WaitingButton
-                  type="Danger"
-                  label="Cancel"
-                  small={true}
-                  style={styles.cancelButton}
-                  onClick={evt => {
-                    evt.stopPropagation()
-                    props.onCancelPayment && props.onCancelPayment()
-                  }}
-                  waitingKey={props.onCancelPaymentWaitingKey}
-                />
-              )}
+              <Box2 direction="vertical" gap="tiny">
+                {props.onCancelPayment && (
+                  <Text type="BodySmall">
+                    {props.counterparty} can claim this when they set up their wallet.
+                  </Text>
+                )}
+                <Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+                  {props.counterpartyType === 'keybaseUser' && (
+                    <Button
+                      type="Secondary"
+                      label="Chat"
+                      small={true}
+                      onClick={() => props.onChat(props.counterparty)}
+                    />
+                  )}
+                  {props.onCancelPayment && (
+                    <WaitingButton
+                      type="Danger"
+                      label="Cancel"
+                      small={true}
+                      style={styles.cancelButton}
+                      onClick={evt => {
+                        evt.stopPropagation()
+                        props.onCancelPayment && props.onCancelPayment()
+                      }}
+                      waitingKey={props.onCancelPaymentWaitingKey}
+                    />
+                  )}
+                </Box2>
+              </Box2>
+
               <Box2 direction="horizontal" style={{flex: 1}} />
               <AmountXLM
                 selectableText={props.selectableText}
+                canceled={props.status === 'canceled'}
                 pending={pending}
                 yourRole={props.yourRole}
                 amountXLM={props.amountXLM}
@@ -407,18 +439,16 @@ export const Transaction = (props: Props) => {
 const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
-    marginTop: globalMargins.tiny,
-  },
-  chatButton: {
-    alignSelf: 'flex-start',
-    marginTop: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
   },
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
-  marginTopXTiny: {
+  lineThrough: {
+    textDecorationLine: 'line-through',
+  },
+  marginVerticalXTiny: {
+    marginBottom: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},

@@ -272,27 +272,6 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
-// Phone number support for TOFU chats.
-type PhoneNumber string
-
-func (o PhoneNumber) DeepCopy() PhoneNumber {
-	return o
-}
-
-type UserPhoneNumber struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone_number"`
-	Verified    bool        `codec:"verified" json:"verified"`
-	Ctime       UnixTime    `codec:"ctime" json:"ctime"`
-}
-
-func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
-	return UserPhoneNumber{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-		Verified:    o.Verified,
-		Ctime:       o.Ctime.DeepCopy(),
-	}
-}
-
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -418,21 +397,6 @@ type FindNextMerkleRootAfterResetArg struct {
 	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
 }
 
-type AddPhoneNumberArg struct {
-	SessionID   int         `codec:"sessionID" json:"sessionID"`
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-}
-
-type VerifyPhoneNumberArg struct {
-	SessionID   int         `codec:"sessionID" json:"sessionID"`
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-	Code        string      `codec:"code" json:"code"`
-}
-
-type GetPhoneNumbersArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -481,9 +445,6 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
-	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
-	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
-	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -874,54 +835,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"addPhoneNumber": {
-				MakeArg: func() interface{} {
-					var ret [1]AddPhoneNumberArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]AddPhoneNumberArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]AddPhoneNumberArg)(nil), args)
-						return
-					}
-					err = i.AddPhoneNumber(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"verifyPhoneNumber": {
-				MakeArg: func() interface{} {
-					var ret [1]VerifyPhoneNumberArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]VerifyPhoneNumberArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]VerifyPhoneNumberArg)(nil), args)
-						return
-					}
-					err = i.VerifyPhoneNumber(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getPhoneNumbers": {
-				MakeArg: func() interface{} {
-					var ret [1]GetPhoneNumbersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetPhoneNumbersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetPhoneNumbersArg)(nil), args)
-						return
-					}
-					ret, err = i.GetPhoneNumbers(ctx, typedArgs[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -1076,21 +989,5 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) AddPhoneNumber(ctx context.Context, __arg AddPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.addPhoneNumber", []interface{}{__arg}, nil)
-	return
-}
-
-func (c UserClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.verifyPhoneNumber", []interface{}{__arg}, nil)
-	return
-}
-
-func (c UserClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
-	__arg := GetPhoneNumbersArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.getPhoneNumbers", []interface{}{__arg}, &res)
 	return
 }

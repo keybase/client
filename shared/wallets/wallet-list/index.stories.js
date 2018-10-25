@@ -59,6 +59,7 @@ const load = () => {
         accountIDs={accountIDs}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
+        onWhatIsStellar={Sb.action('onWhatIsStellar')}
         title="Wallets"
         style={{height: '100%', width: 240}}
       />

@@ -58,6 +58,12 @@ const (
 
 type PGPFingerprint [PGPFingerprintLen]byte
 
+func ImportPGPFingerprint(f keybase1.PGPFingerprint) PGPFingerprint {
+	var ret PGPFingerprint
+	copy(ret[:], f[:])
+	return ret
+}
+
 func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
 	err := DecodeHexFixed(fp[:], []byte(s))

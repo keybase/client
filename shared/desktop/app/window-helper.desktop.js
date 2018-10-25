@@ -7,11 +7,13 @@ export default function(app: any) {
 
     win.on('unresponsive', e => {
       console.log('Browser window unresponsive: ', e)
+      win.reload()
     })
 
     if (win.webContents) {
       win.webContents.on('crashed', e => {
         console.log('Browser window crashed: ', e)
+        win.reload()
       })
     }
   })

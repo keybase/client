@@ -13,18 +13,22 @@ type IntroProps = {|
 const Intro = (props: IntroProps) => {
   const buttons = [
     <Kb.Button
-      style={{width: '100%'}}
+      labelStyle={{color: Styles.globalColors.purple}}
+      style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
       fullWidth={true}
       key={0}
       type="Secondary"
       onClick={() => props.setNextScreen('openWallet')}
       label="Open your wallet"
-    />,
+    >
+      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
+    </Kb.Button>,
+
     <Kb.Button
-      style={{width: '100%'}}
+      style={styles.buttonStyle}
       fullWidth={true}
       key={1}
-      type="Wallet"
+      type="SecondaryColoredBackground"
       onClick={() => props.setNextScreen('linkExisting')}
       label="Link an existing Stellar account"
     />,
@@ -58,7 +62,11 @@ const Intro = (props: IntroProps) => {
           .
         </Kb.Text>
 
-        <Kb.Icon type="icon-illustration-stellar-payments-183-188" />
+        <Kb.Icon
+          color={Styles.globalColors.black}
+          style={Kb.iconCastPlatformStyles(styles.illustration)}
+          type="icon-illustration-stellar-payments-183-188"
+        />
       </Kb.Box2>
     </WalletPopup>
   )
@@ -66,11 +74,20 @@ const Intro = (props: IntroProps) => {
 
 const styles = Styles.styleSheetCreate({
   bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.small, textAlign: 'center'},
+  buttonLabelStyle: {color: Styles.globalColors.purple},
+  buttonStyle: {width: '100%'},
   container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
   headerText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.medium,
     textAlign: 'center',
+  },
+  icon: {
+    position: 'relative',
+    top: -10,
+  },
+  illustration: {
+    paddingBottom: Styles.globalMargins.medium,
   },
 })
 
