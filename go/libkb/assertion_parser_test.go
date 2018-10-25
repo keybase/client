@@ -140,6 +140,17 @@ func TestLexerEmailPlusSign(t *testing.T) {
 		{EOF, []byte{}},
 	}
 	testLexer(t, "square brackets 3", s, expected)
+
+	// This is not a valid email, but not caught at the lexer stage,
+	// it's still supposed to generate URL token.
+	s = "twitter:ae,email:[a,e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("twitter:ae")},
+		{OR, []byte(",")},
+		{URL, []byte("email:[a,e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 4", s, expected)
 }
 
 func TestParser1(t *testing.T) {

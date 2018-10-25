@@ -69,9 +69,10 @@ func TestParserFail1(t *testing.T) {
 		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"},
 		{"bob,[al#ice@kb.io]@email", "Syntax error when parsing: [al#ice@kb.io]@email"}, // `bob,` parsed successfully, but lexer did not match anything after
 		{"[al#ice@keybase.io]@email", "Syntax error when parsing: [al#ice@keybase.io]@email"},
+		{"[b,b@keybase.io]@email", "Invalid key-value identity: [b,b@keybase.io]@email"},
 
 		// Always require [] syntax for emails, even though this is theoretically { service: "email", name : "spam" }.
-		{"spam@email", "expected [...] syntax for email assertion"},
+		{"spam@email", "expected bracket syntax for email assertion"},
 
 		// entire email:alice@keybase.io is sweeped as URL and passet to
 		// assertion parser, which does not recognize syntax with both : and @
@@ -82,9 +83,12 @@ func TestParserFail1(t *testing.T) {
 		{"[]@email", "Syntax error when parsing: []@email"},
 		{"[]@rooter", "Syntax error when parsing: []@rooter"},
 		{"rooter:[]", "Bad username: ''"},
-		{"email:[]", "expected [...] syntax for email assertion"}, // not ideal either
+		{"email:[]", "expected bracket syntax for email assertion"}, // not ideal either
 
-		{"[alice]@rooter", "unexpected [...] syntax for assertion: rooter"},
+		{"[alice]@rooter", "unexpected bracket syntax for assertion: rooter"},
+		{"rooter:[alice]", "unexpected bracket syntax for assertion: rooter"},
+
+		{"[+1-555-222]@phone", "unexpected bracket syntax for assertion: phone"}, // nice try but no
 	}
 
 	for _, bad := range bads {
