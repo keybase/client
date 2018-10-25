@@ -27,6 +27,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
       label={props.primaryLabel}
       waiting={props.waiting}
       fullWidth={Styles.isMobile}
+      disabled={!props.name}
     />,
   ]
   if (!Styles.isMobile) {
