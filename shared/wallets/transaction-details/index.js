@@ -279,7 +279,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
-          onChat={props.onChat}
           onShowProfile={props.onShowProfile}
           // Don't render unread state in detail view.
           readState="read"
