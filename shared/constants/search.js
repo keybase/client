@@ -4,7 +4,6 @@ import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
 import {amIFollowing} from './selectors'
 import type {IconType} from '../common-adapters'
-import {createSelector} from 'reselect'
 import type {TypedState} from './reducer'
 
 export const makeSearchResult: I.RecordFactory<Types.SearchResult> = I.Record({
@@ -75,16 +74,13 @@ function platformToLogo24(service: Types.Service): IconType {
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
   action.type === SearchGen.userInputItemsUpdated && action.payload && action.payload.searchKey === searchKey
 
-const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['search', 'searchKeyToResults', searchKey])
+const getSearchResultIds = (state: TypedState, searchKey: string) =>
+  state.entities.getIn(['search', 'searchKeyToResults', searchKey])
 
-const getSearchResultIdsArray = createSelector(_getSearchResultIds, ids => ids && ids.toArray())
+const getUserInputItemIds = (state: TypedState, searchKey: string) =>
+  state.entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
 
-const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
-const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
-
-const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+const getClearSearchTextInput = ({entities}: TypedState, searchKey: string) =>
   entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
 
 export {
@@ -93,7 +89,7 @@ export {
   maybeUpgradeSearchResultIdToKeybaseId,
   platformToLogo24,
   getClearSearchTextInput,
-  getSearchResultIdsArray,
+  getSearchResultIds,
   getUserInputItemIds,
   isUserInputItemsUpdated,
 }

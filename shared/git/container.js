@@ -1,17 +1,15 @@
 // @flow
 import Git from '.'
-import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
-import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
 import {anyWaiting} from '../constants/waiting'
 import {compose, lifecycle, connect} from '../util/container'
-import {createSelector} from 'reselect'
 import {sortBy, partition} from 'lodash-es'
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Types.GitInfo>) => {
+const getRepos = state => {
+  const git = Constants.getIdToGit(state)
   if (!git) {
     return {
       personals: [],
@@ -24,7 +22,7 @@ const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Typ
     personals: sortRepos(personals).map(g => g.id),
     teams: sortRepos(teams).map(g => g.id),
   }
-})
+}
 
 const mapStateToProps = (state, {routeState}) => {
   return {

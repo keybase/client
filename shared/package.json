@@ -166,7 +166,6 @@
     "recompose": "0.30.0",
     "redux": "4.0.1",
     "redux-saga": "0.16.0",
-    "reselect": "3.0.1",
     "rn-fetch-blob": "0.10.13",
     "shallowequal": "1.1.0",
     "simple-markdown": "0.4.2",
