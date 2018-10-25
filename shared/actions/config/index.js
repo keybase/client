@@ -391,12 +391,12 @@ const updateServerConfig = (state: TypedState) =>
     }
   })
 
-const writeLastSentXLM = (_: any, action: SetLastSentXLMPayload) => {
+const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) => {
   return (
     action.payload.writeFile &&
     RPCTypes.configSetValueRpcPromise({
       path: 'stellar.lastSentXLM',
-      value: {isNull: false, b: action.payload.lastSentXLM},
+      value: {isNull: false, b: state.wallets.lastSentXLM},
     })
   )
 }
