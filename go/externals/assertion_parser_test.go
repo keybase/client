@@ -52,6 +52,9 @@ func TestParserFail1(t *testing.T) {
 		{":illegal", "Invalid key-value identity: :illegal"},
 		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
 		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"}, // excuse me, now, that's mr. junk for you
+		{"bob,[al#ice@kb.io]@email", "Syntax error when parsing: [al#ice@kb.io]@email"},
+		{"[al#ice@keybase.io]@email", "Syntax error when parsing: [al#ice@keybase.io]@email"},
+		{"spam@email", "expected [...] syntax for email assertion"},
 	}
 
 	for _, bad := range bads {

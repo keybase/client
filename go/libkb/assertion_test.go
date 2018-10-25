@@ -239,7 +239,21 @@ func TestProofSetEmail(t *testing.T) {
 	for _, expr := range exprs {
 		expr, err := AssertionParse(testAssertionContext{}, expr)
 		require.NoError(t, err)
+		require.Equal(t, "[m@keybasers.de]@email", expr.String())
 		require.True(t, expr.MatchSet(proofset), "when checking %q", expr)
+	}
+}
+
+func TestProofSetEmail2(t *testing.T) {
+	exprs := []string{
+		"[m.a.x+2@kb.eu]@email",
+		"email:[h.e.l.l.o@kb.eu]",
+		"email://[test+spam@kb.eu]",
+		"email://[test+spam@kb.eu]+[other@example.com]@email",
+	}
+	for _, expr := range exprs {
+		_, err := AssertionParse(testAssertionContext{}, expr)
+		require.NoError(t, err)
 	}
 }
 

@@ -67,7 +67,7 @@ func TestLexer3(t *testing.T) {
 	expected := []Token{
 		{URL, []byte("aa")},
 		{AND, []byte("&&")},
-		{ERROR, []byte("")},
+		{ERROR, []byte("|bb")},
 		{EOF, []byte{}},
 	}
 	testLexer(t, "test3", s, expected)
@@ -108,6 +108,17 @@ func TestLexerEmailInvalidParentheses(t *testing.T) {
 		{URL, []byte("alice@keybasers.de")},
 		{RPAREN, []byte(")")},
 		{URL, []byte("@email")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "round brackets", s, expected)
+}
+
+func TestLexerEmailPlusSign(t *testing.T) {
+	s := "twitter://alice&&[a.li.c+e@keybasers.de]@email"
+	expected := []Token{
+		{URL, []byte("twitter://alice")},
+		{AND, []byte("&&")},
+		{URL, []byte("[a.li.c+e@keybasers.de]@email")},
 		{EOF, []byte{}},
 	}
 	testLexer(t, "round brackets", s, expected)
@@ -156,7 +167,7 @@ func TestParserFail1(t *testing.T) {
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
-		{"aa && |bb", "Unexpected ERROR: ()"},
+		{"aa && |bb", "Syntax error when parsing: |bb"},
 	}
 
 	for _, bad := range bads {

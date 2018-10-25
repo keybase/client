@@ -417,20 +417,21 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
-var nameLongRe = `\[(?P<name>[-_a-zA-Z0-9.@+]+)\]`      // matches "long names" with square brackets, for email syntax
-var nameShortRe = `(?P<name>[-_a-zA-Z0-9.]+)`           // matches normal names, for any other assertion values
-var nameRe = `(` + nameLongRe + `|` + nameShortRe + `)` // matches either long name or short name, for all possible assertion values
-var serviceRe = `(?P<service>[a-zA-Z.]+)`               // matches service names, for assertion keys
+var nameLongRe = `(?P<name_long>\[(?P<name>[-_a-zA-Z0-9.@+]+)\])` // matches "long names" with square brackets, for email syntax
+var nameShortRe = `(?P<name>[-_a-zA-Z0-9.]+)`                     // matches normal names, for any other assertion values
+var nameRe = `(` + nameLongRe + `|` + nameShortRe + `)`           // matches either long name or short name, for all possible assertion values
+var serviceRe = `(?P<service>[a-zA-Z.]+)`                         // matches service names, for assertion keys
 
 // name groups are optional because we still wan't to parse garbage like
 // "http://" or "@keybase"
-var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `)`
-var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `:(//)?` + nameRe + `?)`
+var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `?)`
+var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `?:(//)?` + nameRe + `?)`
 var usernameRe = `(?P<username>` + nameShortRe + `)`
 
-var pairItemRxx = regexp.MustCompile(`^(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)$`)
+var urlSyntaxRxx = `(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)`
+var pairItemRxx = regexp.MustCompile(`^` + urlSyntaxRxx + `$`)
 
-func debugParseKVPair(match []string) {
+func debugParseKVPair(s string, match []string) {
 	// Assign all matched groups to a map and print using spew.
 	// Useful for debugging assertions that parse in unexpected ways.
 
@@ -441,6 +442,7 @@ func debugParseKVPair(match []string) {
 		}
 	}
 
+	fmt.Printf("%s\n", s)
 	spew.Dump(namedMatches)
 }
 
@@ -451,8 +453,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		return
 	}
 
-	// When in doubt, insert a call to debugParseKVPair(match) here.
+	// When in doubt, insert a call to debugParseKVPair(s, match) here.
 
+	wasLogName := false
 	for i, name := range pairItemRxx.SubexpNames() {
 		// Go through all matched groups, collect "service", "name",
 		// exit early on "username".
@@ -465,12 +468,16 @@ func parseToKVPair(s string) (key string, value string, err error) {
 				key = strings.ToLower(matched)
 			case "name":
 				value = matched
-			}
-
-			if key != "" && value != "" {
-				return key, value, nil
+			case "name_long":
+				wasLogName = true
+				continue
 			}
 		}
+	}
+
+	if key == "email" && !wasLogName {
+		err = fmt.Errorf("expected [...] syntax for email assertion")
+		return
 	}
 
 	if key == "" {
