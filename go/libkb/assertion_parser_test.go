@@ -84,7 +84,7 @@ func TestLexerSquareBrackets(t *testing.T) {
 	testLexer(t, "square brackets", s, expected)
 }
 
-func TestLexerEmailParentheses(t *testing.T) {
+func TestLexerEmailInvalidParentheses(t *testing.T) {
 	// Rejected proposal for round brackets, but make sure
 	// there is expected way in which it is parsed.
 

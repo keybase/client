@@ -214,7 +214,7 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	bob := tt.addUser("bob")
 
 	email := bob.userInfo.email
-	assertion := fmt.Sprintf("%s@email", email)
+	assertion := fmt.Sprintf("[%s]@email", email)
 
 	impteamName := fmt.Sprintf("%s,%s", ann.username, assertion)
 	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
