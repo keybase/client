@@ -121,7 +121,25 @@ func TestLexerEmailPlusSign(t *testing.T) {
 		{URL, []byte("[a.li.c+e@keybasers.de]@email")},
 		{EOF, []byte{}},
 	}
-	testLexer(t, "round brackets", s, expected)
+	testLexer(t, "square brackets 1", s, expected)
+
+	s = "alice@twitter||email:[a.li.c+e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("alice@twitter")},
+		{OR, []byte("||")},
+		{URL, []byte("email:[a.li.c+e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 2", s, expected)
+
+	s = "alice@twitter||email://[a.li.c+e@keybasers.de]"
+	expected = []Token{
+		{URL, []byte("alice@twitter")},
+		{OR, []byte("||")},
+		{URL, []byte("email://[a.li.c+e@keybasers.de]")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "square brackets 3", s, expected)
 }
 
 func TestParser1(t *testing.T) {

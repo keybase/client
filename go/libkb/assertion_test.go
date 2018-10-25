@@ -244,7 +244,7 @@ func TestProofSetEmail(t *testing.T) {
 	}
 }
 
-func TestProofSetEmail2(t *testing.T) {
+func TestEmailAssertions(t *testing.T) {
 	exprs := []string{
 		"[m.a.x+2@kb.eu]@email",
 		"email:[h.e.l.l.o@kb.eu]",
@@ -290,13 +290,13 @@ func TestAssertionEmailsMultiple(t *testing.T) {
 		}),
 	}
 	for _, expr := range exprs {
-		expr, err := AssertionParse(testAssertionContext{}, expr)
+		ret, err := AssertionParse(testAssertionContext{}, expr)
 		require.NoError(t, err, "when parsing %q", expr)
 		for _, proofset := range goodProofsets {
-			require.True(t, expr.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
+			require.True(t, ret.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
 		}
 		for _, proofset := range badProofsets {
-			require.False(t, expr.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
+			require.False(t, ret.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
 		}
 	}
 }

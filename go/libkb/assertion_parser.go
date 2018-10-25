@@ -70,8 +70,14 @@ type Lexer struct {
 // Disjunction: '||' ','
 // Conjunction: '&&' '+'
 // Parens: '(' ')'
-// URL: see urlSyntaxRxx in assertion.go
-var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + urlSyntaxRxx + `)`)
+
+// URL:
+var lexerURLCharsRxx = `([^ \n\t&|()\[\],+]+)` // anything but control chars
+var lexerURLSquareRxx = `(\[[^ \n\t]+?\])`     // square bracket syntax, allows pretty much anything in
+// URL has a character group and optionally square bracket groups
+var lexerURLRxx = `(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + lexerURLSquareRxx + `?)`
+
+var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + lexerURLRxx + `)`)
 var lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)
 
 func NewLexer(s string) *Lexer {
@@ -109,7 +115,7 @@ func (lx *Lexer) Get() Token {
 		// First 2 in seq are NONE: one for the full expr, another for the
 		// outer ^() group.
 
-		// NOTE: There are a lot more groups due to `urlSyntaxRxx` inclusion in
+		// NOTE: There are a lot more groups due to `lexerURLRxx` inclusion in
 		// `lexerItemRxx`, but they happen at the end and we ignore them. We
 		// only capture the "outer" group which is URL here.
 
