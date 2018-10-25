@@ -51,7 +51,6 @@ type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  textType: 'Body' | 'BodySmall',
   textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
   textTypeSemiboldItalic: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
@@ -103,7 +102,6 @@ type DetailProps = {|
 |}
 
 const Detail = (props: DetailProps) => {
-  const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
@@ -126,7 +124,6 @@ const Detail = (props: DetailProps) => {
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
       onShowProfile={props.onShowProfile}
-      textType={textType}
       textTypeSemibold={textTypeSemibold}
       textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
