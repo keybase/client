@@ -419,7 +419,7 @@ const paymentToYourRoleAndCounterparty = (
         yourRole: 'senderAndReceiver',
         counterparty: p.source,
         counterpartyType: 'otherAccount',
-        yourAccountName: p.sourceType === 'ownaccount' ? p.source : '',
+        yourAccountName: p.source,
       }
 
     case 'increase':
@@ -427,7 +427,7 @@ const paymentToYourRoleAndCounterparty = (
         yourRole: 'receiverOnly',
         counterparty: p.source,
         counterpartyType: partyTypeToCounterpartyType(p.sourceType),
-        yourAccountName: p.sourceType === 'ownaccount' ? p.source : '',
+        yourAccountName: p.sourceType === 'ownaccount' ? p.target : '',
       }
     case 'decrease':
       return {
