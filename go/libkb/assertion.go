@@ -409,8 +409,10 @@ var nameShortRe = `(?P<name>[-_a-zA-Z0-9.]+)`           // matches normal names,
 var nameRe = `(` + nameLongRe + `|` + nameShortRe + `)` // matches either long name or short name, for all possible assertion values
 var serviceRe = `(?P<service>[a-zA-Z.]+)`               // matches service names, for assertion keys
 
-var atSyntaxRe = `(?P<atsyntax>` + nameRe + `@` + serviceRe + `)`
-var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `:(//)?` + nameRe + `)`
+// name groups are optional because we still wan't to parse garbage like
+// "http://" or "@keybase"
+var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `?)`
+var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `?:(//)?` + nameRe + `?)`
 var usernameRe = `(?P<username>` + nameShortRe + `)`
 
 var pairItemRxx = regexp.MustCompile(`^(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)$`)
@@ -458,10 +460,14 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		}
 	}
 
-	if key == "" || value == "" {
+	if key == "" && value == "" {
+		// We allow no value for one of these, because it's handled later in
+		// code with better error message (e.g. checkAndNormalizeHost).
 		err = fmt.Errorf("Invalid key-value identity: %s", s)
 		return
 	}
+
+	key = strings.ToLower(key)
 	return key, value, nil
 }
 

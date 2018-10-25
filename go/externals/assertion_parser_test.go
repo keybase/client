@@ -41,13 +41,16 @@ func TestParserFail1(t *testing.T) {
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
+		{"http://", "Bad assertion, no value given (key=http)"},
+		{"reddit:", "Bad username: ''"},
+		{"gubble.social:", "username must be at least 2 characters, was 0"},
 		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
 		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"}, // excuse me, now, that's mr. junk for you
 	}
 
 	for _, bad := range bads {
-		_, err := AssertionParse(tc.G, bad.k)
-		require.Error(t, err)
-		require.Equal(t, err.Error(), bad.v)
+		ret, err := AssertionParse(tc.G, bad.k)
+		require.Error(t, err, "for %q: ret is: %+v", bad.k, ret)
+		require.Equal(t, bad.v, err.Error())
 	}
 }
