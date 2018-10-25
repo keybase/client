@@ -19,7 +19,7 @@ const ff: FeatureFlags = {
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
   plansEnabled: false,
-  useSimpleMarkdown: true,
+  useSimpleMarkdown: false,
   walletsEnabled: false,
 }
 
