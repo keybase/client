@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
+  const {yourRole, counterparty, counterpartyType} = Constants.paymentToYourInfoAndCounterparty(tx)
   const memo = tx.note.stringValue()
 
   let readState
@@ -49,7 +49,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 
   return {
-    ...yourRoleAndCounterparty,
+    yourRole,
+    counterparty,
+    counterpartyType,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     memo,

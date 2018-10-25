@@ -14,18 +14,18 @@ const mapStateToProps = (state, ownProps) => {
   const accountID = ownProps.routeProps.get('accountID')
   const paymentID = ownProps.routeProps.get('paymentID')
   const _transaction = Constants.getPayment(state, accountID, paymentID)
-  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(_transaction)
+  const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   return {
     _transaction,
     counterpartyMeta:
-      yourRoleAndCounterparty.counterpartyType === 'keybaseUser'
+      yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
         ? getFullname(
             state,
-            yourRoleAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
+            yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
     you,
-    yourRoleAndCounterparty,
+    yourInfoAndCounterparty,
   }
 }
 
@@ -56,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
   return {
-    ...stateProps.yourRoleAndCounterparty,
+    ...stateProps.yourInfoAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
@@ -78,7 +78,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     title: 'Transaction details',
     transactionID: tx.txID,
     you: stateProps.you,
-    yourAccountName: tx.sourceType === 'ownaccount' ? tx.source : '',
   }
 }
 
