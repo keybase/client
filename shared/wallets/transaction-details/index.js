@@ -107,10 +107,10 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
   counterparty: string,
-  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
-  // onChat and onShowProfile are used only when counterpartyType ===
-  // 'keybaseUser'.
+  // counterpartyMeta, onChat, and onShowProfile are used only when
+  // counterpartyType === 'keybaseUser'.
+  counterpartyMeta: ?string,
   onChat: string => void,
   onShowProfile: string => void,
 |}
