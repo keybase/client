@@ -323,6 +323,7 @@ type PaymentDetailsLocal struct {
 	NoteErr              string          `codec:"noteErr" json:"noteErr"`
 	PublicNote           string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType       string          `codec:"publicNoteType" json:"publicNoteType"`
+	ExternalTxURL        string          `codec:"externalTxURL" json:"externalTxURL"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
@@ -360,6 +361,7 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		NoteErr:             o.NoteErr,
 		PublicNote:          o.PublicNote,
 		PublicNoteType:      o.PublicNoteType,
+		ExternalTxURL:       o.ExternalTxURL,
 	}
 }
 

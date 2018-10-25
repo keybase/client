@@ -453,6 +453,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		PublicNoteType:       details.MemoType,
 		CurrentWorth:         summary.CurrentWorth,
 		CurrentWorthCurrency: summary.CurrentWorthCurrency,
+		ExternalTxURL:        details.ExternalTxURL,
 	}
 
 	return payment, nil

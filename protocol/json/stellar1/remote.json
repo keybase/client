@@ -440,6 +440,11 @@
         {
           "type": "string",
           "name": "memoType"
+        },
+        {
+          "type": "string",
+          "name": "externalTxURL",
+          "lint": "ignore"
         }
       ]
     },
