@@ -353,7 +353,7 @@ function* removeResultsToUserInput({
 function* setUserInputItems({payload: {searchKey, searchResults}}: SearchGen.SetUserInputItemsPayload) {
   const state: TypedState = yield Saga.select()
   const ids = Constants.getUserInputItemIds(state, searchKey)
-  if (!isEqual(ids, searchResults)) {
+  if (!ids.equals(I.OrderedSet(searchResults))) {
     yield Saga.put.resolve(
       EntitiesGen.createReplaceEntity({
         keyPath: ['search', 'searchKeyToUserInputItemIds'],
