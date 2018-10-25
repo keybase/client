@@ -31,7 +31,6 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
-export {default as createCachedSelector} from 're-reselect'
 export {default as connect} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {
