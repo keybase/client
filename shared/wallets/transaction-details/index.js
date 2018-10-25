@@ -46,22 +46,13 @@ export type Props =
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
 type CounterpartyIconProps = {|
-  onShowProfile: string => void,
   counterparty: string,
-  counterpartyType: Types.CounterpartyType,
+  counterpartyType: 'stellarPublicKey' | 'otherAccount',
 |}
 
 export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = 32
   switch (props.counterpartyType) {
-    case 'keybaseUser':
-      return (
-        <Kb.Avatar
-          onClick={() => props.onShowProfile(props.counterparty)}
-          username={props.counterparty}
-          size={size}
-        />
-      )
     case 'stellarPublicKey':
       return <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: size, width: size}} />
     case 'otherAccount':
@@ -150,11 +141,7 @@ const Counterparty = (props: CounterpartyProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon
-        counterparty={props.counterparty}
-        counterpartyType={props.counterpartyType}
-        onShowProfile={props.onShowProfile}
-      />
+      <CounterpartyIcon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
