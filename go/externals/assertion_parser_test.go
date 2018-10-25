@@ -27,6 +27,7 @@ func TestParserFail1(t *testing.T) {
 	tc := setupTest(t, "ParserFail1", 1)
 	defer tc.Cleanup()
 	bads := []Pair{
+		{"", "Unexpected EOF"},
 		{"aa ||", "Unexpected EOF"},
 		{"aa &&", "Unexpected EOF"},
 		{"(aa", "Unbalanced parentheses"},
@@ -43,7 +44,12 @@ func TestParserFail1(t *testing.T) {
 		{"jj@pgp", "bad hex string: 'jj'"},
 		{"http://", "Bad assertion, no value given (key=http)"},
 		{"reddit:", "Bad username: ''"},
+		{"reddit://", "Bad username: ''"},
 		{"gubble.social:", "username must be at least 2 characters, was 0"},
+		{"hello@", "Invalid key-value identity: hello@"},
+		{"://", "Invalid key-value identity: ://"},
+		{"://what", "Invalid key-value identity: ://what"},
+		{":illegal", "Invalid key-value identity: :illegal"},
 		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
 		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"}, // excuse me, now, that's mr. junk for you
 	}

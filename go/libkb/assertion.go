@@ -411,8 +411,8 @@ var serviceRe = `(?P<service>[a-zA-Z.]+)`               // matches service names
 
 // name groups are optional because we still wan't to parse garbage like
 // "http://" or "@keybase"
-var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `?)`
-var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `?:(//)?` + nameRe + `?)`
+var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `)`
+var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `:(//)?` + nameRe + `?)`
 var usernameRe = `(?P<username>` + nameShortRe + `)`
 
 var pairItemRxx = regexp.MustCompile(`^(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)$`)
