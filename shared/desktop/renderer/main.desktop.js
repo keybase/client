@@ -30,21 +30,28 @@ if (module.hot) {
 }
 
 let _store
-function setupStore() {
-  if (!_store) {
-    _store = configureStore()
 
-    if (flags.admin) {
+function setupStore() {
+  let store = _store
+  let runSagas
+  if (!_store) {
+    const configured = configureStore()
+    store = configured.store
+    runSagas = configured.runSagas
+
+    _store = store
+    if (__DEV__ && flags.admin) {
       window.DEBUGStore = _store
     }
   }
 
-  return _store
+  return {store, runSagas}
 }
 
-function setupApp(store) {
+function setupApp(store, runSagas) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
+  runSagas?.()
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
@@ -176,7 +183,8 @@ function setupRoutes(store) {
 }
 
 function setupHMR(store) {
-  if (!module || !module.hot || typeof module.hot.accept !== 'function') {
+  const accept = module.hot?.accept
+  if (!accept) {
     return
   }
 
@@ -190,14 +198,8 @@ function setupHMR(store) {
     } catch (_) {}
   }
 
-  module.hot &&
-    module.hot.accept(
-      ['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'],
-      refreshRoutes
-    )
-
-  module.hot && module.hot.accept('../../common-adapters/index.js', () => {})
-
+  accept(['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'], refreshRoutes)
+  accept('../../common-adapters/index.js', () => {})
   setupLoginHMR(refreshRoutes)
 }
 
@@ -209,9 +211,9 @@ function load() {
   }
   global.loaded = true
   initDesktopStyles()
-  const store = setupStore()
+  const {store, runSagas} = setupStore()
+  setupApp(store, runSagas)
   setupRoutes(store)
-  setupApp(store)
   setupHMR(store)
   render(store, Main)
 }
