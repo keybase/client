@@ -578,10 +578,16 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 }
 
 func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	if !IsPossiblePhoneNumber(a.Value) {
+		return nil, fmt.Errorf("Invalid phone number: %s", a.Value)
+	}
 	return a, nil
 }
 
 func (a AssertionEmail) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+	if strings.Count(a.Value, "@") != 1 {
+		return nil, fmt.Errorf("Invalid email address: %s", a.Value)
+	}
 	return a, nil
 }
 

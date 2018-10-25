@@ -36,13 +36,18 @@ func TestParserFail1(t *testing.T) {
 		{"&& aa", "Unexpected token: &&"},
 		{"|| aa", "Unexpected token: ||"},
 		{"aa)", "Found junk at end of input: )"},
+		{"()", "Illegal parenthetical expression"},
 
 		// Invalid usernames
-		{"()", "Illegal parenthetical expression"},
 		{"dns://a", "Invalid hostname: a"},
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
+		{"[al@ice@keybase.io]@email", "Invalid email address: al@ice@keybase.io"},
+		{"email:[al@ice@keybase.io]", "Invalid email address: al@ice@keybase.io"},
+		{"phone:onetwothree", "Invalid phone number: onetwothree"},
+		{"onetwothree@phone", "Invalid phone number: onetwothree"},
+		{"1-555-222@phone", "Invalid phone number: 1-555-222"},
 
 		// Username missing
 		{"f@reddit", "Bad username: 'f'"},
