@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {StellarPublicKey, TimestampLine} from '../transaction'
+import Transaction, {TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
 export type NotLoadingProps = {|
@@ -96,7 +96,11 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <StellarPublicKey publicKey={props.counterparty} showFullKey={true} textType="BodySemibold" />
+      return (
+        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+          {props.counterparty}
+        </Kb.Text>
+      )
     case 'otherAccount':
       return <Kb.Text type="BodySemiboldItalic">{props.counterparty}</Kb.Text>
     default:

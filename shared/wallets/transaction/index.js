@@ -9,9 +9,9 @@ import {
   ClickableBox,
   Icon,
   ConnectedUsernames,
+  Text,
   WaitingButton,
 } from '../../common-adapters'
-import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
@@ -47,21 +47,6 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
 }
 
-type StellarPublicKeyProps = {|
-  publicKey: string,
-  showFullKey: boolean,
-  textType: TextType,
-|}
-
-export const StellarPublicKey = (props: StellarPublicKeyProps) => {
-  const key = props.publicKey
-  return (
-    <Text type={props.textType} selectable={props.showFullKey} title={key}>
-      {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
-    </Text>
-  )
-}
-
 type CounterpartyTextProps = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
@@ -86,12 +71,11 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'stellarPublicKey':
+      const key = props.counterparty
       return (
-        <StellarPublicKey
-          publicKey={props.counterparty}
-          showFullKey={false}
-          textType={props.textTypeSemibold}
-        />
+        <Text type={props.textTypeSemibold} selectable={false} title={key}>
+          {key.substr(0, 6) + '...' + key.substr(-5)}
+        </Text>
       )
     case 'otherAccount':
       return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
