@@ -6,7 +6,7 @@ import {compose, renderNothing, branch, connect} from '../../util/container'
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
-  const git = gitMap ? gitMap.get(routeProps.get('id')) : null
+  const git = (gitMap ? gitMap.get(routeProps.get('id')) : null) || null
 
   return git
     ? {

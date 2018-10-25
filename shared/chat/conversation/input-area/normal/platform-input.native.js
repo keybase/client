@@ -60,7 +60,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: string, location: string) => {
+  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
