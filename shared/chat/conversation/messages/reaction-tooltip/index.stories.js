@@ -94,9 +94,11 @@ const makeName = () => {
   const length = (rng.next() % 5) + 3
   let res = ''
   for (let i = 0; i < length; i++) {
-    i % 2 === 0
-      ? (res += consonants[rng.next() % consonants.length])
-      : (res += vowels[rng.next() % vowels.length])
+    if (i % 2 === 0) {
+      res += consonants[rng.next() % consonants.length]
+    } else {
+      res += vowels[rng.next() % vowels.length]
+    }
   }
   return upperFirst(res.toLowerCase())
 }

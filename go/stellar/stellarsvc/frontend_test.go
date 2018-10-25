@@ -824,6 +824,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Empty(t, p.NoteErr)
 		require.Equal(t, "public note", p.PublicNote)
 		require.Equal(t, "text", p.PublicNoteType)
+		t.Logf("details: %+v", p)
+		require.Equal(t, fmt.Sprintf("https://stellar.expert/explorer/public/tx/%s", p.TxID), p.ExternalTxURL)
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,

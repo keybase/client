@@ -17,18 +17,24 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize((badgeMap, unreadMap, ...vals) =>
-  vals.map(v => ({
-    hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
-    hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-    conversation: v,
-  }))
-)
-
-const metaMapToFirstValues = memoize(metaMap =>
+const valuesCached = memoize((badgeMap, unreadMap, metaMap) =>
   metaMap
-    .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
     .filter((_, id) => Constants.isValidConversationIDKey(id))
+    .map(v => ({
+      hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+      hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
+      conversation: v,
+    }))
+    .sort((a, b) =>
+      a.hasBadge
+        ? b.hasBadge
+          ? b.conversation.timestamp - a.conversation.timestamp
+          : -1
+        : b.hasBadge
+          ? 1
+          : b.conversation.timestamp - a.conversation.timestamp
+    )
+    .take(maxShownConversations)
     .valueSeq()
     .toArray()
 )
@@ -40,7 +46,7 @@ export const conversationsToSend = (state: TypedState) => {
   return valuesCached(
     state.chat2.badgeMap,
     state.chat2.unreadMap,
-    ...metaMapToFirstValues(state.chat2.metaMap)
+    state.chat2.metaMap,
   )
 }
 

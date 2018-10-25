@@ -3880,6 +3880,48 @@ func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
 	}
 }
 
+type GetNextAttachmentMessageLocalRes struct {
+	Message          *UIMessage                    `codec:"message,omitempty" json:"message,omitempty"`
+	Offline          bool                          `codec:"offline" json:"offline"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o GetNextAttachmentMessageLocalRes) DeepCopy() GetNextAttachmentMessageLocalRes {
+	return GetNextAttachmentMessageLocalRes{
+		Message: (func(x *UIMessage) *UIMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Message),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type DownloadAttachmentLocalRes struct {
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
@@ -4661,6 +4703,14 @@ type PostFileAttachmentUploadLocalNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetNextAttachmentMessageLocalArg struct {
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
+	BackInTime       bool                         `codec:"backInTime" json:"backInTime"`
+	AssetTypes       []AssetMetadataType          `codec:"assetTypes" json:"assetTypes"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type DownloadAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
@@ -4859,6 +4909,7 @@ type LocalInterface interface {
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
 	PostFileAttachmentMessageLocalNonblock(context.Context, PostFileAttachmentMessageLocalNonblockArg) (PostLocalNonblockRes, error)
 	PostFileAttachmentUploadLocalNonblock(context.Context, PostFileAttachmentUploadLocalNonblockArg) error
+	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
@@ -5334,6 +5385,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.PostFileAttachmentUploadLocalNonblock(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getNextAttachmentMessageLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetNextAttachmentMessageLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetNextAttachmentMessageLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetNextAttachmentMessageLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetNextAttachmentMessageLocal(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -5955,6 +6022,11 @@ func (c LocalClient) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 
 func (c LocalClient) PostFileAttachmentUploadLocalNonblock(ctx context.Context, __arg PostFileAttachmentUploadLocalNonblockArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentUploadLocalNonblock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetNextAttachmentMessageLocal(ctx context.Context, __arg GetNextAttachmentMessageLocalArg) (res GetNextAttachmentMessageLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getNextAttachmentMessageLocal", []interface{}{__arg}, &res)
 	return
 }
 

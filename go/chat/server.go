@@ -1032,6 +1032,39 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 	}, nil
 }
 
+func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
+	arg chat1.GetNextAttachmentMessageLocalArg) (res chat1.GetNextAttachmentMessageLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetNextAttachmentMessageLocal(%s,%d,%v)",
+		arg.ConvID, arg.MessageID, arg.BackInTime)()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+	gallery := attachments.NewGallery(h.G())
+	unboxed, err := gallery.NextMessage(ctx, uid, arg.ConvID, arg.MessageID,
+		attachments.NextMessageOptions{
+			BackInTime: arg.BackInTime,
+			AssetTypes: arg.AssetTypes,
+		},
+	)
+	if err != nil {
+		return res, err
+	}
+	var resMsg *chat1.UIMessage
+	if unboxed != nil {
+		resMsg = new(chat1.UIMessage)
+		*resMsg = utils.PresentMessageUnboxed(ctx, h.G(), *unboxed, uid, arg.ConvID)
+	}
+	return chat1.GetNextAttachmentMessageLocalRes{
+		Message:          resMsg,
+		IdentifyFailures: identBreaks,
+	}, nil
+}
+
 func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)

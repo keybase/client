@@ -51,7 +51,7 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 		target = maxHoles
 	}
 	rc := NewHoleyResultCollector(maxHoles, NewSimpleResultCollector(target))
-	err = s.engine.ReadMessages(ctx, rc, convID, uid, maxMsgID)
+	err = s.engine.ReadMessages(ctx, rc, convID, uid, maxMsgID, 0)
 	switch err.(type) {
 	case nil:
 		// ok

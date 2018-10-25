@@ -547,7 +547,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -607,7 +607,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -1218,9 +1218,14 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
-	if recipient.User == nil {
-		// only send if recipient is keybase username
+func chatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
+	var chatRecipient string
+	if recipient.User != nil {
+		chatRecipient = recipient.User.Username.String()
+	} else if recipient.Assertion != nil {
+		chatRecipient = recipient.Assertion.String()
+	} else {
+		m.CDebugf("Not sending chat message: recipient is not a user or an assertion")
 		return nil
 	}
 
@@ -1229,7 +1234,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
 	}
 
-	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
+	name := strings.Join([]string{m.CurrentUsername().String(), chatRecipient}, ",")
 
 	msg := chat1.MessageSendPayment{
 		PaymentID: stellar1.NewPaymentID(txID),

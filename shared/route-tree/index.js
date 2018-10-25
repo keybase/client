@@ -132,7 +132,6 @@ const _makeRouteStateNode: I.RecordFactory<
       op: (node: ?I.RecordOf<RouteStateNode>) => ?I.RecordOf<RouteStateNode>
     ) => ?I.RecordOf<RouteStateNode>,
   }
-  // $FlowIssue
 > = I.Record({
   selected: null,
   props: I.Map(),
@@ -299,6 +298,7 @@ export function checkRouteState(
     path.push(selected)
     // $FlowIssue
     curDef = curDef.getChild(selected)
+    // $FlowIssue
     curState = curState.getChild(selected)
   }
   if (!curDef) {
@@ -318,6 +318,7 @@ export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<
 
   if (parentPath) {
     for (const next of parentPath) {
+      // $FlowIssue
       curState = curState && next && curState.getChild(next)
       if (!curState) {
         return I.List(path)
@@ -342,6 +343,7 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
 
   if (parentPath) {
     for (const next of parentPath) {
+      // $FlowIssue
       curState = curState && next && curState.getChild(next)
       if (!curState) {
         return null
@@ -351,6 +353,7 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
   }
 
   while (curState && curState.selected) {
+    // $FlowIssue
     curState = curState.getChild(curState.selected)
   }
   return curState ? curState.state : null
@@ -366,8 +369,10 @@ export function getPathProps(
   let curState = routeState
 
   for (const next of parentPath) {
+    // $FlowIssue
     curState = curState && curState.getChild(next)
     if (!curState) {
+      // $FlowIssue
       return I.List(path)
     }
     path.push({

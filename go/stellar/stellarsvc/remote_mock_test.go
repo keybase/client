@@ -636,9 +636,10 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 	memo, memoType := extractMemo(unpackedTx.Tx)
 
 	r.addPayment(stellar1.PaymentDetails{
-		Summary:  summary,
-		Memo:     memo,
-		MemoType: memoType,
+		Summary:       summary,
+		Memo:          memo,
+		MemoType:      memoType,
+		ExternalTxURL: fmt.Sprintf("https://stellar.expert/explorer/public/tx/%s", txIDPrecalc),
 	})
 
 	return stellar1.PaymentResult{
@@ -702,6 +703,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		From:            caller,
 		FromDeviceID:    post.FromDeviceID,
 		To:              post.To,
+		ToAssertion:     post.ToAssertion,
 		RelayAccount:    extract.To,
 		Amount:          extract.Amount,
 		DisplayAmount:   &post.DisplayAmount,

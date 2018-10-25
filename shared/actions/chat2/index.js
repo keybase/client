@@ -559,10 +559,6 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) 
 // Get actions to update messagemap / metamap when ephemeral messages expire
 const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
   const actions = []
-  const meta = !!info.conv && Constants.inboxUIItemToConversationMeta(info.conv)
-  if (meta) {
-    actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
-  }
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   const messageIDs =
     !!info.msgs &&
@@ -1656,8 +1652,10 @@ const updatePendingParticipants = (
   ])
 }
 
-function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
+function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
+    const conversationIDKey = message.conversationIDKey
+    const ordinal = message.ordinal
     let lastRatioSent = -1 // force the first update to show no matter what
     const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
       const ratio = bytesComplete / bytesTotal
@@ -1686,7 +1684,7 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
     return rpcRes.filename
   } catch (e) {}
   return fileName
@@ -1694,12 +1692,9 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
 
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
-  const {conversationIDKey, ordinal} = action.payload
+  const {message} = action.payload
 
-  const state: TypedState = yield Saga.select()
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
-
-  if (!message || message.type !== 'attachment') {
+  if (message.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
   }
 
@@ -1711,8 +1706,35 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 
   // Download it
   const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
+  yield Saga.call(downloadAttachment, destPath, message)
 }
+
+const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.AttachmentFullscreenNextPayload) =>
+  Saga.call(function*() {
+    const {conversationIDKey, messageID, backInTime} = action.payload
+    const blankMessage = Constants.makeMessageAttachment({})
+    if (conversationIDKey === blankMessage.conversationIDKey) {
+      return
+    }
+    const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
+    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
+    const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
+      convID: Types.keyToConversationID(conversationIDKey),
+      messageID,
+      backInTime,
+      assetTypes: [RPCChatTypes.localAssetMetadataType.image, RPCChatTypes.localAssetMetadataType.video],
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    })
+
+    let nextMsg = currentFullscreen
+    if (nextAttachmentRes.message) {
+      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
+      if (uiMsg) {
+        nextMsg = uiMsg
+      }
+    }
+    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+  })
 
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
@@ -1730,10 +1752,15 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
     )
   } else {
     yield Saga.put(
+      Chat2Gen.createAttachmentFullscreenSelection({
+        message,
+      })
+    )
+    yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            props: {},
             selected: 'attachmentFullscreen',
           },
         ],
@@ -2074,7 +2101,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   try {
     yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
   } catch (e) {
@@ -2090,7 +2117,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,
@@ -2694,6 +2721,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield Saga.actionToAction(Chat2Gen.attachmentFullscreenNext, attachmentFullscreenNext)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)

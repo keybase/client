@@ -31,11 +31,19 @@ const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
   },
   _onClose: () => {
-    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
+    if (navigateUp) {
+      dispatch(navigateUp())
+    } else {
+      onBack && onBack()
+    }
   },
   _onChoose: (currency: string) => {
     dispatch(WalletsGen.createSetBuildingCurrency({currency}))
-    navigateUp ? dispatch(navigateUp()) : onBack && onBack()
+    if (navigateUp) {
+      dispatch(navigateUp())
+    } else {
+      onBack && onBack()
+    }
   },
 })
 

@@ -39,9 +39,11 @@ const commonLoadingProps = {
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: '',
+  cancelButtonLabel: '',
   icon: 'sending',
   loading: true,
   onCancel: null,
+  onClaimLumens: null,
   onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
@@ -57,6 +59,13 @@ const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
 })
 
 const sendMapDispatchToProps = dispatch => ({
+  onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
+  onClaimLumens: () =>
+    dispatch(
+      Container.isMobile
+        ? RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.walletsTab]})
+        : RouteTreeGen.createSwitchTo({path: [Tabs.walletsTab]})
+    ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID}))
     const root = Container.isMobile ? [Tabs.settingsTab, SettingsConstants.walletsTab] : [Tabs.walletsTab]
@@ -83,17 +92,26 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     }
   }
   const {_you: you} = stateProps
+  const youAreSender = you === ownProps.message.author
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
     balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
+    cancelButtonLabel: 'Cancel',
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
-    onCancel: null,
+    onCancel:
+      paymentInfo.status === 'cancelable' && youAreSender
+        ? () => dispatchProps.onCancel(paymentInfo.paymentID)
+        : null,
+    onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
-    onSeeDetails: () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID),
+    onSeeDetails:
+      paymentInfo.status === 'completed'
+        ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
+        : null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
@@ -165,9 +183,11 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     balanceChange: '',
     balanceChangeColor: '',
     bottomLine,
+    cancelButtonLabel: 'Cancel request',
     icon: 'receiving',
     loading: false,
     onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
+    onClaimLumens: null,
     onHidden: ownProps.onHidden,
     onSeeDetails: null,
     position: ownProps.position,

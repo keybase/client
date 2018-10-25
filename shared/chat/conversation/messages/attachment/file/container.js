@@ -11,12 +11,11 @@ type OwnProps = {
   message: Types.MessageAttachment,
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },

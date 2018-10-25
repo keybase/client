@@ -41,7 +41,7 @@ func (c *CmdAddPhoneNumber) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdAddPhoneNumber) Run() error {
-	cli, err := GetUserClient(c.G())
+	cli, err := GetPhoneNumbersClient(c.G())
 	if err != nil {
 		return err
 	}

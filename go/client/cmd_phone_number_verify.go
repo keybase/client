@@ -43,7 +43,7 @@ func (c *CmdVerifyPhoneNumber) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdVerifyPhoneNumber) Run() error {
-	cli, err := GetUserClient(c.G())
+	cli, err := GetPhoneNumbersClient(c.G())
 	if err != nil {
 		return err
 	}

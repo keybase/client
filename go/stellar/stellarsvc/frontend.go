@@ -446,12 +446,14 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		ToAccountName:        summary.ToAccountName,
 		ToUsername:           summary.ToUsername,
 		ToAssertion:          summary.ToAssertion,
+		OriginalToAssertion:  summary.OriginalToAssertion,
 		Note:                 summary.Note,
 		NoteErr:              summary.NoteErr,
 		PublicNote:           details.Memo,
 		PublicNoteType:       details.MemoType,
 		CurrentWorth:         summary.CurrentWorth,
 		CurrentWorthCurrency: summary.CurrentWorthCurrency,
+		ExternalTxURL:        details.ExternalTxURL,
 	}
 
 	return payment, nil

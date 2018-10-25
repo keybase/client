@@ -212,6 +212,16 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""
 		loc.ToAccountName = ""
+		if p.Claim.ToPaymentStatus() == stellar1.PaymentStatus_CANCELED {
+			// canceled payment. blank out toAssertion and stow in originalToAssertion
+			// set delta to what it would have been had the payment completed
+			loc.ToAssertion = ""
+			loc.OriginalToAssertion = p.ToAssertion
+			loc.Delta = stellar1.BalanceDelta_INCREASE
+			if acctID == p.FromStellar {
+				loc.Delta = stellar1.BalanceDelta_DECREASE
+			}
+		}
 		if username, err := lookupUsername(mctx, p.Claim.To.Uid); err == nil {
 			loc.ToUsername = username
 			loc.ToType = stellar1.ParticipantType_KEYBASE

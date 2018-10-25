@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../constants/types/chat2'
+import type {MentionsAt, MentionsChannel, MentionsChannelName} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -32,7 +32,8 @@ export type Props = {
   preview?: boolean, // if true render a simplified version
   style?: any,
   allowFontScaling?: boolean,
-  meta?: MarkdownMeta,
+  meta?: ?MarkdownMeta,
+  simple?: boolean,
 }
 
 export default class Markdown extends React.Component<Props> {}

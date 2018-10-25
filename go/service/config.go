@@ -15,7 +15,6 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -297,17 +296,7 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 }
 
 func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
-	updaterPath, err := install.UpdaterBinPath()
-	if err != nil {
-		return err
-	}
-	pid, err := libcmdline.SpawnDetachedProcess(
-		updaterPath, []string{"check"}, h.G().Log)
-	if err != nil {
-		return err
-	}
-	h.G().Log.Debug("Starting background updater process (%s). pid=%d", updaterPath, pid)
-	return nil
+	return install.StartUpdateIfNeeded(ctx, h.G().Log)
 }
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {

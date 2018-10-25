@@ -30,9 +30,11 @@ const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
   onClick: isSpecialMention(username)
     ? undefined
     : () => {
-        isMobile
-          ? dispatch(createShowUserProfile({username}))
-          : dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+        if (isMobile) {
+          dispatch(createShowUserProfile({username}))
+        } else {
+          dispatch(createGetProfile({username, ignoreCache: true, forceDisplay: true}))
+        }
       },
 })
 
