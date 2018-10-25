@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -403,31 +404,65 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
-var pairRE = regexp.MustCompile(`^[0-9a-zA-Z@:/_-]`)
+var nameLongRe = `\[(?P<name>[-_a-zA-Z0-9.@+]+)\]`      // matches "long names" with square brackets, for email syntax
+var nameShortRe = `(?P<name>[-_a-zA-Z0-9.]+)`           // matches normal names, for any other assertion values
+var nameRe = `(` + nameLongRe + `|` + nameShortRe + `)` // matches either long name or short name, for all possible assertion values
+var serviceRe = `(?P<service>[a-zA-Z.]+)`               // matches service names, for assertion keys
+
+var atSyntaxRe = `(?P<atsyntax>` + nameRe + `@` + serviceRe + `)`
+var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `:(//)?` + nameRe + `)`
+var usernameRe = `(?P<username>` + nameShortRe + `)`
+
+var pairItemRxx = regexp.MustCompile(`^(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)$`)
+
+func debugParseKVPair(match []string) {
+	// Assign all matched groups to a map and print using spew.
+	// Useful for debugging assertions that parse in unexpected ways.
+
+	namedMatches := make(map[string]string)
+	for i, name := range pairItemRxx.SubexpNames() {
+		if i != 0 && name != "" && match[i] != "" {
+			namedMatches[name] = match[i]
+		}
+	}
+
+	spew.Dump(namedMatches)
+}
 
 func parseToKVPair(s string) (key string, value string, err error) {
-
-	if !pairRE.MatchString(s) {
+	match := pairItemRxx.FindStringSubmatch(s)
+	if match == nil {
 		err = fmt.Errorf("Invalid key-value identity: %s", s)
 		return
 	}
 
-	colon := strings.IndexByte(s, byte(':'))
-	atsign := strings.IndexByte(s, byte('@'))
-	if colon >= 0 {
-		key = s[0:colon]
-		value = s[(colon + 1):]
-		if len(value) >= 2 && value[0:2] == "//" {
-			value = value[2:]
+	// When in doubt, insert a call to debugParseKVPair(match) here.
+
+	for i, name := range pairItemRxx.SubexpNames() {
+		// Go through all matched groups, collect "service", "name",
+		// exit early on "username".
+		if matched := match[i]; matched != "" {
+			switch name {
+			case "username":
+				value = matched
+				return "", value, nil
+			case "service":
+				key = matched
+			case "name":
+				value = matched
+			}
+
+			if key != "" && value != "" {
+				break
+			}
 		}
-	} else if atsign >= 0 {
-		value = s[0:atsign]
-		key = s[(atsign + 1):]
-	} else {
-		value = s
 	}
-	key = strings.ToLower(key)
-	return
+
+	if key == "" || value == "" {
+		err = fmt.Errorf("Invalid key-value identity: %s", s)
+		return
+	}
+	return key, value, nil
 }
 
 func (a AssertionKeybase) IsKeybase() bool         { return true }

@@ -25,6 +25,33 @@ func (t testAlwaysFailAssertionContext) NormalizeSocialName(service string, user
 	return "", fmt.Errorf("%s: %s", failAssertionContextErr, service)
 }
 
+func TestUsername(t *testing.T) {
+	a := "max"
+	expr, err := AssertionParse(testAssertionContext{}, a)
+	require.NoError(t, err)
+	require.IsType(t, AssertionKeybase{}, expr)
+	require.Equal(t, expr.String(), a)
+	proofset := NewProofSet([]Proof{
+		{"keybase", "max"},
+	})
+	require.True(t, expr.MatchSet(*proofset))
+}
+
+func TestUsernameMultiple(t *testing.T) {
+	a := "max,chris"
+	expr, err := AssertionParse(testAssertionContext{}, a)
+	require.NoError(t, err)
+
+	usernameSet := func(username string) ProofSet {
+		return *NewProofSet([]Proof{
+			{"keybase", username},
+		})
+	}
+	require.True(t, expr.MatchSet(usernameSet("max")))
+	require.True(t, expr.MatchSet(usernameSet("chris")))
+	require.False(t, expr.MatchSet(usernameSet("sam")))
+}
+
 func TestSuccess1(t *testing.T) {
 	a := "web://maxk.org && twitter://maxtaco"
 	expr, err := AssertionParse(testAssertionContext{}, a)
@@ -197,6 +224,66 @@ func TestAssertions4(t *testing.T) {
 	}
 	for _, proofset := range badProofsets {
 		require.False(t, expr.MatchSet(proofset), "matching to %+v", proofset)
+	}
+}
+
+func TestProofSetEmail(t *testing.T) {
+	exprs := []string{
+		"[m@keybasers.de]@email",
+		"email:[m@keybasers.de]",
+		"email://[m@keybasers.de]",
+	}
+	proofset := *NewProofSet([]Proof{
+		{"email", "m@keybasers.de"},
+	})
+	for _, expr := range exprs {
+		expr, err := AssertionParse(testAssertionContext{}, expr)
+		require.NoError(t, err)
+		require.True(t, expr.MatchSet(proofset), "when checking %q", expr)
+	}
+}
+
+func TestAssertionEmailsMultiple(t *testing.T) {
+	exprs := []string{
+		"[m@keybasers.de]@email,max",
+		"max,[m@keybasers.de]@email",
+		"email:[m@keybasers.de],max",
+		"max,email:[m@keybasers.de]",
+		"max,email://[m@keybasers.de]",
+		"(max||[max@keybase.io]@email),email://[m@keybasers.de]",
+	}
+	goodProofsets := []ProofSet{
+		*NewProofSet([]Proof{
+			{"email", "m@keybasers.de"},
+		}),
+		*NewProofSet([]Proof{
+			{"keybase", "max"},
+		}),
+		*NewProofSet([]Proof{
+			{"email", "m@keybasers.de"},
+			{"keybase", "m"},
+		}),
+	}
+	badProofsets := []ProofSet{
+		*NewProofSet([]Proof{
+			{"keybase", "m"},
+		}),
+		*NewProofSet([]Proof{
+			{"https", "keybase.io"},
+		}),
+		*NewProofSet([]Proof{
+			{"http", "keybase.io"},
+		}),
+	}
+	for _, expr := range exprs {
+		expr, err := AssertionParse(testAssertionContext{}, expr)
+		require.NoError(t, err, "when parsing %q", expr)
+		for _, proofset := range goodProofsets {
+			require.True(t, expr.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
+		}
+		for _, proofset := range badProofsets {
+			require.False(t, expr.MatchSet(proofset), "when checking %q with pset: %v", expr, proofset)
+		}
 	}
 }
 
