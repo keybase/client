@@ -102,7 +102,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         </Kb.Text>
       )
     case 'otherAccount':
-      return <Kb.Text type="BodySemiboldItalic">{props.counterparty}</Kb.Text>
+      return <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
