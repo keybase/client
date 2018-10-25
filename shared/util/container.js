@@ -13,6 +13,8 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const NullComponent = () => null
 
+const actionHasError = (a: Object) => !!a.error
+
 type TypedDispatch = (action: TypedActions) => void
 type Dispatch = TypedDispatch
 
@@ -35,6 +37,7 @@ export {default as createCachedSelector} from 're-reselect'
 export {default as connect} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {
+  actionHasError,
   createShallowEqualSelector,
   createImmutableEqualSelector,
   createSelector,

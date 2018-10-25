@@ -28,11 +28,11 @@ type _ReceivedBadgeStatePayload = $ReadOnly<{|badgeState: RPCTypes.BadgeState|}>
 type _SetBadgeCountsPayload = $ReadOnly<{|counts: I.Map<Tabs.Tab, number>|}>
 
 // Action Creators
-export const createBadgeApp = (payload: _BadgeAppPayload) => ({error: false, payload, type: badgeApp})
-export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({error: false, payload, type: listenForKBFSNotifications})
-export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({error: false, payload, type: listenForNotifications})
-export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({error: false, payload, type: receivedBadgeState})
-export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({error: false, payload, type: setBadgeCounts})
+export const createBadgeApp = (payload: _BadgeAppPayload) => ({payload, type: badgeApp})
+export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({payload, type: listenForKBFSNotifications})
+export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({payload, type: listenForNotifications})
+export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({payload, type: receivedBadgeState})
+export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({payload, type: setBadgeCounts})
 
 // Action Payloads
 export type BadgeAppPayload = $Call<typeof createBadgeApp, _BadgeAppPayload>

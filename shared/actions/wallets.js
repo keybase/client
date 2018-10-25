@@ -21,6 +21,7 @@ import {getEngine} from '../engine'
 import {anyWaiting} from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
+import {actionHasError} from '../util/container'
 
 const build = (state: TypedState, action: any) =>
   (state.wallets.building.isRequest
@@ -199,7 +200,7 @@ const loadAccounts = (
     | WalletsGen.DidSetAccountAsDefaultPayload
     | ConfigGen.LoggedInPayload
 ) =>
-  !action.error &&
+  !actionHasError(action) &&
   RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
     WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
@@ -214,7 +215,7 @@ const loadAssets = (
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
 ) =>
-  !action.error &&
+  !actionHasError(action) &&
   RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
@@ -245,7 +246,7 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
 ) =>
-  !action.error &&
+  !actionHasError(action) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -399,7 +400,7 @@ const createdOrLinkedAccount = (
   state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
-  if (action.error) {
+  if (actionHasError(action)) {
     // Create new account failed, don't nav
     return
   }
@@ -416,7 +417,7 @@ const navigateUp = (
   state: TypedState,
   action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
 ) => {
-  if (action.error) {
+  if (actionHasError(action)) {
     // we don't want to nav on error
     return
   }

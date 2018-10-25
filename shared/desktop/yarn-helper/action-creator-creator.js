@@ -123,7 +123,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
     `
       : '') +
     `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload) => (
-  { error: false, payload, type: ${actionName}, }
+  { payload, type: ${actionName}, }
 )` +
     (desc.canError
       ? `\n export const create${capitalize(actionName)}Error = (payload: _${capitalize(
