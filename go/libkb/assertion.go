@@ -449,25 +449,23 @@ func parseToKVPair(s string) (key string, value string, err error) {
 				value = matched
 				return "", value, nil
 			case "service":
-				key = matched
+				key = strings.ToLower(matched)
 			case "name":
 				value = matched
 			}
 
 			if key != "" && value != "" {
-				break
+				return key, value, nil
 			}
 		}
 	}
 
-	if key == "" && value == "" {
-		// We allow no value for one of these, because it's handled later in
-		// code with better error message (e.g. checkAndNormalizeHost).
+	if key == "" {
+		// We allow value to be null, because it can be then handled with better
+		// error message later. No `key` (or "service") is illegal though.
 		err = fmt.Errorf("Invalid key-value identity: %s", s)
 		return
 	}
-
-	key = strings.ToLower(key)
 	return key, value, nil
 }
 
