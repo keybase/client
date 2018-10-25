@@ -117,7 +117,8 @@ func (lx *Lexer) Get() Token {
 
 		// NOTE: There are a lot more groups due to `lexerURLRxx` inclusion in
 		// `lexerItemRxx`, but they happen at the end and we ignore them. We
-		// only capture the "outer" group which is URL here.
+		// only capture the "outer" group which is URL here. To keep things simple,
+		// make sure URL is the last group checked here.
 
 		seq := []int{NONE, NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
 		for i := 2; i <= len(seq); i++ {

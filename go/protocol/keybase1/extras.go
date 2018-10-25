@@ -1023,6 +1023,9 @@ func (r BlockReferenceCount) String() string {
 }
 
 func (sa SocialAssertion) String() string {
+	if sa.Service == "email" {
+		return fmt.Sprintf("[%s]@email", sa.User)
+	}
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
