@@ -453,7 +453,8 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		return
 	}
 
-	// When in doubt, insert a call to debugParseKVPair(s, match) here.
+	// When in doubt, insert a debugging call:
+	// debugParseKVPair(s, match)
 
 	wasLogName := false
 	for i, name := range pairItemRxx.SubexpNames() {

@@ -57,9 +57,8 @@ func TestParserFail1(t *testing.T) {
 		{"://what", "Invalid key-value identity: ://what"},
 		{":illegal", "Invalid key-value identity: :illegal"},
 
-		// Not the greatest of error messages, but I take them.
-		{"alice@rooter@email", "Found junk at end of input: @email"},
-		{"alice@keybase.io@email", "Unknown social network: keybase.io"},
+		{"alice@rooter@email", "Invalid key-value identity: alice@rooter@email"},
+		{"alice@keybase.io@email", "Invalid key-value identity: alice@keybase.io@email"},
 
 		{"(alice@keybasers.de)@email", "Illegal parenthetical expression"},
 		{"twitter://alice&&(alice@keybasers.de)@email", "Found junk at end of input: )"},
@@ -68,8 +67,12 @@ func TestParserFail1(t *testing.T) {
 
 		// Always require [] syntax for emails, even though this is theoretically { service: "email", name : "spam" }.
 		{"spam@email", "expected [...] syntax for email assertion"},
-		{"email:alice@keybase.io", "expected [...] syntax for email assertion"}, // same here but this gets matched to colon syntax
-		{"email://alice@keybase.io", "expected [...] syntax for email assertion"},
+
+		// entire email:alice@keybase.io is sweeped as URL and passet to
+		// assertion parser, which does not recognize syntax with both : and @
+		{"email:alice@keybase.io", "Invalid key-value identity: email:alice@keybase.io"},
+		// similar to above
+		{"email://alice@keybase.io", "Invalid key-value identity: email://alice@keybase.io"},
 
 		{"[]@email", "Syntax error when parsing: []@email"},
 		{"[]@rooter", "Syntax error when parsing: []@rooter"},
