@@ -435,10 +435,12 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 		defer close(convCh)
 		for i, conv := range pending {
 			select {
-			case convCh <- job{conv: conv, index: i}:
 			case <-ctx.Done():
+				s.Debug(ctx, "pipeline: context is done, bailing (producer)")
 				return ctx.Err()
+			default:
 			}
+			convCh <- job{conv: conv, index: i}
 		}
 		return nil
 	})
@@ -450,7 +452,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(localizeJob *localizer
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
 				select {
 				case <-ctx.Done():
-					s.Debug(ctx, "pipeline: context is done, bailing")
+					s.Debug(ctx, "pipeline: context is done, bailing (consumer)")
 					return ctx.Err()
 				default:
 				}

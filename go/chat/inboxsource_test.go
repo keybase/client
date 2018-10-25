@@ -8,6 +8,7 @@ import (
 
 	context "golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,8 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	}, 0, nil)
 	require.NoError(t, err)
 
-	ib, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+		types.ConversationLocalizerBlocking, true, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -61,7 +63,8 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	}()
 	wg.Wait()
 
-	ib, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+		types.ConversationLocalizerBlocking, true, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -80,7 +83,8 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 
 	assertInboxVersion := func(v int) {
-		ib, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
+		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
+			types.ConversationLocalizerBlocking, true, nil, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
