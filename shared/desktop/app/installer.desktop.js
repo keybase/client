@@ -9,26 +9,26 @@ import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 
 const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
-let state = {promptedForCLI: false}
 
-const loadState = () => {
+const loadHasPrompted = () => {
   try {
     const data = fs.readFileSync(file, 'utf8')
-    state = JSON.parse(data)
+    return JSON.parse(data).promptedForCLI
   } catch (err) {
     if (err && err.code === 'ENOENT') {
-      console.log('No installer.json file')
+      console.log('[Installer] loadHasPrompted: No installer.json file')
     } else {
-      console.warn('Error loading state:', err)
+      console.warn('[Installer] loadHasPrompted: Error loading state:', err)
     }
+    return false
   }
 }
 
-const saveState = () => {
+const saveHasPrompted = () => {
   try {
-    fs.writeFileSync(file, JSON.stringify(state))
+    fs.writeFileSync(file, JSON.stringify({promptedForCLI: true}))
   } catch (err) {
-    console.warn('Error saving state:', err)
+    console.warn('[Installer] saveHasPrompted: Error saving state:', err)
   }
 }
 
@@ -86,8 +86,7 @@ const checkErrors = (result, errors, errorTypes) => {
 // Reminder: hot-server doesn't reload code in here (/desktop)
 type CB = (err: any) => void
 const darwinInstall = (callback: CB) => {
-  loadState()
-  logger.info('Installer check starting now')
+  logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
   if (!keybaseBin) {
     callback(new Error('No keybase bin path'))
@@ -126,7 +125,7 @@ const darwinInstall = (callback: CB) => {
 
     if (errors.length > 0) {
       logger.info(errors.join('\n'))
-      logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
+      logger.info(`[Installer]: Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
@@ -140,20 +139,23 @@ const darwinInstall = (callback: CB) => {
       return
     }
 
-    // If we had an error install CLI, let's prompt and try to do it via
-    // privileged install.
-    if (errorTypes.cli && !state.promptedForCLI) {
-      state.promptedForCLI = true
-      saveState()
-      exec(
-        keybaseBin,
-        ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
-        'darwin',
-        'prod',
-        true,
-        callback
-      )
-      return
+    // If we had an error install CLI, let's prompt and try to do it via privileged install.
+    if (errorTypes.cli) {
+      logger.info('[Installer]: Has cli errors and not installed yet, trying CLI install')
+      if (loadHasPrompted()) {
+        logger.info('[Installer]: Bailing on already tried to install cli previously')
+      } else {
+        saveHasPrompted()
+        exec(
+          keybaseBin,
+          ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s'],
+          'darwin',
+          'prod',
+          true,
+          callback
+        )
+        return
+      }
     }
 
     callback(null)
