@@ -46,14 +46,13 @@ export type Props =
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
 type CounterpartyIconProps = {|
-  large: boolean,
   onShowProfile: string => void,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
 |}
 
 export const CounterpartyIcon = (props: CounterpartyIconProps) => {
-  const size = props.large ? 48 : 32
+  const size = 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -64,9 +63,9 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <Kb.Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
+      return <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: size, width: size}} />
     case 'otherAccount':
-      return <Kb.Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
+      return <Kb.Icon type="icon-wallet-32" style={{height: size, width: size}} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -104,7 +103,6 @@ const Counterparty = (props: CounterpartyProps) => {
       <CounterpartyIcon
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        large={props.counterpartyType !== 'otherAccount'}
         onShowProfile={props.onShowProfile}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
