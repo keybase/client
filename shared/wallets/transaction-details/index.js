@@ -118,6 +118,8 @@ type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  // onChat and onShowProfile are used only when counterpartyType ===
+  // 'keybaseUser'.
   onChat: string => void,
   onShowProfile: string => void,
 |}
