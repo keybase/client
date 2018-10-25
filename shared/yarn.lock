@@ -9985,11 +9985,6 @@ rcedit@^1.0.0:
   resolved "https://registry.yarnpkg.com/rcedit/-/rcedit-1.1.1.tgz#79321893357e74f79546617d792c572b38d2f7f0"
   integrity sha512-6NjOhOpkvbc/gpMEfk2hpXuWyHfbLFN8as5jx3jf4bhELvouRoYvc8d/W3NVVPwEBF1ICfbpwp1oRm8OJ2WDWw==
 
-re-reselect@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/re-reselect/-/re-reselect-2.1.0.tgz#dc6d04c9f60752f8e0af5bbb1bffaabcedd13928"
-  integrity sha512-ywjM6H2b0Gx0Six15y26cGZSAgHZyuxk34mbNMrEYCqwNeYyEyI+r7YIbchUK9XgHVUDHocWffNRq5er9YW9kw==
-
 react-clone-referenced-element@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/react-clone-referenced-element/-/react-clone-referenced-element-1.1.0.tgz#9cdda7f2aeb54fea791f3ab8c6ab96c7a77d0158"
