@@ -59,9 +59,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         if (action.payload.accountID) {
           stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
         }
-        const lastSentXLM = state.get('lastSentXLM')
         if (action.payload.setBuildingCurrency) {
-          stateMutable.update('building', b => b.merge({currency: lastSentXLM ? 'XLM' : action.payload.currency.code}))
+          stateMutable.update('building', b =>
+            b.merge({currency: state.get('lastSentXLM') ? 'XLM' : action.payload.currency.code})
+          )
         }
       })
     case WalletsGen.secretKeyReceived:
