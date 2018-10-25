@@ -71,6 +71,11 @@ func TestParserFail1(t *testing.T) {
 		{"email:alice@keybase.io", "expected [...] syntax for email assertion"}, // same here but this gets matched to colon syntax
 		{"email://alice@keybase.io", "expected [...] syntax for email assertion"},
 
+		{"[]@email", "Syntax error when parsing: []@email"},
+		{"[]@rooter", "Syntax error when parsing: []@rooter"},
+		{"rooter:[]", "Bad username: ''"},
+		{"email:[]", "expected [...] syntax for email assertion"}, // not ideal either
+
 		{"[alice]@rooter", "unexpected [...] syntax for assertion: rooter"},
 	}
 
