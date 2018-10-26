@@ -493,7 +493,6 @@ func parseToKVPair(s string) (key string, value string, err error) {
 			// assertion at parser level (but is rejected later in the
 			// process).
 			key = k
-			err = nil
 			return true
 		}
 
@@ -505,23 +504,20 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		// Look for "long_name" group being matched, if so, it's bracket syntax.
 		// We don't care about thir match, just whether it occured or not.
 		_, hasBrackets := nameGroups["name_long"]
+
+		// Set err in outer scope if find invalid square bracket syntax.
+		// Still return `true` because it's a successful match.
 		if k == "email" && !hasBrackets {
 			err = fmt.Errorf("expected bracket syntax for email assertion")
-			return false
 		} else if k != "email" && hasBrackets {
 			err = fmt.Errorf("unexpected bracket syntax for assertion: %s", k)
-			return false
 		}
 
 		// Finally pass back temp variables to outer scope.
 		key = k
 		value = v
-		err = nil
 		return true
 	}
-
-	// Can be overwritten later.
-	err = fmt.Errorf("Invalid key-value identity: %s", s)
 
 	if atIndex := strings.LastIndex(s, "@"); atIndex != -1 {
 		name := s[:atIndex]
@@ -549,12 +545,11 @@ func parseToKVPair(s string) (key string, value string, err error) {
 	if u, ok := matchRxxAndFindGroup(s, assertionUsernameRxx, "name"); ok {
 		key = ""
 		value = u
-		err = nil
 		return
 	}
 
 	// We've exhausted our options, it's not a valid assertion we can parse.
-	return "", "", err
+	return "", "", fmt.Errorf("Invalid key-value identity: %s", s)
 }
 
 func (a AssertionKeybase) IsKeybase() bool         { return true }
