@@ -62,7 +62,7 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 
 func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []chat1.Conversation {
 	convs := utils.PluckConvs(inbox.ConvsUnverified)
-	if maxLocalize == nil {
+	if maxLocalize == nil || *maxLocalize >= len(convs) {
 		return convs
 	}
 	return convs[:*maxLocalize]
@@ -91,8 +91,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
-	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
-	if err != nil {
+	if err = b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb); err != nil {
 		return res, err
 	}
 	res = make([]chat1.ConversationLocal, len(convs))
@@ -161,7 +160,9 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	bctx := BackgroundContext(ctx, b.G())
 	go func() {
 		b.Debug(bctx, "Localize: starting background localization: convs: %d", len(inbox.ConvsUnverified))
-		b.baseLocalizer.pipeline.queue(bctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb)
+		if err := b.baseLocalizer.pipeline.queue(bctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb); err != nil {
+			b.Debug(bctx, "Localize: failed to queue job: %s", err)
+		}
 	}()
 	return nil, nil
 }
@@ -291,7 +292,7 @@ func (s *localizerPipeline) Disconnected() {
 }
 
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
-	retCh chan types.AsyncInboxResult) {
+	retCh chan types.AsyncInboxResult) error {
 	defer s.Trace(ctx, func() error { return nil }, "queue")()
 	s.Lock()
 	defer s.Unlock()
@@ -301,8 +302,9 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 	case s.jobQueue <- job:
 	default:
 		s.Debug(ctx, "queue: dropped job, queue full")
+		return errors.New("localize queue full")
 	}
-	s.Debug(ctx, "queue: len: %d", len(s.jobQueue))
+	return nil
 }
 
 func (s *localizerPipeline) clearQueue() {
@@ -360,20 +362,6 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	return false
 }
 
-func (s *localizerPipeline) isContextCanceled(err error) bool {
-	if err == nil {
-		return false
-	}
-	if err == context.Canceled {
-		return true
-	}
-	switch terr := err.(type) {
-	case UnboxingError:
-		return terr.Inner() == context.Canceled
-	}
-	return false
-}
-
 func (s *localizerPipeline) localizeLoop() {
 	ctx := context.Background()
 	s.Debug(ctx, "localizeLoop: starting up")
@@ -401,7 +389,7 @@ func (s *localizerPipeline) localizeLoop() {
 			doneCh := make(chan struct{})
 			go func() {
 				defer close(doneCh)
-				if err := s.localizeConversations(job); s.isContextCanceled(err) {
+				if err := s.localizeConversations(job); err == context.Canceled {
 					// just put this right back if we canceled it
 					s.Debug(job.ctx, "localizeLoop: re-enqueuing canceled job")
 					s.jobQueue <- job.retry(s.G())

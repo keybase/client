@@ -161,10 +161,7 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	res, err := localizer.Localize(ctx, uid, types.Inbox{
 		ConvsUnverified: convs,
 	}, nil)
-	if err != nil {
-		return res, localizeCb, err
-	}
-	return res, localizeCb, nil
+	return res, localizeCb, err
 }
 
 func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
