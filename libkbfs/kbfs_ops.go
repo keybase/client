@@ -346,7 +346,15 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
 			bType = archive
 		}
-		ops = newFolderBranchOps(ctx, fs.appStateUpdater, fs.config, fb, bType)
+		var quotaUsage *EventuallyConsistentQuotaUsage
+		if fb.Tlf.Type() != tlf.SingleTeam {
+			// If this is a non-team TLF, pass in a shared quota usage
+			// object, since the status of each non-team TLF will show
+			// the same quota usage.
+			quotaUsage = fs.quotaUsage
+		}
+		ops = newFolderBranchOps(
+			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage)
 		fs.ops[fb] = ops
 	}
 	return ops

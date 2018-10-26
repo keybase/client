@@ -374,7 +374,8 @@ var _ fbmHelper = (*folderBranchOps)(nil)
 func newFolderBranchOps(
 	ctx context.Context, appStateUpdater env.AppStateUpdater,
 	config Config, fb FolderBranch,
-	bType branchType) *folderBranchOps {
+	bType branchType,
+	quotaUsage *EventuallyConsistentQuotaUsage) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
@@ -419,7 +420,8 @@ func newFolderBranchOps(
 		unmergedBID:  kbfsmd.BranchID{},
 		bType:        bType,
 		observers:    observers,
-		status:       newFolderBranchStatusKeeper(config, nodeCache),
+		status: newFolderBranchStatusKeeper(
+			config, nodeCache, quotaUsage),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
 		blocks: folderBlockOps{

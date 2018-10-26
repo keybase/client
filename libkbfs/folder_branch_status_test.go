@@ -31,7 +31,7 @@ func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
 		Return(ImplicitTeamInfo{}, errors.New("No such team"))
 	nodeCache := NewMockNodeCache(mockCtrl)
-	fbsk := newFolderBranchStatusKeeper(config, nodeCache)
+	fbsk := newFolderBranchStatusKeeper(config, nodeCache, nil)
 	interposeDaemonKBPKI(config, "alice", "bob")
 	return mockCtrl, config, fbsk, nodeCache
 }

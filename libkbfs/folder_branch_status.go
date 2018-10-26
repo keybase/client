@@ -93,12 +93,14 @@ type folderBranchStatusKeeper struct {
 }
 
 func newFolderBranchStatusKeeper(
-	config Config, nodeCache NodeCache) *folderBranchStatusKeeper {
+	config Config, nodeCache NodeCache,
+	quotaUsage *EventuallyConsistentQuotaUsage) *folderBranchStatusKeeper {
 	return &folderBranchStatusKeeper{
 		config:     config,
 		nodeCache:  nodeCache,
 		dirtyNodes: make(map[NodeID]Node),
 		updateChan: make(chan StatusUpdate, 1),
+		quotaUsage: quotaUsage,
 	}
 }
 
