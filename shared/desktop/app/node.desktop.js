@@ -104,23 +104,25 @@ const handleCrashes = () => {
     console.log('Uncaught exception on main thread:', e)
   })
 
-  SafeElectron.getApp().on('browser-window-created', (e, win) => {
-    if (!win) {
-      return
-    }
+  if (!__DEV__) {
+    SafeElectron.getApp().on('browser-window-created', (e, win) => {
+      if (!win) {
+        return
+      }
 
-    win.on('unresponsive', e => {
-      console.log('Browser window unresponsive: ', e)
-      win.reload()
-    })
-
-    if (win.webContents) {
-      win.webContents.on('crashed', e => {
-        console.log('Browser window crashed: ', e)
+      win.on('unresponsive', e => {
+        console.log('Browser window unresponsive: ', e)
         win.reload()
       })
-    }
-  })
+
+      if (win.webContents) {
+        win.webContents.on('crashed', e => {
+          console.log('Browser window crashed: ', e)
+          win.reload()
+        })
+      }
+    })
+  }
 }
 
 const createMainWindow = () => {
