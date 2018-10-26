@@ -237,6 +237,8 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 	require.Len(t, name.Writers.UnresolvedUsers, 1)
 	require.Equal(t, fmt.Sprintf("%s,%s", assertion, ann.username), name.String())
 
+	t.Logf("Got display name back: %q", name.String())
+
 	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
 	require.NoError(t, err)
 }
