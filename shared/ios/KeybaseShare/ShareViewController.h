@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 #import <Social/Social.h>
 #import "ConversationViewController.h"
+#import "FilesViewController.h"
 #import "InitFailedViewController.h"
 
-@interface ShareViewController : SLComposeServiceViewController <ConversationViewDelegate,InitFailedViewDelegate>
+@interface ShareViewController : SLComposeServiceViewController <ConversationViewDelegate,FilesViewDelegate,InitFailedViewDelegate>
 
 @end
