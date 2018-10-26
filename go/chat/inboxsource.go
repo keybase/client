@@ -175,7 +175,7 @@ func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ t
 	case types.ConversationLocalizerNonblocking:
 		return newNonblockingLocalizer(b.G(), b.localizer, localizeCb)
 	default:
-		b.Debug(ctx, "createConversationLocalizer: warning unknown typ, using default: %v", typ)
+		b.Debug(ctx, "createConversationLocalizer: warning unknown typ %v, using blockingLocalizer as default", typ)
 		return newBlockingLocalizer(b.G(), b.localizer, localizeCb)
 	}
 }
