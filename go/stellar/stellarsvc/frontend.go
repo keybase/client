@@ -1196,7 +1196,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, xrate.Currency)
 			if err != nil {
 				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
-				res.displayAmountXLM = ""
+				res.displayAmountFiat = ""
 			}
 		}
 
