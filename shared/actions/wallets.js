@@ -22,7 +22,7 @@ import {anyWaiting} from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 
-const build = (state: TypedState, action: any) =>
+const buildPayment = (state: TypedState, action: any) =>
   (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
@@ -262,12 +262,13 @@ const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPayments
     const {accountID, paymentID} = action.payload
     const paymentsReceived = createPaymentsReceived(action.payload.accountID, payments, pending)
     const found =
-          paymentsReceived.payload.payments.find(elem => elem.id === paymentID) || paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
+      paymentsReceived.payload.payments.find(elem => elem.id === paymentID) ||
+      paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
     if (!found) {
       logger.warn(
         `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
-            paymentID
-          )}`
+          paymentID
+        )}`
       )
     }
     return paymentsReceived
@@ -633,15 +634,14 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [
+      WalletsGen.buildPayment,
       WalletsGen.setBuildingAmount,
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
       WalletsGen.setBuildingIsRequest,
-      WalletsGen.setBuildingPublicMemo,
-      WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
     ],
-    build
+    buildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 

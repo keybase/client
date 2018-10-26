@@ -217,6 +217,9 @@
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID",
     },
+    "buildPayment": {
+      "_description": "Send a potential payment to the service for validation"
+    },
     "sendPayment": {
       "_description": "Perform sending a payment"
     },

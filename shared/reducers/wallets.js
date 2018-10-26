@@ -4,6 +4,7 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
+import Wallets from '../wallets/wallets-and-details'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -257,6 +258,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
+    case WalletsGen.buildPayment:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:
