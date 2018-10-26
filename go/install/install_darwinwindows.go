@@ -23,7 +23,11 @@ func GetNeedUpdate() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	needUpdate, err := strconv.ParseBool(strings.TrimSpace(string(out)))
+	trimmed := strings.TrimSpace(string(out))
+	if len(trimmed) == 0 {
+		return false, nil
+	}
+	needUpdate, err := strconv.ParseBool(trimmed)
 	if err != nil {
 		return false, err
 	}
