@@ -60,16 +60,16 @@ type _SwitchToPayload = $ReadOnly<{|
 /**
  * Set the tree of route definitions. Dispatched at initialization time.
  */
-export const createSetInitialRouteDef = (payload: _SetInitialRouteDefPayload) => ({error: false, payload, type: setInitialRouteDef})
-export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({error: false, payload, type: navigateAppend})
-export const createNavigateTo = (payload: _NavigateToPayload) => ({error: false, payload, type: navigateTo})
-export const createNavigateUp = (payload: _NavigateUpPayload) => ({error: false, payload, type: navigateUp})
-export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({error: false, payload, type: putActionIfOnPath})
-export const createRefreshRouteDef = (payload: _RefreshRouteDefPayload) => ({error: false, payload, type: refreshRouteDef})
-export const createResetRoute = (payload: _ResetRoutePayload) => ({error: false, payload, type: resetRoute})
-export const createSetRouteState = (payload: _SetRouteStatePayload) => ({error: false, payload, type: setRouteState})
-export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({error: false, payload, type: switchRouteDef})
-export const createSwitchTo = (payload: _SwitchToPayload) => ({error: false, payload, type: switchTo})
+export const createSetInitialRouteDef = (payload: _SetInitialRouteDefPayload) => ({payload, type: setInitialRouteDef})
+export const createNavigateAppend = (payload: _NavigateAppendPayload) => ({payload, type: navigateAppend})
+export const createNavigateTo = (payload: _NavigateToPayload) => ({payload, type: navigateTo})
+export const createNavigateUp = (payload: _NavigateUpPayload) => ({payload, type: navigateUp})
+export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload) => ({payload, type: putActionIfOnPath})
+export const createRefreshRouteDef = (payload: _RefreshRouteDefPayload) => ({payload, type: refreshRouteDef})
+export const createResetRoute = (payload: _ResetRoutePayload) => ({payload, type: resetRoute})
+export const createSetRouteState = (payload: _SetRouteStatePayload) => ({payload, type: setRouteState})
+export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({payload, type: switchRouteDef})
+export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 
 // Action Payloads
 export type NavigateAppendPayload = $Call<typeof createNavigateAppend, _NavigateAppendPayload>

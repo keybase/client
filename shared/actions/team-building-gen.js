@@ -34,12 +34,12 @@ type _SearchResultsLoadedPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createAddUsersToTeamSoFar = (payload: _AddUsersToTeamSoFarPayload) => ({error: false, payload, type: addUsersToTeamSoFar})
-export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload) => ({error: false, payload, type: cancelTeamBuilding})
-export const createFinishedTeamBuilding = (payload: _FinishedTeamBuildingPayload) => ({error: false, payload, type: finishedTeamBuilding})
-export const createRemoveUsersFromTeamSoFar = (payload: _RemoveUsersFromTeamSoFarPayload) => ({error: false, payload, type: removeUsersFromTeamSoFar})
-export const createSearch = (payload: _SearchPayload) => ({error: false, payload, type: search})
-export const createSearchResultsLoaded = (payload: _SearchResultsLoadedPayload) => ({error: false, payload, type: searchResultsLoaded})
+export const createAddUsersToTeamSoFar = (payload: _AddUsersToTeamSoFarPayload) => ({payload, type: addUsersToTeamSoFar})
+export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload) => ({payload, type: cancelTeamBuilding})
+export const createFinishedTeamBuilding = (payload: _FinishedTeamBuildingPayload) => ({payload, type: finishedTeamBuilding})
+export const createRemoveUsersFromTeamSoFar = (payload: _RemoveUsersFromTeamSoFarPayload) => ({payload, type: removeUsersFromTeamSoFar})
+export const createSearch = (payload: _SearchPayload) => ({payload, type: search})
+export const createSearchResultsLoaded = (payload: _SearchResultsLoadedPayload) => ({payload, type: searchResultsLoaded})
 
 // Action Payloads
 export type AddUsersToTeamSoFarPayload = $Call<typeof createAddUsersToTeamSoFar, _AddUsersToTeamSoFarPayload>

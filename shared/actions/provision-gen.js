@@ -62,28 +62,28 @@ type _SwitchToGPGSignOnlyPayload = $ReadOnly<{|importError: string|}>
 /**
  * Ask the user for a new device name
  */
-export const createShowNewDeviceNamePage = (payload: _ShowNewDeviceNamePagePayload) => ({error: false, payload, type: showNewDeviceNamePage})
+export const createShowNewDeviceNamePage = (payload: _ShowNewDeviceNamePagePayload) => ({payload, type: showNewDeviceNamePage})
 /**
  * Show the list of devices the user can use to provision a device
  */
-export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload) => ({error: false, payload, type: showDeviceListPage})
-export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({error: false, payload, type: addNewDevice})
-export const createProvisionError = (payload: _ProvisionErrorPayload) => ({error: false, payload, type: provisionError})
-export const createShowCodePage = (payload: _ShowCodePagePayload) => ({error: false, payload, type: showCodePage})
-export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) => ({error: false, payload, type: showFinalErrorPage})
-export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({error: false, payload, type: showGPGPage})
-export const createShowPaperkeyPage = (payload: _ShowPaperkeyPagePayload) => ({error: false, payload, type: showPaperkeyPage})
-export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({error: false, payload, type: showPassphrasePage})
-export const createStartProvision = (payload: _StartProvisionPayload) => ({error: false, payload, type: startProvision})
-export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
-export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload) => ({error: false, payload, type: submitDeviceSelect})
-export const createSubmitGPGMethod = (payload: _SubmitGPGMethodPayload) => ({error: false, payload, type: submitGPGMethod})
-export const createSubmitGPGSignOK = (payload: _SubmitGPGSignOKPayload) => ({error: false, payload, type: submitGPGSignOK})
-export const createSubmitPaperkey = (payload: _SubmitPaperkeyPayload) => ({error: false, payload, type: submitPaperkey})
-export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
-export const createSubmitTextCode = (payload: _SubmitTextCodePayload) => ({error: false, payload, type: submitTextCode})
-export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
-export const createSwitchToGPGSignOnly = (payload: _SwitchToGPGSignOnlyPayload) => ({error: false, payload, type: switchToGPGSignOnly})
+export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload) => ({payload, type: showDeviceListPage})
+export const createAddNewDevice = (payload: _AddNewDevicePayload) => ({payload, type: addNewDevice})
+export const createProvisionError = (payload: _ProvisionErrorPayload) => ({payload, type: provisionError})
+export const createShowCodePage = (payload: _ShowCodePagePayload) => ({payload, type: showCodePage})
+export const createShowFinalErrorPage = (payload: _ShowFinalErrorPagePayload) => ({payload, type: showFinalErrorPage})
+export const createShowGPGPage = (payload: _ShowGPGPagePayload) => ({payload, type: showGPGPage})
+export const createShowPaperkeyPage = (payload: _ShowPaperkeyPagePayload) => ({payload, type: showPaperkeyPage})
+export const createShowPassphrasePage = (payload: _ShowPassphrasePagePayload) => ({payload, type: showPassphrasePage})
+export const createStartProvision = (payload: _StartProvisionPayload) => ({payload, type: startProvision})
+export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({payload, type: submitDeviceName})
+export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload) => ({payload, type: submitDeviceSelect})
+export const createSubmitGPGMethod = (payload: _SubmitGPGMethodPayload) => ({payload, type: submitGPGMethod})
+export const createSubmitGPGSignOK = (payload: _SubmitGPGSignOKPayload) => ({payload, type: submitGPGSignOK})
+export const createSubmitPaperkey = (payload: _SubmitPaperkeyPayload) => ({payload, type: submitPaperkey})
+export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({payload, type: submitPassphrase})
+export const createSubmitTextCode = (payload: _SubmitTextCodePayload) => ({payload, type: submitTextCode})
+export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({payload, type: submitUsernameOrEmail})
+export const createSwitchToGPGSignOnly = (payload: _SwitchToGPGSignOnlyPayload) => ({payload, type: switchToGPGSignOnly})
 
 // Action Payloads
 export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>

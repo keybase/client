@@ -327,7 +327,8 @@ func (o ParamProofLogoConfig) DeepCopy() ParamProofLogoConfig {
 }
 
 type ParamProofServiceConfig struct {
-	Version        int                      `codec:"version" json:"version"`
+	SchemaVersion  int                      `codec:"schemaVersion" json:"schema_version"`
+	ConfigVersion  int                      `codec:"configVersion" json:"config_version"`
 	Domain         string                   `codec:"domain" json:"domain"`
 	DisplayName    string                   `codec:"displayName" json:"display_name"`
 	Group          *string                  `codec:"group,omitempty" json:"group,omitempty"`
@@ -343,9 +344,10 @@ type ParamProofServiceConfig struct {
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 	return ParamProofServiceConfig{
-		Version:     o.Version,
-		Domain:      o.Domain,
-		DisplayName: o.DisplayName,
+		SchemaVersion: o.SchemaVersion,
+		ConfigVersion: o.ConfigVersion,
+		Domain:        o.Domain,
+		DisplayName:   o.DisplayName,
 		Group: (func(x *string) *string {
 			if x == nil {
 				return nil

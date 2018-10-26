@@ -53,6 +53,11 @@
           },
           "name": "formats",
           "jsonkey": "formats"
+        },
+        {
+          "type": "AvatarUpdateType",
+          "name": "typ",
+          "jsonkey": "typ"
         }
       ]
     }

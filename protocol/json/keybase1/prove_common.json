@@ -171,7 +171,13 @@
       "fields": [
         {
           "type": "int",
-          "name": "version"
+          "name": "schemaVersion",
+          "jsonkey": "schema_version"
+        },
+        {
+          "type": "int",
+          "name": "configVersion",
+          "jsonkey": "config_version"
         },
         {
           "type": "string",

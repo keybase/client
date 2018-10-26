@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {CounterpartyText, TimestampLine} from '../transaction'
+import Transaction, {TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
 export type NotLoadingProps = {|
@@ -75,6 +75,44 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
 }
 
+type CounterpartyTextProps = {|
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
+|}
+
+export const CounterpartyText = (props: CounterpartyTextProps) => {
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return (
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          colorBroken={true}
+          inline={true}
+          onUsernameClicked={props.onShowProfile}
+          type="BodySmallSemibold"
+          underline={true}
+          usernames={[props.counterparty]}
+        />
+      )
+    case 'stellarPublicKey':
+      return (
+        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+          {props.counterparty}
+        </Kb.Text>
+      )
+    case 'otherAccount':
+      return <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      break
+  }
+  return null
+}
+
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
   counterparty: string,
@@ -109,10 +147,7 @@ const Counterparty = (props: CounterpartyProps) => {
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={false}
           onShowProfile={props.onShowProfile}
-          showFullKey={true}
-          textType="BodySemibold"
         />
         {props.counterpartyType !== 'stellarPublicKey' &&
           props.accountID && <SmallAccountID accountID={props.accountID} />}

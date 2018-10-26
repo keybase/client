@@ -141,75 +141,75 @@ type __avatarQueuePayload = void
 /**
  * desktop only: the installer ran and we can start up
  */
-export const createInstallerRan = (payload: _InstallerRanPayload) => ({error: false, payload, type: installerRan})
+export const createInstallerRan = (payload: _InstallerRanPayload) => ({payload, type: installerRan})
 /**
  * internal to config. should restart the handshake process
  */
-export const createRestartHandshake = (payload: _RestartHandshakePayload) => ({error: false, payload, type: restartHandshake})
+export const createRestartHandshake = (payload: _RestartHandshakePayload) => ({payload, type: restartHandshake})
 /**
  * internal to config. should start the handshake process
  */
-export const createStartHandshake = (payload: _StartHandshakePayload) => ({error: false, payload, type: startHandshake})
+export const createStartHandshake = (payload: _StartHandshakePayload) => ({payload, type: startHandshake})
 /**
  * mobile only: open the settings page
  */
-export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({error: false, payload, type: openAppSettings})
+export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({payload, type: openAppSettings})
 /**
  * ready to show the app
  */
-export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({error: false, payload, type: daemonHandshakeDone})
+export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({payload, type: daemonHandshakeDone})
 /**
  * someone wants to log out
  */
-export const createLogout = (payload: _LogoutPayload) => ({error: false, payload, type: logout})
+export const createLogout = (payload: _LogoutPayload) => ({payload, type: logout})
 /**
  * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
  */
-export const createDaemonHandshake = (payload: _DaemonHandshakePayload) => ({error: false, payload, type: daemonHandshake})
+export const createDaemonHandshake = (payload: _DaemonHandshakePayload) => ({payload, type: daemonHandshake})
 /**
  * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
  */
-export const createLogoutHandshake = (payload: _LogoutHandshakePayload) => ({error: false, payload, type: logoutHandshake})
+export const createLogoutHandshake = (payload: _LogoutHandshakePayload) => ({payload, type: logoutHandshake})
 /**
  * subsystems that need to do things during boot need to call this to register that we should wait.
  */
-export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({error: false, payload, type: daemonHandshakeWait})
+export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) => ({payload, type: daemonHandshakeWait})
 /**
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
-export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({error: false, payload, type: logoutHandshakeWait})
+export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({payload, type: logoutHandshakeWait})
 /**
  * when sagas should start creating their incoming handlers / onConnect handlers
  */
-export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({error: false, payload, type: setupEngineListeners})
-export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
-export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
-export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
-export const createCheckForUpdate = (payload: _CheckForUpdatePayload) => ({error: false, payload, type: checkForUpdate})
-export const createCopyToClipboard = (payload: _CopyToClipboardPayload) => ({error: false, payload, type: copyToClipboard})
-export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
-export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
-export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
-export const createGlobalError = (payload: _GlobalErrorPayload) => ({error: false, payload, type: globalError})
-export const createLink = (payload: _LinkPayload) => ({error: false, payload, type: link})
-export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({error: false, payload, type: loadAvatars})
-export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({error: false, payload, type: loadTeamAvatars})
-export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({error: false, payload, type: loadedAvatars})
-export const createLoggedIn = (payload: _LoggedInPayload) => ({error: false, payload, type: loggedIn})
-export const createLoggedOut = (payload: _LoggedOutPayload) => ({error: false, payload, type: loggedOut})
-export const createMobileAppState = (payload: _MobileAppStatePayload) => ({error: false, payload, type: mobileAppState})
-export const createPushLoaded = (payload: _PushLoadedPayload) => ({error: false, payload, type: pushLoaded})
-export const createSetAccounts = (payload: _SetAccountsPayload) => ({error: false, payload, type: setAccounts})
-export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({error: false, payload, type: setDeletedSelf})
-export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error: false, payload, type: setNotifySound})
-export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
-export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({error: false, payload, type: setStartupDetails})
-export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
-export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
-export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({error: false, payload, type: updateInfo})
-export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
-export const createUpdateNow = (payload: _UpdateNowPayload) => ({error: false, payload, type: updateNow})
-export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: false, payload, type: _avatarQueue})
+export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
+export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({payload, type: bootstrapStatusLoaded})
+export const createChangedActive = (payload: _ChangedActivePayload) => ({payload, type: changedActive})
+export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, type: changedFocus})
+export const createCheckForUpdate = (payload: _CheckForUpdatePayload) => ({payload, type: checkForUpdate})
+export const createCopyToClipboard = (payload: _CopyToClipboardPayload) => ({payload, type: copyToClipboard})
+export const createDaemonError = (payload: _DaemonErrorPayload) => ({payload, type: daemonError})
+export const createDebugDump = (payload: _DebugDumpPayload) => ({payload, type: debugDump})
+export const createDumpLogs = (payload: _DumpLogsPayload) => ({payload, type: dumpLogs})
+export const createGlobalError = (payload: _GlobalErrorPayload) => ({payload, type: globalError})
+export const createLink = (payload: _LinkPayload) => ({payload, type: link})
+export const createLoadAvatars = (payload: _LoadAvatarsPayload) => ({payload, type: loadAvatars})
+export const createLoadTeamAvatars = (payload: _LoadTeamAvatarsPayload) => ({payload, type: loadTeamAvatars})
+export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload, type: loadedAvatars})
+export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
+export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
+export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
+export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
+export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
+export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({payload, type: setDeletedSelf})
+export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({payload, type: setNotifySound})
+export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
+export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
+export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
+export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({payload, type: updateFollowing})
+export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
+export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
+export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
+export const create_avatarQueue = (payload: __avatarQueuePayload) => ({payload, type: _avatarQueue})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>

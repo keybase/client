@@ -41,5 +41,10 @@ protocol NotifyTeam {
 
   void newlyAddedToTeam(TeamID teamID) oneway;
 
-  void avatarUpdated(string name, array<AvatarFormat> formats) oneway;
+  enum AvatarUpdateType {
+    NONE_0,
+    USER_1,
+    TEAM_2
+  }
+  void avatarUpdated(string name, array<AvatarFormat> formats, AvatarUpdateType typ) oneway;
 }

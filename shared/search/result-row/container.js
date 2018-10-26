@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
 
-  const selectedIds = getUserInputItemIds(state, {searchKey})
+  const selectedIds = getUserInputItemIds(state, searchKey)
   const leftIsInTeam = userIsActiveInTeamHelper(
     state,
     result.leftUsername,

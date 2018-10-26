@@ -61,6 +61,7 @@ type UnboxConversationInfo interface {
 	GetMembersType() chat1.ConversationMembersType
 	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
 	GetExpunge() *chat1.Expunge
+	GetMaxDeletedUpTo() chat1.MessageID
 	IsPublic() bool
 }
 

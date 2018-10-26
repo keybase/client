@@ -25,10 +25,10 @@ type _LoginPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({error: false, payload, type: launchAccountResetWebPage})
-export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({error: false, payload, type: launchForgotPasswordWebPage})
-export const createLogin = (payload: _LoginPayload) => ({error: false, payload, type: login})
-export const createLoginError = (payload: _LoginErrorPayload) => ({error: false, payload, type: loginError})
+export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({payload, type: launchAccountResetWebPage})
+export const createLaunchForgotPasswordWebPage = (payload: _LaunchForgotPasswordWebPagePayload) => ({payload, type: launchForgotPasswordWebPage})
+export const createLogin = (payload: _LoginPayload) => ({payload, type: login})
+export const createLoginError = (payload: _LoginErrorPayload) => ({payload, type: loginError})
 
 // Action Payloads
 export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
