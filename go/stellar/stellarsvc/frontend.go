@@ -258,20 +258,18 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
+func (s *Server) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (accepted bool, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "GetWalletSettingsLocal",
+		RPCName: "HasAcceptedDisclaimerLocal",
 		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return ret, err
+		return false, err
 	}
-	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
+
+	// xxx cache the accepted value
+	return remote.GetAcceptedDisclaimer(ctx, s.G())
 }
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
@@ -285,6 +283,9 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	}
 
 	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	if err != nil {
+		return err
+	}
 	crg, err := stellar.CreateWalletGated(ctx, s.G())
 	if err != nil {
 		return err
