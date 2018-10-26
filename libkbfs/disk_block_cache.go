@@ -35,6 +35,7 @@ const (
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	metaDbFilename                string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                 string = "diskCacheTLF.leveldb"
+	lastUnrefDbFilename           string = "diskCacheLastUnref.leveldb"
 	initialDiskBlockCacheVersion  uint64 = 1
 	currentDiskBlockCacheVersion  uint64 = initialDiskBlockCacheVersion
 	syncCacheName                 string = "SyncBlockCache"
@@ -59,11 +60,12 @@ type DiskBlockCacheLocal struct {
 
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
-	lock      sync.RWMutex
-	blockDb   *levelDb
-	metaDb    *levelDb
-	tlfDb     *levelDb
-	cacheType diskLimitTrackerType
+	lock        sync.RWMutex
+	blockDb     *levelDb
+	metaDb      *levelDb
+	tlfDb       *levelDb
+	lastUnrefDb *levelDb
+	cacheType   diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
 	numBlocks int
@@ -129,7 +131,8 @@ type DiskBlockCacheStatus struct {
 // cache.
 func newDiskBlockCacheLocalFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
-	blockStorage, metadataStorage, tlfStorage storage.Storage) (
+	blockStorage, metadataStorage, tlfStorage,
+	lastUnrefStorage storage.Storage) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("KBC")
 	closers := make([]io.Closer, 0, 3)
@@ -167,6 +170,12 @@ func newDiskBlockCacheLocalFromStorage(
 	}
 	closers = append(closers, tlfDb)
 
+	lastUnrefDb, err := openLevelDB(lastUnrefStorage)
+	if err != nil {
+		return nil, err
+	}
+	closers = append(closers, lastUnrefDb)
+
 	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType,
 		kbfshash.MaxDefaultHash[:])
 	if err != nil {
@@ -190,6 +199,7 @@ func newDiskBlockCacheLocalFromStorage(
 		blockDb:          blockDb,
 		metaDb:           metaDb,
 		tlfDb:            tlfDb,
+		lastUnrefDb:      lastUnrefDb,
 		tlfCounts:        map[tlf.ID]int{},
 		tlfSizes:         map[tlf.ID]uint64{},
 		startedCh:        startedCh,
@@ -269,15 +279,26 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 			tlfStorage.Close()
 		}
 	}()
+	lastUnrefDbPath := filepath.Join(versionPath, lastUnrefDbFilename)
+	lastUnrefStorage, err := storage.OpenFile(lastUnrefDbPath, false)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			lastUnrefStorage.Close()
+		}
+	}()
 	return newDiskBlockCacheLocalFromStorage(config, cacheType,
-		blockStorage, metadataStorage, tlfStorage)
+		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage)
 }
 
 func newDiskBlockCacheLocalForTest(config diskBlockCacheConfig,
 	cacheType diskLimitTrackerType) (*DiskBlockCacheLocal, error) {
 	return newDiskBlockCacheLocalFromStorage(
 		config, cacheType, storage.NewMemStorage(),
-		storage.NewMemStorage(), storage.NewMemStorage())
+		storage.NewMemStorage(), storage.NewMemStorage(),
+		storage.NewMemStorage())
 }
 
 // WaitUntilStarted waits until this cache has started.

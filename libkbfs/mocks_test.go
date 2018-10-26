@@ -4311,6 +4311,31 @@ func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchS
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, blockID, prefetchStatus)
 }
 
+// GetLastUnrefRev mocks base method
+func (m *MockDiskBlockCache) GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
+	ret := m.ctrl.Call(m, "GetLastUnrefRev", ctx, tlfID)
+	ret0, _ := ret[0].(kbfsmd.Revision)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLastUnrefRev indicates an expected call of GetLastUnrefRev
+func (mr *MockDiskBlockCacheMockRecorder) GetLastUnrefRev(ctx, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).GetLastUnrefRev), ctx, tlfID)
+}
+
+// PutLastUnrefRev mocks base method
+func (m *MockDiskBlockCache) PutLastUnrefRev(ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	ret := m.ctrl.Call(m, "PutLastUnrefRev", ctx, tlfID, rev)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PutLastUnrefRev indicates an expected call of PutLastUnrefRev
+func (mr *MockDiskBlockCacheMockRecorder) PutLastUnrefRev(ctx, tlfID, rev interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutLastUnrefRev", reflect.TypeOf((*MockDiskBlockCache)(nil).PutLastUnrefRev), ctx, tlfID, rev)
+}
+
 // Status mocks base method
 func (m *MockDiskBlockCache) Status(ctx context.Context) map[string]DiskBlockCacheStatus {
 	ret := m.ctrl.Call(m, "Status", ctx)
