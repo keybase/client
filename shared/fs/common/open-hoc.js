@@ -9,7 +9,7 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path, routePath, inDestinationPicker}: OwnProps) => ({
   onOpen: () => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
