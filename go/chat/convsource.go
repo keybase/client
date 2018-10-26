@@ -1134,15 +1134,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
-		var inboxItem *chat1.InboxUIItem
-		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
-		if err != nil {
-			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
-		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
-			topicType = conv.GetTopicType()
-		}
+		// Blast out an EphemeralPurgeNotifInfo since it's time sensitive for the UI
+		// to update.
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
 			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
@@ -1150,9 +1143,16 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
 			ConvID: convID,
 			Msgs:   purgedMsgs,
-			Conv:   inboxItem,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, &act, chat1.ChatActivitySource_LOCAL)
+
+		// Send an additional notification to refresh the thread
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+			chat1.ConversationStaleUpdate{
+				ConvID:     convID,
+				UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+			},
+		})
 	}
 }
 

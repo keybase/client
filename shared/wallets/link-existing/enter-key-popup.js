@@ -17,7 +17,14 @@ type EnterKeyProps = {|
 const EnterKey = (props: EnterKeyProps) => {
   const buttons = [
     <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
-    <Kb.Button key={1} type="Wallet" onClick={props.onNext} label="Next" waiting={props.waiting} />,
+    <Kb.Button
+      disabled={!props.secretKey}
+      key={1}
+      type="Wallet"
+      onClick={props.onNext}
+      label="Next"
+      waiting={props.waiting}
+    />,
   ]
 
   return (

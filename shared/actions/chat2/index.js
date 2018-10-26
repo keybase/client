@@ -559,10 +559,6 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) 
 // Get actions to update messagemap / metamap when ephemeral messages expire
 const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
   const actions = []
-  const meta = !!info.conv && Constants.inboxUIItemToConversationMeta(info.conv)
-  if (meta) {
-    actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
-  }
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   const messageIDs =
     !!info.msgs &&

@@ -5614,10 +5614,10 @@ flora-colossus@^1.0.0:
     debug "^3.1.0"
     fs-extra "^4.0.0"
 
-flow-bin@0.83.0:
-  version "0.83.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.83.0.tgz#fd26f5f95758d7701264b3f9a1e1a3d4cbcab1a9"
-  integrity sha512-1K83EL/U9Gh0BaXPKkZe6TRizSmNSKx9Wuws1c8gh7DJEwiburtCxYT+4o7in1+GnNEm3CZWnbnVV8n9HMpiDA==
+flow-bin@0.84.0:
+  version "0.84.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.84.0.tgz#4cb2364c750fb37a7840524fa62456b53f64cdcb"
+  integrity sha512-ocji8eEYp+YfICsm+F6cIHUcD7v5sb0/ADEXm6gyUKdjQzmSckMrPUdZtyfP973t3YGHKliUMxMvIBHyR5LbXQ==
 
 flow-typed@2.5.1:
   version "2.5.1"

@@ -415,16 +415,18 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 }
 
 type PaymentDetails struct {
-	Summary  PaymentSummary `codec:"summary" json:"summary"`
-	Memo     string         `codec:"memo" json:"memo"`
-	MemoType string         `codec:"memoType" json:"memoType"`
+	Summary       PaymentSummary `codec:"summary" json:"summary"`
+	Memo          string         `codec:"memo" json:"memo"`
+	MemoType      string         `codec:"memoType" json:"memoType"`
+	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
 	return PaymentDetails{
-		Summary:  o.Summary.DeepCopy(),
-		Memo:     o.Memo,
-		MemoType: o.MemoType,
+		Summary:       o.Summary.DeepCopy(),
+		Memo:          o.Memo,
+		MemoType:      o.MemoType,
+		ExternalTxURL: o.ExternalTxURL,
 	}
 }
 

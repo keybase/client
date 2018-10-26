@@ -247,13 +247,6 @@
             "items": "UIMessage"
           },
           "name": "msgs"
-        },
-        {
-          "type": [
-            null,
-            "InboxUIItem"
-          ],
-          "name": "conv"
         }
       ]
     },

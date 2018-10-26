@@ -38,7 +38,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearTimeout = id => {
-      if ((id || id === 0) && this._timeoutIds.includes(id)) {
+      if (id && this._timeoutIds.includes(id)) {
         this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
         clearTimeout(id)
       }
@@ -51,7 +51,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearInterval = id => {
-      if ((id || id === 0) && this._intervalIds.includes(id)) {
+      if (id && this._intervalIds.includes(id)) {
         this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
         clearInterval(id)
       }

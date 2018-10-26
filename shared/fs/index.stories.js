@@ -102,6 +102,31 @@ const provider = Sb.createPropProviderWithCommon({
     style: {},
     menuItems: [],
   }),
+  ConnectedFilesLoadingHoc: o => ({
+    ...o,
+    syncingPaths: Sb.action('syncingPaths'),
+    loadFolderList: Sb.action('loadFolderList'),
+    loadFavorites: Sb.action('loadFavorites'),
+    path: '',
+  }),
+  ConnectedRows: o => ({
+    items: [
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
+      {
+        rowType: 'still',
+        path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+        name: 'me,abc,def,ghi',
+      },
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
+    ],
+    routePath: I.List(),
+    ...o,
+  }),
 })
 
 const breadcrumbProps = (names: Array<string>) => {
@@ -130,16 +155,10 @@ const load = () => {
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}
-        progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={['foo']}
-        items={[
-          {rowType: 'still', path: Types.stringToPath('/keybase/private'), name: 'private'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/public'), name: 'public'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/team'), name: 'team'},
-        ]}
-        editingItems={[]}
+        sortSetting={Constants.makeSortSetting()}
       />
     ))
     .add('Preview', () => (
@@ -189,25 +208,10 @@ const load = () => {
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}
-        progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={[]}
-        items={[
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
-          {
-            rowType: 'still',
-            path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
-            name: 'me,abc,def,ghi',
-          },
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
-        ]}
-        editingItems={[]}
+        sortSetting={Constants.makeSortSetting()}
       />
     ))
     .add('ResetBanner', () => (

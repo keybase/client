@@ -146,6 +146,7 @@ const sendPayment = (state: TypedState) => {
     Constants.sendPaymentWaitingKey
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+    .then(res => WalletsGen.createSetLastSentXLM({lastSentXLM: !notXLM, writeFile: true}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
@@ -243,13 +244,34 @@ const loadPayments = (
     | WalletsGen.LoadPaymentsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
   ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
+
+// Fetch all payments for now, but in the future we may want to just
+// fetch the single payment.
+const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
+  !action.error &&
+  Promise.all([
+    RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+  ]).then(([pending, payments]) => {
+    const {accountID, paymentID} = action.payload
+    const paymentsReceived = createPaymentsReceived(action.payload.accountID, payments, pending)
+    const found =
+          paymentsReceived.payload.payments.find(elem => elem.id === paymentID) || paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
+    if (!found) {
+      logger.warn(
+        `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
+            paymentID
+          )}`
+      )
+    }
+    return paymentsReceived
+  })
 
 const loadMorePayments = (state: TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
@@ -509,8 +531,13 @@ const setupEngineListeners = () => {
   })
 }
 
-const refreshPayments = ({accountID}) =>
-  Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)}))
+const refreshPayments = ({accountID, paymentID}) =>
+  Saga.put(
+    WalletsGen.createRefreshPayments({
+      accountID: Types.stringToAccountID(accountID),
+      paymentID: Types.rpcPaymentIDToPaymentID(paymentID),
+    })
+  )
 
 const maybeClearErrors = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
@@ -579,14 +606,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadAssets
   )
   yield Saga.actionToPromise(
-    [
-      WalletsGen.loadPayments,
-      WalletsGen.refreshPayments,
-      WalletsGen.selectAccount,
-      WalletsGen.linkedExistingAccount,
-    ],
+    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.refreshPayments, doRefreshPayments)
   yield Saga.actionToPromise(WalletsGen.loadMorePayments, loadMorePayments)
   yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
