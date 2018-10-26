@@ -10,7 +10,6 @@
 #import "keybase/keybase.h"
 
 @interface FilesViewController ()
-@property UISearchController* searchController;
 @property NSArray* unfilteredInboxItems; // the entire inbox
 @property NSArray* filteredInboxItems; // inbox items that are filtered by the search bar
 @end
@@ -21,12 +20,7 @@
   [super viewDidLoad];
   
   self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height); // expand
-  self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
-  self.searchController.searchResultsUpdater = self;
-  self.searchController.hidesNavigationBarDuringPresentation = false;
-  self.searchController.dimsBackgroundDuringPresentation = false;
   self.definesPresentationContext = YES;
-  [self.tableView setTableHeaderView:self.searchController.searchBar];
   
   // show this spinner on top of the table view until we have parsed the inbox
   UIActivityIndicatorView* av = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
@@ -117,22 +111,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   NSDictionary* folder = [self getItemAtIndex:indexPath];
   [self.delegate folderSelected:folder]; // let main view controller know we have something
-}
-
-- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
-  NSString* term = [searchController.searchBar.text lowercaseString];
-  if ([term length] == 0) {
-    // reset on blank search bar
-    [self setFilteredInboxItems:self.unfilteredInboxItems];
-  } else {
-    NSPredicate* pred = [NSPredicate predicateWithBlock:^BOOL(id obj, NSDictionary* bindings) {
-      NSDictionary* item = obj;
-      return [item[@"Name"] containsString:term];
-    }];
-    NSArray* filtered = [self.unfilteredInboxItems filteredArrayUsingPredicate:pred];
-    [self setFilteredInboxItems:filtered];
-  }
-  [self.tableView reloadData];
 }
 
 @end
