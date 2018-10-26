@@ -500,15 +500,29 @@
           "name": "worthCurrency"
         },
         {
+          "type": "string",
+          "name": "amountFormatted"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
+        },
+        {
           "type": {
             "type": "array",
             "items": "SendBannerLocal"
           },
           "name": "banners"
-        },
-        {
-          "type": "string",
-          "name": "amountFormatted"
         }
       ]
     },
@@ -571,6 +585,20 @@
         {
           "type": "string",
           "name": "worthInfo"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
         },
         {
           "type": {

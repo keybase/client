@@ -101,6 +101,9 @@ export type _BuiltPayment = {
   worthCurrency: string,
   worthDescription: string,
   worthInfo: string,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
+  sendingIntentionXLM: boolean,
 }
 
 export type _BuiltRequest = {
@@ -111,6 +114,9 @@ export type _BuiltRequest = {
   toErrMsg: string,
   worthDescription: string,
   worthInfo: string,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
+  sendingIntentionXLM: boolean,
 }
 
 export type StatusSimplified =

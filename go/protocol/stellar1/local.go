@@ -410,32 +410,39 @@ func (o SendAssetChoiceLocal) DeepCopy() SendAssetChoiceLocal {
 }
 
 type BuildPaymentResLocal struct {
-	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
-	From             AccountID         `codec:"from" json:"from"`
-	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
-	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
-	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
-	PublicMemoErrMsg string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
-	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
-	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
-	WorthAmount      string            `codec:"worthAmount" json:"worthAmount"`
-	WorthCurrency    string            `codec:"worthCurrency" json:"worthCurrency"`
-	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
-	AmountFormatted  string            `codec:"amountFormatted" json:"amountFormatted"`
+	ReadyToSend         bool              `codec:"readyToSend" json:"readyToSend"`
+	From                AccountID         `codec:"from" json:"from"`
+	ToErrMsg            string            `codec:"toErrMsg" json:"toErrMsg"`
+	AmountErrMsg        string            `codec:"amountErrMsg" json:"amountErrMsg"`
+	SecretNoteErrMsg    string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
+	PublicMemoErrMsg    string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
+	WorthDescription    string            `codec:"worthDescription" json:"worthDescription"`
+	WorthInfo           string            `codec:"worthInfo" json:"worthInfo"`
+	WorthAmount         string            `codec:"worthAmount" json:"worthAmount"`
+	WorthCurrency       string            `codec:"worthCurrency" json:"worthCurrency"`
+	AmountFormatted     string            `codec:"amountFormatted" json:"amountFormatted"`
+	DisplayAmountXLM    string            `codec:"displayAmountXLM" json:"displayAmountXLM"`
+	DisplayAmountFiat   string            `codec:"displayAmountFiat" json:"displayAmountFiat"`
+	SendingIntentionXLM bool              `codec:"sendingIntentionXLM" json:"sendingIntentionXLM"`
+	Banners             []SendBannerLocal `codec:"banners" json:"banners"`
 }
 
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	return BuildPaymentResLocal{
-		ReadyToSend:      o.ReadyToSend,
-		From:             o.From.DeepCopy(),
-		ToErrMsg:         o.ToErrMsg,
-		AmountErrMsg:     o.AmountErrMsg,
-		SecretNoteErrMsg: o.SecretNoteErrMsg,
-		PublicMemoErrMsg: o.PublicMemoErrMsg,
-		WorthDescription: o.WorthDescription,
-		WorthInfo:        o.WorthInfo,
-		WorthAmount:      o.WorthAmount,
-		WorthCurrency:    o.WorthCurrency,
+		ReadyToSend:         o.ReadyToSend,
+		From:                o.From.DeepCopy(),
+		ToErrMsg:            o.ToErrMsg,
+		AmountErrMsg:        o.AmountErrMsg,
+		SecretNoteErrMsg:    o.SecretNoteErrMsg,
+		PublicMemoErrMsg:    o.PublicMemoErrMsg,
+		WorthDescription:    o.WorthDescription,
+		WorthInfo:           o.WorthInfo,
+		WorthAmount:         o.WorthAmount,
+		WorthCurrency:       o.WorthCurrency,
+		AmountFormatted:     o.AmountFormatted,
+		DisplayAmountXLM:    o.DisplayAmountXLM,
+		DisplayAmountFiat:   o.DisplayAmountFiat,
+		SendingIntentionXLM: o.SendingIntentionXLM,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil
@@ -447,7 +454,6 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 			}
 			return ret
 		})(o.Banners),
-		AmountFormatted: o.AmountFormatted,
 	}
 }
 
@@ -478,23 +484,29 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 }
 
 type BuildRequestResLocal struct {
-	ReadyToRequest   bool              `codec:"readyToRequest" json:"readyToRequest"`
-	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
-	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
-	SecretNoteErrMsg string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
-	WorthDescription string            `codec:"worthDescription" json:"worthDescription"`
-	WorthInfo        string            `codec:"worthInfo" json:"worthInfo"`
-	Banners          []SendBannerLocal `codec:"banners" json:"banners"`
+	ReadyToRequest      bool              `codec:"readyToRequest" json:"readyToRequest"`
+	ToErrMsg            string            `codec:"toErrMsg" json:"toErrMsg"`
+	AmountErrMsg        string            `codec:"amountErrMsg" json:"amountErrMsg"`
+	SecretNoteErrMsg    string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
+	WorthDescription    string            `codec:"worthDescription" json:"worthDescription"`
+	WorthInfo           string            `codec:"worthInfo" json:"worthInfo"`
+	DisplayAmountXLM    string            `codec:"displayAmountXLM" json:"displayAmountXLM"`
+	DisplayAmountFiat   string            `codec:"displayAmountFiat" json:"displayAmountFiat"`
+	SendingIntentionXLM bool              `codec:"sendingIntentionXLM" json:"sendingIntentionXLM"`
+	Banners             []SendBannerLocal `codec:"banners" json:"banners"`
 }
 
 func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
 	return BuildRequestResLocal{
-		ReadyToRequest:   o.ReadyToRequest,
-		ToErrMsg:         o.ToErrMsg,
-		AmountErrMsg:     o.AmountErrMsg,
-		SecretNoteErrMsg: o.SecretNoteErrMsg,
-		WorthDescription: o.WorthDescription,
-		WorthInfo:        o.WorthInfo,
+		ReadyToRequest:      o.ReadyToRequest,
+		ToErrMsg:            o.ToErrMsg,
+		AmountErrMsg:        o.AmountErrMsg,
+		SecretNoteErrMsg:    o.SecretNoteErrMsg,
+		WorthDescription:    o.WorthDescription,
+		WorthInfo:           o.WorthInfo,
+		DisplayAmountXLM:    o.DisplayAmountXLM,
+		DisplayAmountFiat:   o.DisplayAmountFiat,
+		SendingIntentionXLM: o.SendingIntentionXLM,
 		Banners: (func(x []SendBannerLocal) []SendBannerLocal {
 			if x == nil {
 				return nil
