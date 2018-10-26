@@ -4,7 +4,6 @@ import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
-import Wallets from '../wallets/wallets-and-details'
 
 const initialState: Types.State = Constants.makeState()
 
