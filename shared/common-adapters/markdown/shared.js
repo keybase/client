@@ -135,6 +135,15 @@ const wrapInParagraph = (parse, content, state) => [
   },
 ]
 
+const wordBoundaryLookBehind = /\B$/
+// Wraps the match to also check that the behind is not a text, but a boundary (like a space)
+// i.e. "foo" fails but "foo " passes.
+const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
+  if (wordBoundaryLookBehind.exec(lookbehind)) {
+    return matchFn(source, state, lookbehind)
+  }
+}
+
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules = (markdownMeta: ?MarkdownMeta) => ({
   newline: {
@@ -219,20 +228,20 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // original
     // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
     // ours: single stars
-    match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/)),
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
     // original is pretty long so not inlining it here
     // ours: wrapped in _'s
-    match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b_((?:\\[\s\S]|[^\\])+?)_(?!_)/)),
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
     // ours: single tilde doesn't cross a newline
-    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
   },
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
