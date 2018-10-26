@@ -109,8 +109,6 @@ class SharedAskForUserData {
   _userQueue = {}
   _userLastReq = {}
   _username = ''
-  _teamQueue: Object = {}
-  _userQueue: Object = {}
 
   // call this with the current username
   _checkLoggedIn = username => {
@@ -143,6 +141,8 @@ class SharedAskForUserData {
       }
       return false
     })
+    this._teamQueue = {}
+    this._userQueue = {}
     if (usernames.length) {
       this._dispatch(ConfigGen.createLoadAvatars({usernames}))
     }
