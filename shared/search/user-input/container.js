@@ -6,7 +6,7 @@ import React from 'react'
 import ServiceFilter from '../services-filter'
 import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
-import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
+import {connect, setDisplayName} from '../../util/container'
 import {
   globalStyles,
   globalMargins,
@@ -92,8 +92,8 @@ const getSearchResultTerm = ({entities}: TypedState, {searchKey}: {searchKey: st
   return searchResultQuery && searchResultQuery.text
 }
 
-const getFollowingStates = (state, ownProps) => {
-  const itemIds = Constants.getUserInputItemIds(state, ownProps)
+const getFollowingStates = (state, searchKey) => {
+  const itemIds = Constants.getUserInputItemIds(state, searchKey)
   const followingStateMap = {}
   itemIds.forEach(id => {
     const {username, serviceId} = parseUserId(id)
@@ -103,39 +103,39 @@ const getFollowingStates = (state, ownProps) => {
   return followingStateMap
 }
 
-const getUserItems = createShallowEqualSelector(
-  [Constants.getUserInputItemIds, getFollowingStates],
-  (ids, followingStates) =>
-    ids.map(id => {
-      const {username, serviceId} = parseUserId(id)
-      const service = Constants.serviceIdToService(serviceId)
-      return {
-        id: id,
-        followingState: followingStates[id],
-        icon: serviceIdToIcon(serviceId),
-        username,
-        service,
-      }
-    })
-)
+const getUserItems = (state, searchKey) => {
+  const ids = Constants.getUserInputItemIds(state, searchKey)
+  const followingStates = getFollowingStates(state, searchKey)
+  return ids.map(id => {
+    const {username, serviceId} = parseUserId(id)
+    const service = Constants.serviceIdToService(serviceId)
+    return {
+      id: id,
+      followingState: followingStates[id],
+      icon: serviceIdToIcon(serviceId),
+      username,
+      service,
+    }
+  })
+}
 
 const mapStateToProps = (state, {searchKey, showServiceFilter}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
-  const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
+  const _searchResultIds = Constants.getSearchResultIds(state, searchKey)
   const selectedSearchId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
   const showingSearchSuggestions = entities.getIn(
     ['search', 'searchKeyToShowSearchSuggestion', searchKey],
     false
   )
-  const userItems = getUserItems(state, {searchKey})
-  const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
+  const userItems = getUserItems(state, searchKey)
+  const clearSearchTextInput = Constants.getClearSearchTextInput(state, searchKey)
   const showServiceFilterIfInputEmpty =
     state.chat2.get('pendingMode') !== 'searchingForUsers' && showServiceFilter
 
   return {
     clearSearchTextInput,
-    searchResultIds,
+    _searchResultIds,
     selectedSearchId,
     userItems,
     searchResultTerm,
@@ -165,11 +165,17 @@ export type Props = _Props & {
   search: Function,
 }
 
+const noResults = []
 const ConnectedUserInput = compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({
+      ...o,
+      ...s,
+      ...d,
+      searchResultIds: s._searchResultIds ? s._searchResultIds.toArray() : noResults,
+    })
   ),
   setDisplayName('UserInput'),
   withStateHandlers(
