@@ -29,13 +29,15 @@ class Keybase extends Component<any> {
 
     if (!global.keybaseLoaded) {
       global.keybaseLoaded = true
-      this.store = configureStore()
+      const {store, runSagas} = configureStore()
+      this.store = store
       global.store = this.store
       if (__DEV__) {
         global.DEBUGStore = this.store
       }
-      this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
+      runSagas()
+      this.store.dispatch(setInitialRouteDef(loginRouteTree))
 
       // On mobile there is no installer
       this.store.dispatch(ConfigGen.createInstallerRan())

@@ -38,6 +38,7 @@ const Root = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
+      borderRadius: 4,
       height: 525,
       width: 360,
     },

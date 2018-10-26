@@ -52,8 +52,6 @@ export default class Asset extends React.Component<Props, State> {
               <Text
                 type="BodyExtrabold"
                 lineClamp={1}
-                onClick={event => event.stopPropagation()}
-                selectable={true}
                 style={{color: globalColors.purple2}}
               >
                 {this.props.balance} {this.props.code}
@@ -61,8 +59,6 @@ export default class Asset extends React.Component<Props, State> {
               <Text
                 type="BodySmall"
                 lineClamp={1}
-                onClick={event => event.stopPropagation()}
-                selectable={true}
               >
                 {this.props.equivBalance}
               </Text>

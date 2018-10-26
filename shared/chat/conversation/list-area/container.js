@@ -60,17 +60,17 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   if (
     isPending &&
     state.chat2.pendingMode === 'searchingForUsers' &&
-    !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+    !!SearchConstants.getSearchResultIds(state, 'chatSearch')
   ) {
     // There are search results; show list
     type = 'search'
   } else {
     if (isPending) {
-      const inputResults = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+      const inputResults = SearchConstants.getUserInputItemIds(state, 'chatSearch')
       switch (conversationIDKey) {
         case Constants.pendingConversationIDKey: // fallthrough
         case Constants.noConversationIDKey:
-          if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.length) {
+          if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
             // No search results + no users in input; show spinner
             type = 'waiting'
             break

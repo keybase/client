@@ -217,7 +217,6 @@ const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
     case 'channel':
       convType = 'channel'
       break
-    case 'chat':
     default:
       throw new Error(`Bad entityType encountered in RetentionDisplay: ${props.entityType}`)
   }

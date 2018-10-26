@@ -172,6 +172,11 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	if err != nil {
 		return nil, err
 	}
+	// Hack: newPaymentLocal doesn't calculate delta right for relays and gui kills wallet tab when it sees NONE for relays.
+	loc.Delta = stellar1.BalanceDelta_INCREASE
+	if p.From.Uid.Equal(mctx.G().GetMyUID()) {
+		loc.Delta = stellar1.BalanceDelta_DECREASE
+	}
 
 	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {

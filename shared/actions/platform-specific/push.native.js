@@ -302,13 +302,14 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   } else {
     const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
     const shownMonsterPushPromptTask = yield Saga.fork(() =>
-      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`}).catch(() => false)
+      RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+        .then(v => !!v.b)
+        .catch(() => false)
     )
-    const [shownNativePushPrompt, _shownMonsterPushPrompt] = yield Saga.join(
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
       shownNativePushPromptTask,
       shownMonsterPushPromptTask
     )
-    const shownMonsterPushPrompt = !!_shownMonsterPushPrompt?.b
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
       shownNativePushPrompt,
