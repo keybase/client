@@ -431,6 +431,10 @@ var usernameRe = `(?P<username>` + nameShortRe + `)`
 var urlSyntaxRxx = `(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)`
 var pairItemRxx = regexp.MustCompile(`^` + urlSyntaxRxx + `$`)
 
+var assertionUsernameRxx = regexp.MustCompile("^" + nameShortRe + "$")
+var assertionNameRxx = regexp.MustCompile("^" + nameRe + "$")
+var assertionServiceRxx = regexp.MustCompile("^" + serviceRe + "$")
+
 func debugParseKVPair(s string, match []string) {
 	// Assign all matched groups to a map and print using spew.
 	// Useful for debugging assertions that parse in unexpected ways.
@@ -446,51 +450,111 @@ func debugParseKVPair(s string, match []string) {
 	spew.Dump(namedMatches)
 }
 
-func parseToKVPair(s string) (key string, value string, err error) {
-	match := pairItemRxx.FindStringSubmatch(s)
-	if match == nil {
-		err = fmt.Errorf("Invalid key-value identity: %s", s)
-		return
-	}
-
-	// When in doubt, insert a debugging call:
-	// debugParseKVPair(s, match)
-
-	wasLogName := false
-	for i, name := range pairItemRxx.SubexpNames() {
-		// Go through all matched groups, collect "service", "name",
-		// exit early on "username".
-		if matched := match[i]; matched != "" {
-			switch name {
-			case "username":
-				value = matched
-				return "", value, nil
-			case "service":
-				key = strings.ToLower(matched)
-			case "name":
-				value = matched
-			case "name_long":
-				wasLogName = true
-				continue
+func matchRxxAndFindGroup(str string, pattern *regexp.Regexp, groupName string) (string, bool) {
+	matches := pattern.FindStringSubmatch(str)
+	if matches != nil {
+		for i, group := range pattern.SubexpNames() {
+			if matched := matches[i]; matched != "" && group == groupName {
+				return matched, true
 			}
 		}
 	}
+	return "", false
+}
 
-	if key == "email" && !wasLogName {
-		err = fmt.Errorf("expected bracket syntax for email assertion")
-		return
-	} else if key != "email" && wasLogName {
-		err = fmt.Errorf("unexpected bracket syntax for assertion: %s", key)
+func matchRxxAndReturnGroups(str string, pattern *regexp.Regexp) (ret map[string]string) {
+	ret = make(map[string]string)
+	matches := pattern.FindStringSubmatch(str)
+	if matches != nil {
+		for i, group := range pattern.SubexpNames() {
+			if matched := matches[i]; matched != "" {
+				ret[group] = matched
+			}
+		}
+	}
+	return ret
+}
+
+func parseToKVPair(s string) (key string, value string, err error) {
+	// matchNameAndService runs regexp against potential name and service
+	// strings extracted from assertion.
+	matchNameAndService := func(name, service string) bool {
+		var k, v string // temp variables for key and value
+		var ok bool
+		if k, ok = matchRxxAndFindGroup(service, assertionServiceRxx, "service"); !ok {
+			return false
+		}
+
+		// Normalize service name at parser level.
+		k = strings.ToLower(k)
+
+		if name == "" {
+			// We are fine with matching just the service. "dns:" is a valid
+			// assertion at parser level (but is rejected later in the
+			// process).
+			key = k
+			err = nil
+			return true
+		}
+
+		nameGroups := matchRxxAndReturnGroups(name, assertionNameRxx)
+		if v, ok = nameGroups["name"]; !ok {
+			return false
+		}
+
+		// Look for "long_name" group being matched, if so, it's bracket syntax.
+		// We don't care about thir match, just whether it occured or not.
+		_, hasBrackets := nameGroups["name_long"]
+		if k == "email" && !hasBrackets {
+			err = fmt.Errorf("expected bracket syntax for email assertion")
+			return false
+		} else if k != "email" && hasBrackets {
+			err = fmt.Errorf("unexpected bracket syntax for assertion: %s", k)
+			return false
+		}
+
+		// Finally pass back temp variables to outer scope.
+		key = k
+		value = v
+		err = nil
+		return true
+	}
+
+	// Can be overwritten later.
+	err = fmt.Errorf("Invalid key-value identity: %s", s)
+
+	if atIndex := strings.LastIndex(s, "@"); atIndex != -1 {
+		name := s[:atIndex]
+		service := s[atIndex+1:]
+
+		if matchNameAndService(name, service) {
+			return
+		}
+	}
+
+	if colIndex := strings.Index(s, ":"); colIndex != -1 {
+		service := s[:colIndex]
+		name := s[colIndex+1:]
+
+		if strings.HasPrefix(name, "//") {
+			// "dns://keybase.io" syntax.
+			name = name[2:]
+		}
+
+		if matchNameAndService(name, service) {
+			return
+		}
+	}
+
+	if u, ok := matchRxxAndFindGroup(s, assertionUsernameRxx, "name"); ok {
+		key = ""
+		value = u
+		err = nil
 		return
 	}
 
-	if key == "" {
-		// We allow value to be null, because it can be then handled with better
-		// error message later. No `key` (or "service") is illegal though.
-		err = fmt.Errorf("Invalid key-value identity: %s", s)
-		return
-	}
-	return key, value, nil
+	// We've exhausted our options, it's not a valid assertion we can parse.
+	return "", "", err
 }
 
 func (a AssertionKeybase) IsKeybase() bool         { return true }
