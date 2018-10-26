@@ -1233,6 +1233,13 @@ type DiskBlockCache interface {
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
 		prefetchStatus PrefetchStatus) error
+	// GetLastUnrefRev returns the last revision that has been marked
+	// unref'd for the given TLF.
+	GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error)
+	// PutLastUnrefRev saves the given revision as the last unref'd
+	// revision for the given TLF.
+	PutLastUnrefRev(
+		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Status returns the current status of the disk cache.
 	Status(ctx context.Context) map[string]DiskBlockCacheStatus
 	// Shutdown cleanly shuts down the disk block cache.

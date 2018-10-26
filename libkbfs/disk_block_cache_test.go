@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -591,4 +592,50 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 	require.Equal(t, int64(standardCache.currBytes), currBytes)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 	require.Equal(t, 1, cache.workingSetCache.numBlocks)
+}
+
+func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that basic disk cache last unref Put and Get operations work.")
+	cache, _ := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+
+	t.Log("Put and get a last unref revision into the cache.")
+	tlf1 := tlf.FakeID(0, tlf.Private)
+	rev1 := kbfsmd.Revision(1)
+	err := cache.PutLastUnrefRev(ctx, tlf1, rev1)
+	require.NoError(t, err)
+	getRev1, err := cache.GetLastUnrefRev(ctx, tlf1)
+	require.NoError(t, err)
+	require.Equal(t, rev1, getRev1)
+
+	t.Log("Put and get a last unref revision into the cache for another TLF.")
+	tlf2 := tlf.FakeID(1, tlf.Public)
+	rev2 := kbfsmd.Revision(200)
+	err = cache.PutLastUnrefRev(ctx, tlf2, rev2)
+	require.NoError(t, err)
+	getRev2, err := cache.GetLastUnrefRev(ctx, tlf2)
+	require.NoError(t, err)
+	require.Equal(t, rev2, getRev2)
+
+	t.Log("Put a lower revision; should be ignored")
+	rev2b := kbfsmd.Revision(100)
+	err = cache.PutLastUnrefRev(ctx, tlf2, rev2b)
+	require.NoError(t, err)
+	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2)
+	require.NoError(t, err)
+	require.Equal(t, rev2, getRev2)
+
+	// Force re-read from DB.
+	cache.syncCache.tlfLastUnrefs = nil
+	err = cache.syncCache.syncBlockCountsFromDb()
+	require.NoError(t, err)
+	getRev1, err = cache.GetLastUnrefRev(ctx, tlf1)
+	require.NoError(t, err)
+	require.Equal(t, rev1, getRev1)
+	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2)
+	require.NoError(t, err)
+	require.Equal(t, rev2, getRev2)
 }

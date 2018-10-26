@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -213,6 +214,31 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 		}
 	}
 	return cache.workingSetCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+}
+
+// GetLastUnrefRev implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetLastUnrefRev(
+	ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	if cache.syncCache == nil {
+		return kbfsmd.RevisionUninitialized,
+			errors.New("Sync cache not enabled")
+	}
+	return cache.syncCache.GetLastUnrefRev(ctx, tlfID)
+}
+
+// PutLastUnrefRev implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) PutLastUnrefRev(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	if cache.syncCache == nil {
+		return errors.New("Sync cache not enabled")
+	}
+	return cache.syncCache.PutLastUnrefRev(ctx, tlfID, rev)
 }
 
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.

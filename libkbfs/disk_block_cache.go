@@ -920,6 +920,55 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
 }
 
+// GetLastUnrefRev implements the DiskBlockCache interface for
+// DiskBlockCacheLocal.
+func (cache *DiskBlockCacheLocal) GetLastUnrefRev(
+	ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	err := cache.checkCacheLocked("Block(GetLastUnrefRev)")
+	if err != nil {
+		return kbfsmd.RevisionUninitialized, err
+	}
+
+	rev, ok := cache.tlfLastUnrefs[tlfID]
+	if !ok {
+		// No known unref'd revision.
+		return kbfsmd.RevisionUninitialized, nil
+	}
+	return rev, nil
+}
+
+// PutLastUnrefRev implements the DiskBlockCache interface for
+// DiskBlockCacheLocal.
+func (cache *DiskBlockCacheLocal) PutLastUnrefRev(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	err := cache.checkCacheLocked("Block(PutLastUnrefRev)")
+	if err != nil {
+		return err
+	}
+
+	if currRev, ok := cache.tlfLastUnrefs[tlfID]; ok {
+		if rev <= currRev {
+			// A later revision has already been unref'd, so ignore this.
+			return nil
+		}
+	}
+
+	buf, err := cache.encodeLastUnref(rev)
+	if err != nil {
+		return err
+	}
+	err = cache.lastUnrefDb.Put(tlfID.Bytes(), buf, nil)
+	if err != nil {
+		return err
+	}
+	cache.tlfLastUnrefs[tlfID] = rev
+	return nil
+}
+
 // Status implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -122,6 +123,20 @@ func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 			BlockID:        blockID.Bytes(),
 			PrefetchStatus: prefetchStatus.ToProtocol(),
 		})
+}
+
+// GetLastUnrefRev implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) GetLastUnrefRev(
+	_ context.Context, _ tlf.ID) (kbfsmd.Revision, error) {
+	panic("GetLastUnrefRev() not implemented in DiskBlockCacheRemote")
+}
+
+// PutLastUnrefRev implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) PutLastUnrefRev(
+	_ context.Context, _ tlf.ID, _ kbfsmd.Revision) error {
+	panic("PutLastUnrefRev() not implemented in DiskBlockCacheRemote")
 }
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheRemote.
