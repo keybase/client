@@ -43,9 +43,6 @@ const textBlockStyle = Styles.platformStyles({
 })
 
 const linkStyle = Styles.platformStyles({
-  common: {
-    ...wrapStyle,
-  },
   isElectron: {fontWeight: 'inherit'},
   isMobile: {
     fontWeight: undefined,
