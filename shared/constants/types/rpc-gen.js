@@ -459,6 +459,12 @@ export const kbfsCommonFSStatusCode = {
   error: 2,
 }
 
+export const notifyTeamAvatarUpdateType = {
+  none: 0,
+  user: 1,
+  team: 2,
+}
+
 export const passphraseCommonPassphraseType = {
   none: 0,
   paperKey: 1,

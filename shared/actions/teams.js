@@ -1131,12 +1131,21 @@ const setupEngineListeners = () => {
         }
         yield arrayOfActionsToSequentially(getLoadCalls())
       }),
-    'keybase.1.NotifyTeam.avatarUpdated': ({name}) =>
+    'keybase.1.NotifyTeam.avatarUpdated': ({name, formats, typ}) =>
       Saga.call(function*() {
-        const state = yield Saga.select()
-        yield state.teams.teamnames.includes(name)
-          ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
-          : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+        switch (typ) {
+          case RPCTypes.notifyTeamAvatarUpdateType.none:
+            // don't know what it is, so try both
+            yield Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+            yield Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+            break
+          case RPCTypes.notifyTeamAvatarUpdateType.user:
+            yield Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+            break
+          case RPCTypes.notifyTeamAvatarUpdateType.team:
+            yield Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+            break
+        }
       }),
   })
 }
