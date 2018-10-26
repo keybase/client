@@ -33,7 +33,8 @@ func TestLoadParamServices(t *testing.T) {
 	}
 	t.Logf("Found config %+v", gubbleConf)
 	require.NotNil(t, gubbleConf)
-	require.Equal(t, 1, gubbleConf.Version)
+	require.Equal(t, 1, gubbleConf.SchemaVersion)
+	require.True(t, gubbleConf.ConfigVersion >= 1)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
 	group := "gubble"
 	require.EqualValues(t, &group, gubbleConf.Group)
