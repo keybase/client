@@ -80,13 +80,21 @@ func TestParserFail1(t *testing.T) {
 		// similar to above
 		{"email://alice@keybase.io", "Invalid key-value identity: email://alice@keybase.io"},
 
-		{"[]@email", "Syntax error when parsing: []@email"},
-		{"[]@rooter", "Syntax error when parsing: []@rooter"},
-		{"rooter:[]", "Bad username: ''"},
-		//{"email:[]", "expected bracket syntax for email assertion"}, // not ideal either
+		// [] is parser-level illegal
+		{"[]@email", "Invalid key-value identity: []@email"},
+		{"[]@rooter", "Invalid key-value identity: []@rooter"},
+		{"rooter:[]", "Invalid key-value identity: rooter:[]"},
+		{"email:[]", "Invalid key-value identity: email:[]"},
+		{"email://[]", "Invalid key-value identity: email://[]"},
 
 		{"[alice]@rooter", "unexpected bracket syntax for assertion: rooter"},
 		{"rooter:[alice]", "unexpected bracket syntax for assertion: rooter"},
+
+		{"[michal]", "Syntax error when parsing: [michal]"},
+		// This is lexed as URL, ERROR, EOF, but it fails prematurely
+		// with assertion parser error on "[michal]@" (first URL), so we
+		// don't get to see "Syntax error".
+		{"[michal]@[keybase]", "Invalid key-value identity: [michal]@"},
 
 		{"[+1-555-222]@phone", "unexpected bracket syntax for assertion: phone"}, // nice try but no
 	}

@@ -73,9 +73,9 @@ type Lexer struct {
 
 // URL:
 var lexerURLCharsRxx = `([^ \n\t&|()\[\],+#]+)` // anything but control chars
-var lexerURLSquareRxx = `(\[[^ \n\t#]+?\])`     // square bracket syntax, allows pretty much anything in
+var lexerURLSquareRxx = `(\[[^ \n\t#\[\]]*\])`  // square bracket syntax, allows pretty much anything in
 // URL has a character group and optionally square bracket groups
-var lexerURLRxx = `(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + lexerURLSquareRxx + `?)`
+var lexerURLRxx = `((` + lexerURLCharsRxx + lexerURLSquareRxx + `?)|(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + `))`
 
 var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + lexerURLRxx + `)`)
 var lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)

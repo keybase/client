@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -417,38 +416,14 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
-var nameLongRe = `(?P<name_long>\[(?P<name>[-_a-zA-Z0-9.@+]+)\])` // matches "long names" with square brackets, for email syntax
-var nameShortRe = `(?P<name>[-_a-zA-Z0-9.]+)`                     // matches normal names, for any other assertion values
-var nameRe = `(` + nameLongRe + `|` + nameShortRe + `)`           // matches either long name or short name, for all possible assertion values
-var serviceRe = `(?P<service>[a-zA-Z.]+)`                         // matches service names, for assertion keys
+var nameSquaredPattern = `(?P<s_name>\[(?P<name>[-_a-zA-Z0-9.@+]+)\])`  // matches "name-squared", square brackets syntax, for emails
+var namePattern = `(?P<name>[-_a-zA-Z0-9.]+)`                           // matches normal names, for any other assertion values
+var anyNamePattern = `(` + nameSquaredPattern + `|` + namePattern + `)` // matches either of above, for any valid (parseable) assertion value
+var serviceRe = `(?P<service>[a-zA-Z.]+)`                               // matches service names, for assertion keys
 
-// name groups are optional because we still wan't to parse garbage like
-// "http://" or "@keybase"
-var atSyntaxRe = `(?P<atsyntax>` + nameRe + `?@` + serviceRe + `?)`
-var colSyntaxRe = `(?P<colsyntax>` + serviceRe + `?:(//)?` + nameRe + `?)`
-var usernameRe = `(?P<username>` + nameShortRe + `)`
-
-var urlSyntaxRxx = `(` + atSyntaxRe + `|` + colSyntaxRe + `|` + usernameRe + `)`
-var pairItemRxx = regexp.MustCompile(`^` + urlSyntaxRxx + `$`)
-
-var assertionUsernameRxx = regexp.MustCompile("^" + nameShortRe + "$")
-var assertionNameRxx = regexp.MustCompile("^" + nameRe + "$")
+var assertionUsernameRxx = regexp.MustCompile("^" + namePattern + "$")
+var assertionNameRxx = regexp.MustCompile("^" + anyNamePattern + "$")
 var assertionServiceRxx = regexp.MustCompile("^" + serviceRe + "$")
-
-func debugParseKVPair(s string, match []string) {
-	// Assign all matched groups to a map and print using spew.
-	// Useful for debugging assertions that parse in unexpected ways.
-
-	namedMatches := make(map[string]string)
-	for i, name := range pairItemRxx.SubexpNames() {
-		if i != 0 && name != "" && match[i] != "" {
-			namedMatches[name] = match[i]
-		}
-	}
-
-	fmt.Printf("%s\n", s)
-	spew.Dump(namedMatches)
-}
 
 func matchRxxAndFindGroup(str string, pattern *regexp.Regexp, groupName string) (string, bool) {
 	matches := pattern.FindStringSubmatch(str)
@@ -503,7 +478,7 @@ func parseToKVPair(s string) (key string, value string, err error) {
 
 		// Look for "long_name" group being matched, if so, it's bracket syntax.
 		// We don't care about thir match, just whether it occured or not.
-		_, hasBrackets := nameGroups["name_long"]
+		_, hasBrackets := nameGroups["s_name"]
 
 		// Set err in outer scope if find invalid square bracket syntax.
 		// Still return `true` because it's a successful match.
