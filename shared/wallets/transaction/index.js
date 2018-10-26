@@ -9,9 +9,9 @@ import {
   ClickableBox,
   Icon,
   ConnectedUsernames,
+  Text,
   WaitingButton,
 } from '../../common-adapters'
-import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
@@ -47,37 +47,15 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
 }
 
-type StellarPublicKeyProps = {|
-  publicKey: string,
-  showFullKey: boolean,
-  textType: TextType,
-|}
-
-const StellarPublicKey = (props: StellarPublicKeyProps) => {
-  const key = props.publicKey
-  return (
-    <Text type={props.textType} selectable={props.showFullKey} title={key}>
-      {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
-    </Text>
-  )
-}
-
 type CounterpartyTextProps = {|
-  large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
-  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
-  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
-  const textTypeSemiboldItalic =
-    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
-
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -86,21 +64,20 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={textTypeSemibold}
+          type={props.textTypeSemibold}
           underline={true}
           usernames={[props.counterparty]}
         />
       )
     case 'stellarPublicKey':
+      const key = props.counterparty
       return (
-        <StellarPublicKey
-          publicKey={props.counterparty}
-          showFullKey={props.showFullKey}
-          textType={textTypeSemibold}
-        />
+        <Text type={props.textTypeSemibold} selectable={false} title={key}>
+          {key.substr(0, 6) + '...' + key.substr(-5)}
+        </Text>
       )
     case 'otherAccount':
-      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
+      return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -125,8 +102,8 @@ type DetailProps = {|
 |}
 
 const Detail = (props: DetailProps) => {
-  const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const amount = props.isXLM ? (
@@ -146,11 +123,9 @@ const Detail = (props: DetailProps) => {
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
-      large={props.large}
       onShowProfile={props.onShowProfile}
-      showFullKey={false}
-      textType={textType}
       textTypeSemibold={textTypeSemibold}
+      textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
   )
 
