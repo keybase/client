@@ -125,7 +125,6 @@ class SharedAskForUserData {
     }
     const now = Date.now()
     const oldEnough = now - this._cacheTime
-    // $FlowIssue flow thinks array doens't have filter for some reason??
     const usernames = Object.keys(this._userQueue).filter(k => {
       const lr = this._userLastReq[k]
       if (!lr || lr < oldEnough) {
@@ -134,7 +133,6 @@ class SharedAskForUserData {
       }
       return false
     })
-    // $FlowIssue flow thinks array doens't have filter for some reason??
     const teamnames = Object.keys(this._teamQueue).filter(k => {
       const lr = this._teamLastReq[k]
       if (!lr || lr < oldEnough) {
@@ -145,10 +143,10 @@ class SharedAskForUserData {
     })
     this._teamQueue = {}
     this._userQueue = {}
-    if (Object.keys(usernames).length) {
+    if (usernames.length) {
       this._dispatch(ConfigGen.createLoadAvatars({usernames}))
     }
-    if (Object.keys(teamnames).length) {
+    if (teamnames.length) {
       this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
     }
   }, 200)
