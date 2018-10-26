@@ -8,7 +8,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Selectors from '../constants/selectors'
-import {isEqual, keyBy, trim} from 'lodash-es'
+import  keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24} from '../util/platforms'
 
