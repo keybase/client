@@ -7,8 +7,8 @@ import * as Kb from '../../common-adapters'
 import {withProps} from 'recompose'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
-import * as F from '../common'
-import * as R from '../row/common'
+import * as FsCommon from '../common'
+import * as RowCommon from '../row/common'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 
 type Props = {
@@ -37,7 +37,7 @@ const DesktopHeaders = (props: Props) => (
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
-      <F.PathItemIcon size={16} spec={props.targetIconSpec} />
+      <FsCommon.PathItemIcon size={16} spec={props.targetIconSpec} />
       <Kb.Text type="Header" lineClamp={1}>
         {props.targetName}
       </Kb.Text>
@@ -62,7 +62,7 @@ const DestinationPicker = (props: Props) => (
           type="iconfont-folder-up"
           color={Styles.globalColors.black_40}
           fontSize={32}
-          style={R.rowStyles.pathItemIcon}
+          style={RowCommon.rowStyles.pathItemIcon}
         />
         <Kb.Text type="BodySemibold">..</Kb.Text>
       </Kb.ClickableBox>
@@ -72,7 +72,7 @@ const DestinationPicker = (props: Props) => (
         <Kb.Icon
           type="icon-folder-copy-32"
           color={Styles.globalColors.blue}
-          style={R.rowStyles.pathItemIcon}
+          style={RowCommon.rowStyles.pathItemIcon}
         />
         <Kb.Text type="BodySemibold" style={styles.actionText}>
           Copy here
@@ -84,7 +84,7 @@ const DestinationPicker = (props: Props) => (
         <Kb.Icon
           type="icon-folder-move-32"
           color={Styles.globalColors.blue}
-          style={R.rowStyles.pathItemIcon}
+          style={RowCommon.rowStyles.pathItemIcon}
         />
         <Kb.Text type="BodySemibold" style={styles.actionText}>
           Move here
@@ -92,7 +92,7 @@ const DestinationPicker = (props: Props) => (
       </Kb.ClickableBox>
     )}
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-      <Rows path={props.path} sortSetting={Constants.sortByNameAsc} inDestinationPicker={true} />
+      <Rows path={props.path} sortSetting={Constants.defaultSortSetting} inDestinationPicker={true} />
     </Kb.Box2>
     {isMobile && <Kb.Divider key="dfooter" />}
     <Kb.Box2 key="footer" direction="horizontal" centerChildren={true} fullWidth={true} style={styles.footer}>
@@ -116,7 +116,7 @@ export default (isMobile
           </Kb.ClickableBox>
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-              <F.PathItemIcon size={12} spec={props.targetIconSpec} />
+              <FsCommon.PathItemIcon size={12} spec={props.targetIconSpec} />
               <Kb.Text type="BodySmallSemibold" lineClamp={1}>
                 {props.targetName}
               </Kb.Text>
@@ -162,7 +162,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 1,
-    height: R.rowHeight,
+    height: RowCommon.rowHeight,
     paddingRight: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.small,
     backgroundColor: Styles.globalColors.blue5,

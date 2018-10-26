@@ -89,10 +89,7 @@ export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
   sortOrder: 'asc',
 })
 
-export const sortByNameAsc = makeSortSetting({
-  sortBy: 'name',
-  sortOrder: 'asc',
-})
+export const defaultSortSetting = makeSortSetting({})
 
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
   sort: makeSortSetting(),
