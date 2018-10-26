@@ -147,7 +147,6 @@ const sendPayment = (state: TypedState) => {
     Constants.sendPaymentWaitingKey
   )
     .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
-    .then(res => WalletsGen.createSetLastSentXLM({lastSentXLM: !notXLM, writeFile: true}))
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
