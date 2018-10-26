@@ -38,17 +38,17 @@ type _ToPaperKeyInputPayload = void
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
-export const createCheckPaperKey = (payload: _CheckPaperKeyPayload) => ({error: false, payload, type: checkPaperKey})
-export const createCheckPaperKeyDone = (payload: _CheckPaperKeyDonePayload) => ({error: false, payload, type: checkPaperKeyDone})
+export const createCheckPaperKey = (payload: _CheckPaperKeyPayload) => ({payload, type: checkPaperKey})
+export const createCheckPaperKeyDone = (payload: _CheckPaperKeyDonePayload) => ({payload, type: checkPaperKeyDone})
 export const createCheckPaperKeyDoneError = (payload: _CheckPaperKeyDonePayloadError) => ({error: true, payload, type: checkPaperKeyDone})
-export const createCloseDone = (payload: _CloseDonePayload) => ({error: false, payload, type: closeDone})
-export const createClosePopup = (payload: _ClosePopupPayload) => ({error: false, payload, type: closePopup})
-export const createFinish = (payload: _FinishPayload) => ({error: false, payload, type: finish})
-export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload) => ({error: false, payload, type: newRekeyPopup})
-export const createOnBackFromPaperKey = (payload: _OnBackFromPaperKeyPayload) => ({error: false, payload, type: onBackFromPaperKey})
-export const createOpenPopup = (payload: _OpenPopupPayload) => ({error: false, payload, type: openPopup})
-export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload) => ({error: false, payload, type: toPaperKeyInput})
-export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
+export const createCloseDone = (payload: _CloseDonePayload) => ({payload, type: closeDone})
+export const createClosePopup = (payload: _ClosePopupPayload) => ({payload, type: closePopup})
+export const createFinish = (payload: _FinishPayload) => ({payload, type: finish})
+export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload) => ({payload, type: newRekeyPopup})
+export const createOnBackFromPaperKey = (payload: _OnBackFromPaperKeyPayload) => ({payload, type: onBackFromPaperKey})
+export const createOpenPopup = (payload: _OpenPopupPayload) => ({payload, type: openPopup})
+export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload) => ({payload, type: toPaperKeyInput})
+export const createWaiting = (payload: _WaitingPayload) => ({payload, type: waiting})
 
 // Action Payloads
 export type CheckPaperKeyDonePayload = $Call<typeof createCheckPaperKeyDone, _CheckPaperKeyDonePayload>
