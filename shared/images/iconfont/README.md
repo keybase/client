@@ -1,6 +1,6 @@
-## How to build the font icon
+## Building Keybase Icon Font
 
-#Note: Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.## Dependencies
+### Dependencies
 
 [webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
@@ -8,6 +8,13 @@
 - Mac: `brew install fontforge`
 - Window: Install the GUI application and the executable should be available via
   the command line.
+  
+### Other Documentation
+
+[Sketch Best Practices for SVG Export](./SKETCH.md)
+
+[Using Font Forge to Inspect Icon Font Output](./FONTFORGE.md)
+  
 
 ### Instructions
 
@@ -16,7 +23,7 @@
 1. Delete all icons from this folder
 2. Download iconfont svgs from this [zeplin sheet](https://zpl.io/29y4w5w)
 3. Optionally if there are PNG assets to update, download from this [zeplin sheet](https://zpl.io/VQoMDq4)
-    - Note: **Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.**
+    - Note: **Make sure you scroll all the way to the bottom of the asset panel on the right of the Zeplin sheets before exporting the assets, otherwise they might not load.**
 4. Move assets to the appropriate directory
     - svg iconfonts: `client/shared/images/iconfont`
     - png assets: `client/shared/images/icons`
@@ -60,8 +67,6 @@ iconfont. It is okay to have gaps in the counters.
 For instructions on adding/modifying icons look at the instructions in this
 [zeplin sheet](https://zpl.io/29y4w5w).
 
-### Structuring Sketch Assets
-
 ### Common Errors
 
 1. Flow: `Cannot create Kb.Icon element because property 'iconfont-{name}' is missing in object [1] in property 'type'`
@@ -71,7 +76,7 @@ For instructions on adding/modifying icons look at the instructions in this
     
 2. Fontforge not being installed or unavailable via `PATH` in the shell.
 
-```
+```bash
 /bin/sh: fontforge: command not found
 { Error: Command failed: fontforge -lang ff -c " Open('$GOPATH/client/shared/fonts/kb.ttf'); SetOS2Value('WinAscent', 962); SetOS2Value('WinDescent', 148); SetOS2Value('TypoAscent', 960); SetOS2Value('TypoLineGap', 0); SetOS2Value('TypoDescent', -64); SetOS2Value('HHeadAscent', 962); SetOS2Value('HHeadDescent', -148); SetGasp(65535, 15); SelectAll(); Move(0, -64); SelectNone(); Select('61-kb-iconfont-nav-chat-24', '70-kb-iconfont-nav-wallets-24'); Move(0, -22); ScaleToEm(960, 64); Generate('$GOPATH/client/shared/fonts/kb.ttf'); "
 /bin/sh: fontforge: command not found
@@ -89,10 +94,9 @@ For instructions on adding/modifying icons look at the instructions in this
   error: null,
   cmd: 'fontforge -lang ff -c " Open(\'$GOPATH/client/shared/fonts/kb.ttf\'); SetOS2Value(\'WinAscent\', 962); SetOS2Value(\'WinDescent\', 148); SetOS2Value(\'TypoAscent\', 960); SetOS2Value(\'TypoLineGap\', 0); SetOS2Value(\'TypoDescent\', -64); SetOS2Value(\'HHeadAscent\', 962); SetOS2Value(\'HHeadDescent\', -148); SetGasp(65535, 15); SelectAll(); Move(0, -64); SelectNone(); Select(\'61-kb-iconfont-nav-chat-24\', \'70-kb-iconfont-nav-wallets-24\'); Move(0, -22); ScaleToEm(960, 64); Generate(\'$GOPATH/client/shared/fonts/kb.ttf\'); "',
   file: '/bin/sh',
+  
+# ...
+# etc
+# ...
 
 ```
-
-### Notes on Icon Generation
-
-[NOTES.md](NOTES.md)
-
