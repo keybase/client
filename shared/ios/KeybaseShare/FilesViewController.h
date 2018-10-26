@@ -12,6 +12,6 @@
 -(void)folderSelected:(NSDictionary*)folder;
 @end
 
-@interface FilesViewController : UITableViewController <UISearchResultsUpdating>
+@interface FilesViewController : UITableViewController
 @property (weak) UIViewController<FilesViewDelegate> *delegate;
 @end
