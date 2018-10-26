@@ -10,6 +10,8 @@ type OwnProps = {
   onBack?: () => void, // if direct
 }
 
+// info banners have already been viewed in the send form,
+// so we filter them out here
 const mapStateToProps = state => {
   const build = state.wallets.building
   const built = state.wallets.builtPayment
@@ -22,7 +24,7 @@ const mapStateToProps = state => {
       ]
     : []
   ).concat(
-    (built.banners || []).map(banner => ({
+    (built.banners || []).filter(banner => banner.level !== 'info').map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
     }))
