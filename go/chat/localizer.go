@@ -91,9 +91,8 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
-	if err = b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb); err != nil {
-		return res, err
-	}
+	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
+
 	res = make([]chat1.ConversationLocal, len(convs))
 	indexMap := make(map[string]int)
 	for index, c := range convs {
@@ -160,9 +159,7 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	bctx := BackgroundContext(ctx, b.G())
 	go func() {
 		b.Debug(bctx, "Localize: starting background localization: convs: %d", len(inbox.ConvsUnverified))
-		if err := b.baseLocalizer.pipeline.queue(bctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb); err != nil {
-			b.Debug(bctx, "Localize: failed to queue job: %s", err)
-		}
+		b.baseLocalizer.pipeline.queue(bctx, uid, b.getConvs(inbox, maxLocalize), b.localizeCb)
 	}()
 	return nil, nil
 }
@@ -292,23 +289,17 @@ func (s *localizerPipeline) Disconnected() {
 }
 
 func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
-	retCh chan types.AsyncInboxResult) error {
+	retCh chan types.AsyncInboxResult) {
 	defer s.Trace(ctx, func() error { return nil }, "queue")()
 	s.Lock()
 	defer s.Unlock()
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
 	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
-	select {
-	case s.jobQueue <- job:
-	default:
-		s.Debug(ctx, "queue: dropped job, queue full")
-		return errors.New("localize queue full")
-	}
-	return nil
+	s.jobQueue <- job
 }
 
 func (s *localizerPipeline) clearQueue() {
-	s.jobQueue = make(chan *localizerPipelineJob, 500)
+	s.jobQueue = make(chan *localizerPipelineJob, 100)
 }
 
 func (s *localizerPipeline) start(ctx context.Context) {
@@ -447,11 +438,10 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
 	pending := localizeJob.getPending()
-	retCh := make(chan chat1.ConversationID, len(pending))
-
 	if len(pending) == 0 {
 		return nil
 	}
+	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
 		defer close(convCh)
 		for i, conv := range pending {
