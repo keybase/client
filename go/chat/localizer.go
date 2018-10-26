@@ -179,6 +179,9 @@ type localizerPipelineJob struct {
 	uid       gregor1.UID
 	completed int
 	pending   []chat1.Conversation
+
+	// testing
+	gateCh chan struct{}
 }
 
 func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipelineJob) {
@@ -190,6 +193,7 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	res.uid = l.uid
 	res.completed = l.completed
 	res.pending = make([]chat1.Conversation, len(l.pending))
+	res.gateCh = make(chan struct{})
 	copy(res.pending, l.pending)
 	return res
 }
@@ -243,6 +247,7 @@ func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor
 		retCh:   retCh,
 		uid:     uid,
 		pending: convs,
+		gateCh:  make(chan struct{}),
 	}
 }
 
@@ -260,8 +265,8 @@ type localizerPipeline struct {
 	jobQueue  chan *localizerPipelineJob
 
 	// testing
-	pipelineGateCh chan struct{}
-	passCompleteCh chan struct{}
+	useGateCh   bool
+	jobPulledCh chan *localizerPipelineJob
 }
 
 func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
@@ -392,6 +397,7 @@ func (s *localizerPipeline) localizeLoop() {
 				s.Debug(job.ctx, "localizeLoop: shutting down")
 				return
 			}
+			s.jobPulled(ctx, job)
 			doneCh := make(chan struct{})
 			go func() {
 				defer close(doneCh)
@@ -415,7 +421,6 @@ func (s *localizerPipeline) localizeLoop() {
 				job.cancelFn()
 				return
 			}
-			s.passComplete(job.ctx)
 			s.Debug(job.ctx, "localizeLoop: job pass complete")
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
@@ -424,19 +429,19 @@ func (s *localizerPipeline) localizeLoop() {
 	}
 }
 
-func (s *localizerPipeline) gateCheck(ctx context.Context, index int) {
-	if s.pipelineGateCh != nil {
+func (s *localizerPipeline) gateCheck(ctx context.Context, ch chan struct{}, index int) {
+	if s.useGateCh && ch != nil {
 		select {
-		case <-s.pipelineGateCh:
+		case <-ch:
 			s.Debug(ctx, "localizeConversations: gate check received: %d", index)
 		case <-ctx.Done():
 		}
 	}
 }
 
-func (s *localizerPipeline) passComplete(ctx context.Context) {
-	if s.passCompleteCh != nil {
-		s.passCompleteCh <- struct{}{}
+func (s *localizerPipeline) jobPulled(ctx context.Context, job *localizerPipelineJob) {
+	if s.jobPulledCh != nil {
+		s.jobPulledCh <- job
 	}
 }
 
@@ -476,13 +481,10 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	for i := 0; i < nthreads; i++ {
 		index := i
 		eg.Go(func() error {
-			s.Debug(ctx, "localizeConversations: newthread: %d", index)
 			for conv := range convCh {
-				s.Debug(ctx, "localizeConversations: gate check: %d convID: %s", index, conv.conv.GetConvID())
-				s.gateCheck(ctx, index)
+				s.gateCheck(ctx, localizeJob.gateCh, index)
 				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.conv.GetConvID())
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
-				s.Debug(ctx, "localizeConversations: complete: %d convID: %s", index, conv.conv.GetConvID())
 				select {
 				case <-ctx.Done():
 					s.Debug(ctx, "localizeConversations: context is done, bailing (consumer): %d", index)
@@ -499,7 +501,6 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 					Conv:      conv.conv,
 				}
 			}
-			s.Debug(ctx, "localizeConversations: endthread: %d", index)
 			return nil
 		})
 	}
