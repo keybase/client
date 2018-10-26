@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -72,6 +73,8 @@ type DiskBlockCacheLocal struct {
 	// Track the aggregate size of blocks in the cache per TLF and overall.
 	tlfSizes  map[tlf.ID]uint64
 	currBytes uint64
+	// Track the last unref'd revisions for each TLF.
+	tlfLastUnrefs map[tlf.ID]kbfsmd.Revision
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -116,6 +119,7 @@ type DiskBlockCacheStatus struct {
 	NumBlocks       uint64
 	BlockBytes      uint64
 	CurrByteLimit   uint64
+	LastUnrefCount  uint64
 	Hits            MeterStatus
 	Misses          MeterStatus
 	Puts            MeterStatus
@@ -124,6 +128,11 @@ type DiskBlockCacheStatus struct {
 	SizeEvicted     MeterStatus
 	NumDeleted      MeterStatus
 	SizeDeleted     MeterStatus
+}
+
+type lastUnrefEntry struct {
+	Rev   kbfsmd.Revision
+	Ctime time.Time // Not used yet, but save it in case we ever need it.
 }
 
 // newDiskBlockCacheLocalFromStorage creates a new *DiskBlockCacheLocal
@@ -202,6 +211,7 @@ func newDiskBlockCacheLocalFromStorage(
 		lastUnrefDb:      lastUnrefDb,
 		tlfCounts:        map[tlf.ID]int{},
 		tlfSizes:         map[tlf.ID]uint64{},
+		tlfLastUnrefs:    map[tlf.ID]kbfsmd.Revision{},
 		startedCh:        startedCh,
 		startErrCh:       startErrCh,
 		shutdownCh:       make(chan struct{}),
@@ -311,6 +321,25 @@ func (cache *DiskBlockCacheLocal) WaitUntilStarted() error {
 	}
 }
 
+func (cache *DiskBlockCacheLocal) decodeLastUnref(buf []byte) (
+	rev kbfsmd.Revision, err error) {
+	var entry lastUnrefEntry
+	err = cache.config.Codec().Decode(buf, &entry)
+	if err != nil {
+		return kbfsmd.RevisionUninitialized, err
+	}
+	return entry.Rev, nil
+}
+
+func (cache *DiskBlockCacheLocal) encodeLastUnref(rev kbfsmd.Revision) (
+	[]byte, error) {
+	entry := lastUnrefEntry{
+		Rev:   rev,
+		Ctime: cache.config.Clock().Now(),
+	}
+	return cache.config.Codec().Encode(&entry)
+}
+
 func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
 	cache.log.Debug("+ syncBlockCountsFromDb begin")
 	defer cache.log.Debug("- syncBlockCountsFromDb end")
@@ -341,6 +370,25 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
 	cache.numBlocks = numBlocks
 	cache.tlfSizes = tlfSizes
 	cache.currBytes = totalSize
+
+	tlfLastUnrefs := make(map[tlf.ID]kbfsmd.Revision)
+	lastUnrefIter := cache.lastUnrefDb.NewIterator(nil, nil)
+	defer lastUnrefIter.Release()
+	for lastUnrefIter.Next() {
+		var tlfID tlf.ID
+		err := tlfID.UnmarshalBinary(lastUnrefIter.Key())
+		if err != nil {
+			return err
+		}
+
+		rev, err := cache.decodeLastUnref(lastUnrefIter.Value())
+		if err != nil {
+			return err
+		}
+		tlfLastUnrefs[tlfID] = rev
+	}
+	cache.tlfLastUnrefs = tlfLastUnrefs
+
 	return nil
 }
 
@@ -904,6 +952,7 @@ func (cache *DiskBlockCacheLocal) Status(
 			NumBlocks:       uint64(cache.numBlocks),
 			BlockBytes:      cache.currBytes,
 			CurrByteLimit:   maxLimit,
+			LastUnrefCount:  uint64(len(cache.tlfLastUnrefs)),
 			Hits:            rateMeterToStatus(cache.hitMeter),
 			Misses:          rateMeterToStatus(cache.missMeter),
 			Puts:            rateMeterToStatus(cache.putMeter),
