@@ -126,7 +126,7 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
-  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
+  const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
   logger.info(`Adding ${ids.length} people to ${teamname}`)
   logger.info(`Adding ${ids.join(',')}`)
   try {
