@@ -255,7 +255,7 @@ const loadPayments = (
 // Fetch all payments for now, but in the future we may want to just
 // fetch the single payment.
 const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
-  !action.error &&
+  !actionHasError(action) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -263,12 +263,13 @@ const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPayments
     const {accountID, paymentID} = action.payload
     const paymentsReceived = createPaymentsReceived(action.payload.accountID, payments, pending)
     const found =
-          paymentsReceived.payload.payments.find(elem => elem.id === paymentID) || paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
+      paymentsReceived.payload.payments.find(elem => elem.id === paymentID) ||
+      paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
     if (!found) {
       logger.warn(
         `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
-            paymentID
-          )}`
+          paymentID
+        )}`
       )
     }
     return paymentsReceived
