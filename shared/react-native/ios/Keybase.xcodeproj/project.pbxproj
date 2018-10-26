@@ -29,6 +29,7 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
+		8F0E2FD621839C6E003E8868 /* FilesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F0E2FA821839C6E003E8868 /* FilesViewController.m */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -507,6 +508,8 @@
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
+		8F0E2FA821839C6E003E8868 /* FilesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FilesViewController.m; sourceTree = "<group>"; };
+		8F0E2FD521839C6E003E8868 /* FilesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FilesViewController.h; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
 		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
@@ -654,6 +657,8 @@
 		279FB59D2139AB6A005E4864 /* KeybaseShare */ = {
 			isa = PBXGroup;
 			children = (
+				8F0E2FD521839C6E003E8868 /* FilesViewController.h */,
+				8F0E2FA821839C6E003E8868 /* FilesViewController.m */,
 				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
 				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
@@ -1749,6 +1754,7 @@
 				27F0BBB52142C19D007195B7 /* Pusher.m in Sources */,
 				279FB66A21402D68005E4864 /* Fs.m in Sources */,
 				279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */,
+				8F0E2FD621839C6E003E8868 /* FilesViewController.m in Sources */,
 				279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

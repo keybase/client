@@ -22,13 +22,14 @@ const BOOL isSimulator = NO;
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget; // the conversation we will be sharing into
+@property NSDictionary* folderTarget; // the folder we will be sharing into
 @property BOOL hasInited; // whether or not init has succeeded yet
 @end
 
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    return self.hasInited && self.convTarget != nil;
+    return self.hasInited && (self.convTarget != nil || self.folderTarget != nil);
 }
 
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
@@ -364,7 +365,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didSelectPost {
-  if (!self.convTarget) {
+  if (!self.convTarget && !self.folderTarget) {
     // Just bail out of here if nothing was selected
     [self maybeCompleteRequest:YES];
     return;
@@ -382,25 +383,52 @@ const BOOL isSimulator = NO;
 }
 
 - (NSArray *)configurationItems {
-  SLComposeSheetConfigurationItem *item = [[SLComposeSheetConfigurationItem alloc] init];
-  item.title = @"Share to...";
-  item.valuePending = !self.hasInited; // show a spinner if we haven't inited
+  // Share to chat
+  SLComposeSheetConfigurationItem *chat = [[SLComposeSheetConfigurationItem alloc] init];
+  chat.title = @"Share to chat...";
+  chat.valuePending = !self.hasInited; // show a spinner if we haven't inited
   if (self.convTarget) {
-    item.value = self.convTarget[@"Name"];
+    chat.value = self.convTarget[@"Name"];
   } else if (self.hasInited) {
-    item.value = @"Please choose";
+    chat.value = @"Please choose";
   }
-  item.tapHandler = ^{
+  chat.tapHandler = ^{
     ConversationViewController *viewController = [[ConversationViewController alloc] initWithStyle:UITableViewStylePlain];
     viewController.delegate = self;
     [self pushConfigurationViewController:viewController];
   };
-  return @[item];
+  
+  // Share to files
+  SLComposeSheetConfigurationItem *files = [[SLComposeSheetConfigurationItem alloc] init];
+  files.title = @"Share to files...";
+  files.valuePending = !self.hasInited; // show a spinner if we haven't inited
+  if (self.folderTarget) {
+    files.value = self.folderTarget[@"Name"];
+  } else if (self.hasInited) {
+    files.value = @"Please choose";
+  }
+  files.tapHandler = ^{
+    FilesViewController *viewController = [[FilesViewController alloc] initWithStyle:UITableViewStylePlain];
+    viewController.delegate = self;
+    [self pushConfigurationViewController:viewController];
+  };
+
+  return @[chat, files];
 }
 
 - (void)convSelected:(NSDictionary *)conv {
   // This is a delegate method from the inbox view, it gets run when the user taps an item.
   [self setConvTarget:conv];
+  [self setFolderTarget:nil];
+  [self validateContent];
+  [self reloadConfigurationItems];
+  [self popConfigurationViewController];
+}
+
+- (void)folderSelected:(NSDictionary *)folder {
+  // This is a delegate method from the inbox view, it gets run when the user taps an item.
+  [self setFolderTarget:folder];
+  [self setConvTarget:nil];
   [self validateContent];
   [self reloadConfigurationItems];
   [self popConfigurationViewController];
