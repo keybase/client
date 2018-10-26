@@ -126,6 +126,19 @@ describe('text code happy path', () => {
     expect(response.error).toHaveBeenCalled()
   })
 
+  it('submit text code with spaces works', () => {
+    const {dispatch, response, getState} = init
+    dispatch(
+      ProvisionGen.createSubmitTextCode({
+        phrase: new HiddenString('   this   is a text   code\n\nthat works'),
+      })
+    )
+    const good = 'this is a text code that works'
+    expect(getState().provision.codePageOutgoingTextCode.stringValue()).toEqual(good)
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: good})
+    expect(response.error).not.toHaveBeenCalled()
+  })
+
   it('submit text code', () => {
     const {response, dispatch, getState} = init
     dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
