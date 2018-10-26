@@ -189,7 +189,7 @@ func (s *Stellar) hasAcceptedDisclaimer(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	s.disclaimerLock.Lock()
-	s.disclaimerLock.Unlock()
+	defer s.disclaimerLock.Unlock()
 	// Check memory
 	memAccepted := s.disclaimerAccepted != nil && s.disclaimerAccepted.Eq(uv)
 	log("mem -> %v", memAccepted)
@@ -227,6 +227,8 @@ func (s *Stellar) hasAcceptedDisclaimer(ctx context.Context) (bool, error) {
 }
 
 func (s *Stellar) informAcceptedDisclaimer(ctx context.Context) {
+	s.disclaimerLock.Lock()
+	defer s.disclaimerLock.Unlock()
 	_ = s.informAcceptedDisclaimerLocked(ctx)
 }
 
