@@ -17,6 +17,7 @@ export const acceptDisclaimer = 'wallets:acceptDisclaimer'
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
+export const buildPayment = 'wallets:buildPayment'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
@@ -89,6 +90,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   assets: Array<Types.Assets>,
 |}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
+type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|
   build: Types.BuiltPayment,
   forBuilding: Types.Building,
@@ -414,6 +416,10 @@ export const createLoadMorePayments = (payload: _LoadMorePaymentsPayload) => ({p
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({payload, type: selectAccount})
 /**
+ * Send a potential payment to the service for validation
+ */
+export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
+/**
  * Set building amount
  */
 export const createSetBuildingAmount = (payload: _SetBuildingAmountPayload) => ({payload, type: setBuildingAmount})
@@ -533,6 +539,7 @@ export type AcceptDisclaimerPayload = $Call<typeof createAcceptDisclaimer, _Acce
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
+export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
 export type BuiltRequestReceivedPayload = $Call<typeof createBuiltRequestReceived, _BuiltRequestReceivedPayload>
 export type CancelPaymentPayload = $Call<typeof createCancelPayment, _CancelPaymentPayload>
@@ -609,6 +616,7 @@ export type Actions =
   | AccountsReceivedPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
+  | BuildPaymentPayload
   | BuiltPaymentReceivedPayload
   | BuiltRequestReceivedPayload
   | CancelPaymentPayload
