@@ -164,6 +164,9 @@ protocol local {
 
     string publicNote;              // public memo for the payment
     string publicNoteType;          // public memo type: "text", "id", "hash", "return"
+
+    @lint("ignore")
+    string externalTxURL;           // link to external web page with tx details
   }
 
   // accountID should be the accountID that you want the details for.

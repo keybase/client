@@ -5,56 +5,40 @@ import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import os from 'os'
-import windowHelper from './window-helper.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
-process.on('uncaughtException', e => {
-  console.log('Uncaught exception on main thread:', e)
-})
-
-if (process.env.KEYBASE_CRASH_REPORT) {
-  console.log(
-    `Adding crash reporting (local). Crash files located in ${SafeElectron.getApp().getPath('temp')}`
-  )
-  SafeElectron.getCrashReporter().start({
-    companyName: 'Keybase',
-    crashesDirectory: cacheRoot,
-    productName: 'Keybase',
-    submitURL: '',
-    uploadToServer: false,
-  })
-}
-
 let mainWindow = null
-let _menubarWindowID = 0
 
-const _maybeTellMainWindowAboutMenubar = () => {
-  if (mainWindow && _menubarWindowID) {
-    mainWindow.window.webContents.send('updateMenubarWindowID', _menubarWindowID)
+const installCrashReporter = () => {
+  if (process.env.KEYBASE_CRASH_REPORT) {
+    console.log(
+      `Adding crash reporting (local). Crash files located in ${SafeElectron.getApp().getPath('temp')}`
+    )
+    SafeElectron.getCrashReporter().start({
+      companyName: 'Keybase',
+      crashesDirectory: cacheRoot,
+      productName: 'Keybase',
+      submitURL: '',
+      uploadToServer: false,
+    })
   }
 }
 
-function start() {
-  if (!allowMultipleInstances) {
-    // Only one app per app in osx...
-    const shouldQuit = SafeElectron.getApp().makeSingleInstance(() => {
-      if (mainWindow) {
-        mainWindow.show()
-        if (isWindows) {
-          mainWindow.window && mainWindow.window.focus()
-        }
-      }
-    })
+const areWeThePrimaryInstance = () => {
+  if (allowMultipleInstances) {
+    return true
+  }
+  return SafeElectron.getApp().requestSingleInstanceLock()
+}
 
-    if (shouldQuit) {
-      console.log('Only one instance of keybase GUI allowed, bailing!')
-      SafeElectron.getApp().quit()
-      return
-    }
+const appShouldDieOnStartup = () => {
+  if (!areWeThePrimaryInstance()) {
+    console.log('Only one instance of keybase GUI allowed, bailing!')
+    return true
   }
 
   // Check supported OS version
@@ -67,15 +51,24 @@ function start() {
         'Keybase Error',
         "This version of macOS isn't currently supported."
       )
-      SafeElectron.getApp().quit()
-      return
+      return true
     }
   }
+  return false
+}
 
-  // Windows needs this for notifications to show on certain versions
-  // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
-  SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
+const focusSelfOnAnotherInstanceLaunching = () => {
+  if (!mainWindow) {
+    return
+  }
 
+  mainWindow.show()
+  if (isWindows) {
+    mainWindow.window && mainWindow.window.focus()
+  }
+}
+
+const changeCommandLineSwitches = () => {
   // MUST do this else we get limited by simultaneous hot reload event streams
   SafeElectron.getApp().commandLine.appendSwitch('ignore-connections-limit', 'localhost')
 
@@ -84,66 +77,135 @@ function start() {
     SafeElectron.getApp().commandLine.appendSwitch('enable-logging')
     SafeElectron.getApp().commandLine.appendSwitch('v', 3)
   }
+}
 
-  devTools()
-  // Load menubar and get its browser window id so we can tell the main window
+const fixWindowsNotifications = () => {
+  // Windows needs this for notifications to show on certain versions
+  // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
+  SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
+}
+
+let menubarWindowID = 0
+
+const tellMainWindowAboutMenubar = () => {
+  if (mainWindow && menubarWindowID) {
+    mainWindow.window.webContents.send('updateMenubarWindowID', menubarWindowID)
+  }
+}
+
+const setupMenubar = () => {
   menuBar(id => {
-    _menubarWindowID = id
-  })
-  windowHelper(SafeElectron.getApp())
-
-  console.log('Version:', SafeElectron.getApp().getVersion())
-
-  SafeElectron.getApp().once('ready', () => {
-    mainWindow = MainWindow()
-    _maybeTellMainWindowAboutMenubar()
-    SafeElectron.getIpcMain().on('mainWindowWantsMenubarWindowID', () => {
-      _maybeTellMainWindowAboutMenubar()
-    })
-
-    SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
-      mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
-    })
-  })
-
-  SafeElectron.getIpcMain().on('install-check', (event, arg) => {
-    installer(err => {
-      if (err) {
-        console.log('Error: ', err)
-      }
-      event.sender.send('installed')
-    })
-  })
-
-  SafeElectron.getIpcMain().on('kb-service-check', (event, arg) => {
-    if (isWindows) {
-      console.log('kb-service-check: starting keybase.exe')
-      startWinService()
-    }
-  })
-
-  // Called when the user clicks the dock icon
-  SafeElectron.getApp().on('activate', () => {
-    mainWindow && mainWindow.show()
-  })
-
-  // Don't quit the app, instead try to close all windows
-  SafeElectron.getApp().on('close-windows', event => {
-    const windows = SafeElectron.BrowserWindow.getAllWindows()
-    windows.forEach(w => {
-      // We tell it to close, we can register handlers for the 'close' event if we want to
-      // keep this window alive or hide it instead.
-      w.close()
-    })
-  })
-
-  // quit through dock. only listen once
-  SafeElectron.getApp().once('before-quit', event => {
-    console.log('Quit through before-quit')
-    event.preventDefault()
-    executeActionsForContext('beforeQuit')
+    menubarWindowID = id
   })
 }
 
+const handleCrashes = () => {
+  process.on('uncaughtException', e => {
+    console.log('Uncaught exception on main thread:', e)
+  })
+
+  if (!__DEV__) {
+    SafeElectron.getApp().on('browser-window-created', (e, win) => {
+      if (!win) {
+        return
+      }
+
+      win.on('unresponsive', e => {
+        console.log('Browser window unresponsive: ', e)
+        win.reload()
+      })
+
+      if (win.webContents) {
+        win.webContents.on('crashed', e => {
+          console.log('Browser window crashed: ', e)
+          win.reload()
+        })
+      }
+    })
+  }
+}
+
+const createMainWindow = () => {
+  mainWindow = MainWindow()
+  tellMainWindowAboutMenubar()
+  SafeElectron.getIpcMain().on('mainWindowWantsMenubarWindowID', () => {
+    tellMainWindowAboutMenubar()
+  })
+
+  // A remote window wants props
+  SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
+    mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
+  })
+}
+
+const handleInstallCheck = (event, arg) => {
+  installer(err => {
+    if (err) {
+      console.log('Error: ', err)
+    }
+    event.sender.send('installed')
+  })
+}
+
+const handleKBServiceCheck = (event, arg) => {
+  if (isWindows) {
+    console.log('kb-service-check: starting keybase.exe')
+    startWinService()
+  }
+}
+
+const handleActivate = () => mainWindow && mainWindow.show()
+
+const handleCloseWindows = event => {
+  const windows = SafeElectron.BrowserWindow.getAllWindows()
+  windows.forEach(w => {
+    // We tell it to close, we can register handlers for the 'close' event if we want to
+    // keep this window alive or hide it instead.
+    w.close()
+  })
+}
+
+const handleQuitting = event => {
+  console.log('Quit through before-quit')
+  event.preventDefault()
+  executeActionsForContext('beforeQuit')
+}
+
+const start = () => {
+  handleCrashes()
+  installCrashReporter()
+
+  if (appShouldDieOnStartup()) {
+    SafeElectron.getApp().quit()
+    return
+  }
+
+  console.log('Version:', SafeElectron.getApp().getVersion())
+
+  // Foreground if another instance tries to launch
+  SafeElectron.getApp().on('second-instance', focusSelfOnAnotherInstanceLaunching)
+
+  fixWindowsNotifications()
+  changeCommandLineSwitches()
+
+  devTools()
+  // Load menubar and get its browser window id so we can tell the main window
+  setupMenubar()
+
+  SafeElectron.getApp().once('ready', createMainWindow)
+  SafeElectron.getIpcMain().on('install-check', handleInstallCheck)
+  SafeElectron.getIpcMain().on('kb-service-check', handleKBServiceCheck)
+
+  // Called when the user clicks the dock icon
+  SafeElectron.getApp().on('activate', handleActivate)
+
+  // Don't quit the app, instead try to close all windows
+  SafeElectron.getApp().on('close-windows', handleCloseWindows)
+
+  // quit through dock. only listen once
+  SafeElectron.getApp().once('before-quit', handleQuitting)
+
+  setupExecuteActionsListener()
+}
+
 start()
-setupExecuteActionsListener()

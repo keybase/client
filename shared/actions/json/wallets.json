@@ -214,7 +214,8 @@
     },
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID",
     },
     "sendPayment": {
       "_description": "Perform sending a payment"
@@ -258,6 +259,10 @@
     "setBuildingTo": {
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
+    },
+    "setLastSentXLM": {
+      "lastSentXLM": "boolean",
+      "writeFile": "boolean"
     },
     "openSendRequestForm": {
       "_description":

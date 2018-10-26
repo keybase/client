@@ -31,7 +31,6 @@ const mapDispatchToProps = dispatch => ({
       ])
     )
   },
-
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 

@@ -67,6 +67,7 @@ const (
 	PromptDescriptorChangeLockdownMode
 	PromptDescriptorImportStellarAccountName
 	PromptDescriptorStellarDisclaimer
+	PromptDescriptorPaperKey
 )
 
 const (

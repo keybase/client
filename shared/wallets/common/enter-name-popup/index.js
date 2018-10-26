@@ -16,6 +16,9 @@ type EnterNameProps = {|
 |}
 
 const EnterNamePopup = (props: EnterNameProps) => {
+  // TODO use wallet staticConfig to keep in sync with the service
+  const accountNameMaxLength = 24
+
   const buttons = [
     <Kb.Button
       key={1}
@@ -24,6 +27,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
       label={props.primaryLabel}
       waiting={props.waiting}
       fullWidth={Styles.isMobile}
+      disabled={!props.name}
     />,
   ]
   if (!Styles.isMobile) {
@@ -58,6 +62,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
           value={props.name}
           onChangeText={props.onNameChange}
           autoFocus={true}
+          maxLength={accountNameMaxLength}
         />
         {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>

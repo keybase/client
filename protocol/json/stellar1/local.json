@@ -389,6 +389,11 @@
         {
           "type": "string",
           "name": "publicNoteType"
+        },
+        {
+          "type": "string",
+          "name": "externalTxURL",
+          "lint": "ignore"
         }
       ]
     },

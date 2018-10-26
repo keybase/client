@@ -30,7 +30,7 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(navigateUp())
-    dispatch(WalletsGen.createRefreshPayments({accountID}))
+    dispatch(WalletsGen.createLoadPayments({accountID}))
   },
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())

@@ -61,6 +61,7 @@ class Team extends React.Component<Props> {
       default: {
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+        // $FlowIssue row any type above doesn't make this work
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
       */
         throw new Error(`Impossible case encountered in team page list: ${row.type}`)

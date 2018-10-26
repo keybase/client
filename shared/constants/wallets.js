@@ -83,6 +83,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   currencyMap: I.Map(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
+  lastSentXLM: false,
   linkExistingAccountError: '',
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
@@ -394,9 +395,14 @@ const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
   }
 }
 
-const paymentToYourRoleAndCounterparty = (
+const paymentToYourInfoAndCounterparty = (
   p: Types.Payment
-): {yourRole: Types.Role, counterparty: string, counterpartyType: Types.CounterpartyType} => {
+): {
+  yourAccountName: string,
+  yourRole: Types.Role,
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+} => {
   switch (p.delta) {
     case 'none':
       // Need to guard check that sourceType is non-empty to handle the
@@ -410,19 +416,26 @@ const paymentToYourRoleAndCounterparty = (
       if (p.source !== p.target) {
         throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
       }
-      return {yourRole: 'senderAndReceiver', counterparty: p.source, counterpartyType: 'otherAccount'}
+      return {
+        yourRole: 'senderAndReceiver',
+        counterparty: p.source,
+        counterpartyType: 'otherAccount',
+        yourAccountName: p.source,
+      }
 
     case 'increase':
       return {
         yourRole: 'receiverOnly',
         counterparty: p.source,
         counterpartyType: partyTypeToCounterpartyType(p.sourceType),
+        yourAccountName: p.sourceType === 'ownaccount' ? p.target : '',
       }
     case 'decrease':
       return {
         yourRole: 'senderOnly',
         counterparty: p.target,
         counterpartyType: partyTypeToCounterpartyType(p.targetType),
+        yourAccountName: p.sourceType === 'ownaccount' ? p.source : '',
       }
 
     default:
@@ -602,7 +615,7 @@ export {
   makeRequest,
   makeReserve,
   makeState,
-  paymentToYourRoleAndCounterparty,
+  paymentToYourInfoAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
   rpcPaymentDetailToPaymentDetail,

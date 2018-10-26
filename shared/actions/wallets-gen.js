@@ -73,6 +73,7 @@ export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
 export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
+export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -206,7 +207,10 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   payments: Array<Types.PaymentResult>,
   pending: Array<Types.PaymentResult>,
 |}>
-type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _RefreshPaymentsPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  paymentID: Types.PaymentID,
+|}>
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
@@ -233,6 +237,10 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
+type _SetLastSentXLMPayload = $ReadOnly<{|
+  lastSentXLM: boolean,
+  writeFile: boolean,
+|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -517,6 +525,7 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
 
 // Action Payloads
 export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
@@ -583,6 +592,7 @@ export type SetBuildingPublicMemoPayload = $Call<typeof createSetBuildingPublicM
 export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingRecipientType, _SetBuildingRecipientTypePayload>
 export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
 export type SetBuildingToPayload = $Call<typeof createSetBuildingTo, _SetBuildingToPayload>
+export type SetLastSentXLMPayload = $Call<typeof createSetLastSentXLM, _SetLastSentXLMPayload>
 export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
 export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
 export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountName, _ValidatedAccountNamePayload>
@@ -658,6 +668,7 @@ export type Actions =
   | SetBuildingRecipientTypePayload
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
+  | SetLastSentXLMPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload
