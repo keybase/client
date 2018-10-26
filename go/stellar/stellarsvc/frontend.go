@@ -268,8 +268,7 @@ func (s *Server) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) 
 		return false, err
 	}
 
-	// xxx cache the accepted value
-	return remote.GetAcceptedDisclaimer(ctx, s.G())
+	return stellar.HasAcceptedDisclaimer(ctx, s.G())
 }
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
@@ -286,6 +285,7 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	if err != nil {
 		return err
 	}
+	stellar.InformAcceptedDisclaimer(ctx, s.G())
 	crg, err := stellar.CreateWalletGated(ctx, s.G())
 	if err != nil {
 		return err

@@ -1453,3 +1453,11 @@ func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason s
 		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
 	}
 }
+
+func HasAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) (bool, error) {
+	return getGlobal(g).hasAcceptedDisclaimer(ctx)
+}
+
+func InformAcceptedDisclaimer(ctx context.Context, g *libkb.GlobalContext) {
+	getGlobal(g).informAcceptedDisclaimer(ctx)
+}
