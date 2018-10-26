@@ -2226,10 +2226,30 @@ const iconMeta_ = {
     gridSize: 16,
     charCode: 0xe96a,
   },
+  'iconfont-thin-arrow-left': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96b,
+  },
+  'iconfont-thin-arrow-right': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96c,
+  },
   'iconfont-contact-card': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe96d,
+  },
+  'iconfont-contact-card-2': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96e,
+  },
+  'iconfont-identity-stellar': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96f,
   } /* eslint-enable */,
 }
 
