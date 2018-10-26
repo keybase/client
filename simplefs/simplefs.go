@@ -1816,9 +1816,17 @@ func (k *SimpleFS) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 	return nil
 }
 
+// This timeout needs to be smaller than the one in
+// keybase/client/go/service/simplefs.go so that for situations where error is
+// not critical (e.g. quota usage in journal status calls), we'll get (and
+// ignore) a timeout before service times us out in RPC.
+const simpleFSFastActionTimeout = 6 * time.Second
+
 // SimpleFSSyncStatus - Get sync status.
 func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
-	ctx = k.makeContext(ctx)
+	ctx, cancel := context.WithTimeout(
+		k.makeContext(ctx), simpleFSFastActionTimeout)
+	defer cancel()
 	jServer, jErr := libkbfs.GetJournalServer(k.config)
 	if jErr != nil {
 		k.log.CDebugf(ctx, "Journal not enabled; sending empty response")
