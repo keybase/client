@@ -56,6 +56,9 @@ const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
+  displayAmountXLM: '',
+  displayAmountFiat: '',
+  sendingIntentionXLM: false,
 })
 
 const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
@@ -66,6 +69,9 @@ const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   toErrMsg: '',
   worthDescription: '',
   worthInfo: '',
+  displayAmountXLM: '',
+  displayAmountFiat: '',
+  sendingIntentionXLM: false,
 })
 
 const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -113,6 +119,9 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
     worthCurrency: b.worthCurrency,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
+    displayAmountXLM: b.displayAmountXLM,
+    displayAmountFiat: b.displayAmountFiat,
+    sendingIntentionXLM: b.sendingIntentionXLM,
   })
 
 const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
@@ -124,6 +133,9 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
     toErrMsg: b.toErrMsg,
     worthDescription: b.worthDescription,
     worthInfo: b.worthInfo,
+    displayAmountXLM: b.displayAmountXLM,
+    displayAmountFiat: b.displayAmountFiat,
+    sendingIntentionXLM: b.sendingIntentionXLM,
   })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({

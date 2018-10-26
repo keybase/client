@@ -5,10 +5,9 @@ import * as Styles from '../../styles'
 
 type HeaderProps = {|
   onBack: () => void,
-  amount: string,
-  assetType: string,
-  assetConversion?: string,
-  worthDescription?: string,
+  sendingIntentionXLM: boolean,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
 |}
 
 const Header = (props: HeaderProps) => (
@@ -23,15 +22,14 @@ const Header = (props: HeaderProps) => (
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-        {(props.assetType === 'XLM' ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
+        {(props.sendingIntentionXLM ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
       </Kb.Text>
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
-        {props.assetConversion ? props.assetConversion : props.amount}
+        {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
       </Kb.Text>
-      {props.assetType === 'XLM' &&
-        !!props.worthDescription && (
+      {props.sendingIntentionXLM && !!props.displayAmountFiat && (
           <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-            {'(APPROXIMATELY ' + props.worthDescription + ')'}
+            {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
           </Kb.Text>
         )}
     </Kb.Box2>

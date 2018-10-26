@@ -956,6 +956,16 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 	return fmt.Sprintf("%s%s", currency.Symbol.Symbol, amountFmt), nil
 }
 
+// FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
+// its currency code suffix at the end, like "$123.12 CLP"
+func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
+	pre, err := FormatCurrency(ctx, g, amount, code)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s %s", pre, code), nil
+}
+
 func FormatCurrencyLabel(ctx context.Context, g *libkb.GlobalContext, code stellar1.OutsideCurrencyCode) (string, error) {
 	conf, err := g.GetStellar().GetServerDefinitions(ctx)
 	if err != nil {

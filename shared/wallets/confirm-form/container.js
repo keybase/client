@@ -28,15 +28,14 @@ const mapStateToProps = state => {
     }))
   )
   return {
-    amount: built.amountFormatted || build.amount + ' ' + build.currency,
-    assetConversion: built.worthDescription,
-    assetType: build.currency,
     banners,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
     sendFailed: !!state.wallets.sentPaymentError,
     waitingKey: Constants.sendPaymentWaitingKey,
-    worthDescription: built.worthDescription,
+    sendingIntentionXLM: built.sendingIntentionXLM,
+    displayAmountXLM: built.displayAmountXLM,
+    displayAmountFiat: built.displayAmountFiat,
   }
 }
 
