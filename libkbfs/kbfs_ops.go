@@ -22,6 +22,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	quotaUsageStaleTolerance = 10 * time.Second
+)
+
 // KBFSOpsStandard implements the KBFSOps interface, and is go-routine
 // safe by forwarding requests to individual per-folder-branch
 // handlers that are go-routine-safe.
@@ -983,7 +987,8 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		var quErr error
 		_, usageBytes, archiveBytes, limitBytes,
 			gitUsageBytes, gitArchiveBytes, gitLimitBytes, quErr =
-			fs.quotaUsage.GetAllTypes(ctx, 0, 0)
+			fs.quotaUsage.GetAllTypes(
+				ctx, quotaUsageStaleTolerance/2, quotaUsageStaleTolerance)
 		if quErr != nil {
 			// The error is ignored here so that other fields can still be populated
 			// even if this fails.
