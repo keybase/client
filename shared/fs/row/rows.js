@@ -11,12 +11,12 @@ import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
 import {rowHeight} from './common'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   items: Array<Types.RowItem>,
   routePath: I.List<string>,
   inDestinationPicker?: boolean,
-  ifEmpty?: ?React.Node,
 }
 
 export const WrapRow = ({children, noDivider}: {children: React.Node, noDivider?: boolean}) => (
@@ -105,14 +105,16 @@ class Rows extends React.PureComponent<Props> {
           // If we are in the destination picker, inject two empty rows so when
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
-          this.props.inDestinationPicker
+          !isMobile && this.props.inDestinationPicker
             ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
             : this.props.items
         }
         renderItem={this._rowRenderer}
       />
     ) : (
-      !!this.props.ifEmpty && this.props.ifEmpty
+      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+        <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
+      </Kb.Box2>
     )
   }
 }

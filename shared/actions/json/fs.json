@@ -193,7 +193,7 @@
     "setMoveOrCopyDestinationParent": {
       "path": "Types.Path"
     },
-    "clearMoveOrCopySource": {},
+    "clearMoveOrCopy": {},
     "move": {},
     "copy": {},
 

@@ -711,12 +711,17 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
       ),
     },
   }
-  return (action.type === FsGen.move
-    ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
-    : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+  return (
+    (action.type === FsGen.move
+      ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
+      : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+    )
+      .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
+      // We get source/dest paths from state rather than action, so we can't
+      // just retry it. If we do want retry in the future we can include those
+      // paths in the action.
+      .catch(makeUnretriableErrorHandler(action))
   )
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
-    .catch(makeRetriableErrorHandler(action))
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {

@@ -6,36 +6,55 @@ import {Avatar, avatarCastPlatformStyles, Icon, iconCastPlatformStyles} from '..
 
 type PathItemIconProps = {
   spec: Types.PathItemIconSpec,
-  style: Styles.StylesCrossPlatform,
-  small?: boolean,
+  style?: Styles.StylesCrossPlatform,
+  // 12 is not supported by Avatar. But we only use it in destination picker for
+  // targets, which cannot be an avatar. So accept it anyway, but override it
+  // into 16 if it's an Avatar.
+  size?: 32 | 16 | 12,
 }
 
-const PathItemIcon = ({spec, style, small}: PathItemIconProps) => {
+const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
   switch (spec.type) {
     case 'teamAvatar':
       return (
         <Avatar
-          size={small ? 16 : 32}
+          size={size === 12 ? 16 : size || 32}
           teamname={spec.teamName}
           isTeam={true}
-          style={avatarCastPlatformStyles(style)}
+          style={style && avatarCastPlatformStyles(style)}
         />
       )
     case 'avatar':
       return (
-        <Avatar size={small ? 16 : 32} username={spec.username} style={avatarCastPlatformStyles(style)} />
+        <Avatar
+          size={size === 12 ? 16 : size || 32}
+          username={spec.username}
+          style={style && avatarCastPlatformStyles(style)}
+        />
       )
     case 'avatars':
       // Use first avatar for now.
       // TODO: fix this when we have support for three avatars as in design.
       return (
-        <Avatar size={small ? 16 : 32} username={spec.usernames[0]} style={avatarCastPlatformStyles(style)} />
+        <Avatar
+          size={size === 12 ? 16 : size || 32}
+          username={spec.usernames[0]}
+          style={style && avatarCastPlatformStyles(style)}
+        />
       )
     case 'basic':
       return (
         <Icon
           type={spec.iconType}
-          style={iconCastPlatformStyles(small ? Styles.collapseStyles([styles.basicIcon, style]) : style)}
+          style={iconCastPlatformStyles(
+            Styles.collapseStyles([
+              !!size && {
+                width: size,
+                height: size,
+              },
+              style,
+            ])
+          )}
           color={spec.iconColor}
         />
       )
@@ -43,12 +62,5 @@ const PathItemIcon = ({spec, style, small}: PathItemIconProps) => {
       return null
   }
 }
-
-const styles = Styles.styleSheetCreate({
-  basicIcon: {
-    width: 16,
-    height: 16,
-  },
-})
 
 export default PathItemIcon
