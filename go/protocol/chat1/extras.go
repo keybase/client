@@ -614,17 +614,13 @@ func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	return m.MessageBody.IsNil() || m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
 }
 
-func (m MessageUnboxedValid) HideExplosion(expunge *Expunge, now time.Time) bool {
+func (m MessageUnboxedValid) HideExplosion(maxDeletedUpto MessageID, now time.Time) bool {
 	if !m.IsEphemeral() {
 		return false
 	}
-	var upTo MessageID
-	if expunge != nil {
-		upTo = expunge.Upto
-	}
 	etime := m.Etime()
 	// Don't show ash lines for messages that have been expunged.
-	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.ServerHeader.MessageID < upTo
+	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.ServerHeader.MessageID < maxDeletedUpto
 }
 
 func (b MessageBody) IsNil() bool {
@@ -1018,6 +1014,20 @@ func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error
 		}
 	}
 	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
+func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
+	var maxExpungeID, maxDelHID MessageID
+	if expunge := c.GetExpunge(); expunge != nil {
+		maxExpungeID = expunge.Upto
+	}
+	if maxDelH, err := c.GetMaxMessage(MessageType_DELETEHISTORY); err != nil {
+		maxDelHID = maxDelH.GetMessageID()
+	}
+	if maxExpungeID > maxDelHID {
+		return maxExpungeID
+	}
+	return maxDelHID
 }
 
 func (c ConversationLocal) Names() (res []string) {
