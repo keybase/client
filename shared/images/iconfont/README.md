@@ -1,6 +1,6 @@
 ## How to build the font icon
 
-### Dependencies
+#Note: Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.## Dependencies
 
 [webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
@@ -19,10 +19,10 @@
     - svg iconfonts: `client/shared/images/iconfont`
     - png assets: `client/shared/images/icons`
 5. Generate the iconfont and update constants on both apps
-    - `yarn updated-fonts` Will generate a font file and update the constants
+    - `yarn update-icon-font` Will generate a font file and update the constants
       - font: `client/shared/fonts/kb.ttf`
       - constants: `client/shared/common-adapters/icon.constants`
-    - `yarn update-constants` will only update the constants
+    - `yarn update-icon-constants` will only update the constants
 
 
 ### Notes on SVG output
