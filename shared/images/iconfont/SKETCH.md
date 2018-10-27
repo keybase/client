@@ -23,7 +23,7 @@ Reference: [MDN fill-rule page](https://developer.mozilla.org/en-US/docs/Web/SVG
 > Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
 
 
-In Sketch it's possible to set the fill-rule for the `icon area` layer which will determine the fill-rule on the final SVG group.
+In Sketch it's possible to set the fill-rule on both the  the `icon area` and the icon's `path` layer, which will determine the fill-rule on the final SVG group.
 
 ![](./z-sketch-icon-area-fill-rule.png
 )
@@ -44,7 +44,7 @@ This ensures a single combined layer for the icon will be exported as **one SVG 
 
 ![](./z-sketch-combined-layers.png)
 
-### Checking SVG Output For Combinated `path`
+### Checking SVG Output For Combined `path`
 
 To check if Sketch is correctly combining the layers and exporting as a single `path` element, simply right click on the top folder for the icon in Sketch and choose `Copy SVG Code`. Paste the SVG code into any text editor and count the number of `path` elements - making sure that they algin with what is rendered in Sketch.
 
