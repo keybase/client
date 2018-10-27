@@ -23,7 +23,7 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const build = (state: TypedState, action: any) =>
+const buildPayment = (state: TypedState, action: any) =>
   (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
@@ -635,15 +635,14 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [
+      WalletsGen.buildPayment,
       WalletsGen.setBuildingAmount,
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
       WalletsGen.setBuildingIsRequest,
-      WalletsGen.setBuildingPublicMemo,
-      WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
     ],
-    build
+    buildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 

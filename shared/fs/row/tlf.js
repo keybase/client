@@ -37,7 +37,13 @@ const RowMeta = ({isNew, needsRekey}) => {
 }
 
 const Tlf = (props: TlfProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
+  <StillCommon
+    itemStyles={props.itemStyles}
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+  >
     <RowMeta isNew={props.isNew} needsRekey={props.needsRekey} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>

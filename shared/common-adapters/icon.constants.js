@@ -336,6 +336,30 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-film-64.png'),
   },
+  'icon-folder-copy-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-folder-copy-32.png'),
+  },
+  'icon-folder-copy-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-folder-copy-48.png'),
+  },
+  'icon-folder-move-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-folder-move-32.png'),
+  },
+  'icon-folder-move-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-folder-move-48.png'),
+  },
   'icon-folder-placeholder-32': {
     isFont: false,
     extension: 'png',

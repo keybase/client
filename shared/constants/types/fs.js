@@ -225,6 +225,12 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
+export type _MoveOrCopy = {
+  destinationParentPath: Path,
+  sourceItemPath: Path,
+}
+export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -238,6 +244,7 @@ export type _State = {
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
+  moveOrCopy: MoveOrCopy,
 }
 export type State = I.RecordOf<_State>
 
@@ -493,6 +500,11 @@ export type PlaceholderRowItem = {
   type: 'folder' | 'file',
 }
 
+export type EmptyRowItem = {
+  rowType: 'empty',
+  name: string,
+}
+
 export type RowItem =
   | TlfTypeRowItem
   | TlfRowItem
@@ -500,6 +512,7 @@ export type RowItem =
   | EditingRowItem
   | UploadingRowItem
   | PlaceholderRowItem
+  | EmptyRowItem
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing

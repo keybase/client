@@ -187,6 +187,15 @@
     "deleteFile": {
       "path": "Types.Path"
     },
+    "setMoveOrCopySource": {
+      "path": "Types.Path"
+    },
+    "setMoveOrCopyDestinationParent": {
+      "path": "Types.Path"
+    },
+    "clearMoveOrCopySource": {},
+    "move": {},
+    "copy": {},
 
     "placeholderAction": {}
   }

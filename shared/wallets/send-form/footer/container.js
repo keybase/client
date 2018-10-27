@@ -28,7 +28,8 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
     dispatch(WalletsGen.createRequestPayment())
   },
-  onClickSend: () =>
+  onClickSend: () => {
+    dispatch(WalletsGen.createBuildPayment())
     onConfirm
       ? onConfirm()
       : dispatch(
@@ -38,7 +39,8 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
               selected: Constants.confirmFormRouteKey,
             },
           ])
-        ),
+        )
+  },
 })
 
 const mergeProps = (s, d, o) => ({
