@@ -258,7 +258,7 @@ type localizerPipeline struct {
 
 	started   bool
 	stopCh    chan struct{}
-	cancelCh  chan struct{}
+	cancelChs map[string]chan struct{}
 	suspendWg sync.WaitGroup
 	jobQueue  chan *localizerPipelineJob
 
@@ -272,7 +272,7 @@ func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
 		stopCh:       make(chan struct{}),
-		cancelCh:     make(chan struct{}),
+		cancelChs:    make(map[string]chan struct{}),
 	}
 }
 
@@ -337,12 +337,28 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 		return false
 	}
 	s.suspendWg.Add(1)
-	select {
-	case s.cancelCh <- struct{}{}:
-		return true
-	default:
+	if len(s.cancelChs) == 0 {
 		return false
 	}
+	for _, ch := range s.cancelChs {
+		ch <- struct{}{}
+	}
+	return true
+}
+
+func (s *localizerPipeline) registerJobPull() (string, chan struct{}) {
+	s.Lock()
+	defer s.Unlock()
+	id := libkb.RandStringB64(3)
+	ch := make(chan struct{}, 1)
+	s.cancelChs[id] = ch
+	return id, ch
+}
+
+func (s *localizerPipeline) finishJobPull(id string) {
+	s.Lock()
+	defer s.Unlock()
+	delete(s.cancelChs, id)
 }
 
 func (s *localizerPipeline) resume(ctx context.Context) bool {
@@ -351,6 +367,50 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	defer s.Unlock()
 	s.suspendWg.Done()
 	return false
+}
+
+func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh chan struct{}) {
+	id, cancelCh := s.registerJobPull()
+	defer s.finishJobPull(id)
+	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
+		job.numCompleted())
+	waitCh := make(chan struct{})
+	go func() {
+		s.suspendWg.Wait()
+		close(waitCh)
+	}()
+	select {
+	case <-waitCh:
+		s.Debug(job.ctx, "localizeJobPulled: resume, proceeding")
+	case <-stopCh:
+		s.Debug(job.ctx, "localizeJobPulled: shutting down")
+		return
+	}
+	s.jobPulled(job.ctx, job)
+	doneCh := make(chan struct{})
+	go func() {
+		defer close(doneCh)
+		if err := s.localizeConversations(job); err == context.Canceled {
+			// just put this right back if we canceled it
+			s.Debug(job.ctx, "localizeJobPulled: re-enqueuing canceled job")
+			s.jobQueue <- job.retry(s.G())
+		}
+		if job.closeIfDone() {
+			s.Debug(job.ctx, "localizeJobPulled: all job tasks complete")
+		}
+	}()
+	select {
+	case <-doneCh:
+		job.cancelFn()
+	case <-cancelCh:
+		s.Debug(job.ctx, "localizeJobPulled: canceled a live job")
+		job.cancelFn()
+	case <-stopCh:
+		s.Debug(job.ctx, "localizeJobPulled: shutting down")
+		job.cancelFn()
+		return
+	}
+	s.Debug(job.ctx, "localizeJobPulled: job pass complete")
 }
 
 func (s *localizerPipeline) localizeLoop() {
@@ -362,45 +422,7 @@ func (s *localizerPipeline) localizeLoop() {
 	for {
 		select {
 		case job := <-s.jobQueue:
-			s.Debug(job.ctx, "localizeLoop: pulling job: pending: %d completed: %d", job.numPending(),
-				job.numCompleted())
-			waitCh := make(chan struct{})
-			go func() {
-				s.suspendWg.Wait()
-				close(waitCh)
-			}()
-			select {
-			case <-waitCh:
-				s.Debug(job.ctx, "localizeLoop: resume, proceeding")
-			case <-stopCh:
-				s.Debug(job.ctx, "localizeLoop: shutting down")
-				return
-			}
-			s.jobPulled(ctx, job)
-			doneCh := make(chan struct{})
-			go func() {
-				defer close(doneCh)
-				if err := s.localizeConversations(job); err == context.Canceled {
-					// just put this right back if we canceled it
-					s.Debug(job.ctx, "localizeLoop: re-enqueuing canceled job")
-					s.jobQueue <- job.retry(s.G())
-				}
-				if job.closeIfDone() {
-					s.Debug(job.ctx, "localizeLoop: all job tasks complete")
-				}
-			}()
-			select {
-			case <-doneCh:
-				job.cancelFn()
-			case <-s.cancelCh:
-				s.Debug(job.ctx, "localizeLoop: canceled a live job")
-				job.cancelFn()
-			case <-stopCh:
-				s.Debug(job.ctx, "localizeLoop: shutting down")
-				job.cancelFn()
-				return
-			}
-			s.Debug(job.ctx, "localizeLoop: job pass complete")
+			go s.localizeJobPulled(job, stopCh)
 		case <-stopCh:
 			s.Debug(ctx, "localizeLoop: shutting down")
 			return
