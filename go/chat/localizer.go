@@ -27,6 +27,22 @@ type conversationLocalizer interface {
 	Name() string
 }
 
+type localizerForceKeyTyp int
+
+var localizerForceKey localizerForceKeyTyp
+
+func makeLocalizerForceContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, localizerForceKey, true)
+}
+
+func isLocalizerForceContext(ctx context.Context) bool {
+	val := ctx.Value(localizerForceKey)
+	if _, ok := val.(bool); ok {
+		return true
+	}
+	return false
+}
+
 type baseLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -73,7 +89,8 @@ type blockingLocalizer struct {
 	utils.DebugLabeler
 	*baseLocalizer
 
-	localizeCb chan types.AsyncInboxResult
+	localizeCb      chan types.AsyncInboxResult
+	disableForceCtx bool
 }
 
 func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
@@ -91,6 +108,10 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
+	if len(convs) > 0 && convs[0].GetTopicType() == chat1.TopicType_CHAT &&
+		!b.disableForceCtx {
+		ctx = makeLocalizerForceContext(ctx) // just force these through
+	}
 	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
 
 	res = make([]chat1.ConversationLocal, len(convs))
@@ -295,6 +316,9 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 	defer s.Unlock()
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
 	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
+	if isLocalizerForceContext(job.ctx) {
+		s.Debug(job.ctx, "queue: adding force context job")
+	}
 	s.jobQueue <- job
 }
 
@@ -375,10 +399,15 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
 		job.numCompleted())
 	waitCh := make(chan struct{})
-	go func() {
-		s.suspendWg.Wait()
+	if isLocalizerForceContext(job.ctx) {
+		s.Debug(job.ctx, "localizeJobPulled: force context, skipping wait")
 		close(waitCh)
-	}()
+	} else {
+		go func() {
+			s.suspendWg.Wait()
+			close(waitCh)
+		}()
+	}
 	select {
 	case <-waitCh:
 		s.Debug(job.ctx, "localizeJobPulled: resume, proceeding")
