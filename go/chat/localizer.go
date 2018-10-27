@@ -452,28 +452,23 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	defer s.Trace(ctx, func() error { return err }, "localizeConversations")()
 
 	// Fetch conversation local information in parallel
-	type job struct {
-		conv  chat1.Conversation
-		index int
-	}
-
 	eg, ctx := errgroup.WithContext(ctx)
 	pending := localizeJob.getPending()
 	if len(pending) == 0 {
 		return nil
 	}
-	convCh := make(chan job, len(pending))
+	convCh := make(chan chat1.Conversation, len(pending))
 	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
 		defer close(convCh)
-		for i, conv := range pending {
+		for _, conv := range pending {
 			select {
 			case <-ctx.Done():
 				s.Debug(ctx, "localizeConversations: context is done, bailing (producer)")
 				return ctx.Err()
 			default:
 			}
-			convCh <- job{conv: conv, index: i}
+			convCh <- conv
 		}
 		return nil
 	})
@@ -483,22 +478,22 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		eg.Go(func() error {
 			for conv := range convCh {
 				s.gateCheck(ctx, localizeJob.gateCh, index)
-				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.conv.GetConvID())
-				convLocal := s.localizeConversation(ctx, uid, conv.conv)
+				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.GetConvID())
+				convLocal := s.localizeConversation(ctx, uid, conv)
 				select {
 				case <-ctx.Done():
 					s.Debug(ctx, "localizeConversations: context is done, bailing (consumer): %d", index)
 					return ctx.Err()
 				default:
 				}
-				retCh <- conv.conv.GetConvID()
+				retCh <- conv.GetConvID()
 				if convLocal.Error != nil {
 					s.Debug(ctx, "localizeConversations: error localizing: convID: %s err: %s",
-						conv.conv.GetConvID(), convLocal.Error.Message)
+						conv.GetConvID(), convLocal.Error.Message)
 				}
 				localizeJob.retCh <- types.AsyncInboxResult{
 					ConvLocal: convLocal,
-					Conv:      conv.conv,
+					Conv:      conv,
 				}
 			}
 			return nil
