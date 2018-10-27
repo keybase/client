@@ -175,6 +175,11 @@ export const makeError = (record?: {
   })
 }
 
+export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
+  destinationParentPath: Types.stringToPath('/keybase'),
+  sourceItemPath: Types.stringToPath(''),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -188,6 +193,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: null,
   errors: I.Map(),
   tlfUpdates: I.List(),
+  moveOrCopy: makeMoveOrCopy(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -803,6 +809,12 @@ export const usernameInPath = (username: string, path: Types.Path) => {
 // If we add more badges, this function should be updated.
 export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
 
+export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
+  const elemsA = Types.getPathElements(a)
+  const elemsB = Types.getPathElements(b)
+  return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:
@@ -831,6 +843,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to open path: ${action.payload.path}.`
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.move:
+      return `Failed to move file(s).`
+    case FsGen.copy:
+      return `Failed to copy file(s).`
     default:
       return 'An unexplainable error has occurred.'
   }

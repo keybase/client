@@ -694,6 +694,31 @@ const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
     .catch(makeRetriableErrorHandler(action))
 }
 
+const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
+  const params = {
+    opID: Constants.makeUUID(),
+    src: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
+    },
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(
+        Types.pathConcat(
+          state.fs.moveOrCopy.destinationParentPath,
+          Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
+        )
+      ),
+    },
+  }
+  return (action.type === FsGen.move
+    ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
+    : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+  )
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
+    .catch(makeRetriableErrorHandler(action))
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -712,6 +737,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.deleteFile, deleteFile)
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
 
   yield Saga.fork(platformSpecificSaga)
 }

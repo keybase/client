@@ -7,10 +7,13 @@ import {compose, connect, setDisplayName} from '../../util/container'
 type OwnProps = {
   routePath: I.List<string>,
   path: Types.Path,
+  inDestinationPicker?: boolean,
 }
 
 const mapDispatchToProps = (dispatch, {path, routePath, inDestinationPicker}: OwnProps) => ({
-  onOpen: () => dispatch(FsGen.createOpenPathItem({path, routePath})),
+  onOpen: inDestinationPicker
+    ? () => dispatch(FsGen.createSetMoveOrCopyDestinationParent({path}))
+    : () => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
 export default compose(

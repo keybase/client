@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -8,16 +7,7 @@ import Rows from '../row/rows-container'
 import * as F from '../common'
 import * as R from '../row/common'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
-
-type Props = {
-  path: Types.Path,
-  targetName: string,
-  targetIconSpec: Types.PathItemIconSpec,
-  onCancel: () => void,
-  onCopyHere: () => void,
-  onMoveHere?: () => void,
-  onNewFolder: () => void,
-}
+import {type Props} from '.'
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box style={styles.container}>
@@ -27,21 +17,29 @@ const DestinationPicker = (props: Props) => (
       <Kb.Text type="Header">{props.targetName}”</Kb.Text>
     </Kb.Box2>
     <Kb.Box style={styles.anotherHeader}>
-      <Breadcrumb path={props.path} />
-      <Kb.ClickableBox style={styles.newFolderBox} onClick={props.onNewFolder}>
-        <Kb.Icon type="iconfont-folder-new" color={Styles.globalColors.blue} />
-        <Kb.Text type="BodySemibold" style={styles.newFolderText}>
-          Create new folder
-        </Kb.Text>
-      </Kb.ClickableBox>
+      <Breadcrumb path={props.path} inDestinationPicker={true} />
+      {!!props.onNewFolder && (
+        <Kb.ClickableBox style={styles.newFolderBox} onClick={props.onNewFolder}>
+          <Kb.Icon type="iconfont-folder-new" color={Styles.globalColors.blue} />
+          <Kb.Text type="BodySemibold" style={styles.newFolderText}>
+            Create new folder
+          </Kb.Text>
+        </Kb.ClickableBox>
+      )}
     </Kb.Box>
     <Kb.Divider />
-    <Kb.ClickableBox style={styles.actionRowContainer} onClick={props.onCopyHere}>
-      <Kb.Icon type="icon-folder-copy-32" color={Styles.globalColors.blue} style={R.rowStyles.pathItemIcon} />
-      <Kb.Text type="BodySemibold" style={styles.actionText}>
-        Copy here
-      </Kb.Text>
-    </Kb.ClickableBox>
+    {!!props.onCopyHere && (
+      <Kb.ClickableBox style={styles.actionRowContainer} onClick={props.onCopyHere}>
+        <Kb.Icon
+          type="icon-folder-copy-32"
+          color={Styles.globalColors.blue}
+          style={R.rowStyles.pathItemIcon}
+        />
+        <Kb.Text type="BodySemibold" style={styles.actionText}>
+          Copy here
+        </Kb.Text>
+      </Kb.ClickableBox>
+    )}
     {!!props.onMoveHere && (
       <Kb.ClickableBox style={styles.actionRowContainer} onClick={props.onMoveHere}>
         <Kb.Icon
