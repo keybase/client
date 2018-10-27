@@ -150,6 +150,14 @@ const sendPayment = (state: TypedState) => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
+const setLastSentXLM = (state: TypedState) =>
+  Saga.put(
+    WalletsGen.createSetLastSentXLM({
+      lastSentXLM: !state.wallets.building.currency || state.wallets.building.currency === 'XLM',
+      writeFile: true,
+    })
+  )
+
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
@@ -649,6 +657,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
+  yield Saga.actionToAction(WalletsGen.sendPayment, setLastSentXLM)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
