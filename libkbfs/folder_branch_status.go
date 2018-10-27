@@ -230,12 +230,15 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 			if err != nil {
 				return FolderBranchStatus{}, nil, tlf.NullID, err
 			}
-			// TODO: somehow share this quota usage instance with the
-			// journal for the TLF?
 			if chargedTo.IsTeam() {
+				// TODO: somehow share this team quota usage instance
+				// with the journal for the team (and subteam) TLFs?
 				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
 					fbsk.config, chargedTo.AsTeamOrBust(), loggerSuffix)
 			} else {
+				// Almost certainly this should be being passed in by
+				// the caller of fbsk's constructor, and in that case
+				// we wouldn't be making a new one here
 				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
 					fbsk.config, loggerSuffix)
 			}

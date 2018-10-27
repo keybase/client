@@ -354,7 +354,9 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		if fb.Tlf.Type() != tlf.SingleTeam {
 			// If this is a non-team TLF, pass in a shared quota usage
 			// object, since the status of each non-team TLF will show
-			// the same quota usage.
+			// the same quota usage. TODO: for team TLFs, we should
+			// also pass in a shared instance (see
+			// `ConfigLocal.quotaUsage`).
 			quotaUsage = fs.quotaUsage
 		}
 		ops = newFolderBranchOps(
