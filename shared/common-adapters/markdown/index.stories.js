@@ -13,6 +13,7 @@ const cases = {
   
   foo`,
   underscoreweirdness: `under_score the first, \`under_score the second\``,
+  boldweirdness: `How are you *today*?`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
   paragraphs: `this is a sentence.

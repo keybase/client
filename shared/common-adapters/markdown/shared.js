@@ -228,20 +228,20 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // original
     // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
     // ours: single stars
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/)),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/)),
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
     // original is pretty long so not inlining it here
     // ours: wrapped in _'s
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b_((?:\\[\s\S]|[^\\])+?)_(?!_)/)),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/)),
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
     // ours: single tilde doesn't cross a newline
-    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\b~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
   },
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
