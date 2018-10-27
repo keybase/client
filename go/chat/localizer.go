@@ -458,11 +458,11 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
-	convCh := make(chan job)
 	pending := localizeJob.getPending()
 	if len(pending) == 0 {
 		return nil
 	}
+	convCh := make(chan job, len(pending))
 	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
 		defer close(convCh)
