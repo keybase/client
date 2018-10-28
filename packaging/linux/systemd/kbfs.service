@@ -11,6 +11,7 @@ Type=notify
 # are any running shells cd'd into a Keybase folder.
 ExecStartPre=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
 ExecStart=/usr/bin/kbfsfuse -debug -log-to-file
+ExecStop=-/bin/sh -c 'fusermount -uz "$(keybase config get -d -b mountdir)"'
 Restart=on-failure
 
 [Install]
