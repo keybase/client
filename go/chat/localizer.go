@@ -27,16 +27,16 @@ type conversationLocalizer interface {
 	Name() string
 }
 
-type localizerForceKeyTyp int
+type localizerCancelableKeyTyp int
 
-var localizerForceKey localizerForceKeyTyp
+var localizerCancelableKey localizerCancelableKeyTyp
 
-func makeLocalizerForceContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, localizerForceKey, true)
+func makeLocalizerCancelableContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, localizerCancelableKey, true)
 }
 
-func isLocalizerForceContext(ctx context.Context) bool {
-	val := ctx.Value(localizerForceKey)
+func isLocalizerCancelableContext(ctx context.Context) bool {
+	val := ctx.Value(localizerCancelableKey)
 	if _, ok := val.(bool); ok {
 		return true
 	}
@@ -89,8 +89,7 @@ type blockingLocalizer struct {
 	utils.DebugLabeler
 	*baseLocalizer
 
-	localizeCb      chan types.AsyncInboxResult
-	disableForceCtx bool
+	localizeCb chan types.AsyncInboxResult
 }
 
 func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
@@ -108,10 +107,6 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	inbox = b.filterSelfFinalized(ctx, inbox)
 	convs := b.getConvs(inbox, maxLocalize)
-	if len(convs) > 0 && convs[0].GetTopicType() == chat1.TopicType_CHAT &&
-		!b.disableForceCtx {
-		ctx = makeLocalizerForceContext(ctx) // just force these through
-	}
 	b.baseLocalizer.pipeline.queue(ctx, uid, convs, b.localizeCb)
 
 	res = make([]chat1.ConversationLocal, len(convs))
