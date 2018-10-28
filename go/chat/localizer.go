@@ -397,9 +397,9 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 		job.numCompleted())
 	waitCh := make(chan struct{})
 	if !isLocalizerCancelableContext(job.ctx) {
-		s.Debug(job.ctx, "localizeJobPulled: force context, sk")
 		close(waitCh)
 	} else {
+		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")
 		go func() {
 			s.suspendWg.Wait()
 			close(waitCh)
