@@ -146,14 +146,19 @@ const sendPayment = (state: TypedState) => {
     },
     Constants.sendPaymentWaitingKey
   )
-    .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+    .then(res =>
+      WalletsGen.createSentPayment({
+        kbTxID: new HiddenString(res.kbTxID),
+        lastSentXLM: !notXLM,
+      })
+    )
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXLM = (state: TypedState) =>
+const setLastSentXML = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
   Saga.put(
     WalletsGen.createSetLastSentXLM({
-      lastSentXLM: !state.wallets.building.currency || state.wallets.building.currency === 'XLM',
+      lastSentXLM: action.payload.lastSentXLM,
       writeFile: true,
     })
   )
@@ -657,7 +662,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sendPayment, setLastSentXLM)
+  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXML)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)

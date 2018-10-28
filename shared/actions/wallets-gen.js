@@ -227,7 +227,10 @@ type _SelectAccountPayload = $ReadOnly<{|
 type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
-type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
+type _SentPaymentPayload = $ReadOnly<{|
+  kbTxID: HiddenString,
+  lastSentXLM: boolean,
+|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>

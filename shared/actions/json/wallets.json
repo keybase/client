@@ -222,7 +222,8 @@
     },
     "sentPayment": {
       "_description": "Successfully sent a payment",
-      "kbTxID": "HiddenString"
+      "kbTxID": "HiddenString",
+      "lastSentXLM": "boolean"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
