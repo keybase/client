@@ -165,7 +165,7 @@ func (s *Server) handleError(w http.ResponseWriter, err error) {
 	case ErrKeybasePagesRecordTooMany, ErrInvalidKeybasePagesRecord:
 		http.Error(w, err.Error(), http.StatusPreconditionFailed)
 		return
-	case config.ErrDuplicateAccessControlPath, config.ErrInvalidPermissions,
+	case config.ErrDuplicatePerPathConfigPath, config.ErrInvalidPermissions,
 		config.ErrInvalidVersion, config.ErrUndefinedUsername:
 		http.Error(w, "invalid .kbp_config", http.StatusPreconditionFailed)
 		return

@@ -12,9 +12,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-var aclClearCmd = cli.Command{
+var perPathClearCmd = cli.Command{
 	Name:      "clear",
-	Usage:     "clear the ACL for the given path(s)",
+	Usage:     "clear the PerPathConfig for the given path(s)",
 	UsageText: "clear <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 1 {
@@ -28,7 +28,7 @@ var aclClearCmd = cli.Command{
 			os.Exit(1)
 		}
 		for _, p := range c.Args() {
-			editor.clearACL(p)
+			editor.clearPerPathConfig(p)
 		}
 		if err := editor.confirmAndWrite(); err != nil {
 			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
@@ -37,10 +37,12 @@ var aclClearCmd = cli.Command{
 	},
 }
 
-var aclRemoveCmd = cli.Command{
-	Name:      "remove",
-	Usage:     "remove a user from the ACL(s) of the given path(s)",
-	UsageText: "remove <username> <path> [path ...]",
+var perPathUnsetUserPermissionsCmd = cli.Command{
+	Name: "unset-user",
+	Usage: "remove a user from the PerPathConfig(s) additional " +
+		"permissions of the given path(s). This essentially reverts the " +
+		"user's effective permission back to anonymous.",
+	UsageText: "unset-user <username> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -53,7 +55,7 @@ var aclRemoveCmd = cli.Command{
 			os.Exit(1)
 		}
 		for _, p := range c.Args()[1:] {
-			editor.removeUserFromACL(c.Args()[0], p)
+			editor.removeUserPermissionsFromPerPathConfig(c.Args()[0], p)
 		}
 		if err := editor.confirmAndWrite(); err != nil {
 			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
@@ -62,10 +64,10 @@ var aclRemoveCmd = cli.Command{
 	},
 }
 
-var aclGetCmd = cli.Command{
-	Name:      "get",
+var perPathGetPermissionCmd = cli.Command{
+	Name:      "get-permission",
 	Usage:     "get permissions for a user on the given path(s)",
-	UsageText: "get <username> <path> [path ...]",
+	UsageText: "get-permission <username> <path> [path ...]",
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 2 {
 			fmt.Fprintln(os.Stderr, "need at least 2 args")
@@ -80,7 +82,7 @@ var aclGetCmd = cli.Command{
 		writer := tabwriter.NewWriter(os.Stdout, 0, 4, 1, '\t', 0)
 		fmt.Fprintln(writer, "read\tlist\tpath")
 		for _, p := range c.Args()[1:] {
-			read, list, err := editor.getUserOnPath(c.Args()[0], p)
+			read, list, err := editor.getUserPermissionsOnPath(c.Args()[0], p)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "getting permissions for "+
 					"%q on %q error: %v\n", c.Args()[0], p, err)
@@ -95,7 +97,7 @@ var aclGetCmd = cli.Command{
 	},
 }
 
-var aclSetDefaultCmd = cli.Command{
+var perPathSetPermissionDefaultCmd = cli.Command{
 	Name: "default",
 	Usage: "set default permission(s) that all users are granted, " +
 		"for the given path(s)",
@@ -127,7 +129,7 @@ var aclSetDefaultCmd = cli.Command{
 	},
 }
 
-var aclSetAdditionalCmd = cli.Command{
+var perPathSetPermissionAdditionalCmd = cli.Command{
 	Name: "additional",
 	Usage: "set additional permission(s) that <username> are granted on " +
 		"top of default ones on the given path(s) ",
@@ -160,24 +162,24 @@ var aclSetAdditionalCmd = cli.Command{
 	},
 }
 
-var aclSetCmd = cli.Command{
-	Name:      "set",
+var perPathSetPermissionCmd = cli.Command{
+	Name:      "set-permission",
 	Usage:     "set default or additional permissions on path(s)",
-	UsageText: "set <default|additional> [args]",
+	UsageText: "set-permission <default|additional> [args]",
 	Subcommands: []cli.Command{
-		aclSetDefaultCmd,
-		aclSetAdditionalCmd,
+		perPathSetPermissionDefaultCmd,
+		perPathSetPermissionAdditionalCmd,
 	},
 }
 
-var aclCmd = cli.Command{
-	Name:      "acl",
-	Usage:     "make changes to the 'acls' section of the config",
-	UsageText: "acl <set|clear|remove|get> [args]",
+var perPathCmd = cli.Command{
+	Name:      "per-path",
+	Usage:     "make changes to the 'per_path_configs' section of the config",
+	UsageText: "per-path <set|clear|remove|get> [args]",
 	Subcommands: []cli.Command{
-		aclSetCmd,
-		aclClearCmd,
-		aclRemoveCmd,
-		aclGetCmd,
+		perPathSetPermissionCmd,
+		perPathClearCmd,
+		perPathUnsetUserPermissionsCmd,
+		perPathGetPermissionCmd,
 	},
 }

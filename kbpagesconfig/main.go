@@ -23,7 +23,7 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		userCmd,
-		aclCmd,
+		perPathCmd,
 		upgradeCmd,
 	}
 

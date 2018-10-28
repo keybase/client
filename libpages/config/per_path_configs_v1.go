@@ -19,8 +19,9 @@ const (
 	PermReadAndList = "read,list"
 )
 
-// AccessControlV1 defines an access control list (ACL) for the V1 config.
-type AccessControlV1 struct {
+// PerPathConfigV1 defines a per-path configuration structure, including an
+// access control list (ACL) for the V1 config.
+type PerPathConfigV1 struct {
 	// WhitelistAdditionalPermissions is a map of username -> permissions that
 	// defines a list of additional permissions that authenticated users have
 	// in addition to AnonymousPermissions.
@@ -56,11 +57,11 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 	return perms, nil
 }
 
-// accessControlV1 is the parsed version of AccessControlV1. It can be used
-// directly with no parsing errors by the ACL checker.
-type accessControlV1 struct {
+// perPathConfigV1 is the parsed version of PerPathConfigV1. It can be used
+// directly with no parsing errors by the perPathConfigsReaderV1.
+type perPathConfigV1 struct {
 	// whitelistAdditional is the internal version of
-	// AccessControlV1.WhitelistAdditionalPermissions. See comment of latter
+	// PerPathConfigV1.WhitelistAdditionalPermissions. See comment of latter
 	// for more details. It's a map of username -> permissionsV1.
 	whitelistAdditional map[string]permissionsV1
 	anonymous           permissionsV1
@@ -71,22 +72,22 @@ type accessControlV1 struct {
 	// with `list`, causing maxPermission to be {read: true, list: true} but
 	// never a user getting both.
 	maxPermission permissionsV1
-	// p stores the path (from Config declaration) that an *accessControlV1
-	// object is constructed for. When an *aclCheckerV1 is picked for a path,
+	// p stores the path (from Config declaration) that an *perPathConfigV1
+	// object is constructed for. When an *perPathConfigsReaderV1 is picked for a path,
 	// the p field can be used as a realm for HTTP Basic Authentication.
 	p string
 }
 
-// makeAccessControlV1Internal makes an *accessControlV1 out of an
-// *AccessControlV1. The users map is used to check if every username defined
+// makePerPathConfigV1Internal makes an *perPathConfigV1 out of an
+// *PerPathConfigV1. The users map is used to check if every username defined
 // in WhitelistAdditionalPermissions is defined.
-func makeAccessControlV1Internal(
-	a *AccessControlV1, users map[string]string, p string) (
-	ac *accessControlV1, err error) {
+func makePerPathConfigV1Internal(
+	a *PerPathConfigV1, users map[string]string, p string) (
+	ac *perPathConfigV1, err error) {
 	if a == nil {
-		return nil, errors.New("nil AccessControlV1")
+		return nil, errors.New("nil PerPathConfigV1")
 	}
-	ac = &accessControlV1{p: p}
+	ac = &perPathConfigV1{p: p}
 	ac.anonymous, err = parsePermissionsV1(a.AnonymousPermissions)
 	if err != nil {
 		return nil, err
@@ -110,22 +111,22 @@ func makeAccessControlV1Internal(
 	return ac, nil
 }
 
-func emptyAccessControlV1InternalForRoot() *accessControlV1 {
-	return &accessControlV1{
+func emptyPerPathConfigV1InternalForRoot() *perPathConfigV1 {
+	return &perPathConfigV1{
 		anonymous: permissionsV1{}, // no permission
 		p:         "/",
 	}
 }
 
-type aclCheckerV1 struct {
-	children map[string]*aclCheckerV1
+type perPathConfigsReaderV1 struct {
+	children map[string]*perPathConfigsReaderV1
 	// ac, if not nil, defines the access control that should be applied to the
-	// path that the *aclCheckerV1 represents. If it's nil, it means no
+	// path that the *perPathConfigsReaderV1 represents. If it's nil, it means no
 	// specific access control is defined for the path, and the object exists
 	// most likely for the purpose of the children field to realy to checkers
 	// under this path. In this case, the parent's access control is the
 	// effective one for this path.
-	ac *accessControlV1
+	ac *perPathConfigV1
 }
 
 // cleanPath cleans p in by first calling path.Clean, then removing any leading
@@ -165,21 +166,21 @@ func cleanPathAndSplit2(p string) (elems []string) {
 	return strings.SplitN(cleanPath(p), "/", 2)
 }
 
-// getAccessControl gets the corresponding accessControlV1 for p. It walks
+// getPerPathConfig gets the corresponding perPathConfigV1 for p. It walks
 // along the children field recursively.  If a specifically defined one exists,
 // it's returned. Otherwise the parent's (parentAC) is returned.
-func (c *aclCheckerV1) getAccessControl(
-	parentAC *accessControlV1, p string) (ac *accessControlV1) {
+func (c *perPathConfigsReaderV1) getPerPathConfig(
+	parentAC *perPathConfigV1, p string) (ac *perPathConfigV1) {
 	effectiveAC := c.ac
 	if c.ac == nil {
-		// If c.ac == nil, it means user didn't specify an ACL for the
+		// If c.ac == nil, it means user didn't specify a config for the
 		// path that c represents. So just inherit from the parent.
 		effectiveAC = parentAC
 	}
 	elems := cleanPathAndSplit2(p)
 	if len(elems[0]) == 0 || c.children == nil {
 		// Either what we are looking for is exactly what c represents, or c
-		// doesn't have any children *aclCheckerV1's. Either way, c should be
+		// doesn't have any children *perPathConfigsReaderV1's. Either way, c should be
 		// the checker that controls the path p, so we can just returned the
 		// current effectiveAC.
 		return effectiveAC
@@ -189,11 +190,11 @@ func (c *aclCheckerV1) getAccessControl(
 		if len(elems) > 1 {
 			// There are more elements in the path p, so ask the sub-checker
 			// for check for the rest.
-			return subChecker.getAccessControl(effectiveAC, elems[1])
+			return subChecker.getPerPathConfig(effectiveAC, elems[1])
 		}
 		// The sub-checker is what we need in order to know get the
-		// *accessControlV1 for path p, so call it with "." to indicate that.
-		return subChecker.getAccessControl(effectiveAC, ".")
+		// *perPathConfigV1 for path p, so call it with "." to indicate that.
+		return subChecker.getPerPathConfig(effectiveAC, ".")
 	}
 
 	// We don't have a sub-checker for the next element in the path p, so just
@@ -203,13 +204,13 @@ func (c *aclCheckerV1) getAccessControl(
 }
 
 // getPermissions returns the permissions that username has on p. This method
-// should only be called on the root aclCheckerV1.
-func (c *aclCheckerV1) getPermissions(p string, username *string) (
+// should only be called on the root perPathConfigsReaderV1.
+func (c *perPathConfigsReaderV1) getPermissions(p string, username *string) (
 	permissions permissionsV1, max permissionsV1, effectivePath string) {
-	// This is only called on the root aclCheckerV1, and c.ac is always
-	// populated here. So even if no other path shows up in the ACLs, any path
-	// will get root's *accessControlV1 as the last resort.
-	ac := c.getAccessControl(nil, p)
+	// This is only called on the root perPathConfigsReaderV1, and c.ac is always
+	// populated here. So even if no other path shows up in the per-path
+	// configs, any path will get root's *perPathConfigV1 as the last resort.
+	ac := c.getPerPathConfig(nil, p)
 	permissions = ac.anonymous
 	if ac.whitelistAdditional == nil || username == nil {
 		return permissions, ac.maxPermission, ac.p
@@ -221,40 +222,41 @@ func (c *aclCheckerV1) getPermissions(p string, username *string) (
 	return permissions, ac.maxPermission, ac.p
 }
 
-// makeACLCheckerV1 makes an *aclCheckerV1 out of user-defined ACLs (acl). It
-// recursively constructs nested *aclCheckerV1 so that each defined path has a
-// corresponding checker, and all intermediate nodes have a checker populated.
-func makeACLCheckerV1(acl map[string]AccessControlV1,
-	users map[string]string) (*aclCheckerV1, error) {
-	root := &aclCheckerV1{ac: emptyAccessControlV1InternalForRoot()}
-	if acl == nil {
+// makePerPathConfigsReaderV1 makes an *perPathConfigsReaderV1 out of
+// user-defined per-path configs. It recursively constructs nested
+// *perPathConfigsReaderV1 so that each defined path has a corresponding
+// checker, and all intermediate nodes have a checker populated.
+func makePerPathConfigsReaderV1(configs map[string]PerPathConfigV1,
+	users map[string]string) (*perPathConfigsReaderV1, error) {
+	root := &perPathConfigsReaderV1{ac: emptyPerPathConfigV1InternalForRoot()}
+	if configs == nil {
 		return root, nil
 	}
-	// path -> *AccessControlV1
-	cleaned := make(map[string]*AccessControlV1)
+	// path -> *PerPathConfigV1
+	cleaned := make(map[string]*PerPathConfigV1)
 
 	// Make sure there's no duplicate paths.
-	for p := range acl {
+	for p := range configs {
 		// We are doing a separate declaration here instead of in the for
 		// statement above because we need to take the address of ac for each
-		// element in acl, declarations in the for statement don't change
+		// element in configs, declarations in the for statement don't change
 		// address.
-		ac := acl[p]
+		ac := configs[p]
 		cleanedPath := path.Clean(p)
 		if cleanedPath == "." {
 			// Override "." with "/" since they both represent the site root.
 			cleanedPath = "/"
 		}
 		if _, ok := cleaned[cleanedPath]; ok {
-			return nil, ErrDuplicateAccessControlPath{cleanedPath: cleanedPath}
+			return nil, ErrDuplicatePerPathConfigPath{cleanedPath: cleanedPath}
 		}
 		cleaned[cleanedPath] = &ac
 	}
 
-	// Iterate through the cleaned slice, and construct *aclCheckerV1 objects
+	// Iterate through the cleaned slice, and construct *perPathConfigsReaderV1 objects
 	// along each path.
 	for p, a := range cleaned {
-		ac, err := makeAccessControlV1Internal(a, users, p)
+		ac, err := makePerPathConfigV1Internal(a, users, p)
 		if err != nil {
 			return nil, err
 		}
@@ -266,21 +268,21 @@ func makeACLCheckerV1(acl map[string]AccessControlV1,
 		}
 
 		c := root
-		// Construct aclCheckerV1 objects along the path if needed.
+		// Construct perPathConfigsReaderV1 objects along the path if needed.
 		for _, elem := range elems {
 			if c.children == nil {
-				// path element -> *aclCheckerV1
-				c.children = make(map[string]*aclCheckerV1)
+				// path element -> *perPathConfigsReaderV1
+				c.children = make(map[string]*perPathConfigsReaderV1)
 			}
 			if c.children[elem] == nil {
-				// Intentionally leave the ac field empty so if no ACL is
+				// Intentionally leave the ac field empty so if no config is
 				// specified for this directory we'd use the one from its
-				// parent (see getAccessControl).
-				c.children[elem] = &aclCheckerV1{}
+				// parent (see getPerPathConfig).
+				c.children[elem] = &perPathConfigsReaderV1{}
 			}
 			c = c.children[elem]
 		}
-		// Now that c points the the *aclCheckerV1 that represents the path p,
+		// Now that c points the the *perPathConfigsReaderV1 that represents the path p,
 		// populate c.ac for it.
 		c.ac = ac
 	}

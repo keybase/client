@@ -21,8 +21,8 @@ func TestParseConfigV1(t *testing.T) {
 			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
 			"bob":   string(generateSHA256PasswordHashForTestOrBust(t, "54321")),
 		},
-		ACLs: map[string]AccessControlV1{
-			"/alice-and-bob": AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
+			"/alice-and-bob": PerPathConfigV1{
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 					"bob":   PermRead,
@@ -37,7 +37,7 @@ func TestParseConfigV1(t *testing.T) {
 	require.NoError(t, err)
 	parsedV1, ok := parsed.(*V1)
 	require.True(t, ok)
-	require.Equal(t, config.ACLs, parsedV1.ACLs)
+	require.Equal(t, config.PerPathConfigs, parsedV1.PerPathConfigs)
 	require.Equal(t, config.Common, parsedV1.Common)
 	require.Equal(t, config.Users, parsedV1.Users)
 }
