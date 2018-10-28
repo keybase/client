@@ -311,8 +311,8 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 	defer s.Unlock()
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
 	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
-	if isLocalizerForceContext(job.ctx) {
-		s.Debug(job.ctx, "queue: adding force context job")
+	if isLocalizerCancelableContext(job.ctx) {
+		s.Debug(job.ctx, "queue: adding cancellable job")
 	}
 	s.jobQueue <- job
 }
@@ -365,12 +365,14 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	return true
 }
 
-func (s *localizerPipeline) registerJobPull() (string, chan struct{}) {
+func (s *localizerPipeline) registerJobPull(ctx context.Context) (string, chan struct{}) {
 	s.Lock()
 	defer s.Unlock()
 	id := libkb.RandStringB64(3)
 	ch := make(chan struct{}, 1)
-	s.cancelChs[id] = ch
+	if isLocalizerCancelableContext(ctx) {
+		s.cancelChs[id] = ch
+	}
 	return id, ch
 }
 
@@ -389,13 +391,13 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 }
 
 func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh chan struct{}) {
-	id, cancelCh := s.registerJobPull()
+	id, cancelCh := s.registerJobPull(job.ctx)
 	defer s.finishJobPull(id)
 	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
 		job.numCompleted())
 	waitCh := make(chan struct{})
-	if isLocalizerForceContext(job.ctx) {
-		s.Debug(job.ctx, "localizeJobPulled: force context, skipping wait")
+	if !isLocalizerCancelableContext(job.ctx) {
+		s.Debug(job.ctx, "localizeJobPulled: force context, sk")
 		close(waitCh)
 	} else {
 		go func() {
