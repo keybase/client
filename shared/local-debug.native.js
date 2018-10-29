@@ -63,7 +63,7 @@ if (__DEV__) {
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
   config.printRPC = true
-  config.printRPCStats = true
+  config.printRPCStats = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
 

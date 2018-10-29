@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import CodePage2 from '.'
-import QRScanNotAuthorized from './qr-scan/not-authorized'
-import {Box2} from '../../common-adapters'
+import {Box2, QRNotAuthorized} from '../../common-adapters'
 
 const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom member'
 const textCodeLong = textCodeShort + ' four'
@@ -97,7 +96,7 @@ const load = () => {
   ))
   s = s.add('QR Scan Not Authorized', () => (
     <Box2 direction="vertical" style={{height: 200, width: 200}}>
-      <QRScanNotAuthorized onOpenSettings={Sb.action('onOpenSettings')} />
+      <QRNotAuthorized onOpenSettings={Sb.action('onOpenSettings')} />
     </Box2>
   ))
 

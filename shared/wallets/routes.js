@@ -16,6 +16,7 @@ import {
   RenameAccountPopup,
 } from './wallet/settings/popups'
 import SendForm from './send-form/container'
+import QRScan from './qr-scan/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
 import ChooseAsset from './send-form/choose-asset/container'
@@ -34,6 +35,10 @@ const linkExisting = {
 }
 
 const walletChildren = {
+  qrScan: {
+    component: QRScan,
+    tags: makeLeafTags({layerOnTop: true}),
+  },
   createNewAccount,
   exportSecretKey: {
     children: {},

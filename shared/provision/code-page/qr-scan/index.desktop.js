@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, ProgressIndicator} from '../../../common-adapters'
+import {Box2, ProgressIndicator, QRLines} from '../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../styles'
-import QRScanLines from './lines'
 import type {Props} from '.'
 // Basically only used for storybook
 
