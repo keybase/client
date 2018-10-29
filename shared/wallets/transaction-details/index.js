@@ -156,7 +156,7 @@ const CounterpartyStellar = (props: CounterpartyStellarProps) => {
 type PartyAccountProps = {
   accountID: ?Types.AccountID,
   counterparty: string,
-  onShowProfile: string => void,
+  onShowProfile?: string => void,
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -167,7 +167,7 @@ const PartyAccount = (props: PartyAccountProps) => {
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType="otherAccount"
-          onShowProfile={props.onShowProfile}
+          onShowProfile={props.onShowProfile || (() => {})}
         />
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
@@ -212,16 +212,10 @@ const Counterparty = (props: CounterpartyProps) => {
 
 const YourAccount = props => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
-  return props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
-    <Counterparty
-      counterpartyType={props.counterpartyType}
-      counterparty={props.yourAccountName}
-      accountID={yourAccountID}
-      onChat={() => {}}
-      onShowProfile={() => {}}
-      counterpartyMeta=""
-    />
-  ) : (
+  if (props.counterpartyType === 'otherAccount' && props.yourAccountName) {
+    return <PartyAccount accountID={yourAccountID} counterparty={props.yourAccountName} />
+  }
+  return (
     <Kb.NameWithIcon
       colorFollowing={true}
       horizontal={true}
