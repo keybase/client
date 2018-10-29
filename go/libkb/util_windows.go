@@ -192,6 +192,10 @@ func copyFile(src string, dest string) error {
 func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, error) {
 	var err error
 
+	if oldHome == currentHome {
+		g.Log.Info("RemoteSettingsRepairman: old location weirdly same as new location: %s", oldHome)
+		return false, nil
+	}
 	// See if any secret key files are in the new location. If so, don't repair.
 	if newSecretKeyfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(newSecretKeyfiles) > 0 {
 		return false, nil
@@ -201,6 +205,7 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
 	files = append(files, oldSecretKeyfiles...)
 	var newFiles []string
+	var oldFiles []string
 
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
@@ -215,9 +220,9 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 				break
 			} else {
 				newFiles = append(newFiles, newPathName)
+				oldFiles = append(oldFiles, oldPathName)
 			}
 		}
-
 	}
 	if err != nil {
 		// Undo any of the new copies and quit
@@ -227,12 +232,12 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 		return false, err
 	}
 	// Now that we've successfully copied, delete the old ones - BUT don't bail out on error here
-	for _, oldPathName := range files {
+	for _, oldPathName := range oldFiles {
 		os.Remove(oldPathName)
 	}
 
 	// Return true if we copied any
-	if len(files) > 0 {
+	if len(oldFiles) > 0 {
 		return true, err
 	}
 
@@ -315,6 +320,7 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	if moved, err := moveKeyFiles(g, oldHome, currentHome); !moved || err != nil {
 		return err
 	}
+	g.Log.Info("Repairman activated from %s to %s", oldHome, currentHome)
 	// Don't fail the repairmain if these others can't be moved
 	moveNonChromiumFiles(g, oldHome, currentHome)
 	return nil
