@@ -13,6 +13,7 @@ import {createStore, applyMiddleware} from 'redux'
 import rootReducer from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
+import appRouteTree from '../../app/routes-app'
 import {getPath as getRoutePath} from '../../route-tree'
 
 jest.mock('../../engine')
@@ -70,7 +71,7 @@ const startReduxSaga = (initialStore = undefined) => {
 
   return {
     dispatch,
-    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState),
     getState,
     sagaMiddleware,
   }
@@ -673,7 +674,7 @@ describe('final errors show', () => {
   it('shows the final error page', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
     const error = new RPCError('something bad happened', 1, [])
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toBeTruthy()
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'error']))
   })
@@ -681,9 +682,30 @@ describe('final errors show', () => {
   it('ignore cancel', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
     const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toEqual(null)
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
+  })
+
+  it('shows the final error page (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTree.switchRouteDef(appRouteTree))
+    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
+    const error = new RPCError('something bad happened', 1, [])
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toBeTruthy()
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab, 'error']))
+  })
+
+  it('ignore cancel (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTree.switchRouteDef(appRouteTree))
+    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toEqual(null)
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
   })
 })
 
