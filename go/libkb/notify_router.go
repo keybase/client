@@ -1666,16 +1666,16 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 	n.G().Log.CDebugf(ctx, "- Sent NewTeamEK notification")
 }
 
-func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat) {
+func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat,
+	typ keybase1.AvatarUpdateType) {
 	if n == nil {
 		return
 	}
-
 	arg := keybase1.AvatarUpdatedArg{
 		Name:    name,
 		Formats: formats,
+		Typ:     typ,
 	}
-
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			go func() {

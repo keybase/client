@@ -99,9 +99,9 @@ export type MessageTypes = {|
     inParam: void,
     outParam: ?Array<WalletAccountLocal>,
   |},
-  'stellar.1.local.getWalletSettingsLocal': {|
+  'stellar.1.local.hasAcceptedDisclaimerLocal': {|
     inParam: void,
-    outParam: WalletSettings,
+    outParam: Bool,
   |},
   'stellar.1.local.linkNewWalletAccountLocal': {|
     inParam: $ReadOnly<{|secretKey: SecretKey, name: String|}>,
@@ -224,8 +224,8 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
-export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, worthAmount: String, worthCurrency: String, banners?: ?Array<SendBannerLocal>, amountFormatted: String}>
-export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, worthAmount: String, worthCurrency: String, amountFormatted: String, displayAmountXLM: String, displayAmountFiat: String, sendingIntentionXLM: Boolean, banners?: ?Array<SendBannerLocal>}>
+export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, displayAmountXLM: String, displayAmountFiat: String, sendingIntentionXLM: Boolean, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -329,7 +329,6 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
-export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 
 export type IncomingCallMapType = {|'stellar.1.notify.paymentNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.paymentStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn, 'stellar.1.notify.requestStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn|}
 
@@ -354,7 +353,7 @@ declare export function localGetSendAssetChoicesLocalRpcPromise(params: $Propert
 declare export function localGetWalletAccountLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountLocal'>, 'outParam'>>
 declare export function localGetWalletAccountSecretKeyLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountSecretKeyLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountSecretKeyLocal'>, 'outParam'>>
 declare export function localGetWalletAccountsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletAccountsLocal'>, 'outParam'>>
-declare export function localGetWalletSettingsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletSettingsLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.getWalletSettingsLocal'>, 'outParam'>>
+declare export function localHasAcceptedDisclaimerLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.hasAcceptedDisclaimerLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.hasAcceptedDisclaimerLocal'>, 'outParam'>>
 declare export function localLinkNewWalletAccountLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.linkNewWalletAccountLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.linkNewWalletAccountLocal'>, 'outParam'>>
 declare export function localMakeRequestLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.makeRequestLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.makeRequestLocal'>, 'outParam'>>
 declare export function localMarkAsReadLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.markAsReadLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.markAsReadLocal'>, 'outParam'>>

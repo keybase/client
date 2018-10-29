@@ -421,16 +421,6 @@
     },
     {
       "type": "record",
-      "name": "WalletSettings",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "acceptedDisclaimer"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "SendAssetChoiceLocal",
       "fields": [
         {
@@ -500,15 +490,29 @@
           "name": "worthCurrency"
         },
         {
+          "type": "string",
+          "name": "amountFormatted"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
+        },
+        {
           "type": {
             "type": "array",
             "items": "SendBannerLocal"
           },
           "name": "banners"
-        },
-        {
-          "type": "string",
-          "name": "amountFormatted"
         }
       ]
     },
@@ -571,6 +575,20 @@
         {
           "type": "string",
           "name": "worthInfo"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
         },
         {
           "type": {
@@ -1081,14 +1099,14 @@
       ],
       "response": "CurrencyLocal"
     },
-    "getWalletSettingsLocal": {
+    "hasAcceptedDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "WalletSettings"
+      "response": "bool"
     },
     "acceptDisclaimerLocal": {
       "request": [

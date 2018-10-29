@@ -5,7 +5,7 @@ import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import {Box} from '../../common-adapters'
-import {WrapRow} from '../'
+import {WrapRow} from './rows'
 import ConnectedStillRow from './still-container'
 import TlfTypeRow from './tlf-type'
 import TlfRow from './tlf'
@@ -16,24 +16,50 @@ import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
 
 export const rowsProvider = {
-  ConnectedStillRow: ({path}: {path: Types.Path}) => {
+  ConnectedStillRow: ({path, inDestinationPicker}: {path: Types.Path, inDestinationPicker?: boolean}) => {
     const pathStr = Types.pathToString(path)
     return {
       name: Types.getPathName(path),
       type: 'folder',
       itemStyles: folderItemStyles,
-      onAction: Sb.action('onAction'),
       isEmpty: pathStr.includes('empty'),
+      inDestinationPicker,
     }
   },
   ConnectedOpenHOC: (ownProps: any) => ({
     ...ownProps,
-    onOpen: () => {},
+    onOpen: Sb.action('onOpen'),
   }),
   ConnectedOpenInSystemFileManager: () => ({
     kbfsEnabled: false,
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
     installFuse: Sb.action('installFuse'),
+  }),
+  ConnectedRows: (o: any) => ({
+    items: [
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,empty'), name: 'me,abc'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
+      {
+        rowType: 'still',
+        path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
+        name: 'me,abc,def,ghi',
+      },
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
+      {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
+    ],
+    routePath: I.List(),
+    ifEmpty: o.ifEmpty,
+    inDestinationPicker: o.inDestinationPicker,
+  }),
+  ConnectedFilesLoadingHoc: (o: any) => ({
+    ...o,
+    syncingPaths: Sb.action('syncingPaths'),
+    loadFolderList: Sb.action('loadFolderList'),
+    loadFavorites: Sb.action('loadFavorites'),
+    path: '',
   }),
 }
 

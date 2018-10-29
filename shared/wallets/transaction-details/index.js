@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
+import Transaction, {TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
 export type NotLoadingProps = {|
@@ -45,6 +45,74 @@ export type Props =
   | NotLoadingProps
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
+type CounterpartyIconProps = {|
+  onShowProfile: string => void,
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+|}
+
+export const CounterpartyIcon = (props: CounterpartyIconProps) => {
+  const size = 32
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return (
+        <Kb.Avatar
+          onClick={() => props.onShowProfile(props.counterparty)}
+          username={props.counterparty}
+          size={size}
+        />
+      )
+    case 'stellarPublicKey':
+      return <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: size, width: size}} />
+    case 'otherAccount':
+      return <Kb.Icon type="icon-wallet-32" style={{height: size, width: size}} />
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      return null
+  }
+}
+
+type CounterpartyTextProps = {|
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
+|}
+
+export const CounterpartyText = (props: CounterpartyTextProps) => {
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return (
+        <Kb.ConnectedUsernames
+          colorFollowing={true}
+          colorBroken={true}
+          inline={true}
+          onUsernameClicked={props.onShowProfile}
+          type="BodySmallSemibold"
+          underline={true}
+          usernames={[props.counterparty]}
+        />
+      )
+    case 'stellarPublicKey':
+      return (
+        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+          {props.counterparty}
+        </Kb.Text>
+      )
+    case 'otherAccount':
+      return <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      break
+  }
+  return null
+}
+
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
   counterparty: string,
@@ -73,17 +141,13 @@ const Counterparty = (props: CounterpartyProps) => {
       <CounterpartyIcon
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
-        large={props.counterpartyType !== 'otherAccount'}
         onShowProfile={props.onShowProfile}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
-          large={false}
           onShowProfile={props.onShowProfile}
-          showFullKey={true}
-          textType="BodySemibold"
         />
         {props.counterpartyType !== 'stellarPublicKey' &&
           props.accountID && <SmallAccountID accountID={props.accountID} />}

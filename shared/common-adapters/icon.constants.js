@@ -336,6 +336,26 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-film-64.png'),
   },
+  'icon-folder-copy-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-copy-32.png'),
+  },
+  'icon-folder-copy-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-copy-48.png'),
+  },
+  'icon-folder-move-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-move-32.png'),
+  },
+  'icon-folder-move-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-move-48.png'),
+  },
   'icon-folder-placeholder-32': {
     isFont: false,
     extension: 'png',
@@ -2226,10 +2246,30 @@ const iconMeta_ = {
     gridSize: 16,
     charCode: 0xe96a,
   },
+  'iconfont-thin-arrow-left': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96b,
+  },
+  'iconfont-thin-arrow-right': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96c,
+  },
   'iconfont-contact-card': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe96d,
+  },
+  'iconfont-contact-card-2': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96e,
+  },
+  'iconfont-identity-stellar': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96f,
   } /* eslint-enable */,
 }
 

@@ -1,40 +1,31 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, connect} from '../util/container'
-import * as FsGen from '../actions/fs-gen'
-import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
+import {compose, connect, setDisplayName} from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import * as Types from '../../constants/types/fs'
 
 const mapStateToProps = state => ({
   syncingPaths: state.fs.uploads.syncingPaths,
 })
 
-const mapDispatchToProps = (dispatch, {routeProps}) => {
-  const path = routeProps.get('path', Constants.defaultPath)
-  return {
-    loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
-    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-  }
-}
+const mapDispatchToProps = (dispatch, {path}) => ({
+  loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
+  loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
+})
 
-const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, {routeProps, routePath}) => {
-  const path = routeProps.get('path', Constants.defaultPath)
-  return {
-    syncingPaths,
-    loadFolderList,
-    loadFavorites,
-    path,
-    routePath,
-  }
-}
+const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, o) => ({
+  syncingPaths,
+  loadFolderList,
+  loadFavorites,
+  ...o,
+})
 
 type FilesLoadingHocProps = {
   syncingPaths: I.Set<Types.Path>,
   loadFolderList: () => void,
   loadFavorites: () => void,
   path: Types.Path,
-  routePath: Array<string>,
 }
 
 const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
@@ -68,5 +59,6 @@ export default compose(
     mapDispatchToProps,
     mergeProps
   ),
+  setDisplayName('ConnectedFilesLoadingHoc'),
   FilesLoadingHoc
 )

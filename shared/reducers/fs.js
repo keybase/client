@@ -142,10 +142,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-      return state
-        .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
-        .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
-        .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
+      return (
+        state
+          // $FlowFixMe
+          .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
+          .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
+          .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
+      )
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -227,6 +230,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
+    case FsGen.commitEdit:
+      // $FlowFixMe
+      return state.setIn(['edits', action.payload.editID, 'status'], 'saving')
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
@@ -265,6 +271,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.setMoveOrCopySource:
+      return state.setIn(['moveOrCopy', 'sourceItemPath'], action.payload.path)
+    case FsGen.setMoveOrCopyDestinationParent:
+      return state.setIn(['moveOrCopy', 'destinationParentPath'], action.payload.path)
+    case FsGen.clearMoveOrCopySource:
+      // $FlowFixMe
+      return state.setIn(['moveOrCopy', 'sourceItemPath'], null)
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
@@ -284,7 +297,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openPathInFilesTab:
     case FsGen.openPathInSystemFileManager:
     case FsGen.openLocalPathInSystemFileManager:
-    case FsGen.commitEdit:
     case FsGen.editSuccess:
     case FsGen.letResetUserBackIn:
     case FsGen.openAndUpload:
@@ -293,6 +305,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openFilesFromWidget:
     case FsGen.userFileEditsLoad:
     case FsGen.deleteFile:
+    case FsGen.move:
+    case FsGen.copy:
       return state
     default:
       /*::

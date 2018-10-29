@@ -8,10 +8,12 @@ import Files from '.'
 import {NormalPreview} from './filepreview'
 import {Box} from '../common-adapters'
 import Breadcrumb from './header/breadcrumb.desktop'
+import {makeBreadcrumbProps} from './header/breadcrumb-container.desktop'
 import Banner from './banner'
 import rowStories, {rowsProvider} from './row/index.stories'
 import commonStories, {commonProvider} from './common/index.stories'
 import footerStories, {footerProvider} from './footer/index.stories'
+import destinationPickerStories from './destination-picker/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   ...rowsProvider,
@@ -31,10 +33,8 @@ const provider = Sb.createPropProviderWithCommon({
     onOpenBreadcrumb: Sb.action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: Sb.action('onOpenBreadcrumbDropdown'),
   }),
-  ConnectedBreadcrumb: () => ({
-    dropdownItems: undefined,
-    shownItems: [],
-  }),
+  ConnectedBreadcrumb: ({path}) =>
+    makeBreadcrumbProps('meatball', path => Sb.action(`navigate to ${Types.pathToString(path)}`), path),
   SortBar: ({path}: {path: Types.Path}) => ({
     sortSetting: {
       sortBy: 'name',
@@ -130,16 +130,10 @@ const load = () => {
     .add('Root', () => (
       <Files
         path={Types.stringToPath('/keybase')}
-        progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={['foo']}
-        items={[
-          {rowType: 'still', path: Types.stringToPath('/keybase/private'), name: 'private'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/public'), name: 'public'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/team'), name: 'team'},
-        ]}
-        editingItems={[]}
+        sortSetting={Constants.makeSortSetting()}
       />
     ))
     .add('Preview', () => (
@@ -189,25 +183,10 @@ const load = () => {
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}
-        progress="loaded"
         routePath={I.List([])}
         isUserReset={false}
         resetParticipants={[]}
-        items={[
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me'), name: 'me'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc'), name: 'me,abc'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,def'), name: 'me,abc,def'},
-          {
-            rowType: 'still',
-            path: Types.stringToPath('/keybase/private/me,abc,def,ghi'),
-            name: 'me,abc,def,ghi',
-          },
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def'), name: 'me,def'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,def,ghi'), name: 'me,def,ghi'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,ghi'), name: 'me,ghi'},
-          {rowType: 'still', path: Types.stringToPath('/keybase/private/me,abc,ghi'), name: 'me,abc,ghi'},
-        ]}
-        editingItems={[]}
+        sortSetting={Constants.makeSortSetting()}
       />
     ))
     .add('ResetBanner', () => (
@@ -222,4 +201,5 @@ const load = () => {
     ))
 }
 
-export default () => [load, commonStories, rowStories, footerStories].forEach(l => l())
+export default () =>
+  [load, commonStories, rowStories, footerStories, destinationPickerStories].forEach(l => l())
