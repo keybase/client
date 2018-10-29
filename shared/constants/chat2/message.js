@@ -881,9 +881,14 @@ export const uiMessageToMessage = (
   }
 }
 
-export function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
+export function nextFractionalOrdinal(old: Types.Ordinal): Types.Ordinal {
   // Mimic what the service does with outbox items
-  return Types.numberToOrdinal(Types.ordinalToNumber(ord) + 0.001)
+  // Carefully not get fractional pieces we don't want
+  const oldAsNumber = Types.ordinalToNumber(old)
+  const root = Math.floor(oldAsNumber)
+  const ord = (oldAsNumber * 1000) % 1000
+  const nextOrd = ord + 1
+  return Types.numberToOrdinal(root + nextOrd * 0.001)
 }
 
 export const makePendingTextMessage = (

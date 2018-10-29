@@ -1,7 +1,8 @@
 // @flow
 /* eslint-env jest */
 import * as RPCChatTypes from '../../types/rpc-chat-gen'
-import {serviceMessageTypeToMessageTypes} from '../message'
+import * as Constants from '../message'
+import * as Types from '../../types/chat2'
 
 const cases = [
   {in: RPCChatTypes.commonMessageType.none, out: []},
@@ -33,11 +34,27 @@ const cases = [
 
 describe('serviceMessageTypeToMessageTypes', () => {
   it('returns the expected types', () => {
-    cases.forEach(c => expect(serviceMessageTypeToMessageTypes(c.in).sort()).toEqual(c.out.sort()))
+    cases.forEach(c => expect(Constants.serviceMessageTypeToMessageTypes(c.in).sort()).toEqual(c.out.sort()))
   })
   it('handles all service message types', () => {
     const handledTypes = cases.map(c => c.in)
     const serviceTypes = Object.values(RPCChatTypes.commonMessageType)
     expect(handledTypes.sort()).toEqual(serviceTypes.sort())
+  })
+})
+
+describe('ordinal counting is clean', () => {
+  it('doesnt leave leftover fractions', () => {
+    let cur = Types.numberToOrdinal(2343)
+    for (var i = 0; i < 999; ++i) {
+      const next = Constants.nextFractionalOrdinal(cur)
+      // Always of the form .001, .002, or 0.01, 0.1
+      expect(String(next).length).toBeLessThanOrEqual('2343.001'.length)
+      // always going up by one
+      expect((Types.ordinalToNumber(next) * 1000) % 1000).toEqual(
+        ((Types.ordinalToNumber(cur) * 1000) % 1000) + 1
+      )
+      cur = next
+    }
   })
 })
