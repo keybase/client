@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import {NativeImage} from '../native-wrappers.native'
 import type {Props} from './index.types'
 
-const SectionHeader = (props: Props) => {
+const BackgroundRepeatBox = (props: Props) => {
   let backgroundImage = null
   if (!props.skipBackground) {
     backgroundImage = (
@@ -27,4 +27,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default SectionHeader
+export default BackgroundRepeatBox
