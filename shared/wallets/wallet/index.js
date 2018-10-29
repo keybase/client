@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/wallets'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
+import SectionHeader from './section-header'
 
 type Props = {
   accountID: Types.AccountID,
@@ -73,11 +74,7 @@ class Wallet extends React.Component<Props> {
     return index
   }
 
-  _renderSectionHeader = ({section}) => (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
-      <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-    </Kb.Box2>
-  )
+  _renderSectionHeader = ({section}) => <SectionHeader title={section.title} striped={section.stripeHeader} />
 
   _onEndReached = () => {
     this.props.onLoadMore()
