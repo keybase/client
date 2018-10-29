@@ -59,8 +59,9 @@ const (
 	// By default, allow 10% of the free bytes on disk to be used in the disk block cache.
 	defaultDiskBlockCacheFraction = 0.10
 
-	// By default, allow 15% of the free bytes on disk to be used in the sync block cache.
-	defaultSyncBlockCacheFraction = 0.10
+	// By default, allow 100% of the free bytes on disk to be used in the sync
+	// block cache.
+	defaultSyncBlockCacheFraction = 1.00
 
 	// By default, use v1 block encryption.
 	defaultBlockCryptVersion = kbfscrypto.EncryptionSecretbox

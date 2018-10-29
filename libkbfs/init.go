@@ -207,7 +207,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		EnableJournal:                  BoolForString(journalEnv),
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
-		SyncBlockCacheFraction:         0.10,
+		SyncBlockCacheFraction:         1.00,
 		Mode: InitDefaultString,
 	}
 }

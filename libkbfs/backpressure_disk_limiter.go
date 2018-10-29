@@ -1053,10 +1053,9 @@ func (bdl *backpressureDiskLimiter) reserveBytes(
 	if count < 0 {
 		return count, nil
 	}
-	// We calculate the total free bytes by adding the reported free bytes and
-	// the non-`tracker` used bytes.
-	tracker.updateFree(freeBytes + bdl.overallByteTracker.used -
-		tracker.usedResources())
+	// TODO: verify there's not any other kind of bytes we care about
+	// subtracting too.
+	tracker.updateFree(freeBytes)
 
 	count = tracker.tryReserve(blockBytes)
 	if count < 0 {
