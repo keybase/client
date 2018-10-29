@@ -416,52 +416,21 @@ func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	return
 }
 
-var nameSquaredPattern = `(?P<s_name>\[(?P<name>[-_a-zA-Z0-9.@+]+)\])`  // matches "name-squared", square brackets syntax, for emails
-var namePattern = `(?P<name>[-_a-zA-Z0-9.]+)`                           // matches normal names, for any other assertion values
-var anyNamePattern = `(` + nameSquaredPattern + `|` + namePattern + `)` // matches either of above, for any valid (parseable) assertion value
-var serviceRe = `(?P<service>[a-zA-Z.]+)`                               // matches service names, for assertion keys
-
-var assertionUsernameRxx = regexp.MustCompile("^" + namePattern + "$")
-var assertionNameRxx = regexp.MustCompile("^" + anyNamePattern + "$")
-var assertionServiceRxx = regexp.MustCompile("^" + serviceRe + "$")
-
-func matchRxxAndFindGroup(str string, pattern *regexp.Regexp, groupName string) (string, bool) {
-	matches := pattern.FindStringSubmatch(str)
-	if matches != nil {
-		for i, group := range pattern.SubexpNames() {
-			if matched := matches[i]; matched != "" && group == groupName {
-				return matched, true
-			}
-		}
-	}
-	return "", false
-}
-
-func matchRxxAndReturnGroups(str string, pattern *regexp.Regexp) (ret map[string]string) {
-	ret = make(map[string]string)
-	matches := pattern.FindStringSubmatch(str)
-	if matches != nil {
-		for i, group := range pattern.SubexpNames() {
-			if matched := matches[i]; matched != "" {
-				ret[group] = matched
-			}
-		}
-	}
-	return ret
-}
+var assertionBracketNameRxx = regexp.MustCompile(`^\[[-_a-zA-Z0-9.@+]+\]$`)
+var assertionNameRxx = regexp.MustCompile(`^[-_a-zA-Z0-9.]+$`)
+var assertionServiceRxx = regexp.MustCompile(`^[a-zA-Z.]+$`)
 
 func parseToKVPair(s string) (key string, value string, err error) {
 	// matchNameAndService runs regexp against potential name and service
 	// strings extracted from assertion.
 	matchNameAndService := func(name, service string) bool {
 		var k, v string // temp variables for key and value
-		var ok bool
-		if k, ok = matchRxxAndFindGroup(service, assertionServiceRxx, "service"); !ok {
+		if !assertionServiceRxx.MatchString(service) {
 			return false
 		}
 
 		// Normalize service name at parser level.
-		k = strings.ToLower(k)
+		k = strings.ToLower(service)
 
 		if name == "" {
 			// We are fine with matching just the service. "dns:" is a valid
@@ -471,14 +440,15 @@ func parseToKVPair(s string) (key string, value string, err error) {
 			return true
 		}
 
-		nameGroups := matchRxxAndReturnGroups(name, assertionNameRxx)
-		if v, ok = nameGroups["name"]; !ok {
+		var hasBrackets bool
+		if assertionNameRxx.MatchString(name) {
+			v = name
+		} else if assertionBracketNameRxx.MatchString(name) {
+			v = name[1 : len(name)-1]
+			hasBrackets = true
+		} else {
 			return false
 		}
-
-		// Look for "long_name" group being matched, if so, it's bracket syntax.
-		// We don't care about thir match, just whether it occured or not.
-		_, hasBrackets := nameGroups["s_name"]
 
 		// Set err in outer scope if find invalid square bracket syntax.
 		// Still return `true` because it's a successful match.
@@ -517,9 +487,9 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		}
 	}
 
-	if u, ok := matchRxxAndFindGroup(s, assertionUsernameRxx, "name"); ok {
+	if assertionNameRxx.MatchString(s) {
 		key = ""
-		value = u
+		value = s
 		return
 	}
 
