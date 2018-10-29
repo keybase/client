@@ -29,6 +29,17 @@ type PerPathConfigV1 struct {
 	// AnonymousPermissions is the permissions for
 	// unauthenticated/anonymous requests.
 	AnonymousPermissions string `json:"anonymous_permissions"`
+
+	// AccessControlAllowOrigin, if set, causes the setting the
+	// Access-Control-Allow-Origin header when serving requests under the
+	// corresponding path.
+	AccessControlAllowOrigin string `json:"Access-Control-Allow-Origin,omitempty"`
+	// Custom403Forbidden specifies a path (relative to site root) to a html
+	// file to be served when 403 errors happen.
+	Custom403Forbidden string `json:"custom_403_forbidden,omitempty"`
+	// Custom404NotFound specifies a path (relative to site root) to a html
+	// file to be served when 404 errors happen.
+	Custom404NotFound string `json:"custom_404_not_found,omitempty"`
 }
 
 // permissionsV1 is the parsed version of a permission string.
@@ -76,6 +87,32 @@ type perPathConfigV1 struct {
 	// object is constructed for. When an *perPathConfigsReaderV1 is picked for a path,
 	// the p field can be used as a realm for HTTP Basic Authentication.
 	p string
+
+	accessControlAllowOrigin string
+	custom403Forbidden       string
+	custom404NotFound        string
+}
+
+func checkCors(acao string) (cleaned string, err error) {
+	cleaned = strings.TrimSpace(acao)
+	if cleaned != "" && cleaned != "*" {
+		// TODO: support setting non-wildcard origins. Note that none wildcard
+		// ones need a Vary header too.
+		return "", ErrInvalidConfig{msg: "only \"*\" is supported as " +
+			"non-empty Access-Control-Allow-Origin for now"}
+	}
+	return cleaned, nil
+}
+
+func checkCustomPagePath(p string) (cleaned string, err error) {
+	if len(p) == 0 {
+		return "", nil
+	}
+	cleaned = path.Clean(p)
+	if strings.HasPrefix(cleaned, "..") || !strings.HasSuffix(cleaned, ".html") {
+		return "", ErrInvalidConfig{"invalid custom page path: " + p}
+	}
+	return cleaned, nil
 }
 
 // makePerPathConfigV1Internal makes an *perPathConfigV1 out of an
@@ -108,6 +145,20 @@ func makePerPathConfigV1Internal(
 		ac.maxPermission.read = ac.maxPermission.read || parsedPermissions.read
 		ac.maxPermission.list = ac.maxPermission.list || parsedPermissions.list
 	}
+
+	if ac.accessControlAllowOrigin, err = checkCors(
+		a.AccessControlAllowOrigin); err != nil {
+		return nil, err
+	}
+	if ac.custom403Forbidden, err = checkCustomPagePath(
+		a.Custom403Forbidden); err != nil {
+		return nil, err
+	}
+	if ac.custom404NotFound, err = checkCustomPagePath(
+		a.Custom404NotFound); err != nil {
+		return nil, err
+	}
+
 	return ac, nil
 }
 

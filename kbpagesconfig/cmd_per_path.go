@@ -172,6 +172,64 @@ var perPathSetPermissionCmd = cli.Command{
 	},
 }
 
+var perPathSetCmd = cli.Command{
+	Name:  "set",
+	Usage: "configure a parameter on path(s)",
+	UsageText: "set Access-Control-Allow-Origin <''|'*'> <path> [path ...]\n" +
+		"   set <403|404> <path_relative_to_site_root> <path> [path ...]",
+	Action: func(c *cli.Context) {
+		if len(c.Args()) < 3 {
+			fmt.Fprintln(os.Stderr, "need at least 3 args")
+			os.Exit(1)
+		}
+		editor, err := newKBPConfigEditor(c.GlobalString("dir"))
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"creating config editor error: %v\n", err)
+			os.Exit(1)
+		}
+		switch c.Args()[0] {
+		case "Access-Control-Allow-Origin":
+			for _, p := range c.Args()[2:] {
+				err := editor.setAccessControlAllowOrigin(p, c.Args()[1])
+				if err != nil {
+					fmt.Fprintf(os.Stderr,
+						"setting Access-Control-Allow-Origin %q on %q error: %v\n",
+						c.Args()[1], p, err)
+					os.Exit(1)
+				}
+			}
+		case "403":
+			for _, p := range c.Args()[2:] {
+				err := editor.set403(p, c.Args()[1])
+				if err != nil {
+					fmt.Fprintf(os.Stderr,
+						"setting custom 403 page %q on %q error: %v\n",
+						c.Args()[1], p, err)
+					os.Exit(1)
+				}
+			}
+		case "404":
+			for _, p := range c.Args()[2:] {
+				err := editor.set404(p, c.Args()[1])
+				if err != nil {
+					fmt.Fprintf(os.Stderr,
+						"setting custom 404 page %q on %q error: %v\n",
+						c.Args()[1], p, err)
+					os.Exit(1)
+				}
+			}
+		default:
+			fmt.Fprintf(os.Stderr, "unknown parameter: %s\n", c.Args()[0])
+			os.Exit(1)
+		}
+		if err := editor.confirmAndWrite(); err != nil {
+			fmt.Fprintf(os.Stderr, "writing new config error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
 var perPathCmd = cli.Command{
 	Name:      "per-path",
 	Usage:     "make changes to the 'per_path_configs' section of the config",
@@ -181,5 +239,6 @@ var perPathCmd = cli.Command{
 		perPathClearCmd,
 		perPathUnsetUserPermissionsCmd,
 		perPathGetPermissionCmd,
+		perPathSetCmd,
 	},
 }

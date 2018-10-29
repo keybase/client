@@ -49,7 +49,18 @@ func (e ErrUndefinedUsername) Error() string {
 // that has both ACLs and PerPathConfigs defined.
 type ErrACLsPerPathConfigsBothPresent struct{}
 
+// Error implements the error interface.
 func (ErrACLsPerPathConfigsBothPresent) Error() string {
 	return "We are deprecating `acls` and moving to `per_path_configs`. " +
 		"Please use `per_path_configs`."
+}
+
+// ErrInvalidConfig is returned when an invalid config is provided.
+type ErrInvalidConfig struct {
+	msg string
+}
+
+// Error implements the error interface.
+func (e ErrInvalidConfig) Error() string {
+	return fmt.Sprintf("invalid config: %s", e.msg)
 }
