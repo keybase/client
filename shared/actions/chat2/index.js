@@ -1277,7 +1277,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-  return Saga.sequentially([addMessage, postText])
+  return Saga.sequentially([addMessage, postText, addMessage])
 }
 
 const messageSendWithResult = (result, action) => {
