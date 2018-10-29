@@ -98,10 +98,6 @@ class Wallet extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  assetHeader: {
-    backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.xtiny,
-  },
   historyPlaceholder: {
     marginTop: 36,
   },
