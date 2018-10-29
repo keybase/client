@@ -6,7 +6,11 @@ import * as Types from '../../constants/types/wallets'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
-import SectionHeader from './section-header'
+
+const stripePatternName = Styles.isMobile
+  ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
+  : 'pattern-stripes-blue-5-black-5-desktop.png'
+const stripePatternSize = Styles.isMobile ? 18 : 9
 
 type Props = {
   accountID: Types.AccountID,
@@ -74,7 +78,17 @@ class Wallet extends React.Component<Props> {
     return index
   }
 
-  _renderSectionHeader = ({section}) => <SectionHeader title={section.title} striped={section.stripeHeader} />
+  _renderSectionHeader = ({section}) => (
+    <Kb.BackgroundRepeatBox
+      imageHeight={stripePatternSize}
+      imageName={stripePatternName}
+      imageWidth={stripePatternSize}
+      skipBackground={!section.stripeHeader}
+      style={styles.sectionHeader}
+    >
+      <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+    </Kb.BackgroundRepeatBox>
+  )
 
   _onEndReached = () => {
     this.props.onLoadMore()
@@ -110,6 +124,12 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 10,
     width: 20,
+  },
+  sectionHeader: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.blue5,
+    padding: Styles.globalMargins.xtiny,
+    width: '100%',
   },
   spinner: {
     height: 46,
