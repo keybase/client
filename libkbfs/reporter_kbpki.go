@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -24,7 +23,6 @@ const (
 	errorParamMode                = "mode"
 	errorParamFeature             = "feature"
 	errorParamUsername            = "username"
-	errorParamExternal            = "external"
 	errorParamRekeySelf           = "rekeyself"
 	errorParamUsageBytes          = "usageBytes"
 	errorParamLimitBytes          = "limitBytes"
@@ -124,16 +122,6 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeWrite
 		filename = e.Filename
-	case NoSuchUserError:
-		if !noErrorNames[e.Input] {
-			code = keybase1.FSErrorType_USER_NOT_FOUND
-			params[errorParamUsername] = e.Input
-			if strings.ContainsAny(e.Input, "@:") {
-				params[errorParamExternal] = "true"
-			} else {
-				params[errorParamExternal] = "false"
-			}
-		}
 	case UnverifiableTlfUpdateError:
 		code = keybase1.FSErrorType_REVOKED_DATA_DETECTED
 	case NoCurrentSessionError:
