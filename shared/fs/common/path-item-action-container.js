@@ -15,6 +15,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {
   path: Types.Path,
@@ -136,7 +137,7 @@ const inTlfAppenders: Array<MenuItemAppender> = [
   aShareNative,
   aDownload,
   aCopyPath,
-  aMoveOrCopy,
+  ...(flags.moveOrCopy ? [aMoveOrCopy] : []),
   aDelete,
 ]
 
