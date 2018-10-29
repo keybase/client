@@ -93,12 +93,16 @@ type blockPrefetcher struct {
 	doneCh chan struct{}
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
+	// channel that's always closed, to avoid overhead on certain requests
+	closedCh <-chan struct{}
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
 func newBlockPrefetcher(retriever BlockRetriever,
 	config prefetcherConfig, testSyncCh <-chan struct{}) *blockPrefetcher {
+	closedCh := make(chan struct{})
+	close(closedCh)
 	p := &blockPrefetcher{
 		config:            config,
 		retriever:         retriever,
@@ -109,6 +113,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		almostDoneCh:      make(chan struct{}, 1),
 		doneCh:            make(chan struct{}),
 		prefetches:        make(map[kbfsblock.ID]*prefetch),
+		closedCh:          closedCh,
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -507,9 +512,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// channel request is processed.)
 			if req.sendCh != nil {
 				if !isPrefetchWaiting {
-					c := make(chan struct{})
-					close(c)
-					req.sendCh <- c
+					req.sendCh <- p.closedCh
 				} else {
 					req.sendCh <- pre.waitCh
 				}
