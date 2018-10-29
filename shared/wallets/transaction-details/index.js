@@ -74,80 +74,18 @@ const CounterpartyKeybaseUser = (props: CounterpartyKeybaseUserProps) => (
   </Kb.Box2>
 )
 
-type CounterpartyIconProps = {|
-  counterparty: string,
-  counterpartyType: 'stellarPublicKey' | 'otherAccount',
-|}
-
-export const CounterpartyIcon = (props: CounterpartyIconProps) => {
-  const size = 32
-  switch (props.counterpartyType) {
-    case 'stellarPublicKey':
-      return <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: size, width: size}} />
-    case 'otherAccount':
-      return <Kb.Icon type="icon-wallet-32" style={{height: size, width: size}} />
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
-      return null
-  }
-}
-
-type CounterpartyTextProps = {|
-  counterparty: string,
-  counterpartyType: Types.CounterpartyType,
-  onShowProfile: string => void,
-|}
-
-export const CounterpartyText = (props: CounterpartyTextProps) => {
-  switch (props.counterpartyType) {
-    case 'keybaseUser':
-      return (
-        <Kb.ConnectedUsernames
-          colorFollowing={true}
-          colorBroken={true}
-          inline={true}
-          onUsernameClicked={props.onShowProfile}
-          type="BodySmallSemibold"
-          underline={true}
-          usernames={[props.counterparty]}
-        />
-      )
-    case 'stellarPublicKey':
-      return (
-        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-          {props.counterparty}
-        </Kb.Text>
-      )
-    case 'otherAccount':
-      return <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
-      break
-  }
-  return null
-}
-
 type CounterpartyStellarProps = {
   counterparty: string,
-  onShowProfile: string => void,
 }
 
 const CounterpartyStellar = (props: CounterpartyStellarProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon counterparty={props.counterparty} counterpartyType="stellarPublicKey" />
+      <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-        <CounterpartyText
-          counterparty={props.counterparty}
-          counterpartyType="stellarPublicKey"
-          onShowProfile={props.onShowProfile}
-        />
+        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+          {props.counterparty}
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -156,19 +94,14 @@ const CounterpartyStellar = (props: CounterpartyStellarProps) => {
 type PartyAccountProps = {
   accountID: ?Types.AccountID,
   counterparty: string,
-  onShowProfile?: string => void,
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon counterparty={props.counterparty} counterpartyType="otherAccount" />
+      <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-        <CounterpartyText
-          counterparty={props.counterparty}
-          counterpartyType="otherAccount"
-          onShowProfile={props.onShowProfile || (() => {})}
-        />
+        <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
@@ -193,13 +126,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'stellarPublicKey':
       return <CounterpartyStellar counterparty={props.counterparty} onShowProfile={props.onShowProfile} />
     case 'otherAccount':
-      return (
-        <PartyAccount
-          accountID={props.accountID}
-          counterparty={props.counterparty}
-          onShowProfile={props.onShowProfile}
-        />
-      )
+      return <PartyAccount accountID={props.accountID} counterparty={props.counterparty} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
