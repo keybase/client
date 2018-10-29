@@ -45,6 +45,35 @@ export type Props =
   | NotLoadingProps
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
+type CounterpartyKeybaseUserProps = {
+  accountID: ?Types.AccountID,
+  counterparty: string,
+  counterpartyMeta: ?string,
+  onChat: string => void,
+  onShowProfile: string => void,
+}
+
+const CounterpartyKeybaseUser = (props: CounterpartyKeybaseUserProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.NameWithIcon
+      colorFollowing={true}
+      horizontal={true}
+      onClick={() => props.onShowProfile(props.counterparty)}
+      username={props.counterparty}
+      metaOne={props.counterpartyMeta}
+      underline={true}
+      metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
+    />
+    <Kb.Button
+      type="Secondary"
+      label="Chat"
+      small={true}
+      style={styles.chatButton}
+      onClick={() => props.onChat(props.counterparty)}
+    />
+  </Kb.Box2>
+)
+
 type CounterpartyIconProps = {|
   counterparty: string,
   counterpartyType: 'stellarPublicKey' | 'otherAccount',
@@ -104,41 +133,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   return null
 }
 
-type CounterpartyProps = {|
+type PartyProps = {
   accountID: ?Types.AccountID,
   counterparty: string,
-  counterpartyType: Types.CounterpartyType,
-  // counterpartyMeta, onChat, and onShowProfile are used only when
-  // counterpartyType === 'keybaseUser'.
-  counterpartyMeta: ?string,
-  onChat: string => void,
+  counterpartyType: 'stellarPublicKey' | 'otherAccount',
   onShowProfile: string => void,
-|}
+}
 
-const Counterparty = (props: CounterpartyProps) => {
-  if (props.counterpartyType === 'keybaseUser') {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.NameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          onClick={() => props.onShowProfile(props.counterparty)}
-          username={props.counterparty}
-          metaOne={props.counterpartyMeta}
-          underline={true}
-          metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
-        />
-        <Kb.Button
-          type="Secondary"
-          label="Chat"
-          small={true}
-          style={styles.chatButton}
-          onClick={() => props.onChat(props.counterparty)}
-        />
-      </Kb.Box2>
-    )
-  }
-
+const Party = (props: PartyProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true}>
       <CounterpartyIcon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
@@ -152,6 +154,32 @@ const Counterparty = (props: CounterpartyProps) => {
           props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
+  )
+}
+
+type CounterpartyProps = {|
+  accountID: ?Types.AccountID,
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  // counterpartyMeta, onChat, and onShowProfile are used only when
+  // counterpartyType === 'keybaseUser'.
+  counterpartyMeta: ?string,
+  onChat: string => void,
+  onShowProfile: string => void,
+|}
+
+const Counterparty = (props: CounterpartyProps) => {
+  if (props.counterpartyType === 'keybaseUser') {
+    return <CounterpartyKeybaseUser {...props} />
+  }
+
+  return (
+    <Party
+      accountID={props.accountID}
+      counterparty={props.counterparty}
+      counterpartyType={props.counterpartyType}
+      onShowProfile={props.onShowProfile}
+    />
   )
 }
 
