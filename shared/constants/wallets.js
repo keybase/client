@@ -481,6 +481,7 @@ const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
+const loadDisplayCurrencyWaitingKey = 'wallets:loadDisplayCurrency'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const buildPaymentWaitingKey = 'wallets:buildPayment'
@@ -584,6 +585,7 @@ export {
   buildPaymentWaitingKey,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
+  loadDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   changeAccountNameWaitingKey,
   balanceDeltaToString,

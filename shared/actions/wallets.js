@@ -329,9 +329,12 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   if (accountID && !Types.isValidAccountID(accountID)) {
     accountID = null
   }
-  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
-    accountID: accountID,
-  }).then(res =>
+  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise(
+    {
+      accountID: accountID,
+    },
+    Constants.loadDisplayCurrencyWaitingKey
+  ).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: accountID,
       currency: Constants.makeCurrencies(res),

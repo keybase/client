@@ -36,7 +36,7 @@ const AssetInput = (props: Props) => {
             <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
               {props.displayUnit}
             </Kb.Text>
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
+            <Kb.Text type="BodySmallPrimaryLink" onClick={props.displayUnit && props.onChangeDisplayUnit}>
               Change
             </Kb.Text>
           </Kb.Box2>

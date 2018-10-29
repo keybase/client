@@ -4,6 +4,7 @@ import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {compose, connect, setDisplayName} from '../../../util/container'
+import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
   onConfirm?: () => void, // if showing confirm form directly (not through routing)
@@ -11,11 +12,13 @@ type OwnProps = {
 
 const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
+  const isReady = isRequest
+    ? state.wallets.builtRequest.readyToRequest
+    : state.wallets.builtPayment.readyToSend
+  const currencyWaiting = anyWaiting(state, Constants.loadDisplayCurrencyWaitingKey)
   return {
     calculating: !!state.wallets.building.amount,
-    disabled: !(isRequest
-      ? state.wallets.builtRequest.readyToRequest
-      : state.wallets.builtPayment.readyToSend),
+    disabled: !isReady || currencyWaiting,
     isRequest,
     waitingKey: Constants.buildPaymentWaitingKey,
     worthDescription: isRequest
