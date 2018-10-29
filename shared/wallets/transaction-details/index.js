@@ -133,25 +133,43 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   return null
 }
 
-type PartyProps = {
-  accountID: ?Types.AccountID,
+type CounterpartyStellarProps = {
   counterparty: string,
-  counterpartyType: 'stellarPublicKey' | 'otherAccount',
   onShowProfile: string => void,
 }
 
-const Party = (props: PartyProps) => {
+const CounterpartyStellar = (props: CounterpartyStellarProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon counterparty={props.counterparty} counterpartyType={props.counterpartyType} />
+      <CounterpartyIcon counterparty={props.counterparty} counterpartyType="stellarPublicKey" />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
-          counterpartyType={props.counterpartyType}
+          counterpartyType="stellarPublicKey"
           onShowProfile={props.onShowProfile}
         />
-        {props.counterpartyType !== 'stellarPublicKey' &&
-          props.accountID && <SmallAccountID accountID={props.accountID} />}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+type PartyAccountProps = {
+  accountID: ?Types.AccountID,
+  counterparty: string,
+  onShowProfile: string => void,
+}
+
+const PartyAccount = (props: PartyAccountProps) => {
+  return (
+    <Kb.Box2 direction="horizontal" fullHeight={true}>
+      <CounterpartyIcon counterparty={props.counterparty} counterpartyType="otherAccount" />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
+        <CounterpartyText
+          counterparty={props.counterparty}
+          counterpartyType="otherAccount"
+          onShowProfile={props.onShowProfile}
+        />
+        {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -169,18 +187,27 @@ type CounterpartyProps = {|
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
-  if (props.counterpartyType === 'keybaseUser') {
-    return <CounterpartyKeybaseUser {...props} />
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      return <CounterpartyKeybaseUser {...props} />
+    case 'stellarPublicKey':
+      return <CounterpartyStellar counterparty={props.counterparty} onShowProfile={props.onShowProfile} />
+    case 'otherAccount':
+      return (
+        <PartyAccount
+          accountID={props.accountID}
+          counterparty={props.counterparty}
+          onShowProfile={props.onShowProfile}
+        />
+      )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      break
   }
-
-  return (
-    <Party
-      accountID={props.accountID}
-      counterparty={props.counterparty}
-      counterpartyType={props.counterpartyType}
-      onShowProfile={props.onShowProfile}
-    />
-  )
+  return null
 }
 
 const YourAccount = props => {
