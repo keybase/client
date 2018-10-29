@@ -28,6 +28,11 @@ const sentProps = {
   pending: false,
 }
 
+const sentNoMemoProps = {
+  ...sentProps,
+  memo: '',
+}
+
 const sendingProps = {
   ...common,
   action: 'sending Lumens worth',
@@ -104,6 +109,7 @@ const load = () => {
   storiesOf('Chat/Conversation/Account payments', module)
     .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
     .add('Sent', () => <Payment {...sentProps} />)
+    .add('Sent (no memo)', () => <Payment {...sentNoMemoProps} />)
     .add('Sending', () => <Payment {...sendingProps} />)
     .add(`Relay from sender's perspective`, () => <Payment {...cancelableProps} />)
     .add(`Relay from recipient's perspective`, () => <Payment {...claimableProps} />)
