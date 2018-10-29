@@ -99,6 +99,12 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "BBnsAiKyNfocRwmEav5EJpVCwzk=",
+			"path": "github.com/btcsuite/btcutil/bech32",
+			"revision": "ab6388e0c60ae4834a1f57511e20c17b5f78be4b",
+			"revisionTime": "2018-07-06T23:06:48Z"
+		},
+		{
 			"checksumSHA1": "aoxx8YjlpunfhKBTyZKjOH55G10=",
 			"path": "github.com/buger/jsonparser",
 			"revision": "4be68c93a24430ddf9c33d1380b7042fd3a13424",
