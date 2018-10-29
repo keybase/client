@@ -54,6 +54,7 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 		Revision:       bundle.Revision,
 		Prev:           bundle.Prev,
 		AccountBundles: make(map[stellar1.AccountID]stellar1.AccountBundle),
+		OwnHash:        bundle.OwnHash,
 	}
 	if r.Revision > 1 && (r.Prev == nil || len(r.Prev) == 0) {
 		return nil, fmt.Errorf("NewFromBundle missing Prev: %+v", bundle)
