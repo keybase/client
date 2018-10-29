@@ -55,12 +55,18 @@ func TestParserFail1(t *testing.T) {
 		{"reddit:", "Bad username: ''"},
 		{"reddit://", "Bad username: ''"},
 		{"gubble.social:", "username must be at least 2 characters, was 0"},
+		{"@gubble.social", "username must be at least 2 characters, was 0"},
+		{"@rooter", "Bad username: ''"},
+		{"@zzzzz", "Unknown social network: zzzzz"},
 
 		// Service name missing
 		{"hello@", "Invalid key-value identity: hello@"},
-		{"://", "Invalid key-value identity: ://"},
-		{"://what", "Invalid key-value identity: ://what"},
 		{":illegal", "Invalid key-value identity: :illegal"},
+		{"://what", "Invalid key-value identity: ://what"},
+
+		{"@", "Invalid key-value identity: @"},
+		{":", "Invalid key-value identity: :"},
+		{"://", "Invalid key-value identity: ://"},
 
 		{"alice@rooter@email", "Invalid key-value identity: alice@rooter@email"},
 		{"alice@keybase.io@email", "Invalid key-value identity: alice@keybase.io@email"},
@@ -79,6 +85,8 @@ func TestParserFail1(t *testing.T) {
 		{"email:alice@keybase.io", "Invalid key-value identity: email:alice@keybase.io"},
 		// similar to above
 		{"email://alice@keybase.io", "Invalid key-value identity: email://alice@keybase.io"},
+		// non-email example
+		{"rooter:alice@twitter", "Invalid key-value identity: rooter:alice@twitter"},
 
 		// [] is parser-level illegal
 		{"[]@email", "Invalid key-value identity: []@email"},
