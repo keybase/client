@@ -110,6 +110,7 @@ func (p *proofServices) ListProofCheckers() []string {
 }
 
 func (p *proofServices) loadParamProofServices() {
+	// TODO Remove with CORE-8969
 	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
 	if !shouldRun {
