@@ -5,7 +5,6 @@ import {capitalize} from 'lodash-es'
 import {
   Avatar,
   Box2,
-  Button,
   ClickableBox,
   Icon,
   ConnectedUsernames,
