@@ -8,6 +8,7 @@ import Tlf from './tlf'
 
 type OwnProps = $Diff<Types.TlfRowItem, {rowType: 'tlf'}> & {
   routePath: I.List<string>,
+  inDestinationPicker?: boolean,
 }
 
 const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
@@ -15,11 +16,12 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
   _username: state.config.username,
 })
 
-const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath}) => {
+const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath, inDestinationPicker}) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   return {
+    inDestinationPicker,
     isIgnored: stateProps._tlf.isIgnored,
     isNew: shouldBadge && stateProps._tlf.isNew,
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),

@@ -259,12 +259,16 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 	info := chat1.UIPaymentInfo{
 		AccountID:         &summary.FromAccountID,
 		AmountDescription: summary.AmountDescription,
-		Worth:             summary.Worth,
 		Delta:             summary.Delta,
 		Note:              summary.Note,
 		PaymentID:         summary.Id,
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
+	}
+
+	if summary.Worth != "" && summary.WorthCurrency != "" {
+		// always include currency code:
+		info.Worth = summary.Worth + " " + summary.WorthCurrency
 	}
 
 	info.Delta = stellar1.BalanceDelta_NONE

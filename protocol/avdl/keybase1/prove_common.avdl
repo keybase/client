@@ -118,7 +118,10 @@ protocol proveCommon {
   }
 
   record ParamProofServiceConfig {
-    int version;
+    @jsonkey("schema_version")
+    int schemaVersion;
+    @jsonkey("config_version")
+    int configVersion;
     string domain;
     @jsonkey("display_name")
     string displayName;

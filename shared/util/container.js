@@ -3,6 +3,7 @@ import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
 
 export const NullComponent = () => null
+export const actionHasError = (a: Object) => !!a.error
 
 type TypedDispatch = (action: TypedActions) => void
 type Dispatch = TypedDispatch

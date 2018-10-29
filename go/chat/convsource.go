@@ -153,7 +153,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
-	thread.Messages = utils.FilterExploded(conv.GetExpunge(), thread.Messages, s.boxer.clock.Now())
+	thread.Messages = utils.FilterExploded(conv, thread.Messages, s.boxer.clock.Now())
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result

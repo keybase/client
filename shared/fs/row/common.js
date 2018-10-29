@@ -137,6 +137,7 @@ export type StillCommonProps = {
   itemStyles: Types.ItemStyles,
   name: string,
   path: Types.Path,
+  inDestinationPicker?: boolean,
   onOpen: () => void,
 }
 
@@ -152,9 +153,13 @@ export const StillCommon = (
       </Box2>
       {props.children}
     </ClickableBox>
-    <Box style={rowStyles.rightBox}>
-      <OpenInSystemFileManager path={props.path} />
-      <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
-    </Box>
+    {!props.inDestinationPicker && (
+      <Box style={rowStyles.rightBox}>
+        <OpenInSystemFileManager path={props.path} />
+        <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
+      </Box>
+    )}
   </HoverBox>
 )
+
+export const rowHeight = Styles.isMobile ? 64 : 40

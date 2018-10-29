@@ -41,6 +41,9 @@ type Stellar struct {
 	bpcLock sync.Mutex
 	bpc     BuildPaymentCache
 
+	disclaimerLock     sync.Mutex
+	disclaimerAccepted *keybase1.UserVersion // A UV who has accepted the disclaimer.
+
 	badger *badges.Badger
 }
 
@@ -67,6 +70,7 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 func (s *Stellar) OnLogout() {
 	s.shutdownAutoClaimRunner()
 	s.deleteBpc()
+	s.deleteDisclaimer()
 }
 
 func (s *Stellar) shutdownAutoClaimRunner() {
@@ -83,6 +87,12 @@ func (s *Stellar) deleteBpc() {
 	s.bpcLock.Lock()
 	defer s.bpcLock.Unlock()
 	s.bpc = nil
+}
+
+func (s *Stellar) deleteDisclaimer() {
+	s.disclaimerLock.Lock()
+	defer s.disclaimerLock.Unlock()
+	s.disclaimerAccepted = nil
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
@@ -161,6 +171,83 @@ func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.Acco
 
 	s.badger.SetWalletAccountUnreadCount(ctx, accountID, unread)
 	return nil
+}
+
+type hasAcceptedDisclaimerDBEntry struct {
+	Version  int // 1
+	Accepted bool
+}
+
+// For a UV, accepted starts out false and transitions to true. It never becomes false again.
+// A cached true is returned, but a false always hits the server.
+func (s *Stellar) hasAcceptedDisclaimer(ctx context.Context) (bool, error) {
+	log := func(format string, args ...interface{}) {
+		s.G().Log.CDebugf(ctx, "Stellar.hasAcceptedDisclaimer "+format, args...)
+	}
+	uv, err := s.G().GetMeUV(ctx)
+	if err != nil {
+		return false, err
+	}
+	s.disclaimerLock.Lock()
+	defer s.disclaimerLock.Unlock()
+	// Check memory
+	memAccepted := s.disclaimerAccepted != nil && s.disclaimerAccepted.Eq(uv)
+	log("mem -> %v", memAccepted)
+	if memAccepted {
+		return true, nil
+	}
+	// Check disk
+	dbKey := libkb.DbKey{
+		Typ: libkb.DBStellarDisclaimer,
+		Key: uv.String(),
+	}
+	var dbEntry hasAcceptedDisclaimerDBEntry
+	found, err := s.G().LocalDb.GetInto(&dbEntry, dbKey)
+	log("disk -> [found:%v err:(%v) v:%v accepted:%v]", found, err, dbEntry.Version, dbEntry.Accepted)
+	if err == nil && found && dbEntry.Version == 1 && dbEntry.Accepted {
+		err = s.informAcceptedDisclaimerLocked(ctx)
+		if err != nil {
+			log("store -> err:(%v)", err)
+		}
+		return true, nil
+	}
+	// Check remote
+	accepted, err := remote.GetAcceptedDisclaimer(ctx, s.G())
+	log("remote -> [err:(%v) accepted:%v]", err, accepted)
+	if err != nil {
+		return false, err
+	}
+	if accepted {
+		err = s.informAcceptedDisclaimerLocked(ctx)
+		if err != nil {
+			log("store -> err:(%v)", err)
+		}
+	}
+	return accepted, nil
+}
+
+func (s *Stellar) informAcceptedDisclaimer(ctx context.Context) {
+	s.disclaimerLock.Lock()
+	defer s.disclaimerLock.Unlock()
+	_ = s.informAcceptedDisclaimerLocked(ctx)
+}
+
+func (s *Stellar) informAcceptedDisclaimerLocked(ctx context.Context) (err error) {
+	defer s.G().CTraceTimed(ctx, "Stellar.informAcceptedDisclaimer", func() error { return err })()
+	uv, err := s.G().GetMeUV(ctx)
+	if err != nil {
+		return err
+	}
+	// Store memory
+	s.disclaimerAccepted = &uv
+	// Store disk
+	return s.G().LocalDb.PutObj(libkb.DbKey{
+		Typ: libkb.DBStellarDisclaimer,
+		Key: uv.String(),
+	}, nil, hasAcceptedDisclaimerDBEntry{
+		Version:  1,
+		Accepted: true,
+	})
 }
 
 // getFederationClient is a helper function used during

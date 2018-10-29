@@ -11,6 +11,7 @@ import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
+import {actionHasError} from '../util/container'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -279,7 +280,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           if (!message || message.type !== 'attachment') {
             return message
           }
-          const path = action.error ? '' : action.payload.path
+          const path = actionHasError(action) ? '' : action.payload.path
           return message
             .set('downloadPath', path)
             .set('transferProgress', 0)

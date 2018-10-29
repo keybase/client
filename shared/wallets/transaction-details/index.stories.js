@@ -61,7 +61,7 @@ const load = () => {
     .add('Sending to Stellar public key', () => (
       <TransactionDetails
         {...props}
-        counterparty="G43289XXXXX34OPL"
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
         counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
         amountUser="$15.65"

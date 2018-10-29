@@ -16,6 +16,7 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
   foldersInProfileTab: false,
+  moveOrCopy: false,
   newTeamBuildingForChat: false,
   outOfDateBanner: false,
   plansEnabled: false,
@@ -25,6 +26,7 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
+  moveOrCopy: true,
   useSimpleMarkdown: true,
   walletsEnabled: true,
 }

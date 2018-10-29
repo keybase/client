@@ -470,11 +470,11 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 
 // Filter messages that are both exploded that are no longer shown in the GUI
 // (as ash lines)
-func FilterExploded(expunge *chat1.Expunge, msgs []chat1.MessageUnboxed, now time.Time) (res []chat1.MessageUnboxed) {
+func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxed, now time.Time) (res []chat1.MessageUnboxed) {
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			mvalid := msg.Valid()
-			if mvalid.IsEphemeral() && mvalid.HideExplosion(expunge, now) {
+			if mvalid.IsEphemeral() && mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
 				continue
 			}
 		} else if msg.IsError() {
@@ -795,8 +795,10 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
-	if err != nil {
+	msg, err := PickLatestMessageUnboxed(conv,
+		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+	// If a DELETEHISTORY is the latest message, there is no snippet
+	if err != nil || msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
 		return "", ""
 	}
 	return GetMsgSnippet(msg, conv, currentUsername)

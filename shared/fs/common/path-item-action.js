@@ -43,6 +43,7 @@ type Props = {
   download?: () => void,
   copyPath?: () => void,
   deleteFileOrFolder?: () => void,
+  moveOrCopy?: () => void,
 }
 
 const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: () => void) => (
@@ -144,6 +145,14 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
             onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
             subTitle: 'The folder will no longer appear in your folders list.',
             danger: true,
+          },
+        ]
+      : []),
+    ...(props.moveOrCopy
+      ? [
+          {
+            title: 'Move or Copy',
+            onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
           },
         ]
       : []),

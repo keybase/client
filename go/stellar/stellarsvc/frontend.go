@@ -258,20 +258,17 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
+func (s *Server) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (accepted bool, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "GetWalletSettingsLocal",
+		RPCName: "HasAcceptedDisclaimerLocal",
 		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return ret, err
+		return false, err
 	}
-	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
+
+	return stellar.HasAcceptedDisclaimer(ctx, s.G())
 }
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
@@ -285,6 +282,10 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	}
 
 	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	if err != nil {
+		return err
+	}
+	stellar.InformAcceptedDisclaimer(ctx, s.G())
 	crg, err := stellar.CreateWalletGated(ctx, s.G())
 	if err != nil {
 		return err
@@ -936,6 +937,9 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	res.WorthDescription = amountX.worthDescription
 	res.WorthInfo = amountX.worthInfo
 	res.WorthCurrency = amountX.worthCurrency
+	res.DisplayAmountXLM = amountX.displayAmountXLM
+	res.DisplayAmountFiat = amountX.displayAmountFiat
+	res.SendingIntentionXLM = amountX.sendingIntentionXLM
 
 	if amountX.haveAmount {
 		if !amountX.asset.IsNativeXLM() {
@@ -954,9 +958,9 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
 				switch {
 				case err != nil:
-					log("error comparing amounts", err)
+					log("error comparing amounts (%v) (%v): %v", availableToSendXLM, amountX.amountOfAsset, err)
 				case cmp == -1:
-					// Send amount is more than the available to send.
+					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
 					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
 					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
@@ -970,7 +974,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 						if err != nil {
 							log("error converting available-to-send", err)
 						} else {
-							formattedATS, err := stellar.FormatCurrency(ctx, s.G(), availableToSendOutside, amountX.rate.Currency)
+							formattedATS, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), availableToSendOutside, amountX.rate.Currency)
 							if err != nil {
 								log("error formatting available-to-send", err)
 							} else {
@@ -1054,7 +1058,10 @@ type buildPaymentAmountResult struct {
 	worthInfo        string
 	worthCurrency    string
 	// Rate may be nil if there was an error fetching it.
-	rate *stellar1.OutsideExchangeRate
+	rate                *stellar1.OutsideExchangeRate
+	displayAmountXLM    string
+	displayAmountFiat   string
+	sendingIntentionXLM bool
 }
 
 func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.BuildPaymentCache, arg buildPaymentAmountArg) (res buildPaymentAmountResult) {
@@ -1065,6 +1072,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 	switch {
 	case arg.Currency != nil && arg.Asset == nil:
 		// Amount is of outside currency.
+		res.sendingIntentionXLM = false
 		convertAmountOutside := "0"
 		if arg.Amount == "" {
 			// No amount given. Still convert for 0.
@@ -1114,8 +1122,17 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error making worth info: %v", err)
 			res.worthInfo = ""
 		}
+
+		res.displayAmountXLM = xlmAmountFormatted
+		res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), convertAmountOutside, *arg.Currency)
+		if err != nil {
+			log("error converting for displayAmountFiat: %q / %q : %s", convertAmountOutside, arg.Currency, err)
+			res.displayAmountFiat = ""
+		}
+
 		return res
 	case arg.Currency == nil:
+		res.sendingIntentionXLM = true
 		if arg.Asset != nil {
 			res.asset = *arg.Asset
 		}
@@ -1132,6 +1149,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			useAmount = arg.Amount
 		}
 		if !res.asset.IsNativeXLM() {
+			res.sendingIntentionXLM = false
 			// If sending non-XLM asset, don't try to show a worth.
 			return res
 		}
@@ -1157,7 +1175,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error converting: %v", err)
 			return res
 		}
-		outsideAmountFormatted, err := stellar.FormatCurrency(ctx, s.G(), outsideAmount, xrate.Currency)
+		outsideAmountFormatted, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, xrate.Currency)
 		if err != nil {
 			log("error formatting converted outside amount: %v", err)
 			return res
@@ -1169,6 +1187,20 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error making worth info: %v", err)
 			res.worthInfo = ""
 		}
+
+		res.displayAmountXLM, err = stellar.FormatAmountDescriptionXLM(arg.Amount)
+		if err != nil {
+			log("error formatting xlm %q: %s", arg.Amount, err)
+			res.displayAmountXLM = ""
+		}
+		if arg.Amount != "" {
+			res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, xrate.Currency)
+			if err != nil {
+				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
+				res.displayAmountFiat = ""
+			}
+		}
+
 		return res
 	default:
 		// This is an API contract problem.
@@ -1351,6 +1383,9 @@ func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildReques
 	res.AmountErrMsg = amountX.amountErrMsg
 	res.WorthDescription = amountX.worthDescription
 	res.WorthInfo = amountX.worthInfo
+	res.DisplayAmountXLM = amountX.displayAmountXLM
+	res.DisplayAmountFiat = amountX.displayAmountFiat
+	res.SendingIntentionXLM = amountX.sendingIntentionXLM
 	readyChecklist.amount = amountX.haveAmount
 
 	// -------------------- note --------------------

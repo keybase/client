@@ -19,6 +19,7 @@ type OwnProps = {
   sortSetting: Types.SortSetting,
   routePath: I.List<string>,
   ifEmpty?: ?React.Node,
+  inDestinationPicker?: boolean,
 }
 
 const getEditingRows = (
@@ -179,6 +180,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
   routePath: o.routePath,
   ifEmpty: o.ifEmpty,
+  inDestinationPicker: o.inDestinationPicker,
 })
 
 export default compose(

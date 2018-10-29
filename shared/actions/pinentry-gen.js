@@ -51,13 +51,13 @@ type _SubtractEntityPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({error: false, payload, type: deleteEntity})
-export const createMergeEntity = (payload: _MergeEntityPayload) => ({error: false, payload, type: mergeEntity})
-export const createNewPinentry = (payload: _NewPinentryPayload) => ({error: false, payload, type: newPinentry})
-export const createOnCancel = (payload: _OnCancelPayload) => ({error: false, payload, type: onCancel})
-export const createOnSubmit = (payload: _OnSubmitPayload) => ({error: false, payload, type: onSubmit})
-export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({error: false, payload, type: replaceEntity})
-export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({error: false, payload, type: subtractEntity})
+export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({payload, type: deleteEntity})
+export const createMergeEntity = (payload: _MergeEntityPayload) => ({payload, type: mergeEntity})
+export const createNewPinentry = (payload: _NewPinentryPayload) => ({payload, type: newPinentry})
+export const createOnCancel = (payload: _OnCancelPayload) => ({payload, type: onCancel})
+export const createOnSubmit = (payload: _OnSubmitPayload) => ({payload, type: onSubmit})
+export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({payload, type: replaceEntity})
+export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({payload, type: subtractEntity})
 
 // Action Payloads
 export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>

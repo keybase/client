@@ -30,10 +30,10 @@ type _PeopleDataProcessedPayload = $ReadOnly<{|
 type _SkipTodoPayload = $ReadOnly<{|type: Types.TodoType|}>
 
 // Action Creators
-export const createGetPeopleData = (payload: _GetPeopleDataPayload) => ({error: false, payload, type: getPeopleData})
-export const createMarkViewed = (payload: _MarkViewedPayload) => ({error: false, payload, type: markViewed})
-export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({error: false, payload, type: peopleDataProcessed})
-export const createSkipTodo = (payload: _SkipTodoPayload) => ({error: false, payload, type: skipTodo})
+export const createGetPeopleData = (payload: _GetPeopleDataPayload) => ({payload, type: getPeopleData})
+export const createMarkViewed = (payload: _MarkViewedPayload) => ({payload, type: markViewed})
+export const createPeopleDataProcessed = (payload: _PeopleDataProcessedPayload) => ({payload, type: peopleDataProcessed})
+export const createSkipTodo = (payload: _SkipTodoPayload) => ({payload, type: skipTodo})
 
 // Action Payloads
 export type GetPeopleDataPayload = $Call<typeof createGetPeopleData, _GetPeopleDataPayload>
