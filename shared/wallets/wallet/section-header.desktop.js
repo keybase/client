@@ -12,6 +12,7 @@ const stripePatternUrl = urlsToImgSet({'9': stripePattern}, 9)
 const SectionHeader = (props: Props) => (
   <Kb.Box2
     direction="vertical"
+    fullWidth={true}
     style={Styles.collapseStyles([
       styles.padding,
       props.striped ? styles.backgroundImage : styles.backgroundColor,
