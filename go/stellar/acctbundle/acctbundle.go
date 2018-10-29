@@ -112,8 +112,8 @@ func newVisibleParent(a *stellar1.BundleRestricted, accountsVisible []stellar1.B
 	}
 }
 
-func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
-	benc := BundleEncodedB64{
+func (b BoxedEncoded) toBundleEncodedB64() BundleEncoded {
+	benc := BundleEncoded{
 		EncParent:   b.EncParentB64,
 		VisParent:   b.VisParentB64,
 		AcctBundles: make(map[stellar1.AccountID]string),
@@ -126,9 +126,9 @@ func (b BoxedEncoded) toBundleEncodedB64() BundleEncodedB64 {
 	return benc
 }
 
-// BundleEncodedB64 contains all the encoded fields for communicating
+// BundleEncoded contains all the encoded fields for communicating
 // with the api server to post and get account bundles.
-type BundleEncodedB64 struct {
+type BundleEncoded struct {
 	EncParent           string                        `json:"encrypted_parent"` // base64 msgpacked Enc
 	VisParent           string                        `json:"visible_parent"`
 	FormatVersionParent stellar1.AccountBundleVersion `json:"version_parent"`
@@ -340,7 +340,7 @@ type PukFinder interface {
 // DecodeAndUnbox decodes the encrypted and visible encoded bundles and unboxes
 // the encrypted bundle using PukFinder to find the correct puk.  It combines
 // the results into a stellar1.AccountBundle.
-func DecodeAndUnbox(m libkb.MetaContext, finder PukFinder, encodedBundle BundleEncodedB64) (*stellar1.BundleRestricted, stellar1.BundleVersion, error) {
+func DecodeAndUnbox(m libkb.MetaContext, finder PukFinder, encodedBundle BundleEncoded) (*stellar1.BundleRestricted, stellar1.BundleVersion, error) {
 	encBundle, hash, err := decodeParent(encodedBundle.EncParent)
 	if err != nil {
 		return nil, 0, err

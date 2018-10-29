@@ -193,7 +193,7 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	}
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
-	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncodedB64)
+	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncoded)
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
@@ -225,7 +225,7 @@ type fetchRes struct {
 
 type fetchAcctRes struct {
 	libkb.AppStatusEmbed
-	acctbundle.BundleEncodedB64
+	acctbundle.BundleEncoded
 }
 
 // Fetch and unbox the latest bundle from the server.
