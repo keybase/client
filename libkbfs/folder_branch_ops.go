@@ -623,10 +623,12 @@ func (fbo *folderBranchOps) commitHeadLocked(
 	}
 	rev := fbo.head.Revision()
 
+	id := fbo.id()
+	log := fbo.log
 	go func() {
-		err := diskMDCache.Commit(ctx, fbo.id(), rev)
+		err := diskMDCache.Commit(ctx, id, rev)
 		if err != nil {
-			fbo.log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
+			log.CDebugf(ctx, "Error commiting revision %d: %+v", rev, err)
 		}
 	}()
 }

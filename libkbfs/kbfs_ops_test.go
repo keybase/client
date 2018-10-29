@@ -4045,6 +4045,8 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
+
+	t.Log("Sync the first device")
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
