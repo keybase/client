@@ -5285,6 +5285,8 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		}
 		diskCache := fbo.config.DiskBlockCache()
 		if diskCache != nil {
+			// Delete from the working set cache.  (The sync cache is
+			// managed by `folderBlockManager`.)
 			go diskCache.Delete(ctx, idsToDelete)
 		}
 	case *resolutionOp:
@@ -5597,6 +5599,7 @@ func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, l
 		close(fbo.latestMergedUpdated)
 	}
 	fbo.latestMergedUpdated = make(chan struct{})
+	fbo.fbm.signalLatestMergedRevision()
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -6117,6 +6120,9 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		return err
 	}
 	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
+		return err
+	}
+	if err := fbo.fbm.waitForSyncCacheCleans(ctx); err != nil {
 		return err
 	}
 

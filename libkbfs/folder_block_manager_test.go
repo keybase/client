@@ -6,13 +6,17 @@ package libkbfs
 
 import (
 	"bytes"
+	"os"
 	"reflect"
 	"testing"
 	"time"
 
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -817,4 +821,78 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	if g, e := gcOp.LatestRev, md.Revision()-1; g != e {
 		t.Fatalf("Last GCOp revision was unexpected: %d vs %d", g, e)
 	}
+}
+
+func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+
+	var userName kbname.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	config.EnableDiskLimiter(tempdir)
+	config.loadSyncedTlfsLocked()
+	config.diskCacheMode = DiskCacheModeLocal
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	dbc := config.DiskBlockCache()
+	oldBserver := config.BlockServer()
+	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
+	defer config.SetBlockServer(oldBserver)
+
+	t.Log("Making synced private TLF")
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
+	kbfsOps := config.KBFSOps()
+	err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	require.NoError(t, err)
+	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	status := dbc.Status(ctx)
+	require.Equal(t, uint64(2), status[syncCacheName].NumBlocks)
+
+	t.Log("Make a second revision that will unref some blocks")
+	_, _, err = kbfsOps.CreateDir(ctx, aNode, "b")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Wait for cleanup")
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	// 3 blocks == root, a and b, without the old unref'd blocks.
+	status = dbc.Status(ctx)
+	require.Equal(t, uint64(3), status[syncCacheName].NumBlocks)
+
+	t.Log("Test another TLF that isn't synced until synced until " +
+		"after a few revisions")
+	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
+	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	bNode, _, err := kbfsOps.CreateDir(ctx, aNode, "b")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	lastRev, err := dbc.GetLastUnrefRev(ctx, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+	require.Equal(t, kbfsmd.RevisionUninitialized, lastRev)
+
+	t.Log("Set new TLF to syncing, and add a new revision")
+	err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	require.NoError(t, err)
+	_, _, err = kbfsOps.CreateDir(ctx, bNode, "c")
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	lastRev, err = dbc.GetLastUnrefRev(ctx, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+	require.Equal(t, kbfsmd.Revision(4), lastRev)
 }

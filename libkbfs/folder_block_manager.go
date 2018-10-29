@@ -25,6 +25,7 @@ type fbmHelper interface {
 	getMostRecentFullyMergedMD(ctx context.Context) (
 		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *GCOp) error
+	getLatestMergedRevision(lState *lockState) kbfsmd.Revision
 }
 
 const (
@@ -109,6 +110,16 @@ type folderBlockManager struct {
 	reclamationCancelLock sync.Mutex
 	reclamationCancel     context.CancelFunc
 
+	// latestMergedChan signals when we learn about a newer latest
+	// merged revision for this TLF.
+	latestMergedChan chan struct{}
+
+	// cleanSyncCacheGroup tracks the outstanding sync-cache cleanings.
+	cleanSyncCacheGroup kbfssync.RepeatedWaitGroup
+
+	cleanSyncCacheCancelLock sync.Mutex
+	cleanSyncCacheCancel     context.CancelFunc
+
 	helper fbmHelper
 
 	// Remembers what happened last time during quota reclamation.
@@ -124,6 +135,14 @@ func newFolderBlockManager(
 	bType branchType, helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
+
+	var latestMergedChan chan struct{}
+	qrEnabled :=
+		fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled()
+	if qrEnabled {
+		latestMergedChan = make(chan struct{}, 1)
+	}
+
 	fbm := &folderBlockManager{
 		appStateUpdater: appStateUpdater,
 		config:          config,
@@ -136,11 +155,9 @@ func newFolderBlockManager(
 		blocksToDeleteChan:        make(chan blocksToDelete, 25),
 		blocksToDeletePauseChan:   make(chan (<-chan struct{})),
 		forceReclamationChan:      make(chan struct{}, 1),
+		latestMergedChan:          latestMergedChan,
 		helper:                    helper,
 	}
-	// Pass in the BlockOps here so that the archive goroutine
-	// doesn't do possibly-racy-in-tests access to
-	// fbm.config.BlockOps().
 
 	if bType != standard || !config.Mode().BlockManagementEnabled() {
 		return fbm
@@ -148,8 +165,9 @@ func newFolderBlockManager(
 
 	go fbm.archiveBlocksInBackground()
 	go fbm.deleteBlocksInBackground()
-	if fb.Branch == MasterBranch && config.Mode().QuotaReclamationEnabled() {
+	if qrEnabled {
 		go fbm.reclaimQuotaInBackground()
+		go fbm.cleanSyncCacheInBackground()
 	}
 	return fbm
 }
@@ -211,11 +229,32 @@ func (fbm *folderBlockManager) cancelReclamation() {
 	}
 }
 
+func (fbm *folderBlockManager) setCleanSyncCacheCancel(
+	cancel context.CancelFunc) {
+	fbm.cleanSyncCacheCancelLock.Lock()
+	defer fbm.cleanSyncCacheCancelLock.Unlock()
+	fbm.cleanSyncCacheCancel = cancel
+}
+
+func (fbm *folderBlockManager) cancelCleanSyncCache() {
+	cleanSyncCacheCancel := func() context.CancelFunc {
+		fbm.cleanSyncCacheCancelLock.Lock()
+		defer fbm.cleanSyncCacheCancelLock.Unlock()
+		cleanSyncCacheCancel := fbm.cleanSyncCacheCancel
+		fbm.cleanSyncCacheCancel = nil
+		return cleanSyncCacheCancel
+	}()
+	if cleanSyncCacheCancel != nil {
+		cleanSyncCacheCancel()
+	}
+}
+
 func (fbm *folderBlockManager) shutdown() {
 	close(fbm.shutdownChan)
 	fbm.cancelArchive()
 	fbm.cancelBlocksToDelete()
 	fbm.cancelReclamation()
+	fbm.cancelCleanSyncCache()
 }
 
 // cleanUpBlockState cleans up any blocks that may have been orphaned
@@ -392,6 +431,11 @@ func (fbm *folderBlockManager) waitForDeletingBlocks(ctx context.Context) error 
 func (fbm *folderBlockManager) waitForQuotaReclamations(
 	ctx context.Context) error {
 	return fbm.reclamationGroup.Wait(ctx)
+}
+
+func (fbm *folderBlockManager) waitForSyncCacheCleans(
+	ctx context.Context) error {
+	return fbm.cleanSyncCacheGroup.Wait(ctx)
 }
 
 func (fbm *folderBlockManager) forceQuotaReclamation() {
@@ -839,6 +883,32 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 	return mostRecentOldEnoughRev, lastGCRev, nil
 }
 
+func getUnrefPointersFromMD(rmd ImmutableRootMetadata) (ptrs []BlockPointer) {
+	for _, op := range rmd.data.Changes.Ops {
+		if _, ok := op.(*GCOp); ok {
+			continue
+		}
+		for _, ptr := range op.Unrefs() {
+			// Can be zeroPtr in weird failed sync scenarios.
+			// See syncInfo.replaceRemovedBlock for an example
+			// of how this can happen.
+			if ptr != zeroPtr {
+				ptrs = append(ptrs, ptr)
+			}
+		}
+		for _, update := range op.allUpdates() {
+			// It's legal for there to be an "update" between
+			// two identical pointers (usually because of
+			// conflict resolution), so ignore that for quota
+			// reclamation purposes.
+			if update.Ref != update.Unref {
+				ptrs = append(ptrs, update.Unref)
+			}
+		}
+	}
+	return ptrs
+}
+
 // getUnrefBlocks returns a slice containing all the block pointers
 // that were unreferenced after the earliestRev, up to and including
 // those in latestRev.  If the number of pointers is too large, it
@@ -889,28 +959,8 @@ outer:
 			}
 			// Save the latest revision starting at this position:
 			revStartPositions[rmd.Revision()] = len(ptrs)
-			for _, op := range rmd.data.Changes.Ops {
-				if _, ok := op.(*GCOp); ok {
-					continue
-				}
-				for _, ptr := range op.Unrefs() {
-					// Can be zeroPtr in weird failed sync scenarios.
-					// See syncInfo.replaceRemovedBlock for an example
-					// of how this can happen.
-					if ptr != zeroPtr {
-						ptrs = append(ptrs, ptr)
-					}
-				}
-				for _, update := range op.allUpdates() {
-					// It's legal for there to be an "update" between
-					// two identical pointers (usually because of
-					// conflict resolution), so ignore that for quota
-					// reclamation purposes.
-					if update.Ref != update.Unref {
-						ptrs = append(ptrs, update.Unref)
-					}
-				}
-			}
+			newPtrs := getUnrefPointersFromMD(rmd)
+			ptrs = append(ptrs, newPtrs...)
 			// TODO: when can we clean up the MD's unembedded block
 			// changes pointer?  It's not safe until we know for sure
 			// that all existing clients have received the latest
@@ -1254,4 +1304,121 @@ func (fbm *folderBlockManager) clearLastQRData() {
 	fbm.lastQROldEnoughRev = kbfsmd.RevisionUninitialized
 	fbm.wasLastQRComplete = false
 	fbm.lastReclamationTime = time.Time{}
+}
+
+func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
+	defer fbm.cleanSyncCacheGroup.Done()
+	if !fbm.config.IsSyncedTlf(fbm.id) {
+		return nil
+	}
+	dbc := fbm.config.DiskBlockCache()
+	if dbc == nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
+	fbm.setCleanSyncCacheCancel(cancel)
+	defer fbm.cancelCleanSyncCache()
+
+	lState := makeFBOLockState()
+	recentRev := fbm.helper.getLatestMergedRevision(lState)
+
+	lastRev, err := dbc.GetLastUnrefRev(ctx, fbm.id)
+	if err != nil {
+		return err
+	}
+
+	if lastRev < kbfsmd.RevisionInitial {
+		if recentRev > kbfsmd.RevisionInitial {
+			// This can happen if the sync cache was created and
+			// populated before we started keeping track of the last
+			// unref'd revision. In that case, we just let the blocks
+			// from the old revision stay in the cache until they are
+			// manually cleaned up.
+			//
+			// It can also happen if the device just started
+			// monitoring the TLF for syncing, in which case it
+			// shouldn't have any cached blocks that were unref'd in
+			// earlier revisions.
+			fbm.log.CDebugf(ctx, "Starting to clean at revision %d", recentRev)
+			lastRev = recentRev - 1
+		} else {
+			// No revisions to clean yet.
+			return dbc.PutLastUnrefRev(ctx, fbm.id, recentRev)
+		}
+	}
+
+	if lastRev >= recentRev {
+		// Nothing to do.
+		return nil
+	}
+
+	fbm.log.CDebugf(ctx, "Cleaning sync cache for revisions after %d, "+
+		"up to %d", lastRev, recentRev)
+	defer func() {
+		fbm.log.CDebugf(ctx, "Done cleaning sync cache: %+v", err)
+	}()
+	nextRev := lastRev + 1
+	for nextRev <= recentRev {
+		rmd, err := getSingleMD(
+			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, nextRev,
+			kbfsmd.Merged, nil)
+		if err != nil {
+			return err
+		}
+
+		ptrs := getUnrefPointersFromMD(rmd)
+		ids := make([]kbfsblock.ID, len(ptrs))
+		for i, ptr := range ptrs {
+			ids[i] = ptr.ID
+		}
+		_, _, err = dbc.Delete(ctx, ids)
+		if err != nil {
+			return err
+		}
+
+		err = dbc.PutLastUnrefRev(ctx, fbm.id, nextRev)
+		if err != nil {
+			return err
+		}
+
+		nextRev++
+	}
+	return nil
+}
+
+func (fbm *folderBlockManager) cleanSyncCacheInBackground() {
+	for {
+		state := keybase1.AppState_FOREGROUND
+		select {
+		case <-fbm.latestMergedChan:
+		case <-fbm.shutdownChan:
+			return
+		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
+			for state != keybase1.AppState_FOREGROUND {
+				fbm.log.CDebugf(context.Background(),
+					"Pausing sync-cache cleaning while not foregrounded: "+
+						"state=%s", state)
+				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
+			}
+			fbm.log.CDebugf(context.Background(),
+				"Resuming sync-cache cleaning while foregrounded")
+			continue
+		}
+
+		_ = fbm.doCleanSyncCache()
+	}
+}
+
+func (fbm *folderBlockManager) signalLatestMergedRevision() {
+	if fbm.latestMergedChan == nil {
+		return
+	}
+
+	fbm.cleanSyncCacheGroup.Add(1)
+	select {
+	case fbm.latestMergedChan <- struct{}{}:
+	default:
+		fbm.cleanSyncCacheGroup.Done()
+	}
 }
