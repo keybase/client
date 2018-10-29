@@ -160,19 +160,6 @@ func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
 	}
 }
 
-type AsyncInboxResult struct {
-	Conv      chat1.Conversation
-	ConvLocal chat1.ConversationLocal
-	InboxRes  *Inbox // set if we are returning the whole inbox
-}
-
-type ConversationLocalizerTyp int
-
-const (
-	ConversationLocalizerBlocking ConversationLocalizerTyp = iota
-	ConversationLocalizerNonblocking
-)
-
 type AttachmentUploaderTaskStatus int
 
 const (
