@@ -807,7 +807,7 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 type pukFinder struct{}
 
 func (p *pukFinder) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
-	pukring, err := m.G().GetPerUserKeyring()
+	pukring, err := m.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return libkb.PerUserKeySeed{}, err
 	}
