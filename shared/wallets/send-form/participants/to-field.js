@@ -14,6 +14,7 @@ type ToKeybaseUserProps = {|
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
 |}
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
@@ -50,6 +51,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
       onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
+      onScanQRCode={props.onScanQRCode}
     />
   )
 }
@@ -58,6 +60,7 @@ type ToStellarPublicKeyProps = {|
   recipientPublicKey: string,
   errorMessage?: string,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
 |}
 
 class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
@@ -81,19 +84,31 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
             }
             style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
           />
-          <Kb.NewInput
-            type="text"
-            onChangeText={this._onChangeRecipient}
-            textType="BodySemibold"
-            placeholder={'Stellar address\nEx: G12345... or you*example.com'}
-            placeholderColor={Styles.globalColors.black_20}
-            hideBorder={true}
-            containerStyle={styles.input}
-            multiline={true}
-            rowsMin={2}
-            rowsMax={3}
-            value={this.props.recipientPublicKey}
-          />
+          <Kb.Box2 direction="horizontal" style={{flexShrink: 1, flexGrow: 1}}>
+            <Kb.NewInput
+              type="text"
+              onChangeText={this._onChangeRecipient}
+              textType="BodySemibold"
+              placeholder={'Stellar address\nEx: G12345... or you*example.com'}
+              placeholderColor={Styles.globalColors.black_20}
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              rowsMin={2}
+              rowsMax={3}
+              value={this.props.recipientPublicKey}
+            />
+          </Kb.Box2>
+          {!this.props.recipientPublicKey &&
+            this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_40}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={styles.qrCode}
+              />
+            )}
         </Kb.Box2>
         {!!this.props.errorMessage && (
           <Kb.Text type="BodySmall" style={styles.errorText}>
@@ -257,6 +272,11 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
+
+  qrCode: {
+    marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
 })
 
 export type {ToKeybaseUserProps, ToStellarPublicKeyProps}

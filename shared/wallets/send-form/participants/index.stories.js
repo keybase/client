@@ -106,11 +106,13 @@ const keybaseUserProps = {
   onShowSuggestions: Sb.action('onShowSuggestions'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: null,
 }
 
 const stellarPublicKeyProps = {
   recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: Sb.action('onScanQRCode'),
 }
 
 const otherAccountProps = {
@@ -128,10 +130,16 @@ const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To Keybase user with QR', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} onScanQRCode={Sb.action('onScanQRCode')} />
+    ))
     .add('To Keybase user chris', () => (
       <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
     ))
-    .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
+    .add('To stellar address', () => (
+      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} onScanQRCode={null} />
+    ))
+    .add('To stellar address with QR', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
     ))
