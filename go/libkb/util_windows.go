@@ -205,7 +205,6 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
 	files = append(files, oldSecretKeyfiles...)
 	var newFiles []string
-	var oldFiles []string
 
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
@@ -220,7 +219,6 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 				break
 			} else {
 				newFiles = append(newFiles, newPathName)
-				oldFiles = append(oldFiles, oldPathName)
 			}
 		}
 	}
@@ -231,13 +229,14 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 		}
 		return false, err
 	}
-	// Now that we've successfully copied, delete the old ones - BUT don't bail out on error here
-	for _, oldPathName := range oldFiles {
+	// Now that we've successfully copied, or at least found one in the newer location,
+	// delete the old ones - BUT don't bail out on error here
+	for _, oldPathName := range files {
 		os.Remove(oldPathName)
 	}
 
 	// Return true if we copied any
-	if len(oldFiles) > 0 {
+	if len(files) > 0 {
 		return true, err
 	}
 
