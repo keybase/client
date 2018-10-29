@@ -45,55 +45,9 @@ export type Props =
   | NotLoadingProps
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
-type CounterpartyKeybaseUserProps = {
-  accountID: ?Types.AccountID,
-  counterparty: string,
-  counterpartyMeta: ?string,
-  onChat: string => void,
-  onShowProfile: string => void,
-}
-
-const CounterpartyKeybaseUser = (props: CounterpartyKeybaseUserProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.NameWithIcon
-      colorFollowing={true}
-      horizontal={true}
-      onClick={() => props.onShowProfile(props.counterparty)}
-      username={props.counterparty}
-      metaOne={props.counterpartyMeta}
-      underline={true}
-      metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
-    />
-    <Kb.Button
-      type="Secondary"
-      label="Chat"
-      small={true}
-      style={styles.chatButton}
-      onClick={() => props.onChat(props.counterparty)}
-    />
-  </Kb.Box2>
-)
-
-type CounterpartyStellarProps = {
-  counterparty: string,
-}
-
-const CounterpartyStellar = (props: CounterpartyStellarProps) => {
-  return (
-    <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-          {props.counterparty}
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
 type PartyAccountProps = {
   accountID: ?Types.AccountID,
-  counterparty: string,
+  accountName: string,
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -101,7 +55,7 @@ const PartyAccount = (props: PartyAccountProps) => {
     <Kb.Box2 direction="horizontal" fullHeight={true}>
       <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-        <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
+        <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
@@ -122,11 +76,39 @@ type CounterpartyProps = {|
 const Counterparty = (props: CounterpartyProps) => {
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <CounterpartyKeybaseUser {...props} />
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.NameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            onClick={() => props.onShowProfile(props.counterparty)}
+            username={props.counterparty}
+            metaOne={props.counterpartyMeta}
+            underline={true}
+            metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
+          />
+          <Kb.Button
+            type="Secondary"
+            label="Chat"
+            small={true}
+            style={styles.chatButton}
+            onClick={() => props.onChat(props.counterparty)}
+          />
+        </Kb.Box2>
+      )
     case 'stellarPublicKey':
-      return <CounterpartyStellar counterparty={props.counterparty} onShowProfile={props.onShowProfile} />
+      return (
+        <Kb.Box2 direction="horizontal" fullHeight={true}>
+          <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
+            <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+              {props.counterparty}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Box2>
+      )
     case 'otherAccount':
-      return <PartyAccount accountID={props.accountID} counterparty={props.counterparty} />
+      return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -140,7 +122,7 @@ const Counterparty = (props: CounterpartyProps) => {
 const YourAccount = props => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   if (props.counterpartyType === 'otherAccount' && props.yourAccountName) {
-    return <PartyAccount accountID={yourAccountID} counterparty={props.yourAccountName} />
+    return <PartyAccount accountID={yourAccountID} accountName={props.yourAccountName} />
   }
   return (
     <Kb.NameWithIcon
