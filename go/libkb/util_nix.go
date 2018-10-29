@@ -60,10 +60,6 @@ func renameFile(_ *GlobalContext, src string, dest string) error {
 	return os.Rename(src, dest)
 }
 
-func RemoteSettingsRepairman(g *GlobalContext) error {
-	return nil
-}
-
 // Unicode error detection is Windows only for now
 func isUnicodeMark(b []byte) bool {
 	return false
