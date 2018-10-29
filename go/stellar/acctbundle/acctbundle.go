@@ -360,12 +360,13 @@ func DecodeAndUnbox(m libkb.MetaContext, finder PukFinder, encodedBundle BundleE
 		if acctEncB64, ok := encodedBundle.AcctBundles[parentEntry.AccountID]; ok {
 			acctBundle, err := decodeAndUnboxAcctBundle(m, finder, acctEncB64, parentEntry)
 			if err != nil {
-				// XXX keep going?
 				return nil, 0, err
 			}
-			if acctBundle != nil {
-				parent.AccountBundles[parentEntry.AccountID] = *acctBundle
+			if acctBundle == nil {
+				return nil, 0, fmt.Errorf("error unboxing account bundle: missing for account %s", parentEntry.AccountID)
 			}
+
+			parent.AccountBundles[parentEntry.AccountID] = *acctBundle
 		}
 	}
 
@@ -382,13 +383,11 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 	if err != nil {
 		return nil, err
 	}
-	ab, version, err := unbox(eab, hash, puk)
+	ab, _, err := unbox(eab, hash, puk)
 	if err != nil {
 		return nil, err
 	}
 
-	// XXX version???
-	_ = version
 	return ab, nil
 }
 
@@ -559,8 +558,18 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash /* visB
 	case stellar1.AccountBundleVersion_V1:
 		secretV1 := versioned.V1()
 		bundleOut = stellar1.AccountBundle{Signers: secretV1.Signers}
+	case stellar1.AccountBundleVersion_V2,
+		stellar1.AccountBundleVersion_V3,
+		stellar1.AccountBundleVersion_V4,
+		stellar1.AccountBundleVersion_V5,
+		stellar1.AccountBundleVersion_V6,
+		stellar1.AccountBundleVersion_V7,
+		stellar1.AccountBundleVersion_V8,
+		stellar1.AccountBundleVersion_V9,
+		stellar1.AccountBundleVersion_V10:
+		return nil, 0, errors.New("unsupported AccountBundleSecret version")
 	default:
-		return nil, 0, err
+		return nil, 0, errors.New("invalid AccountBundle version")
 	}
 
 	bundleOut.OwnHash = hash

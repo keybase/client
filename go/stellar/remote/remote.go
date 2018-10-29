@@ -728,11 +728,10 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 // MakeAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
 // then send the new account bundle revision to the server.
 func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, version, err := FetchAccountBundle(ctx, g, accountID)
+	bundle, _, err := FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return err
 	}
-	_ = version
 
 	err = acctbundle.MakeMobileOnly(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
@@ -754,11 +753,10 @@ func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountI
 // (so that any device can get the account secret keys) then send the new account bundle
 // to the server.
 func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
-	bundle, version, err := FetchAccountBundle(ctx, g, accountID)
+	bundle, _, err := FetchAccountBundle(ctx, g, accountID)
 	if err != nil {
 		return err
 	}
-	_ = version
 
 	err = acctbundle.MakeAllDevices(bundle, accountID)
 	if err == acctbundle.ErrNoChangeNecessary {
