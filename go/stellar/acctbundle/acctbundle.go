@@ -409,7 +409,7 @@ func accountEncrypt(bundle stellar1.AccountBundleSecretVersioned, pukGen keybase
 	}
 
 	// Derive key
-	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
+	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarAcctBundle)
 	if err != nil {
 		return res, resB64, err
 	}
@@ -572,7 +572,7 @@ func decrypt(encBundle stellar1.EncryptedAccountBundle, puk libkb.PerUserKeySeed
 	}
 
 	// Derive key
-	reason := libkb.DeriveReasonPUKStellarBundle
+	reason := libkb.DeriveReasonPUKStellarAcctBundle
 	symmetricKey, err := puk.DeriveSymmetricKey(reason)
 	if err != nil {
 		return empty, err
