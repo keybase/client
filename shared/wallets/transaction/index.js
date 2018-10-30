@@ -89,6 +89,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {|
+  detailView: boolean,
   large: boolean,
   pending: boolean,
   yourRole: Types.Role,
@@ -105,6 +106,7 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
+  const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
   const amount = props.isXLM ? (
     <Text selectable={props.selectableText} type={textTypeExtrabold}>
@@ -137,14 +139,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from this account to {counterparty()}.
+            {verbPhrase} {amount} from this account to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} to {counterparty()}.
+            {verbPhrase} {amount} to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -153,14 +157,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account.
+            {verbPhrase} {amount} from {counterparty()} to this account
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {counterparty()} {verbPhrase} {amount}.
+            {counterparty()} {verbPhrase} {amount}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -168,7 +174,8 @@ const Detail = (props: DetailProps) => {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold} style={textStyle}>
-          {verbPhrase} {amount} from this account to itself.
+          {verbPhrase} {amount} from this account to itself
+          {textSentenceEnd}
         </Text>
       )
     default:
@@ -349,6 +356,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
+              detailView={!!props.detailView}
               large={large}
               pending={pending}
               canceled={props.status === 'canceled'}
