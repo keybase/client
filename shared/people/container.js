@@ -47,8 +47,8 @@ class LoadOnMount extends React.PureComponent<Props> {
 }
 
 const mapStateToProps = state => ({
-  _newItems: state.people.newItems,
-  _oldItems: state.people.oldItems,
+  newItems: state.people.newItems,
+  oldItems: state.people.oldItems,
   followSuggestions: state.people.followSuggestions,
   myUsername: state.config.username,
   waiting: WaitingConstants.anyWaiting(state, getPeopleDataWaitingKey),
@@ -66,8 +66,8 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {
-    newItems: stateProps._newItems,
-    oldItems: stateProps._oldItems,
+    newItems: stateProps.newItems,
+    oldItems: stateProps.oldItems,
     followSuggestions: stateProps.followSuggestions,
     myUsername: stateProps.myUsername,
     waiting: stateProps.waiting,
