@@ -1600,7 +1600,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 		arg.ConversationID, arg.MessageID)
 
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	err = attachments.DownloadAttachmentLocal(ctx, h.G(), uid, arg.ConversationID,
+	err = attachments.Download(ctx, h.G(), uid, arg.ConversationID,
 		arg.MessageID, arg.Sink, arg.Preview, progress, h.remoteClient)
 	if err != nil {
 		return res, err

@@ -64,7 +64,7 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return filename, sink, nil
 }
 
-func DownloadAttachmentLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
+func Download(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, messageID chat1.MessageID, sink io.WriteCloser, showPreview bool,
 	progress func(int64, int64), ri func() chat1.RemoteInterface) error {
 
