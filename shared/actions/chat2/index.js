@@ -1240,19 +1240,17 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
-
+  const newMsg = Constants.makePendingTextMessage(
+    state,
+    conversationIDKey,
+    text,
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
+  )
   const addMessage = Saga.put(
     Chat2Gen.createMessagesAdd({
       context: {type: 'sent'},
-      messages: [
-        Constants.makePendingTextMessage(
-          state,
-          conversationIDKey,
-          text,
-          Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-          ephemeralLifetime
-        ),
-      ],
+      messages: [newMsg],
     })
   )
 
@@ -1277,7 +1275,14 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-  return Saga.sequentially([addMessage, postText])
+  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
+  // the action to add the pending message fires. This would cause a pending message to be stuck
+  // (with a duplicate sent message in there too).
+  //
+  // We put the addMessage on the back in case the service provides chat thread data in between the
+  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
+  // that is in the store on the outboxID has been sent.
+  return Saga.sequentially([addMessage, postText, addMessage])
 }
 
 const messageSendWithResult = (result, action) => {

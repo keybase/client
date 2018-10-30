@@ -1004,12 +1004,29 @@ export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
 }
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
+  const validUpgrade = (
+    old: Types.MessageText | Types.MessageAttachment,
+    m: Types.MessageText | Types.MessageAttachment
+  ) => {
+    if (old.submitState !== 'pending' && m.submitState === 'pending') {
+      // we may be making sure we got our pending message in the thread view, but if we already
+      // got the message, then don't blow it away with a pending version.
+      return false
+    }
+    return true
+  }
   if (old.type === 'text' && m.type === 'text') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     if (old.submitState === 'pending') {
       // we sent an attachment, service replied
       // with the real message. replace our placeholder but

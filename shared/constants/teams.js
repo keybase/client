@@ -147,6 +147,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   changeTarsDisabled: false,
   deleteChatHistory: false,
+  deleteOtherMessages: false,
 }
 
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
