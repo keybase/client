@@ -1435,6 +1435,16 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
 }
 
+func dstNameFromRefString(refStr string) plumbing.ReferenceName {
+	start := strings.Index(refStr, ":") + 1
+	dst := refStr[start:]
+	return plumbing.ReferenceName(dst)
+}
+
+func dstNameFromRefSpec(refspec gogitcfg.RefSpec) plumbing.ReferenceName {
+	return dstNameFromRefString(refspec.String())
+}
+
 // parentCommitsForRef returns a map of refs with a list of commits for each
 // ref, newest first. It only includes commits that exist in `localStorer` but
 // not in `remoteStorer`.
@@ -1453,6 +1463,14 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			continue
 		}
 		refName := plumbing.ReferenceName(refspec.Src())
+		resolved, err := gogitstor.ResolveReference(localStorer, refName)
+		if err != nil {
+			r.log.CDebugf(ctx, "Error resolving ref %s", refName)
+		}
+		if resolved != nil {
+			refName = resolved.Name()
+		}
+
 		ref, err := localStorer.Reference(refName)
 		if err != nil {
 			r.log.CDebugf(ctx, "Error getting reference %s: %+v",
@@ -1464,8 +1482,8 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		// Get the HEAD commit for the ref from the local repository.
 		commit, err := gogitobj.GetCommit(localStorer, hash)
 		if err != nil {
-			r.log.CDebugf(ctx, "Error getting commit for hash %s: %+v",
-				string(hash[:]), err)
+			r.log.CDebugf(ctx, "Error getting commit for hash %s (%s): %+v",
+				string(hash[:]), refName, err)
 			continue
 		}
 
@@ -1476,7 +1494,8 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		// 3. Run out of commits.
 		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
 		toVisit := maxCommitsToVisitPerRef
-		commitsByRef[refName] = &libgit.RefData{
+		dstRefName := dstNameFromRefSpec(refspec)
+		commitsByRef[dstRefName] = &libgit.RefData{
 			IsDelete: refspec.IsDelete(),
 			Commits:  make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef),
 		}
@@ -1489,8 +1508,8 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			if toVisit == 0 {
 				// Append a sentinel value to communicate that there would be
 				// more commits.
-				commitsByRef[refName].Commits =
-					append(commitsByRef[refName].Commits,
+				commitsByRef[dstRefName].Commits =
+					append(commitsByRef[dstRefName].Commits,
 						libgit.CommitSentinelValue)
 				return gogitstor.ErrStop
 			}
@@ -1498,8 +1517,8 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 			if hasEncodedObjectErr == nil {
 				return gogitstor.ErrStop
 			}
-			commitsByRef[refName].Commits =
-				append(commitsByRef[refName].Commits, c)
+			commitsByRef[dstRefName].Commits =
+				append(commitsByRef[dstRefName].Commits, c)
 			return nil
 		})
 		if err != nil {
@@ -1535,19 +1554,17 @@ func (r *runner) pushSome(
 		// Delete the reference in the repo if needed; otherwise,
 		// fetch from the local repo into the remote repo.
 		if refspec.IsDelete() {
-			start := strings.Index(push[0], ":") + 1
-			dst := push[0][start:]
-
+			dst := dstNameFromRefString(push[0])
 			if refspec.IsWildcard() {
-				results[dst] = errors.Errorf(
+				results[dst.String()] = errors.Errorf(
 					"Wildcards not supported for deletes: %s", refspec)
 				continue
 			}
-			err = repo.Storer.RemoveReference(plumbing.ReferenceName(dst))
+			err = repo.Storer.RemoveReference(dst)
 			if err == gogit.NoErrAlreadyUpToDate {
 				err = nil
 			}
-			results[dst] = err
+			results[dst.String()] = err
 		} else {
 			refs[refspec.Src()] = true
 			refspecs = append(refspecs, refspec)
@@ -1591,10 +1608,8 @@ func (r *runner) pushSome(
 
 		// All non-deleted refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
-			refStr := refspec.String()
-			start := strings.Index(refStr, ":") + 1
-			dst := refStr[start:]
-			results[dst] = err
+			dst := dstNameFromRefSpec(refspec)
+			results[dst.String()] = err
 		}
 	}
 	return results, nil
@@ -1668,8 +1683,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		results = make(map[string]error, len(args))
 		for _, push := range args {
 			// `canPushAll` already validates the push reference.
-			start := strings.Index(push[0], ":") + 1
-			dst := push[0][start:]
+			dst := dstNameFromRefString(push[0]).String()
 			results[dst] = err
 		}
 	} else {
@@ -1698,16 +1712,12 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	// Remove any errored commits so that we don't send an update
 	// message about them.
 	for refspec := range refspecs {
-		refStr := refspec.String()
-		start := strings.Index(refStr, ":") + 1
-		dst := refStr[start:]
-
-		if results[dst] != nil {
+		dst := dstNameFromRefSpec(refspec)
+		if results[dst.String()] != nil {
 			r.log.CDebugf(
 				ctx, "Removing commit result for errored push on refspec %s",
 				refspec)
-			refName := plumbing.ReferenceName(refspec.Src())
-			delete(commits, refName)
+			delete(commits, dst)
 		}
 	}
 
