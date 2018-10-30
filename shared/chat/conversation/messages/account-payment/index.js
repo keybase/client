@@ -83,7 +83,7 @@ const AccountPayment = (props: Props) => {
           </Box2>
         )}
       </Box2>
-      {!!props.memo && <MarkdownMemo memo={props.memo} />}
+      <MarkdownMemo memo={props.memo} />
       {!!props.sendButtonLabel && (
         <Button
           type="Wallet"
