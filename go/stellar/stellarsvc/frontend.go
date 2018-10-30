@@ -996,7 +996,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			case cmp == -1:
 				// amount is less than minAmountXLM
 				readyChecklist.amount = false // block sending
-				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
+				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s XLM*", minAmountXLM)
 			}
 		}
 

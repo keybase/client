@@ -1358,7 +1358,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToSend)
 	require.Equal(t, "", bres.ToErrMsg)
-	require.Equal(t, "You must send at least *1* XLM", bres.AmountErrMsg)
+	require.Equal(t, "You must send at least *1 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$0.00 USD", bres.WorthDescription)
