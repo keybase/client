@@ -164,6 +164,48 @@
 			"revisionTime": "2018-02-26T18:00:45Z"
 		},
 		{
+			"checksumSHA1": "iJXVRc8EW6FxS82J0150lUT1qkM=",
+			"path": "github.com/gocolly/colly",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "Eqc0nhw10nHYDNqFUoR8GSpQv7c=",
+			"path": "github.com/gocolly/colly/cmd/colly",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "3rTP4rq+lgaSQuUUH/MfcVaFYEI=",
+			"path": "github.com/gocolly/colly/debug",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "qB4eM4wIl6yfJb8xBKE7ujgHtc8=",
+			"path": "github.com/gocolly/colly/extensions",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "Rqgw/igi0MW/pW3/EAzAbhCKjwo=",
+			"path": "github.com/gocolly/colly/proxy",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "2uW12yoehgYyud0zu5pDgr5b5bk=",
+			"path": "github.com/gocolly/colly/queue",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
+			"checksumSHA1": "Yr0WHKEt2ZtOZQt1G9PZABc8vDg=",
+			"path": "github.com/gocolly/colly/storage",
+			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
+			"revisionTime": "2018-10-28T04:47:46Z"
+		},
+		{
 			"path": "github.com/golang/groupcache/singleflight",
 			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
 			"revisionTime": "2015-01-25T10:08:32-08:00"
