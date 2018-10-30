@@ -1034,6 +1034,7 @@ protocol teams {
     boolean listFirst;
     boolean changeTarsDisabled;
     boolean deleteChatHistory;
+    boolean deleteOtherMessages;
   }
 
   record ProfileTeamLoadRes {
