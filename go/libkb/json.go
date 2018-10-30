@@ -30,6 +30,7 @@ type JSONFile struct {
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
+	setMutex sync.Mutex
 
 	txMutex sync.Mutex
 	tx      *jsonFileTransaction
@@ -425,22 +426,32 @@ func (f *JSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) e
 }
 
 func (f *JSONFile) SetStringAtPath(p string, v string) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getString, v)
 }
 
 func (f *JSONFile) SetBoolAtPath(p string, v bool) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getBool, v)
 }
 
 func (f *JSONFile) SetIntAtPath(p string, v int) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JSONFile) SetNullAtPath(p string) (err error) {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
