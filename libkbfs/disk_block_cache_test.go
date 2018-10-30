@@ -630,7 +630,7 @@ func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
 
 	// Force re-read from DB.
 	cache.syncCache.tlfLastUnrefs = nil
-	err = cache.syncCache.syncBlockCountsFromDb()
+	err = cache.syncCache.syncBlockCountsAndUnrefsFromDb()
 	require.NoError(t, err)
 	getRev1, err = cache.GetLastUnrefRev(ctx, tlf1)
 	require.NoError(t, err)

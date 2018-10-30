@@ -222,7 +222,7 @@ func newDiskBlockCacheLocalFromStorage(
 	// cache will block until this is done. The log will contain the beginning
 	// and end of this sync.
 	go func() {
-		err := cache.syncBlockCountsFromDb()
+		err := cache.syncBlockCountsAndUnrefsFromDb()
 		if err != nil {
 			close(startErrCh)
 			closer()
@@ -340,9 +340,9 @@ func (cache *DiskBlockCacheLocal) encodeLastUnref(rev kbfsmd.Revision) (
 	return cache.config.Codec().Encode(&entry)
 }
 
-func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
-	cache.log.Debug("+ syncBlockCountsFromDb begin")
-	defer cache.log.Debug("- syncBlockCountsFromDb end")
+func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
+	cache.log.Debug("+ syncBlockCountsAndUnrefsFromDb begin")
+	defer cache.log.Debug("- syncBlockCountsAndUnrefsFromDb end")
 	// We take a write lock for this to prevent any reads from happening while
 	// we're syncing the block counts.
 	cache.lock.Lock()
@@ -370,6 +370,8 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsFromDb() error {
 	cache.numBlocks = numBlocks
 	cache.tlfSizes = tlfSizes
 	cache.currBytes = totalSize
+
+	cache.log.Debug("+ syncBlockCountsAndUnrefsFromDb block counts done")
 
 	tlfLastUnrefs := make(map[tlf.ID]kbfsmd.Revision)
 	lastUnrefIter := cache.lastUnrefDb.NewIterator(nil, nil)
