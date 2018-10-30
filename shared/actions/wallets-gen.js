@@ -48,7 +48,7 @@ export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
 export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
-export const loadWalletSettings = 'wallets:loadWalletSettings'
+export const loadWalletDisclaimer = 'wallets:loadWalletDisclaimer'
 export const markAsRead = 'wallets:markAsRead'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
@@ -79,7 +79,7 @@ export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
 export const validatedSecretKey = 'wallets:validatedSecretKey'
-export const walletSettingsReceived = 'wallets:walletSettingsReceived'
+export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
@@ -183,7 +183,7 @@ type _LoadSendAssetChoicesPayload = $ReadOnly<{|
   from: Types.AccountID,
   to: string,
 |}>
-type _LoadWalletSettingsPayload = void
+type _LoadWalletDisclaimerPayload = void
 type _MarkAsReadPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   mostRecentID: Types.PaymentID,
@@ -229,7 +229,10 @@ type _SelectAccountPayload = $ReadOnly<{|
 type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
-type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString|}>
+type _SentPaymentPayload = $ReadOnly<{|
+  kbTxID: HiddenString,
+  lastSentXLM: boolean,
+|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
@@ -255,7 +258,7 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
   secretKey: HiddenString,
   error: string,
 |}>
-type _WalletSettingsReceivedPayload = $ReadOnly<{|settings: StellarRPCTypes.WalletSettings|}>
+type _WalletDisclaimerReceivedPayload = $ReadOnly<{|accepted: boolean|}>
 
 // Action Creators
 /**
@@ -372,9 +375,9 @@ export const createLoadSendAssetChoices = (payload: _LoadSendAssetChoicesPayload
  */
 export const createLoadDisplayCurrencies = (payload: _LoadDisplayCurrenciesPayload) => ({payload, type: loadDisplayCurrencies})
 /**
- * Load wallet settings
+ * Load wallet disclaimer
  */
-export const createLoadWalletSettings = (payload: _LoadWalletSettingsPayload) => ({payload, type: loadWalletSettings})
+export const createLoadWalletDisclaimer = (payload: _LoadWalletDisclaimerPayload) => ({payload, type: loadWalletDisclaimer})
 /**
  * Mark the given payment ID and anything older as read.
  */
@@ -384,9 +387,9 @@ export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
 /**
- * Received wallet settings
+ * Received wallet disclaimer
  */
-export const createWalletSettingsReceived = (payload: _WalletSettingsReceivedPayload) => ({payload, type: walletSettingsReceived})
+export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({payload, type: walletDisclaimerReceived})
 /**
  * Refresh our list of accounts
  */
@@ -418,7 +421,7 @@ export const createSelectAccount = (payload: _SelectAccountPayload) => ({payload
 /**
  * Send a potential payment to the service for validation
  */
-export const createBuildPayment = (payload: _BuildPaymentPayload) => ({error: false, payload, type: buildPayment})
+export const createBuildPayment = (payload: _BuildPaymentPayload) => ({payload, type: buildPayment})
 /**
  * Set building amount
  */
@@ -573,7 +576,7 @@ export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _Lo
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
 export type LoadSendAssetChoicesPayload = $Call<typeof createLoadSendAssetChoices, _LoadSendAssetChoicesPayload>
-export type LoadWalletSettingsPayload = $Call<typeof createLoadWalletSettings, _LoadWalletSettingsPayload>
+export type LoadWalletDisclaimerPayload = $Call<typeof createLoadWalletDisclaimer, _LoadWalletDisclaimerPayload>
 export type MarkAsReadPayload = $Call<typeof createMarkAsRead, _MarkAsReadPayload>
 export type OpenSendRequestFormPayload = $Call<typeof createOpenSendRequestForm, _OpenSendRequestFormPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
@@ -606,7 +609,7 @@ export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountNam
 export type ValidatedAccountNamePayloadError = $Call<typeof createValidatedAccountNameError, _ValidatedAccountNamePayloadError>
 export type ValidatedSecretKeyPayload = $Call<typeof createValidatedSecretKey, _ValidatedSecretKeyPayload>
 export type ValidatedSecretKeyPayloadError = $Call<typeof createValidatedSecretKeyError, _ValidatedSecretKeyPayloadError>
-export type WalletSettingsReceivedPayload = $Call<typeof createWalletSettingsReceived, _WalletSettingsReceivedPayload>
+export type WalletDisclaimerReceivedPayload = $Call<typeof createWalletDisclaimerReceived, _WalletDisclaimerReceivedPayload>
 
 // All Actions
 // prettier-ignore
@@ -650,7 +653,7 @@ export type Actions =
   | LoadPaymentsPayload
   | LoadRequestDetailPayload
   | LoadSendAssetChoicesPayload
-  | LoadWalletSettingsPayload
+  | LoadWalletDisclaimerPayload
   | MarkAsReadPayload
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
@@ -683,5 +686,5 @@ export type Actions =
   | ValidatedAccountNamePayloadError
   | ValidatedSecretKeyPayload
   | ValidatedSecretKeyPayloadError
-  | WalletSettingsReceivedPayload
+  | WalletDisclaimerReceivedPayload
   | {type: 'common:resetStore', payload: void}

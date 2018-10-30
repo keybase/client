@@ -179,7 +179,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAmount, rate.Currency)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, rate.Currency)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -188,7 +188,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAvailableAmount, rate.Currency)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAvailableAmount, rate.Currency)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
@@ -258,20 +258,17 @@ func (s *Server) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (
 	return currencies, nil
 }
 
-func (s *Server) GetWalletSettingsLocal(ctx context.Context, sessionID int) (ret stellar1.WalletSettings, err error) {
+func (s *Server) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (accepted bool, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "GetWalletSettingsLocal",
+		RPCName: "HasAcceptedDisclaimerLocal",
 		Err:     &err,
 	})
 	defer fin()
 	if err != nil {
-		return ret, err
+		return false, err
 	}
-	ret.AcceptedDisclaimer, err = remote.GetAcceptedDisclaimer(ctx, s.G())
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
+
+	return stellar.HasAcceptedDisclaimer(ctx, s.G())
 }
 
 func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
@@ -285,6 +282,10 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 	}
 
 	err = remote.SetAcceptedDisclaimer(ctx, s.G())
+	if err != nil {
+		return err
+	}
+	stellar.InformAcceptedDisclaimer(ctx, s.G())
 	crg, err := stellar.CreateWalletGated(ctx, s.G())
 	if err != nil {
 		return err
@@ -957,9 +958,9 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 				cmp, err := stellarnet.CompareStellarAmounts(availableToSendXLM, amountX.amountOfAsset)
 				switch {
 				case err != nil:
-					log("error comparing amounts", err)
+					log("error comparing amounts (%v) (%v): %v", availableToSendXLM, amountX.amountOfAsset, err)
 				case cmp == -1:
-					// Send amount is more than the available to send.
+					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
 					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
 					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
@@ -995,7 +996,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			case cmp == -1:
 				// amount is less than minAmountXLM
 				readyChecklist.amount = false // block sending
-				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
+				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s XLM*", minAmountXLM)
 			}
 		}
 

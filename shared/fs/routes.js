@@ -1,9 +1,11 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
+import {isMobile} from '../constants/platform'
 import {BarePreview, NormalPreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
+import DestinationPicker from './destination-picker/container'
 
 const _commonChildren = {
   securityPrefs: {
@@ -26,6 +28,14 @@ const _commonChildren = {
       children: _commonChildren,
       tags: makeLeafTags({
         title: 'Preview',
+      }),
+    }),
+  destinationPicker: () =>
+    makeRouteDefNode({
+      component: DestinationPicker,
+      tags: makeLeafTags({
+        title: 'Move or Copy',
+        layerOnTop: !isMobile,
       }),
     }),
 }

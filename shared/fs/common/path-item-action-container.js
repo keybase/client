@@ -11,9 +11,11 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../util/container'
+import {navigateAppend} from '../../actions/route-tree'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {
   path: Types.Path,
@@ -36,6 +38,10 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
+  moveOrCopy: () => {
+    dispatch(FsGen.createSetMoveOrCopySource({path}))
+    dispatch(navigateAppend(['destinationPicker']))
+  },
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
@@ -60,6 +66,7 @@ type actions = {
   download?: () => void,
   copyPath?: () => void,
   deleteFileOrFolder?: () => void,
+  moveOrCopy?: () => void,
 }
 type MenuItemAppender = (
   menuActions: actions,
@@ -118,9 +125,21 @@ const aDelete: MenuItemAppender = (menuActions, stateProps, dispatchProps, path)
   menuActions.deleteFileOrFolder = dispatchProps.deleteFileOrFolder
 }
 
+const aMoveOrCopy: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
+  menuActions.moveOrCopy = dispatchProps.moveOrCopy
+}
+
 const tlfListAppenders: Array<MenuItemAppender> = [aShowIn, aCopyPath]
 const tlfAppenders: Array<MenuItemAppender> = [aShowIn, aIgnore, aCopyPath]
-const inTlfAppenders: Array<MenuItemAppender> = [aShowIn, aSave, aShareNative, aDownload, aCopyPath, aDelete]
+const inTlfAppenders: Array<MenuItemAppender> = [
+  aShowIn,
+  aSave,
+  aShareNative,
+  aDownload,
+  aCopyPath,
+  ...(flags.moveOrCopy ? [aMoveOrCopy] : []),
+  aDelete,
+]
 
 const getRootMenuActionsByAppenders = (
   appenders: Array<MenuItemAppender>,
@@ -188,6 +207,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     download,
     copyPath,
     deleteFileOrFolder,
+    moveOrCopy,
   } = getRootMenuActionsByPathLevel(pathElements.length, stateProps, dispatchProps, path)
   return {
     type,
@@ -218,6 +238,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     download,
     copyPath,
     deleteFileOrFolder,
+    moveOrCopy,
   }
 }
 

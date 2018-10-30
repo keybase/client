@@ -175,11 +175,8 @@ func (w *WebProofChainLink) GetProofType() keybase1.ProofType {
 
 func (w *WebProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
 	ret := w.BaseToTrackingStatement(state)
-	err := remoteProofToTrackingStatement(w, ret)
-	if err != nil {
-		ret = nil
-	}
-	return ret, err
+	remoteProofToTrackingStatement(w, ret)
+	return ret, nil
 }
 
 func (w *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
@@ -257,9 +254,7 @@ func (s *SocialProofChainLink) GetService() string { return s.service }
 
 func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
 	ret := s.BaseToTrackingStatement(state)
-	if err := remoteProofToTrackingStatement(s, ret); err != nil {
-		return nil, err
-	}
+	remoteProofToTrackingStatement(s, ret)
 	return ret, nil
 }
 
@@ -582,7 +577,7 @@ func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, i
 		return nil
 	}
 	proofType := keybase1.ProofType(t)
-	if isProofTypeDefunct(proofType) {
+	if isProofTypeDefunct(g, proofType) {
 		g.Log.Debug("Ignoring now defunct proof type %q at index=%d", proofType, index)
 		return nil
 	}
@@ -1067,7 +1062,7 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 		return
 	}
 	if styp != typ.String() {
-		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), err)
+		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), b.ToDebugString())
 		return
 	}
 
@@ -1345,13 +1340,22 @@ func (idt *IdentityTable) populate(m MetaContext) (err error) {
 	return nil
 }
 
-func isProofTypeDefunct(typ keybase1.ProofType) bool {
-	return typ == keybase1.ProofType_COINBASE
+func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
+	switch typ {
+	case keybase1.ProofType_COINBASE:
+		return true
+	case keybase1.ProofType_GENERIC_SOCIAL:
+		// TODO Remove with CORE-8969
+		shouldRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == DevelRunMode || g.Env.RunningInCI()
+		return !shouldRun
+	default:
+		return false
+	}
 }
 
 func (idt *IdentityTable) insertRemoteProof(link RemoteProofChainLink) {
 
-	if isProofTypeDefunct(link.GetProofType()) {
+	if isProofTypeDefunct(idt.G(), link.GetProofType()) {
 		idt.G().Log.Debug("Ignoring now-defunct proof: %s", link.ToDebugString())
 		return
 	}
@@ -1624,7 +1628,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	// for the purposes of testing.
 	pc, res.err = MakeProofChecker(m.G().GetProofServices(), p)
 
-	if res.err != nil {
+	if res.err != nil || pc == nil {
 		return
 	}
 

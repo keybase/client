@@ -4,22 +4,30 @@ import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
+import * as FsGen from '../../actions/fs-gen'
 import Breadcrumb from './breadcrumb.desktop'
 
 type OwnProps = {
   path: Types.Path,
+  inDestinationPicker?: boolean,
 }
 
 const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch) => ({
-  _navigateTo: (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
+const mapDispatchToProps = (dispatch, {inDestinationPicker}: OwnProps) => ({
+  _navigateToPath: inDestinationPicker
+    ? (path: Types.Path) => dispatch(FsGen.createSetMoveOrCopyDestinationParent({path}))
+    : (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
 })
 
-const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
-  const {items} = Types.getPathElements(path).reduce(
+export const makeBreadcrumbProps = (
+  _username: string,
+  _navigateToPath: (path: Types.Path) => void,
+  _path: Types.Path
+) => {
+  const {items} = Types.getPathElements(_path).reduce(
     ({previousPath, items}, elem, i, elems) => {
       const itemPath = Types.pathConcat(previousPath, elem)
       return {
@@ -30,7 +38,7 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
           name: elem,
           path: itemPath,
           iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
-          onClick: () => _navigateTo(itemPath),
+          onClick: () => _navigateToPath(itemPath),
         }),
       }
     },
@@ -49,6 +57,9 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
         shownItems: items,
       }
 }
+
+const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>
+  makeBreadcrumbProps(_username, _navigateToPath, path)
 
 export default compose(
   connect(

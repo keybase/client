@@ -229,13 +229,11 @@ func (g *GenericChainLink) BaseToTrackingStatement(state keybase1.ProofState) *j
 	return ret
 }
 
-func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) error {
+func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper) {
 	proofType := s.GetProofType()
-
 	base.AtKey("remote_key_proof").SetKey("proof_type", jsonw.NewInt(int(proofType)))
 	base.AtKey("remote_key_proof").SetKey("check_data_json", s.CheckDataJSON())
 	base.SetKey("sig_type", jsonw.NewInt(SigTypeRemoteProof))
-	return nil
 }
 
 type HighSkip struct {

@@ -146,10 +146,22 @@ const sendPayment = (state: TypedState) => {
     },
     Constants.sendPaymentWaitingKey
   )
-    .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
-    .then(res => WalletsGen.createSetLastSentXLM({lastSentXLM: !notXLM, writeFile: true}))
+    .then(res =>
+      WalletsGen.createSentPayment({
+        kbTxID: new HiddenString(res.kbTxID),
+        lastSentXLM: !notXLM,
+      })
+    )
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
+
+const setLastSentXML = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
+  Saga.put(
+    WalletsGen.createSetLastSentXLM({
+      lastSentXLM: action.payload.lastSentXLM,
+      writeFile: true,
+    })
+  )
 
 const requestPayment = (state: TypedState) =>
   RPCStellarTypes.localMakeRequestLocalRpcPromise(
@@ -174,9 +186,9 @@ const clearBuilding = () => Saga.put(WalletsGen.createClearBuilding())
 
 const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
-const loadWalletSettings = () =>
-  RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
-    WalletsGen.createWalletSettingsReceived({settings})
+const loadWalletDisclaimer = () =>
+  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
+    WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
 const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
@@ -555,8 +567,8 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
     .then(res =>
-      RPCStellarTypes.localGetWalletSettingsLocalRpcPromise().then(settings =>
-        WalletsGen.createWalletSettingsReceived({settings})
+      RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
+        WalletsGen.createWalletDisclaimerReceived({accepted})
       )
     )
     .then(
@@ -649,6 +661,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXML)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
@@ -678,8 +691,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   yield Saga.actionToPromise(
-    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletSettings],
-    loadWalletSettings
+    [WalletsGen.loadAccounts, ConfigGen.loggedIn, WalletsGen.loadWalletDisclaimer],
+    loadWalletDisclaimer
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)

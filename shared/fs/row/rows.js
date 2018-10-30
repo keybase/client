@@ -10,59 +10,80 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
+import {rowHeight} from './common'
 
 type Props = {
   items: Array<Types.RowItem>,
   routePath: I.List<string>,
+  inDestinationPicker?: boolean,
   ifEmpty?: ?React.Node,
 }
 
-export const WrapRow = ({children}: {children: React.Node}) => (
+export const WrapRow = ({children, noDivider}: {children: React.Node, noDivider?: boolean}) => (
   <Kb.Box style={styles.rowContainer}>
     {children}
-    <Kb.Divider key="divider" style={styles.divider} />
+    {!noDivider && <Kb.Divider key="divider" style={styles.divider} />}
   </Kb.Box>
 )
 
+export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
+
 class Rows extends React.PureComponent<Props> {
   _rowRenderer = (index: number, item: Types.RowItem) => {
+    const noDivider = this.props.inDestinationPicker && index === this.props.items.length - 1
     switch (item.rowType) {
       case 'placeholder':
         return (
-          <WrapRow key={`placeholder:${item.name}`}>
+          <WrapRow key={`placeholder:${item.name}`} noDivider={noDivider}>
             <Placeholder type={item.type} />
           </WrapRow>
         )
       case 'tlf-type':
         return (
-          <WrapRow key={`still:${item.name}`}>
-            <TlfType name={item.name} routePath={this.props.routePath} />
+          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+            <TlfType
+              name={item.name}
+              inDestinationPicker={this.props.inDestinationPicker}
+              routePath={this.props.routePath}
+            />
           </WrapRow>
         )
       case 'tlf':
         return (
-          <WrapRow key={`still:${item.name}`}>
-            <Tlf name={item.name} tlfType={item.tlfType} routePath={this.props.routePath} />
+          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+            <Tlf
+              name={item.name}
+              tlfType={item.tlfType}
+              inDestinationPicker={this.props.inDestinationPicker}
+              routePath={this.props.routePath}
+            />
           </WrapRow>
         )
       case 'still':
         return (
-          <WrapRow key={`still:${item.name}`}>
-            <Still name={item.name} path={item.path} routePath={this.props.routePath} />
+          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+            <Still
+              name={item.name}
+              path={item.path}
+              inDestinationPicker={this.props.inDestinationPicker}
+              routePath={this.props.routePath}
+            />
           </WrapRow>
         )
       case 'uploading':
         return (
-          <WrapRow key={`uploading:${item.name}`}>
+          <WrapRow key={`uploading:${item.name}`} noDivider={noDivider}>
             <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
         return (
-          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`} noDivider={noDivider}>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
+      case 'empty':
+        return <EmptyRow key={`empty:${item.name}`} />
       default:
         /*::
       let rowType = item.rowType
@@ -78,14 +99,23 @@ class Rows extends React.PureComponent<Props> {
   }
   render() {
     return this.props.items && this.props.items.length ? (
-      <Kb.List fixedHeight={rowHeight} items={this.props.items} renderItem={this._rowRenderer} />
+      <Kb.List
+        fixedHeight={rowHeight}
+        items={
+          // If we are in the destination picker, inject two empty rows so when
+          // user scrolls to the bottom nothing is blocked by the
+          // semi-transparent footer.
+          this.props.inDestinationPicker
+            ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
+            : this.props.items
+        }
+        renderItem={this._rowRenderer}
+      />
     ) : (
       !!this.props.ifEmpty && this.props.ifEmpty
     )
   }
 }
-
-const rowHeight = Styles.isMobile ? 64 : 40
 
 const styles = Styles.styleSheetCreate({
   rowContainer: {
@@ -95,6 +125,7 @@ const styles = Styles.styleSheetCreate({
   },
   divider: {
     marginLeft: 48,
+    backgroundColor: Styles.globalColors.black_05,
   },
 })
 
