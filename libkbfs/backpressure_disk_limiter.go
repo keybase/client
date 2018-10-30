@@ -877,7 +877,9 @@ func (bdl *backpressureDiskLimiter) onSimpleByteTrackerEnable(ctx context.Contex
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.overallByteTracker.onEnable(diskCacheBytes)
-	tracker.onEnable(diskCacheBytes)
+	if typ != syncCacheLimitTrackerType {
+		tracker.onEnable(diskCacheBytes)
+	}
 }
 
 func (bdl *backpressureDiskLimiter) onSimpleByteTrackerDisable(ctx context.Context,
@@ -889,7 +891,9 @@ func (bdl *backpressureDiskLimiter) onSimpleByteTrackerDisable(ctx context.Conte
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	tracker.onDisable(diskCacheBytes)
-	bdl.overallByteTracker.onDisable(diskCacheBytes)
+	if typ != syncCacheLimitTrackerType {
+		bdl.overallByteTracker.onDisable(diskCacheBytes)
+	}
 }
 
 func (bdl *backpressureDiskLimiter) getDelayLocked(
@@ -1000,7 +1004,9 @@ func (bdl *backpressureDiskLimiter) commitOrRollback(ctx context.Context,
 		}
 		tracker.commitOrRollback(blockBytes, shouldCommit)
 	}
-	bdl.overallByteTracker.commitOrRollback(blockBytes, shouldCommit)
+	if typ != syncCacheLimitTrackerType {
+		bdl.overallByteTracker.commitOrRollback(blockBytes, shouldCommit)
+	}
 }
 
 func (bdl *backpressureDiskLimiter) onBlocksFlush(
@@ -1024,7 +1030,9 @@ func (bdl *backpressureDiskLimiter) release(ctx context.Context,
 		}
 		tracker.release(blockBytes)
 	}
-	bdl.overallByteTracker.release(blockBytes)
+	if typ != syncCacheLimitTrackerType {
+		bdl.overallByteTracker.release(blockBytes)
+	}
 }
 
 func (bdl *backpressureDiskLimiter) reserveBytes(
@@ -1049,16 +1057,23 @@ func (bdl *backpressureDiskLimiter) reserveBytes(
 	}
 
 	bdl.overallByteTracker.updateFree(freeBytes)
-	count := bdl.overallByteTracker.tryReserve(blockBytes)
-	if count < 0 {
-		return count, nil
+	if typ != syncCacheLimitTrackerType {
+		count := bdl.overallByteTracker.tryReserve(blockBytes)
+		if count < 0 {
+			return count, nil
+		}
+		// We calculate the total free bytes by adding the reported free bytes and
+		// the non-`tracker` used bytes.
+		tracker.updateFree(freeBytes + bdl.overallByteTracker.used -
+			tracker.usedResources())
+	} else {
+		// This allows the sync cache to take up 100% of free space
+		// even if another cache is using 5% of space, and they would overlap.
+		tracker.updateFree(freeBytes + bdl.overallByteTracker.used)
 	}
-	// TODO: verify there's not any other kind of bytes we care about
-	// subtracting too.
-	tracker.updateFree(freeBytes)
 
-	count = tracker.tryReserve(blockBytes)
-	if count < 0 {
+	count := tracker.tryReserve(blockBytes)
+	if count < 0 && typ != syncCacheLimitTrackerType {
 		bdl.overallByteTracker.rollback(blockBytes)
 	}
 	return count, nil
