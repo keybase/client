@@ -371,7 +371,7 @@ func (cache *DiskBlockCacheLocal) syncBlockCountsAndUnrefsFromDb() error {
 	cache.tlfSizes = tlfSizes
 	cache.currBytes = totalSize
 
-	cache.log.Debug("+ syncBlockCountsAndUnrefsFromDb block counts done")
+	cache.log.Debug("| syncBlockCountsAndUnrefsFromDb block counts done")
 
 	tlfLastUnrefs := make(map[tlf.ID]kbfsmd.Revision)
 	lastUnrefIter := cache.lastUnrefDb.NewIterator(nil, nil)
@@ -926,8 +926,8 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 // DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) GetLastUnrefRev(
 	ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
 	err := cache.checkCacheLocked("Block(GetLastUnrefRev)")
 	if err != nil {
 		return kbfsmd.RevisionUninitialized, err
