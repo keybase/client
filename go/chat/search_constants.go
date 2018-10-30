@@ -1,4 +1,4 @@
-package search
+package chat
 
 const defaultPageSize = 300
 const MaxAllowedSearchHits = 10000

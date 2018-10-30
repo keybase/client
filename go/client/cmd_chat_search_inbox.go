@@ -10,7 +10,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat/search"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -111,8 +111,8 @@ func (c *CmdChatSearchInbox) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	c.opts.MaxHits = ctx.Int("max-hits")
-	if c.opts.MaxHits > search.MaxAllowedSearchHits {
-		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
+	if c.opts.MaxHits > chat.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
 	}
 	c.opts.MaxConvs = ctx.Int("max-convs")
 

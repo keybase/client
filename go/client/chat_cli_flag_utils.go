@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -107,7 +107,7 @@ var chatSearchFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:  "max-hits",
 		Value: 10,
-		Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", search.MaxAllowedSearchHits),
+		Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", chat.MaxAllowedSearchHits),
 	},
 	cli.StringFlag{
 		Name:  "sent-by",

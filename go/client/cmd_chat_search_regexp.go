@@ -11,7 +11,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat/search"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -54,7 +54,7 @@ func newCmdChatSearchRegexp(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", search.MaxAllowedSearchMessages),
+				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", chat.MaxAllowedSearchMessages),
 			},
 		),
 	}
@@ -152,12 +152,12 @@ func (c *CmdChatSearchRegexp) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	c.opts.MaxHits = ctx.Int("max-hits")
-	if c.opts.MaxHits > search.MaxAllowedSearchHits {
-		return fmt.Errorf("max-hits cannot exceed %d.", search.MaxAllowedSearchHits)
+	if c.opts.MaxHits > chat.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
 	}
 	c.opts.MaxMessages = ctx.Int("max-messages")
-	if c.opts.MaxMessages > search.MaxAllowedSearchMessages {
-		return fmt.Errorf("max-messages cannot exceed %d.", search.MaxAllowedSearchMessages)
+	if c.opts.MaxMessages > chat.MaxAllowedSearchMessages {
+		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
 	}
 
 	c.opts.AfterContext = ctx.Int("after-context")

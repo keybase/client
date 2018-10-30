@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -346,14 +345,14 @@ func TestChatSearchInbox(t *testing.T) {
 		listener2 := newServerChatListener()
 		tc2.h.G().NotifyRouter.SetListener(listener2)
 
-		indexer1 := search.NewIndexer(g1)
+		indexer1 := NewIndexer(g1)
 		consumeCh1 := make(chan chat1.ConversationID, 100)
 		reindexCh1 := make(chan chat1.ConversationID, 100)
 		indexer1.SetConsumeCh(consumeCh1)
 		indexer1.SetReindexCh(reindexCh1)
 		g1.Indexer = indexer1
 
-		indexer2 := search.NewIndexer(g2)
+		indexer2 := NewIndexer(g2)
 		consumeCh2 := make(chan chat1.ConversationID, 100)
 		reindexCh2 := make(chan chat1.ConversationID, 100)
 		indexer2.SetConsumeCh(consumeCh2)
@@ -484,7 +483,7 @@ func TestChatSearchInbox(t *testing.T) {
 					1:      true, // tlf name
 					msgID1: true,
 				},
-				Version: search.IndexVersion,
+				Version: IndexVersion,
 			},
 		}
 		verifyIndex(expectedIndex)

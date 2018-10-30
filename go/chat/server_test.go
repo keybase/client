@@ -23,7 +23,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
-	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -339,11 +338,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	chatSyncer := NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
-	searcher := search.NewRegexpSearcher(g)
+	searcher := NewRegexpSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
-	indexer := search.NewIndexer(g)
+	indexer := NewIndexer(g)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
 
