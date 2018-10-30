@@ -77,7 +77,7 @@ function createMentionRegex(meta: ?MarkdownMeta): ?RegExp {
 }
 
 function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
-  if (!meta || !meta.mentionsChannelName || meta.mentionsChannelName.isEmpty) {
+  if (!meta || !meta.mentionsChannelName || meta.mentionsChannelName.isEmpty()) {
     return null
   }
 
