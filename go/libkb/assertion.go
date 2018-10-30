@@ -469,7 +469,7 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		service := s[atIndex+1:]
 
 		if matchNameAndService(name, service) {
-			return
+			return key, value, err
 		}
 	}
 
@@ -483,14 +483,14 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		}
 
 		if matchNameAndService(name, service) {
-			return
+			return key, value, err
 		}
 	}
 
 	if assertionNameRxx.MatchString(s) {
 		key = ""
 		value = s
-		return
+		return key, value, nil
 	}
 
 	// We've exhausted our options, it's not a valid assertion we can parse.
