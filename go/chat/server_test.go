@@ -333,8 +333,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
-	g.InboxSource.Start(context.TODO(), uid)
-	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	chatSyncer := NewSyncer(g)
 	g.Syncer = chatSyncer

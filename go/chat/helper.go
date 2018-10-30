@@ -145,8 +145,7 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	query := &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, query,
-		nil)
+	inbox, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +172,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 		ConvIDs:   []chat1.ConversationID{convID},
 		TopicType: &topicType,
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, query,
-		nil)
+	inbox, err := h.G().InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
 		return topicName, err
 	}
@@ -418,10 +416,9 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, useLocalData bool) (res chat1.ConversationLocal, err error) {
 
-	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, useLocalData, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+	inbox, err := g.InboxSource.Read(ctx, uid, nil, useLocalData, &chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
 	if err != nil {
 		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
 	}
@@ -513,8 +510,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			OneChatTypePerTLF: oneChatPerTLF,
 		}
 
-		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, useLocalData, nil,
-			query, nil)
+		inbox, err := g.InboxSource.Read(ctx, uid, nil, useLocalData, query, nil)
 		if err != nil {
 			// don't error out if the TLF name is just unknown, treat it as a complete miss
 			if _, ok := err.(UnknownTLFNameError); !ok {
@@ -581,8 +577,10 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 			// Localize the convs (if any)
 			if len(pubConvs.Conversations) > 0 {
-				convsLocal, _, err := g.InboxSource.Localize(ctx, uid,
-					utils.RemoteConvs(pubConvs.Conversations), types.ConversationLocalizerBlocking)
+				localizer := NewBlockingLocalizer(g)
+				convsLocal, err := localizer.Localize(ctx, uid, types.Inbox{
+					ConvsUnverified: utils.RemoteConvs(pubConvs.Conversations),
+				})
 				if err != nil {
 					return res, err
 				}
@@ -681,7 +679,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	query := chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
-	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, &query, nil)
+	ib, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
 	if err != nil {
 		return fmt.Errorf("inbox read error: %s", err)
 	}
@@ -994,7 +992,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		n.Debug(ctx, "established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
-		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking, false, nil,
+		ib, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)

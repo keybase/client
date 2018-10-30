@@ -46,6 +46,8 @@ packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
+# Storybook
+shared/.cache
 
 Keybase.app.dSYM.zip
 

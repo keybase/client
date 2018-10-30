@@ -209,10 +209,7 @@ protocol local {
   // Gets display currency for primary account if no accountID is given.
   CurrencyLocal getDisplayCurrencyLocal(int sessionID, union { null, AccountID } accountID);
 
-  record WalletSettings {
-    boolean acceptedDisclaimer; // whether the user has accepted the usage disclaimer
-  }
-  WalletSettings getWalletSettingsLocal(int sessionID);
+  bool hasAcceptedDisclaimerLocal(int sessionID);
 
   void acceptDisclaimerLocal(int sessionID);
 

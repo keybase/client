@@ -19,10 +19,18 @@ const Header = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  backButton: {
-    left: Styles.isMobile ? 4 : 16,
-    position: 'absolute',
-  },
+  backButton: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      left: 16,
+      top: 18,
+    },
+    isMobile: {
+      left: 4,
+    },
+  }),
   header: Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',

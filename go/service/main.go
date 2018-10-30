@@ -386,7 +386,6 @@ func (d *Service) startChatModules() {
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
-		g.InboxSource.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -396,7 +395,6 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().ConvLoader.Stop(context.Background())
 	<-d.ChatG().FetchRetrier.Stop(context.Background())
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
-	<-d.ChatG().InboxSource.Stop(context.Background())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
