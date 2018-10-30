@@ -107,7 +107,7 @@ func cryptocurrencyParseZCashSapling(s string) (CryptocurrencyType, []byte, erro
 		return CryptocurrencyTypeNone, nil, err
 	}
 	if hrp != "zs" {
-		return CryptocurrencyTypeNone, nil, errors.New("bad")
+		return CryptocurrencyTypeNone, nil, errors.New("bad prefix after bech32 parse")
 	}
 	return CryptocurrencyTypeZCashSapling, decoded, nil
 }
