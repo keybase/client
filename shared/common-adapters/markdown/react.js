@@ -158,6 +158,7 @@ const markdownStyles = {
   wrapStyle,
 }
 
+// TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
 class EmojiIfExists extends PureComponent<
   EmojiProps & {style?: any, allowFontScaling?: boolean, lineClamp?: number},
   void
@@ -273,7 +274,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
   },
   text: SimpleMarkdown.defaultRules.text.react,
   emoji: (node, output, state) => {
-    return <EmojiIfExists emojiName={String(node.content)} size={16} key={state.key} />
+    return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
     return (
@@ -312,7 +313,7 @@ const bigEmojiOutputForFontScaling = (allowFontScaling: boolean) =>
       ),
       emoji: (node, output, state) => {
         return (
-          <EmojiIfExists
+          <Emoji
             emojiName={String(node.content)}
             size={32}
             key={state.key}
