@@ -1,6 +1,7 @@
 package keybase
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,8 @@ import (
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/libkbfs"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
@@ -30,7 +33,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
-	context "golang.org/x/net/context"
 )
 
 var extensionRi chat1.RemoteClient
@@ -218,6 +220,20 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())
+
+	go func() {
+		kbfsCtx := env.NewContextFromGlobalContext(kbCtx)
+		kbfsParams := libkbfs.DefaultInitParams(kbfsCtx)
+		// Setting this flag will enable KBFS debug logging to always
+		// be true in a mobile setting. Change these back to the
+		// commented-out values if we need to make a mobile release
+		// before KBFS-on-mobile is ready.
+		kbfsParams.Debug = true                         // false
+		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
+		kbfsConfig, _ = libkbfs.Init(
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
+			kbCtx.Log)
+	}()
 	return nil
 }
 
