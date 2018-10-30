@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/stellar/go/keypair"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -504,33 +505,7 @@ func unboxParentV2(versioned stellar1.BundleSecretVersioned, visB64 string) (ste
 
 // decryptParent decrypts an encrypted parent bundle with the provided puk.
 func decryptParent(encBundle stellar1.EncryptedBundle, puk libkb.PerUserKeySeed) (stellar1.BundleSecretVersioned, error) {
-	var empty stellar1.BundleSecretVersioned
-	if encBundle.V != 2 {
-		return empty, fmt.Errorf("invalid stellar secret account bundle encryption version: %v", encBundle.V)
-	}
-
-	// Derive key
-	reason := libkb.DeriveReasonPUKStellarBundle
-	symmetricKey, err := puk.DeriveSymmetricKey(reason)
-	if err != nil {
-		return empty, err
-	}
-
-	// Secretbox
-	clearpack, ok := secretbox.Open(nil, encBundle.E,
-		(*[libkb.NaclDHNonceSize]byte)(&encBundle.N),
-		(*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
-	if !ok {
-		return empty, errors.New("stellar bundle secret box open failed")
-	}
-
-	// Msgpack (inner)
-	var bver stellar1.BundleSecretVersioned
-	err = libkb.MsgpackDecode(&bver, clearpack)
-	if err != nil {
-		return empty, err
-	}
-	return bver, nil
+	return bundle.Decrypt(encBundle, puk)
 }
 
 // decode decodes a base64-encoded encrypted account bundle.
