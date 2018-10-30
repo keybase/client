@@ -10,12 +10,55 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 //sys cancelIoEx(file syscall.Handle, o *syscall.Overlapped) (err error) = CancelIoEx
 //sys createIoCompletionPort(file syscall.Handle, port syscall.Handle, key uintptr, threadCount uint32) (newport syscall.Handle, err error) = CreateIoCompletionPort
 //sys getQueuedCompletionStatus(port syscall.Handle, bytes *uint32, key *uintptr, o **ioOperation, timeout uint32) (err error) = GetQueuedCompletionStatus
 //sys setFileCompletionNotificationModes(h syscall.Handle, flags uint8) (err error) = SetFileCompletionNotificationModes
+
+// --- copied from https://golang.org/src/internal/poll/fd_windows.go ---
+// This package uses the SetFileCompletionNotificationModes Windows
+// API to skip calling GetQueuedCompletionStatus if an IO operation
+// completes synchronously. There is a known bug where
+// SetFileCompletionNotificationModes crashes on some systems (see
+// https://support.microsoft.com/kb/2568167 for details).
+
+var useSetFileCompletionNotificationModes bool // determines is SetFileCompletionNotificationModes is present and safe to use
+
+// checkSetFileCompletionNotificationModes verifies that
+// SetFileCompletionNotificationModes Windows API is present
+// on the system and is safe to use.
+// See https://support.microsoft.com/kb/2568167 for details.
+func checkSetFileCompletionNotificationModes() {
+	err := syscall.LoadSetFileCompletionNotificationModes()
+	if err != nil {
+		return
+	}
+	protos := [2]int32{syscall.IPPROTO_TCP, 0}
+	var buf [32]syscall.WSAProtocolInfo
+	len := uint32(unsafe.Sizeof(buf))
+	n, err := syscall.WSAEnumProtocols(&protos[0], &buf[0], &len)
+	if err != nil {
+		return
+	}
+	for i := int32(0); i < n; i++ {
+		if buf[i].ServiceFlags1&syscall.XP1_IFS_HANDLES == 0 {
+			return
+		}
+	}
+	useSetFileCompletionNotificationModes = true
+}
+
+func initFileCompletionNotificationModes() {
+	var d syscall.WSAData
+	syscall.WSAStartup(uint32(0x202), &d)
+
+	checkSetFileCompletionNotificationModes()
+}
+
+// END --- copied from https://golang.org/src/internal/poll/fd_windows.go ---
 
 type atomicBool int32
 
@@ -64,6 +107,7 @@ type ioOperation struct {
 }
 
 func initIo() {
+	initFileCompletionNotificationModes()
 	h, err := createIoCompletionPort(syscall.InvalidHandle, 0, 0, 0xffffffff)
 	if err != nil {
 		panic(err)
@@ -99,9 +143,11 @@ func makeWin32File(h syscall.Handle) (*win32File, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = setFileCompletionNotificationModes(h, cFILE_SKIP_COMPLETION_PORT_ON_SUCCESS|cFILE_SKIP_SET_EVENT_ON_HANDLE)
-	if err != nil {
-		return nil, err
+	if useSetFileCompletionNotificationModes {
+		err = setFileCompletionNotificationModes(h, cFILE_SKIP_COMPLETION_PORT_ON_SUCCESS|cFILE_SKIP_SET_EVENT_ON_HANDLE)
+		if err != nil {
+			return nil, err
+		}
 	}
 	f.readDeadline.channel = make(timeoutChan)
 	f.writeDeadline.channel = make(timeoutChan)

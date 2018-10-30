@@ -397,6 +397,13 @@
 			"revisionTime": "2018-01-18T23:10:18Z"
 		},
 		{
+			"checksumSHA1": "3dP57YjvS8nVX6GMCgbA9fTSXKc=",
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-winio",
+			"path": "github.com/keybase/go-winio",
+			"revision": "41191563760e6b6b3374d77fc0a3b1cb58094433",
+			"revisionTime": "2018-10-30T21:08:04Z"
+		},
+		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "260b815592d65ec410ecf2e1d6351d8ef0e2db54",
