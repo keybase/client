@@ -7,7 +7,7 @@ import type {Props} from '.'
 
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>
-    <QRScanLines canScan={true} />
+    <QRLines canScan={true} />
     {props.waiting && <ProgressIndicator style={styles.waiting} type="Large" white={true} />}
   </Box2>
 )

@@ -106,7 +106,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
                 type="iconfont-qr-code"
                 fontSize={24}
                 onClick={this.props.onScanQRCode}
-                style={styles.qrCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
               />
             )}
         </Kb.Box2>

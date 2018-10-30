@@ -18,6 +18,7 @@ export type SearchProps = {|
 type SearchState = {|
   displayResultsList: boolean,
   hideClearSearch: boolean,
+  searchText: string,
 |}
 
 const placeholder = 'Search Keybase'
@@ -78,7 +79,7 @@ class Search extends React.Component<SearchProps, SearchState> {
                   type="iconfont-qr-code"
                   fontSize={24}
                   onClick={this.props.onScanQRCode}
-                  style={styles.qrCode}
+                  style={Kb.iconCastPlatformStyles(styles.qrCode)}
                 />
               )}
           </Kb.Box2>

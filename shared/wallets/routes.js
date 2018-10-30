@@ -35,10 +35,6 @@ const linkExisting = {
 }
 
 const walletChildren = {
-  qrScan: {
-    component: QRScan,
-    tags: makeLeafTags({layerOnTop: true}),
-  },
   createNewAccount,
   exportSecretKey: {
     children: {},
@@ -64,6 +60,10 @@ const walletChildren = {
         children: {},
         component: ChooseAsset,
         tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      qrScan: {
+        component: QRScan,
+        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
       },
     },
     component: SendForm,

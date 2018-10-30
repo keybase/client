@@ -5,21 +5,10 @@ import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {
-  getAccount,
-  getAccounts,
-  searchKey,
-  unknownAccount,
-  linkExistingWaitingKey,
-  createNewAccountWaitingKey,
-} from '../../../constants/wallets'
-import {
-  stringToAccountID,
-  type Account as StateAccount,
-  type AccountID,
-} from '../../../constants/types/wallets'
+import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {compose, connect, setDisplayName, isMobile} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
@@ -34,11 +23,12 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
-  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
+  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
 })
 
 const ConnectedParticipantsKeybaseUser = compose(
@@ -64,6 +54,7 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
 })
 
 const ConnectedParticipantsStellarPublicKey = compose(
@@ -79,24 +70,26 @@ const ConnectedParticipantsStellarPublicKey = compose(
   setDisplayName('ParticipantsStellarPublicKey')
 )(ParticipantsStellarPublicKey)
 
-const makeAccount = (stateAccount: StateAccount) => ({
+const makeAccount = (stateAccount: Types.Account) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
   isDefault: stateAccount.isDefault,
   name: stateAccount.name,
-  unknown: stateAccount === unknownAccount,
+  unknown: stateAccount === Constants.unknownAccount,
 })
 
 const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.building
 
-  const fromAccount = makeAccount(getAccount(state, build.from))
-  const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
+  const fromAccount = makeAccount(Constants.getAccount(state, build.from))
+  const toAccount = build.to
+    ? makeAccount(Constants.getAccount(state, Types.stringToAccountID(build.to)))
+    : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
-    : anyWaiting(state, linkExistingWaitingKey, createNewAccountWaitingKey)
+    : anyWaiting(state, Constants.linkExistingWaitingKey, Constants.createNewAccountWaitingKey)
 
-  const allAccounts = getAccounts(state)
+  const allAccounts = Constants.getAccounts(state)
     .map(makeAccount)
     .toArray()
 
@@ -110,7 +103,7 @@ const mapStateToPropsOtherAccount = state => {
 }
 
 const mapDispatchToPropsOtherAccount = (dispatch, ownProps) => ({
-  onChangeFromAccount: (from: AccountID) => {
+  onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {

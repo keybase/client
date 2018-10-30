@@ -7,7 +7,7 @@ import {isMobile} from '../constants/platform'
 
 export type Props = {
   containerStyle?: StylesCrossPlatform,
-  children: React.Node,
+  children?: React.Node,
   color?: ?string,
 }
 
