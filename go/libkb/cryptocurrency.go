@@ -6,6 +6,8 @@ package libkb
 import (
 	"crypto/sha256"
 	"errors"
+	"github.com/btcsuite/btcutil/bech32"
+	"strings"
 )
 
 type CryptocurrencyType int
@@ -14,11 +16,12 @@ type CryptocurrencyFamily string
 
 const (
 	CryptocurrencyTypeNone                  CryptocurrencyType = -1
-	CryptocurrencyTypeBTC                   CryptocurrencyType = 0    // 0x0
-	CryptocurrencyTypeBTCMultiSig           CryptocurrencyType = 5    // 0x5
-	CryptocurrencyTypeZCashShielded         CryptocurrencyType = 5786 // 0x169a
-	CryptocurrencyTypeZCashTransparentP2PKH CryptocurrencyType = 7352 // 0x1cb8
-	CryptocurrencyTypeZCashTransparentP2SH  CryptocurrencyType = 7357 // 0x1cbd
+	CryptocurrencyTypeBTC                   CryptocurrencyType = 0      // 0x0
+	CryptocurrencyTypeBTCMultiSig           CryptocurrencyType = 5      // 0x5
+	CryptocurrencyTypeZCashShielded         CryptocurrencyType = 5786   // 0x169a
+	CryptocurrencyTypeZCashTransparentP2PKH CryptocurrencyType = 7352   // 0x1cb8
+	CryptocurrencyTypeZCashTransparentP2SH  CryptocurrencyType = 7357   // 0x1cbd
+	CryptocurrencyTypeZCashSapling          CryptocurrencyType = 0x7a73 // "zs"
 )
 
 const (
@@ -52,6 +55,8 @@ func (p CryptocurrencyType) String() string {
 		return "zcash.z"
 	case CryptocurrencyTypeZCashTransparentP2PKH, CryptocurrencyTypeZCashTransparentP2SH:
 		return "zcash.t"
+	case CryptocurrencyTypeZCashSapling:
+		return "zcash.s"
 	default:
 		return ""
 	}
@@ -61,7 +66,7 @@ func (p CryptocurrencyType) ToCryptocurrencyFamily() CryptocurrencyFamily {
 	switch p {
 	case CryptocurrencyTypeBTC, CryptocurrencyTypeBTCMultiSig:
 		return CryptocurrencyFamilyBitcoin
-	case CryptocurrencyTypeZCashShielded, CryptocurrencyTypeZCashTransparentP2PKH, CryptocurrencyTypeZCashTransparentP2SH:
+	case CryptocurrencyTypeZCashShielded, CryptocurrencyTypeZCashTransparentP2PKH, CryptocurrencyTypeZCashTransparentP2SH, CryptocurrencyTypeZCashSapling:
 		return CryptocurrencyFamilyZCash
 	default:
 		return CryptocurrencyFamilyNone
@@ -97,7 +102,27 @@ func addressToType(b []byte) (CryptocurrencyType, error) {
 	return CryptocurrencyTypeNone, errors.New("address type not known")
 }
 
+func cryptocurrencyParseZCashSapling(s string) (CryptocurrencyType, []byte, error) {
+	hrp, decoded, err := bech32.Decode(s)
+	if err != nil {
+		return CryptocurrencyTypeNone, nil, err
+	}
+	if strings.ToLower(hrp) != "zs" {
+		return CryptocurrencyTypeNone, nil, errors.New("bad prefix after bech32 parse")
+	}
+	return CryptocurrencyTypeZCashSapling, decoded, nil
+}
+
+func cryptocurrencyIsZCashSaplingViaPrefix(s string) bool {
+	return len(s) > 3 && strings.ToLower(s[0:3]) == "zs1"
+}
+
 func CryptocurrencyParseAndCheck(s string) (CryptocurrencyType, []byte, error) {
+
+	if cryptocurrencyIsZCashSaplingViaPrefix(s) {
+		return cryptocurrencyParseZCashSapling(s)
+	}
+
 	buf, err := Decode58(s)
 	if err != nil {
 		return CryptocurrencyTypeNone, nil, err

@@ -1062,7 +1062,7 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 		return
 	}
 	if styp != typ.String() {
-		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), err)
+		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), b.ToDebugString())
 		return
 	}
 

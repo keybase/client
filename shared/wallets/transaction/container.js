@@ -2,7 +2,6 @@
 import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
@@ -31,8 +30,6 @@ const mapDispatchToProps = dispatch => ({
         },
       ])
     ),
-  onChat: (username: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -58,7 +55,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onCancelPayment:
       tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-    onChat: dispatchProps.onChat,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     onShowProfile: dispatchProps.onShowProfile,

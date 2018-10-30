@@ -27,9 +27,9 @@ protocol local {
     string balanceAvailableToSend;  // Available to send. Like "279.9192933". Same as balanceTotal for non-native.
 
     string worthCurrency;           // "USD", "CAD", etc. If it is "ERR" then an exchange rate error occurred. Blank for non-native.
-    string worth;                   // "$98.13" or error string if worthCurrency == "ERR". Blank for non-native.
+    string worth;                   // "$98.13 USD" or error string if worthCurrency == "ERR". Blank for non-native.
     // Available to send in worthCurrency.
-    // Like $97.83"" for native.
+    // Like "$97.83 USD" for native.
     // Blank for non-native.
     // Error string when worthCurrency is "ERR".
     string availableToSendWorth;
@@ -73,14 +73,14 @@ protocol local {
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23" (worth at the time the payment was created)
+    string worth;                   // "$123.23 CLP" (worth at the time the payment was created)
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
                                     // currentWorth is how much the amount of XLM in
                                     // amountDescription is currently worth in the
                                     // display currency preference of the user looking
                                     // at this payment. Both can be "".
-    string currentWorth;            // "$379.12" (worth at the current viewing time)
+    string currentWorth;            // "$379.12 USD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
     // What type to display the sender and recipient as.
@@ -134,14 +134,14 @@ protocol local {
     boolean showCancel;             // true if cancel is an option for this payment
     string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23", amount in local currency at the time of sending, or empty if no OutsideCurrency
+    string worth;                   // "$123.23 CLP", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
                                     // currentWorth is how much the amount of XLM in
                                     // amountDescription is currently worth in the
                                     // display currency preference of the user looking
                                     // at this payment. Both can be "".
-    string currentWorth;            // "$379.12" (worth at the current viewing time)
+    string currentWorth;            // "$379.12 CAD" (worth at the current viewing time)
     string currentWorthCurrency;    // "USD", "CAD", of currentWorth
 
     // What type to display the sender and recipient as.

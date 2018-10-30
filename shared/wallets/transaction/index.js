@@ -5,7 +5,6 @@ import {capitalize} from 'lodash-es'
 import {
   Avatar,
   Box2,
-  Button,
   ClickableBox,
   Icon,
   ConnectedUsernames,
@@ -290,9 +289,7 @@ export type Props = {|
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
-  // onChat and onShowProfile are used only when counterpartyType ===
-  // 'keybaseUser'.
-  onChat: string => void,
+  // onShowProfile is used only when counterpartyType === 'keybaseUser'.
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
   readState: ReadState,
@@ -361,37 +358,24 @@ export const Transaction = (props: Props) => {
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
-              <Box2 direction="vertical" gap="tiny">
-                {props.onCancelPayment && (
+              {props.onCancelPayment && (
+                <Box2 direction="vertical" gap="tiny">
                   <Text type="BodySmall">
                     {props.counterparty} can claim this when they set up their wallet.
                   </Text>
-                )}
-                <Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  {props.counterpartyType === 'keybaseUser' && (
-                    <Button
-                      type="Secondary"
-                      label="Chat"
-                      small={true}
-                      onClick={() => props.onChat(props.counterparty)}
-                    />
-                  )}
-                  {props.onCancelPayment && (
-                    <WaitingButton
-                      type="Danger"
-                      label="Cancel"
-                      small={true}
-                      style={styles.cancelButton}
-                      onClick={evt => {
-                        evt.stopPropagation()
-                        props.onCancelPayment && props.onCancelPayment()
-                      }}
-                      waitingKey={props.onCancelPaymentWaitingKey}
-                    />
-                  )}
+                  <WaitingButton
+                    type="Danger"
+                    label="Cancel"
+                    small={true}
+                    style={styles.cancelButton}
+                    onClick={evt => {
+                      evt.stopPropagation()
+                      props.onCancelPayment && props.onCancelPayment()
+                    }}
+                    waitingKey={props.onCancelPaymentWaitingKey}
+                  />
                 </Box2>
-              </Box2>
-
+              )}
               <Box2 direction="horizontal" style={{flex: 1}} />
               <AmountXLM
                 selectableText={props.selectableText}

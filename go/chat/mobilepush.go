@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
@@ -79,9 +80,10 @@ func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
-		ib, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			}, nil)
 		if err != nil || len(ib.Convs) == 0 {
 			// Don't give up here, just display the team name only
 			h.Debug(ctx, "FormatPushText: failed to unbox convo, using team only")
@@ -105,9 +107,10 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
-		ib, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			}, nil)
 		if err != nil || len(ib.Convs) == 0 {
 			h.Debug(ctx, "FormatPushText: failed to unbox convo, using team only")
 			return emoji.Sprintf("(%s): %s reacted to your message with %v", msg.Valid().ClientHeader.TlfName,
