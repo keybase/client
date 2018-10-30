@@ -227,6 +227,19 @@ func TestAssertions4(t *testing.T) {
 	}
 }
 
+func TestAssertionsUsernames(t *testing.T) {
+	exprs := []string{"x_", "A2", "ed", "bob", "o_o"}
+	fmts := []string{"%s", "%s@keybase", "keybase:%s"}
+	for _, str := range exprs {
+		for _, f := range fmts {
+			expr, err := AssertionParse(testAssertionContext{}, fmt.Sprintf(f, str))
+			require.NoError(t, err)
+			require.IsType(t, AssertionKeybase{}, expr)
+			require.Equal(t, strings.ToLower(str), expr.String())
+		}
+	}
+}
+
 func TestProofSetEmail(t *testing.T) {
 	exprs := []string{
 		"[m@keybasers.de]@email",
