@@ -1522,7 +1522,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# uncomment this if you want to skip bundling\nexport SKIP_BUNDLING=1\nexport BABEL_PLATFORM=ReactNative\n../../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "# uncomment this if you want to skip bundling\n# export SKIP_BUNDLING=1\nexport BABEL_PLATFORM=ReactNative\n../../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		DB75391E1D776CC400AFA61B /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
