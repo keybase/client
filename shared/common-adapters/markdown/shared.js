@@ -325,7 +325,8 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.text,
     // original:
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
-    // ours: stop on single new lines and common tlds
+    // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
+    // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: SimpleMarkdown.anyScopeRegex(
       new RegExp(
         `^[\\s\\S]+?(?=[^0-9A-Za-z\\s\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
