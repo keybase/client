@@ -156,9 +156,7 @@ func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGenera
 		if err != nil {
 			return nil, err
 		}
-		if ab != nil {
-			boxed.AcctBundles[acctEntry.AccountID] = *ab
-		}
+		boxed.AcctBundles[acctEntry.AccountID] = *ab
 
 		visibleV2.Accounts[i].EncAcctBundleHash = ab.EncHash
 	}
@@ -388,6 +386,13 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 	if err != nil {
 		return nil, err
 	}
+	if ab.AccountID != parentEntry.AccountID {
+		return nil, errors.New("account bundle and parent entry account ID mismatch")
+	}
+	if !libkb.SecureByteArrayEq(ab.OwnHash, parentEntry.EncAcctBundleHash) {
+		return nil, errors.New("account bundle and parent entry hash mismatch")
+	}
+	ab.Revision = parentEntry.AcctBundleRevision
 
 	return ab, nil
 }
@@ -558,7 +563,10 @@ func unbox(encBundle stellar1.EncryptedAccountBundle, hash stellar1.Hash /* visB
 	switch version {
 	case stellar1.AccountBundleVersion_V1:
 		secretV1 := versioned.V1()
-		bundleOut = stellar1.AccountBundle{Signers: secretV1.Signers}
+		bundleOut = stellar1.AccountBundle{
+			AccountID: secretV1.AccountID,
+			Signers:   secretV1.Signers,
+		}
 	case stellar1.AccountBundleVersion_V2,
 		stellar1.AccountBundleVersion_V3,
 		stellar1.AccountBundleVersion_V4,
