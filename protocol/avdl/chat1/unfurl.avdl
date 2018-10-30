@@ -9,13 +9,12 @@ protocol unfurl {
     }
 
     record UnfurlGeneric {
-        union { null, string } faviconURL;
-        union { null, string } imageURL;
+        union { null, string } faviconUrl;
+        union { null, string } imageUrl;
         union { null, int } publishTime;
         union { null, string } title;
-        union { null, string } titleURL;
+        union { null, string } titleUrl;
         union { null, string } description;
-        union { null, string } imageURL;
     }
 
     record UnfurlYoutube {

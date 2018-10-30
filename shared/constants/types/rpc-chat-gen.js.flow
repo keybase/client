@@ -592,6 +592,11 @@ export const remoteSyncAllProtVers = {
   v0: 0,
   v1: 1,
 }
+
+export const unfurlUnfurlType = {
+  generic: 0,
+  youtube: 1,
+}
 export type AppNotificationSettingLocal = $ReadOnly<{deviceType: Keybase1.DeviceType, kind: NotificationKind, enabled: Boolean}>
 export type Asset = $ReadOnly<{filename: String, region: String, endpoint: String, bucket: String, path: String, size: Long, mimeType: String, encHash: Hash, key: Bytes, verifyKey: Bytes, title: String, nonce: Bytes, metadata: AssetMetadata, tag: AssetTag}>
 export type AssetMetadata = {assetType: 1, image: ?AssetMetadataImage} | {assetType: 2, video: ?AssetMetadataVideo} | {assetType: 3, audio: ?AssetMetadataAudio}
@@ -1041,6 +1046,13 @@ export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
+export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
+export type UnfurlGeneric = $ReadOnly<{faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, title?: ?String, titleUrl?: ?String, description?: ?String}>
+export type UnfurlType =
+  | 0 // GENERIC_0
+  | 1 // YOUTUBE_1
+
+export type UnfurlYoutube = $ReadOnly<{}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
