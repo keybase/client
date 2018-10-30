@@ -12,6 +12,7 @@ const cases = {
 
   
   foo`,
+  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   underscoreweirdness: `under_score the first, \`under_score the second\``,
   boldweirdness: `How are you *today*?`,
   quoteInParagraph: `Do you remember when you said:
@@ -268,7 +269,7 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + '...'
+                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
                       : Array.isArray(v)
                         ? v.map(o => ({type: o.type, content: o.content}))
                         : v,

@@ -15,7 +15,7 @@ import {type ConversationIDKey} from '../../constants/types/chat2'
 import {isSpecialMention, specialMentions} from '../../constants/chat2'
 import parser, {isPlainText} from '../../markdown/parser'
 import {emojiRegex} from '../../markdown/emoji'
-import {tldExp} from '../../markdown/regex'
+import {tldExp, commonTlds} from '../../markdown/regex'
 import SimpleMarkdown from 'simple-markdown'
 
 import type {MarkdownCreateComponent, MarkdownMeta, Props as MarkdownProps} from '../markdown'
@@ -325,8 +325,12 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.text,
     // original:
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
-    // ours: stop on single new lines
-    match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n|\w+:\S|$)/),
+    // ours: stop on single new lines and common tlds
+    match: SimpleMarkdown.anyScopeRegex(
+      new RegExp(
+        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+      )
+    ),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
