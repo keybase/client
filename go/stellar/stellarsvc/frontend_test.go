@@ -693,9 +693,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
-		require.Equal(t, "$321.87", p.Worth, "Worth")
+		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, "$214.49", p.CurrentWorth, "CurrentWorth")
+		require.Equal(t, "$214.49 USD", p.CurrentWorth, "CurrentWorth")
 		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
@@ -757,7 +757,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.True(t, info.ConvID.Eq(convID))
 		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, info.Info.Delta)
-		require.Equal(t, info.Info.Worth, "$321.87 USD")
+		require.Equal(t, "$321.87 USD", info.Info.Worth)
 		require.Equal(t, info.Info.Note, "here you go")
 		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
 		require.Equal(t, info.Info.StatusDescription, "completed")
@@ -797,9 +797,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 			require.Equal(t, "1,011.1230000 XLM", p.AmountDescription, "Amount")
 			require.Equal(t, stellar1.BalanceDelta_INCREASE, p.Delta)
 		}
-		require.Equal(t, "$321.87", p.Worth, "Worth")
+		require.Equal(t, "$321.87 USD", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, "$214.49", p.CurrentWorth, "CurrentWorth")
+		require.Equal(t, "$214.49 USD", p.CurrentWorth, "CurrentWorth")
 		require.Equal(t, "USD", p.CurrentWorthCurrency, "CurrentWorthCurrency")
 
 		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
@@ -1114,7 +1114,7 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
 	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
-	require.Equal(t, "$160.93", detailsRes.Worth)
+	require.Equal(t, "$160.93 USD", detailsRes.Worth)
 	require.Equal(t, "USD", detailsRes.WorthCurrency)
 	require.Empty(t, detailsRes.CurrentWorth)
 	require.Empty(t, detailsRes.CurrentWorthCurrency)
