@@ -30,7 +30,7 @@ type JSONFile struct {
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
-	setMutex sync.Mutex
+	setMutex sync.RWMutex
 
 	txMutex sync.Mutex
 	tx      *jsonFileTransaction
@@ -380,10 +380,14 @@ func (f *JSONFile) GetFilename() string {
 }
 
 func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	return f.jw.AtPath(p).GetInterface()
 }
 
 func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getString)
 	if isSet {
 		ret = i.(string)
@@ -392,6 +396,8 @@ func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
 }
 
 func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getBool)
 	if isSet {
 		ret = i.(bool)
@@ -400,6 +406,8 @@ func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
 }
 
 func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getInt)
 	if isSet {
 		ret = i.(int)
@@ -408,6 +416,8 @@ func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 }
 
 func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	w := f.jw.AtPath(p)
 	isSet = w.IsNil() && w.Error() == nil
 	return isSet
