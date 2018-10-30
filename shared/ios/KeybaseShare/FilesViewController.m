@@ -12,6 +12,8 @@
 @interface FilesViewController ()
 @property NSArray* unfilteredInboxItems; // the entire inbox
 @property NSArray* filteredInboxItems; // inbox items that are filtered by the search bar
+@property NSArray* path; // the path we are currently showing
+@property NSArray* directoryEntries; // the directory entries at the current path
 @end
 
 @implementation FilesViewController
@@ -47,6 +49,8 @@
   
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSError* error = NULL;
+    [self setPath:[NSArray new]];
+    [self setDirectoryEntries:[NSArray new]];
     [self setUnfilteredInboxItems:[NSArray new]];
     [self setFilteredInboxItems:[NSArray new]];
     NSString* jsonInbox = KeybaseExtensionGetInbox(&error); // returns the inbox in JSON format
