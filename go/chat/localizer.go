@@ -362,6 +362,7 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	for _, ch := range s.cancelChs {
 		ch <- struct{}{}
 	}
+	s.cancelChs = make(map[string]chan struct{})
 	return true
 }
 
