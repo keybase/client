@@ -1,0 +1,30 @@
+@namespace("chat.1")
+
+protocol unfurl {
+    import idl "common.avdl";
+
+    enum UnfurlType {
+        GENERIC_0,
+        YOUTUBE_1
+    }
+
+    record UnfurlGeneric {
+        union { null, string } faviconURL;
+        union { null, string } imageURL;
+        union { null, int } publishTime;
+        union { null, string } title;
+        union { null, string } titleURL;
+        union { null, string } description;
+        union { null, string } imageURL;
+    }
+
+    record UnfurlYoutube {
+        // TODO
+    }
+
+    variant Unfurl switch (UnfurlType unfurlType) {
+        case GENERIC: UnfurlGeneric;
+        case YOUTUBE: UnfurlYoutube;
+    }
+
+}
