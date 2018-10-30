@@ -378,7 +378,11 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
       disableAutoBlockNewlines: true,
     })
     const inner = this.props.preview ? (
-      <Text type="BodySmall" style={markdownStyles.neutralPreviewStyle}>
+      <Text
+        type={isMobile ? 'Body' : 'BodySmall'}
+        style={markdownStyles.neutralPreviewStyle}
+        lineClamp={isMobile ? 1 : undefined}
+      >
         {previewOutput(parseTree)}
       </Text>
     ) : isAllEmoji(parseTree) ? (
