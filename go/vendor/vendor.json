@@ -987,6 +987,12 @@
 			"revisionTime": "2015-06-09T11:52:15-07:00"
 		},
 		{
+			"checksumSHA1": "t43qYhxyCGEe6Oi5VhFDxTYSzZE=",
+			"path": "golang.org/x/net/publicsuffix",
+			"revision": "c44066c5c816ec500d459a2a324a753f78531ae0",
+			"revisionTime": "2018-10-29T02:24:31Z"
+		},
+		{
 			"checksumSHA1": "S0DP7Pn7sZUmXc55IzZnNvERu6s=",
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
