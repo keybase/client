@@ -652,15 +652,21 @@ func convertVisibleAccounts(in []stellar1.BundleVisibleEntryV2) []stellar1.Bundl
 // merge combines the versioned secret account bundle and the visible account bundle into
 // a stellar1.AccountBundle for local use.
 func merge(secret stellar1.BundleSecretV2, visible stellar1.BundleVisibleV2) (stellar1.BundleRestricted, error) {
+	if len(secret.Accounts) != len(visible.Accounts) {
+		return stellar1.BundleRestricted{}, errors.New("invalid bundle, mismatched number of visible and secret accounts")
+	}
+	accounts := convertVisibleAccounts(visible.Accounts)
+
+	// these should be in the same order
+	for i, secretAccount := range secret.Accounts {
+		if accounts[i].AccountID != secretAccount.AccountID {
+			return stellar1.BundleRestricted{}, errors.New("invalid bundle, mismatched order of visible and secret accounts")
+		}
+		accounts[i].Name = secretAccount.Name
+	}
 	return stellar1.BundleRestricted{
 		Revision: visible.Revision,
 		Prev:     visible.Prev,
-		Accounts: convertVisibleAccounts(visible.Accounts),
-		/*
-			AccountID: visible.AccountID,
-			Mode:      visible.Mode,
-			Signers:   secret.Signers,
-			Name:      secret.Name,
-		*/
+		Accounts: accounts,
 	}, nil
 }
