@@ -358,7 +358,7 @@ const isAllEmoji = ast => {
   // Only 1 paragraph
   if (trimmed.length === 1 && trimmed[0].content && trimmed[0].content.some) {
     // Is something in the content not an emoji?
-    return !trimmed[0].content.some(n => n.type !== 'emoji')
+    return !trimmed[0].content.some(n => n.type !== 'emoji' && n.type !== 'newline')
   }
   return false
 }
