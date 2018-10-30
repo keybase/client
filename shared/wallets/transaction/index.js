@@ -359,8 +359,8 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {showMemo && <MarkdownMemo style={styles.marginVerticalXTiny} memo={props.memo} />}
-            <Box2 direction="horizontal" fullWidth={true}>
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               <Box2 direction="vertical" gap="tiny">
                 {props.onCancelPayment && (
                   <Text type="BodySmall">
@@ -422,8 +422,7 @@ const styles = styleSheetCreate({
   lineThrough: {
     textDecorationLine: 'line-through',
   },
-  marginVerticalXTiny: {
-    marginBottom: globalMargins.xtiny,
+  marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},

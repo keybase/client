@@ -1312,11 +1312,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
-	// Make sure the ID we get back matches what has been put on the message
-	if !nameInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
-		return nil, NewBoxingError(fmt.Sprintf("invalid TLFID for name in header, %s != %s", nameInfo.ID,
-			msg.ClientHeader.Conv.Tlfid), true)
-	}
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 
 	// If the message is exploding, load the ephemeral key, and tweak the

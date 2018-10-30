@@ -502,25 +502,25 @@ func TestAcceptDisclaimer(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	userSettings, err := tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
+	accepted, err := tcs[0].Srv.HasAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, false, userSettings.AcceptedDisclaimer)
+	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
 	_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
-	userSettings, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
+	accepted, err = tcs[0].Srv.HasAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, false, userSettings.AcceptedDisclaimer)
+	require.Equal(t, false, accepted)
 
 	err = tcs[0].Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
 
-	userSettings, err = tcs[0].Srv.GetWalletSettingsLocal(context.Background(), 0)
+	accepted, err = tcs[0].Srv.HasAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
-	require.Equal(t, true, userSettings.AcceptedDisclaimer)
+	require.Equal(t, true, accepted)
 }
 
 func TestPublicKeyExporting(t *testing.T) {

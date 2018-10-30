@@ -98,13 +98,13 @@
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID"
     },
-    "loadWalletSettings": {
-      "_description": "Load wallet settings"
-    },
-    "walletSettingsReceived": {
-      "_description": "Received wallet settings",
-      "settings": "StellarRPCTypes.WalletSettings"
-    },
+	"loadWalletDisclaimer": {
+		"_description": "Load wallet disclaimer"
+	},
+	"walletDisclaimerReceived": {
+		"_description": "Received wallet disclaimer",
+		"accepted": "boolean"
+	},
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"
     },
