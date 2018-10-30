@@ -164,7 +164,6 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   issuerVerifiedDomain: '',
   name: '',
   worth: '',
-  worthCurrency: '',
   availableToSendWorth: '',
   reserves: I.List(),
 })
@@ -179,7 +178,6 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
-    worthCurrency: w.worthCurrency,
     availableToSendWorth: w.availableToSendWorth,
     reserves: I.List((w.reserves || []).map(makeReserve)),
   })
@@ -217,7 +215,6 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
-  worthCurrency: '',
 }
 
 const _defaultPaymentResult = {
@@ -324,7 +321,6 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
-    worthCurrency: p.worthCurrency,
   }
 }
 
