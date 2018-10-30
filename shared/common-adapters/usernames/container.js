@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
@@ -79,13 +79,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
   connectedPropsToProps(stateProps, dispatchProps, ownProps)
 
-const ConnectedUsernames = compose(
-  connect(
+const ConnectedUsernames = namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('Usernames')
+    mergeProps,
+'Usernames'
 )(Usernames)
 
 export default ConnectedUsernames

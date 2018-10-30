@@ -2,7 +2,7 @@
 import * as FsGen from '../../actions/fs-gen'
 import * as FsTypes from '../../constants/types/fs'
 import flags from '../../util/feature-flags'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Folders from '.'
 
 const mapStateToProps = state => ({
@@ -100,17 +100,6 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
   loadTlfs: dispatchProps.loadTlfs,
 })
 
-export default compose(
-  flags.foldersInProfileTab
-    ? connect(
-        mapStateToProps,
-        mapDispatchToProps,
-        mergeProps
-      )
-    : connect(
-        () => ({}),
-        () => ({}),
-        () => ({tlfs: [], loadTlfs: () => {}})
-      ),
-  setDisplayName('ConnectedFolders')
-)(Folders)
+export default (flags.foldersInProfileTab
+  ? namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(Folders)
+  : namedConnect(() => ({}), () => ({}), () => ({tlfs: [], loadTlfs: () => {}}), 'ConnectedFolders')(Folders))

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -105,11 +105,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ReactButton')
-)(Wrapper)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactButton')(Wrapper)

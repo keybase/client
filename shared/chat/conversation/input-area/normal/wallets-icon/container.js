@@ -56,13 +56,8 @@ const Wrapper = (props: WrapperProps) => {
   return null
 }
 
-const WalletsIcon = Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.setDisplayName('WalletsIcon')
-)(Wrapper)
+const WalletsIcon = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
+  Wrapper
+)
 
 export default WalletsIcon

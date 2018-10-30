@@ -3,14 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type TypedState,
-  type Dispatch,
-} from '../../util/container'
+import {compose, namedConnect, lifecycle, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
@@ -243,12 +236,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedPathItemAction'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedPathItemAction'),
   OverlayParentHOC,
   lifecycle({
     componentDidUpdate(prevProps) {

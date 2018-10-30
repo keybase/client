@@ -126,11 +126,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.setDisplayName('MessagePopupText')
-)(Text)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'MessagePopupText')(
+  Text
+)

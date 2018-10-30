@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import memoize from 'memoize-one'
 import DestinationPicker from '.'
 import * as Types from '../../constants/types/fs'
@@ -54,11 +54,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ).iconSpec,
 })
 
-export default compose(
-  connect(
+export default namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedDestinationPicker')
+    mergeProps,
+'ConnectedDestinationPicker'
 )(DestinationPicker)

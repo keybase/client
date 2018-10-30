@@ -6,7 +6,7 @@ import React from 'react'
 import ServiceFilter from '../services-filter'
 import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
-import {connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import {
   globalStyles,
   globalMargins,
@@ -167,7 +167,7 @@ export type Props = _Props & {
 
 const noResults = []
 const ConnectedUserInput = compose(
-  connect(
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o: OwnProps) => ({
@@ -175,9 +175,9 @@ const ConnectedUserInput = compose(
       ...s,
       ...d,
       searchResultIds: s._searchResultIds ? s._searchResultIds.toArray() : noResults,
-    })
+    }),
+    'UserInput'
   ),
-  setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {

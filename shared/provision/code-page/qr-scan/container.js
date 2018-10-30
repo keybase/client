@@ -4,14 +4,7 @@ import * as ProvisionGen from '../../../actions/provision-gen'
 import * as Constants from '../../../constants/provision'
 import * as WaitingConstants from '../../../constants/waiting'
 import CodePage2 from '.'
-import {
-  setDisplayName,
-  withProps,
-  compose,
-  withStateHandlers,
-  connect,
-  safeSubmit,
-} from '../../../util/container'
+import {withProps, compose, withStateHandlers, namedConnect, safeSubmit} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
 const mapStateToProps = state => ({
@@ -19,7 +12,7 @@ const mapStateToProps = state => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
@@ -33,12 +26,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('QRScan'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
   safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers(
     {mountKey: '0'},
