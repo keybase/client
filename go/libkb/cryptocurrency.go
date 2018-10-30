@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"github.com/btcsuite/btcutil/bech32"
+	"strings"
 )
 
 type CryptocurrencyType int
@@ -106,14 +107,14 @@ func cryptocurrencyParseZCashSapling(s string) (CryptocurrencyType, []byte, erro
 	if err != nil {
 		return CryptocurrencyTypeNone, nil, err
 	}
-	if hrp != "zs" {
+	if strings.ToLower(hrp) != "zs" {
 		return CryptocurrencyTypeNone, nil, errors.New("bad prefix after bech32 parse")
 	}
 	return CryptocurrencyTypeZCashSapling, decoded, nil
 }
 
 func cryptocurrencyIsZCashSaplingViaPrefix(s string) bool {
-	return len(s) > 3 && s[0:3] == "zs1"
+	return len(s) > 3 && strings.ToLower(s[0:3]) == "zs1"
 }
 
 func CryptocurrencyParseAndCheck(s string) (CryptocurrencyType, []byte, error) {
