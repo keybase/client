@@ -379,6 +379,10 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 		return nil, err
 	}
 
+	if !libkb.SecureByteArrayEq(hash, parentEntry.EncAcctBundleHash) {
+		return nil, errors.New("account bundle and parent entry hash mismatch")
+	}
+
 	puk, err := finder.SeedByGeneration(m, eab.Gen)
 	if err != nil {
 		return nil, err
@@ -389,9 +393,6 @@ func decodeAndUnboxAcctBundle(m libkb.MetaContext, finder PukFinder, encB64 stri
 	}
 	if ab.AccountID != parentEntry.AccountID {
 		return nil, errors.New("account bundle and parent entry account ID mismatch")
-	}
-	if !libkb.SecureByteArrayEq(ab.OwnHash, parentEntry.EncAcctBundleHash) {
-		return nil, errors.New("account bundle and parent entry hash mismatch")
 	}
 	ab.Revision = parentEntry.AcctBundleRevision
 
