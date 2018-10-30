@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1539,14 +1536,6 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
-func (h *Server) getDownloadTempDir(basename string) (string, error) {
-	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
-	if err := os.MkdirAll(p, os.ModePerm); err != nil {
-		return "", err
-	}
-	return filepath.Join(p, basename), nil
-}
-
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1565,41 +1554,12 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	filename := arg.Filename
-	if filename == "" {
-		// No filename means we will create one in the OS temp dir
-		// Get the sent file name first
-		reason := chat1.GetThreadReason_GENERAL
-		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
-			[]chat1.MessageID{arg.MessageID}, true, &reason)
-		if err != nil {
-			return res, err
-		}
-		if !unboxed[0].IsValid() {
-			return res, errors.New("unable to download attachment from invalid message")
-		}
-		body := unboxed[0].Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil || typ != chat1.MessageType_ATTACHMENT {
-			return res, fmt.Errorf("invalid message type for download: %v", typ)
-		}
-		basepath := body.Attachment().Object.Filename
-		basename := path.Base(basepath)
-		fullpath, err := h.getDownloadTempDir(basename)
-		if err != nil {
-			return res, err
-		}
-		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-		if err != nil {
-			return res, err
-		}
-		filename = fullpath
-		darg.Sink = f
-	} else {
-		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-			return res, err
-		}
+	filename, sink, err := attachments.SinkFromFilename(ctx, h.G(), uid,
+		arg.ConversationID, arg.MessageID, arg.Filename)
+	if err != nil {
+		return res, err
 	}
+	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
 	if err != nil {
 		return res, err
@@ -1622,7 +1582,7 @@ type downloadAttachmentArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
+func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (res chat1.DownloadAttachmentLocalRes, err error) {
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1639,19 +1599,11 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
 
-	obj, err := attachments.AssetFromMessage(ctx, h.G(), uid, arg.ConversationID, arg.MessageID, arg.Preview)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	fetcher := h.G().AttachmentURLSrv.GetAttachmentFetcher()
-	if err := fetcher.FetchAttachment(ctx, arg.Sink, arg.ConversationID, obj, h.remoteClient,
-		attachments.NewS3Signer(h.remoteClient), progress); err != nil {
-		arg.Sink.Close()
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if err := arg.Sink.Close(); err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
+	err = attachments.DownloadAttachmentLocal(ctx, h.G(), uid, arg.ConversationID,
+		arg.MessageID, arg.Sink, arg.Preview, progress, h.remoteClient)
+	if err != nil {
+		return res, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
