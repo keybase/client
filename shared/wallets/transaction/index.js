@@ -285,6 +285,7 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  detailView?: boolean,
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string,
@@ -329,7 +330,7 @@ export const Transaction = (props: Props) => {
   }
   const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
   const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
-  const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
+  const backgroundColor = (pending || unread) && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -427,7 +428,6 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
-  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

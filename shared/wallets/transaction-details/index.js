@@ -255,13 +255,14 @@ const propsToParties = (props: NotLoadingProps) => {
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
-    <Kb.ScrollView style={styles.scrollView}>
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+    <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          detailView={true}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
@@ -329,16 +330,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
               timestamp={props.timestamp}
             />
           )}
-          {props.onCancelPayment && (
-            <Kb.WaitingButton
-              waitingKey={props.onCancelPaymentWaitingKey}
-              type="Danger"
-              label="Cancel"
-              onClick={props.onCancelPayment}
-              small={true}
-              style={{alignSelf: 'flex-start'}}
-            />
-          )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -357,6 +348,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction
             </Kb.Text>
+          )}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
+          {props.onCancelPayment && (
+            <Kb.WaitingButton
+              waitingKey={props.onCancelPaymentWaitingKey}
+              type="Danger"
+              label="Cancel transaction"
+              onClick={props.onCancelPayment}
+              small={true}
+              style={styles.button}
+            />
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -384,7 +387,25 @@ class LoadTransactionDetails extends React.Component<Props> {
 export default LoadTransactionDetails
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    alignSelf: 'center',
+  },
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      minHeight: 0,
+    },
+    isElectron: {
+      marginTop: 'auto',
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.medium,
+    },
+  }),
   container: {
+    alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
   counterPartyText: {
@@ -397,8 +418,12 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
   },
   scrollView: {
-    height: '100%',
+    display: 'flex',
+    flexGrow: 1,
     width: '100%',
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
   },
   statusBox: {
     ...Styles.globalStyles.flexBoxRow,
