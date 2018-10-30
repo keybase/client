@@ -52,7 +52,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     yourRole,
     counterparty,
     counterpartyType,
-    amountUser: tx.worth,
+    amountUser: tx.worth + ' ' + tx.worthCurrency,
     amountXLM: tx.amountDescription,
     memo,
     onCancelPayment:

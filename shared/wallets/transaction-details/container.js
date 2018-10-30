@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
   return {
     ...stateProps.yourInfoAndCounterparty,
-    amountUser: tx.worth,
+    amountUser: tx.worth + ' ' + tx.worthCurrency,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
     loading: false,
