@@ -94,6 +94,12 @@ func (o KID) DeepCopy() KID {
 	return o
 }
 
+type PhoneNumber string
+
+func (o PhoneNumber) DeepCopy() PhoneNumber {
+	return o
+}
+
 type LinkID string
 
 func (o LinkID) DeepCopy() LinkID {

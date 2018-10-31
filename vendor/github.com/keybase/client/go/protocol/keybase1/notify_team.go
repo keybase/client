@@ -24,6 +24,35 @@ func (o TeamChangeSet) DeepCopy() TeamChangeSet {
 	}
 }
 
+type AvatarUpdateType int
+
+const (
+	AvatarUpdateType_NONE AvatarUpdateType = 0
+	AvatarUpdateType_USER AvatarUpdateType = 1
+	AvatarUpdateType_TEAM AvatarUpdateType = 2
+)
+
+func (o AvatarUpdateType) DeepCopy() AvatarUpdateType { return o }
+
+var AvatarUpdateTypeMap = map[string]AvatarUpdateType{
+	"NONE": 0,
+	"USER": 1,
+	"TEAM": 2,
+}
+
+var AvatarUpdateTypeRevMap = map[AvatarUpdateType]string{
+	0: "NONE",
+	1: "USER",
+	2: "TEAM",
+}
+
+func (e AvatarUpdateType) String() string {
+	if v, ok := AvatarUpdateTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type TeamChangedByIDArg struct {
 	TeamID       TeamID        `codec:"teamID" json:"teamID"`
 	LatestSeqno  Seqno         `codec:"latestSeqno" json:"latestSeqno"`
@@ -55,8 +84,9 @@ type NewlyAddedToTeamArg struct {
 }
 
 type AvatarUpdatedArg struct {
-	Name    string         `codec:"name" json:"name"`
-	Formats []AvatarFormat `codec:"formats" json:"formats"`
+	Name    string           `codec:"name" json:"name"`
+	Formats []AvatarFormat   `codec:"formats" json:"formats"`
+	Typ     AvatarUpdateType `codec:"typ" json:"typ"`
 }
 
 type NotifyTeamInterface interface {

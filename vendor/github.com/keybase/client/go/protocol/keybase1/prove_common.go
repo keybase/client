@@ -330,7 +330,6 @@ type ParamProofServiceConfig struct {
 	Version        int                      `codec:"version" json:"version"`
 	Domain         string                   `codec:"domain" json:"domain"`
 	DisplayName    string                   `codec:"displayName" json:"display_name"`
-	Group          *string                  `codec:"group,omitempty" json:"group,omitempty"`
 	Logo           *ParamProofLogoConfig    `codec:"logo,omitempty" json:"logo,omitempty"`
 	Description    string                   `codec:"description" json:"description"`
 	UsernameConfig ParamProofUsernameConfig `codec:"usernameConfig" json:"username"`
@@ -346,13 +345,6 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 		Version:     o.Version,
 		Domain:      o.Domain,
 		DisplayName: o.DisplayName,
-		Group: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.Group),
 		Logo: (func(x *ParamProofLogoConfig) *ParamProofLogoConfig {
 			if x == nil {
 				return nil
@@ -377,6 +369,52 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			}
 			return ret
 		})(o.CheckPath),
+	}
+}
+
+type ServiceDisplayConfig struct {
+	Priority int     `codec:"priority" json:"priority"`
+	Key      string  `codec:"key" json:"key"`
+	Group    *string `codec:"group,omitempty" json:"group,omitempty"`
+}
+
+func (o ServiceDisplayConfig) DeepCopy() ServiceDisplayConfig {
+	return ServiceDisplayConfig{
+		Priority: o.Priority,
+		Key:      o.Key,
+		Group: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Group),
+	}
+}
+
+type ExternalServiceConfig struct {
+	SchemaVersion int                      `codec:"schemaVersion" json:"schema_version"`
+	Display       *ServiceDisplayConfig    `codec:"display,omitempty" json:"display,omitempty"`
+	Config        *ParamProofServiceConfig `codec:"config,omitempty" json:"config,omitempty"`
+}
+
+func (o ExternalServiceConfig) DeepCopy() ExternalServiceConfig {
+	return ExternalServiceConfig{
+		SchemaVersion: o.SchemaVersion,
+		Display: (func(x *ServiceDisplayConfig) *ServiceDisplayConfig {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Display),
+		Config: (func(x *ParamProofServiceConfig) *ParamProofServiceConfig {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Config),
 	}
 }
 
