@@ -350,8 +350,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
-          {props.onCancelPayment && (
+        {props.onCancelPayment && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
             <Kb.WaitingButton
               waitingKey={props.onCancelPaymentWaitingKey}
               type="Danger"
@@ -360,8 +360,8 @@ const TransactionDetails = (props: NotLoadingProps) => {
               small={true}
               style={styles.button}
             />
-          )}
-        </Kb.Box2>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   )
