@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {Box2, Button, CopyText, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SmallAccountID, WalletPopup} from '../common'
 import * as Types from '../../constants/types/wallets'
@@ -51,16 +51,14 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
           style={iconCastPlatformStyles(styles.icon)}
         />
         {!Styles.isMobile && header}
+        <Box2 direction="horizontal" style={styles.warningContainer}>
+          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>Only paste your secret key in 100% safe places. A hacker with this key could steal your Stellar&nbsp;account.</Text>
+        </Box2>
         {!!this.props.secretKey && (
           <Box2 direction="vertical" style={styles.secretKeyContainer}>
             <CopyText withReveal={true} text={this.props.secretKey} />
           </Box2>
         )}
-        <InfoNote>
-          <Text type="BodySmall" style={styles.infoNoteText}>
-            Only paste your secret key in 100% safe places.
-          </Text>
-        </InfoNote>
         {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
       </WalletPopup>
     )
@@ -85,7 +83,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: Styles.globalMargins.xlarge,
+      marginBottom: Styles.globalMargins.medium,
     },
   }),
   icon: Styles.platformStyles({
@@ -108,11 +106,20 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isElectron: {
-      maxWidth: 272,
       marginBottom: Styles.globalMargins.medium,
     },
     isMobile: {
       marginBottom: Styles.globalMargins.xlarge,
     },
   }),
+  warningContainer: {
+    backgroundColor: Styles.globalColors.yellow,
+    borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.medium,
+    padding: Styles.globalMargins.xsmall,
+    width: '100%',
+  },
+  warningText: {
+    textAlign: 'center',
+  },
 })
