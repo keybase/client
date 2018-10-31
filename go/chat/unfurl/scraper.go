@@ -4,27 +4,29 @@ import (
 	"context"
 
 	"github.com/gocolly/colly"
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
 type Scraper struct {
-	globals.Contextified
 	utils.DebugLabeler
 }
 
-func NewScraper(g *globals.Context) *Scraper {
+func NewScraper(logger logger.Logger) *Scraper {
 	return &Scraper{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
+		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
 	}
 }
 
-func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.Unfurl, err error) {
+func (s *Scraper) scrapeGeneric(ctx context.Context, uri string) (res chat1.Unfurl, err error) {
 	var generic chat1.UnfurlGeneric
-	c := colly.NewCollector(colly.AllowedDomains(domain))
+	hostname, err := GetHostname(uri)
+	if err != nil {
+		return res, err
+	}
+	c := colly.NewCollector(colly.AllowedDomains(hostname))
 	c.OnHTML("meta[content][property]", func(e *colly.HTMLElement) {
 		prop := e.Attr("property")
 		content := e.Attr("content")
@@ -38,14 +40,14 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 
 func (s *Scraper) Scrape(ctx context.Context, uri string) (res chat1.Unfurl, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Scrape(%s)", uri)()
-	typ, domain, err := ClassifyDomainFromURI(uri)
+	typ, _, err := ClassifyDomainFromURI(uri)
 	if err != nil {
 		return res, err
 	}
 	switch typ {
 	case chat1.UnfurlType_GENERIC:
-		return s.scrapeGeneric(ctx, uri, domain)
+		return s.scrapeGeneric(ctx, uri)
 	default:
-		return s.scrapeGeneric(ctx, uri, domain)
+		return s.scrapeGeneric(ctx, uri)
 	}
 }
