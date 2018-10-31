@@ -105,6 +105,16 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
           }
         }
       }
+    case kbfsCommonFSErrorType.offlineArchived:
+      return {
+        title: 'Keybase: Archived data not available offline',
+        body: `You cannot browse archived KBFS data while disconnected from the Keybase servers.`,
+      }
+    case kbfsCommonFSErrorType.offlineUnsynced:
+      return {
+        title: 'Keybase: Unsynced data not available offline',
+        body: `You cannot browse an unsynced folder while disconnected from the Keybase servers.`,
+      }
 
     default:
       return {
