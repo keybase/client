@@ -10,8 +10,6 @@
 #import "keybase/keybase.h"
 
 @interface FilesViewController ()
-@property NSArray* unfilteredInboxItems; // the entire inbox
-@property NSArray* filteredInboxItems; // inbox items that are filtered by the search bar
 @property NSArray* path; // the path we are currently showing
 @property NSArray* directoryEntries; // the directory entries at the current path
 @end
@@ -51,18 +49,16 @@
     NSError* error = NULL;
     [self setPath:[NSArray new]];
     [self setDirectoryEntries:[NSArray new]];
-    [self setUnfilteredInboxItems:[NSArray new]];
-    [self setFilteredInboxItems:[NSArray new]];
-    NSString* jsonInbox = KeybaseExtensionGetInbox(&error); // returns the inbox in JSON format
-    if (jsonInbox == nil) {
+    NSString* jsonFiles = KeybaseExtensionListPath(@"", &error); // returns the path list in JSON format
+    if (jsonFiles == nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
-        NSLog(@"failed to get inbox: %@", error);
+        NSLog(@"failed to get files: %@", error);
         [av stopAnimating];
       });
       // just show blank in this case
       return;
     }
-    [self parseInbox:jsonInbox];
+    [self parseFiles:jsonFiles];
     dispatch_async(dispatch_get_main_queue(), ^{
       [av stopAnimating];
       [self.tableView reloadData];
@@ -70,15 +66,14 @@
   });
 }
 
-- (void)parseInbox:(NSString*)jsonInbox {
+- (void)parseFiles:(NSString*)jsonFiles {
   NSError *error = nil;
-  NSData *data = [jsonInbox dataUsingEncoding:NSUTF8StringEncoding];
+  NSData *data = [jsonFiles dataUsingEncoding:NSUTF8StringEncoding];
   NSArray *items = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
   if (!items) {
-    NSLog(@"parseInbox: error parsing JSON: %@", error);
+    NSLog(@"parseFiles: error parsing JSON: %@", error);
   } else {
-    [self setUnfilteredInboxItems:items];
-    [self setFilteredInboxItems:items];
+    [self setDirectoryEntries:items];
   }
 }
 
@@ -94,12 +89,12 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.filteredInboxItems count];
+    return [self.directoryEntries count];
 }
 
 - (NSDictionary*)getItemAtIndex:(NSIndexPath*)indexPath {
   NSInteger index = [indexPath item];
-  return self.filteredInboxItems[index];
+  return self.directoryEntries[index];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
