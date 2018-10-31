@@ -912,7 +912,7 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
 	deviceID := g.ActiveDevice.DeviceID()
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/test/agedevice",
+		Endpoint:    "test/agedevice",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  context.Background(),
 		Args: libkb.HTTPArgs{
