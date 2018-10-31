@@ -8,7 +8,7 @@ import Still from './still'
 
 type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
   routePath: I.List<string>,
-  inDestinationPicker?: boolean,
+  destinationPickerIndex?: number,
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -17,12 +17,12 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _downloads: state.fs.downloads,
 })
 
-const mergeProps = (stateProps, dispatchProps, {name, path, routePath, inDestinationPicker}: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
   const {_downloads, _pathItem, _username} = stateProps
   const {type, lastModifiedTimestamp, lastWriter} = _pathItem
   const download = _downloads.find(t => t.meta.path === path && !t.state.isDone)
   return {
-    inDestinationPicker,
+    destinationPickerIndex,
     intentIfDownloading: download && download.meta.intent,
     isEmpty: _pathItem.type === 'folder' && _pathItem.progress === 'loaded' && _pathItem.children.isEmpty(),
     itemStyles: Constants.getItemStyles(Types.getPathElements(path), type, _username),

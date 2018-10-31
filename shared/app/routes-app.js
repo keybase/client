@@ -29,7 +29,6 @@ const appRouteTree = makeRouteDefNode({
   tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
-    [fsTab]: fsRoutes,
     [gitTab]: gitRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
@@ -40,6 +39,7 @@ const appRouteTree = makeRouteDefNode({
       ? {}
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
+          [fsTab]: fsRoutes,
         }),
   },
   containerComponent: Nav,

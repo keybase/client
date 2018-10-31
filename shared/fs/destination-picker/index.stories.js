@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/fs'
@@ -23,11 +24,13 @@ const load = () =>
     .add('DestinationPicker', () => (
       <DestinationPicker
         path={Types.stringToPath('/keybase/private/meatball,songgao,xinyuzhao/yo')}
+        routePath={I.List([])}
         onCancel={Sb.action('onCancel')}
         targetName="Secret treat spot blasjeiofjawiefjksadjflaj"
         targetIconSpec={
           Constants.getItemStyles(['keybase', 'private', 'meatball', 'Secret treat spot'], 'folder').iconSpec
         }
+        index={0}
         onCopyHere={Sb.action('onCopyHere')}
         onMoveHere={Sb.action('onMoveHere')}
         onNewFolder={Sb.action('onNewFolder')}

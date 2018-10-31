@@ -16,7 +16,7 @@ import {isMobile} from '../../constants/platform'
 type Props = {
   items: Array<Types.RowItem>,
   routePath: I.List<string>,
-  inDestinationPicker?: boolean,
+  destinationPickerIndex?: number,
 }
 
 export const WrapRow = ({children}: {children: React.Node}) => (
@@ -42,7 +42,7 @@ class Rows extends React.PureComponent<Props> {
           <WrapRow key={`still:${item.name}`}>
             <TlfType
               name={item.name}
-              inDestinationPicker={this.props.inDestinationPicker}
+              destinationPickerIndex={this.props.destinationPickerIndex}
               routePath={this.props.routePath}
             />
           </WrapRow>
@@ -53,7 +53,7 @@ class Rows extends React.PureComponent<Props> {
             <Tlf
               name={item.name}
               tlfType={item.tlfType}
-              inDestinationPicker={this.props.inDestinationPicker}
+              destinationPickerIndex={this.props.destinationPickerIndex}
               routePath={this.props.routePath}
             />
           </WrapRow>
@@ -64,7 +64,7 @@ class Rows extends React.PureComponent<Props> {
             <Still
               name={item.name}
               path={item.path}
-              inDestinationPicker={this.props.inDestinationPicker}
+              destinationPickerIndex={this.props.destinationPickerIndex}
               routePath={this.props.routePath}
             />
           </WrapRow>
@@ -104,7 +104,7 @@ class Rows extends React.PureComponent<Props> {
           // If we are in the destination picker, inject two empty rows so when
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
-          !isMobile && this.props.inDestinationPicker
+          !isMobile && this.props.destinationPickerIndex
             ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
             : this.props.items
         }

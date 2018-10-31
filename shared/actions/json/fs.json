@@ -190,12 +190,19 @@
     "setMoveOrCopySource": {
       "path": "Types.Path"
     },
-    "setMoveOrCopyDestinationParent": {
+    "setMoveOrCopyDestinationParentPath": {
+      "index": "number",
       "path": "Types.Path"
     },
-    "clearMoveOrCopy": {},
-    "move": {},
-    "copy": {},
+    "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
+    "cancelMoveOrCopy": {},
+    "moveOrCopyOpen": {
+      "routePath": "I.List<string>",
+      "path": "Types.Path",
+      "currentIndex": "number"
+    },
+    "move": {"destinationParentPath": "Types.Path"},
+    "copy": {"destinationParentPath": "Types.Path"},
 
     "placeholderAction": {}
   }

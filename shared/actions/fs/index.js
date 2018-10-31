@@ -5,6 +5,7 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
@@ -14,7 +15,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo, switchTo, navigateUp} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -607,7 +608,7 @@ const _getRouteChangeActionForOpen = (
   route: any
 ) => {
   const routeChange =
-    action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, route])
+    action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, 'folder', route])
   return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
 
@@ -705,7 +706,7 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(
         Types.pathConcat(
-          state.fs.moveOrCopy.destinationParentPath,
+          action.payload.destinationParentPath,
           Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
         )
       ),
@@ -723,6 +724,48 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
       .catch(makeUnretriableErrorHandler(action))
   )
 }
+
+const moveOrCopyOpen = isMobile
+  ? (state, action) =>
+      Saga.all([
+        Saga.put(
+          FsGen.createSetMoveOrCopyDestinationParentPath({
+            index: action.payload.currentIndex + 1,
+            path: action.payload.path,
+          })
+        ),
+        Saga.put(
+          putActionIfOnPath(
+            action.payload.routePath,
+            navigateAppend([{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}])
+          )
+        ),
+      ])
+  : (state, action) =>
+      Saga.put(
+        FsGen.createSetMoveOrCopyDestinationParentPath({
+          index: action.payload.currentIndex,
+          path: action.payload.path,
+        })
+      )
+
+const showMoveOrCopy = isMobile
+  ? (state, action) =>
+      Saga.put(
+        navigateTo([
+          Tabs.settingsTab,
+          SettingsConstants.fsTab,
+          ...state.fs.moveOrCopy.destinationParentPath.map((p, index) => ({
+            props: {index},
+            selected: 'destinationPicker',
+          })),
+        ])
+      )
+  : (state, action) => Saga.put(navigateAppend([{props: {index: 0}, selected: 'destinationPicker'}]))
+
+const cancelMoveOrCopy = isMobile
+  ? (state, action) => Saga.put(switchTo([Tabs.settingsTab, SettingsConstants.fsTab, 'folder']))
+  : (state, action) => Saga.put(navigateUp())
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
@@ -743,6 +786,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
+  yield Saga.actionToAction(FsGen.moveOrCopyOpen, moveOrCopyOpen)
+  yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
+  yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
 
   yield Saga.fork(platformSpecificSaga)
 }

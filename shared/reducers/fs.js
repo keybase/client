@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
+import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
@@ -271,12 +272,30 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.showMoveOrCopy:
+      return state.setIn(
+        ['moveOrCopy', 'destinationParentPath'],
+        isMobile
+          ? I.List(
+              Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
+                (list, elem) => [
+                  ...list,
+                  list.length
+                    ? Types.pathConcat(list[list.length - 1], elem)
+                    : Types.stringToPath(`/${elem}`),
+                ],
+                []
+              )
+            )
+          : I.List([action.payload.initialDestinationParentPath])
+      )
     case FsGen.setMoveOrCopySource:
       return state.setIn(['moveOrCopy', 'sourceItemPath'], action.payload.path)
-    case FsGen.setMoveOrCopyDestinationParent:
-      return state.setIn(['moveOrCopy', 'destinationParentPath'], action.payload.path)
-    case FsGen.clearMoveOrCopy:
-      return state.set('moveOrCopy', Constants.makeMoveOrCopy())
+    case FsGen.setMoveOrCopyDestinationParentPath:
+      // $FlowFixMe
+      return state.updateIn(['moveOrCopy', 'destinationParentPath'], list =>
+        list.set(action.payload.index, action.payload.path)
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
@@ -306,6 +325,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
+    case FsGen.moveOrCopyOpen:
+    case FsGen.cancelMoveOrCopy:
       return state
     default:
       /*::
