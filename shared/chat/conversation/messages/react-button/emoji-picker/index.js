@@ -35,7 +35,7 @@ const getFilterResults = filter =>
     .search(filter, {maxResults: maxEmojiSearchResults})
     .map(res => emojiNameMap[res.id])
     // MUST sort this so its stable
-    .sort((a, b) => b.sort_order - a.sort_order)
+    .sort((a, b) => a.sort_order - b.sort_order)
 
 type Section = {
   category: string,
