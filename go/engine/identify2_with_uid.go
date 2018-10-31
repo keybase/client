@@ -299,7 +299,7 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 
 func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {
 
-	defer m.CTrace(fmt.Sprintf("Identify2WithUID#resetError(%s)", inErr), func() error { return outErr })()
+	defer m.CTrace(fmt.Sprintf("Identify2WithUID#resetError(%s)", libkb.ErrToOk(inErr)), func() error { return outErr })()
 
 	if inErr == nil {
 		return nil
@@ -467,7 +467,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	if e.isSelfLoad() && !e.arg.NoSkipSelf && !e.useRemoteAssertions() {
 		m.CDebugf("| was a self load, short-circuiting")
-		e.maybeCacheSelf()
+		e.maybeCacheSelf(m)
 		return nil
 	}
 
@@ -531,11 +531,11 @@ func (e *Identify2WithUID) allowEarlyOuts() bool {
 	return !e.arg.NeedProofSet
 }
 
-func (e *Identify2WithUID) getNow() time.Time {
+func (e *Identify2WithUID) getNow(m libkb.MetaContext) time.Time {
 	if e.testArgs != nil && e.testArgs.clock != nil {
 		return e.testArgs.clock()
 	}
-	return time.Now()
+	return m.G().Clock().Now()
 }
 
 func (e *Identify2WithUID) unblock(m libkb.MetaContext, isFinal bool, err error) {
@@ -548,9 +548,9 @@ func (e *Identify2WithUID) unblock(m libkb.MetaContext, isFinal bool, err error)
 	}
 }
 
-func (e *Identify2WithUID) maybeCacheSelf() {
+func (e *Identify2WithUID) maybeCacheSelf(m libkb.MetaContext) {
 	if e.getCache() != nil {
-		v, err := e.exportToResult()
+		v, err := e.exportToResult(m)
 		if v != nil && err == nil {
 			e.getCache().Insert(v)
 		}
@@ -558,7 +558,7 @@ func (e *Identify2WithUID) maybeCacheSelf() {
 }
 
 // exportToResult either returns (non-nil, nil) on success, or (nil, non-nil) on error.
-func (e *Identify2WithUID) exportToResult() (*keybase1.Identify2ResUPK2, error) {
+func (e *Identify2WithUID) exportToResult(m libkb.MetaContext) (*keybase1.Identify2ResUPK2, error) {
 	if e.them == nil {
 		// this should never happen
 		return nil, libkb.UserNotFoundError{Msg: "failed to get a them user in Identify2WithUID#exportToResult"}
@@ -574,7 +574,7 @@ func (e *Identify2WithUID) exportToResult() (*keybase1.Identify2ResUPK2, error) 
 	return &keybase1.Identify2ResUPK2{
 		Upk:          *upk,
 		TrackBreaks:  e.trackBreaks,
-		IdentifiedAt: keybase1.ToTime(e.getNow()),
+		IdentifiedAt: keybase1.ToTime(e.getNow(m)),
 	}, nil
 }
 
@@ -604,7 +604,7 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 	}
 
 	// Common case --- (isOK || canCacheFailures)
-	v, err := e.exportToResult()
+	v, err := e.exportToResult(m)
 	if err != nil {
 		m.CDebugf("| not caching: error exporting: %s", err)
 		return
@@ -732,11 +732,28 @@ func (e *Identify2WithUID) useRemoteAssertions() bool {
 }
 
 func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
-	f := func(k keybase1.IdentifyKey) error {
+
+	keyDiffDisplayHook := func(k keybase1.IdentifyKey) error {
 		e.identifyKeys = append(e.identifyKeys, k)
 		return nil
 	}
-	e.state.Precompute(f)
+	revokedKeyHook := func(id libkb.TrackIDComponent, diff libkb.TrackDiff) {
+		if diff == nil {
+			return
+		}
+		ipb := keybase1.IdentifyProofBreak{
+			RemoteProof: libkb.ExportTrackIDComponentToRevokedProof(id).Proof,
+			Lcr: keybase1.LinkCheckResult{
+				Diff:           libkb.ExportTrackDiff(diff),
+				BreaksTracking: true,
+			},
+		}
+		if e.trackBreaks == nil {
+			e.trackBreaks = &keybase1.IdentifyTrackBreaks{}
+		}
+		e.trackBreaks.Proofs = append(e.trackBreaks.Proofs, ipb)
+	}
+	e.state.Precompute(keyDiffDisplayHook, revokedKeyHook)
 	return nil
 }
 
@@ -1047,7 +1064,7 @@ func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybas
 		return nil
 	}
 	tm := ktm.Time()
-	now := e.getNow()
+	now := e.getNow(m)
 	diff := now.Sub(tm)
 	if diff > libkb.Identify2CacheLongTimeout {
 		m.CDebugf("| Object timed out %s ago", diff)
@@ -1076,7 +1093,7 @@ func (e *Identify2WithUID) storeSlowCacheToDB(m libkb.MetaContext) (err error) {
 	}
 
 	key := e.dbKey(e.them.GetUID())
-	now := keybase1.ToTime(e.getNow())
+	now := keybase1.ToTime(e.getNow(m))
 	err = e.G().LocalDb.PutObj(key, nil, now)
 	return err
 }
@@ -1141,16 +1158,16 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 	e.cachedRes = u
 
 	// Update so that it hits the fast cache the next time
-	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow())
+	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow(m))
 	return true
 }
 
 // Result will return (non-nil,nil) on success, and (nil,non-nil) on failure.
-func (e *Identify2WithUID) Result() (*keybase1.Identify2ResUPK2, error) {
+func (e *Identify2WithUID) Result(m libkb.MetaContext) (*keybase1.Identify2ResUPK2, error) {
 	if e.cachedRes != nil {
 		return e.cachedRes, nil
 	}
-	res, err := e.exportToResult()
+	res, err := e.exportToResult(m)
 	if err != nil {
 		return nil, err
 	}

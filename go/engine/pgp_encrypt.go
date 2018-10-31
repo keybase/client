@@ -201,7 +201,7 @@ func (e *PGPEncrypt) verifyUsers(m libkb.MetaContext, assertions []string, logge
 		if err := RunEngine2(m, eng); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
-		res, err := eng.Result()
+		res, err := eng.Result(m)
 		if err != nil {
 			return nil, err
 		}
