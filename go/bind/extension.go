@@ -14,11 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/encrypteddb"
-	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/libkbfs"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
@@ -26,13 +22,20 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
+
+	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/simplefs"
 )
 
 var extensionRi chat1.RemoteClient
@@ -40,6 +43,9 @@ var extensionInited bool
 var extensionInitMu sync.Mutex
 var extensionPusher PushNotifier
 var extensionListener *extensionNotifyListener
+
+var extensionKbfsInitedCh chan struct{}
+var extensionSimpleFS keybase1.SimpleFSInterface
 
 type extensionNotifyListener struct {
 	sync.Mutex
@@ -119,6 +125,15 @@ func ExtensionIsInited() bool {
 	extensionInitMu.Lock()
 	defer extensionInitMu.Unlock()
 	return extensionInited
+}
+
+type sharingServiceCn struct {
+	serviceCn
+}
+
+func (s sharingServiceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
+	return libkbfs.NewKeybaseDaemonRPC(
+		config, ctx, log, true, []rpc.Protocol{}), nil
 }
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
@@ -231,8 +246,10 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
-			kbCtx.Log)
+			context.Background(), kbfsCtx, kbfsParams, sharingServiceCn{},
+			func() {}, kbCtx.Log)
+		extensionSimpleFS = simplefs.NewSimpleFS(kbfsCtx, kbfsConfig)
+		close(extensionKbfsInitedCh)
 	}()
 	return nil
 }
@@ -283,6 +300,36 @@ func ExtensionGetInbox() (res string, err error) {
 	dat, err := json.Marshal(sharedInbox)
 	if err != nil {
 		return res, err
+	}
+	return string(dat), nil
+}
+
+func ExtensionListPath(p string) (res string, err error) {
+	defer kbCtx.Trace("ExtensionListPath", func() error { return err })()
+	ctx := context.Background()
+	opID, err := extensionSimpleFS.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return "null", err
+	}
+
+	err = extensionSimpleFS.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opID,
+		Path: keybase1.NewPathWithKbfs(p),
+	})
+	if err != nil {
+		return "null", err
+	}
+	err = extensionSimpleFS.SimpleFSWait(ctx, opID)
+	if err != nil {
+		return "null", err
+	}
+	listResult, err := extensionSimpleFS.SimpleFSReadList(ctx, opID)
+	if err != nil {
+		return "null", err
+	}
+	dat, err := json.Marshal(listResult.Entries)
+	if err != nil {
+		return "null", err
 	}
 	return string(dat), nil
 }
