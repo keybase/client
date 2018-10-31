@@ -44,8 +44,7 @@ var extensionInitMu sync.Mutex
 var extensionPusher PushNotifier
 var extensionListener *extensionNotifyListener
 
-var extensionKbfsInitedCh chan struct{}
-var extensionSimpleFS keybase1.SimpleFSInterface
+var extensionKbfsCtx libkbfs.Context
 
 type extensionNotifyListener struct {
 	sync.Mutex
@@ -236,21 +235,15 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())
 
-	go func() {
-		kbfsCtx := env.NewContextFromGlobalContext(kbCtx)
-		kbfsParams := libkbfs.DefaultInitParams(kbfsCtx)
-		// Setting this flag will enable KBFS debug logging to always
-		// be true in a mobile setting. Change these back to the
-		// commented-out values if we need to make a mobile release
-		// before KBFS-on-mobile is ready.
-		kbfsParams.Debug = true                         // false
-		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, sharingServiceCn{},
-			func() {}, kbCtx.Log)
-		extensionSimpleFS = simplefs.NewSimpleFS(kbfsCtx, kbfsConfig)
-		close(extensionKbfsInitedCh)
-	}()
+	extensionKbfsCtx = env.NewContextFromGlobalContext(kbCtx)
+	kbfsParams := libkbfs.DefaultInitParams(extensionKbfsCtx)
+	// Setting this flag will enable KBFS debug logging to always
+	// be true in a mobile setting.
+	kbfsParams.Debug = true
+	kbfsParams.Mode = libkbfs.InitConstrainedString
+	kbfsConfig, _ = libkbfs.Init(
+		context.Background(), extensionKbfsCtx, kbfsParams, sharingServiceCn{},
+		func() {}, kbCtx.Log)
 	return nil
 }
 
@@ -307,23 +300,24 @@ func ExtensionGetInbox() (res string, err error) {
 func ExtensionListPath(p string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionListPath", func() error { return err })()
 	ctx := context.Background()
-	opID, err := extensionSimpleFS.SimpleFSMakeOpid(ctx)
+	simpleFS := simplefs.NewSimpleFS(extensionKbfsCtx, kbfsConfig)
+	opID, err := simpleFS.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return "null", err
 	}
 
-	err = extensionSimpleFS.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+	err = simpleFS.SimpleFSList(ctx, keybase1.SimpleFSListArg{
 		OpID: opID,
 		Path: keybase1.NewPathWithKbfs(p),
 	})
 	if err != nil {
 		return "null", err
 	}
-	err = extensionSimpleFS.SimpleFSWait(ctx, opID)
+	err = simpleFS.SimpleFSWait(ctx, opID)
 	if err != nil {
 		return "null", err
 	}
-	listResult, err := extensionSimpleFS.SimpleFSReadList(ctx, opID)
+	listResult, err := simpleFS.SimpleFSReadList(ctx, opID)
 	if err != nil {
 		return "null", err
 	}
