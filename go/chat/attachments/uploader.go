@@ -507,7 +507,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				S3Params:       previewParams,
 				Filename:       filename,
 				FileSize:       int64(len(pre.Preview)),
-				Plaintext:      newBufReadResetter(pre.Preview),
+				Plaintext:      NewBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
 				UserID:         uid,

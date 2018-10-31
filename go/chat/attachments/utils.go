@@ -120,23 +120,23 @@ func (f *fileReadResetter) Close() error {
 	return nil
 }
 
-type bufReadResetter struct {
+type BufReadResetter struct {
 	buf []byte
 	r   *bytes.Reader
 }
 
-func newBufReadResetter(buf []byte) *bufReadResetter {
-	return &bufReadResetter{
+func NewBufReadResetter(buf []byte) *BufReadResetter {
+	return &BufReadResetter{
 		buf: buf,
 		r:   bytes.NewReader(buf),
 	}
 }
 
-func (b *bufReadResetter) Read(p []byte) (int, error) {
+func (b *BufReadResetter) Read(p []byte) (int, error) {
 	return b.r.Read(p)
 }
 
-func (b *bufReadResetter) Reset() error {
+func (b *BufReadResetter) Reset() error {
 	b.r.Reset(b.buf)
 	return nil
 }
