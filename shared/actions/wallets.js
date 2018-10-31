@@ -230,6 +230,7 @@ const loadAssets = (
     | WalletsGen.RefreshPaymentsPayload
 ) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
@@ -260,6 +261,7 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
 ) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -269,6 +271,7 @@ const loadPayments = (
 // fetch the single payment.
 const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
