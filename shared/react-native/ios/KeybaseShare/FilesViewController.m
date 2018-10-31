@@ -49,7 +49,7 @@
     NSError* error = NULL;
     [self setPath:[NSArray new]];
     [self setDirectoryEntries:[NSArray new]];
-    NSString* jsonFiles = KeybaseExtensionListPath(@"", &error); // returns the path list in JSON format
+    NSString* jsonFiles = KeybaseExtensionListPath(@"/", &error); // returns the path list in JSON format
     if (jsonFiles == nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
         NSLog(@"failed to get files: %@", error);
@@ -103,7 +103,7 @@
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
   }
   NSDictionary* item = [self getItemAtIndex:indexPath];
-  [[cell textLabel] setText:item[@"Name"]];
+  [[cell textLabel] setText:item[@"name"]];
   return cell;
 }
 

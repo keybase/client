@@ -403,7 +403,7 @@ const BOOL isSimulator = NO;
   files.title = @"Share to files...";
   files.valuePending = !self.hasInited; // show a spinner if we haven't inited
   if (self.folderTarget) {
-    files.value = self.folderTarget[@"Name"];
+    files.value = self.folderTarget[@"name"];
   } else if (self.hasInited) {
     files.value = @"Please choose";
   }
