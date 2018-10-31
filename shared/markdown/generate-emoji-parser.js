@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource'
+import {escapeRegExp} from 'lodash'
 
 /**
  * Note on above: importing a non-transpiled module that uses modern JS features
@@ -75,7 +76,9 @@ function buildEmojiFile() {
   const p = path.join(__dirname, '..', 'markdown', 'emoji.js')
   const {emojiLiterals, emojiIndexByName} = genEmojiData()
   const data = `// @noflow
-export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName).join('|')})/`
+export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
+    .map(escapeRegExp)
+    .join('|')})/`
   fs.writeFileSync(p, data, {encoding: 'utf8'})
 }
 
