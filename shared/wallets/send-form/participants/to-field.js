@@ -60,8 +60,17 @@ type ToStellarPublicKeyProps = {|
   onChangeRecipient: string => void,
 |}
 
-class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
-  _onChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
+type ToStellarPublicKeyState = {|
+  recipientPublicKey: string,
+|}
+
+class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
+  state = {recipientPublicKey: this.props.recipientPublicKey}
+  _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
+  _onChangeRecipient = recipientPublicKey => {
+    this.setState({recipientPublicKey})
+    this._propsOnChangeRecipient(recipientPublicKey)
+  }
 
   render = () => (
     <ParticipantsRow
@@ -75,7 +84,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
           <Kb.Icon
             type={
-              this.props.recipientPublicKey.length === 0 || this.props.errorMessage
+              this.state.recipientPublicKey.length === 0 || this.props.errorMessage
                 ? 'icon-stellar-logo-grey-16'
                 : 'icon-stellar-logo-16'
             }
@@ -92,7 +101,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
             multiline={true}
             rowsMin={2}
             rowsMax={3}
-            value={this.props.recipientPublicKey}
+            value={this.state.recipientPublicKey}
           />
         </Kb.Box2>
         {!!this.props.errorMessage && (
