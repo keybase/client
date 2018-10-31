@@ -614,7 +614,7 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 		return
 	}
 	e.getCache().Insert(v)
-	e.G().VDL.Log(libkb.VLog1, "| insert %+v", v)
+	m.VLogf(libkb.VLog1, "| insert %+v", v)
 
 	// Don't write failures to the disk cache
 	if isOK {
