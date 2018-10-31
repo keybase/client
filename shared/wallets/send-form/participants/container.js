@@ -26,6 +26,7 @@ const mapStateToPropsKeybaseUser = state => {
 
   // If build.to is set, assume it's a valid username.
   return {
+    isRequest: build.isRequest,
     recipientUsername: build.to,
   }
 }
