@@ -8,6 +8,7 @@ type Props = {|
   bottomLabel: string,
   displayUnit: string,
   inputPlaceholder: string,
+  numDecimalsAllowed: number,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
   topLabel: string,
@@ -17,6 +18,21 @@ type Props = {|
 |}
 
 const AssetInput = (props: Props) => {
+  const onChangeAmount = t => {
+    if (!isNaN(+t) || t === '.') {
+      // This is a valid number. Now check the number of decimal places
+      const split = t.includes('.') && t.split('.')
+      if (!split) {
+        // no decimal places
+        props.onChangeAmount(t)
+        return
+      }
+      const decimal = split[split.length - 1]
+      if (decimal.length <= props.numDecimalsAllowed) {
+        props.onChangeAmount(t)
+      }
+    }
+  }
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
       {!!props.topLabel && (
@@ -43,11 +59,7 @@ const AssetInput = (props: Props) => {
         }
         containerStyle={styles.inputContainer}
         style={styles.input}
-        onChangeText={t => {
-          if (!isNaN(+t) || t === '.') {
-            props.onChangeAmount(t)
-          }
-        }}
+        onChangeText={onChangeAmount}
         textType="HeaderBigExtrabold"
         placeholder={props.inputPlaceholder}
         placeholderColor={Styles.globalColors.purple2_40}
