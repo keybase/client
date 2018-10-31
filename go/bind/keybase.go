@@ -235,12 +235,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	go func() {
 		kbfsCtx := env.NewContextFromGlobalContext(kbCtx)
 		kbfsParams := libkbfs.DefaultInitParams(kbfsCtx)
-		// Setting this flag will enable KBFS debug logging to always
-		// be true in a mobile setting. Change these back to the
-		// commented-out values if we need to make a mobile release
-		// before KBFS-on-mobile is ready.
-		kbfsParams.Debug = true                         // false
-		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
+		// Setting this flag enables KBFS debug logging to always be true in a
+		// mobile setting. This could be verbose.
+		kbfsParams.Debug = true
+		kbfsParams.Mode = libkbfs.InitConstrainedString
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
@@ -249,9 +247,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	return nil
 }
 
-type serviceCn struct {
-	ctx *libkb.GlobalContext
-}
+type serviceCn struct{}
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	// TODO: plumb the func somewhere it can be called on shutdown?
