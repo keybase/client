@@ -297,24 +297,26 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
 }
 
-func (e *Identify2WithUID) resetError(err error) error {
+func (e *Identify2WithUID) resetError(m libkb.MetaContext, inErr error) (outErr error) {
 
-	if err == nil {
+	defer m.CTrace(fmt.Sprintf("Identify2WithUID#resetError(%s)", inErr), func() error { return outErr })()
+
+	if inErr == nil {
 		return nil
 	}
 
 	// Check to see if this is an identify failure, and if not just return. If it is, we want
 	// to check what identify mode we are in here before returning an error.
-	if !libkb.IsIdentifyProofError(err) {
-		return err
+	if !libkb.IsIdentifyProofError(inErr) {
+		return inErr
 	}
 
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		e.G().Log.Debug("| Reset err from %v -> nil since caller is '%s' %d", err, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
+		m.CDebugf("| Reset err from %v -> nil since caller is '%s' %d", inErr, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
 		return nil
 	}
 
-	return err
+	return inErr
 }
 
 // Run then engine
@@ -339,7 +341,7 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	err = <-ch
 
 	// Potentially reset the error based on the error and the calling context.
-	err = e.resetError(err)
+	err = e.resetError(m, err)
 	return err
 }
 
@@ -595,7 +597,7 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 		m.CDebugf("| clearing cache due to failure")
 		uid := e.them.GetUID()
 		e.getCache().Delete(uid)
-		if err := e.removeSlowCacheFromDB(); err != nil {
+		if err := e.removeSlowCacheFromDB(m); err != nil {
 			m.CDebugf("| Error in removing slow cache from db: %s", err)
 		}
 		return
@@ -616,7 +618,7 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 
 	// Don't write failures to the disk cache
 	if isOK {
-		if err := e.storeSlowCacheToDB(); err != nil {
+		if err := e.storeSlowCacheToDB(m); err != nil {
 			m.CDebugf("| Error in storing slow cache to db: %s", err)
 		}
 	}
@@ -1065,11 +1067,11 @@ func (e *Identify2WithUID) loadSlowCacheFromDB(m libkb.MetaContext) (ret *keybas
 
 // Store (meUID, themUID) -> SuccessfulIDTime as we cache users to the slow cache.
 // Thus, after a cold boot, we don't start up with a cold identify cache.
-func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
+func (e *Identify2WithUID) storeSlowCacheToDB(m libkb.MetaContext) (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
 	defer e.G().ExitTrace(prfx, func() error { return err })()
 	if e.me == nil {
-		e.G().Log.Debug("not storing to persistent slow cache since no me user")
+		m.CDebugf("not storing to persistent slow cache since no me user")
 		return nil
 	}
 
@@ -1080,11 +1082,11 @@ func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 }
 
 // Remove (themUID) from the identify cache, if they're there.
-func (e *Identify2WithUID) removeSlowCacheFromDB() (err error) {
+func (e *Identify2WithUID) removeSlowCacheFromDB(m libkb.MetaContext) (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#removeSlowCacheFromDB(%s)", e.them.GetUID())
 	defer e.G().Trace(prfx, func() error { return err })()
 	if e.me == nil {
-		e.G().Log.Debug("not removing from persistent slow cache since no me user")
+		m.CDebugf("not removing from persistent slow cache since no me user")
 		return nil
 	}
 	key := e.dbKey(e.them.GetUID())
