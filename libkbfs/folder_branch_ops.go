@@ -249,11 +249,12 @@ type editChannelActivity struct {
 // blocks, so we can't just reuse the blocks that were modified during
 // the sync.)
 type folderBranchOps struct {
-	config       Config
-	folderBranch FolderBranch
-	unmergedBID  kbfsmd.BranchID // protected by mdWriterLock
-	bType        branchType
-	observers    *observerList
+	config        Config
+	folderBranch  FolderBranch
+	unmergedBID   kbfsmd.BranchID // protected by mdWriterLock
+	bType         branchType
+	observers     *observerList
+	serviceStatus *kbfsCurrentStatus
 
 	// these locks, when locked concurrently by the same goroutine,
 	// should only be taken in the following order to avoid deadlock:
@@ -376,7 +377,8 @@ func newFolderBranchOps(
 	ctx context.Context, appStateUpdater env.AppStateUpdater,
 	config Config, fb FolderBranch,
 	bType branchType,
-	quotaUsage *EventuallyConsistentQuotaUsage) *folderBranchOps {
+	quotaUsage *EventuallyConsistentQuotaUsage,
+	serviceStatus *kbfsCurrentStatus) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
@@ -416,11 +418,12 @@ func newFolderBranchOps(
 	forceSyncChan := make(chan struct{})
 
 	fbo := &folderBranchOps{
-		config:       config,
-		folderBranch: fb,
-		unmergedBID:  kbfsmd.BranchID{},
-		bType:        bType,
-		observers:    observers,
+		config:        config,
+		folderBranch:  fb,
+		unmergedBID:   kbfsmd.BranchID{},
+		bType:         bType,
+		observers:     observers,
+		serviceStatus: serviceStatus,
 		status: newFolderBranchStatusKeeper(
 			config, nodeCache, quotaUsage),
 		mdWriterLock: mdWriterLock,
@@ -1805,6 +1808,32 @@ func (fbo *folderBranchOps) checkNode(node Node) error {
 	return nil
 }
 
+func (fbo *folderBranchOps) checkNodeForRead(
+	ctx context.Context, node Node) error {
+	err := fbo.checkNode(node)
+	if err != nil {
+		return err
+	}
+
+	// If we're offline, only synced, non-archived data should be
+	// available.  TODO(KBFS-3585): add checks for unsynced TLFs.
+	if !fbo.branch().IsArchived() {
+		return nil
+	}
+
+	services, _ := fbo.serviceStatus.CurrentStatus()
+	if len(services) > 0 {
+		fbo.log.CDebugf(ctx, "Failing read of archived data while offline; "+
+			"failing services=%v", services)
+		h, err := fbo.GetTLFHandle(ctx, nil)
+		if err != nil {
+			return err
+		}
+		return OfflineArchivedError{h}
+	}
+	return nil
+}
+
 func (fbo *folderBranchOps) checkNodeForWrite(
 	ctx context.Context, node Node) error {
 	err := fbo.checkNode(node)
@@ -2095,7 +2124,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 			getNodeIDStr(dir), len(children), err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForRead(ctx, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -2309,7 +2338,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
 
-	err = fbo.checkNode(dir)
+	err = fbo.checkNodeForRead(ctx, dir)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -2354,7 +2383,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 // tests.
 func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	de DirEntry, err error) {
-	err = fbo.checkNode(node)
+	err = fbo.checkNodeForRead(ctx, node)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -4107,7 +4136,7 @@ func (fbo *folderBranchOps) Read(
 			getNodeIDStr(file), len(dest), off, n, err)
 	}()
 
-	err = fbo.checkNode(file)
+	err = fbo.checkNodeForRead(ctx, file)
 	if err != nil {
 		return 0, err
 	}

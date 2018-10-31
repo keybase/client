@@ -31,7 +31,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	config.SetClock(wallClock{})
 	id := tlf.FakeID(1, tlf.Private)
 	fbo := newFolderBranchOps(ctx, env.EmptyAppStateUpdater{}, config,
-		FolderBranch{id, MasterBranch}, standard, nil)
+		FolderBranch{id, MasterBranch}, standard, nil, nil)
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(kbname.NormalizedUsername("mockUser"), nil)

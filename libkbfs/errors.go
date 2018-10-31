@@ -1210,3 +1210,27 @@ func (e FolderNotResetOnServer) Error() string {
 	return fmt.Sprintf("Folder %s is not yet reset on the server; "+
 		"contact Keybase for help", e.h.GetCanonicalPath())
 }
+
+// OfflineArchivedError indicates trying to access archived data while
+// offline.
+type OfflineArchivedError struct {
+	h *TlfHandle
+}
+
+// Error implements the Error interface for OfflineArchivedError.
+func (e OfflineArchivedError) Error() string {
+	return fmt.Sprintf("Archived data from %s is not available while offline",
+		e.h.GetCanonicalPath())
+}
+
+// OfflineUnsyncedError indicates trying to access unsynced data while
+// offline.
+type OfflineUnsyncedError struct {
+	h *TlfHandle
+}
+
+// Error implements the Error interface for OfflineUnsyncedError.
+func (e OfflineUnsyncedError) Error() string {
+	return fmt.Sprintf("Unsynced data from %s is not available while offline",
+		e.h.GetCanonicalPath())
+}

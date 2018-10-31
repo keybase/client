@@ -171,6 +171,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 			code = keybase1.FSErrorType_EXDEV_NOT_SUPPORTED
 			params[errorParamApplicationExecPath] = e.ApplicationExecPath
 		}
+	case OfflineArchivedError:
+		code = keybase1.FSErrorType_OFFLINE_ARCHIVED
+	case OfflineUnsyncedError:
+		code = keybase1.FSErrorType_OFFLINE_UNSYNCED
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {

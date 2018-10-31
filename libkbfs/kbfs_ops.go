@@ -50,7 +50,7 @@ type KBFSOpsStandard struct {
 	editLock     sync.Mutex
 	editShutdown bool
 
-	currentStatus            kbfsCurrentStatus
+	currentStatus            *kbfsCurrentStatus
 	quotaUsage               *EventuallyConsistentQuotaUsage
 	longOperationDebugDumper *ImpatientDebugDumper
 }
@@ -74,6 +74,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
 		longOperationDebugDumper: NewImpatientDebugDumper(
 			config, longOperationDebugDumpDuration),
+		currentStatus: &kbfsCurrentStatus{},
 	}
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
@@ -360,7 +361,8 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 			quotaUsage = fs.quotaUsage
 		}
 		ops = newFolderBranchOps(
-			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage)
+			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage,
+			fs.currentStatus)
 		fs.ops[fb] = ops
 	}
 	return ops

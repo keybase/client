@@ -410,10 +410,15 @@ func MakeRevBranchName(rev kbfsmd.Revision) BranchName {
 	return BranchName(branchRevPrefix + strconv.FormatInt(int64(rev), 10))
 }
 
+// IsArchived returns true if the branch specifies an archived revision.
+func (bn BranchName) IsArchived() bool {
+	return strings.HasPrefix(string(bn), branchRevPrefix)
+}
+
 // RevisionIfSpecified returns a valid revision number and true if
 // `bn` is a revision branch.
 func (bn BranchName) RevisionIfSpecified() (kbfsmd.Revision, bool) {
-	if !strings.HasPrefix(string(bn), branchRevPrefix) {
+	if !bn.IsArchived() {
 		return kbfsmd.RevisionUninitialized, false
 	}
 
