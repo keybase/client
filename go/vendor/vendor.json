@@ -82,6 +82,18 @@
 			"revisionTime": "2015-07-30T17:44:59Z"
 		},
 		{
+			"checksumSHA1": "UNNboD3NWXyXO410y8+a3qveQvs=",
+			"path": "github.com/antchfx/htmlquery",
+			"revision": "98389addba3d9d3155171e4135bcbb67ca1740c0",
+			"revisionTime": "2018-09-25T02:00:18Z"
+		},
+		{
+			"checksumSHA1": "imDbaNG3+N6F2ghrOXdoHLtHL2Q=",
+			"path": "github.com/antchfx/xmlquery",
+			"revision": "98cdbc3221ed492316cca5a4711e48ee0ca0dc9a",
+			"revisionTime": "2018-10-24T14:01:36Z"
+		},
+		{
 			"checksumSHA1": "bxtrVQB+698clLEGq7PppnWfXJk=",
 			"path": "github.com/araddon/dateparse",
 			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
@@ -162,6 +174,12 @@
 			"path": "github.com/go-errors/errors",
 			"revision": "a6af135bd4e28680facf08a3d206b454abc877a4",
 			"revisionTime": "2018-02-26T18:00:45Z"
+		},
+		{
+			"checksumSHA1": "ApSLjc10RxzqUffxOBlTMqJmiGk=",
+			"path": "github.com/gobwas/glob",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
 			"checksumSHA1": "iJXVRc8EW6FxS82J0150lUT1qkM=",
@@ -251,6 +269,12 @@
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "e5c918b80c17694cbc49aab32a759f9a40067f5d",
 			"revisionTime": "2014-07-18T00:10:36-05:00"
+		},
+		{
+			"checksumSHA1": "zcZmyg+doHyRExMIqC29AIuiLrk=",
+			"path": "github.com/kennygrant/sanitize",
+			"revision": "06ec0d0dbcd497d01e5189b16f5263f712e61a8e",
+			"revisionTime": "2018-08-06T07:34:57Z"
 		},
 		{
 			"checksumSHA1": "tBFISVudi8RzOoFhK2+p0PRicfw=",
@@ -589,6 +613,12 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "EEXppdradk5G/UaQUQ95BQ9n7uw=",
+			"path": "github.com/saintfish/chardet",
+			"revision": "3af4cd4741ca4f3eb0c407c034571a6fb0ea529c",
+			"revisionTime": "2012-08-16T06:12:21Z"
+		},
+		{
 			"checksumSHA1": "Tm7U4dBBSq0z5YscZTqSTs4qjEU=",
 			"origin": "github.com/keybase/stellar-org/address",
 			"path": "github.com/stellar/go/address",
@@ -783,6 +813,12 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "8c81ea47d4c41a385645e133e15510fc6a2a74b4",
 			"revisionTime": "2017-04-09T01:48:31Z"
+		},
+		{
+			"checksumSHA1": "vU2ORasZstZrpzj13Y1pQM2Yqsc=",
+			"path": "github.com/temoto/robotstxt",
+			"revision": "97ee4a9ee6ea01ed0bbf0325dd789f74cac6cb94",
+			"revisionTime": "2018-08-10T11:53:32Z"
 		},
 		{
 			"checksumSHA1": "AFGQ/FSbG7cFzFu/QvAFMzWj4Ak=",
@@ -1065,6 +1101,48 @@
 			"path": "golang.org/x/text/unicode/cldr",
 			"revision": "a7c023693a94aedd6b6df43ae7526bfe9d2b7d22",
 			"revisionTime": "2016-09-22T05:42:04Z"
+		},
+		{
+			"checksumSHA1": "nc9bMBFgXJhqeXDieUU7ZCjK8rk=",
+			"path": "google.golang.org/appengine/internal",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "5PakGXEgSbyFptkhGO8MnGf7uH0=",
+			"path": "google.golang.org/appengine/internal/base",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "3DZ+Ah5hFQb1/nh1+li2VE+kkfk=",
+			"path": "google.golang.org/appengine/internal/datastore",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "HJQ4JM9YWfwIe4vmAgXC7J/1T3E=",
+			"path": "google.golang.org/appengine/internal/log",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "hApgRLSl7w9XG2waJxdH/o0A398=",
+			"path": "google.golang.org/appengine/internal/remote_api",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "ZnEUFEjcGAVZNDPOOc+VLN7x4pI=",
+			"path": "google.golang.org/appengine/internal/urlfetch",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
+		},
+		{
+			"checksumSHA1": "akOV9pYnCbcPA8wJUutSQVibdyg=",
+			"path": "google.golang.org/appengine/urlfetch",
+			"revision": "4a4468ece617fc8205e99368fa2200e9d1fad421",
+			"revisionTime": "2018-10-31T00:20:03Z"
 		},
 		{
 			"checksumSHA1": "cTGhZzixV6ZWBw4TcrG+s+j/fkA=",
