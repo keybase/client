@@ -273,6 +273,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
+	indexer.Start(context.TODO(), uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}

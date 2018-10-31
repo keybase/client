@@ -319,6 +319,7 @@ func TestChatSearchInbox(t *testing.T) {
 			return
 		}
 
+		ctx := context.TODO()
 		ctc := makeChatTestContext(t, "SearchInbox", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
@@ -346,11 +347,18 @@ func TestChatSearchInbox(t *testing.T) {
 		listener2 := newServerChatListener()
 		tc2.h.G().NotifyRouter.SetListener(listener2)
 
+		// Create our own Indexer instances so we have access to non-interface methods
 		indexer1 := search.NewIndexer(g1)
 		consumeCh1 := make(chan chat1.ConversationID, 100)
 		reindexCh1 := make(chan chat1.ConversationID, 100)
 		indexer1.SetConsumeCh(consumeCh1)
 		indexer1.SetReindexCh(reindexCh1)
+		// Stop the original
+		select {
+		case <-g1.Indexer.Stop(ctx):
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "g1 Indexer did not stop")
+		}
 		g1.Indexer = indexer1
 
 		indexer2 := search.NewIndexer(g2)
@@ -358,6 +366,12 @@ func TestChatSearchInbox(t *testing.T) {
 		reindexCh2 := make(chan chat1.ConversationID, 100)
 		indexer2.SetConsumeCh(consumeCh2)
 		indexer2.SetReindexCh(reindexCh2)
+		// Stop the original
+		select {
+		case <-g2.Indexer.Stop(ctx):
+		case <-time.After(5 * time.Second):
+			require.Fail(t, "g2 Indexer did not stop")
+		}
 		g2.Indexer = indexer2
 
 		sendMessage := func(msgBody chat1.MessageBody, user *kbtest.FakeUser) chat1.MessageID {
@@ -428,7 +442,6 @@ func TestChatSearchInbox(t *testing.T) {
 		}
 
 		verifyIndex := func(expectedIndex *chat1.ConversationIndex) {
-			ctx := context.TODO()
 			t.Logf("verify user 1 index")
 
 			verifyIndexConsumption(consumeCh1)
@@ -700,6 +713,21 @@ func TestChatSearchInbox(t *testing.T) {
 		// DB nuke, ensure that we reindex after the search
 		g1.LocalChatDb.Nuke()
 		opts.ForceReindex = true // force reindex so we're fully up to date.
+		res = runSearch(query, opts, true /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{msgID3, msgID7}, msgID8, nil, []string{query}, convHit.Hits[0])
+		verifySearchDone(1)
+		verifyIndex(expectedIndex)
+		// since our index is full, we shouldn't fire off any calls to get messages
+		runSearch(query, opts, false /* expectedReindex*/)
+
+		// Verify background syncing
+		g1.LocalChatDb.Nuke()
+		indexer1.SelectiveSync(ctx, uid1, true /* forceReindex */)
+		opts.ForceReindex = false
 		res = runSearch(query, opts, true /* expectedReindex*/)
 		require.Equal(t, 1, len(res.Hits))
 		convHit = res.Hits[0]

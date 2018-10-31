@@ -344,6 +344,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
+	indexer.Start(context.TODO(), uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
 

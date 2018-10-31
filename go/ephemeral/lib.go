@@ -89,6 +89,7 @@ func (e *EKLib) backgroundKeygen() {
 				runIfNeeded()
 			}
 		case <-e.stopCh:
+			ticker.Stop()
 			return
 		}
 	}
