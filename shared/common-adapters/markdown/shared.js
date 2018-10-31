@@ -13,7 +13,7 @@ import {
 } from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import {isSpecialMention, specialMentions} from '../../constants/chat2'
-import parser, {isPlainText} from '../../markdown/parser'
+import parser, {isPlainText, emojiIndexByChar} from '../../markdown/parser'
 import {emojiRegex} from '../../markdown/emoji'
 import {tldExp, commonTlds} from '../../markdown/regex'
 import SimpleMarkdown from 'simple-markdown'
@@ -329,7 +329,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: SimpleMarkdown.anyScopeRegex(
       new RegExp(
-        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
       )
     ),
   },
@@ -337,7 +337,9 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
     match: SimpleMarkdown.inlineRegex(emojiRegex),
     parse: function(capture, parse, state) {
-      return {content: capture[0]}
+      // If it's a unicode emoji, let's get it's shortname
+      const shortName = emojiIndexByChar[capture[0]]
+      return {content: shortName || capture[0]}
     },
   },
   link: {
