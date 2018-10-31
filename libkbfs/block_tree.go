@@ -537,7 +537,6 @@ func (bt *blockTree) getBlocksForOffsetRange(ctx context.Context,
 			} else {
 				errors = append(errors, res.err)
 			}
-			wp.Stop()
 			cancel()
 		}
 		if res.pathFromRoot != nil {
