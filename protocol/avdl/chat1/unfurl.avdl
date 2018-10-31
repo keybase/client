@@ -9,11 +9,12 @@ protocol unfurl {
     }
 
     record UnfurlGeneric {
+        string title;
+        string url;
+        string siteName;
         union { null, string } faviconUrl;
         union { null, string } imageUrl;
         union { null, int } publishTime;
-        union { null, string } title;
-        union { null, string } titleUrl;
         union { null, string } description;
     }
 

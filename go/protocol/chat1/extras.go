@@ -1836,3 +1836,36 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	missingIDs := idx.MissingIDs(min, max)
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
+
+func (u Unfurl) String() string {
+	typ, err := u.UnfurlType()
+	if err != nil {
+		return "<error>"
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		return u.Generic().String()
+	}
+	return "<unknown>"
+}
+
+func (g UnfurlGeneric) String() string {
+	yield := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
+	}
+	publishTime := ""
+	if g.PublishTime != nil {
+		publishTime = fmt.Sprintf("%d", *g.PublishTime)
+	}
+	return fmt.Sprintf(`Title: %s
+URL: %s
+SiteName: %s
+PublishTime: %s
+Description: %s
+ImageUrl: %s
+FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
+		yield(g.ImageUrl), yield(g.FaviconUrl))
+}

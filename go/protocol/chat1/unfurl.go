@@ -35,16 +35,20 @@ func (e UnfurlType) String() string {
 }
 
 type UnfurlGeneric struct {
+	Title       string  `codec:"title" json:"title"`
+	Url         string  `codec:"url" json:"url"`
+	SiteName    string  `codec:"siteName" json:"siteName"`
 	FaviconUrl  *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
 	ImageUrl    *string `codec:"imageUrl,omitempty" json:"imageUrl,omitempty"`
 	PublishTime *int    `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
-	Title       *string `codec:"title,omitempty" json:"title,omitempty"`
-	TitleUrl    *string `codec:"titleUrl,omitempty" json:"titleUrl,omitempty"`
 	Description *string `codec:"description,omitempty" json:"description,omitempty"`
 }
 
 func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
 	return UnfurlGeneric{
+		Title:    o.Title,
+		Url:      o.Url,
+		SiteName: o.SiteName,
 		FaviconUrl: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -66,20 +70,6 @@ func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
 			tmp := (*x)
 			return &tmp
 		})(o.PublishTime),
-		Title: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.Title),
-		TitleUrl: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.TitleUrl),
 		Description: (func(x *string) *string {
 			if x == nil {
 				return nil

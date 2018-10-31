@@ -20,6 +20,18 @@
       "name": "UnfurlGeneric",
       "fields": [
         {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
           "type": [
             null,
             "string"
@@ -39,20 +51,6 @@
             "int"
           ],
           "name": "publishTime"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "title"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "titleUrl"
         },
         {
           "type": [
