@@ -569,23 +569,11 @@ const maybeClearErrors = (state: TypedState) => {
 }
 
 const maybeClearNewTxs = (action: RouteTreeGen.SwitchToPayload, state: TypedState) => {
-  const list = I.List(action.payload.path)
-  const root = list.first()
-  const settingsPath = getPath(state.routeTree.routeState, [Tabs.settingsTab])
-  const walletsPath = getPath(state.routeTree.routeState, [Tabs.walletsTab])
+  const rootTab = I.List(action.payload.path).first()
   // If we're leaving from the Wallets tab, and the Wallets tab route
   // was the main transaction list for an account, clear new txs.
   // FIXME: The hardcoded routes here are fragile if routes change.
-  if (
-    (!isMobile &&
-      root !== Tabs.walletsTab &&
-      state.routeTree.previousTab === Tabs.walletsTab &&
-      walletsPath.get(1) === 'wallet') ||
-    (isMobile &&
-      root !== Tabs.settingsTab &&
-      state.routeTree.previousTab === Tabs.settingsTab &&
-      settingsPath.get(2) === 'wallet')
-  ) {
+  if (rootTab !== Constants.rootWalletTab && Constants.isLookingAtWallet(state.routeTree.routeState)) {
     const accountID = state.wallets.selectedAccount
     if (accountID !== Types.noAccountID) {
       return Saga.put(WalletsGen.createClearNewPayments({accountID}))

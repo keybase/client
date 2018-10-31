@@ -3,9 +3,12 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
+import * as Tabs from './tabs'
+import {isMobile} from './platform'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
+import {getPath, type RouteStateNode} from '../route-tree'
 import logger from '../logger'
 
 const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
@@ -576,6 +579,11 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
   return sign + balanceChange
 }
 
+const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab]
+
+const isLookingAtWallet = (routeState: ?RouteStateNode) =>
+  getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
+
 export {
   acceptDisclaimerWaitingKey,
   accountResultToAccount,
@@ -613,6 +621,7 @@ export {
   getSelectedAccount,
   isAccountLoaded,
   isFederatedAddress,
+  isLookingAtWallet,
   isPaymentUnread,
   linkExistingWaitingKey,
   loadAccountWaitingKey,
@@ -633,6 +642,7 @@ export {
   paymentToYourInfoAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
+  rootWalletTab,
   rpcPaymentDetailToPaymentDetail,
   rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,
