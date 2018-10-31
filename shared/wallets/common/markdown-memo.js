@@ -8,14 +8,15 @@ type Props = {
   style?: Styles.StylesCrossPlatform,
 }
 
-const MarkdownMemo = (props: Props) => (
-  <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={props.style}>
-    <Kb.Divider vertical={true} style={styles.quoteMarker} />
-    <Kb.Markdown style={styles.memo} allowFontScaling={true}>
-      {props.memo}
-    </Kb.Markdown>
-  </Kb.Box2>
-)
+const MarkdownMemo = (props: Props) =>
+  props.memo ? (
+    <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={props.style}>
+      <Kb.Divider vertical={true} style={styles.quoteMarker} />
+      <Kb.Markdown style={styles.memo} allowFontScaling={true}>
+        {props.memo}
+      </Kb.Markdown>
+    </Kb.Box2>
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   container: {

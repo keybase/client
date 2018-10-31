@@ -103,11 +103,6 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 		return NewBadPublicError(id, isPublic)
 	}
 
-	if !m.G().FeatureFlags.Enabled(m, libkb.FeatureAudit) {
-		m.CInfof("Audits are feature-flagged off during a brief testing period")
-		return nil
-	}
-
 	// Single-flight lock by team ID.
 	lock := a.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())

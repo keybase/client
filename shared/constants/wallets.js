@@ -3,9 +3,12 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
+import * as Tabs from './tabs'
+import {isMobile} from './platform'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
+import {getPath, type RouteStateNode} from '../route-tree'
 import logger from '../logger'
 
 const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
@@ -91,6 +94,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   exportedSecretKeyAccountID: Types.noAccountID,
   lastSentXLM: false,
   linkExistingAccountError: '',
+  newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
@@ -164,7 +168,6 @@ const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   issuerVerifiedDomain: '',
   name: '',
   worth: '',
-  worthCurrency: '',
   availableToSendWorth: '',
   reserves: I.List(),
 })
@@ -179,7 +182,6 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     worth: w.worth,
-    worthCurrency: w.worthCurrency,
     availableToSendWorth: w.availableToSendWorth,
     reserves: I.List((w.reserves || []).map(makeReserve)),
   })
@@ -217,7 +219,6 @@ const _defaultPaymentCommon = {
   targetType: '',
   time: null,
   worth: '',
-  worthCurrency: '',
 }
 
 const _defaultPaymentResult = {
@@ -324,7 +325,6 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetType,
     time: p.time,
     worth: p.worth,
-    worthCurrency: p.worthCurrency,
   }
 }
 
@@ -545,6 +545,11 @@ const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
 
 const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
+const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) => {
+  const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
+  return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
+}
+
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
     return 'XLM'
@@ -573,6 +578,11 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
   }
   return sign + balanceChange
 }
+
+const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab]
+
+const isLookingAtWallet = (routeState: ?RouteStateNode) =>
+  getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
 
 export {
   acceptDisclaimerWaitingKey,
@@ -611,6 +621,8 @@ export {
   getSelectedAccount,
   isAccountLoaded,
   isFederatedAddress,
+  isLookingAtWallet,
+  isPaymentUnread,
   linkExistingWaitingKey,
   loadAccountWaitingKey,
   loadEverythingWaitingKey,
@@ -630,6 +642,7 @@ export {
   paymentToYourInfoAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
+  rootWalletTab,
   rpcPaymentDetailToPaymentDetail,
   rpcPaymentResultToPaymentResult,
   sendPaymentWaitingKey,

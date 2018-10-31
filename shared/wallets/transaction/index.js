@@ -5,7 +5,6 @@ import {capitalize} from 'lodash-es'
 import {
   Avatar,
   Box2,
-  Button,
   ClickableBox,
   Icon,
   ConnectedUsernames,
@@ -299,9 +298,7 @@ export type Props = {|
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
-  // onChat and onShowProfile are used only when counterpartyType ===
-  // 'keybaseUser'.
-  onChat: string => void,
+  // onShowProfile is used only when counterpartyType === 'keybaseUser'.
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
   readState: ReadState,
@@ -310,6 +307,7 @@ export type Props = {|
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+  unread: boolean,
   yourRole: Types.Role,
 |}
 
@@ -337,8 +335,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
-  const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
-  const backgroundColor = (pending || unread) && !props.detailView ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -369,39 +366,26 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
-            {showMemo && <MarkdownMemo style={styles.marginVerticalXTiny} memo={props.memo} />}
-            <Box2 direction="horizontal" fullWidth={true}>
-              <Box2 direction="vertical" gap="tiny">
-                {props.onCancelPayment && (
+            {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
+            <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
+              {props.onCancelPayment && (
+                <Box2 direction="vertical" gap="tiny">
                   <Text type="BodySmall">
                     {props.counterparty} can claim this when they set up their wallet.
                   </Text>
-                )}
-                <Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  {props.counterpartyType === 'keybaseUser' && (
-                    <Button
-                      type="Secondary"
-                      label="Chat"
-                      small={true}
-                      onClick={() => props.onChat(props.counterparty)}
-                    />
-                  )}
-                  {props.onCancelPayment && (
-                    <WaitingButton
-                      type="Danger"
-                      label="Cancel"
-                      small={true}
-                      style={styles.cancelButton}
-                      onClick={evt => {
-                        evt.stopPropagation()
-                        props.onCancelPayment && props.onCancelPayment()
-                      }}
-                      waitingKey={props.onCancelPaymentWaitingKey}
-                    />
-                  )}
+                  <WaitingButton
+                    type="Danger"
+                    label="Cancel"
+                    small={true}
+                    style={styles.cancelButton}
+                    onClick={evt => {
+                      evt.stopPropagation()
+                      props.onCancelPayment && props.onCancelPayment()
+                    }}
+                    waitingKey={props.onCancelPaymentWaitingKey}
+                  />
                 </Box2>
-              </Box2>
-
+              )}
               <Box2 direction="horizontal" style={{flex: 1}} />
               <AmountXLM
                 selectableText={props.selectableText}
@@ -432,8 +416,7 @@ const styles = styleSheetCreate({
   lineThrough: {
     textDecorationLine: 'line-through',
   },
-  marginVerticalXTiny: {
-    marginBottom: globalMargins.xtiny,
+  marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},

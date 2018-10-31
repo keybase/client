@@ -99,6 +99,12 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "BBnsAiKyNfocRwmEav5EJpVCwzk=",
+			"path": "github.com/btcsuite/btcutil/bech32",
+			"revision": "ab6388e0c60ae4834a1f57511e20c17b5f78be4b",
+			"revisionTime": "2018-07-06T23:06:48Z"
+		},
+		{
 			"checksumSHA1": "aoxx8YjlpunfhKBTyZKjOH55G10=",
 			"path": "github.com/buger/jsonparser",
 			"revision": "4be68c93a24430ddf9c33d1380b7042fd3a13424",
@@ -258,10 +264,10 @@
 			"revisionTime": "2017-01-27T01:24:59Z"
 		},
 		{
-			"checksumSHA1": "w4dpSM8ao0QPsKcOBTZpTTlJ01c=",
+			"checksumSHA1": "IcsUw1En0CCbFeI2NtpRqL1acAg=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
-			"revisionTime": "2018-10-17T16:52:31Z"
+			"revision": "f919bfda4fc10acaf5347685a9f22ea48d8db04c",
+			"revisionTime": "2018-10-31T13:54:47Z"
 		},
 		{
 			"checksumSHA1": "tin/wcIHur1IM0n5f5u8nlZ/J6U=",
@@ -294,16 +300,22 @@
 			"revisionTime": "2018-10-17T16:52:31Z"
 		},
 		{
-			"checksumSHA1": "IG0C9zMpY0fXO6kJP0Whpe7ZJvc=",
+			"checksumSHA1": "8Fp0B6L11cjcbTlmtFQLXn5zzsc=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
-			"revisionTime": "2018-10-17T16:52:31Z"
+			"revision": "f919bfda4fc10acaf5347685a9f22ea48d8db04c",
+			"revisionTime": "2018-10-31T13:54:47Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
 			"revision": "e696c8039bba3970bbf4f9c1cf745ee96a705656",
 			"revisionTime": "2018-10-17T16:52:31Z"
+		},
+		{
+			"checksumSHA1": "rE3pp7b3gfcmBregzpIvN5IdFhY=",
+			"path": "github.com/keybase/go-crypto/rsa",
+			"revision": "f919bfda4fc10acaf5347685a9f22ea48d8db04c",
+			"revisionTime": "2018-10-31T13:54:47Z"
 		},
 		{
 			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
@@ -443,10 +455,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "Kld5+GjvL8a6uEUo1xCJje4M5TQ=",
+			"checksumSHA1": "9DIyp8QFlTCu0gVt5PW7vA3fZe0=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "c696323809ee8a0ed77b3673503918a00a3e2679",
-			"revisionTime": "2018-10-01T19:10:01Z"
+			"revision": "c8202c99b0703ffa3248c6a9e2be8d1ca2f07a47",
+			"revisionTime": "2018-10-25T17:28:32Z"
 		},
 		{
 			"path": "github.com/kr/pty",

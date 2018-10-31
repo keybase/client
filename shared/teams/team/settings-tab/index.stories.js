@@ -36,6 +36,7 @@ const commonProps = {
     listFirst: true,
     changeTarsDisabled: true,
     deleteChatHistory: true,
+    deleteOtherMessages: true,
   },
   waitingForSavePublicity: false,
 }

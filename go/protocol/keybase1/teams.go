@@ -2562,6 +2562,7 @@ type TeamOperation struct {
 	ListFirst              bool `codec:"listFirst" json:"listFirst"`
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
+	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -2584,6 +2585,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ListFirst:              o.ListFirst,
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 		DeleteChatHistory:      o.DeleteChatHistory,
+		DeleteOtherMessages:    o.DeleteOtherMessages,
 	}
 }
 

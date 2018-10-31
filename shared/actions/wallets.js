@@ -16,6 +16,7 @@ import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
+import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 import {anyWaiting} from '../constants/waiting'
@@ -545,19 +546,38 @@ const setupEngineListeners = () => {
   })
 }
 
-const refreshPayments = ({accountID, paymentID}) =>
-  Saga.put(
-    WalletsGen.createRefreshPayments({
-      accountID: Types.stringToAccountID(accountID),
-      paymentID: Types.rpcPaymentIDToPaymentID(paymentID),
-    })
-  )
+const refreshPayments = response => {
+  const accountID = Types.stringToAccountID(response.accountID)
+  const paymentID = Types.rpcPaymentIDToPaymentID(response.paymentID)
+  return Saga.all([
+    Saga.put(
+      WalletsGen.createRefreshPayments({
+        accountID,
+        paymentID,
+      })
+    ),
+    Saga.put(WalletsGen.createAddNewPayment({accountID, paymentID})),
+  ])
+}
 
 const maybeClearErrors = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const selectedTab = routePath.first()
   if (selectedTab === Tabs.walletsTab) {
     return Saga.put(WalletsGen.createClearErrors())
+  }
+}
+
+const maybeClearNewTxs = (action: RouteTreeGen.SwitchToPayload, state: TypedState) => {
+  const rootTab = I.List(action.payload.path).first()
+  // If we're leaving from the Wallets tab, and the Wallets tab route
+  // was the main transaction list for an account, clear new txs.
+  // FIXME: The hardcoded routes here are fragile if routes change.
+  if (rootTab !== Constants.rootWalletTab && Constants.isLookingAtWallet(state.routeTree.routeState)) {
+    const accountID = state.wallets.selectedAccount
+    if (accountID !== Types.noAccountID) {
+      return Saga.put(WalletsGen.createClearNewPayments({accountID}))
+    }
   }
 }
 
@@ -685,8 +705,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
-  // Clear some errors on navigateUp.
+  // Clear some errors on navigateUp, clear new txs on switchTab
   yield Saga.actionToAction(RouteTreeGen.navigateUp, maybeClearErrors)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, maybeClearNewTxs)
 
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
