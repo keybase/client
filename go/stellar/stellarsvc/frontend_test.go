@@ -1251,8 +1251,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.DisplayAmountXLM)
 	require.Equal(t, "", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
 	recipientAccountID := getPrimaryAccountID(tcs[1])
@@ -1274,8 +1275,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.DisplayAmountFiat)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1296,8 +1298,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.DisplayAmountXLM)
 	require.Equal(t, "", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1319,8 +1322,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "30 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$9.55 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
@@ -1344,8 +1348,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "30 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$9.55 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1367,8 +1372,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "0.0100000 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$0.00 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1389,8 +1395,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "15 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$4.77 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
 	}})
 
 	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
@@ -1560,8 +1567,9 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:   "info",
-		Message: "Because it's their first transaction, you must send at least 1 XLM.",
+		HideOnConfirm: true,
+		Level:         "info",
+		Message:       "Because it's their first transaction, you must send at least 1 XLM.",
 	}})
 
 	t.Logf("sending to account ID that is someone's primary")
