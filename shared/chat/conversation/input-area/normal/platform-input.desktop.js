@@ -245,10 +245,8 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
               ref={this.props.setAttachmentRef}
               style={Styles.collapseStyles([
                 styles.explodingIconContainer,
-                {
-                  backgroundColor: this.props.explodingModeSeconds
-                    ? Styles.globalColors.black_75
-                    : Styles.globalColors.white,
+                this.props.explodingModeSeconds && {
+                  backgroundColor: Styles.globalColors.black_75,
                 },
               ])}
             >
@@ -284,14 +282,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
             autoFocus={false}
             small={true}
-            style={Styles.collapseStyles([
-              styles.input,
-              {
-                backgroundColor: this.props.isEditing
-                  ? Styles.globalColors.yellow3
-                  : Styles.globalColors.white,
-              },
-            ])}
+            style={styles.input}
             ref={this._inputSetRef}
             hintText={hintText}
             hideUnderline={true}
