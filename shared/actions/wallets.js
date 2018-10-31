@@ -328,6 +328,12 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   )
 }
 
+const displayCurrencyReceived = (state: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) => {
+  if (action.payload.setBuildingCurrency) {
+    return Saga.put(WalletsGen.createSetBuildingCurrency({currency: action.payload.currency.code}))
+  }
+}
+
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
     {
@@ -635,6 +641,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
   yield Saga.actionToPromise(WalletsGen.loadSendAssetChoices, loadSendAssetChoices)
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
+  yield Saga.actionToAction(WalletsGen.displayCurrencyReceived, displayCurrencyReceived)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
   yield Saga.actionToPromise(WalletsGen.changeAccountName, changeAccountName)
