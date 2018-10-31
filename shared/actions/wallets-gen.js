@@ -15,6 +15,7 @@ export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
 export const accountsReceived = 'wallets:accountsReceived'
+export const addNewPayment = 'wallets:addNewPayment'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
@@ -29,6 +30,7 @@ export const clearBuilding = 'wallets:clearBuilding'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
 export const clearErrors = 'wallets:clearErrors'
+export const clearNewPayments = 'wallets:clearNewPayments'
 export const createNewAccount = 'wallets:createNewAccount'
 export const createdNewAccount = 'wallets:createdNewAccount'
 export const deleteAccount = 'wallets:deleteAccount'
@@ -85,6 +87,10 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
+type _AddNewPaymentPayload = $ReadOnly<{|
+  accountID: Types.AccountID,
+  paymentID: Types.PaymentID,
+|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   assets: Array<Types.Assets>,
@@ -125,6 +131,7 @@ type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
+type _ClearNewPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _CreateNewAccountPayload = $ReadOnly<{|
   name: string,
   showOnCreation?: boolean,
@@ -331,6 +338,10 @@ export const createClearErrors = (payload: _ClearErrorsPayload) => ({payload, ty
  */
 export const createSecretKeySeen = (payload: _SecretKeySeenPayload) => ({payload, type: secretKeySeen})
 /**
+ * Clear our idea of which payments have not been seen by the user yet
+ */
+export const createClearNewPayments = (payload: _ClearNewPaymentsPayload) => ({payload, type: clearNewPayments})
+/**
  * Delete an account
  */
 export const createDeleteAccount = (payload: _DeleteAccountPayload) => ({payload, type: deleteAccount})
@@ -378,6 +389,10 @@ export const createLoadDisplayCurrencies = (payload: _LoadDisplayCurrenciesPaylo
  * Load wallet disclaimer
  */
 export const createLoadWalletDisclaimer = (payload: _LoadWalletDisclaimerPayload) => ({payload, type: loadWalletDisclaimer})
+/**
+ * Mark a payment we were just notified about as being unseen
+ */
+export const createAddNewPayment = (payload: _AddNewPaymentPayload) => ({payload, type: addNewPayment})
 /**
  * Mark the given payment ID and anything older as read.
  */
@@ -540,6 +555,7 @@ export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({paylo
 export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
 export type AcceptDisclaimerPayload = $Call<typeof createAcceptDisclaimer, _AcceptDisclaimerPayload>
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
+export type AddNewPaymentPayload = $Call<typeof createAddNewPayment, _AddNewPaymentPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
 export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
@@ -555,6 +571,7 @@ export type ClearBuildingPayload = $Call<typeof createClearBuilding, _ClearBuild
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearBuiltRequestPayload = $Call<typeof createClearBuiltRequest, _ClearBuiltRequestPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
+export type ClearNewPaymentsPayload = $Call<typeof createClearNewPayments, _ClearNewPaymentsPayload>
 export type CreateNewAccountPayload = $Call<typeof createCreateNewAccount, _CreateNewAccountPayload>
 export type CreatedNewAccountPayload = $Call<typeof createCreatedNewAccount, _CreatedNewAccountPayload>
 export type CreatedNewAccountPayloadError = $Call<typeof createCreatedNewAccountError, _CreatedNewAccountPayloadError>
@@ -617,6 +634,7 @@ export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
   | AccountsReceivedPayload
+  | AddNewPaymentPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
@@ -632,6 +650,7 @@ export type Actions =
   | ClearBuiltPaymentPayload
   | ClearBuiltRequestPayload
   | ClearErrorsPayload
+  | ClearNewPaymentsPayload
   | CreateNewAccountPayload
   | CreatedNewAccountPayload
   | CreatedNewAccountPayloadError

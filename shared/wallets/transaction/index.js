@@ -298,6 +298,7 @@ export type Props = {|
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+  unread: boolean,
   yourRole: Types.Role,
 |}
 
@@ -325,8 +326,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
-  const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
-  const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>

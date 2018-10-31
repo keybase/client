@@ -248,6 +248,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           status={props.status}
           statusDetail={props.statusDetail}
           timestamp={props.timestamp}
+          unread={false}
           yourRole={props.yourRole}
         />
         <Kb.Divider />
