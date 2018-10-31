@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "local.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -17,7 +21,7 @@
     },
     {
       "type": "record",
-      "name": "UnfurlGeneric",
+      "name": "UnfurlGenericRaw",
       "fields": [
         {
           "type": "string",
@@ -44,6 +48,81 @@
             "string"
           ],
           "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutubeRaw",
+      "fields": []
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlRaw",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGenericRaw"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutubeRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGeneric",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
         },
         {
           "type": [

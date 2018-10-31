@@ -1837,7 +1837,7 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
-func (u Unfurl) String() string {
+func (u UnfurlRaw) String() string {
 	typ, err := u.UnfurlType()
 	if err != nil {
 		return "<error>"
@@ -1849,7 +1849,7 @@ func (u Unfurl) String() string {
 	return "<unknown>"
 }
 
-func (g UnfurlGeneric) String() string {
+func (g UnfurlGenericRaw) String() string {
 	yield := func(s *string) string {
 		if s == nil {
 			return ""

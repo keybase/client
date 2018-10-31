@@ -34,7 +34,7 @@ func (e UnfurlType) String() string {
 	return ""
 }
 
-type UnfurlGeneric struct {
+type UnfurlGenericRaw struct {
 	Title       string  `codec:"title" json:"title"`
 	Url         string  `codec:"url" json:"url"`
 	SiteName    string  `codec:"siteName" json:"siteName"`
@@ -44,8 +44,8 @@ type UnfurlGeneric struct {
 	Description *string `codec:"description,omitempty" json:"description,omitempty"`
 }
 
-func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
-	return UnfurlGeneric{
+func (o UnfurlGenericRaw) DeepCopy() UnfurlGenericRaw {
+	return UnfurlGenericRaw{
 		Title:    o.Title,
 		Url:      o.Url,
 		SiteName: o.SiteName,
@@ -63,6 +63,135 @@ func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
 			tmp := (*x)
 			return &tmp
 		})(o.ImageUrl),
+		PublishTime: (func(x *int) *int {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.PublishTime),
+		Description: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Description),
+	}
+}
+
+type UnfurlYoutubeRaw struct {
+}
+
+func (o UnfurlYoutubeRaw) DeepCopy() UnfurlYoutubeRaw {
+	return UnfurlYoutubeRaw{}
+}
+
+type UnfurlRaw struct {
+	UnfurlType__ UnfurlType        `codec:"unfurlType" json:"unfurlType"`
+	Generic__    *UnfurlGenericRaw `codec:"generic,omitempty" json:"generic,omitempty"`
+	Youtube__    *UnfurlYoutubeRaw `codec:"youtube,omitempty" json:"youtube,omitempty"`
+}
+
+func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
+	switch o.UnfurlType__ {
+	case UnfurlType_GENERIC:
+		if o.Generic__ == nil {
+			err = errors.New("unexpected nil value for Generic__")
+			return ret, err
+		}
+	case UnfurlType_YOUTUBE:
+		if o.Youtube__ == nil {
+			err = errors.New("unexpected nil value for Youtube__")
+			return ret, err
+		}
+	}
+	return o.UnfurlType__, nil
+}
+
+func (o UnfurlRaw) Generic() (res UnfurlGenericRaw) {
+	if o.UnfurlType__ != UnfurlType_GENERIC {
+		panic("wrong case accessed")
+	}
+	if o.Generic__ == nil {
+		return
+	}
+	return *o.Generic__
+}
+
+func (o UnfurlRaw) Youtube() (res UnfurlYoutubeRaw) {
+	if o.UnfurlType__ != UnfurlType_YOUTUBE {
+		panic("wrong case accessed")
+	}
+	if o.Youtube__ == nil {
+		return
+	}
+	return *o.Youtube__
+}
+
+func NewUnfurlRawWithGeneric(v UnfurlGenericRaw) UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: UnfurlType_GENERIC,
+		Generic__:    &v,
+	}
+}
+
+func NewUnfurlRawWithYoutube(v UnfurlYoutubeRaw) UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: UnfurlType_YOUTUBE,
+		Youtube__:    &v,
+	}
+}
+
+func (o UnfurlRaw) DeepCopy() UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: o.UnfurlType__.DeepCopy(),
+		Generic__: (func(x *UnfurlGenericRaw) *UnfurlGenericRaw {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Generic__),
+		Youtube__: (func(x *UnfurlYoutubeRaw) *UnfurlYoutubeRaw {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Youtube__),
+	}
+}
+
+type UnfurlGeneric struct {
+	Title       string  `codec:"title" json:"title"`
+	Url         string  `codec:"url" json:"url"`
+	SiteName    string  `codec:"siteName" json:"siteName"`
+	Favicon     *Asset  `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image       *Asset  `codec:"image,omitempty" json:"image,omitempty"`
+	PublishTime *int    `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
+	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+}
+
+func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
+	return UnfurlGeneric{
+		Title:    o.Title,
+		Url:      o.Url,
+		SiteName: o.SiteName,
+		Favicon: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Favicon),
+		Image: (func(x *Asset) *Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Image),
 		PublishTime: (func(x *int) *int {
 			if x == nil {
 				return nil

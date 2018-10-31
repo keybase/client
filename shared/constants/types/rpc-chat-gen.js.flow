@@ -1047,12 +1047,15 @@ export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, 
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
-export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
+export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
+export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
+export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1
 
 export type UnfurlYoutube = $ReadOnly<{}>
+export type UnfurlYoutubeRaw = $ReadOnly<{}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
