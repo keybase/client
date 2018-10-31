@@ -207,8 +207,6 @@ func TestPhoneNumberNotifications(t *testing.T) {
 }
 
 func TestImplicitTeamWithEmail(t *testing.T) {
-	t.Skip("Skipping IMP TOFU because needs serverside support")
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

@@ -295,11 +295,7 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	}
 
 	if au.IsServerTrust() {
-		if _, ok := au.(AssertionPhoneNumber); ok {
-			return r.resolvePhoneNumberViaServerLookup(m, au, input)
-		}
-		res.err = ResolutionError{Input: input, Msg: "don't know how to resolve", Kind: ResolutionErrorNotFound}
-		return
+		return r.resolveServerTrustAssertion(m, au, input)
 	}
 
 	var key, val string
@@ -425,13 +421,13 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 	return res
 }
 
-type phoneNumberLookup struct {
+type serverTrustUserLookup struct {
 	AppStatusEmbed
 	User *keybase1.PhoneLookupResult `json:"user"`
 }
 
-func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
-	m.CDebugf("resolvePhoneNumberViaServerLookup")
+func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
+	defer m.CTrace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
 
 	key, val, err := au.ToLookup()
 	if err != nil {
@@ -439,29 +435,40 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 		return res
 	}
 
-	if key != "phone" {
-		res.err = fmt.Errorf("expected 'phone' assertion")
+	var arg APIArg
+	switch key {
+	case "phone":
+		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
+		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
+	case "email":
+		arg = NewAPIArgWithMetaContext(m, "user/emails_search")
+		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
+	default:
+		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}
 		return res
 	}
 
-	arg := NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 	arg.SessionType = APISessionTypeREQUIRED
-	arg.Args = make(HTTPArgs)
-	arg.Args["phone_number"] = S{Val: val}
 	arg.AppStatusCodes = []int{SCOk}
 
-	var lookup phoneNumberLookup
+	var lookup serverTrustUserLookup
 	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
 		if appErr, ok := err.(AppStatusError); ok {
 			switch appErr.Code {
 			case SCInputError:
-				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
-			// TODO: Phone number search rate limiting code goes here.
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
+				return res
 			case SCChatRateLimit: // with different error const!
-				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
+				// TODO: Phone number search rate limiting code goes here.
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
+				return res
 			}
 		}
-		res.err = err
+		// When the call fails because of timeout or other reason, stop
+		// the process as well. Same reason as other errors - we don't
+		// want to create dead SBS team when there was a resolvable user
+		// but we weren't able to resolve.
+		res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRequestFailed}
 		return res
 	}
 
