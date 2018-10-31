@@ -12,15 +12,13 @@ import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
 import LongPressable from './long-pressable'
 
-// Message types that have an ellipsis/meatball menu
-const popupableMessageTypes = ['text', 'attachment', 'sendPayment', 'requestPayment']
-
 /**
  * WrapperTimestamp adds the orange line, timestamp, menu button, menu, reacji
  * button, and exploding meta tag.
  */
 
 export type Props = {|
+  canShowPopup: boolean,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -112,6 +110,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 )}
               {props.decorate &&
                 menuButtons({
+                  canShowPopup: props.canShowPopup,
                   conversationIDKey: props.conversationIDKey,
                   exploded: props.exploded,
                   isRevoked: props.isRevoked,
@@ -150,6 +149,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
 const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
+  canShowPopup: boolean,
   conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
   isRevoked: boolean,
@@ -193,7 +193,7 @@ const menuButtons = (props: MenuButtonsProps) => (
                 style={styles.reactButton}
               />
               <Box ref={props.setAttachmentRef}>
-                {popupableMessageTypes.includes(props.message.type) && (
+                {props.canShowPopup && (
                   <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
                 )}
               </Box>

@@ -65,7 +65,30 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const decorate = shouldDecorateMessage(message, stateProps._you)
 
+  const shouldShowPopup = (message: Types.Message) => {
+    switch (message.type) {
+      case 'text':
+      case 'attachment':
+      case 'requestPayment':
+        return true
+      case 'sendPayment': {
+        // Is the payment pending?
+        if (
+          message &&
+          message.paymentInfo &&
+          ['cancelable', 'pending'].includes(message.paymentInfo.get('status'))
+        ) {
+          return false
+        }
+        return true
+      }
+      default:
+        return false
+    }
+  }
+
   return {
+    canShowPopup: shouldShowPopup(message),
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
