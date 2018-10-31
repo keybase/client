@@ -223,8 +223,20 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 		}
 	}
 
+	// For revoked proofs, we almost always want to return an error. The one exception
+	// is a snoozed tracker proof in non-strict mode.
 	for _, revoked := range i.Revoked {
-		softErr(revoked.ToDisplayString())
+		errString := revoked.ToDisplayString()
+		isSnoozed := false
+		if _, ok := revoked.(TrackDiffSnoozedRevoked); ok {
+			isSnoozed = true
+		}
+
+		if !strict && isSnoozed {
+			warnings.Push(StringWarning(errString))
+		} else {
+			probs = append(probs, errString)
+		}
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {
