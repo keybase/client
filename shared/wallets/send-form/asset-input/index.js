@@ -4,6 +4,27 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import Available from '../available/container'
 
+const isValidAmount = (amt, numDecimalsAllowed) => {
+  if (!isNaN(+amt) || amt === '.') {
+    // This is a valid number. Now check the number of decimal places
+    const split = amt.includes('.') && amt.split('.')
+    if (!split) {
+      // no decimal places
+      return true
+    }
+    const decimal = split[split.length - 1]
+    if (decimal.length <= numDecimalsAllowed) {
+      return true
+    }
+  }
+  return false
+}
+
+const truncateAmount = (amt, numDecimalsAllowed) => {
+  const num = +amt
+  return num.toFixed(numDecimalsAllowed).toString()
+}
+
 type Props = {|
   bottomLabel: string,
   displayUnit: string,
@@ -17,72 +38,80 @@ type Props = {|
   warningPayee?: string,
 |}
 
-const AssetInput = (props: Props) => {
-  const onChangeAmount = t => {
-    if (!isNaN(+t) || t === '.') {
-      // This is a valid number. Now check the number of decimal places
-      const split = t.includes('.') && t.split('.')
-      if (!split) {
-        // no decimal places
-        props.onChangeAmount(t)
-        return
-      }
-      const decimal = split[split.length - 1]
-      if (decimal.length <= props.numDecimalsAllowed) {
-        props.onChangeAmount(t)
-      }
+class AssetInput extends React.Component<Props> {
+  componentDidMount() {
+    if (!isValidAmount(this.props.value, this.props.numDecimalsAllowed)) {
+      this.props.onChangeAmount(truncateAmount(this.props.value, this.props.numDecimalsAllowed))
     }
   }
-  return (
-    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
-      {!!props.topLabel && (
-        <Kb.Text
-          type="BodySmallSemibold"
-          style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}
-        >
-          {props.topLabel}
-        </Kb.Text>
-      )}
-      <Kb.NewInput
-        autoFocus={true}
-        type="text"
-        keyboardType="numeric"
-        decoration={
-          <Kb.Box2 direction="vertical" style={styles.flexEnd}>
-            <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
-              {props.displayUnit}
-            </Kb.Text>
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
-              Change
-            </Kb.Text>
-          </Kb.Box2>
-        }
-        containerStyle={styles.inputContainer}
-        style={styles.input}
-        onChangeText={onChangeAmount}
-        textType="HeaderBigExtrabold"
-        placeholder={props.inputPlaceholder}
-        placeholderColor={Styles.globalColors.purple2_40}
-        error={!!props.warningAsset}
-        value={props.value}
-      />
-      <Available />
-      {!!props.warningPayee && (
-        <Kb.Text type="BodySmallError">
-          {props.warningPayee} doesn't accept{' '}
-          <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
-            {props.warningAsset}
+
+  componentDidUpdate(prevProps: Props) {
+    if (
+      this.props.numDecimalsAllowed !== prevProps.numDecimalsAllowed &&
+      !isValidAmount(this.props.value, this.props.numDecimalsAllowed)
+    ) {
+      this.props.onChangeAmount(truncateAmount(this.props.value, this.props.numDecimalsAllowed))
+    }
+  }
+
+  _onChangeAmount = t => {
+    if (isValidAmount(t, this.props.numDecimalsAllowed)) {
+      this.props.onChangeAmount(t)
+    }
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
+        {!!this.props.topLabel && (
+          <Kb.Text
+            type="BodySmallSemibold"
+            style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}
+          >
+            {this.props.topLabel}
           </Kb.Text>
-          . Please pick another asset.
-        </Kb.Text>
-      )}
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
-          {props.bottomLabel}
-        </Kb.Text>
+        )}
+        <Kb.NewInput
+          autoFocus={true}
+          type="text"
+          keyboardType="numeric"
+          decoration={
+            <Kb.Box2 direction="vertical" style={styles.flexEnd}>
+              <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
+                {this.props.displayUnit}
+              </Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onChangeDisplayUnit}>
+                Change
+              </Kb.Text>
+            </Kb.Box2>
+          }
+          containerStyle={styles.inputContainer}
+          style={styles.input}
+          onChangeText={this._onChangeAmount}
+          textType="HeaderBigExtrabold"
+          placeholder={this.props.inputPlaceholder}
+          placeholderColor={Styles.globalColors.purple2_40}
+          error={!!this.props.warningAsset}
+          value={this.props.value}
+        />
+        <Available />
+        {!!this.props.warningPayee && (
+          <Kb.Text type="BodySmallError">
+            {this.props.warningPayee} doesn't accept{' '}
+            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+              {this.props.warningAsset}
+            </Kb.Text>
+            . Please pick another asset.
+          </Kb.Text>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
+            {this.props.bottomLabel}
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  )
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({

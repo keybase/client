@@ -100,12 +100,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const {currency} = action.payload
       return state
         .set('builtPayment', Constants.makeBuiltPayment())
-        .set(
-          'building',
-          state
-            .get('building')
-            .merge({amount: currency === state.building.currency ? state.building.amount : '', currency})
-        )
+        .set('building', state.get('building').merge({currency}))
     case WalletsGen.setBuildingFrom:
       const {from} = action.payload
       return state
