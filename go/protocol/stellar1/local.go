@@ -451,6 +451,7 @@ type SendBannerLocal struct {
 	Level         string `codec:"level" json:"level"`
 	Message       string `codec:"message" json:"message"`
 	ProofsChanged bool   `codec:"proofsChanged" json:"proofsChanged"`
+	HideOnConfirm bool   `codec:"hideOnConfirm" json:"hideOnConfirm"`
 }
 
 func (o SendBannerLocal) DeepCopy() SendBannerLocal {
@@ -458,6 +459,7 @@ func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 		Level:         o.Level,
 		Message:       o.Message,
 		ProofsChanged: o.ProofsChanged,
+		HideOnConfirm: o.HideOnConfirm,
 	}
 }
 
