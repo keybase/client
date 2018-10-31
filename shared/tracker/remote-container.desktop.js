@@ -17,8 +17,11 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
-  _onClickAvatar: (username: string) =>
-    dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),
+  _onClickAvatar: (username: string) => {
+    dispatch(ProfileGen.createOnClickAvatar({openWebsite: false, username}))
+    // Make sure the main app window is showing
+    dispatch(ConfigGen.createShowMain())
+  },
   _onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({username})),
   _onIgnore: (username: string) => dispatch(TrackerGen.createIgnore({username})),
