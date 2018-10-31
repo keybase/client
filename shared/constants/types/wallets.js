@@ -210,6 +210,7 @@ export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 export type Banner = {|
   bannerBackground: BannerBackground,
   bannerText: string,
+  hideOnConfirm?: boolean,
 |}
 
 export type Building = I.RecordOf<_Building>

@@ -25,6 +25,7 @@ const mapStateToProps = state => {
     (built.banners || []).map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
+      hideOnConfirm: banner.hideOnConfirm,
     }))
   )
   return {

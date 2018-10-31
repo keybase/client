@@ -33,9 +33,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         displayAmountFiat={props.displayAmountFiat}
       />
       <Kb.ScrollView style={styles.scrollView}>
-        {(props.banners || []).map(banner => (
-          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-        ))}
+        {(props.banners || []).map(
+          banner =>
+            banner.hideOnConfirm ? null : (
+              <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+            )
+        )}
         <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
