@@ -6084,6 +6084,13 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		return err
 	}
 
+	services, _ := fbo.serviceStatus.CurrentStatus()
+	if len(services) > 0 {
+		fbo.log.CDebugf(ctx, "Not fetching new updates while offline; "+
+			"failing services=%v", services)
+		return nil
+	}
+
 	// Loop until we're fully updated on the master branch.
 	for {
 		if fbo.isUnmerged(lState) {
