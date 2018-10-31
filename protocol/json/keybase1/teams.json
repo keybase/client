@@ -2302,6 +2302,10 @@
         {
           "type": "boolean",
           "name": "deleteChatHistory"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteOtherMessages"
         }
       ]
     },
