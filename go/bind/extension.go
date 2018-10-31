@@ -307,8 +307,9 @@ func ExtensionListPath(p string) (res string, err error) {
 	}
 
 	err = simpleFS.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opID,
-		Path: keybase1.NewPathWithKbfs(p),
+		OpID:   opID,
+		Path:   keybase1.NewPathWithKbfs(p),
+		Filter: keybase1.ListFilter_FILTER_SYSTEM_HIDDEN,
 	})
 	if err != nil {
 		return "null", err

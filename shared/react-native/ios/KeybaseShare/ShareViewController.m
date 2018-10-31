@@ -22,7 +22,7 @@ const BOOL isSimulator = NO;
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget; // the conversation we will be sharing into
-@property NSDictionary* folderTarget; // the folder we will be sharing into
+@property NSString* folderTarget; // the folder we will be sharing into
 @property BOOL hasInited; // whether or not init has succeeded yet
 @end
 
@@ -403,7 +403,7 @@ const BOOL isSimulator = NO;
   files.title = @"Share to files...";
   files.valuePending = !self.hasInited; // show a spinner if we haven't inited
   if (self.folderTarget) {
-    files.value = self.folderTarget[@"name"];
+    files.value = self.folderTarget;
   } else if (self.hasInited) {
     files.value = @"Please choose";
   }
@@ -425,9 +425,9 @@ const BOOL isSimulator = NO;
   [self popConfigurationViewController];
 }
 
-- (void)folderSelected:(NSDictionary *)folder {
+- (void)folderSelected:(NSString *)folderPath {
   // This is a delegate method from the inbox view, it gets run when the user taps an item.
-  [self setFolderTarget:folder];
+  [self setFolderTarget:folderPath];
   [self setConvTarget:nil];
   [self validateContent];
   [self reloadConfigurationItems];

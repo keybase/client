@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @protocol FilesViewDelegate<NSObject>
--(void)folderSelected:(NSDictionary*)folder;
+-(void)folderSelected:(NSString*)folderPath;
 @end
 
 @interface FilesViewController : UITableViewController
