@@ -315,7 +315,7 @@ export const Transaction = (props: Props) => {
       showMemo = props.yourRole !== 'receiverOnly'
       break
     case 'otherAccount':
-      large = !!props.memo
+      large = true
       showMemo = !!props.memo
       break
     default:
