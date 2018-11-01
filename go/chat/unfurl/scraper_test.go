@@ -47,7 +47,7 @@ func (d *dummyHTTPSrv) Stop() {
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	name := r.URL.Query().Get("name")
-	dat, err := ioutil.ReadFile(filepath.Join("testcases", name))
+	dat, err := ioutil.ReadFile(filepath.Join("testcases", name+".html"))
 	require.NoError(d.t, err)
 	_, err = io.Copy(w, bytes.NewBuffer(dat))
 	require.NoError(d.t, err)
