@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -1624,6 +1625,53 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	}
 	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
+}
+
+type listProfileAddServerRes struct {
+	libkb.AppStatusEmbed
+	Teams []listProfileAddResEntry `json:"teams"`
+}
+
+type listProfileAddResEntry struct {
+	FqName     string `json:"fq_name"`
+	IsOpenTeam bool   `json:"is_open_team"`
+	// Whether the caller has admin powers.
+	CallerAdmin bool `json:"caller_admin"`
+	// Whether the 'them' user is an explicit member.
+	ThemMember bool `json:"them_member"`
+}
+
+func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username string) (res []keybase1.TeamProfileAddEntry, err error) {
+	uname := kbun.NewNormalizedUsername(username)
+	uid, err := g.GetUPAKLoader().LookupUID(ctx, uname)
+	if err != nil {
+		return nil, err
+	}
+	arg := apiArg(ctx, "team/list_profile_add")
+	arg.Args.Add("uid", libkb.S{Val: uid.String()})
+	var serverRes listProfileAddServerRes
+	if err = g.API.GetDecode(arg, &serverRes); err != nil {
+		return nil, err
+	}
+	for _, entry := range serverRes.Teams {
+		teamName, err := keybase1.TeamNameFromString(entry.FqName)
+		if err != nil {
+			g.Log.CDebugf(ctx, "TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
+			continue
+		}
+		disabledReason := ""
+		if !entry.CallerAdmin {
+			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
+		} else if entry.ThemMember {
+			disabledReason = fmt.Sprintf("Only admins can add people.")
+		}
+		res = append(res, keybase1.TeamProfileAddEntry{
+			TeamName:       teamName,
+			Open:           entry.IsOpenTeam,
+			DisabledReason: disabledReason,
+		})
+	}
+	return res, nil
 }
 
 func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) error {
