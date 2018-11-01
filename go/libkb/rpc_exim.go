@@ -1920,7 +1920,7 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
+			{Key: "Cause", Value: e.Error()},
 		},
 	}
 }
