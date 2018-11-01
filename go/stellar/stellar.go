@@ -918,7 +918,7 @@ func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keyba
 		return keybase1.TLFIdentifyFailure{}, err
 	}
 
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}

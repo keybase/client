@@ -55,7 +55,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		err := engine.RunEngine2(m, eng)
 		log("GetProofSet: %v", spew.Sdump(eng.GetProofSet()))
 		log("ConfirmResult: %v", spew.Sdump(eng.ConfirmResult()))
-		eres, eerr := eng.Result()
+		eres, eerr := eng.Result(m)
 		if eres != nil {
 			log("Result.Upk.Username: %v", spew.Sdump(eres.Upk.GetName()))
 			log("Result.IdentifiedAt: %v", spew.Sdump(eres.IdentifiedAt))
