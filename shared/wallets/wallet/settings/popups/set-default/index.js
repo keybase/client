@@ -18,7 +18,6 @@ const SetDefaultAccountPopup = (props: Props) => {
       key={0}
       fullWidth={Styles.isMobile}
       type="Secondary"
-      style={styles.button}
       onClick={props.onClose}
       label="Cancel"
       disabled={props.waiting}
@@ -28,7 +27,6 @@ const SetDefaultAccountPopup = (props: Props) => {
       waiting={props.waiting}
       fullWidth={Styles.isMobile}
       type="Wallet"
-      style={styles.button}
       onClick={props.onAccept}
       label="Set as default account"
     />,

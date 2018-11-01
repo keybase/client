@@ -9,7 +9,7 @@ type Props = {|
 |}
 
 const NoteAndMemo = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.encryptedNote && (
       <React.Fragment>
         <Kb.Divider />

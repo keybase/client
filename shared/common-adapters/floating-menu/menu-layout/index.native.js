@@ -42,7 +42,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
     }, [])
 
     return (
-      <Box style={styles.overlay}>
+      <Box>
         <Box style={collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
