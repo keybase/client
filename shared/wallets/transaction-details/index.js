@@ -4,8 +4,9 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampLine} from '../transaction'
+import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
+import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 export type NotLoadingProps = {|
   amountUser: string,
@@ -226,6 +227,29 @@ const propsToParties = (props: NotLoadingProps) => {
       */
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
+}
+
+type TimestampLineProps = {|
+  error: string,
+  timestamp: ?Date,
+  selectableText: boolean,
+|}
+
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return <TimestampError error={props.error} />
+  }
+  const timestamp = props.timestamp
+  if (!timestamp) {
+    return <TimestampPending />
+  }
+  const human = formatTimeForStellarDetail(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
+  return (
+    <Kb.Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+      {human}
+    </Kb.Text>
+  )
 }
 
 const TransactionDetails = (props: NotLoadingProps) => {
