@@ -24,13 +24,13 @@ import WalletsList from './wallet-list/container'
 const createNewAccount = {
   children: {},
   component: CreateNewAccount,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const linkExisting = {
   children: {},
   component: LinkExisting,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const walletChildren = {
@@ -38,31 +38,41 @@ const walletChildren = {
   exportSecretKey: {
     children: {},
     component: ExportSecretKey,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   linkExisting,
   receive: {
     children: {},
     component: ReceiveModal,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   [Constants.sendReceiveFormRouteKey]: {
     children: {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+        tags: makeLeafTags({
+          layerOnTop: !isMobile,
+          renderTopmostOnly: true,
+          hideStatusBar: true,
+          underStatusBar: true,
+        }),
       },
       createNewAccount,
       linkExisting,
       [Constants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+    tags: makeLeafTags({
+      layerOnTop: !isMobile,
+      renderTopmostOnly: true,
+      hideStatusBar: true,
+      underStatusBar: true,
+    }),
   },
   settings: {
     children: {
@@ -82,12 +92,12 @@ const walletChildren = {
       renameAccount: {
         children: {},
         component: RenameAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       setDefaultAccount: {
         children: {},
         component: SetDefaultAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
     },
     component: AccountSettings,
