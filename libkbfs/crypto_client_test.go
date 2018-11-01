@@ -453,7 +453,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		ephPublicKeyCorruptData)
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKeyCorrupt,
 		encryptedClientHalf)
-	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
+	assert.IsType(t, libkb.DecryptionError{}, errors.Cause(err))
 
 	// Corrupt data.
 
@@ -461,7 +461,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	encryptedClientHalfCorruptData.EncryptedData[0] = ^encryptedClientHalfCorruptData.EncryptedData[0]
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKey,
 		encryptedClientHalfCorruptData)
-	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
+	assert.IsType(t, libkb.DecryptionError{}, errors.Cause(err))
 }
 
 // Test that canceling a signing RPC returns the correct error
