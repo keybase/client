@@ -41,13 +41,7 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
       case 'root':
         return (
           <Root onClose={this.props.onClose}>
-            <SendBody
-              isProcessing={undefined /* TODO */}
-              onLinkAccount={this.linkExisting}
-              onChooseAsset={this.chooseAsset}
-              onCreateNewAccount={this.createNewAccount}
-              onConfirm={this.confirm}
-            />
+            <SendBody isProcessing={undefined /* TODO */} />
           </Root>
         )
       case 'link-existing':

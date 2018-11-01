@@ -42,14 +42,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   inputPlaceholder: stateProps.inputPlaceholder,
   numDecimalsAllowed: stateProps.numDecimalsAllowed,
   onChangeAmount: dispatchProps.onChangeAmount,
-  onChangeDisplayUnit: ownProps.onChooseAsset || dispatchProps.onChangeDisplayUnit,
+  onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
   topLabel: stateProps.topLabel,
   value: stateProps.value,
 })
 
-export default namedConnect(
-   mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-  'AssetInput'
-)(AssetInput)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AssetInput')(AssetInput)
