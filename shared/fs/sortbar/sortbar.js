@@ -63,7 +63,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
           style={styles.sortSetting}
           ref={props.setAttachmentRef}
         >
-          <Box style={styles.iconBox}>
+          <Box>
             <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
