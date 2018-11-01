@@ -69,7 +69,7 @@ func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestCon
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 	usernames = append(usernames, other.Username)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	// after the rotate
 
 	// switch to `otherA` user
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, otherA.Login(tc.G))
 
 	// otherA has the power to add otherB to the subteam
@@ -278,7 +278,7 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 
 	otherC, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	t.Logf("Created team %q", name)
 	require.NoError(t, owner.Login(tc.G))
@@ -320,13 +320,13 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	// Reset otherA (writer) and otherB (admin). otherA should be
 	// removed if the team is open.
 	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
-		tc.G.Logout()
+		tc.G.Logout(context.TODO())
 		require.NoError(t, u.Login(tc.G))
 
 		kbtest.ResetAccount(tc, u)
 	}
 
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
@@ -398,12 +398,12 @@ func TestRotateWithBadUIDs(t *testing.T) {
 	require.NoError(t, SetRoleAdmin(context.Background(), tc.G, name, otherB.Username))
 
 	// Logout and reset (admin member).
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, otherB.Login(tc.G))
 	kbtest.ResetAccount(tc, otherB)
 
 	// Re-login as owner, simulate CLKR message.
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
@@ -451,7 +451,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 
 	otherC, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, owner.Login(tc.G))
 
 	err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
@@ -473,7 +473,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	}
 
 	for _, u := range []*kbtest.FakeUser{otherA, otherB, otherC} {
-		tc.G.Logout()
+		tc.G.Logout(context.TODO())
 		require.NoError(t, u.Login(tc.G))
 
 		if u != otherC {
@@ -490,7 +490,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 			})
 	}
 
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
@@ -526,13 +526,13 @@ func TestRotateResetSweepWithWriter(t *testing.T) {
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
 
 	// Login as otherB, reset account.
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, otherB.Login(tc.G))
 	kbtest.ResetAccount(tc, otherB)
 
 	// Login as otherA (writer), simulate CLKR with info about reset
 	// otherB.
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, otherA.Login(tc.G))
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
@@ -605,7 +605,7 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 	// otherB should now be a writer
 	assertRole(tc, sub, otherB.Username, keybase1.TeamRole_WRITER)
 
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	require.NoError(t, otherB.Login(tc.G))
 
 	params := keybase1.TeamCLKRMsg{

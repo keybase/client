@@ -41,7 +41,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_ADMIN)
 
 	// switch to `admin` user
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_NONE)
 
 	// switch to `admin` user
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +100,7 @@ func TestRecreateSubteam(t *testing.T) {
 	defer tc.Cleanup()
 
 	// switch to `admin` user
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
