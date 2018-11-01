@@ -96,5 +96,5 @@ func TestPackager(t *testing.T) {
 	compareSol("nytogimage_sol.jpg", buf.Bytes())
 	buf.Reset()
 	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *favicon, &buf, s3Signer, nil))
-	ioutil.WriteFile("/tmp/out.ico", buf.Bytes(), 0644)
+	compareSol("nytimes_sol.ico", buf.Bytes())
 }
