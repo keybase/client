@@ -254,11 +254,12 @@ export const TimestampLine = (props: TimestampLineProps) => {
       </Text>
     )
   }
-  if (!props.timestamp) {
+  const timestamp = props.timestamp
+  if (!timestamp) {
     return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
   }
-  const human = formatTimeForMessages(props.timestamp)
-  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
+  const human = formatTimeForMessages(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
   // 'cancelable' -> show 'pending' and completed -> show nothing
   switch (status) {
