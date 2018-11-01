@@ -22,7 +22,7 @@ const isValidAmount = (amt, numDecimalsAllowed) => {
 
 const truncateAmount = (amt, numDecimalsAllowed) => {
   const num = Number(amt)
-  return num.toFixed(numDecimalsAllowed).toString()
+  return num.toFixed(numDecimalsAllowed)
 }
 
 type Props = {|
