@@ -89,7 +89,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           'builtPayment',
           state
             .get('builtPayment')
-            .merge({amountErrMsg: '', amountFormatted: '', worthDescription: '', worthInfo: ''})
+            .merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
         )
         .set(
           'builtRequest',
