@@ -398,7 +398,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
 	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
-  <-d.ChatG().Indexer.Stop(m.Ctx())
+	<-d.ChatG().Indexer.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
