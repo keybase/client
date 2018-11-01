@@ -193,9 +193,9 @@ bool filterWritableEntries(NSDictionary* entry) {
 }
 
 - (void)setPath:(NSString*)path {
-   NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
-  unsigned long pathLength = [pathElems count];
   _path = path;
+  NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
+  unsigned long pathLength = [pathElems count];
   if (pathLength <= 2) {
     [self setTitle:@"Keybase"];
   } else {
