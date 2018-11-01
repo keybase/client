@@ -1436,13 +1436,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 }
 
 func dstNameFromRefString(refStr string) plumbing.ReferenceName {
-	start := strings.Index(refStr, ":") + 1
-	dst := refStr[start:]
-	return plumbing.ReferenceName(dst)
-}
-
-func dstNameFromRefSpec(refspec gogitcfg.RefSpec) plumbing.ReferenceName {
-	return dstNameFromRefString(refspec.String())
+	return gogitcfg.RefSpec(refStr).Dst("")
 }
 
 // parentCommitsForRef returns a map of refs with a list of commits for each
@@ -1494,7 +1488,7 @@ func (r *runner) parentCommitsForRef(ctx context.Context,
 		// 3. Run out of commits.
 		walker := gogitobj.NewCommitPreorderIter(commit, haves, nil)
 		toVisit := maxCommitsToVisitPerRef
-		dstRefName := dstNameFromRefSpec(refspec)
+		dstRefName := refspec.Dst("")
 		commitsByRef[dstRefName] = &libgit.RefData{
 			IsDelete: refspec.IsDelete(),
 			Commits:  make([]*gogitobj.Commit, 0, maxCommitsToVisitPerRef),
@@ -1608,7 +1602,7 @@ func (r *runner) pushSome(
 
 		// All non-deleted refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
-			dst := dstNameFromRefSpec(refspec)
+			dst := refspec.Dst("")
 			results[dst.String()] = err
 		}
 	}
@@ -1712,7 +1706,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	// Remove any errored commits so that we don't send an update
 	// message about them.
 	for refspec := range refspecs {
-		dst := dstNameFromRefSpec(refspec)
+		dst := refspec.Dst("")
 		if results[dst.String()] != nil {
 			r.log.CDebugf(
 				ctx, "Removing commit result for errored push on refspec %s",
