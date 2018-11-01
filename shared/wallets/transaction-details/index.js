@@ -1,5 +1,4 @@
 // @flow
-import moment from 'moment'
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
@@ -7,7 +6,7 @@ import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
-import {formatTimeForStellarTooltip} from '../../util/timestamp'
+import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 export type NotLoadingProps = {|
   amountUser: string,
@@ -244,8 +243,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   if (!timestamp) {
     return <TimestampPending />
   }
-  const m = moment(timestamp)
-  const human = m.format('ddd, MMM DD YYYY - h:mm A') // Tue, Jan 5 2018 - 4:34 PM
+  const human = formatTimeForStellarDetail(timestamp)
   const tooltip = formatTimeForStellarTooltip(timestamp)
   return (
     <Kb.Text selectable={props.selectableText} title={tooltip} type="BodySmall">
