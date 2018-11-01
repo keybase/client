@@ -5,7 +5,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -40,13 +44,20 @@ func TestPackager(t *testing.T) {
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	packager := NewPackager(log, store, s3Signer, ri)
+	srvFile := func(w io.Writer, name string) {
+		file, err := os.Open(name)
+		require.NoError(t, err)
+		defer file.Close()
+		_, err = io.Copy(w, file)
+		require.NoError(t, err)
+	}
 	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		if r.URL.Query().Get("typ") == "favicon" {
-			w.Write([]byte("FAVICON"))
+			srvFile(w, filepath.Join("testcases", "nytimes.ico"))
 			return
 		}
-		w.Write([]byte("IMAGE"))
+		srvFile(w, filepath.Join("testcases", "nytogimage.jpg"))
 	})
 	addr := srv.Start()
 	defer srv.Stop()
@@ -68,13 +79,22 @@ func TestPackager(t *testing.T) {
 	require.NotNil(t, image)
 	favicon := res.Generic().Favicon
 	require.NotNil(t, favicon)
+	require.NotZero(t, image.Metadata.Image().Height)
+	require.NotZero(t, image.Metadata.Image().Width)
+	require.NotZero(t, favicon.Metadata.Image().Height)
+	require.NotZero(t, favicon.Metadata.Image().Width)
 
+	compareSol := func(name string, resDat []byte) {
+		dat, err := ioutil.ReadFile(filepath.Join("testcases", name))
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(dat, resDat))
+	}
 	var buf bytes.Buffer
 	s3params, err := ri().GetS3Params(context.TODO(), convID)
 	require.NoError(t, err)
 	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *image, &buf, s3Signer, nil))
-	require.Equal(t, "IMAGE", buf.String())
+	compareSol("nytogimage_sol.jpg", buf.Bytes())
 	buf.Reset()
 	require.NoError(t, store.DownloadAsset(context.TODO(), s3params, *favicon, &buf, s3Signer, nil))
-	require.Equal(t, "FAVICON", buf.String())
+	ioutil.WriteFile("/tmp/out.ico", buf.Bytes(), 0644)
 }

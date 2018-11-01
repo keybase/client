@@ -69,12 +69,11 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"golang.org/x/net/context"
 )
 
-func previewVideo(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src io.Reader,
+func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))

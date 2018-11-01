@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -181,7 +180,7 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 	return p, nil
 }
 
-func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
+func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res string, err error) {
 	head := make([]byte, 512)
 	_, err = io.ReadFull(src, head)
 	if err != nil && err != io.ErrUnexpectedEOF {
@@ -189,12 +188,12 @@ func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
 	}
 
 	res = http.DetectContentType(head)
-	if _, err = src.Seek(0, 0); err != nil {
+	if err = src.Reset(); err != nil {
 		return res, err
 	}
 	// MIME type detection failed us, try using an extension map
 	if res == "application/octet-stream" {
-		ext := strings.ToLower(filepath.Ext(src.Name()))
+		ext := strings.ToLower(filepath.Ext(filename))
 		if typ, ok := mimeTypes[ext]; ok {
 			res = typ
 		}
@@ -202,7 +201,7 @@ func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
 	return res, nil
 }
 
-func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, filename string,
+func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, src ReadResetter, filename string,
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
@@ -212,17 +211,13 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 			return p, nil
 		}
 	}
-	src, err := os.Open(filename)
-	if err != nil {
-		return p, err
-	}
-	defer src.Close()
+	defer src.Reset()
 
-	if p.ContentType, err = DetectMIMEType(ctx, src); err != nil {
+	if p.ContentType, err = DetectMIMEType(ctx, src, filename); err != nil {
 		return p, err
 	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-	previewRes, err := Preview(ctx, g, log, src, p.ContentType, filename)
+	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err

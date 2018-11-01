@@ -397,6 +397,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
+	defer src.Close()
 
 	progress := func(bytesComplete, bytesTotal int64) {
 		u.G().ActivityNotifier.AttachmentUploadProgress(ctx, uid, convID, outboxID, bytesComplete, bytesTotal)
@@ -405,7 +406,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
+	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, callerPreview)
 	if err != nil {
 		return res, err
 	}
