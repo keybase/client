@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import * as FsGen from '../../actions/fs-gen'
@@ -61,11 +61,6 @@ export const makeBreadcrumbProps = (
 const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>
   makeBreadcrumbProps(_username, _navigateToPath, path)
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedBreadcrumb')
-)(Breadcrumb)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedBreadcrumb')(
+  Breadcrumb
+)

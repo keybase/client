@@ -23,7 +23,7 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
-export {default as connect} from './typed-connect'
+export {default as connect, namedConnect} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile} from '../constants/platform'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'

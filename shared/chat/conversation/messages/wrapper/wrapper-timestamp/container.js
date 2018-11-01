@@ -3,7 +3,7 @@ import * as React from 'react'
 import {WrapperTimestamp} from '../'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import {setDisplayName, compose, connect} from '../../../../../util/container'
+import {namedConnect} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type OwnProps = {|
@@ -83,11 +83,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('WrapperTimestamp')
-)(WrapperTimestamp)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'WrapperTimestamp')(WrapperTimestamp)

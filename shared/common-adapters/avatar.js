@@ -4,7 +4,7 @@ import * as React from 'react'
 import Render from './avatar.render'
 import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
-import {setDisplayName, connect, compose} from '../util/container'
+import {namedConnect} from '../util/container'
 import {
   platformStyles,
   desktopStyles,
@@ -276,14 +276,7 @@ class AvatarConnector extends React.PureComponent<Props> {
   }
 }
 
-const Avatar = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('Avatar')
-)(AvatarConnector)
+const Avatar = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(AvatarConnector)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

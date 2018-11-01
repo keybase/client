@@ -1,6 +1,6 @@
 // @flow
 import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {bannerLevelToBackground} from '../../../constants/wallets'
 
 const mapStateToProps = state => ({
@@ -19,18 +19,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   })),
 })
 
-const connector = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export const SendBody = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedSendBody')(
+  SendBodyComponent
 )
 
-export const SendBody = compose(
-  connector,
-  setDisplayName('ConnectedSendBody')
-)(SendBodyComponent)
-
-export const RequestBody = compose(
-  connector,
-  setDisplayName('ConnectedRequestBody')
+export const RequestBody = namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedRequestBody'
 )(RequestBodyComponent)

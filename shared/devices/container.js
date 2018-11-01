@@ -5,7 +5,7 @@ import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTree from '../actions/route-tree'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
-import {compose, connect, setDisplayName, safeSubmitPerMount} from '../util/container'
+import {compose, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
 
 const mapStateToProps = state => ({
@@ -60,8 +60,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 }
 
 const Connected = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Devices'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
   safeSubmitPerMount(['onBack'])
 )(Devices)
 

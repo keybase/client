@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
 import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
@@ -100,11 +100,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   },
 })
 
-export default compose(
-  connect(
+export default namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('TeamDropdownMenu')
+    (s, d, o) => ({...o, ...s, ...d}),
+  'TeamDropdownMenu'
 )(InfoPanelMenu)

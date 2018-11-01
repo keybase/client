@@ -1,6 +1,6 @@
 // @flow
 import Available from '.'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
 const mapStateToProps = state => ({
   amountErrMsg: state.wallets.building.isRequest
@@ -10,11 +10,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Available')
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Available'
 )(Available)

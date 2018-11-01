@@ -1,7 +1,7 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Errs from './errs'
 
 const mapStateToProps = state => ({errors: state.fs.errors})
@@ -44,11 +44,4 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedErrs')
-)(Errs)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedErrs')(Errs)

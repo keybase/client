@@ -1,7 +1,7 @@
 // @flow
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 
@@ -44,11 +44,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   value: stateProps.value,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
+export default namedConnect(
+   mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('AssetInput')
+    mergeProps,
+  'AssetInput'
 )(AssetInput)
