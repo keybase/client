@@ -5,10 +5,10 @@ import * as Styles from '../../../styles'
 import Available from '../available/container'
 
 const isValidAmount = (amt, numDecimalsAllowed) => {
-  if (!isNaN(+amt) || amt === '.') {
+  if (!isNaN(Number(amt)) || amt === '.') {
     // This is a valid number. Now check the number of decimal places
-    const split = amt.includes('.') && amt.split('.')
-    if (!split) {
+    const split = amt.split('.')
+    if (split.length === 1) {
       // no decimal places
       return true
     }
@@ -21,7 +21,7 @@ const isValidAmount = (amt, numDecimalsAllowed) => {
 }
 
 const truncateAmount = (amt, numDecimalsAllowed) => {
-  const num = +amt
+  const num = Number(amt)
   return num.toFixed(numDecimalsAllowed).toString()
 }
 
