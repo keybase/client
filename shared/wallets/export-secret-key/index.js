@@ -52,7 +52,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         />
         {!Styles.isMobile && header}
         <Box2 direction="horizontal" style={styles.warningContainer}>
-          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>Only paste your secret key in 100% safe places. A hacker with this key could steal your Stellar&nbsp;account.</Text>
+          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar&nbsp;account.</Text>
         </Box2>
         {!!this.props.secretKey && (
           <Box2 direction="vertical" style={styles.secretKeyContainer}>
