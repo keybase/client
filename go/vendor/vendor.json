@@ -94,6 +94,12 @@
 			"revisionTime": "2018-10-24T14:01:36Z"
 		},
 		{
+			"checksumSHA1": "SYRKZxKwSR2pMkzVRLsYb/GkzEk=",
+			"path": "github.com/antchfx/xpath",
+			"revision": "3de91f3991a1af6e495d49c9218318b5544b20e3",
+			"revisionTime": "2018-09-22T04:18:25Z"
+		},
+		{
 			"checksumSHA1": "bxtrVQB+698clLEGq7PppnWfXJk=",
 			"path": "github.com/araddon/dateparse",
 			"revision": "cfd92a431d0efe36a1b81ca25d15b98aae4dbdb6",
@@ -182,6 +188,18 @@
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
+			"checksumSHA1": "UIxNdlqa2kcYi5EEe79/WzyPiz4=",
+			"path": "github.com/gobwas/glob/compiler",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "2KhDNUE98XhHnIgg2S9E4gcWoig=",
+			"path": "github.com/gobwas/glob/syntax",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
 			"checksumSHA1": "iJXVRc8EW6FxS82J0150lUT1qkM=",
 			"path": "github.com/gocolly/colly",
 			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
@@ -227,6 +245,12 @@
 			"path": "github.com/golang/groupcache/singleflight",
 			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
 			"revisionTime": "2015-01-25T10:08:32-08:00"
+		},
+		{
+			"checksumSHA1": "GaJLoEuMGnP5ofXvuweAI4wx06U=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "1918e1ff6ffd2be7bed0553df8650672c3bfe80d",
+			"revisionTime": "2018-10-30T15:47:21Z"
 		},
 		{
 			"checksumSHA1": "UsY6N958JNjS0qzLTAtER7+tVPY=",
@@ -1021,6 +1045,12 @@
 			"path": "golang.org/x/net/html/atom",
 			"revision": "dfcbca9c45aeabb8971affa4f76b2d40f6f72328",
 			"revisionTime": "2015-06-09T11:52:15-07:00"
+		},
+		{
+			"checksumSHA1": "barUU39reQ7LdgYLA323hQ/UGy4=",
+			"path": "golang.org/x/net/html/charset",
+			"revision": "c44066c5c816ec500d459a2a324a753f78531ae0",
+			"revisionTime": "2018-10-29T02:24:31Z"
 		},
 		{
 			"checksumSHA1": "t43qYhxyCGEe6Oi5VhFDxTYSzZE=",
