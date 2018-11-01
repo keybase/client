@@ -1381,6 +1381,12 @@ func (md *MDServerRemote) FindNextMD(
 		return nil, nil, 0, err
 	}
 
+	// Validate the hashes of the nodes all the way down to the leaf.
+	err = verifyMerkleNodes(ctx, &kbfsRoot, response.MerkleNodes, tlfID)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
 	return &kbfsRoot, response.MerkleNodes, response.RootSeqno, nil
 }
 
