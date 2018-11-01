@@ -4,6 +4,7 @@ import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
 import * as Kb from '../common-adapters/mobile.native'
+import {Gateway} from 'react-gateway'
 import * as Styles from '../styles'
 import ErrorComponent from './error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
@@ -380,7 +381,7 @@ class Profile extends Component<Props, State> {
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingTop: Styles.isIPhoneX ? 40 : Styles.globalMargins.tiny + Styles.statusBarHeight,
+            paddingTop: Styles.globalMargins.tiny,
           }}
         >
           {this.props.onBack && (
@@ -498,6 +499,7 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
+        <Kb.NativeSafeAreaView style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
