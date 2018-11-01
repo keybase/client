@@ -59,14 +59,6 @@ class GlobalError extends React.Component<Props, State> {
     }
   }
 
-  _maxHeightForSize = () => {
-    return {
-      Big: 500,
-      Closed: 0,
-      Small: 35 + 66,
-    }[this.state.size]
-  }
-
   _renderItem = (index: number, item: string) => {
     return (
       <Kb.Text key={String(index)} type="BodySmall" style={{color: 'white', fontSize: 8, lineHeight: 8}}>
