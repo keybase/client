@@ -13,9 +13,9 @@ import {
 } from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import {isSpecialMention, specialMentions} from '../../constants/chat2'
-import parser, {isPlainText} from '../../markdown/parser'
+import parser, {isPlainText, emojiIndexByChar} from '../../markdown/parser'
 import {emojiRegex} from '../../markdown/emoji'
-import {tldExp} from '../../markdown/regex'
+import {tldExp, commonTlds} from '../../markdown/regex'
 import SimpleMarkdown from 'simple-markdown'
 
 import type {MarkdownCreateComponent, MarkdownMeta, Props as MarkdownProps} from '../markdown'
@@ -77,7 +77,7 @@ function createMentionRegex(meta: ?MarkdownMeta): ?RegExp {
 }
 
 function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
-  if (!meta || !meta.mentionsChannelName) {
+  if (!meta || !meta.mentionsChannelName || meta.mentionsChannelName.isEmpty()) {
     return null
   }
 
@@ -134,6 +134,15 @@ const wrapInParagraph = (parse, content, state) => [
     content: SimpleMarkdown.parseInline(parse, content, state),
   },
 ]
+
+const wordBoundaryLookBehind = /\B$/
+// Wraps the match to also check that the behind is not a text, but a boundary (like a space)
+// i.e. "foo" fails but "foo " passes.
+const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
+  if (wordBoundaryLookBehind.exec(lookbehind)) {
+    return matchFn(source, state, lookbehind)
+  }
+}
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
 const rules = (markdownMeta: ?MarkdownMeta) => ({
@@ -219,20 +228,20 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // original
     // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
     // ours: single stars
-    match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/)),
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
     // original is pretty long so not inlining it here
     // ours: wrapped in _'s
-    match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/)),
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
     // ours: single tilde doesn't cross a newline
-    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/),
+    match: wordBoundryLookBehindMatch(SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/)),
   },
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
@@ -316,14 +325,21 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     ...SimpleMarkdown.defaultRules.text,
     // original:
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
-    // ours: stop on single new lines
-    match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n|\w+:\S|$)/),
+    // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
+    // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
+    match: SimpleMarkdown.anyScopeRegex(
+      new RegExp(
+        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+      )
+    ),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
     match: SimpleMarkdown.inlineRegex(emojiRegex),
     parse: function(capture, parse, state) {
-      return {content: capture[0]}
+      // If it's a unicode emoji, let's get it's shortname
+      const shortName = emojiIndexByChar[capture[0]]
+      return {content: shortName || capture[0]}
     },
   },
   link: {
@@ -349,7 +365,7 @@ const isAllEmoji = ast => {
   // Only 1 paragraph
   if (trimmed.length === 1 && trimmed[0].content && trimmed[0].content.some) {
     // Is something in the content not an emoji?
-    return !trimmed[0].content.some(n => n.type !== 'emoji')
+    return !trimmed[0].content.some(n => n.type !== 'emoji' && n.type !== 'newline')
   }
   return false
 }
@@ -365,7 +381,11 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
       disableAutoBlockNewlines: true,
     })
     const inner = this.props.preview ? (
-      <Text type="BodySmall" style={markdownStyles.neutralPreviewStyle}>
+      <Text
+        type={isMobile ? 'Body' : 'BodySmall'}
+        style={markdownStyles.neutralPreviewStyle}
+        lineClamp={isMobile ? 1 : undefined}
+      >
         {previewOutput(parseTree)}
       </Text>
     ) : isAllEmoji(parseTree) ? (

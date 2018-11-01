@@ -16,6 +16,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
+  _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -63,6 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
+    unread: stateProps._unread,
   }
 }
 
