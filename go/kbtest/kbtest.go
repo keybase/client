@@ -139,7 +139,7 @@ func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
-	if err := tc.G.Logout(); err != nil {
+	if err := tc.G.Logout(context.TODO()); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }

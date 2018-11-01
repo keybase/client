@@ -727,7 +727,7 @@ func (e *EKLib) ClearCaches() {
 	}
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) OnLogout(m libkb.MetaContext) error {
 	e.ClearCaches()
 	return nil
 }
