@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +14,12 @@ func TestTokenize(t *testing.T) {
 	tc := externalstest.SetupTest(t, "tokenize", 2)
 	defer tc.Cleanup()
 	supportedSplit := []string{
-		".", ",", "?", "!", " ", "\n",
+		".",
+		",",
+		"?",
+		"!",
+		" ",
+		"\n",
 	}
 	// make sure we split correctly for various separators we support and stem
 	// on basic examples
@@ -29,6 +33,8 @@ func TestTokenize(t *testing.T) {
 			// mentions
 			"@hi5",
 			"#hi6",
+			// usernames
+			"blumua@twitter",
 			// markdown
 			"*hi7*",
 			"~hi8~",
@@ -37,6 +43,7 @@ func TestTokenize(t *testing.T) {
 			"'hi11'",
 			//stem
 			"wanted",
+			"italy's",
 			"looking",
 			// utf8
 			"约书亚和约翰屌爆",
@@ -57,6 +64,8 @@ func TestTokenize(t *testing.T) {
 			"@hi5",
 			"[hi2]",
 			"_hi9_",
+			"blumua",
+			"blumua@twitter",
 			"hi1",
 			"hi10",
 			"hi11",
@@ -68,8 +77,13 @@ func TestTokenize(t *testing.T) {
 			"hi7",
 			"hi8",
 			"hi9",
+			"itali",
+			"italy",
+			"italy's",
 			"look",
 			"looking",
+			"s",
+			"twitter",
 			"want",
 			"wanted",
 			"{hi4}",
@@ -79,14 +93,19 @@ func TestTokenize(t *testing.T) {
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
-
-	_, err := kbtest.CreateAndSignupFakeUser("ib", tc.G)
-	require.NoError(t, err)
 }
 
 func TestGetQueryRe(t *testing.T) {
-	queries := []string{"foo", "foo bar", "foo bar, baz? :+1:"}
-	expectedRe := []string{"foo", "foo bar", "foo bar, baz\\? :\\+1:"}
+	queries := []string{
+		"foo",
+		"foo bar",
+		"foo bar, baz? :+1:",
+	}
+	expectedRe := []string{
+		"foo",
+		"foo bar",
+		"foo bar, baz\\? :\\+1:",
+	}
 	for i, query := range queries {
 		re, err := getQueryRe(query)
 		require.NoError(t, err)

@@ -45,20 +45,19 @@ func tokenize(msgText string) []string {
 	tokens := splitExpr.Split(msgText, -1)
 	tokenSet := mapset.NewThreadUnsafeSet()
 	for _, token := range tokens {
-		if token == "" {
-			continue
-		}
 		token = strings.ToLower(token)
 		tokenSet.Add(token)
-		stripped := stripExpr.ReplaceAllString(token, "")
-		tokenSet.Add(stripped)
-		stemmed := porterstemmer.StemWithoutLowerCasing([]rune(stripped))
-		tokenSet.Add(string(stemmed))
+		stripped := stripExpr.Split(token, -1)
+		for _, s := range stripped {
+			tokenSet.Add(s)
+			stemmed := porterstemmer.StemWithoutLowerCasing([]rune(s))
+			tokenSet.Add(string(stemmed))
+		}
 	}
 	strSlice := []string{}
 	for _, el := range tokenSet.ToSlice() {
 		str, ok := el.(string)
-		if ok {
+		if ok && str != "" {
 			strSlice = append(strSlice, str)
 		}
 	}
