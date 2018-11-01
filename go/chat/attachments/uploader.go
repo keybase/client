@@ -393,7 +393,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	src, err := newFileReadResetter(filename)
+	src, err := NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}

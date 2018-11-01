@@ -334,12 +334,12 @@ func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err erro
 
 func ExtensionDetectMIMEType(filename string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionDetectMIMEType", func() error { return err })()
-	src, err := os.Open(filename)
+	src, err := attachments.NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}
 	defer src.Close()
-	return attachments.DetectMIMEType(context.TODO(), src)
+	return attachments.DetectMIMEType(context.TODO(), src, filename)
 }
 
 type extensionGregorHandler struct {

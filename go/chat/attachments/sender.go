@@ -27,7 +27,7 @@ func NewSender(gc *globals.Context) *Sender {
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MakePreview")()
-	src, err := newFileReadResetter(filename)
+	src, err := NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}

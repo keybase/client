@@ -75,21 +75,21 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 	return res, nil
 }
 
-type fileReadResetter struct {
+type FileReadResetter struct {
 	filename string
 	file     *os.File
 	buf      *bufio.Reader
 }
 
-func newFileReadResetter(name string) (*fileReadResetter, error) {
-	f := &fileReadResetter{filename: name}
+func NewFileReadResetter(name string) (*FileReadResetter, error) {
+	f := &FileReadResetter{filename: name}
 	if err := f.open(); err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (f *fileReadResetter) open() error {
+func (f *FileReadResetter) open() error {
 	ff, err := os.Open(f.filename)
 	if err != nil {
 		return err
@@ -99,11 +99,11 @@ func (f *fileReadResetter) open() error {
 	return nil
 }
 
-func (f *fileReadResetter) Read(p []byte) (int, error) {
+func (f *FileReadResetter) Read(p []byte) (int, error) {
 	return f.buf.Read(p)
 }
 
-func (f *fileReadResetter) Reset() error {
+func (f *FileReadResetter) Reset() error {
 	_, err := f.file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (f *fileReadResetter) Reset() error {
 	return nil
 }
 
-func (f *fileReadResetter) Close() error {
+func (f *FileReadResetter) Close() error {
 	f.buf = nil
 	if f.file != nil {
 		return f.file.Close()
