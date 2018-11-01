@@ -81,7 +81,7 @@ const chatChildren = {
   },
   attachmentGetTitles: {
     component: AttachmentGetTitles,
-    tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
+    tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   infoPanel: {
