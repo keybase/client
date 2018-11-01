@@ -436,6 +436,8 @@ export const kbfsCommonFSErrorType = {
   exdevNotSupported: 12,
   diskLimitReached: 13,
   diskCacheErrorLogSend: 14,
+  offlineArchived: 15,
+  offlineUnsynced: 16,
 }
 
 export const kbfsCommonFSNotificationType = {
