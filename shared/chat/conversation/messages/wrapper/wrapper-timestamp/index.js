@@ -71,7 +71,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {!!props.timestamp && !props.orangeLineAbove && <Timestamp timestamp={props.timestamp} />}
+        {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
           className={Styles.classNames('WrapperTimestamp-hoverBox', {
             active: props.showingMenu || this.state.showingPicker,
