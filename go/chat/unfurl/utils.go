@@ -18,11 +18,10 @@ func GetHostname(uri string) (res string, err error) {
 }
 
 func GetDomain(uri string) (res string, err error) {
-	parsed, err := url.Parse(uri)
+	hostname, err := GetHostname(uri)
 	if err != nil {
 		return res, err
 	}
-	hostname := parsed.Hostname()
 	if len(hostname) == 0 {
 		return res, errors.New("no hostname")
 	}
