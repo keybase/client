@@ -27,7 +27,12 @@ func NewSender(gc *globals.Context) *Sender {
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := PreprocessAsset(ctx, s.G(), s.DebugLabeler, filename, nil)
+	src, err := NewFileReadResetter(filename)
+	if err != nil {
+		return res, err
+	}
+	defer src.Close()
+	pre, err := PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
