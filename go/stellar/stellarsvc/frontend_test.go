@@ -653,7 +653,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 			PublicMemo:    "public note",
 		})
 		require.Error(t, err)
-		require.Equal(t, "recipient: Stellar account ID must be 56 chars long: was 15", err.Error())
+		require.Equal(t, "recipient: Invalid Stellar address.", err.Error())
 	}
 
 	// set up notification listeners

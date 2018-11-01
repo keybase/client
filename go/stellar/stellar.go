@@ -289,6 +289,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	storeAddress := func(address string) error {
 		_, err := libkb.ParseStellarAccountID(address)
 		if err != nil {
+			if verr, ok := err.(libkb.VerboseError); ok {
+				m.CDebugf(verr.Verbose())
+			}
 			return err
 		}
 		accountID, err := stellarnet.NewAddressStr(address)

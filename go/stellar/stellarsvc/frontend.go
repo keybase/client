@@ -1255,6 +1255,9 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	if arg.ToIsAccountID {
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
 		if err != nil {
+			if verr, ok := err.(libkb.VerboseError); ok {
+				s.G().Log.CDebugf(ctx, verr.Verbose())
+			}
 			return res, fmt.Errorf("recipient: %v", err)
 		}
 		to = toAccountID.String()
