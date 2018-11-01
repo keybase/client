@@ -61,6 +61,9 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
+	if int64(len(dat)) > p.maxAssetSize {
+		return res, fmt.Errorf("asset too large: %d > %d", len(dat), p.maxAssetSize)
+	}
 
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
