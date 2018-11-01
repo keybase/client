@@ -25,7 +25,7 @@ type Packager struct {
 	ri           func() chat1.RemoteInterface
 	store        attachments.Store
 	s3signer     s3.Signer
-	maxAssetSize int
+	maxAssetSize int64
 }
 
 func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
@@ -54,13 +54,14 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 		return res, err
 	}
 	defer resp.Body.Close()
+	if resp.ContentLength > 0 && resp.ContentLength > p.maxAssetSize {
+		return res, fmt.Errorf("asset too large: %d > %d", resp.ContentLength, p.maxAssetSize)
+	}
 	dat, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return res, err
 	}
-	if len(dat) > p.maxAssetSize {
-		return res, fmt.Errorf("asset too large: %d > %d", len(dat), p.maxAssetSize)
-	}
+
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
 	pre, err := attachments.PreprocessAsset(ctx, p.DebugLabeler, src, filename,
