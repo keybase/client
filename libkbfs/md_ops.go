@@ -55,11 +55,25 @@ func init() {
 type MDOpsStandard struct {
 	config Config
 	log    logger.Logger
+
+	lock sync.Mutex
+	// For each TLF, maps an MD revision representing the next MD
+	// after a device revoke, with the minimum revision number that's
+	// been validated in chain up to the given MD revision.  That is,
+	// for TLF 1, if we have a next revision of 1000, and we've
+	// validated that MDs 100-1000 form a valid chain, then the map
+	// would contain: {1: {1000: 100}}
+	leafChainsValidated map[tlf.ID]map[kbfsmd.Revision]kbfsmd.Revision
 }
 
 // NewMDOpsStandard returns a new MDOpsStandard
 func NewMDOpsStandard(config Config) *MDOpsStandard {
-	return &MDOpsStandard{config, config.MakeLogger("")}
+	return &MDOpsStandard{
+		config: config,
+		log:    config.MakeLogger(""),
+		leafChainsValidated: make(
+			map[tlf.ID]map[kbfsmd.Revision]kbfsmd.Revision),
+	}
 }
 
 // convertVerifyingKeyError gives a better error when the TLF was
@@ -303,6 +317,21 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 	return nil
 }
 
+func (md *MDOpsStandard) startOfValidatedChainForLeaf(
+	tlfID tlf.ID, leafRev kbfsmd.Revision) kbfsmd.Revision {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	revs, ok := md.leafChainsValidated[tlfID]
+	if !ok {
+		return kbfsmd.RevisionUninitialized
+	}
+	min, ok := revs[leafRev]
+	if !ok {
+		return kbfsmd.RevisionUninitialized
+	}
+	return min
+}
+
 func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx context.Context, rmds *RootMetadataSigned,
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
@@ -434,13 +463,26 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	}
 
 	// Otherwise it's valid, as long as there's a valid chain of MD
-	// revisions between the two, and the global root info checks out
-	// as well.  By using `ctx`, we'll avoid infinite loops in the
+	// revisions between the two.  First, see if what chain we've
+	// already validated, and if this revision falls in that chain,
+	// we're done.  Otherwise, just fetch the part of the chain we
+	// haven't validated yet.
+	newChainEnd := md.startOfValidatedChainForLeaf(irmd.TlfID(), leaf.Revision)
+	if newChainEnd == kbfsmd.RevisionUninitialized {
+		newChainEnd = leaf.Revision
+	}
+	if newChainEnd <= irmd.Revision() {
+		return nil
+	}
+
+	// By using `ctx`, we'll avoid infinite loops in the
 	// writer-key-checking code by skipping revoked key verification.
 	// This is ok, because we only care about the hash chain for the
 	// purposes of verifying `irmd`.
+	md.log.CDebugf(ctx, "Validating MD chain for TLF %s between %d and %d",
+		irmd.TlfID(), irmd.Revision()+1, newChainEnd)
 	chain, err := getMergedMDUpdatesWithEnd(
-		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, leaf.Revision, nil)
+		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, newChainEnd, nil)
 	if err != nil {
 		return err
 	}
@@ -455,6 +497,15 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		return err
 	}
 
+	// Cache this verified chain for later use.
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	revs, ok := md.leafChainsValidated[irmd.TlfID()]
+	if !ok {
+		revs = make(map[kbfsmd.Revision]kbfsmd.Revision)
+		md.leafChainsValidated[irmd.TlfID()] = revs
+	}
+	revs[leaf.Revision] = irmd.Revision()
 	return nil
 }
 
