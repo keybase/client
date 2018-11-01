@@ -242,8 +242,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
-          onShowProfile={props.onShowProfile}
-          // Don't render unread state in detail view.
+          onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
           status={props.status}
@@ -313,6 +312,14 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text selectable={true} type="Body">
             {props.publicMemo}
           </Kb.Text>
+          {!!props.publicMemo &&
+            props.yourRole === 'receiverOnly' &&
+            props.counterpartyType === 'stellarPublicKey' && (
+              <Kb.InlineBanner
+                backgroundMode="Information"
+                text="Watch out for phishing attacks and dangerous websites."
+              />
+            )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
