@@ -336,7 +336,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
 
-    console.log('aaa', this.props, shim, layers)
+    // console.log('aaa', this.props, shim, layers)
 
     return (
       <>

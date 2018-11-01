@@ -52,6 +52,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     }
     return map
   }, {}),
+  title: 'Attachments',
 })
 
 export default connect(
