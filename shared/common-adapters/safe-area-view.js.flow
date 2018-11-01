@@ -1,0 +1,10 @@
+// @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
+
+export type Props = {|
+  children?: React.Node,
+  style?: StylesCrossPlatform,
+|}
+
+export default class SafeAreaView extends React.Component<Props> {}
