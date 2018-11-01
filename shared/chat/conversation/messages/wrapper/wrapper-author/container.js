@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import * as MessageConstants from '../../../../../constants/chat2/message'
 import WrapperAuthor from '.'
-import {setDisplayName, compose, connect} from '../../../../../util/container'
+import {namedConnect} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
 type OwnProps = {|
@@ -146,11 +146,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('WrapperAuthor')
-)(WrapperAuthor)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WrapperAuthor')(WrapperAuthor)

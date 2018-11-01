@@ -3,7 +3,7 @@ import Footer from '.'
 import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
 type OwnProps = {
   onConfirm?: () => void, // if showing confirm form directly (not through routing)
@@ -52,11 +52,4 @@ const mergeProps = (s, d, o) => ({
   worthDescription: s.worthDescription,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('Footer')
-)(Footer)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)

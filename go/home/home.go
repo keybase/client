@@ -299,8 +299,8 @@ func (h *Home) ActionTaken(ctx context.Context) (err error) {
 	return err
 }
 
-func (h *Home) OnLogout() error {
-	h.bustCache(context.Background(), true)
+func (h *Home) OnLogout(m libkb.MetaContext) error {
+	h.bustCache(m.Ctx(), true)
 	return nil
 }
 

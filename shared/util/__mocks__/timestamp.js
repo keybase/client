@@ -14,6 +14,10 @@ export function formatTimeForPopup(time: number): string {
   return '[mocked]'
 }
 
+export function formatTimeForStellarDetail(time: number): string {
+  return '[mocked]'
+}
+
 export function formatTimeForStellarTooltip(time: number): string {
   return '[mocked]'
 }

@@ -80,7 +80,7 @@ func (e *TrackEngine) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	res, err := ieng.Result()
+	res, err := ieng.Result(m)
 	if err != nil {
 		return err
 	}

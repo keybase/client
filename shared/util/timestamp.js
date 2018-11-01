@@ -83,6 +83,11 @@ export function formatTimeForPopup(time: number): string {
   return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
 }
 
+export function formatTimeForStellarDetail(timestamp: Date) {
+  const m = moment(timestamp)
+  return m.format('ddd, MMM DD YYYY - h:mm A') // Tue, Jan 5 2018 - 4:34 PM
+}
+
 export function formatTimeForStellarTooltip(timestamp: Date) {
   return moment(timestamp).format()
 }

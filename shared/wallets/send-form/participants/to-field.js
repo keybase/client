@@ -9,6 +9,7 @@ import type {Account} from '.'
 import {debounce} from 'lodash-es'
 
 type ToKeybaseUserProps = {|
+  isRequest: boolean,
   recipientUsername: string,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
@@ -20,7 +21,11 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
     // A username has been set, so display their name and avatar.
     return (
-      <ParticipantsRow heading="To" headingAlignment="Left" style={styles.toKeybaseUser}>
+      <ParticipantsRow
+        heading={props.isRequest ? 'From' : 'To'}
+        headingAlignment="Left"
+        style={styles.toKeybaseUser}
+      >
         <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
           <Kb.ConnectedNameWithIcon
             colorFollowing={true}

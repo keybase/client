@@ -4,7 +4,7 @@ import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper, getUserInputItemIds, makeSearchResult} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {parseUserId} from '../../util/platforms'
-import {connect, setDisplayName, compose} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import {some} from 'lodash-es'
 
 export type OwnProps = {|
@@ -81,11 +81,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('SearchResultRow')
-)(SearchResultRow)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(SearchResultRow)

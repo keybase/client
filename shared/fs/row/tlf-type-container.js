@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import TlfType from './tlf-type'
 
@@ -29,11 +29,11 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath, inDestinationPi
 }
 
 export default compose(
-  connect(
+  namedConnect(
     mapStateToProps,
     () => ({}),
-    mergeProps
+    mergeProps,
+  'ConnectedTlfTypeRow'
   ),
-  setDisplayName('ConnectedTlfTypeRow'),
   OpenHOC
 )(TlfType)

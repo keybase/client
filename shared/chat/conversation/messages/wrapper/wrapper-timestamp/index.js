@@ -94,7 +94,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
           <Box>
-            <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
+            <Box2 direction="horizontal" fullWidth={true}>
               {props.type === 'children' && props.children}
               {/* Additional checks on props.message.type to appease flow */}
               {props.type === 'wrapper-author' &&

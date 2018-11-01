@@ -383,7 +383,7 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 	require.NotZero(t, len(eng.Passphrase()))
-	require.NoError(t, tc.G.Logout())
+	require.NoError(t, tc.G.Logout(context.TODO()))
 
 	tc2 := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc2.Cleanup()

@@ -64,7 +64,6 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = Styles.collapseStyles([
     Styles.desktopStyles.clickable,
     styles.username,
-    isYou && styles.usernameYou,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (

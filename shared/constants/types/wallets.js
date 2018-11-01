@@ -90,7 +90,6 @@ export type _Building = {
 
 export type _BuiltPayment = {
   amountErrMsg: string,
-  amountFormatted: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: AccountID,
   publicMemoErrMsg: HiddenString,
@@ -244,6 +243,7 @@ export type _State = {
   exportedSecretKeyAccountID: AccountID,
   lastSentXLM: boolean,
   linkExistingAccountError: string,
+  newPayments: I.Map<AccountID, I.Set<PaymentID>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,

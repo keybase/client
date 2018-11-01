@@ -330,12 +330,9 @@ class EditAvatar extends React.Component<_Props, State> {
           <HoverBox
             className={Styles.classNames({filled: this.state.hasPreview})}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
-            style={Styles.collapseStyles([
-              styles.imageContainer,
-              {
-                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
-              },
-            ])}
+            style={{
+              borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+            }}
           >
             <input
               accept="image/*"
@@ -384,7 +381,6 @@ class EditAvatar extends React.Component<_Props, State> {
               onChange={this._onRangeChange}
               onMouseMove={e => e.stopPropagation()}
               step="any"
-              style={styles.slider}
               type="range"
               value={this.state.scale}
             />

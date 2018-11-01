@@ -102,7 +102,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 
 	// clear out any existing session:
 	m.CDebugf("clearing any existing login session with Logout before loading user for login")
-	m.G().Logout()
+	m.G().Logout(m.Ctx())
 
 	// Set up a provisional login context for the purposes of running provisioning.
 	// This is where we'll store temporary session tokens, etc, that are useful
@@ -212,7 +212,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
 		m.CDebugf("Login on revoked or reset device: %s", err.Error())
-		if err = m.G().Logout(); err != nil {
+		if err = m.G().Logout(m.Ctx()); err != nil {
 			m.CDebugf("logout error: %s", err)
 		}
 		return false, err

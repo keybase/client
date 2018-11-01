@@ -41,34 +41,32 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     }, [])
 
     return (
-      <Box style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea}>
-          <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
-            {/* Display header if there is one */}
-            {this.props.header && this.props.header.view}
-            <Box style={styles.menuGroup}>
-              {menuItemsNoDividers.map((mi, idx) => (
-                <MenuRow
-                  key={mi.title}
-                  {...mi}
-                  index={idx}
-                  numItems={menuItemsNoDividers.length}
-                  onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
-                />
-              ))}
-            </Box>
-            <Box style={styles.cancelGroup}>
+      <SafeAreaView style={styles.safeArea}>
+        <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
+          {/* Display header if there is one */}
+          {this.props.header && this.props.header.view}
+          <Box style={styles.menuGroup}>
+            {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
-                title="Cancel"
-                index={0}
-                numItems={1}
-                onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-                onHidden={() => {}}
+                key={mi.title}
+                {...mi}
+                index={idx}
+                numItems={menuItemsNoDividers.length}
+                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
-            </Box>
+            ))}
           </Box>
-        </SafeAreaView>
-      </Box>
+          <Box style={styles.closeGroup}>
+            <MenuRow
+              title="Close"
+              index={0}
+              numItems={1}
+              onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
+              onHidden={() => {}}
+            />
+          </Box>
+        </Box>
+      </SafeAreaView>
     )
   }
 }
@@ -91,7 +89,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
     alignItems: 'stretch',
   },
-  cancelGroup: {
+  closeGroup: {
     ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',

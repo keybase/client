@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Editing from './editing'
 
 type OwnProps = {
@@ -41,11 +41,4 @@ const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
   onUpdate,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('EditingRow')
-)(Editing)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'EditingRow')(Editing)

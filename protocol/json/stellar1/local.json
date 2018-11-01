@@ -491,10 +491,6 @@
         },
         {
           "type": "string",
-          "name": "amountFormatted"
-        },
-        {
-          "type": "string",
           "name": "displayAmountXLM",
           "lint": "ignore"
         },
