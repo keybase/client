@@ -73,11 +73,11 @@ const walletChildren = {
           reallyRemoveAccount: {
             children: {},
             component: ReallyRemoveAccountPopup,
-            tags: makeLeafTags({layerOnTop: !isMobile}),
+            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
           },
         },
         component: RemoveAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       renameAccount: {
         children: {},
