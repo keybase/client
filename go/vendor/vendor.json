@@ -218,6 +218,18 @@
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
+			"checksumSHA1": "vux29fN5O22F3QPLOnjQ37278vg=",
+			"path": "github.com/gobwas/glob/util/runes",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "Sxp2AHWkkLkIq6w9aMcLmzcwD6w=",
+			"path": "github.com/gobwas/glob/util/strings",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
 			"checksumSHA1": "iJXVRc8EW6FxS82J0150lUT1qkM=",
 			"path": "github.com/gocolly/colly",
 			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
@@ -1168,6 +1180,12 @@
 		{
 			"checksumSHA1": "8ea1h1pimPfXc6cE5l3SQTe7SVo=",
 			"path": "golang.org/x/text/internal/language",
+			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
+			"revisionTime": "2018-10-29T18:00:05Z"
+		},
+		{
+			"checksumSHA1": "GxBlFOqWoIsWCMswUHh6dUqM5no=",
+			"path": "golang.org/x/text/internal/language/compact",
 			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
 			"revisionTime": "2018-10-29T18:00:05Z"
 		},
