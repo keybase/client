@@ -310,11 +310,26 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
 
 	kbfsRoot, merkleNodes, rootSeqno, err :=
-		md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(),
-			root.Seqno)
-	if err != nil {
+		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
+	switch errors.Cause(err).(type) {
+	case nil:
+	case NextMDNotCachedError:
+		md.log.CDebugf(ctx, "Finding next MD for TLF %s after global root %d",
+			rmds.MD.TlfID(), root.Seqno)
+		kbfsRoot, merkleNodes, rootSeqno, err =
+			md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(), root.Seqno)
+		if err != nil {
+			return err
+		}
+		err = md.config.MDCache().PutNextMD(
+			rmds.MD.TlfID(), root.Seqno, kbfsRoot, merkleNodes, rootSeqno)
+		if err != nil {
+			return err
+		}
+	default:
 		return err
 	}
+
 	if len(merkleNodes) == 0 {
 		// This can happen legitimately if we are still inside the
 		// error window and no new merkle trees have been made yet, or

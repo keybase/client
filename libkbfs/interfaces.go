@@ -1035,6 +1035,16 @@ type MDCache interface {
 	// ChangeHandleForID moves an ID to be under a new handle, if the
 	// ID is cached already.
 	ChangeHandleForID(oldHandle *TlfHandle, newHandle *TlfHandle)
+	// GetNextMD returns a cached view of the next MD following the
+	// given global Merkle root.
+	GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (
+		nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+		nextRootSeqno keybase1.Seqno, err error)
+	// PutNextMD caches a view of the next MD following the given
+	// global Merkle root.
+	PutNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno,
+		nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+		nextRootSeqno keybase1.Seqno) error
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

@@ -1234,3 +1234,16 @@ func (e OfflineUnsyncedError) Error() string {
 	return fmt.Sprintf("Unsynced data from %s is not available while offline",
 		e.h.GetCanonicalPath())
 }
+
+// NextMDNotCachedError indicates we haven't cached the next MD after
+// the given Merkle seqno.
+type NextMDNotCachedError struct {
+	TlfID     tlf.ID
+	RootSeqno keybase1.Seqno
+}
+
+// Error implements the Error interface for NextMDNotCachedError.
+func (e NextMDNotCachedError) Error() string {
+	return fmt.Sprintf("The MD following %d for folder %s is not cached",
+		e.RootSeqno, e.TlfID)
+}

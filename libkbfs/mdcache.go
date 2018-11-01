@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -21,6 +22,8 @@ type MDCacheStandard struct {
 	lock  sync.RWMutex
 	lru   *lru.Cache
 	idLRU *lru.Cache
+
+	nextMDLRU *lru.Cache
 }
 
 type mdCacheKey struct {
@@ -29,7 +32,10 @@ type mdCacheKey struct {
 	bid kbfsmd.BranchID
 }
 
-const defaultMDCacheCapacity = 5000
+const (
+	defaultMDCacheCapacity     = 5000
+	defaultNextMDCacheCapacity = 100
+)
 
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
 // cache capacity.
@@ -42,7 +48,13 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 	if err != nil {
 		return nil
 	}
-	return &MDCacheStandard{lru: mdLRU, idLRU: idLRU}
+	// Hard-code the nextMD cache size to something small, since only
+	// one entry is used for each revoked device we need to verify.
+	nextMDLRU, err := lru.New(defaultNextMDCacheCapacity)
+	if err != nil {
+		return nil
+	}
+	return &MDCacheStandard{lru: mdLRU, idLRU: idLRU, nextMDLRU: nextMDLRU}
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
@@ -160,4 +172,42 @@ func (md *MDCacheStandard) ChangeHandleForID(
 	newKey := newHandle.GetCanonicalPath()
 	md.idLRU.Add(newKey, tmp)
 	return
+}
+
+type mdcacheNextMDKey struct {
+	tlfID     tlf.ID
+	rootSeqno keybase1.Seqno
+}
+
+type mdcacheNextMDVal struct {
+	nextKbfsRoot    *kbfsmd.MerkleRoot
+	nextMerkleNodes [][]byte
+	nextRootSeqno   keybase1.Seqno
+}
+
+// GetNextMD implements the MDCache interface for MDCacheStandard.
+func (md *MDCacheStandard) GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (
+	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+	nextRootSeqno keybase1.Seqno, err error) {
+	key := mdcacheNextMDKey{tlfID, rootSeqno}
+	tmp, ok := md.nextMDLRU.Get(key)
+	if !ok {
+		return nil, nil, 0, NextMDNotCachedError{tlfID, rootSeqno}
+	}
+	val, ok := tmp.(mdcacheNextMDVal)
+	if !ok {
+		return nil, nil, 0, errors.Errorf(
+			"Bad next MD for %s, seqno=%d", tlfID, rootSeqno)
+	}
+	return val.nextKbfsRoot, val.nextMerkleNodes, val.nextRootSeqno, nil
+}
+
+// PutNextMD implements the MDCache interface for MDCacheStandard.
+func (md *MDCacheStandard) PutNextMD(
+	tlfID tlf.ID, rootSeqno keybase1.Seqno, nextKbfsRoot *kbfsmd.MerkleRoot,
+	nextMerkleNodes [][]byte, nextRootSeqno keybase1.Seqno) error {
+	key := mdcacheNextMDKey{tlfID, rootSeqno}
+	val := mdcacheNextMDVal{nextKbfsRoot, nextMerkleNodes, nextRootSeqno}
+	md.nextMDLRU.Add(key, val)
+	return nil
 }

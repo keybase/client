@@ -1300,6 +1300,7 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.True(t, cacheable)
 
 	t.Log("Make the server return no information, but outside the max gap")
+	config.MDCache().(*MDCacheStandard).nextMDLRU.Purge()
 	clock.Add(maxAllowedMerkleGap) // already added one minute above
 	_, err = mdOps.verifyKey(
 		ctx, allRMDSs[0], allRMDSs[0].MD.GetLastModifyingUser(),
@@ -1307,6 +1308,7 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Error(t, err)
 
 	t.Log("Make the server return a root, but which is outside the max gap")
+	config.MDCache().(*MDCacheStandard).nextMDLRU.Purge()
 	root.Timestamp = clock.Now().Unix()
 	mdServer.nextMerkleRoot = root
 	mdServer.nextMerkleNodes = [][]byte{leafBytes}

@@ -3797,6 +3797,33 @@ func (mr *MockMDCacheMockRecorder) ChangeHandleForID(oldHandle, newHandle interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeHandleForID", reflect.TypeOf((*MockMDCache)(nil).ChangeHandleForID), oldHandle, newHandle)
 }
 
+// GetNextMD mocks base method
+func (m *MockMDCache) GetNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, error) {
+	ret := m.ctrl.Call(m, "GetNextMD", tlfID, rootSeqno)
+	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
+	ret1, _ := ret[1].([][]byte)
+	ret2, _ := ret[2].(keybase1.Seqno)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// GetNextMD indicates an expected call of GetNextMD
+func (mr *MockMDCacheMockRecorder) GetNextMD(tlfID, rootSeqno interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextMD", reflect.TypeOf((*MockMDCache)(nil).GetNextMD), tlfID, rootSeqno)
+}
+
+// PutNextMD mocks base method
+func (m *MockMDCache) PutNextMD(tlfID tlf.ID, rootSeqno keybase1.Seqno, nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte, nextRootSeqno keybase1.Seqno) error {
+	ret := m.ctrl.Call(m, "PutNextMD", tlfID, rootSeqno, nextKbfsRoot, nextMerkleNodes, nextRootSeqno)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PutNextMD indicates an expected call of PutNextMD
+func (mr *MockMDCacheMockRecorder) PutNextMD(tlfID, rootSeqno, nextKbfsRoot, nextMerkleNodes, nextRootSeqno interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutNextMD", reflect.TypeOf((*MockMDCache)(nil).PutNextMD), tlfID, rootSeqno, nextKbfsRoot, nextMerkleNodes, nextRootSeqno)
+}
+
 // MockKeyCache is a mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller
