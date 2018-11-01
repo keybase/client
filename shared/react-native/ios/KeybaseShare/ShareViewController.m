@@ -410,6 +410,7 @@ const BOOL isSimulator = NO;
   files.tapHandler = ^{
     FilesViewController *viewController = [[FilesViewController alloc] initWithStyle:UITableViewStylePlain];
     viewController.delegate = self;
+    viewController.title = @"hello";
     [self pushConfigurationViewController:viewController];
   };
 
