@@ -1,10 +1,9 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableOpacity} from 'react-native'
+import * as React from 'react'
+import * as Styles from '../../../styles'
+import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
-import {isIPhoneX} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -32,7 +31,7 @@ const MenuRow = (props: MenuRowProps) => (
   </TouchableOpacity>
 )
 
-class MenuLayout extends Component<MenuLayoutProps> {
+class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
     const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
       if (mi && mi !== 'Divider') {
@@ -43,7 +42,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
 
     return (
       <Box style={styles.overlay}>
-        <Box style={collapseStyles([styles.menuBox, this.props.style])}>
+        <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
           <Box style={styles.menuGroup}>
@@ -65,6 +64,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
               onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
               onHidden={() => {}}
             />
+            <SafeAreaView style={styles.safeArea} />
           </Box>
         </Box>
       </Box>
@@ -73,40 +73,42 @@ class MenuLayout extends Component<MenuLayoutProps> {
 }
 
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
-  const dangerColor = props.danger ? globalColors.red : globalColors.blue
-  const color = props.isHeader ? globalColors.white : dangerColor
+  const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
+  const color = props.isHeader ? Styles.globalColors.white : dangerColor
   return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   menuBox: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
   menuGroup: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
   },
   cancelGroup: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    borderColor: globalColors.black_10,
+    borderColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
-    paddingBottom: isIPhoneX ? globalMargins.medium : 0, // otherwise too close to the gesture bar
   },
   row: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     height: 56,
     justifyContent: 'center',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.black_10,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_10,
+  },
+  safeArea: {
+    backgroundColor: Styles.globalColors.white,
   },
 })
 
