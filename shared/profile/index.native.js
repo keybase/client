@@ -4,7 +4,6 @@ import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
 import * as Kb from '../common-adapters/mobile.native'
-import {Gateway} from 'react-gateway'
 import * as Styles from '../styles'
 import ErrorComponent from './error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
@@ -382,6 +381,8 @@ class Profile extends Component<Props, State> {
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
             paddingTop: Styles.globalMargins.tiny,
+            paddingLeft: Styles.globalMargins.tiny,
+            paddingRight: Styles.globalMargins.tiny,
           }}
         >
           {this.props.onBack && (
@@ -610,7 +611,6 @@ const styles = Styles.styleSheetCreate({
 const styleBack = {
   left: 0,
   position: 'absolute',
-  top: Styles.isIPhoneX ? 36 : 22,
 }
 
 const styleHeader = {
