@@ -48,7 +48,7 @@
     "storybook-build": "cross-env-shell BABEL_PLATFORM=Electron build-storybook -c .storybook -o .static-storybook",
     "rn-storybook": "cross-env-shell BABEL_PLATFORM=Electron storybook start -p 7007",
     "build-storybook": "build-storybook",
-    "modules": "yarn install --pure-lockfile",
+    "modules": "yarn install --pure-lockfile --ignore-optional",
     "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
     "coverage": "flow coverage --color "
   },
@@ -237,7 +237,6 @@
     "style-loader": "0.23.0",
     "terser-webpack-plugin": "1.1.0",
     "tls": "git://github.com/keybase/nullModule",
-    "webfonts-generator": "0.4.0",
     "webpack": "4.20.2",
     "webpack-cli": "3.1.2",
     "webpack-dashboard": "2.0.0",
@@ -245,7 +244,8 @@
     "webpack-merge": "4.1.4"
   },
   "optionalDependencies": {
-    "regedit": "2.2.7"
+    "regedit": "2.2.7",
+    "webfonts-generator": "0.4.0"
   },
   "resolutions": {
     "**/react-docgen/**/@babel/parser": "7.1.3",
