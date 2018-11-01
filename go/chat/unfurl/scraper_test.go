@@ -17,13 +17,15 @@ import (
 )
 
 type dummyHTTPSrv struct {
-	t   *testing.T
-	srv *http.Server
+	t       *testing.T
+	srv     *http.Server
+	handler func(w http.ResponseWriter, r *http.Request)
 }
 
-func newDummyHTTPSrv(t *testing.T) *dummyHTTPSrv {
+func newDummyHTTPSrv(t *testing.T, handler func(w http.ResponseWriter, r *http.Request)) *dummyHTTPSrv {
 	return &dummyHTTPSrv{
-		t: t,
+		t:       t,
+		handler: handler,
 	}
 }
 
@@ -35,7 +37,7 @@ func (d *dummyHTTPSrv) Start() string {
 	d.srv = &http.Server{
 		Addr: fmt.Sprintf("%s:%d", localhost, port),
 	}
-	http.HandleFunc("/", d.handle)
+	http.HandleFunc("/", d.handler)
 	go d.srv.Serve(listener)
 	return d.srv.Addr
 }
@@ -44,22 +46,20 @@ func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
 }
 
-func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	name := r.URL.Query().Get("name")
-	dat, err := ioutil.ReadFile(filepath.Join("testcases", name+".html"))
-	require.NoError(d.t, err)
-	_, err = io.Copy(w, bytes.NewBuffer(dat))
-	require.NoError(d.t, err)
-}
-
 func strPtr(s string) *string {
 	return &s
 }
 
 func TestScraper(t *testing.T) {
 	scraper := NewScraper(logger.NewTestLogger(t))
-	srv := newDummyHTTPSrv(t)
+	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		name := r.URL.Query().Get("name")
+		dat, err := ioutil.ReadFile(filepath.Join("testcases", name+".html"))
+		require.NoError(t, err)
+		_, err = io.Copy(w, bytes.NewBuffer(dat))
+		require.NoError(t, err)
+	})
 	addr := srv.Start()
 	defer srv.Stop()
 	testCase := func(name string, expected chat1.UnfurlRaw) {
