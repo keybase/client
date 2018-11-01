@@ -842,7 +842,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	config.SetBlockServer(bserverPutToDiskCache{config.BlockServer(), dbc})
 	defer config.SetBlockServer(oldBserver)
 
-	t.Log("Making synced private TLF")
+	t.Log("Make a synced private TLF")
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
@@ -868,8 +868,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	status = dbc.Status(ctx)
 	require.Equal(t, uint64(3), status[syncCacheName].NumBlocks)
 
-	t.Log("Test another TLF that isn't synced until synced until " +
-		"after a few revisions")
+	t.Log("Test another TLF that isn't synced until after a few revisions")
 	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
 	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)

@@ -1358,8 +1358,7 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 	defer func() {
 		fbm.log.CDebugf(ctx, "Done cleaning sync cache: %+v", err)
 	}()
-	nextRev := lastRev + 1
-	for nextRev <= recentRev {
+	for nextRev := lastRev + 1; nextRev <= recentRev; nextRev++ {
 		rmd, err := getSingleMD(
 			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, nextRev,
 			kbfsmd.Merged, nil)
@@ -1382,7 +1381,6 @@ func (fbm *folderBlockManager) doCleanSyncCache() (err error) {
 			return err
 		}
 
-		nextRev++
 	}
 	return nil
 }
