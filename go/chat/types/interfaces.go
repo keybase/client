@@ -350,3 +350,8 @@ type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }
+
+type ConversationBackedStorage interface {
+	Put(ctx context.Context, name string, data interface{}) error
+	Get(ctx context.Context, name string, res interface{}) error
+}
