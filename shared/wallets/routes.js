@@ -51,7 +51,7 @@ const walletChildren = {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
       },
       createNewAccount,
       linkExisting,
@@ -62,7 +62,7 @@ const walletChildren = {
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
   },
   settings: {
     children: {

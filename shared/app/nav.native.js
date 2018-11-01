@@ -100,7 +100,7 @@ class CardStackShim extends Component<CardStackShimProps> {
   }
 }
 
-const barStyle = (showStatusBarDarkContent, underStatusBar) => {
+const barStyle = showStatusBarDarkContent => {
   // android always uses light-content
   if (!isIOS) {
     return 'light-content'
@@ -110,20 +110,14 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   if (showStatusBarDarkContent) {
     return 'dark-content'
   }
-  // replicates original behaviour of showing light text
-  // in the status bar when 'underStatusBar' is set to true
-  if (underStatusBar) {
-    return 'light-content'
-  }
   // default to showing dark-content (dark text/icons) when
   // on iOS
   return 'dark-content'
 }
 
 function renderStackRoute(route, shouldRender) {
-  const {underStatusBar, showStatusBarDarkContent, hideStatusBar, root} = route.tags || {}
-
-  const wrap = !(root || underStatusBar || hideStatusBar)
+  const {showStatusBarDarkContent, hideStatusBar, root, underNotch} = route.tags || {}
+  const makeSafeAreaOnTop = !root && !underNotch
 
   return (
     <Kb.NativeView style={styles.routeOuter}>
@@ -132,10 +126,10 @@ function renderStackRoute(route, shouldRender) {
           hidden={hideStatusBar}
           translucent={true}
           backgroundColor="rgba(0, 26, 51, 0.25)"
-          barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
+          barStyle={barStyle(showStatusBarDarkContent)}
         />
       )}
-      {wrap && <Kb.NativeSafeAreaView style={styles.topSafeArea} />}
+      {makeSafeAreaOnTop && <Kb.NativeSafeAreaView style={styles.topSafeArea} />}
       <Kb.BoxGrow>{route.component({shouldRender})}</Kb.BoxGrow>
     </Kb.NativeView>
   )
@@ -194,8 +188,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     )
 
     // if the route is under the status bar keep this at 0 always
-    const keyboardVerticalOffset =
-      props.routeStack.last()?.tags?.underStatusBar === true ? 0 : this.state.verticalOffset
+    const keyboardVerticalOffset = this.state.verticalOffset
 
     const content = (
       <Kb.NativeView style={styles.content}>
@@ -342,6 +335,8 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
+
+    console.log('aaa', this.props, shim, layers)
 
     return (
       <>

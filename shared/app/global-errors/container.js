@@ -9,7 +9,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 const mapStateToProps = state => ({
   _loggedIn: state.config.loggedIn,
   daemonError: state.config.daemonError,
-  debugDump: state.config.debugDump,
   error: state.config.globalError,
 })
 
@@ -17,7 +16,6 @@ const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onDismiss: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
-    dispatch(ConfigGen.createDebugDump({items: []}))
   },
   onFeedback: (loggedIn: boolean) => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
@@ -44,7 +42,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   copyToClipboard: dispatchProps.copyToClipboard,
   daemonError: stateProps.daemonError,
-  debugDump: stateProps.debugDump,
   error: stateProps.error,
   onDismiss: dispatchProps.onDismiss,
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),

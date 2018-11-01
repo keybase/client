@@ -41,7 +41,7 @@ const proveEnterUsername = makeRouteDefNode({
 const profileRoute = makeRouteDefNode({
   component: Profile,
   initialState: {currentFriendshipsTab: 'Followers'},
-  tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
+  tags: makeLeafTags({underNotch: true, title: 'Profile'}),
   children: {
     profile: () => profileRoute,
     addToTeam: {
