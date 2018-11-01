@@ -30,7 +30,6 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
-
   return {
     _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
