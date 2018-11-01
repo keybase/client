@@ -18,7 +18,6 @@ import LongPressable from './long-pressable'
  */
 
 export type Props = {|
-  canShowPopup: boolean,
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
@@ -35,6 +34,7 @@ export type Props = {|
   // 'wrapper-author': additionally render WrapperAuthor and tell it the message type
   type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
+  shouldShowPopup: boolean,
 |}
 
 // TODO flow gets confused since the props are ambiguous
@@ -110,7 +110,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 )}
               {props.decorate &&
                 menuButtons({
-                  canShowPopup: props.canShowPopup,
+                  shouldShowPopup: props.shouldShowPopup,
                   conversationIDKey: props.conversationIDKey,
                   exploded: props.exploded,
                   isRevoked: props.isRevoked,
@@ -149,7 +149,6 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
 const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
-  canShowPopup: boolean,
   conversationIDKey: Types.ConversationIDKey,
   exploded: boolean,
   isRevoked: boolean,
@@ -158,8 +157,9 @@ type MenuButtonsProps = {
   ordinal: Types.Ordinal,
   setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
-  toggleShowingMenu: () => void,
+  shouldShowPopup: boolean,
   showMenuButton: boolean,
+  toggleShowingMenu: () => void,
 }
 const menuButtons = (props: MenuButtonsProps) => (
   <Box2
@@ -193,7 +193,7 @@ const menuButtons = (props: MenuButtonsProps) => (
                 style={styles.reactButton}
               />
               <Box ref={props.setAttachmentRef}>
-                {props.canShowPopup && (
+                {props.shouldShowPopup && (
                   <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
                 )}
               </Box>

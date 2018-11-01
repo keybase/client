@@ -30,12 +30,14 @@ const shouldDecorateMessage = (message: Types.Message, you: string) => {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const messageIDWithOrangeLine = state.chat2.orangeLineMap.get(ownProps.message.conversationIDKey)
+
   return {
     _you: state.config.username || '',
     conversationIDKey: ownProps.message.conversationIDKey,
     orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
   }
 }
 
@@ -66,7 +68,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const decorate = shouldDecorateMessage(message, stateProps._you)
 
   return {
-    canShowPopup: Constants.shouldShowPopup(message),
     children: ownProps.children,
     conversationIDKey: stateProps.conversationIDKey,
     decorate,
@@ -79,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     orangeLineAbove: stateProps.orangeLineAbove,
     ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: stateProps.shouldShowPopup,
     timestamp,
     type,
   }

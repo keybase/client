@@ -1067,7 +1067,7 @@ export const enoughTimeBetweenMessages = (
       message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
   )
 
-export const shouldShowPopup = (message: Types.Message) => {
+export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
   switch (message.type) {
     case 'text':
     case 'attachment':
@@ -1075,10 +1075,9 @@ export const shouldShowPopup = (message: Types.Message) => {
       return true
     case 'sendPayment': {
       // Is the payment pending?
-      if (
-        message &&
-        message.paymentInfo &&
-        ['cancelable', 'pending', 'canceled'].includes(message.paymentInfo.get('status'))
+      const paymentInfo = getPaymentMessageInfo(state, message)
+      if (!paymentInfo ||
+        ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))
       ) {
         return false
       }
