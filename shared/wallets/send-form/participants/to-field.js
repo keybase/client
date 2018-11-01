@@ -11,6 +11,7 @@ import {debounce} from 'lodash-es'
 type ToKeybaseUserProps = {|
   isRequest: boolean,
   recipientUsername: string,
+  errorMessage?: string,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
@@ -24,25 +25,33 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
       <ParticipantsRow
         heading={props.isRequest ? 'From' : 'To'}
         headingAlignment="Left"
+        dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
         style={styles.toKeybaseUser}
       >
-        <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
-          <Kb.ConnectedNameWithIcon
-            colorFollowing={true}
-            horizontal={true}
-            containerStyle={styles.toKeybaseUserNameWithIcon}
-            username={props.recipientUsername}
-            avatarStyle={styles.avatar}
-            avatarSize={32}
-            onClick="tracker"
-          />
-          <Kb.Icon
-            type="iconfont-remove"
-            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-            fontSize={16}
-            color={Styles.globalColors.black_20}
-            onClick={props.onRemoveProfile}
-          />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
+            <Kb.ConnectedNameWithIcon
+              colorFollowing={true}
+              horizontal={true}
+              containerStyle={styles.toKeybaseUserNameWithIcon}
+              username={props.recipientUsername}
+              avatarStyle={styles.avatar}
+              avatarSize={32}
+              onClick="tracker"
+            />
+            <Kb.Icon
+              type="iconfont-remove"
+              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+              fontSize={16}
+              color={Styles.globalColors.black_20}
+              onClick={props.onRemoveProfile}
+            />
+          </Kb.Box2>
+          {!!props.errorMessage && (
+            <Kb.Text type="BodySmall" style={styles.errorText}>
+              {props.errorMessage}
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </ParticipantsRow>
     )
