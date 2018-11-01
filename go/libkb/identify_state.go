@@ -49,7 +49,7 @@ func (s *IdentifyState) TmpTrackLookup() *TrackLookup {
 	return s.tmpTrack
 }
 
-func (s *IdentifyState) computeRevokedProofs() {
+func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackDiff)) {
 	if s.track == nil {
 		return
 	}
@@ -70,20 +70,26 @@ func (s *IdentifyState) computeRevokedProofs() {
 		// A proof that was previously tracked as GOOD
 		// is missing, so it has been REVOKED.
 		s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
+		var td TrackDiff
 		if s.tmpTrack == nil {
-			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
-			continue
-		}
-
-		// There is a snoozed track in s.tmpTrack.
-		// The user could have snoozed the revoked proof already.
-		// Check s.tmpTrack to see if that is the case.
-		if s.tmpTrack.set.HasMember(e) {
-			// proof was in snooze, too, so mark it as revoked.
-			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
+			td = &TrackDiffRevoked{e}
 		} else {
-			// proof wasn't in snooze, so revoked proof already snoozed.
-			s.res.Revoked = append(s.res.Revoked, TrackDiffSnoozedRevoked{e})
+			// There is a snoozed track in s.tmpTrack.
+			// The user could have snoozed the revoked proof already.
+			// Check s.tmpTrack to see if that is the case.
+			if s.tmpTrack.set.HasMember(e) {
+				// proof was in snooze, too, so mark it as revoked.
+				td = &TrackDiffRevoked{e}
+			} else {
+				// proof wasn't in snooze, so revoked proof already snoozed.
+				td = &TrackDiffSnoozedRevoked{e}
+			}
+		}
+		if td != nil {
+			s.res.Revoked = append(s.res.Revoked, td)
+			if rhook != nil {
+				rhook(e, td)
+			}
 		}
 	}
 }
@@ -116,11 +122,11 @@ func (s *IdentifyState) computeTrackDiffs() {
 	}
 }
 
-func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey) error) {
+func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey) error, rhook func(TrackIDComponent, TrackDiff)) {
 	s.computeKeyDiffs(dhook)
 	s.initResultList()
 	s.computeTrackDiffs()
-	s.computeRevokedProofs()
+	s.computeRevokedProofs(rhook)
 }
 
 func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) {

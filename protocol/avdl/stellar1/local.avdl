@@ -286,7 +286,7 @@ protocol local {
     // Example: "Public memo is too long"
     string publicMemoErrMsg;
 
-    // All these worth fields and amountFormatted are pretty confusing.
+    // All these worth fields are pretty confusing.
     // Leaving them in, but adding fields below to simplify, then 
     // perhaps we can clean some of these out.
 
@@ -304,9 +304,6 @@ protocol local {
     // Set with `worthDescription`
     // Local currency if not XLM
     string worthCurrency;
-    // Optional. Formatted input amount, if local currency is selected,
-    // so the GUI doesn't have to call FormatCurrency separately
-    string amountFormatted;
 
     // New fields:
     @lint("ignore")

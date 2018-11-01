@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../constants/wallets'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
@@ -46,9 +47,10 @@ const Footer = (props: Props) => (
       )}
       <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
         {!!props.onClickRequest && (
-          <Kb.Button
+          <Kb.WaitingButton
             type="Wallet"
             label="Request"
+            waitingKey={Constants.requestPaymentWaitingKey}
             onClick={props.onClickRequest}
             disabled={props.disabled}
             fullWidth={true}

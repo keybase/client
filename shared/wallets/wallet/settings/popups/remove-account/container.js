@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, safeSubmitPerMount} from '../../../../../util/container'
+import {compose, namedConnect, safeSubmitPerMount} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import RemoveAccountPopup from '.'
@@ -39,11 +39,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
+  namedConnect(
+   mapStateToProps,
     mapDispatchToProps,
-    mergeProps
+    mergeProps,
+  'RemoveAccountPopup'
   ),
-  setDisplayName('RemoveAccountPopup'),
   safeSubmitPerMount(['onDelete'])
 )(RemoveAccountPopup)

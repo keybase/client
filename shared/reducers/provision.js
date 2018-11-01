@@ -53,8 +53,13 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitTextCode:
+      // clean up spaces
+      const good = action.payload.phrase
+        .stringValue()
+        .replace(/\W+/g, ' ')
+        .trim()
       return state.merge({
-        codePageOutgoingTextCode: action.payload.phrase,
+        codePageOutgoingTextCode: new HiddenString(good),
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:

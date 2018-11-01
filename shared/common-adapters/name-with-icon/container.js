@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as Route from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -51,13 +51,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
   }
 }
 
-const ConnectedNameWithIcon = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('NameWithIcon')
-)(NameWithIcon)
+const ConnectedNameWithIcon = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NameWithIcon')(
+  NameWithIcon
+)
 
 export default ConnectedNameWithIcon

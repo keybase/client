@@ -289,6 +289,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	storeAddress := func(address string) error {
 		_, err := libkb.ParseStellarAccountID(address)
 		if err != nil {
+			if verr, ok := err.(libkb.VerboseError); ok {
+				m.CDebugf(verr.Verbose())
+			}
 			return err
 		}
 		accountID, err := stellarnet.NewAddressStr(address)
@@ -547,9 +550,13 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return res, err
 	}
 
-	if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
-		// if the chat message fails to send, just log the error
-		m.CDebugf("failed to send chat SendPayment message: %s", err)
+	if senderEntry.IsPrimary {
+		if err := chatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+			// if the chat message fails to send, just log the error
+			m.CDebugf("failed to send chat SendPayment message: %s", err)
+		}
+	} else {
+		m.CDebugf("not sending chat message: sending from non-primary account")
 	}
 
 	return SendPaymentResult{
@@ -918,7 +925,7 @@ func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keyba
 		return keybase1.TLFIdentifyFailure{}, err
 	}
 
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}

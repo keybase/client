@@ -16,6 +16,8 @@ import (
 
 const SkipKeygenNilMerkleRoot = "Skipping key generation, unable to fetch merkle root"
 
+// Maximum number of retries for key generation
+const maxRetries = 5
 const cacheEntryLifetime = time.Minute * 5
 const lruSize = 200
 
@@ -60,17 +62,24 @@ func (e *EKLib) backgroundKeygen() {
 	ctx := context.Background()
 	e.G().Log.CDebugf(ctx, "backgroundKeygen: starting up")
 	keygenInterval := time.Hour
-	lastRunAt := time.Now()
-	runIfNeeded := func() {
-		if lastRunAt.Sub(libkb.ForceWallClock(time.Now())) >= keygenInterval {
+	lastRun := time.Now()
+
+	runIfNeeded := func(force bool) {
+		now := libkb.ForceWallClock(time.Now())
+		shouldRun := now.Sub(lastRun) >= keygenInterval
+		e.G().Log.CDebugf(ctx, "backgroundKeygen: runIfNeeded: lastRun: %v, now: %v, shouldRun: %v, force: %v",
+			lastRun, now, shouldRun, force)
+		if force || shouldRun {
 			if err := e.KeygenIfNeeded(ctx); err != nil {
-				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %s", err)
+				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %v", err)
 			}
-			lastRunAt = time.Now()
+			lastRun = time.Now()
 		}
 	}
 
-	runIfNeeded()
+	// Fire off on startup
+	runIfNeeded(true /* force */)
+
 	ticker := libkb.NewBgTicker(keygenInterval)
 	state := keybase1.AppState_FOREGROUND
 	// Run every hour but also check if enough wall clock time has elapsed when
@@ -78,7 +87,7 @@ func (e *EKLib) backgroundKeygen() {
 	for {
 		select {
 		case <-ticker.C:
-			runIfNeeded()
+			runIfNeeded(false /* force */)
 		case state = <-e.G().AppState.NextUpdate(&state):
 			if state == keybase1.AppState_BACKGROUNDACTIVE {
 				// Before running  we pause briefly so we don't stampede for
@@ -86,7 +95,7 @@ func (e *EKLib) backgroundKeygen() {
 				// handles this internally, so we only need to throttle on
 				// AppState change.
 				time.Sleep(time.Second)
-				runIfNeeded()
+				runIfNeeded(false /* force */)
 			}
 		case <-e.stopCh:
 			ticker.Stop()
@@ -166,7 +175,14 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
 		merkleRootPtr = &libkb.MerkleRoot{}
 	}
-	return e.keygenIfNeeded(ctx, *merkleRootPtr, true /* shouldCleanup */)
+	for tries := 0; tries < maxRetries; tries++ {
+		if err = e.keygenIfNeeded(ctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
+			return nil
+		}
+		time.Sleep(200 * time.Millisecond)
+		e.G().Log.CDebugf(ctx, "KeygenIfNeeded retrying attempt #%d: %v", tries, err)
+	}
+	return err
 }
 
 func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot, shouldCleanup bool) (err error) {
@@ -712,7 +728,7 @@ func (e *EKLib) ClearCaches() {
 	}
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) OnLogout(m libkb.MetaContext) error {
 	e.ClearCaches()
 	return nil
 }

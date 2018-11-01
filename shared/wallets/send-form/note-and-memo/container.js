@@ -1,7 +1,7 @@
 // @flow
 import {SecretNote as SecretNoteComponent, PublicMemo as PublicMemoComponent} from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
 const secretNoteConnector = {
@@ -40,20 +40,16 @@ const publicMemoConnector = {
   }),
 }
 
-export const SecretNote = compose(
-  connect(
-    secretNoteConnector.mapStateToProps,
-    secretNoteConnector.mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ConnectedSecretNote')
+export const SecretNote = namedConnect(
+  secretNoteConnector.mapStateToProps,
+  secretNoteConnector.mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedSecretNote'
 )(SecretNoteComponent)
 
-export const PublicMemo = compose(
-  connect(
-    publicMemoConnector.mapStateToProps,
-    publicMemoConnector.mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ConnectedPublicMemo')
+export const PublicMemo = namedConnect(
+  publicMemoConnector.mapStateToProps,
+  publicMemoConnector.mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedPublicMemo'
 )(PublicMemoComponent)

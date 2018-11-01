@@ -230,6 +230,7 @@ const loadAssets = (
     | WalletsGen.RefreshPaymentsPayload
 ) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
@@ -260,6 +261,7 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
 ) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -269,6 +271,7 @@ const loadPayments = (
 // fetch the single payment.
 const doRefreshPayments = (state: TypedState, action: WalletsGen.RefreshPaymentsPayload) =>
   !actionHasError(action) &&
+  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -328,6 +331,10 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
     })
   )
 }
+
+const displayCurrencyReceived = (state: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
+  action.payload.setBuildingCurrency &&
+  Saga.put(WalletsGen.createSetBuildingCurrency({currency: action.payload.currency.code}))
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
@@ -655,6 +662,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
   yield Saga.actionToPromise(WalletsGen.loadSendAssetChoices, loadSendAssetChoices)
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
+  yield Saga.actionToAction(WalletsGen.displayCurrencyReceived, displayCurrencyReceived)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
   yield Saga.actionToPromise(WalletsGen.changeAccountName, changeAccountName)

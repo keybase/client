@@ -101,6 +101,7 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
+  isRequest: false,
   recipientUsername: '',
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
@@ -130,6 +131,9 @@ const load = () => {
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
     .add('To Keybase user chris', () => (
       <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
+    ))
+    .add('Request from Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} isRequest={true} recipientUsername="chris" />
     ))
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (

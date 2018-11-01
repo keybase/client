@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Inbox from '..'
-import {connect, compose, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
@@ -139,6 +139,6 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Inbox'))(
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(
   InboxWrapper
 )

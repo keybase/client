@@ -42,7 +42,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
     }, [])
 
     return (
-      <Box style={styles.overlay}>
+      <Box>
         <Box style={collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
@@ -57,9 +57,9 @@ class MenuLayout extends Component<MenuLayoutProps> {
               />
             ))}
           </Box>
-          <Box style={styles.cancelGroup}>
+          <Box style={styles.closeGroup}>
             <MenuRow
-              title="Cancel"
+              title="Close"
               index={0}
               numItems={1}
               onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
@@ -90,7 +90,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     alignItems: 'stretch',
   },
-  cancelGroup: {
+  closeGroup: {
     ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',

@@ -1,5 +1,5 @@
 // @flow
-import {connect, compose, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
 import SearchResultsList, {type Props as _Props} from '.'
@@ -55,13 +55,12 @@ export type Props = _Props & {pending: boolean}
 const Chooser = (props: any) =>
   props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />
 
-export default compose(
-  connect(
+export default
+  namedConnect(
     // $FlowIssue
     mapStateToProps,
     // $FlowIssue
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ResultsList')
+    (s, d, o) => ({...o, ...s, ...d}),
+  'ResultsList'
 )(Chooser)

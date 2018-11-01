@@ -24,6 +24,19 @@ declare export default function connect<
   mergeProps: MergeProps<RSP, RDP, OP, RMP>
 ): (component: Com) => ComponentType<OP>
 
+// convenience for compose(connect, setDisplayName)
+// prettier-ignore
+declare export function namedConnect<
+  RMP,
+  Com: ComponentType<RMP>,
+  RSP,
+  RDP,
+  OP>(
+  mapStateToProps: MapStateToProps<OP, RSP>,
+  mapDispatchToProps: MapDispatchToProps<OP, RDP>,
+  mergeProps: MergeProps<RSP, RDP, OP, RMP>,
+  displayName: string
+): (component: Com) => ComponentType<OP>
 // See how spread is currently broken https://github.com/facebook/flow/issues/6526
 // type SpreadWorkaround<A, B> = $Rest<A, B> & B
 //
