@@ -43,7 +43,7 @@ const _selectedIconStyle = {
   color: globalColors.white,
 }
 
-const tabBarHeight = 48
+export const tabBarHeight = 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
@@ -53,4 +53,3 @@ const stylesTabBar = {
 }
 
 export default TabBarRender
-export {tabBarHeight}

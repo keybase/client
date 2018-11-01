@@ -16,7 +16,10 @@ const addTags = component => ({
 })
 
 const children = {
-  codePage: addTags(CodePage),
+  codePage: {
+    component: CodePage,
+    tags: makeLeafTags({hideStatusBar: true, underNotch: true}),
+  },
   error: addTags(RegisterError),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),

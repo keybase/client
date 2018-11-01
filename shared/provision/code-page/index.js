@@ -102,38 +102,42 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        <Kb.Box2
-          direction="vertical"
-          fullHeight={true}
-          style={
-            this.props.currentDeviceAlreadyProvisioned
-              ? styles.imageContainerOnLeft
-              : styles.imageContainerOnRight
-          }
-        >
-          <Kb.RequireImage
-            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+        <Kb.SafeAreaView style={styles.safeArea}>
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
             style={
-              this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
+              this.props.currentDeviceAlreadyProvisioned
+                ? styles.imageContainerOnLeft
+                : styles.imageContainerOnRight
             }
+          >
+            <Kb.RequireImage
+              src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+              style={
+                this.props.currentDeviceAlreadyProvisioned
+                  ? styles.backgroundOnLeft
+                  : styles.backgroundOnRight
+              }
+            />
+          </Kb.Box2>
+          <Kb.BackButton
+            onClick={this.props.onBack}
+            iconColor={Styles.globalColors.white}
+            style={styles.backButton}
+            textStyle={styles.backButtonText}
           />
-        </Kb.Box2>
-        <Kb.BackButton
-          onClick={this.props.onBack}
-          iconColor={Styles.globalColors.white}
-          style={styles.backButton}
-          textStyle={styles.backButtonText}
-        />
-        {!!this.props.error && <ErrorBanner error={this.props.error} />}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
-          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-              <Instructions {...this.props} />
-              {content}
-              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
-            </Kb.Box2>
-          </Kb.ScrollView>
-        </Kb.Box2>
+          {!!this.props.error && <ErrorBanner error={this.props.error} />}
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+            <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+              <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+                <Instructions {...this.props} />
+                {content}
+                <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+              </Kb.Box2>
+            </Kb.ScrollView>
+          </Kb.Box2>
+        </Kb.SafeAreaView>
       </Kb.Box2>
     )
   }
@@ -435,6 +439,10 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     borderRadius: 8,
     padding: 20,
+  },
+  safeArea: {
+    height: '100%',
+    width: '100%',
   },
   scrollContainer: {
     flexGrow: 1,

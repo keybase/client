@@ -195,11 +195,13 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
         {stacks}
         {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         <GlobalError key="globalError" />
-        <Kb.NativeSafeAreaView style={styles.tabSafeArea}>
-          <AnimatedTabBar show={!props.hideNav}>
-            <TabBar routeSelected={props.routeSelected} routePath={props.routePath} />
-          </AnimatedTabBar>
-        </Kb.NativeSafeAreaView>
+        {!props.hideNav && (
+          <Kb.NativeSafeAreaView style={props.keyboardShowing ? styles.noTabSafeArea : styles.tabSafeArea}>
+            <AnimatedTabBar show={!props.keyboardShowing}>
+              <TabBar routeSelected={props.routeSelected} routePath={props.routePath} />
+            </AnimatedTabBar>
+          </Kb.NativeSafeAreaView>
+        )}
       </Kb.NativeView>
     )
     return (
@@ -250,13 +252,20 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
   render() {
     if (isIOS) {
       return (
-        <Kb.NativeAnimated.View style={{maxHeight: this.state.offset}}>
+        <Kb.NativeAnimated.View
+          style={Styles.collapseStyles([{maxHeight: this.state.offset}, styles.tabBar])}
+        >
           {this.props.children}
         </Kb.NativeAnimated.View>
       )
     } else {
       return (
-        <Kb.NativeView style={this.props.show ? styles.tabBarHeightBar : styles.tabBarHeightZero}>
+        <Kb.NativeView
+          style={Styles.collapseStyles([
+            this.props.show ? styles.tabBarHeightBar : styles.tabBarHeightZero,
+            styles.tabBar,
+          ])}
+        >
           {this.props.children}
         </Kb.NativeView>
       )
@@ -317,7 +326,8 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       component: () => (
         <MainNavStack
           {...this.props}
-          hideNav={this.props.hideNav || this.state.keyboardShowing}
+          hideNav={this.props.hideNav}
+          keyboardShowing={this.state.keyboardShowing}
           routeStack={mainScreens}
         />
       ),
@@ -335,8 +345,6 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
-
-    // console.log('aaa', this.props, shim, layers)
 
     return (
       <>
@@ -379,8 +387,10 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.fastBlank,
   },
   routeOuter: {height: '100%', position: 'relative'},
+  tabBar: {overflow: 'hidden'},
   tabBarHeightBar: {height: tabBarHeight},
   tabBarHeightZero: {height: 0},
+  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   tabSafeArea: {backgroundColor: Styles.globalColors.darkBlue2, flexGrow: 0},
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 })
