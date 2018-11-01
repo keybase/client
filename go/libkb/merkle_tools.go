@@ -130,15 +130,16 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 	return leaf, root, nil
 }
 
-// FindNextMerkleRootAfterRevoke loads the user for the given UID, and find the next merkle root
-// after the given key revocation happens. It uses the paremter arg.Prev to figure out where to start
-// looking and then keeps searching forward until finding a leaf that matches arg.Loc.
+// FindNextMerkleRootAfterRevoke loads the user for the given UID, and find the
+// next merkle root after the given key revocation happens. It uses the
+// parameter arg.Prev to figure out where to start looking and then keeps
+// searching forward until finding a leaf that matches arg.Loc.
 func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRootAfterRevokeArg) (res keybase1.NextMerkleRootRes, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FindNextMerkleRootAfterRevoke(%+v)", arg), func() error { return err })()
 
 	var u *User
-	u, err = LoadUser(NewLoadUserArgWithMetaContext(m).WithUID(arg.Uid))
+	u, err = LoadUser(NewLoadUserArgWithMetaContext(m).WithUID(arg.Uid).WithPublicKeyOptional())
 	if err != nil {
 		return res, err
 	}
