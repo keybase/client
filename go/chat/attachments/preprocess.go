@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -202,7 +203,7 @@ func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res
 }
 
 func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, src ReadResetter, filename string,
-	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
+	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
 		if p, err = processCallerPreview(ctx, *callerPreview); err != nil {
@@ -217,7 +218,7 @@ func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, src ReadResett
 		return p, err
 	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-	previewRes, err := Preview(ctx, log, src, p.ContentType, filename)
+	previewRes, err := Preview(ctx, log, src, p.ContentType, filename, nvh)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err

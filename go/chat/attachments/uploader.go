@@ -406,7 +406,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, callerPreview)
+	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper, callerPreview)
 	if err != nil {
 		return res, err
 	}

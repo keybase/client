@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
 	"golang.org/x/net/context"
@@ -42,7 +43,7 @@ type PreviewRes struct {
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
-	basename string) (*PreviewRes, error) {
+	basename string, nvh types.NativeVideoHelper) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
 		return previewImage(ctx, log, src, basename, contentType)
@@ -50,7 +51,7 @@ func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, cont
 		return previewGIF(ctx, log, src, basename)
 	}
 	if strings.HasPrefix(contentType, "video") {
-		pre, err := previewVideo(ctx, log, src, basename)
+		pre, err := previewVideo(ctx, log, src, basename, nvh)
 		if err == nil {
 			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
 				contentType)

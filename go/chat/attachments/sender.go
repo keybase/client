@@ -32,7 +32,7 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 		return res, err
 	}
 	defer src.Close()
-	pre, err := PreprocessAsset(ctx, s.DebugLabeler, src, filename, nil)
+	pre, err := PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
