@@ -413,6 +413,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	inboxQuery := &chat1.GetInboxQuery{
 		TopicType: &topicType,
 	}
+	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
@@ -424,8 +425,10 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 		pagination.Num = idx.pageSize
 		pagination.Previous = nil
 		for _, conv := range inbox.ConvsUnverified {
-			convID := conv.GetConvID()
-			convMap[convID.String()] = conv
+			if !conv.Conv.IsSelfFinalized(username) {
+				convID := conv.GetConvID()
+				convMap[convID.String()] = conv
+			}
 		}
 	}
 	return convMap, nil
@@ -491,7 +494,8 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			percentIndexed := convIdx.PercentIndexed(conv.Conv)
 			_, convIdx, err = idx.reindexConv(ctx, conv.Conv, uid, convIdx, reindexOpts{forceReindex: opts.ForceReindex})
 			if err != nil {
-				return nil, err
+				idx.Debug(ctx, "Unable to reindexConv: %v, %v", conv.Conv.GetConvID(), err)
+				continue
 			}
 			convIdxMap[convIDStr] = convIdx
 			newPercentIndexed := convIdx.PercentIndexed(conv.Conv)
