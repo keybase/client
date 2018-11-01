@@ -42,31 +42,32 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 
     return (
       <Box style={styles.overlay}>
-        <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
-          {/* Display header if there is one */}
-          {this.props.header && this.props.header.view}
-          <Box style={styles.menuGroup}>
-            {menuItemsNoDividers.map((mi, idx) => (
+        <SafeAreaView style={styles.safeArea}>
+          <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
+            {/* Display header if there is one */}
+            {this.props.header && this.props.header.view}
+            <Box style={styles.menuGroup}>
+              {menuItemsNoDividers.map((mi, idx) => (
+                <MenuRow
+                  key={mi.title}
+                  {...mi}
+                  index={idx}
+                  numItems={menuItemsNoDividers.length}
+                  onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
+                />
+              ))}
+            </Box>
+            <Box style={styles.cancelGroup}>
               <MenuRow
-                key={mi.title}
-                {...mi}
-                index={idx}
-                numItems={menuItemsNoDividers.length}
-                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
+                title="Cancel"
+                index={0}
+                numItems={1}
+                onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
+                onHidden={() => {}}
               />
-            ))}
+            </Box>
           </Box>
-          <Box style={styles.cancelGroup}>
-            <MenuRow
-              title="Cancel"
-              index={0}
-              numItems={1}
-              onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-              onHidden={() => {}}
-            />
-            <SafeAreaView style={styles.safeArea} />
-          </Box>
-        </Box>
+        </SafeAreaView>
       </Box>
     )
   }
