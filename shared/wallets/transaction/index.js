@@ -88,6 +88,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {|
+  detailView: boolean,
   large: boolean,
   pending: boolean,
   yourRole: Types.Role,
@@ -104,6 +105,8 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
+  // u2026 is an ellipsis
+  const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
   const amount = props.isXLM ? (
     <Text selectable={props.selectableText} type={textTypeExtrabold}>
@@ -136,14 +139,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from this account to {counterparty()}.
+            {verbPhrase} {amount} from this account to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} to {counterparty()}.
+            {verbPhrase} {amount} to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -152,14 +157,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account.
+            {verbPhrase} {amount} from {counterparty()} to this account
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {counterparty()} {verbPhrase} {amount}.
+            {counterparty()} {verbPhrase} {amount}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -167,7 +174,8 @@ const Detail = (props: DetailProps) => {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold} style={textStyle}>
-          {verbPhrase} {amount} from this account to itself.
+          {verbPhrase} {amount} from this account to itself
+          {textSentenceEnd}
         </Text>
       )
     default:
@@ -284,6 +292,7 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  detailView?: boolean,
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string,
@@ -326,7 +335,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
-  const backgroundColor = props.unread ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -345,6 +354,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
+              detailView={!!props.detailView}
               large={large}
               pending={pending}
               canceled={props.status === 'canceled'}
@@ -410,7 +420,6 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
-  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

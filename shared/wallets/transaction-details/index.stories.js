@@ -76,6 +76,7 @@ const load = () => {
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         timestamp={null}
+        onCancelPayment={Sb.action('onCancelPayment')}
       />
     ))
     .add('Received from Keybase user', () => (
