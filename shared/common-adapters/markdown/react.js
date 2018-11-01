@@ -4,7 +4,6 @@ import SimpleMarkdown from 'simple-markdown'
 import {isMobile} from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
-import * as Constants from '../../constants/chat2'
 import Text from '../text'
 import Channel from '../channel-container'
 import Mention from '../mention-container'
@@ -44,10 +43,10 @@ const textBlockStyle = Styles.platformStyles({
 })
 
 const linkStyle = Styles.platformStyles({
-  common: {
+  isElectron: {
     ...wrapStyle,
+    fontWeight: 'inherit',
   },
-  isElectron: {fontWeight: 'inherit'},
   isMobile: {
     fontWeight: undefined,
   },
@@ -159,6 +158,7 @@ const markdownStyles = {
   wrapStyle,
 }
 
+// TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
 class EmojiIfExists extends PureComponent<
   EmojiProps & {style?: any, allowFontScaling?: boolean, lineClamp?: number},
   void
@@ -266,7 +266,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
     return (
       <Channel
         name={node.content}
-        convID={node.convID ? Types.stringToConversationIDKey(node.convID) : Constants.noConversationIDKey}
+        convID={Types.stringToConversationIDKey(node.convID)}
         key={state.key}
         style={linkStyle}
       />
@@ -274,7 +274,7 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
   },
   text: SimpleMarkdown.defaultRules.text.react,
   emoji: (node, output, state) => {
-    return <EmojiIfExists emojiName={String(node.content)} size={16} key={state.key} />
+    return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
     return (
@@ -313,7 +313,7 @@ const bigEmojiOutputForFontScaling = (allowFontScaling: boolean) =>
       ),
       emoji: (node, output, state) => {
         return (
-          <EmojiIfExists
+          <Emoji
             emojiName={String(node.content)}
             size={32}
             key={state.key}

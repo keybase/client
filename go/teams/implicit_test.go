@@ -558,7 +558,7 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 	// Make sure we are stopped from creating an implicit team with bad number.
 	// This will also stop a conversation from being created if someone tries
 	// to chat with invalid phone number assertion.
-	badNumbers := []string{"111", "012345678", "48111"}
+	badNumbers := []string{"111", "12345678", "48111"}
 	for _, bad := range badNumbers {
 		displayName := fmt.Sprintf("%s@phone,%s", bad, fus[0].Username)
 		lookupName, err := ResolveImplicitTeamDisplayName(context.Background(), tcs[0].G, displayName, false)
@@ -566,5 +566,14 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 		_, _, err = CreateImplicitTeam(context.Background(), tcs[0].G, lookupName)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "bad phone number given")
+	}
+
+	// Some numbers are stopped at assertion parsing level.
+	superBadNumbers := []string{"012345678"}
+	for _, bad := range superBadNumbers {
+		displayName := fmt.Sprintf("%s@phone,%s", bad, fus[0].Username)
+		_, err := ResolveImplicitTeamDisplayName(context.Background(), tcs[0].G, displayName, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "Invalid phone number")
 	}
 }

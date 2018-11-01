@@ -1,6 +1,6 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect, compose, withStateHandlers} from '../../../../../util/container'
+import {connect} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -23,10 +23,10 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
     dispatch(WalletsGen.createChangeAccountName({accountID, name})),
-  _onDone: (name: string) => {
+  onCancel: () => dispatch(navigateUp()),
+  onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
-  onCancel: () => dispatch(navigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
 })
 
@@ -35,21 +35,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
   onCancel: dispatchProps.onCancel,
-  onChangeAccountName: () => dispatchProps._onChangeAccountName(stateProps.accountID, ownProps.name),
+  onChangeAccountName: name => dispatchProps._onChangeAccountName(stateProps.accountID, name),
   onClearErrors: dispatchProps.onClearErrors,
-  onDone: () => dispatchProps._onDone(ownProps.name),
+  onDone: dispatchProps.onDone,
 })
 
-export default compose(
-  withStateHandlers(
-    {name: null},
-    {
-      onNameChange: () => name => ({name}),
-    }
-  ),
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
 )(RenameAccount)

@@ -12,6 +12,7 @@ type EnterNameProps = {|
   onCancel: () => void,
   onNameChange: string => void,
   onPrimaryClick: () => void,
+  primaryDisabled?: boolean,
   waiting: boolean,
 |}
 
@@ -27,7 +28,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
       label={props.primaryLabel}
       waiting={props.waiting}
       fullWidth={Styles.isMobile}
-      disabled={!props.name}
+      disabled={!props.name || props.primaryDisabled}
     />,
   ]
   if (!Styles.isMobile) {
