@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import moment from 'moment'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Styles from '../../../../../styles'
 import {Avatar, Text, Box, Box2} from '../../../../../common-adapters'
+import {formatTimeForChat} from '../../../../../util/timestamp'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
 import PaymentMessage from '../../account-payment/container'
@@ -158,7 +158,7 @@ const RightSide = props => {
               isBroken={props.isBroken}
               onClick={props.onAuthorClick}
             />
-            <Text type="BodyTiny">{moment(props.timestamp).format('h:mm A')}</Text>
+            <Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Text>
           </Box2>
         )}
         <Box style={styles.textContainer} className="message">
