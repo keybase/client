@@ -29,19 +29,16 @@ const mapDispatchToProps = dispatch => ({
 
 const renderNothingProps = {shouldRender: false}
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  // Only show this for pending (size == 1) or one-on-one (size == 2)
-  // conversations.
-  if (
-    stateProps._meta.teamType !== 'adhoc' ||
-    stateProps._meta.participants.size < 1 ||
-    stateProps._meta.participants.size > 2
-  ) {
+  // Only show this for adhoc conversations.
+  if (stateProps._meta.teamType !== 'adhoc') {
     return renderNothingProps
   }
-  const to = stateProps._meta.participants.find(u => u !== stateProps._you)
-  if (!to) {
+  const otherParticipants = stateProps._meta.participants.filter(u => u !== stateProps._you)
+  // Only show this for one-on-one conversations.
+  if (otherParticipants.size !== 1) {
     return renderNothingProps
   }
+  const to = otherParticipants.first()
   return {
     isNew: stateProps.isNew,
     onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
