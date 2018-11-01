@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
-import {connect, setDisplayName} from '../util/container'
+import {namedConnect} from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
 export type OwnProps = ButtonProps & {
@@ -60,9 +60,10 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const ConnectedWaitingButton = connect(
+const ConnectedWaitingButton = namedConnect(
   mapStateToProps,
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
-)(setDisplayName('WaitingButton')(WaitingButton))
+  (s, d, o) => ({...o, ...s, ...d}),
+  'WaitingButton'
+)(WaitingButton)
 export default ConnectedWaitingButton

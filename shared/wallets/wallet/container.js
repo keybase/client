@@ -54,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   if (pending.length) {
     sections.push({
       data: sortAndStripTimestamps(pending),
+      stripeHeader: true,
       title: 'Pending',
     })
   }

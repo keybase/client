@@ -1,0 +1,49 @@
+@namespace("chat.1")
+
+protocol unfurl {
+    import idl "common.avdl";
+    import idl "local.avdl";
+
+    enum UnfurlType {
+        GENERIC_0,
+        YOUTUBE_1
+    }
+     record UnfurlGenericRaw {
+        string title;
+        string url;
+        string siteName;
+        union { null, string } faviconUrl;
+        union { null, string } imageUrl;
+        union { null, int } publishTime;
+        union { null, string } description;
+    }
+
+    record UnfurlYoutubeRaw {
+        // TODO
+    }
+
+    variant UnfurlRaw switch (UnfurlType unfurlType) {
+        case GENERIC: UnfurlGenericRaw;
+        case YOUTUBE: UnfurlYoutubeRaw;
+    }
+
+    record UnfurlGeneric {
+        string title;
+        string url;
+        string siteName;
+        union { null, Asset } favicon;
+        union { null, Asset } image;
+        union { null, int } publishTime;
+        union { null, string } description;
+    }
+
+    record UnfurlYoutube {
+        // TODO
+    }
+
+    variant Unfurl switch (UnfurlType unfurlType) {
+        case GENERIC: UnfurlGeneric;
+        case YOUTUBE: UnfurlYoutube;
+    }
+
+}

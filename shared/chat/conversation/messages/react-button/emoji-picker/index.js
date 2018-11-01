@@ -30,9 +30,12 @@ const cacheSections = (width: number, sections: Array<Section>) => {
 
 // Get emoji results for a query and map
 // to full emoji data
-const getFilterResults = filter => {
-  return emojiIndex.search(filter, {maxResults: maxEmojiSearchResults}).map(res => emojiNameMap[res.id])
-}
+const getFilterResults = filter =>
+  emojiIndex
+    .search(filter, {maxResults: maxEmojiSearchResults})
+    .map(res => emojiNameMap[res.id])
+    // MUST sort this so its stable
+    .sort((a, b) => a.sort_order - b.sort_order)
 
 type Section = {
   category: string,

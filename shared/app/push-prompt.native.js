@@ -78,11 +78,11 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default Container.compose(
-  Container.connect(
+  Container.namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o) => ({...o, ...s, ...d}),
+    'PushPrompt'
   ),
-  Container.setDisplayName('PushPrompt'),
   Container.safeSubmitPerMount(['onRequestPermissions', 'onNoPermissions'])
 )(PushPrompt)

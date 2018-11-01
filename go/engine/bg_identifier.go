@@ -345,7 +345,7 @@ func (b *BackgroundIdentifier) runOne(m libkb.MetaContext, u keybase1.UID) (err 
 	if err != nil {
 		return err
 	}
-	res, err := eng.Result()
+	res, err := eng.Result(m)
 	if err != nil {
 		return err
 	}

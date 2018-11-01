@@ -1,7 +1,7 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import {type OpenInSystemFileManagerProps as OwnProps} from './open-in-system-file-manager-container'
 import OpenInSystemFileManager from './open-in-system-file-manager.desktop'
 
@@ -14,11 +14,9 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   installFuse: () => dispatch(FsGen.createInstallFuse()),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ConnectedOpenInSystemFileManager')
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedOpenInSystemFileManager'
 )(OpenInSystemFileManager)

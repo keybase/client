@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import SortBar from './sortbar'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
@@ -29,11 +29,4 @@ const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}:
   sortSettingToAction,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('SortBar')
-)(SortBar)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(SortBar)

@@ -109,7 +109,7 @@ func (e *ResolveThenIdentify2) nameResolutionPostAssertion(m libkb.MetaContext) 
 	if e.queriedName.IsNil() {
 		return nil
 	}
-	res, err := e.Result()
+	res, err := e.Result(m)
 	if err != nil {
 		return err
 	}
@@ -146,11 +146,11 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *ResolveThenIdentify2) Result() (*keybase1.Identify2ResUPK2, error) {
+func (e *ResolveThenIdentify2) Result(m libkb.MetaContext) (*keybase1.Identify2ResUPK2, error) {
 	if e.i2eng == nil {
 		return nil, errors.New("ResolveThenIdentify2#Result: no result available if the engine did not run")
 	}
-	return e.i2eng.Result()
+	return e.i2eng.Result(m)
 }
 
 func (e *ResolveThenIdentify2) SetResponsibleGregorItem(item gregor.Item) {
@@ -202,7 +202,7 @@ func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keyba
 	if err = RunEngine2(m, eng); err != nil {
 		return ret, err
 	}
-	res, err := eng.Result()
+	res, err := eng.Result(m)
 	if err != nil {
 		return ret, err
 	}

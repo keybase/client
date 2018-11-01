@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Still from './still'
 
@@ -36,11 +36,6 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath, inDestina
 }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ConnectedStillRow'),
+  namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow'),
   OpenHOC
 )(Still)

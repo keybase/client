@@ -176,6 +176,14 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyError: action.error ? action.payload.error : '',
         secretKeyValidationState: action.error ? 'error' : 'valid',
       })
+    case WalletsGen.addNewPayment:
+      const {accountID, paymentID} = action.payload
+      return state.updateIn(
+        ['newPayments', accountID],
+        newTxs => (newTxs ? newTxs.add(paymentID) : I.Set([paymentID]))
+      )
+    case WalletsGen.clearNewPayments:
+      return state.setIn(['newPayments', action.payload.accountID], I.Set())
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',

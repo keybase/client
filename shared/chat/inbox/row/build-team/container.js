@@ -1,7 +1,7 @@
 // @flow
 import * as Route from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import BuildTeam from '.'
 
 const mapStateToProps = state => ({
@@ -18,11 +18,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('BuildTeam')
-)(BuildTeam)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BuildTeam')(BuildTeam)
