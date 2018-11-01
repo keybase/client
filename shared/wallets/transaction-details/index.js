@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction from '../transaction'
+import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
@@ -237,15 +237,11 @@ type TimestampLineProps = {|
 
 export const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
-    return (
-      <Kb.Text type="BodySmallError">
-        The Stellar network did not approve this transaction - {props.error}
-      </Kb.Text>
-    )
+    return <TimestampError error={props.error} />
   }
   const timestamp = props.timestamp
   if (!timestamp) {
-    return <Kb.Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Kb.Text>
+    return <TimestampPending />
   }
   const human = formatTimeForMessages(timestamp)
   const tooltip = formatTimeForStellarTooltip(timestamp)

@@ -239,6 +239,22 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
+type TimestampErrorProps = {|
+  error: string,
+  status?: Types.StatusSimplified,
+|}
+
+export const TimestampError = (props: TimestampErrorProps) => (
+  <Text type="BodySmallError">
+    {props.status ? capitalize(props.status) + ' • ' : ''}
+    The Stellar network did not approve this transaction - {props.error}
+  </Text>
+)
+
+export const TimestampPending = () => (
+  <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+)
+
 type TimestampLineProps = {|
   error: string,
   status: Types.StatusSimplified,
@@ -246,17 +262,13 @@ type TimestampLineProps = {|
   selectableText: boolean,
 |}
 
-export const TimestampLine = (props: TimestampLineProps) => {
+const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
-    return (
-      <Text type="BodySmallError">
-        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
-      </Text>
-    )
+    return <TimestampError error={props.error} status={props.status} />
   }
   const timestamp = props.timestamp
   if (!timestamp) {
-    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+    return <TimestampPending />
   }
   const human = formatTimeForMessages(timestamp)
   const tooltip = formatTimeForStellarTooltip(timestamp)
