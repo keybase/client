@@ -231,7 +231,6 @@ const propsToParties = (props: NotLoadingProps) => {
 
 type TimestampLineProps = {|
   error: string,
-  status?: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
@@ -240,7 +239,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
     return (
       <Kb.Text type="BodySmallError">
-        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
+        The Stellar network did not approve this transaction - {props.error}
       </Kb.Text>
     )
   }
@@ -250,20 +249,9 @@ export const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(timestamp)
   const tooltip = formatTimeForStellarTooltip(timestamp)
-  let status = capitalize(props.status)
-  // 'cancelable' -> show 'pending' and completed -> show nothing
-  switch (status) {
-    case 'Completed':
-      status = null
-      break
-    case 'Cancelable':
-      status = 'Pending'
-      break
-  }
   return (
     <Kb.Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {status ? ` • ${status}` : null}
     </Kb.Text>
   )
 }

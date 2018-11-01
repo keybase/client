@@ -241,7 +241,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
 type TimestampLineProps = {|
   error: string,
-  status?: Types.StatusSimplified,
+  status: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
