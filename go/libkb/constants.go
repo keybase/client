@@ -127,8 +127,8 @@ const (
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
 	EphemeralKeyMerkleFreshness = 30 * time.Second
 
-	// By default, only 64 files can be opened.
-	LevelDBNumFiles = 64
+	// By default, only 48 files can be opened.
+	LevelDBNumFiles = 48
 
 	HomeCacheTimeout       = (time.Hour - time.Minute)
 	HomePeopleCacheTimeout = 10 * time.Minute
