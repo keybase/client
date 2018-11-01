@@ -87,26 +87,44 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
   }
 }
 
+bool filterWritableEntries(NSDictionary* entry) {
+    return [entry objectForKey:@"writable"];
+}
+
 - (void)parseFiles:(NSString*)jsonFiles {
   NSError* error = nil;
   NSData* data = [jsonFiles dataUsingEncoding:NSUTF8StringEncoding];
   NSArray* items = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
-  NSArray* sortedItems;
+  NSArray* sortedAndFilteredItems;
   if (!items) {
-    NSLog(@"parseFiles: error parsing JSON: %@", error);
-    sortedItems = [[NSArray alloc] init];
+    if (error) {
+        NSLog(@"parseFiles: error parsing JSON: %@", error);
+    }
+    // At least show an empty folder.
+    sortedAndFilteredItems = [[NSArray alloc] init];
   } else {
-    sortedItems = [items sortedArrayUsingFunction:sortEntries context:NULL];
+      // Sort items: directories first, then alphabetically.
+      sortedAndFilteredItems = [items sortedArrayUsingFunction:sortEntries context:NULL];
+      
+      // For paths deeper than 2, filter out folders that aren't writable.
+      unsigned long pathLength = [self pathLength];
+      if (pathLength > 2) {
+          sortedAndFilteredItems = [sortedAndFilteredItems filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id entry, NSDictionary* bindings) {
+              return [entry objectForKey:@"writable"];
+          }]];
+      }
   }
   if ([self.path isEqualToString:@"/"]) {
-    [self setDirectoryEntries:sortedItems];
+    // If we're at the root, don't show a back navigation item.
+    [self setDirectoryEntries:sortedAndFilteredItems];
   } else {
+    // Otherwise, prepend a back navigation item.
     NSMutableArray* itemsWithBack = [[NSMutableArray alloc] init];
     [itemsWithBack addObject:[[NSDictionary alloc] initWithObjectsAndKeys:
                               UpOneLevel, @"name",
                               [NSNumber numberWithInt:1], @"direntType",
                               nil]];
-    [itemsWithBack addObjectsFromArray:sortedItems];
+    [itemsWithBack addObjectsFromArray:sortedAndFilteredItems];
     [self setDirectoryEntries:itemsWithBack];
   }
 }
@@ -139,6 +157,7 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
   NSDictionary* item = [self getItemAtIndex:indexPath];
   [[cell textLabel] setText:item[@"name"]];
   if ([[item objectForKey:@"direntType"] intValue] == 1) {
+    // Style folders differently from files.
     [[cell textLabel] setTextColor:[UIColor colorWithRed:76.0/255.0 green:142.0/255.0 blue:1 alpha:1]];
   } else {
     [[cell textLabel] setTextColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:1]];
@@ -149,15 +168,17 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   NSDictionary* target = [self getItemAtIndex:indexPath];
   if ([indexPath isEqual:[NSIndexPath indexPathForRow:0 inSection:0]] && [[target objectForKey:@"name"] isEqualToString:UpOneLevel]) {
-    // '..' needs to navigate back up
+    // '..' navigates back up.
     NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
     NSArray* upOneDirectory = [pathElems subarrayWithRange:NSMakeRange(0, [pathElems count] - 2)];
     [self setPath:[NSString stringWithFormat:@"%@/", [upOneDirectory componentsJoinedByString:@"/"]]];
     [self dispatchFilesBrowser];
   } else if ([[target objectForKey:@"direntType"] intValue] == 1) {
+    // Folders navigate down.
     [self setPath:[NSString stringWithFormat:@"%@%@/", self.path, target[@"name"]]];
     [self dispatchFilesBrowser];
   } else {
+    // Files do not affect navigation.
     [tableView deselectRowAtIndexPath:indexPath animated:FALSE];
   }
 }
@@ -166,16 +187,22 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
   [self.delegate folderSelected:self.path];
 }
 
-- (void)setPath:(NSString*)path {
-  _path = path;
+- (unsigned long)pathLength {
   NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
-  unsigned long count = [pathElems count];
-  if (count <= 2) {
+  return [pathElems count];
+}
+
+- (void)setPath:(NSString*)path {
+   NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
+  unsigned long pathLength = [pathElems count];
+  _path = path;
+  if (pathLength <= 2) {
     [self setTitle:@"Keybase"];
   } else {
-    NSString* pathName = pathElems[[pathElems count] - 2];
+    NSString* pathName = pathElems[pathLength - 2];
     [self setTitle:pathName];
-    if (count >= 4) {
+    if (pathLength >= 4) {
+      // Allow selecting any folder under the TLF level, without permissions checks.
       UIBarButtonItem* doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Send here" style:UIBarButtonItemStyleDone target:self action:@selector(sendPathToDelegate)];
       self.navigationItem.rightBarButtonItem = doneButton;
     } else {
