@@ -194,8 +194,38 @@
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
+			"checksumSHA1": "jNdbCxBabqjv9tREXA4Nx45Y4wg=",
+			"path": "github.com/gobwas/glob/match",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
 			"checksumSHA1": "2KhDNUE98XhHnIgg2S9E4gcWoig=",
 			"path": "github.com/gobwas/glob/syntax",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "FPIMdPSazNZGNU+ZmPtIeZpVHFU=",
+			"path": "github.com/gobwas/glob/syntax/ast",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "umyztSrQrQIl9JgwhDDb6wrSLeI=",
+			"path": "github.com/gobwas/glob/syntax/lexer",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "vux29fN5O22F3QPLOnjQ37278vg=",
+			"path": "github.com/gobwas/glob/util/runes",
+			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
+			"revisionTime": "2018-09-11T21:33:45Z"
+		},
+		{
+			"checksumSHA1": "Sxp2AHWkkLkIq6w9aMcLmzcwD6w=",
+			"path": "github.com/gobwas/glob/util/strings",
 			"revision": "e7a84e9525fe90abcda167b604e483cc959ad4aa",
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
@@ -1154,9 +1184,33 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
+			"checksumSHA1": "8ea1h1pimPfXc6cE5l3SQTe7SVo=",
+			"path": "golang.org/x/text/internal/language",
+			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
+			"revisionTime": "2018-10-29T18:00:05Z"
+		},
+		{
+			"checksumSHA1": "GxBlFOqWoIsWCMswUHh6dUqM5no=",
+			"path": "golang.org/x/text/internal/language/compact",
+			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
+			"revisionTime": "2018-10-29T18:00:05Z"
+		},
+		{
+			"checksumSHA1": "hyNCcTwMQnV6/MK8uUW9E5H0J0M=",
+			"path": "golang.org/x/text/internal/tag",
+			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
+			"revisionTime": "2018-10-29T18:00:05Z"
+		},
+		{
 			"path": "golang.org/x/text/internal/utf8internal",
 			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
 			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"checksumSHA1": "JsDbO/lVIuCNOJfWQ3XESyrR73Q=",
+			"path": "golang.org/x/text/language",
+			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
+			"revisionTime": "2018-10-29T18:00:05Z"
 		},
 		{
 			"path": "golang.org/x/text/runes",
