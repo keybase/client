@@ -55,14 +55,13 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
-      <Kb.Box
+      <Kb.NativeSafeAreaView
         style={{
+          backgroundColor: Styles.globalColors.black,
           ...Styles.globalStyles.flexBoxColumn,
           ...Styles.globalStyles.fillAbsolute,
-          backgroundColor: Styles.globalColors.black,
         }}
       >
-        <Kb.NativeSafeAreaView style={{backgroundColor: Styles.globalColors.black, flexGrow: 0}} />
         <Kb.Text
           type="Body"
           onClick={this.props.onClose}
@@ -95,8 +94,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           position="bottom left"
           visible={this.props.showingMenu}
         />
-        <Kb.NativeSafeAreaView style={{backgroundColor: Styles.globalColors.black, flexGrow: 0}} />
-      </Kb.Box>
+      </Kb.NativeSafeAreaView>
     )
   }
 }
