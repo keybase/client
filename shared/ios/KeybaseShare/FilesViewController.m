@@ -10,7 +10,7 @@
 #import "keybase/keybase.h"
 
 @interface FilesViewController ()
-@property NSString* path; // the path we are currently showing
+@property (nonatomic) NSString* path; // the path we are currently showing
 @property NSArray* directoryEntries; // the directory entries at the current path
 @end
 
@@ -18,42 +18,41 @@ NSString* const UpOneLevel = @".. [Up one level]";
 
 @implementation FilesViewController
 
+@synthesize path = _path;
+
 - (void)viewDidLoad {
   [super viewDidLoad];
   
   self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height); // expand
   self.definesPresentationContext = YES;
   [self setPath:@"/"];
-  
-  // show this spinner on top of the table view until we have parsed the inbox
+  [self dispatchFilesBrowser];
+}
+
+- (void)dispatchFilesBrowser {
+  // show this spinner on top of the table view until we have processed the files.
   UIActivityIndicatorView* av = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-  [av setTag:self.view.tag+1];
   [self.view addSubview:av];
   [av setTranslatesAutoresizingMaskIntoConstraints:NO];
   [av setHidesWhenStopped:YES];
   [av bringSubviewToFront:self.view];
   [av startAnimating];
   [self.tableView addConstraints:@[
-     [NSLayoutConstraint constraintWithItem:av
-                                  attribute:NSLayoutAttributeCenterX
-                                  relatedBy:NSLayoutRelationEqual
-                                     toItem:self.tableView
-                                  attribute:NSLayoutAttributeCenterX
-                                 multiplier:1 constant:0],
-     [NSLayoutConstraint constraintWithItem:av
-                                  attribute:NSLayoutAttributeCenterY
-                                  relatedBy:NSLayoutRelationEqual
-                                     toItem:self.tableView
-                                  attribute:NSLayoutAttributeCenterY
-                                 multiplier:1 constant:0]
-     ]
+                                   [NSLayoutConstraint constraintWithItem:av
+                                                                attribute:NSLayoutAttributeCenterX
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.tableView
+                                                                attribute:NSLayoutAttributeCenterX
+                                                               multiplier:1 constant:0],
+                                   [NSLayoutConstraint constraintWithItem:av
+                                                                attribute:NSLayoutAttributeCenterY
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.tableView
+                                                                attribute:NSLayoutAttributeCenterY
+                                                               multiplier:1 constant:0]
+                                   ]
    ];
   
-  [self dispatchFilesBrowser];
-}
-
-- (void)dispatchFilesBrowser {
-  UIActivityIndicatorView* av = [self.view viewWithTag:self.view.tag + 1];
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSError* error = NULL;
     [self setDirectoryEntries:[NSArray new]];
@@ -62,6 +61,7 @@ NSString* const UpOneLevel = @".. [Up one level]";
       dispatch_async(dispatch_get_main_queue(), ^{
         NSLog(@"failed to get files: %@", error);
         [av stopAnimating];
+        [av removeFromSuperview];
       });
       // just show blank in this case
       return;
@@ -70,6 +70,7 @@ NSString* const UpOneLevel = @".. [Up one level]";
     dispatch_async(dispatch_get_main_queue(), ^{
       [av stopAnimating];
       [self.tableView reloadData];
+      [av removeFromSuperview];
     });
   });
 }
@@ -159,7 +160,32 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
   } else {
     [tableView deselectRowAtIndexPath:indexPath animated:FALSE];
   }
-  // [self.delegate folderSelected:self.path]; // let main view controller know we have something
+}
+
+- (void)sendPathToDelegate {
+  [self.delegate folderSelected:self.path];
+}
+
+- (void)setPath:(NSString*)path {
+  _path = path;
+  NSArray* pathElems = [self.path componentsSeparatedByString:@"/"];
+  unsigned long count = [pathElems count];
+  if (count <= 2) {
+    [self setTitle:@"Keybase"];
+  } else {
+    NSString* pathName = pathElems[[pathElems count] - 2];
+    [self setTitle:pathName];
+    if (count >= 4) {
+      UIBarButtonItem* doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Send here" style:UIBarButtonItemStyleDone target:self action:@selector(sendPathToDelegate)];
+      self.navigationItem.rightBarButtonItem = doneButton;
+    } else {
+      self.navigationItem.rightBarButtonItem = nil;
+    }
+  }
+}
+
+- (NSString*)path {
+  return _path;
 }
 
 @end
