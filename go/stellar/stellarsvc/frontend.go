@@ -1005,12 +1005,6 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 
 	// helper so the GUI doesn't have to call FormatCurrency separately
 	if arg.Currency != nil {
-		amountFormatted, err := stellar.FormatCurrency(ctx, s.G(), arg.Amount, *arg.Currency)
-		if err != nil {
-			log("error formatting converted outside amount: %v", err)
-		} else {
-			res.AmountFormatted = amountFormatted
-		}
 		res.WorthAmount = amountX.amountOfAsset
 	}
 

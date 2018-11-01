@@ -1224,7 +1224,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "", bres.SecretNoteErrMsg)
 		require.Equal(t, "", bres.PublicMemoErrMsg)
 		require.Equal(t, "$0.00 USD", bres.WorthDescription)
-		require.Equal(t, "", bres.AmountFormatted)
 		require.Equal(t, "USD", bres.WorthCurrency)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		require.True(t, bres.SendingIntentionXLM)
@@ -1313,7 +1312,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "$9.55 USD", bres.WorthDescription)
-	require.Equal(t, "", bres.AmountFormatted) // since no currency was specified
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	require.True(t, bres.SendingIntentionXLM)
 	require.Equal(t, "30 XLM", bres.DisplayAmountXLM)
@@ -1485,7 +1483,6 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.PublicMemoErrMsg)
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
-	require.Equal(t, "$8.50", bres.AmountFormatted)
 	require.Equal(t, "26.7020180", bres.WorthAmount)
 	require.False(t, bres.SendingIntentionXLM)
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
