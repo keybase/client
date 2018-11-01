@@ -397,7 +397,6 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	defer src.Close()
 
 	progress := func(bytesComplete, bytesTotal int64) {
 		u.G().ActivityNotifier.AttachmentUploadProgress(ctx, uid, convID, outboxID, bytesComplete, bytesTotal)
