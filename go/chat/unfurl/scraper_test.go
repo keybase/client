@@ -34,10 +34,12 @@ func (d *dummyHTTPSrv) Start() string {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", localhost))
 	require.NoError(d.t, err)
 	port := listener.Addr().(*net.TCPAddr).Port
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", d.handler)
 	d.srv = &http.Server{
-		Addr: fmt.Sprintf("%s:%d", localhost, port),
+		Addr:    fmt.Sprintf("%s:%d", localhost, port),
+		Handler: mux,
 	}
-	http.HandleFunc("/", d.handler)
 	go d.srv.Serve(listener)
 	return d.srv.Addr
 }
