@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
@@ -62,7 +63,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	}
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
-	pre, err := attachments.PreprocessAsset(ctx, p.DebugLabeler, src, filename, nil)
+	pre, err := attachments.PreprocessAsset(ctx, p.DebugLabeler, src, filename,
+		types.DummyNativeVideoHelper{}, nil)
 	if err != nil {
 		return res, err
 	}

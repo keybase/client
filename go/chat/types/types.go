@@ -264,3 +264,9 @@ func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, u
 func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
+
+type DummyNativeVideoHelper struct{}
+
+func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	return nil, 0, nil
+}
