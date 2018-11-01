@@ -36,7 +36,6 @@ const containerStyle = platformStyles({
     ...globalStyles.flexBoxRow,
   },
   isMobile: {
-    marginTop: 40, // Avoid the notch on iPhoneX
     ...globalStyles.flexBoxColumn,
   },
 })
