@@ -4,7 +4,6 @@ import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
-import webfontsGenerator from 'webfonts-generator'
 
 const commands = {
   'updated-fonts': {
@@ -68,8 +67,18 @@ const getSvgPaths = shouldPrintSkipped =>
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
 function updatedFonts() {
+  let webfontsGenerator
+  try {
+    webfontsGenerator = require('webfonts-generator')
+  } catch (e) {
+    console.error(
+      '\n\n\n\n>> Web fonts generation is optional, run a full yarn (and not yarn modules) to install it << \n\n\n'
+    )
+    throw e
+  }
   console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
+
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
