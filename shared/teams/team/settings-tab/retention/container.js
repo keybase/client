@@ -1,14 +1,7 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {
-  connect,
-  compose,
-  lifecycle,
-  setDisplayName,
-  withStateHandlers,
-  withHandlers,
-} from '../../../../util/container'
+import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
 import {
   getTeamRetentionPolicy,
   retentionPolicies,
@@ -162,12 +155,7 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('RetentionPicker'),
+  namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'RetentionPicker'),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
     componentDidMount() {

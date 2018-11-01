@@ -1,6 +1,6 @@
 // @flow
 import ChooseAsset, {type DisplayItem, type OtherItem} from '.'
-import {compose, connect, lifecycle, setDisplayName} from '../../../util/container'
+import {compose, namedConnect, lifecycle} from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
@@ -70,15 +70,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseAsset'),
   lifecycle({
     componentDidMount() {
       this.props.refresh()
     },
-  }),
-  setDisplayName('ChooseAsset')
+  })
 )(ChooseAsset)

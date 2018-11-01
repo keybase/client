@@ -30,7 +30,7 @@ export const serialize = {
       return oldConv &&
         oldConv.hasBadge === toSend.hasBadge &&
         oldConv.hasUnread === toSend.hasUnread &&
-        conversationChangeAffectsWidget(oldConv.conversation, toSend.conversation)
+        !conversationChangeAffectsWidget(oldConv.conversation, toSend.conversation)
         ? map
         : {
             ...map,

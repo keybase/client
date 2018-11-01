@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import {MentionHud} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import * as I from 'immutable'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
@@ -21,7 +21,7 @@ const mapStateToProps = (state, {filter, conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _loadParticipants: conversationIDKey =>
     dispatch(
       Chat2Gen.createMetaRequestTrusted({
@@ -81,12 +81,10 @@ class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   }
 }
 // TODO fix up the typing of this component
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'UserMentionHud'
   // $FlowIssue hud uses a ton of not safe recompose stuff
-  setDisplayName('UserMentionHud')
 )(AutoLoadMentionHud)

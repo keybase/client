@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import Downloads, {type DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
@@ -28,11 +28,9 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   }: DownloadsProps)
 }
 
-export default compose(
-  connect(
+export default namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedDownloads')
+    mergeProps,
+'ConnectedDownloads'
 )(Downloads)

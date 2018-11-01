@@ -53,7 +53,7 @@ const linkStyle = Styles.platformStyles({
 })
 const neutralPreviewStyle = Styles.platformStyles({
   isElectron: {color: 'inherit', fontWeight: 'inherit'},
-  isMobile: {color: undefined, fontWeight: undefined},
+  isMobile: {color: Styles.globalColors.black_40, fontWeight: undefined},
 })
 
 const boldStyle = Styles.platformStyles({
