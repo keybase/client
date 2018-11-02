@@ -627,6 +627,14 @@ func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
 
+func (b MessageBody) IsType(typ MessageType) bool {
+	btyp, err := b.MessageType()
+	if err != nil {
+		return false
+	}
+	return btyp == typ
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
