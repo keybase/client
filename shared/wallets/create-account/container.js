@@ -1,12 +1,15 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect, compose, withStateHandlers} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
+import {type RouteProps} from '../../route-tree/render-route'
 import CreateAccount from '.'
 
-const mapStateToProps = (state, {routeProps}) => ({
+type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
+
+const mapStateToProps = (state, {routeProps}: OwnProps) => ({
   createNewAccountError: state.wallets.createNewAccountError,
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
@@ -14,43 +17,33 @@ const mapStateToProps = (state, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
-  _onCreateAccount: (name: string) =>
+  onCancel: () => navigateUp && dispatch(navigateUp()),
+  onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
+  onCreateAccount: (name: string) =>
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
-        showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm ?? (!!routeProps && routeProps.get('fromSendForm')),
+        showOnCreation: routeProps.get('showOnCreation'),
+        setBuildingTo: routeProps.get('fromSendForm'),
       })
     ),
-  _onDone: (name: string) => {
+  onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
-  onCancel: () => navigateUp && dispatch(navigateUp()),
-  onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  name: ownProps.name,
   error: capitalize(stateProps.error),
-  onNameChange: ownProps.onNameChange,
   onClearErrors: dispatchProps.onClearErrors,
-  onCreateAccount: () => dispatchProps._onCreateAccount(ownProps.name),
-  onDone: () => dispatchProps._onDone(ownProps.name),
-  onCancel: ownProps.onCancel || dispatchProps.onCancel,
-  onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
+  onCreateAccount: dispatchProps.onCreateAccount,
+  onDone: dispatchProps.onDone,
+  onCancel: dispatchProps.onCancel,
+  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
 })
 
-export default compose(
-  withStateHandlers(
-    {name: ''},
-    {
-      onNameChange: () => name => ({name}),
-    }
-  ),
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  )
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
 )(CreateAccount)

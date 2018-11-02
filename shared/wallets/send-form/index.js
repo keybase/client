@@ -3,7 +3,6 @@ import * as React from 'react'
 import {isMobile} from '../../styles'
 import Root from './root'
 import {SendBody, RequestBody} from './body/container'
-import CreateNewAccount from '../create-account/container'
 import ChooseAsset from './choose-asset/container'
 import Confirm from '../confirm-form/container'
 
@@ -12,7 +11,7 @@ type FormProps = {|
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'create-new-account' | 'choose-asset' | 'confirm',
+  currentScreen: 'root' | 'choose-asset' | 'confirm',
 }
 
 // On desktop, we switch between views in this container.
@@ -23,7 +22,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   }
   _setCurrentScreen = currentScreen =>
     this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
-  createNewAccount = () => this._setCurrentScreen('create-new-account')
   backToRoot = () => this._setCurrentScreen('root')
   chooseAsset = () => this._setCurrentScreen('choose-asset')
   confirm = () => this._setCurrentScreen('confirm')
@@ -41,16 +39,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
           <Root onClose={this.props.onClose}>
             <SendBody isProcessing={undefined /* TODO */} />
           </Root>
-        )
-      case 'create-new-account':
-        return (
-          <CreateNewAccount
-            onCancel={this.backToRoot}
-            onBack={this.backToRoot}
-            fromSendForm={true}
-            navigateUp={null}
-            routeProps={null}
-          />
         )
       case 'choose-asset':
         return <ChooseAsset onBack={this.backToRoot} />
