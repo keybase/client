@@ -34,12 +34,6 @@ func NewSettings(log logger.Logger, storage types.ConversationBackedStorage) *Se
 	}
 }
 
-func (s *Settings) defaultSettings() chat1.UnfurlSettings {
-	return chat1.UnfurlSettings{
-		Mode: chat1.UnfurlMode_WHITELISTED,
-	}
-}
-
 func (s *Settings) Get(ctx context.Context) (res chat1.UnfurlSettings, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 
@@ -49,8 +43,8 @@ func (s *Settings) Get(ctx context.Context) (res chat1.UnfurlSettings, err error
 		return res, err
 	}
 	if !found {
-		s.Debug(ctx, "Get: no settings found, returning default")
-		return s.defaultSettings(), nil
+		s.Debug(ctx, "Get: no mode setting found, using whitelisted")
+		mr.Mode = chat1.UnfurlMode_WHITELISTED
 	}
 
 	var wr whitelistRecord
@@ -102,13 +96,13 @@ func (s *Settings) WhitelistRemove(ctx context.Context, domain string) (err erro
 	deleted := false
 	for index, w := range wr.Whitelist {
 		if w == domain {
-			wr.Whitelist = append(wr.Whitelist[:index],
-				append([]string{domain}, wr.Whitelist[index+1:]...)...)
+			wr.Whitelist = append(wr.Whitelist[:index], wr.Whitelist[index+1:]...)
 			deleted = true
 			break
 		}
 	}
 	if !deleted {
+		s.Debug(ctx, "WhitelistRemove: not found, doing nothing")
 		return nil
 	}
 	return s.storage.Put(ctx, settingsWhitelistName, wr)
