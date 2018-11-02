@@ -31,7 +31,7 @@ func NewAutoClaimRunner(remoter remote.Remoter) *AutoClaimRunner {
 // Kick the processor into gear.
 // It will run until all relays in the queue are claimed.
 // And then dismiss the gregor message.
-// `trigger` is of the gregor message that caused the kick.
+// `trigger` is optional, and is of the gregor message that caused the kick.
 func (r *AutoClaimRunner) Kick(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	mctx.CDebugf("AutoClaimRunner.Kick(trigger:%v)", trigger)
 	var onced bool
@@ -60,6 +60,7 @@ const (
 	autoClaimLoopActionSnooze    autoClaimLoopAction = "snooze"
 )
 
+// `trigger` is optional
 func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	var i int
 	for {
@@ -97,6 +98,7 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	}
 }
 
+// `trigger` is optional
 func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.MsgID) (action autoClaimLoopAction, err error) {
 	log := func(format string, args ...interface{}) {
 		mctx.CDebugf(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
@@ -122,11 +124,13 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 	}
 	if ac == nil {
 		log("no more autoclaims")
-		log("dismissing kick: %v", trigger)
-		err = mctx.G().GregorDismisser.DismissItem(mctx.Ctx(), nil, trigger)
-		if err != nil {
-			log("error dismissing gregor kick: %v", err)
-			return autoClaimLoopActionHibernate, err
+		if trigger.String() != "" {
+			log("dismissing kick: %v", trigger)
+			err = mctx.G().GregorDismisser.DismissItem(mctx.Ctx(), nil, trigger)
+			if err != nil {
+				log("error dismissing gregor kick: %v", err)
+				return autoClaimLoopActionHibernate, err
+			}
 		}
 		log("successfully dismissed kick")
 		return autoClaimLoopActionHibernate, nil

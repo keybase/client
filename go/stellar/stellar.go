@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
@@ -60,6 +61,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return false, err
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
+	go getGlobal(g).KickAutoClaimRunner(libkb.NewMetaContext(ctx, g), gregor1.MsgID{})
 	return true, nil
 }
 
