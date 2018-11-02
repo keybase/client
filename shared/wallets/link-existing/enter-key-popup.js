@@ -92,6 +92,7 @@ const styles = Styles.styleSheetCreate({
   error: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
+      textAlign: 'left',
       width: '100%',
     },
     isElectron: {
