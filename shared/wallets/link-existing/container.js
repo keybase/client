@@ -1,11 +1,10 @@
 // @flow
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
-import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 

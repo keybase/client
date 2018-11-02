@@ -8,7 +8,6 @@ const props = {
   error: '',
   nameValidationState: 'none',
   onCancel: Sb.action('onCancel'),
-  // onCheckName: Sb.action('onCheckName'),
   onClearErrors: Sb.action('onCancel'),
   onCreateAccount: Sb.action('onCreateAccount'),
   onDone: Sb.action('onDone'),

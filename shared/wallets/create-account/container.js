@@ -1,10 +1,9 @@
 // @flow
 import {capitalize} from 'lodash-es'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
-import {type RouteProps} from '../../route-tree/render-route'
 import CreateAccount from '.'
 
 type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>

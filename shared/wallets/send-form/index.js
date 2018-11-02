@@ -3,7 +3,6 @@ import * as React from 'react'
 import {isMobile} from '../../styles'
 import Root from './root'
 import {SendBody, RequestBody} from './body/container'
-import ChooseAsset from './choose-asset/container'
 import Confirm from '../confirm-form/container'
 
 type FormProps = {|
@@ -11,7 +10,7 @@ type FormProps = {|
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'choose-asset' | 'confirm',
+  currentScreen: 'root' | 'confirm',
 }
 
 // On desktop, we switch between views in this container.
@@ -23,7 +22,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   _setCurrentScreen = currentScreen =>
     this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
   backToRoot = () => this._setCurrentScreen('root')
-  chooseAsset = () => this._setCurrentScreen('choose-asset')
   confirm = () => this._setCurrentScreen('confirm')
   render() {
     if (isMobile) {
@@ -40,8 +38,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
             <SendBody isProcessing={undefined /* TODO */} />
           </Root>
         )
-      case 'choose-asset':
-        return <ChooseAsset onBack={this.backToRoot} />
       case 'confirm':
         return <Confirm onBack={this.backToRoot} />
       default:
