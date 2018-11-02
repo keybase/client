@@ -39,7 +39,7 @@ func NewPermanentUnboxingError(inner error) UnboxingError {
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+	return e.inner.Error()
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
