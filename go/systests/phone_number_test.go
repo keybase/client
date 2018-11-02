@@ -99,16 +99,23 @@ func TestResolvePhoneToUser(t *testing.T) {
 	require.Equal(t, fmt.Sprintf("%s,%s", ann.username, bob.username), lookupRes.DisplayName.String())
 }
 
-func TestInvalidPhoneNumberResolve(t *testing.T) {
+func TestServerTrustResolveInvalidInput(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
 	ann := tt.addUser("ann")
+
+	checkErr := func(err error) {
+		require.Error(t, err)
+		require.IsType(t, libkb.ResolutionError{}, err)
+		resErr := err.(libkb.ResolutionError)
+		require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
+	}
+
 	_, _, err := ann.tc.G.Resolver.ResolveUser(ann.MetaContext(), "111@phone")
-	require.Error(t, err)
-	require.IsType(t, libkb.ResolutionError{}, err)
-	resErr := err.(libkb.ResolutionError)
-	require.Equal(t, libkb.ResolutionErrorInvalidInput, resErr.Kind)
+	checkErr(err)
+	_, _, err = ann.tc.G.Resolver.ResolveUser(ann.MetaContext(), "[notvalid@x]@email")
+	checkErr(err)
 }
 
 type mockListener struct {
@@ -239,6 +246,12 @@ func TestImplicitTeamWithEmail(t *testing.T) {
 
 	t.Logf("Got display name back: %q", name.String())
 
+	seqnoAfterResolve := teamObj.NextSeqno()
+
+	// Verifying an email should RSVP the invitation which will notify
+	// (using SBS gregor msg) ann to resolve it.
 	err = kbtest.VerifyEmailAuto(bob.MetaContext(), email)
 	require.NoError(t, err)
+
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: teamID}, seqnoAfterResolve)
 }
