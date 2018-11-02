@@ -85,7 +85,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
     throw new Error('no route component to render without layerOnTop tag')
   }
 
-  const layerScreens = ownProps.routeStack.filter(r => r.tags.layerOnTop)
+  const layerScreens = ownProps.routeStack.filter(
+    (r, i) => r.tags.layerOnTop && (!r.tags.renderTopmostOnly || i === ownProps.routeStack.size - 1)
+  )
   return {
     layerScreens,
     onHotkey: dispatchProps._onHotkey,

@@ -1,7 +1,7 @@
 // @flow
 import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
 import {namedConnect} from '../../../util/container'
-import {bannerLevelToBackground} from '../../../constants/wallets'
+import * as Constants from '../../../constants/wallets'
 
 const mapStateToProps = state => ({
   banners: state.wallets.building.isRequest
@@ -11,10 +11,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...dispatchProps,
   banners: (stateProps.banners || []).map(banner => ({
-    bannerBackground: bannerLevelToBackground(banner.level),
+    bannerBackground: Constants.bannerLevelToBackground(banner.level),
     bannerText: banner.message,
   })),
 })

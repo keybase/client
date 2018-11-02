@@ -6,45 +6,52 @@ import {EnterNamePopup} from '../common'
 type Props = {|
   createNewAccountError: string,
   error: string,
-  name: string,
   nameValidationState: ValidationState,
   onBack?: () => void,
   onCancel: () => void,
   onClearErrors: () => void,
-  onCreateAccount: () => void,
-  onDone: () => void,
-  onNameChange: string => void,
+  onCreateAccount: (name: string) => void,
+  onDone: (name: string) => void,
   waiting: boolean,
 |}
 
-class CreateAccount extends React.Component<Props> {
-  render() {
-    return (
-      <EnterNamePopup
-        error={this.props.error || this.props.createNewAccountError}
-        name={this.props.name}
-        onBack={this.props.onBack}
-        onCancel={this.props.onCancel}
-        onNameChange={this.props.onNameChange}
-        onPrimaryClick={this.props.onDone}
-        waiting={this.props.waiting}
-      />
-    )
-  }
+type State = {|
+  name: string,
+|}
+class CreateAccount extends React.Component<Props, State> {
+  state = {name: ''}
+  _onNameChange = name => this.setState({name})
+  _onDone = () => this.props.onDone(this.state.name)
 
   componentDidMount() {
     this.props.onClearErrors()
   }
+
   componentWillUnmount() {
     this.props.onClearErrors()
   }
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
-      this.props.onCreateAccount()
+      this.props.onCreateAccount(this.state.name)
       // This is for when we are showing this from a SendForm.
       this.props.onBack && this.props.onBack()
     }
+  }
+
+  render() {
+    return (
+      <EnterNamePopup
+        error={this.props.error || this.props.createNewAccountError}
+        name={this.state.name}
+        onBack={this.props.onBack}
+        onCancel={this.props.onCancel}
+        onNameChange={this._onNameChange}
+        onPrimaryClick={this._onDone}
+        waiting={this.props.waiting}
+      />
+    )
   }
 }
 

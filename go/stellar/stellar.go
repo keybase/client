@@ -343,17 +343,11 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return res, err
 	}
 
-	idRes, err := identifyRecipient(m, string(to), isCLI)
+	maybeUsername, err := lookupRecipientAssertion(m, string(to), isCLI)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("LookupRecipient: identify result for %s: %+v", to, idRes)
-	if idRes.Breaks != nil {
-		m.CDebugf("LookupRecipient: TrackBreaks = %+v", idRes.Breaks)
-		return res, libkb.TrackingBrokeError{}
-	}
-
-	if idRes.User.Username == "" {
+	if maybeUsername == "" {
 		expr, err := externals.AssertionParse(m.G(), string(to))
 		if err != nil {
 			m.CDebugf("error parsing assertion: %s", err)
@@ -374,11 +368,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return res, nil
 	}
 
-	username := idRes.User.Username
-
 	// load the user to get their wallet
 	user, err := libkb.LoadUser(
-		libkb.NewLoadUserByNameArg(m.G(), username).
+		libkb.NewLoadUserByNameArg(m.G(), maybeUsername).
 			WithNetContext(m.Ctx()).
 			WithPublicKeyOptional())
 	if err != nil {
@@ -897,48 +889,65 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	}
 }
 
-func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keybase1.TLFIdentifyFailure, error) {
+// When isCLI : Identifies the recipient checking track breaks and all.
+// When not isCLI: Does a verified lookup of the assertion.
+// Returns an error if a resolution was found but failed.
+// Returns ("", nil) if no resolution was found.
+func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool) (maybeUsername string, err error) {
+	defer m.CTraceTimed(fmt.Sprintf("Stellar.lookupRecipientAssertion(isCLI:%v, %v)", isCLI, assertion), func() error { return err })()
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
-	// gui will use RESOLVE_AND_CHECK behavior
+	// GUI is a verified lookup modeled after func ResolveAndCheck.
 	arg := keybase1.Identify2Arg{
-		UserAssertion:    assertion,
-		UseDelegateUI:    true,
-		Reason:           keybase1.IdentifyReason{Reason: reason},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+		UserAssertion:         assertion,
+		CanSuppressUI:         true,
+		ActLoggedOut:          true,
+		NoErrorOnTrackFailure: true,
+		Reason:                keybase1.IdentifyReason{Reason: reason},
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 	}
 	if isCLI {
-		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CLI
+		// CLI is a real identify
+		arg = keybase1.Identify2Arg{
+			UserAssertion:    assertion,
+			UseDelegateUI:    true,
+			Reason:           keybase1.IdentifyReason{Reason: reason},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+		}
 	}
 
 	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
-	err := engine.RunEngine2(m, eng)
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		// Ignore these errors
+		// These errors mean no resolution was found.
 		if _, ok := err.(libkb.NotFoundError); ok {
 			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
-			return keybase1.TLFIdentifyFailure{}, nil
+			return "", nil
 		}
 		if _, ok := err.(libkb.ResolutionError); ok {
 			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
-			return keybase1.TLFIdentifyFailure{}, nil
+			return "", nil
 		}
-		return keybase1.TLFIdentifyFailure{}, err
+		return "", err
 	}
 
-	resp, err := eng.Result(m)
+	idRes, err := eng.Result(m)
 	if err != nil {
-		return keybase1.TLFIdentifyFailure{}, err
+		return "", err
 	}
-	m.CDebugf("identifyRecipient: uv: %v", resp.Upk.Current.ToUserVersion())
-
-	var frep keybase1.TLFIdentifyFailure
-	frep.User = keybase1.User{
-		Uid:      resp.Upk.GetUID(),
-		Username: resp.Upk.GetName(),
+	m.CDebugf("lookupRecipientAssertion: identify result for %v: %+v", assertion, idRes)
+	if idRes == nil {
+		return "", fmt.Errorf("missing identify result")
 	}
-	frep.Breaks = resp.TrackBreaks
-
-	return frep, nil
+	m.CDebugf("lookupRecipientAssertion: uv: %v", idRes.Upk.Current.ToUserVersion())
+	username := idRes.Upk.GetName()
+	if username == "" {
+		return "", fmt.Errorf("empty identify result username")
+	}
+	if isCLI && idRes.TrackBreaks != nil {
+		m.CDebugf("lookupRecipientAssertion: TrackBreaks = %+v", idRes.TrackBreaks)
+		return "", libkb.TrackingBrokeError{}
+	}
+	return username, nil
 }
 
 func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
