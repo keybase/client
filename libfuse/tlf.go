@@ -26,11 +26,16 @@ type TLF struct {
 
 	dirLock sync.RWMutex
 	dir     *Dir
+
+	// We never set quarantine on TLF roots, so don't bother with getting a dir
+	// and calling the method on it. Instead, just use this dumb handler to
+	// always return fuse.ENOTSUP.
+	NoXattrHandler
 }
 
-func newTLF(fl *FolderList, h *libkbfs.TlfHandle,
+func newTLF(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle,
 	name tlf.PreferredName) *TLF {
-	folder := newFolder(fl, h, name)
+	folder := newFolder(ctx, fl, h, name)
 	tlf := &TLF{
 		folder: folder,
 		inode:  fl.fs.assignInode(),
@@ -203,7 +208,7 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 
 	branch, isArchivedBranch := libfs.BranchNameFromArchiveRefDir(req.Name)
 	if isArchivedBranch {
-		archivedTLF := newTLF(
+		archivedTLF := newTLF(ctx,
 			tlf.folder.list, tlf.folder.h, tlf.folder.hPreferredName)
 		_, _, err := archivedTLF.loadArchivedDir(ctx, branch)
 		if err != nil {

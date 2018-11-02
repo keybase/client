@@ -58,6 +58,7 @@ type File struct {
 	folder *Folder
 	node   libkbfs.Node
 	inode  uint64
+	XattrHandler
 
 	eiCache eiCacheHolder
 }

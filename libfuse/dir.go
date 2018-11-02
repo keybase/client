@@ -53,9 +53,10 @@ type Folder struct {
 	// file system.  Sending a struct{}{} on this channel will unpause
 	// the updates.
 	updateChan chan<- struct{}
+	quarantine bool
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
+func newFolder(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle,
 	hPreferredName tlf.PreferredName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
@@ -63,6 +64,7 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
 		h:              h,
 		hPreferredName: hPreferredName,
 		nodes:          map[libkbfs.NodeID]fs.Node{},
+		quarantine:     !libfs.IsOnlyWriterInNonTeamTlf(ctx, fl.fs.config.KBPKI(), h),
 	}
 	return f
 }
@@ -432,6 +434,8 @@ type DirInterface interface {
 	fs.NodeForgetter
 	fs.NodeSetattrer
 	fs.NodeFsyncer
+	fs.NodeGetxattrer
+	fs.NodeSetxattrer
 }
 
 // Dir represents a subdirectory of a KBFS top-level folder (including
@@ -440,6 +444,7 @@ type Dir struct {
 	folder *Folder
 	node   libkbfs.Node
 	inode  uint64
+	XattrHandler
 }
 
 func newDirWithInode(folder *Folder, node libkbfs.Node, inode uint64) *Dir {
@@ -447,6 +452,11 @@ func newDirWithInode(folder *Folder, node libkbfs.Node, inode uint64) *Dir {
 		folder: folder,
 		node:   node,
 		inode:  inode,
+	}
+	if folder.quarantine {
+		d.XattrHandler = NewQuarantineXattrHandler(node, folder)
+	} else {
+		d.XattrHandler = NoXattrHandler{}
 	}
 	return d
 }
@@ -504,6 +514,20 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	return nil
 }
 
+func (d *Dir) makeFile(node libkbfs.Node) (file *File) {
+	file = &File{
+		folder: d.folder,
+		node:   node,
+		inode:  d.folder.fs.assignInode(),
+	}
+	if d.folder.quarantine {
+		file.XattrHandler = NewQuarantineXattrHandler(node, d.folder)
+	} else {
+		file.XattrHandler = NoXattrHandler{}
+	}
+	return file
+}
+
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Lookup",
@@ -559,11 +583,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return nil, fmt.Errorf("unhandled entry type: %v", de.Type)
 
 	case libkbfs.File, libkbfs.Exec:
-		child := &File{
-			folder: d.folder,
-			node:   newNode,
-			inode:  d.folder.fs.assignInode(),
-		}
+		child := d.makeFile(newNode)
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
 
@@ -608,11 +628,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		return nil, nil, err
 	}
 
-	child := &File{
-		folder: d.folder,
-		node:   newNode,
-		inode:  d.folder.fs.assignInode(),
-	}
+	child := d.makeFile(newNode)
 
 	// Create is normally followed an Attr call. Fuse uses the same context for
 	// them. If the context is cancelled after the Create call enters the

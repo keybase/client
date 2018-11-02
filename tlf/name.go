@@ -158,3 +158,20 @@ func CanonicalToPreferredName(username kbname.NormalizedUsername,
 	}
 	return PreferredName(tlfname), nil
 }
+
+// UserIsOnlyWriter returns true if and only if username is the only writer in
+// a TLF represented by canon. In any error case, false is returned. This
+// function only naively looks at the TLF name, so it should only be used on
+// non-team TLFs.
+func UserIsOnlyWriter(username kbname.NormalizedUsername, canon CanonicalName) bool {
+	tlfname := string(canon)
+	if len(username) == 0 {
+		return false
+	}
+	ws, _, _, err := SplitName(tlfname)
+	if err != nil {
+		return false
+	}
+	fmt.Printf("SONGGAO %s %s %#+v\n", username, canon, ws)
+	return len(ws) == 1 && ws[0] == string(username)
+}

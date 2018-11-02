@@ -219,7 +219,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	if err != nil {
 		return nil, err
 	}
-	child := newTLF(fl, h, h.GetPreferredFormat(session.Name))
+	child := newTLF(ctx, fl, h, h.GetPreferredFormat(session.Name))
 	fl.folders[req.Name] = child
 	return child, nil
 }
