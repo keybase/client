@@ -88,7 +88,7 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
 }
 
 bool filterWritableEntries(NSDictionary* entry) {
-    return [entry objectForKey:@"writable"];
+  return [entry objectForKey:@"writable"];
 }
 
 - (void)parseFiles:(NSString*)jsonFiles {
@@ -98,21 +98,21 @@ bool filterWritableEntries(NSDictionary* entry) {
   NSArray* sortedAndFilteredItems;
   if (!items) {
     if (error) {
-        NSLog(@"parseFiles: error parsing JSON: %@", error);
+      NSLog(@"parseFiles: error parsing JSON: %@", error);
     }
     // At least show an empty folder.
     sortedAndFilteredItems = [[NSArray alloc] init];
   } else {
-      // Sort items: directories first, then alphabetically.
-      sortedAndFilteredItems = [items sortedArrayUsingFunction:sortEntries context:NULL];
-      
-      // For paths deeper than 2, filter out folders that aren't writable.
-      unsigned long pathLength = [self pathLength];
-      if (pathLength > 2) {
-          sortedAndFilteredItems = [sortedAndFilteredItems filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id entry, NSDictionary* bindings) {
-              return [entry objectForKey:@"writable"];
-          }]];
-      }
+    // Sort items: directories first, then alphabetically.
+    sortedAndFilteredItems = [items sortedArrayUsingFunction:sortEntries context:NULL];
+    
+    // For paths deeper than 2, filter out folders that aren't writable.
+    unsigned long pathLength = [self pathLength];
+    if (pathLength > 2) {
+      sortedAndFilteredItems = [sortedAndFilteredItems filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id entry, NSDictionary* bindings) {
+        return [entry objectForKey:@"writable"];
+      }]];
+    }
   }
   if ([self.path isEqualToString:@"/"]) {
     // If we're at the root, don't show a back navigation item.
@@ -137,11 +137,11 @@ bool filterWritableEntries(NSDictionary* entry) {
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+  return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [self.directoryEntries count];
+  return [self.directoryEntries count];
 }
 
 - (NSDictionary*)getItemAtIndex:(NSIndexPath*)indexPath {
@@ -202,7 +202,8 @@ bool filterWritableEntries(NSDictionary* entry) {
     NSString* pathName = pathElems[pathLength - 2];
     [self setTitle:pathName];
     if (pathLength >= 4) {
-      // Allow selecting any folder under the TLF level, without permissions checks.
+      // Allow selecting any folder under the TLF level, since we've already filtered to writable
+      // folders only.
       UIBarButtonItem* doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Send here" style:UIBarButtonItemStyleDone target:self action:@selector(sendPathToDelegate)];
       self.navigationItem.rightBarButtonItem = doneButton;
     } else {
