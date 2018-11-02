@@ -14,29 +14,29 @@ declare type MergeProps<A, B, C, D> = (stateProps: A, dispatchProps: B, ownProps
 // Com: Wrapped component
 // prettier-ignore
 declare export default function connect<
+  OwnProps,
   RMP,
   Com: ComponentType<RMP>,
   RSP,
-  RDP,
-  OP>(
-  mapStateToProps: MapStateToProps<OP, RSP>,
-  mapDispatchToProps: MapDispatchToProps<OP, RDP>,
-  mergeProps: MergeProps<RSP, RDP, OP, RMP>
-): (component: Com) => ComponentType<OP>
+  RDP>(
+  mapStateToProps: MapStateToProps<OwnProps, RSP>,
+  mapDispatchToProps: MapDispatchToProps<OwnProps, RDP>,
+  mergeProps: MergeProps<RSP, RDP, OwnProps, RMP>
+): (component: Com) => ComponentType<OwnProps>
 
 // convenience for compose(connect, setDisplayName)
 // prettier-ignore
 declare export function namedConnect<
+  OwnProps,
   RMP,
   Com: ComponentType<RMP>,
   RSP,
-  RDP,
-  OP>(
-  mapStateToProps: MapStateToProps<OP, RSP>,
-  mapDispatchToProps: MapDispatchToProps<OP, RDP>,
-  mergeProps: MergeProps<RSP, RDP, OP, RMP>,
+  RDP>(
+  mapStateToProps: MapStateToProps<OwnProps, RSP>,
+  mapDispatchToProps: MapDispatchToProps<OwnProps, RDP>,
+  mergeProps: MergeProps<RSP, RDP, OwnProps, RMP>,
   displayName: string
-): (component: Com) => ComponentType<OP>
+): (component: Com) => ComponentType<OwnProps>
 // See how spread is currently broken https://github.com/facebook/flow/issues/6526
 // type SpreadWorkaround<A, B> = $Rest<A, B> & B
 //
@@ -60,3 +60,4 @@ declare export function namedConnect<
 // mapStateToProps: MapStateToProps<OP, RSP>,
 // mapDispatchToProps: MapDispatchToProps<OP, RDP>
 // ): (component: Com) => ComponentType<OP>
+//
