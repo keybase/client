@@ -918,7 +918,7 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		// These errors means no resolution was found.
+		// These errors mean no resolution was found.
 		if _, ok := err.(libkb.NotFoundError); ok {
 			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
 			return "", nil
