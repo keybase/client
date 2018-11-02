@@ -3,14 +3,13 @@ import * as React from 'react'
 import {isMobile} from '../../styles'
 import Root from './root'
 import {SendBody, RequestBody} from './body/container'
-import Confirm from '../confirm-form/container'
 
 type FormProps = {|
   onClose: () => void,
 |}
 
 type SendFormState = {
-  currentScreen: 'root' | 'confirm',
+  currentScreen: 'root',
 }
 
 // On desktop, we switch between views in this container.
@@ -22,7 +21,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
   _setCurrentScreen = currentScreen =>
     this.setState(s => (s.currentScreen === currentScreen ? null : {currentScreen}))
   backToRoot = () => this._setCurrentScreen('root')
-  confirm = () => this._setCurrentScreen('confirm')
   render() {
     if (isMobile) {
       return (
@@ -38,8 +36,6 @@ class SendForm extends React.PureComponent<FormProps, SendFormState> {
             <SendBody isProcessing={undefined /* TODO */} />
           </Root>
         )
-      case 'confirm':
-        return <Confirm onBack={this.backToRoot} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (currentScreen: empty) => any
