@@ -593,6 +593,12 @@ export const remoteSyncAllProtVers = {
   v1: 1,
 }
 
+export const unfurlUnfurlMode = {
+  always: 0,
+  never: 1,
+  whitelisted: 2,
+}
+
 export const unfurlUnfurlType = {
   generic: 0,
   youtube: 1,
@@ -1049,7 +1055,13 @@ export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
 export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
+export type UnfurlMode =
+  | 0 // ALWAYS_0
+  | 1 // NEVER_1
+  | 2 // WHITELISTED_2
+
 export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
+export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist?: ?Array<String>}>
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1
