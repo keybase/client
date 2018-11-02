@@ -36,20 +36,15 @@ const mapDispatchToProps = dispatch => ({
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   bottomLabel: stateProps.bottomLabel,
   displayUnit: stateProps.displayUnit,
   inputPlaceholder: stateProps.inputPlaceholder,
   numDecimalsAllowed: stateProps.numDecimalsAllowed,
   onChangeAmount: dispatchProps.onChangeAmount,
-  onChangeDisplayUnit: ownProps.onChooseAsset || dispatchProps.onChangeDisplayUnit,
+  onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
   topLabel: stateProps.topLabel,
   value: stateProps.value,
 })
 
-export default namedConnect(
-   mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-  'AssetInput'
-)(AssetInput)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AssetInput')(AssetInput)

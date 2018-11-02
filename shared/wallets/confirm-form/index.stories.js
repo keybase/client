@@ -23,14 +23,14 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const confirmProps = {
+  displayAmountFiat: '$3.00 USD',
+  displayAmountXLM: '1.234 XLM',
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
   sendFailed: false,
-  waiting: false,
   sendingIntentionXLM: true,
-  displayAmountXLM: '1.234 XLM',
-  displayAmountFiat: '$3.00 USD',
+  waitingKey: 'false',
 }
 
 const publicMemo = "Here's some Lumens!"
@@ -48,7 +48,7 @@ const load = () => {
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
     .add('To User', () => <ConfirmSend {...confirmProps} />)
-    .add('Waiting', () => <ConfirmSend {...confirmProps} waiting={true} />)
+    .add('Waiting', () => <ConfirmSend {...confirmProps} waitingKey="true" />)
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)
     .add('With a public memo and encrypted note', () => (
