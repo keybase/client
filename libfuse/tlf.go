@@ -186,7 +186,7 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 				ctx, "Avoiding TLF loading for name %s", req.Name)
 			return nil, fuse.ENOENT
 		}
-		dir.Lookup(ctx, req, resp)
+		return dir.Lookup(ctx, req, resp)
 	}
 
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
