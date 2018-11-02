@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -29,15 +28,15 @@ func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteI
 
 func (s *DevConversationBackedStorage) Put(ctx context.Context, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
-	if s.G().ActiveDevice == nil {
-		return libkb.LoggedInError{}
+	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	if err != nil {
+		return err
 	}
+	username := s.G().ActiveDevice.Username(libkb.NewMetaContext(ctx, s.G().ExternalG())).String()
 	dat, err := json.Marshal(src)
 	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(s.G().ActiveDevice.UID().ToBytes())
-	username := s.G().ActiveDevice.Username(libkb.NewMetaContext(ctx, s.G().ExternalG())).String()
 	conv, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri)
 	if err != nil {
@@ -61,10 +60,10 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, name string, src
 
 func (s *DevConversationBackedStorage) Get(ctx context.Context, name string, dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
-	if s.G().ActiveDevice == nil {
-		return false, libkb.LoggedInError{}
+	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	if err != nil {
+		return false, err
 	}
-	uid := gregor1.UID(s.G().ActiveDevice.UID().ToBytes())
 	username := s.G().ActiveDevice.Username(libkb.NewMetaContext(ctx, s.G().ExternalG())).String()
 
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, true, s.ri, uid, username,
