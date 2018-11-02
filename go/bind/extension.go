@@ -329,6 +329,26 @@ func ExtensionListPath(p string) (res string, err error) {
 	return string(dat), nil
 }
 
+func ExtensionShareFile(sourcePath, targetFolder, name string) (err error) {
+	defer kbCtx.Trace("ExtensionShareFile", func() error { return err })()
+	ctx := context.Background()
+	simpleFS := simplefs.NewSimpleFS(extensionKbfsCtx, kbfsConfig)
+	opID, err := simpleFS.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = simpleFS.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
+		OpID: opID,
+		Src:  keybase1.NewPathWithLocal(sourcePath),
+		Dest: keybase1.NewPathWithKbfs(targetFolder + name),
+	})
+	if err != nil {
+		return err
+	}
+	return simpleFS.SimpleFSWait(ctx, opID)
+}
+
 func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1.DeviceID, err error) {
 	deviceID := gc.ActiveDevice.DeviceID()
 	if deviceID.IsNil() {
