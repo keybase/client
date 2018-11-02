@@ -28,6 +28,7 @@ func newCmdChatDownload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Action: func(c *cli.Context) {
 			cmd := &CmdChatDownload{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "download", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
