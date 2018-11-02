@@ -22,7 +22,7 @@ const mapStateToProps = state => {
       ]
     : []
   ).concat(
-    (built.banners || []).map(banner => ({
+    (built.banners || []).filter(banner => !banner.hideOnConfirm).map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
     }))
