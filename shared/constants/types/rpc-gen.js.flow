@@ -1379,6 +1379,8 @@ export const kbfsCommonFSErrorType = {
   exdevNotSupported: 12,
   diskLimitReached: 13,
   diskCacheErrorLogSend: 14,
+  offlineArchived: 15,
+  offlineUnsynced: 16,
 }
 
 export const kbfsCommonFSNotificationType = {
@@ -1890,6 +1892,8 @@ export type FSErrorType =
   | 12 // EXDEV_NOT_SUPPORTED_12
   | 13 // DISK_LIMIT_REACHED_13
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
+  | 15 // OFFLINE_ARCHIVED_15
+  | 16 // OFFLINE_UNSYNCED_16
 
 export type FSFolderEditHistory = $ReadOnly<{folder: Folder, serverTime: Time, history?: ?Array<FSFolderWriterEditHistory>}>
 export type FSFolderWriterEdit = $ReadOnly<{filename: String, notificationType: FSNotificationType, serverTime: Time}>
