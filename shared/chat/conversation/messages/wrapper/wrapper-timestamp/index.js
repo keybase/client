@@ -133,15 +133,16 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {(props.message.type === 'text' ||
           props.message.type === 'attachment' ||
           props.message.type === 'sendPayment' ||
-          props.message.type === 'requestPayment') && (
-          <MessagePopup
-            attachTo={props.getAttachmentRef}
-            message={props.message}
-            onHidden={props.toggleShowingMenu}
-            position="top center"
-            visible={props.showingMenu}
-          />
-        )}
+          props.message.type === 'requestPayment') &&
+          props.shouldShowPopup && (
+            <MessagePopup
+              attachTo={props.getAttachmentRef}
+              message={props.message}
+              onHidden={props.toggleShowingMenu}
+              position="top center"
+              visible={props.showingMenu}
+            />
+          )}
       </Box>
     )
   }
