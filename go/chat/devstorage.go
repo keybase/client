@@ -22,6 +22,7 @@ type DevConversationBackedStorage struct {
 func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
 	return &DevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DevConversationBackedStorage", false),
 		ri:           ri,
 	}
 }
