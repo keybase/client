@@ -36,6 +36,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
   }
 }
 
@@ -78,6 +79,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     orangeLineAbove: stateProps.orangeLineAbove,
     ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: stateProps.shouldShowPopup,
     timestamp,
     type,
   }
