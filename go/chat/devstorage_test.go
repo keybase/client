@@ -54,4 +54,8 @@ func TestDevConversationBackedStorage(t *testing.T) {
 	require.Equal(t, chat1.UnfurlMode_WHITELISTED, settingsRes.Mode)
 	require.Equal(t, 1, len(settingsRes.Whitelist))
 	require.Equal(t, "MIKE", settingsRes.Whitelist[0])
+
+	found, err = storage.Get(ctx, "AHHHHH CANT FIND ME", &settingsRes)
+	require.NoError(t, err)
+	require.False(t, found)
 }
