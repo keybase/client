@@ -1,11 +1,13 @@
 // @flow
-import {namedConnect} from '../../../../../util/container'
+import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
@@ -19,6 +21,7 @@ const mapStateToProps = (state, {routeProps}) => {
     waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
   }
 }
+
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createSecretKeySeen({accountID}))
@@ -33,6 +36,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     ),
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
@@ -43,9 +47,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
   'ReallyRemoveAccountPopup'
 )(ReallyRemoveAccountPopup)
