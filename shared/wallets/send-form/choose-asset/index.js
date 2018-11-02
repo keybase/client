@@ -36,13 +36,14 @@ type ExpanderItem = {
   type: 'expander',
 }
 
-export type Props = {
+export type Props = {|
   displayChoices: Array<DisplayItem>,
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
+  onRefresh: () => void,
   otherChoices: Array<OtherItem>,
   selected: string,
-}
+|}
 
 type State = {
   expanded: boolean,
@@ -50,6 +51,10 @@ type State = {
 
 class ChooseAsset extends React.Component<Props, State> {
   state = {expanded: false}
+
+  componentDidMount() {
+    this.props.onRefresh()
+  }
 
   _renderItem = ({
     item,
@@ -115,9 +120,11 @@ class ChooseAsset extends React.Component<Props, State> {
 
   render() {
     const expanded = this.state.expanded || !this.props.otherChoices || this.props.otherChoices.length === 0
-    const displayChoicesData = this.props.displayChoices && this.props.displayChoices
-      .slice(0, expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
-      .map(dc => ({...dc, key: dc.currencyCode}))
+    const displayChoicesData =
+      this.props.displayChoices &&
+      this.props.displayChoices
+        .slice(0, expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
+        .map(dc => ({...dc, key: dc.currencyCode}))
     if (this.props.displayChoices && !expanded) {
       displayChoicesData.push({
         key: 'expander',

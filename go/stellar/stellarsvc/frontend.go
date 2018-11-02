@@ -896,8 +896,9 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			readyChecklist.to = true
 			addMinBanner := func(them, amount string) {
 				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "info",
-					Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
+					HideOnConfirm: true,
+					Level:         "info",
+					Message:       fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
 				})
 			}
 			bannerThem := "their"

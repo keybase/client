@@ -378,15 +378,16 @@ func (d *Service) purgeOldChatAttachmentData() {
 }
 
 func (d *Service) startChatModules() {
-	uid := d.G().Env.GetUID()
-	if !uid.IsNil() {
-		uid := d.G().Env.GetUID().ToBytes()
+	kuid := d.G().Env.GetUID()
+	if !kuid.IsNil() {
+		uid := kuid.ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
+		g.Indexer.Start(chat.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -397,6 +398,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
 	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
+	<-d.ChatG().Indexer.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {

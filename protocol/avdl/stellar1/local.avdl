@@ -322,6 +322,8 @@ protocol local {
     // Set if this banner means the user's proofs have changed and that is blocking the payment.
     // `message` may be blank in this case.
     boolean proofsChanged;
+    // Set if this banner should be hidden on the confirm screen
+    boolean hideOnConfirm;
   }
 
   // Send a payment
