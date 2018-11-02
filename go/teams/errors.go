@@ -468,3 +468,13 @@ func NewFTLMissingSeedError(g keybase1.PerTeamKeyGeneration) error {
 func (e FTLMissingSeedError) Error() string {
 	return fmt.Sprintf("FTL Missing seed at generation: %d", e.gen)
 }
+
+type MixedEmailAssertionError struct{}
+
+func NewMixedEmailAssertionError() error {
+	return MixedEmailAssertionError{}
+}
+
+func (e MixedEmailAssertionError) Error() string {
+	return "cannot add team members with mixed trust"
+}
