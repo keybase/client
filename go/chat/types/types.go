@@ -251,6 +251,10 @@ func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.Ephemer
 
 type DummyIndexer struct{}
 
+func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
