@@ -168,6 +168,7 @@ func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *s
 	section["visible_parent"] = boxed.VisParentB64
 	section["version_parent"] = boxed.FormatVersionParent
 	section["account_bundles"] = boxed.AcctBundles
+	section["miniversion_parent"] = 2
 	payload["stellar"] = section
 	_, err = g.API.PostJSON(libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
