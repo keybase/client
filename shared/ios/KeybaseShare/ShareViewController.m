@@ -514,8 +514,8 @@ const BOOL isSimulator = NO;
   [self setFolderTarget:folderPath];
   [self setConvTarget:nil];
   [self validateContent];
-  [self reloadConfigurationItems];
   [self popConfigurationViewController];
+  [self didSelectPost];
 }
 
 @end

@@ -14,7 +14,7 @@
 @property NSArray* directoryEntries; // the directory entries at the current path
 @end
 
-NSString* const UpOneLevel = @".. [Up one level]";
+NSString* const UpOneLevel = @"⤴ [up one level]";
 
 @implementation FilesViewController
 
@@ -79,10 +79,13 @@ NSInteger sortEntries(NSDictionary* one, NSDictionary* two, void* context) {
   int t1 = [[one objectForKey:@"direntType"] intValue];
   int t2 = [[two objectForKey:@"direntType"] intValue];
   if (t1 == 1 && t2 != 1) {
+    // `one` is a folder and `two` isn't.
     return NSOrderedAscending;
   } else if (t2 == 1 && t1 != 1) {
+    // `two` is a folder and `one` isn't.
     return NSOrderedDescending;
   } else {
+    // Both are a folder or neither is.
     return [one[@"name"] compare:two[@"name"]];
   }
 }
@@ -157,7 +160,7 @@ bool filterWritableEntries(NSDictionary* entry) {
   NSDictionary* item = [self getItemAtIndex:indexPath];
   [[cell textLabel] setText:item[@"name"]];
   if ([[item objectForKey:@"direntType"] intValue] == 1) {
-    // Style folders differently from files.
+    // Style folders differently from files. Use Keybase blue.
     [[cell textLabel] setTextColor:[UIColor colorWithRed:76.0/255.0 green:142.0/255.0 blue:1 alpha:1]];
   } else {
     [[cell textLabel] setTextColor:[UIColor colorWithRed:0 green:0 blue:0 alpha:1]];
