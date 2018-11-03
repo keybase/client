@@ -292,6 +292,58 @@ func (o Unfurl) DeepCopy() Unfurl {
 	}
 }
 
+type UnfurlMode int
+
+const (
+	UnfurlMode_ALWAYS      UnfurlMode = 0
+	UnfurlMode_NEVER       UnfurlMode = 1
+	UnfurlMode_WHITELISTED UnfurlMode = 2
+)
+
+func (o UnfurlMode) DeepCopy() UnfurlMode { return o }
+
+var UnfurlModeMap = map[string]UnfurlMode{
+	"ALWAYS":      0,
+	"NEVER":       1,
+	"WHITELISTED": 2,
+}
+
+var UnfurlModeRevMap = map[UnfurlMode]string{
+	0: "ALWAYS",
+	1: "NEVER",
+	2: "WHITELISTED",
+}
+
+func (e UnfurlMode) String() string {
+	if v, ok := UnfurlModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UnfurlSettings struct {
+	Mode      UnfurlMode      `codec:"mode" json:"mode"`
+	Whitelist map[string]bool `codec:"whitelist" json:"whitelist"`
+}
+
+func (o UnfurlSettings) DeepCopy() UnfurlSettings {
+	return UnfurlSettings{
+		Mode: o.Mode.DeepCopy(),
+		Whitelist: (func(x map[string]bool) map[string]bool {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]bool, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Whitelist),
+	}
+}
+
 type UnfurlInterface interface {
 }
 

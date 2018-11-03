@@ -46,4 +46,14 @@ protocol unfurl {
         case YOUTUBE: UnfurlYoutube;
     }
 
+    enum UnfurlMode {
+        ALWAYS_0,
+        NEVER_1,
+        WHITELISTED_2
+    }
+
+    record UnfurlSettings {
+        UnfurlMode mode;
+        map<string, boolean> whitelist;
+    }
 }
