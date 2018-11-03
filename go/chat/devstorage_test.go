@@ -22,7 +22,8 @@ func TestDevConversationBackedStorage(t *testing.T) {
 	key1 := "storage1"
 	storage := NewDevConversationBackedStorage(tc.Context(), func() chat1.RemoteInterface { return ri })
 	settings := chat1.UnfurlSettings{
-		Mode: chat1.UnfurlMode_WHITELISTED,
+		Mode:      chat1.UnfurlMode_WHITELISTED,
+		Whitelist: make(map[string]bool),
 	}
 	require.NoError(t, storage.Put(ctx, key0, settings))
 	var settingsRes chat1.UnfurlSettings
@@ -41,7 +42,7 @@ func TestDevConversationBackedStorage(t *testing.T) {
 	require.Zero(t, len(settingsRes.Whitelist))
 
 	settings.Mode = chat1.UnfurlMode_WHITELISTED
-	settings.Whitelist = append(settings.Whitelist, "MIKE")
+	settings.Whitelist["MIKE"] = true
 	require.NoError(t, storage.Put(ctx, key1, settings))
 	found, err = storage.Get(ctx, key0, &settingsRes)
 	require.NoError(t, err)
@@ -53,7 +54,7 @@ func TestDevConversationBackedStorage(t *testing.T) {
 	require.True(t, found)
 	require.Equal(t, chat1.UnfurlMode_WHITELISTED, settingsRes.Mode)
 	require.Equal(t, 1, len(settingsRes.Whitelist))
-	require.Equal(t, "MIKE", settingsRes.Whitelist[0])
+	require.True(t, settingsRes.Whitelist["MIKE"])
 
 	found, err = storage.Get(ctx, "AHHHHH CANT FIND ME", &settingsRes)
 	require.NoError(t, err)
