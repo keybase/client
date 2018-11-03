@@ -890,7 +890,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		recipient, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
-			res.ToErrMsg = "recipient not found"
+			res.ToErrMsg = "Recipient not found."
 			skipRecipient = true
 		} else {
 			readyChecklist.to = true
@@ -1349,7 +1349,7 @@ func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildReques
 		_, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
-			res.ToErrMsg = "recipient not found"
+			res.ToErrMsg = "Recipient not found."
 			skipRecipient = true
 		} else {
 			readyChecklist.to = true
