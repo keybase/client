@@ -1061,7 +1061,7 @@ export type UnfurlMode =
   | 2 // WHITELISTED_2
 
 export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
-export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist?: ?Array<String>}>
+export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist: {[key: string]: Boolean}}>
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1

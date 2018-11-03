@@ -322,21 +322,22 @@ func (e UnfurlMode) String() string {
 }
 
 type UnfurlSettings struct {
-	Mode      UnfurlMode `codec:"mode" json:"mode"`
-	Whitelist []string   `codec:"whitelist" json:"whitelist"`
+	Mode      UnfurlMode      `codec:"mode" json:"mode"`
+	Whitelist map[string]bool `codec:"whitelist" json:"whitelist"`
 }
 
 func (o UnfurlSettings) DeepCopy() UnfurlSettings {
 	return UnfurlSettings{
 		Mode: o.Mode.DeepCopy(),
-		Whitelist: (func(x []string) []string {
+		Whitelist: (func(x map[string]bool) map[string]bool {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
-			for i, v := range x {
+			ret := make(map[string]bool, len(x))
+			for k, v := range x {
+				kCopy := k
 				vCopy := v
-				ret[i] = vCopy
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.Whitelist),
