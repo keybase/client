@@ -36,6 +36,15 @@ func NewExtractor(log logger.Logger) *Extractor {
 	}
 }
 
+func (e *Extractor) isWhitelistHit(ctx context.Context, hit string, whitelist map[string]bool) bool {
+	domain, err := GetDomain(hit)
+	if err != nil {
+		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
+		return false
+	}
+	return whitelist[domain]
+}
+
 func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Settings) (res []ExtractorHit, err error) {
 	defer e.Trace(ctx, func() error { return err }, "Extract")()
 	settings, err := userSettings.Get(ctx)
@@ -55,4 +64,15 @@ func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Sett
 		}
 		return res, nil
 	}
+	for _, h := range hits {
+		ehit := ExtractorHit{
+			URL: h,
+			Typ: ExtractorHitPrompt,
+		}
+		if e.isWhitelistHit(ctx, h, settings.Whitelist) {
+			ehit.Typ = ExtractorHitUnfurl
+		}
+		res = append(res, ehit)
+	}
+	return res, nil
 }
