@@ -24,6 +24,56 @@ func TestExtractor(t *testing.T) {
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_NEVER,
 		},
+		testCase{
+			message: "check out this lame site: www.google.com",
+			mode:    chat1.UnfurlMode_ALWAYS,
+		},
+		testCase{
+			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result: []ExtractorHit{
+				ExtractorHit{
+					URL: "http://www.twitter.com/mike/383878473873",
+					Typ: ExtractorHitUnfurl,
+				},
+			},
+		},
+		testCase{
+			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
+			mode:    chat1.UnfurlMode_WHITELISTED,
+			result: []ExtractorHit{
+				ExtractorHit{
+					URL: "http://www.twitter.com/mike/383878473873",
+					Typ: ExtractorHitPrompt,
+				},
+			},
+		},
+		testCase{
+			message:   "check out this lame post: http://www.twitter.com/mike/383878473873",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"twitter.com"},
+			result: []ExtractorHit{
+				ExtractorHit{
+					URL: "http://www.twitter.com/mike/383878473873",
+					Typ: ExtractorHitUnfurl,
+				},
+			},
+		},
+		testCase{
+			message:   "http://www.github.com/keybase/client check out this lame post: http://www.twitter.com/mike/383878473873",
+			mode:      chat1.UnfurlMode_WHITELISTED,
+			whitelist: []string{"twitter.com", "github.com"},
+			result: []ExtractorHit{
+				ExtractorHit{
+					URL: "http://www.github.com/keybase/client",
+					Typ: ExtractorHitUnfurl,
+				},
+				ExtractorHit{
+					URL: "http://www.twitter.com/mike/383878473873",
+					Typ: ExtractorHitUnfurl,
+				},
+			},
+		},
 	}
 	for _, tcase := range cases {
 		settings := chat1.NewUnfurlSettings()
