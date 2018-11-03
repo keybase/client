@@ -11,7 +11,7 @@ import (
 
 func TestExtractor(t *testing.T) {
 	log := logger.NewTestLogger(t)
-	settingsMod := NewSettings(log, newMemConvesationBackedStorage())
+	settingsMod := NewSettings(log, newMemConversationBackedStorage())
 	extractor := NewExtractor(log)
 	type testCase struct {
 		message   string
