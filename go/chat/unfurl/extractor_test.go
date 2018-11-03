@@ -19,6 +19,17 @@ func TestExtractor(t *testing.T) {
 		whitelist []string
 		result    []ExtractorHit
 	}
+	var maxCase string
+	var maxRes []ExtractorHit
+	for i := 0; i < extractor.maxHits+5; i++ {
+		maxCase += " http://www.wsj.com"
+	}
+	for i := 0; i < extractor.maxHits; i++ {
+		maxRes = append(maxRes, ExtractorHit{
+			URL: "http://www.wsj.com",
+			Typ: ExtractorHitUnfurl,
+		})
+	}
 	cases := []testCase{
 		testCase{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
@@ -27,6 +38,11 @@ func TestExtractor(t *testing.T) {
 		testCase{
 			message: "check out this lame site: www.google.com",
 			mode:    chat1.UnfurlMode_ALWAYS,
+		},
+		testCase{
+			message: maxCase,
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result:  maxRes,
 		},
 		testCase{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",

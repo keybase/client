@@ -27,12 +27,14 @@ type Extractor struct {
 	utils.DebugLabeler
 
 	urlRegexp *regexp.Regexp
+	maxHits   int
 }
 
 func NewExtractor(log logger.Logger) *Extractor {
 	return &Extractor{
 		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
 		urlRegexp:    xurls.Strict(),
+		maxHits:      5,
 	}
 }
 
@@ -69,6 +71,10 @@ func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Sett
 			}
 		}
 		res = append(res, ehit)
+		if len(res) >= e.maxHits {
+			e.Debug(ctx, "Extract: max hits reached, aborting")
+			break
+		}
 	}
 	return res, nil
 }
