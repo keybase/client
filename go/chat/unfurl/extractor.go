@@ -55,22 +55,18 @@ func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Sett
 		return res, nil
 	}
 	hits := e.urlRegexp.FindAllString(body, -1)
-	if settings.Mode == chat1.UnfurlMode_ALWAYS {
-		for _, h := range hits {
-			res = append(res, ExtractorHit{
-				URL: h,
-				Typ: ExtractorHitUnfurl,
-			})
-		}
-		return res, nil
-	}
 	for _, h := range hits {
 		ehit := ExtractorHit{
 			URL: h,
 			Typ: ExtractorHitPrompt,
 		}
-		if e.isWhitelistHit(ctx, h, settings.Whitelist) {
+		switch settings.Mode {
+		case chat1.UnfurlMode_ALWAYS:
 			ehit.Typ = ExtractorHitUnfurl
+		case chat1.UnfurlMode_WHITELISTED:
+			if e.isWhitelistHit(ctx, h, settings.Whitelist) {
+				ehit.Typ = ExtractorHitUnfurl
+			}
 		}
 		res = append(res, ehit)
 	}
