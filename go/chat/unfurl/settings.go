@@ -2,7 +2,6 @@ package unfurl
 
 import (
 	"context"
-	"sort"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -18,7 +17,7 @@ type modeRecord struct {
 }
 
 type whitelistRecord struct {
-	Whitelist []string
+	Whitelist map[string]bool
 }
 
 type Settings struct {
@@ -48,7 +47,7 @@ func (s *Settings) Get(ctx context.Context) (res chat1.UnfurlSettings, err error
 	}
 
 	var wr whitelistRecord
-	var whitelist []string
+	whitelist := make(map[string]bool)
 	if found, err = s.storage.Get(ctx, settingsWhitelistName, &wr); err != nil {
 		return res, err
 	}
@@ -69,17 +68,12 @@ func (s *Settings) WhitelistAdd(ctx context.Context, domain string) (err error) 
 		return err
 	}
 	if !found {
-		wr.Whitelist = nil
+		wr.Whitelist = make(map[string]bool)
 	}
-	for _, w := range wr.Whitelist {
-		if w == domain {
-			return nil
-		}
+	if wr.Whitelist[domain] {
+		return nil
 	}
-	wr.Whitelist = append(wr.Whitelist, domain)
-	sort.Slice(wr.Whitelist, func(i, j int) bool {
-		return wr.Whitelist[i] < wr.Whitelist[j]
-	})
+	wr.Whitelist[domain] = true
 	return s.storage.Put(ctx, settingsWhitelistName, wr)
 }
 
@@ -93,18 +87,11 @@ func (s *Settings) WhitelistRemove(ctx context.Context, domain string) (err erro
 	if !found {
 		return nil
 	}
-	deleted := false
-	for index, w := range wr.Whitelist {
-		if w == domain {
-			wr.Whitelist = append(wr.Whitelist[:index], wr.Whitelist[index+1:]...)
-			deleted = true
-			break
-		}
-	}
-	if !deleted {
+	if !wr.Whitelist[domain] {
 		s.Debug(ctx, "WhitelistRemove: not found, doing nothing")
 		return nil
 	}
+	delete(wr.Whitelist, domain)
 	return s.storage.Put(ctx, settingsWhitelistName, wr)
 }
 

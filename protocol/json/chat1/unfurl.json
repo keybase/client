@@ -188,8 +188,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "string"
+            "type": "map",
+            "values": "boolean",
+            "keys": "string"
           },
           "name": "whitelist"
         }

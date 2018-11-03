@@ -54,6 +54,6 @@ protocol unfurl {
 
     record UnfurlSettings {
         UnfurlMode mode;
-        array<string> whitelist;
+        map<string, boolean> whitelist;
     }
 }
