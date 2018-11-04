@@ -835,6 +835,15 @@
           "jsonkey": "r"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "unfurlIDs",
+          "mpackkey": "u",
+          "jsonkey": "u"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
