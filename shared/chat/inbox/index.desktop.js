@@ -168,7 +168,6 @@ class Inbox extends PureComponent<Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this._itemSizeGetter}
                   estimatedItemSize={56}
-                  style={vListStyle}
                 >
                   {({index, style}) => this._itemRenderer(index, style)}
                 </VariableSizeList>
@@ -194,10 +193,6 @@ const _containerStyle = {
 }
 
 const _listStyle = {flex: 1}
-
-const vListStyle = {
-  paddingBottom: globalMargins.medium,
-}
 
 export default Inbox
 export type {RowItem, RowItemSmall, RowItemBig, RouteState}
