@@ -25,22 +25,22 @@ const connectedUsernamesProps = {
 }
 
 const ManageComponent = (props: Props) => {
-  const textType = props.message.addee === props.you ? 'BodySmallSemiboldSecondaryLink' : 'BodySmall'
+  const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.message.addee === props.you) {
     return (
-      <Text onClick={props.onManageChannels} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onManageChannels} type={textType}>
         Manage your channel subscriptions
       </Text>
     )
   } else if (props.isAdmin) {
     return (
-      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType}>
         Manage members
       </Text>
     )
   } else {
     return (
-      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType}>
         See all members
       </Text>
     )
