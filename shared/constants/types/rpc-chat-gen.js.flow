@@ -340,6 +340,17 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const commonAssetMetadataType = {
+  none: 0,
+  image: 1,
+  video: 2,
+  audio: 3,
+}
+
+export const commonAssetTag = {
+  primary: 0,
+}
+
 export const commonConversationExistence = {
   active: 0,
   archived: 1,
@@ -412,6 +423,7 @@ export const commonMessageType = {
   reaction: 13,
   sendpayment: 14,
   requestpayment: 15,
+  unfurl: 16,
 }
 
 export const commonNotificationKind = {
@@ -444,17 +456,6 @@ export const commonTopicType = {
   chat: 1,
   dev: 2,
   kbfsfileedit: 3,
-}
-
-export const localAssetMetadataType = {
-  none: 0,
-  image: 1,
-  video: 2,
-  audio: 3,
-}
-
-export const localAssetTag = {
-  primary: 0,
 }
 
 export const localBodyPlaintextVersion = {
@@ -830,7 +831,7 @@ export type MembersUpdateInfo = $ReadOnly<{convID: ConversationID, members?: ?Ar
 export type MerkleRoot = $ReadOnly<{seqno: Long, hash: Bytes}>
 export type MessageAttachment = $ReadOnly<{object: Asset, preview?: ?Asset, previews?: ?Array<Asset>, metadata: Bytes, uploaded: Boolean}>
 export type MessageAttachmentUploaded = $ReadOnly<{messageID: MessageID, object: Asset, previews?: ?Array<Asset>, metadata: Bytes}>
-export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment} | {messageType: 15, requestpayment: ?MessageRequestPayment}
+export type MessageBody = {messageType: 1, text: ?MessageText} | {messageType: 2, attachment: ?MessageAttachment} | {messageType: 3, edit: ?MessageEdit} | {messageType: 4, delete: ?MessageDelete} | {messageType: 5, metadata: ?MessageConversationMetadata} | {messageType: 7, headline: ?MessageHeadline} | {messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded} | {messageType: 9, join: ?MessageJoin} | {messageType: 10, leave: ?MessageLeave} | {messageType: 11, system: ?MessageSystem} | {messageType: 12, deletehistory: ?MessageDeleteHistory} | {messageType: 13, reaction: ?MessageReaction} | {messageType: 14, sendpayment: ?MessageSendPayment} | {messageType: 15, requestpayment: ?MessageRequestPayment} | {messageType: 16, unfurl: ?MessageUnfurl}
 export type MessageBoxed = $ReadOnly<{version: MessageBoxedVersion, serverHeader?: ?MessageServerHeader, clientHeader: MessageClientHeader, headerCiphertext: SealedData, bodyCiphertext: EncryptedData, verifyKey: Bytes, keyGeneration: Int}>
 export type MessageBoxedVersion =
   | 0 // VNONE_0
@@ -890,6 +891,7 @@ export type MessageType =
   | 13 // REACTION_13
   | 14 // SENDPAYMENT_14
   | 15 // REQUESTPAYMENT_15
+  | 16 // UNFURL_16
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, internalErrMsg: String, versionKind: VersionKind, versionNumber: Int, isCritical: Boolean, senderUsername: String, senderDeviceName: String, senderDeviceType: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
@@ -909,6 +911,7 @@ export type MessageUnboxedState =
   | 4 // PLACEHOLDER_4
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap}>
+export type MessageUnfurl = $ReadOnly<{unfurl: Unfurl}>
 export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 export type NewConversationInfo = $ReadOnly<{convID: ConversationID, conv?: ?InboxUIItem}>

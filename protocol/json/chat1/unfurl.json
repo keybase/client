@@ -4,10 +4,6 @@
     {
       "path": "common.avdl",
       "type": "idl"
-    },
-    {
-      "path": "local.avdl",
-      "type": "idl"
     }
   ],
   "types": [
