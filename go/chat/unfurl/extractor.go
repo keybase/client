@@ -71,7 +71,7 @@ func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Sett
 			}
 		}
 		res = append(res, ehit)
-		if len(res) > e.maxHits {
+		if len(res) >= e.maxHits {
 			e.Debug(ctx, "Extract: max hits reached, aborting")
 			break
 		}
