@@ -139,7 +139,7 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 }
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
-const rules = (markdownMeta: ?MarkdownMeta) => ({
+const rules = {
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
     ...SimpleMarkdown.defaultRules.newline,
@@ -275,7 +275,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // We'll change most of the stuff here anyways
     ...SimpleMarkdown.defaultRules.autolink,
     match: (source, state, lookBehind) => {
-      const mentionRegex = createMentionRegex(markdownMeta)
+      const mentionRegex = createMentionRegex(state.markdownMeta)
       if (!mentionRegex) {
         return null
       }
@@ -296,7 +296,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // Just needs to be a higher order than mentions
     order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
     match: (source, state, lookBehind) => {
-      const channelRegex = createChannelRegex(markdownMeta)
+      const channelRegex = createChannelRegex(state.markdownMeta)
       if (!channelRegex) {
         return null
       }
@@ -309,10 +309,10 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
 
       return null
     },
-    parse: capture => ({
+    parse: (capture, parse, state) => ({
       type: 'channel',
       content: capture[1],
-      convID: channelNameToConvID(markdownMeta, capture[1]),
+      convID: channelNameToConvID(state.markdownMeta, capture[1]),
     }),
   },
   text: {
@@ -350,9 +350,9 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
       return {spaceInFront: capture[1], content: capture[2]}
     },
   },
-})
+}
 
-const parserFromMeta = (meta: ?MarkdownMeta) => SimpleMarkdown.parserFor(rules(meta))
+const simpleMarkdownParser = SimpleMarkdown.parserFor(rules)
 
 const isAllEmoji = ast => {
   const trimmed = ast.filter(n => n.type !== 'newline')
@@ -364,16 +364,53 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
+class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: boolean}> {
+  state = {hasError: false}
+
+  static getDerivedStateFromError() {
+    // Update state so the next render will show the fallback UI.
+    return {hasError: true}
+  }
+
+  componentDidCatch(error: any) {
+    logger.error('Error rendering markdown')
+    logger.debug('Error rendering markdown', error)
+  }
+
   render() {
-    const parser = parserFromMeta(this.props.meta)
+    if (this.state.hasError) {
+      return (
+        <Text type="Body" style={styles.rootWrapper}>
+          {this.props.children || ''}
+        </Text>
+      )
+    }
     const {allowFontScaling, styleOverride} = this.props
-    const parseTree = parser((this.props.children || '').trim() + '\n', {
-      inline: false,
-      // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
-      // So we add our own new line
-      disableAutoBlockNewlines: true,
-    })
+    let parseTree
+    let output
+    try {
+      parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
+        inline: false,
+        // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
+        // So we add our own new line
+        disableAutoBlockNewlines: true,
+        markdownMeta: this.props.meta,
+      })
+
+      output = this.props.preview
+        ? previewOutput(parseTree)
+        : isAllEmoji(parseTree)
+          ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
+          : reactOutput(parseTree, {allowFontScaling, styleOverride})
+    } catch (e) {
+      logger.error('Error parsing markdown')
+      logger.debug('Error parsing markdown', e)
+      return (
+        <Text type="Body" style={styles.rootWrapper}>
+          {this.props.children || ''}
+        </Text>
+      )
+    }
     const inner = this.props.preview ? (
       <Text
         type={isMobile ? 'Body' : 'BodySmall'}
@@ -384,12 +421,10 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
         ])}
         lineClamp={isMobile ? 1 : undefined}
       >
-        {previewOutput(parseTree)}
+        {output}
       </Text>
-    ) : isAllEmoji(parseTree) ? (
-      bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
     ) : (
-      reactOutput(parseTree, {allowFontScaling, styleOverride})
+      output
     )
 
     // Mobile doesn't use a wrapper
@@ -418,5 +453,5 @@ export {
   createMentionRegex,
   isValidMention,
   parseMarkdown,
-  parserFromMeta,
+  simpleMarkdownParser,
 }

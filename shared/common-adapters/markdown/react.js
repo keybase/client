@@ -85,6 +85,11 @@ const strikeStyle = Styles.platformStyles({
     textDecoration: 'line-through',
   },
 })
+
+const textQuoteStyle = {
+  color: Styles.globalColors.lightGrey2,
+}
+
 const quoteStyle = Styles.platformStyles({
   common: {
     borderLeftWidth: 3,
@@ -276,10 +281,14 @@ const reactComponentsForMarkdownType = {
     )
   },
   blockQuote: (node, output, state) =>
-    isMobile ? (
-      <Box key={state.key} style={quoteStyle}>
+    // Mobile doesn't support views within text, so if we're already in a block quote, we won't go further in, but we'll fake it with the unicode char: \u258F
+    state.inBlockQuote && isMobile ? (
+      <React.Fragment key={state.key}>
+        <Text type="Body" allowFontScaling={state.allowFontScaling} style={textQuoteStyle}>
+          {'\u258f'}
+        </Text>
         {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
+      </React.Fragment>
     ) : (
       <Box key={state.key} style={quoteStyle}>
         {output(node.content, {...state, inBlockQuote: true})}
@@ -368,6 +377,8 @@ const previewOutput = SimpleMarkdown.reactFor(
         return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'newline':
         return ' '
+      case 'blockQuote':
+        return '> ' + output(ast.content, state)
       case 'codeBlock':
         return ' ' + output(ast.content, state)
       default:
