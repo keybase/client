@@ -37,6 +37,7 @@ func newCmdChatProfileSearchDev(cl *libcmdline.CommandLine, g *libkb.GlobalConte
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatProfileSearchRunner(g), "search-profile", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getConversationResolverFlags(),
 	}

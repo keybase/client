@@ -33,6 +33,7 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "<conversation>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatReadRunner(g), "read", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getMessageFetcherFlags(),
 	}
