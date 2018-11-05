@@ -979,6 +979,20 @@ func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext, a
 	if err != nil {
 		return "", err
 	}
+
+	// some currencies have the same symbol as code (CHF)
+	conf, err := g.GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return "", err
+	}
+	currency, ok := conf.Currencies[code]
+	if !ok {
+		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
+	}
+	if currency.Symbol.Postfix && currency.Symbol.Symbol == code.String() {
+		return pre, nil
+	}
+
 	return fmt.Sprintf("%s %s", pre, code), nil
 }
 
