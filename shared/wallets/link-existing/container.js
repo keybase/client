@@ -1,10 +1,12 @@
 // @flow
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
+
+type OwnProps = RouteProps<{backButton?: boolean, fromSendForm?: boolean, showOnCreation?: boolean}, {}>
 
 const mapStateToProps = state => ({
   keyError: state.wallets.secretKeyError,
@@ -15,7 +17,8 @@ const mapStateToProps = state => ({
   waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
+  fromSendForm: routeProps.get('fromSendForm'),
   onCancel: () => navigateUp && dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
@@ -33,11 +36,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) =>
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        showOnCreation: !!routeProps && routeProps.get('showOnCreation'),
-        setBuildingTo: fromSendForm ?? (!!routeProps && routeProps.get('fromSendForm')),
+        showOnCreation: routeProps.get('showOnCreation'),
+        setBuildingTo: routeProps.get('fromSendForm'),
       })
     ),
-  fromSendForm,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -45,14 +47,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,
   nameValidationState: stateProps.nameValidationState,
-  secretKeyValidationState: stateProps.secretKeyValidationState,
-  waiting: stateProps.waiting,
-  onCancel: ownProps.onCancel || dispatchProps.onCancel,
+  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
+  onCancel: dispatchProps.onCancel,
   onCheckKey: dispatchProps.onCheckKey,
   onCheckName: dispatchProps.onCheckName,
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
-  onBack: ownProps.onBack || (ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined),
+  secretKeyValidationState: stateProps.secretKeyValidationState,
+  waiting: stateProps.waiting,
 })
 
 export default connect(

@@ -23,11 +23,13 @@ import {namedConnect} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   // If build.to is set, assume it's a valid username.
   return {
     isRequest: build.isRequest,
     recipientUsername: build.to,
+    errorMessage: built.toErrMsg,
   }
 }
 
@@ -102,29 +104,25 @@ const mapStateToPropsOtherAccount = state => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch, ownProps) => ({
+const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount:
-    ownProps.onCreateNewAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
-        })
-      )),
-  onLinkAccount:
-    ownProps.onLinkAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
-        })
-      )),
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+      })
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+      })
+    ),
 })
 
 const ConnectedParticipantsOtherAccount = namedConnect(
@@ -147,12 +145,7 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
 
     case 'otherAccount':
-      return (
-        <ConnectedParticipantsOtherAccount
-          onLinkAccount={props.onLinkAccount}
-          onCreateNewAccount={props.onCreateNewAccount}
-        />
-      )
+      return <ConnectedParticipantsOtherAccount />
 
     default:
       /*::

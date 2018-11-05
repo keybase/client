@@ -2,6 +2,10 @@
 
 import moment from 'moment'
 
+export function formatTimeForChat(time: number): string {
+  return moment(time).format('h:mm A')
+}
+
 export function formatTimeForConversationList(time: number, nowOverride?: ?number): string {
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()

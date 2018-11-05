@@ -13,6 +13,7 @@ type _LeafTags = {
   hideStatusBar: boolean, // mobile only
   fullscreen: boolean,
   keepKeyboardOnLeave: boolean,
+  renderTopmostOnly: boolean, // desktop only. doesn't render if not the current leaf. valid only with `layerOnTop: true`
   root: boolean,
   title: ?string,
 }
@@ -27,6 +28,7 @@ export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   showStatusBarDarkContent: false,
   fullscreen: false,
   keepKeyboardOnLeave: false,
+  renderTopmostOnly: false,
   root: false, // only used by the root shim to allow special padding logic as its the root container
   title: null,
 })
