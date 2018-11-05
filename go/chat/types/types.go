@@ -274,3 +274,11 @@ type DummyNativeVideoHelper struct{}
 func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
 	return nil, 0, nil
 }
+
+type UnfurlerTaskStatus int
+
+const (
+	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
+	UnfurlerTaskStatusSuccess
+	UnfurlerTaskStatusFailed
+)
