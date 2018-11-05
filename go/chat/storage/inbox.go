@@ -432,6 +432,9 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	}
 	var res []types.RemoteConversation
 	filtered := 0
+	if query.ConvID != nil {
+		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
+	}
 	for _, rc := range rcs {
 		ok := true
 		conv := rc.Conv
@@ -451,9 +454,6 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		}
 
 		// Basic checks
-		if query.ConvID != nil {
-			query.ConvIDs = append(query.ConvIDs, *query.ConvID)
-		}
 		if len(query.ConvIDs) > 0 {
 			found := false
 			for _, cid := range query.ConvIDs {
