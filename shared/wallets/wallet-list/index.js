@@ -73,7 +73,7 @@ type Props = {
   title: string,
 }
 
-type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'what is stellar'}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
 class _WalletList extends React.Component<Props> {
   componentDidMount() {
@@ -92,8 +92,6 @@ class _WalletList extends React.Component<Props> {
             onLinkExisting={this.props.onLinkExisting}
           />
         )
-      case 'what is stellar':
-        return <WhatIsStellar key={row.type} onWhatIsStellar={this.props.onWhatIsStellar} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -145,10 +143,8 @@ const styles = Styles.styleSheetCreate({
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
     backgroundColor: Styles.globalColors.blue5,
-    // bottom: 0,
     height: Styles.globalMargins.large,
     justifyContent: 'center',
-    // position: 'absolute',
     width: '100%',
   },
 })
