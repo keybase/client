@@ -367,7 +367,7 @@ const isAllEmoji = ast => {
 class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
   render() {
     const parser = parserFromMeta(this.props.meta)
-    const {allowFontScaling, styleOverride} = this.props
+    const {allowFontScaling, styleOverride = {}} = this.props
     const parseTree = parser((this.props.children || '').trim() + '\n', {
       inline: false,
       // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
@@ -380,7 +380,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
         style={Styles.collapseStyles([
           markdownStyles.neutralPreviewStyle,
           this.props.style,
-          styleOverride?.preview,
+          styleOverride.preview,
         ])}
         lineClamp={isMobile ? 1 : undefined}
       >

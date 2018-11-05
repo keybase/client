@@ -194,7 +194,7 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([textBlockStyle, state.styleOverride?.paragraph])}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
         allowFontScaling={state.allowFontScaling}
       >
         {'\n'}
@@ -205,7 +205,7 @@ const reactComponentsForMarkdownType = {
       <Box key={state.key} style={codeSnippetBlockStyle}>
         <Text
           type="Body"
-          style={Styles.collapseStyles([codeSnippetBlockTextStyle, state.styleOverride?.fence])}
+          style={Styles.collapseStyles([codeSnippetBlockTextStyle, state.styleOverride.fence])}
           allowFontScaling={state.allowFontScaling}
         >
           {node.content}
@@ -215,7 +215,7 @@ const reactComponentsForMarkdownType = {
       <Text
         key={state.key}
         type="Body"
-        style={Styles.collapseStyles([codeSnippetBlockStyle, state.styleOverride?.fence])}
+        style={Styles.collapseStyles([codeSnippetBlockStyle, state.styleOverride.fence])}
       >
         {node.content}
       </Text>
@@ -225,7 +225,7 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([codeSnippetStyle, state.styleOverride?.inlineCode])}
+        style={Styles.collapseStyles([codeSnippetStyle, state.styleOverride.inlineCode])}
         allowFontScaling={state.allowFontScaling}
       >
         {node.content}
@@ -237,7 +237,7 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([textBlockStyle, state.styleOverride?.paragraph])}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
         allowFontScaling={state.allowFontScaling}
       >
         {output(node.content, {...state, inParagraph: true})}
@@ -249,7 +249,7 @@ const reactComponentsForMarkdownType = {
       <Text
         type="BodySemibold"
         key={state.key}
-        style={Styles.collapseStyles([boldStyle, state.styleOverride?.strong])}
+        style={Styles.collapseStyles([boldStyle, state.styleOverride.strong])}
         allowFontScaling={state.allowFontScaling}
       >
         {output(node.content, state)}
@@ -258,7 +258,7 @@ const reactComponentsForMarkdownType = {
   },
   em: (node, output, state) => {
     return (
-      <Text type="Body" key={state.key} style={Styles.collapseStyles([italicStyle, state.styleOverride?.em])}>
+      <Text type="Body" key={state.key} style={Styles.collapseStyles([italicStyle, state.styleOverride.em])}>
         {output(node.content, state)}
       </Text>
     )
@@ -268,7 +268,7 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([strikeStyle, state.styleOverride?.del])}
+        style={Styles.collapseStyles([strikeStyle, state.styleOverride.del])}
         allowFontScaling={state.allowFontScaling}
       >
         {output(node.content, state)}
@@ -317,7 +317,7 @@ const reactComponentsForMarkdownType = {
           className="hover-underline"
           type="BodyPrimaryLink"
           key={state.key}
-          style={Styles.collapseStyles([linkStyle, state.styleOverride?.link])}
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
           title={node.content}
           onClickURL={node.content}
           onLongPressURL={node.content}
