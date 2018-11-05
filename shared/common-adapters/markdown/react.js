@@ -86,10 +86,6 @@ const strikeStyle = Styles.platformStyles({
   },
 })
 
-const textQuoteStyle = {
-  color: Styles.globalColors.lightGrey2,
-}
-
 const quoteStyle = Styles.platformStyles({
   common: {
     borderLeftWidth: 3,
@@ -280,20 +276,11 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  blockQuote: (node, output, state) =>
-    // Mobile doesn't support views within text, so if we're already in a block quote, we won't go further in, but we'll fake it with the unicode char: \u258F
-    state.inBlockQuote && isMobile ? (
-      <React.Fragment key={state.key}>
-        <Text type="Body" allowFontScaling={state.allowFontScaling} style={textQuoteStyle}>
-          {'\u258f'}
-        </Text>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </React.Fragment>
-    ) : (
-      <Box key={state.key} style={quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
-    ),
+  blockQuote: (node, output, state) => (
+    <Box key={state.key} style={quoteStyle}>
+      {output(node.content, {...state, inBlockQuote: true})}
+    </Box>
+  ),
   mention: (node, output, state) => {
     return (
       <Mention

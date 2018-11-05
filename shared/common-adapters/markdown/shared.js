@@ -121,11 +121,16 @@ const linkRegex = {
   },
 }
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
+const textMatch = SimpleMarkdown.anyScopeRegex(
+  new RegExp(
+    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+  )
+)
 
 const wrapInParagraph = (parse, content, state) => [
   {
     type: 'paragraph',
-    content: SimpleMarkdown.parseInline(parse, content, state),
+    content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
   },
 ]
 
@@ -213,7 +218,7 @@ const rules = {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
       return {
-        content: SimpleMarkdown.parseInline(parse, content, state),
+        content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
       }
     },
   },
@@ -246,14 +251,7 @@ const rules = {
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
     parse: (capture, parse, state) => {
-      const content = capture[0].replace(/^ *> ?/gm, '')
-      // On mobile we can't have text that isn't wrapped in a Text tag
-      if (isMobile) {
-        return {
-          // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-          content: wrapInParagraph(parse, content.replace(/\n$/, ''), state),
-        }
-      }
+      const content = capture[0].replace(/^ *> */gm, '')
       return {
         content: parse(content, state),
       }
@@ -321,11 +319,19 @@ const rules = {
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: SimpleMarkdown.anyScopeRegex(
-      new RegExp(
-        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
-      )
-    ),
+    match: (source, state, lookBehind) =>
+      isMobile && !state.inParagraph ? null : textMatch(source, state, lookBehind),
+  },
+  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
+  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
+  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
+  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
+  // it won't match.
+  fallbackParagraph: {
+    order: 10000,
+    // $FlowIssue - tricky to get this to type properly
+    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
+    parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
