@@ -71,7 +71,6 @@ func (k *KeybaseDaemonRPC) addKBFSProtocols() {
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.NotifyTeamProtocol(k),
-		keybase1.NotifyFavoritesProtocol(k),
 		keybase1.TlfKeysProtocol(k),
 		keybase1.ReachabilityProtocol(k),
 		keybase1.ImplicitTeamMigrationProtocol(k),
@@ -328,7 +327,6 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		Service:       true,
 		Team:          true,
 		Chatkbfsedits: true,
-		Favorites:     true,
 	})
 	if err != nil {
 		return err
@@ -454,12 +452,4 @@ func (s *notifyServiceHandler) Shutdown(_ context.Context, code int) error {
 func newNotifyServiceHandler(config Config, log logger.Logger) keybase1.NotifyServiceInterface {
 	s := &notifyServiceHandler{config: config, log: log}
 	return s
-}
-
-// FavoritesChanged implements keybase1.NotifyFavoritesClient
-func (k *KeybaseDaemonRPC) FavoritesChanged(ctx context.Context,
-	uid keybase1.UID) error {
-	k.log.Debug("Received FavoritesChanged RPC.")
-	k.config.KBFSOps().RefreshCachedFavorites(ctx)
-	return nil
 }
