@@ -65,7 +65,17 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
+	// TODO Remove with CORE-8969
+	useDisplayPriority := i.G().Env.GetRunMode() == DevelRunMode || i.G().Env.RunningInCI()
+	if useDisplayPriority {
+		return i.proofChecksSortedByDisplayPriority()
+	}
+	return i.proofChecksSortedByProofType()
 
+}
+
+// TODO Remove with CORE-8969
+func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
 	// Treat DNS and Web as the same type, and sort them together
 	// in the same bucket.
 	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
@@ -91,6 +101,18 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 		res = append(res, pc...)
 	}
 	return res
+}
+
+func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResult {
+	pc := make([]*LinkCheckResult, len(i.ProofChecks))
+	copy(pc, i.ProofChecks)
+	proofServices := i.G().GetProofServices()
+	sort.Slice(pc, func(a, b int) bool {
+		keyA := pc[a].link.DisplayPriorityKey()
+		keyB := pc[b].link.DisplayPriorityKey()
+		return proofServices.GetDisplayPriority(keyA) > proofServices.GetDisplayPriority(keyB)
+	})
+	return pc
 }
 
 // Revoked proofs are those we used to look for but are gone!
