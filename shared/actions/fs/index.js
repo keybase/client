@@ -295,7 +295,7 @@ function* download(
     yield Saga.put(FsGen.createDownloadProgress({key, completePortion: 1}))
 
     const mimeType = yield Saga.call(_loadMimeType, path)
-    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType.get('mimeType')}))
+    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType.mimeType}))
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
     if (intent !== 'none') {
