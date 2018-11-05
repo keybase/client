@@ -105,6 +105,44 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "$3,182.96 USD", assets[0].AvailableToSendWorth)
 }
 
+func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+
+	accountID := tcs[0].Backend.AddAccount()
+
+	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   tcs[0].Backend.SecretKey(accountID),
+		MakePrimary: true,
+		Name:        "qq",
+	})
+	require.NoError(t, err)
+
+	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+		AccountID: accountID,
+		Currency:  stellar1.OutsideCurrencyCode("CHF"),
+	})
+	require.NoError(t, err)
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	assets, err := tcs[0].Srv.GetAccountAssetsLocal(context.Background(), stellar1.GetAccountAssetsLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	require.Len(t, assets, 1)
+	require.Equal(t, "Lumens", assets[0].Name)
+	require.Equal(t, "XLM", assets[0].AssetCode)
+	require.Equal(t, "Stellar network", assets[0].IssuerName)
+	require.Equal(t, "", assets[0].IssuerAccountID)
+	require.Equal(t, "10,000.00", assets[0].BalanceTotal)
+	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
+	require.Equal(t, "CHF", assets[0].WorthCurrency)
+	require.Equal(t, "3,183.28 CHF", assets[0].Worth)
+	require.Equal(t, "3,182.96 CHF", assets[0].AvailableToSendWorth)
+}
+
 func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()

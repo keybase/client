@@ -29,6 +29,7 @@ func newCmdChatReAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		ArgumentHelp: "<conversation> <username>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatReAddMemberRunner(g), "readd-member", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}
