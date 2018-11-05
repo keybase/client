@@ -117,7 +117,11 @@ const barStyle = showStatusBarDarkContent => {
 
 function renderStackRoute(route, shouldRender) {
   const {showStatusBarDarkContent, hideStatusBar, root, underNotch} = route.tags || {}
-  const makeSafeAreaOnTop = !root && !underNotch
+  // We always wrap with a safe top area unless
+  // 1. Root view
+  // 2. They want to go under the notch
+  // 3. Android and they hide the status bar
+  const makeSafeAreaOnTop = !root && !underNotch && !(Styles.isAndroid && hideStatusBar)
 
   return (
     <Kb.NativeView style={styles.routeOuter}>
