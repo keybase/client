@@ -1246,6 +1246,11 @@ func TestBuildPaymentLocal(t *testing.T) {
 	senderAccountID, err := stellar.GetOwnPrimaryAccountID(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
+	senderSecondaryAccountID, err := tcs[0].Srv.CreateWalletAccountLocal(context.Background(), stellar1.CreateWalletAccountLocalArg{
+		Name: "second",
+	})
+	require.NoError(t, err)
+
 	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
 
 	for _, toIsAccountID := range []bool{false, true} {
@@ -1271,6 +1276,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	}
 
 	acceptDisclaimer(tcs[1])
+
 	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From: senderAccountID,
 		To:   tcs[1].Fu.Username,
@@ -1365,6 +1371,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "20")
+	tcs[0].Backend.Gift(senderSecondaryAccountID, "30")
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From:   senderAccountID,
@@ -1411,6 +1418,29 @@ func TestBuildPaymentLocal(t *testing.T) {
 		HideOnConfirm: true,
 		Level:         "info",
 		Message:       fmt.Sprintf("Because it's their first transaction, you must send at least 1 XLM."),
+	}})
+
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:   senderSecondaryAccountID,
+		To:     "t_alice",
+		Amount: "15",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "$4.77 USD", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	require.True(t, bres.SendingIntentionXLM)
+	require.Equal(t, "15 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$4.77 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		HideOnConfirm: false,
+		Level:         "error",
+		Message:       fmt.Sprintf("Because t_alice hasn’t set up their wallet yet, you can only send to them from your default account."),
 	}})
 
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
