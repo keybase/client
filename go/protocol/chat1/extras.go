@@ -1887,3 +1887,10 @@ ImageUrl: %s
 FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
 		yield(g.ImageUrl), yield(g.FaviconUrl))
 }
+
+func NewUnfurlSettings() UnfurlSettings {
+	return UnfurlSettings{
+		Mode:      UnfurlMode_WHITELISTED,
+		Whitelist: make(map[string]bool),
+	}
+}
