@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	disableFavoritesEnvVar       = "KEYBASE_DISABLE_FAVORITES"
-	favoritesCacheExpirationTime = time.Hour * 24 * 7 // one week
+	disableFavoritesEnvVar = "KEYBASE_DISABLE_FAVORITES"
 )
 
 type favToAdd struct {
@@ -128,19 +127,12 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	if req.refresh || f.cache == nil || time.Now().After(f.cacheExpireTime) {
 		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
-			if req.refresh {
-				// if we're supposed to refresh the cache and it's not
-				// working, try again in a few minutes.
-				in5Minutes := time.Now().Add(5 * time.Minute)
-				if in5Minutes.After(f.cacheExpireTime) {
-					f.cacheExpireTime = in5Minutes
-				}
-			}
 			return err
 		}
 
 		f.cache = make(map[Favorite]bool)
-		f.cacheExpireTime = libkb.ForceWallClock(time.Now()).Add(favoritesCacheExpirationTime)
+		f.cacheExpireTime = libkb.ForceWallClock(time.Now()).Add(time.
+			Hour * 24 * 7)
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
@@ -353,6 +345,8 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 }
 
 // Get returns the logged-in user's list of favorites. It uses the cache.
+// TODO: decide on behavior if we've gotten an invalidation but not an updated
+// list yet
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	if f.disabled {
 		session, err := f.config.KBPKI().GetCurrentSession(ctx)
