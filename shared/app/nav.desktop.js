@@ -9,9 +9,11 @@ import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
 import * as Tabs from '../constants/tabs'
 import {switchTo} from '../actions/route-tree'
-import {connect} from '../util/container'
+import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
+
+type OwnProps = RouteProps<{}, {}>
 
 type Props = {
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
@@ -97,7 +99,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
