@@ -81,7 +81,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   ViewContainer: () => ({
     url: '/keybase/private/foo/bar.jpg',
-    mimeType: Constants.makeMime({mimeType: 'jpg'}),
+    mimeType: Constants.makeMime({mimeType: 'image/jpeg'}),
     isSymlink: false,
     path: '/keybase/private/foo/bar.jpg',
     onInvalidToken: Sb.action('onInvalidToken'),
