@@ -1108,6 +1108,7 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
   'text',
   'requestPayment',
   'sendPayment',
+  'systemAddedToTeam',
   'systemLeft',
 ]
 

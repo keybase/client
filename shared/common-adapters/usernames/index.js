@@ -54,7 +54,6 @@ function UsernameText(props: Props) {
   ])
   return props.users.map((u, i) => {
     let userStyle = {
-      ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
       ...(props.colorFollowing && !u.you
         ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
         : null),
@@ -106,7 +105,7 @@ UsernameText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
   showAnd: false,
-  underline: false,
+  underline: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
