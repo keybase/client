@@ -7,11 +7,11 @@ import * as Types from '../../constants/types/wallets'
 
 type Props = {
   accountID: Types.AccountID,
+  accountName: string,
   secretKey: ?string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
-  walletName: ?string,
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
@@ -22,8 +22,8 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
   render() {
     const header = (
       <React.Fragment>
-        {this.props.walletName ? (
-          <Text type="BodySmallSemibold">{this.props.walletName}</Text>
+        {this.props.accountName ? (
+          <Text type="BodySmallSemibold">{this.props.accountName}</Text>
         ) : (
           <SmallAccountID accountID={this.props.accountID} />
         )}
@@ -33,17 +33,12 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
       </React.Fragment>
     )
 
-    const mobileHeaderWrapper = (
-      <Box2 direction="horizontal" centerChildren={true} style={styles.header}>
-        <Box2 direction="vertical">{header}</Box2>
-      </Box2>
-    )
-
     return (
       <WalletPopup
-        onClose={this.props.onClose}
-        customCancelText="Close"
-        customComponent={Styles.isMobile && mobileHeaderWrapper}
+        onExit={this.props.onClose}
+        backButtonType="close"
+        accountName={this.props.accountName}
+        headerTitle="Secret key"
         containerStyle={styles.container}
       >
         <Icon
@@ -52,7 +47,10 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         />
         {!Styles.isMobile && header}
         <Box2 direction="horizontal" style={styles.warningContainer}>
-          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar&nbsp;account.</Text>
+          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>
+            Only paste your secret key in 100% safe places. Anyone with this key could steal your
+            Stellar&nbsp;account.
+          </Text>
         </Box2>
         {!!this.props.secretKey && (
           <Box2 direction="vertical" style={styles.secretKeyContainer}>

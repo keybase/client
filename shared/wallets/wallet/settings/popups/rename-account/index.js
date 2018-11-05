@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../../../../common-adapters'
 import type {ValidationState} from '../../../../../constants/types/wallets'
-import {EnterNamePopup} from '../../../../common'
+import {EnterNamePopup, WalletPopup} from '../../../../common'
+import * as Styles from '../../../../../styles'
 
 type Props = {|
   renameAccountError: string,
@@ -23,6 +25,27 @@ class RenameAccountPopup extends React.Component<Props, State> {
   state = {name: this.props.initialName}
 
   _onNameChange = name => this.setState({name})
+  _getBottomButtons = () => [
+    ...(Styles.isMobile
+      ? []
+      : [
+          <Kb.Button
+            key={0}
+            type="Secondary"
+            onClick={this.props.onCancel}
+            label="Cancel"
+            disabled={this.props.waiting}
+          />,
+        ]),
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={() => this.props.onDone(this.state.name)}
+      label="Save"
+      disabled={!this.state.name || this.state.name === this.props.initialName}
+      fullWidth={Styles.isMobile}
+    />,
+  ]
 
   componentDidMount() {
     this.props.onClearErrors()
@@ -41,16 +64,19 @@ class RenameAccountPopup extends React.Component<Props, State> {
 
   render() {
     return (
-      <EnterNamePopup
-        error={this.props.error || this.props.renameAccountError}
-        name={this.state.name}
-        onCancel={this.props.onCancel}
-        onNameChange={this._onNameChange}
-        onPrimaryClick={() => this.props.onDone(this.state.name)}
-        primaryLabel="Save"
-        primaryDisabled={this.state.name === this.props.initialName}
-        waiting={this.props.waiting}
-      />
+      <WalletPopup
+        accountName={this.props.initialName}
+        bottomButtons={this._getBottomButtons()}
+        backButtonType="cancel"
+        onExit={this.props.onCancel}
+        headerTitle="Rename account"
+      >
+        <EnterNamePopup
+          error={this.props.error || this.props.renameAccountError}
+          name={this.state.name}
+          onNameChange={this._onNameChange}
+        />
+      </WalletPopup>
     )
   }
 }

@@ -2,13 +2,11 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import EnterNamePopup from '.'
+import WalletPopup from '../wallet-popup'
 
 const enterNameProps = {
   name: '',
-  onCancel: Sb.action('onCancel'),
-  onPrimaryClick: Sb.action('onDone'),
   onNameChange: Sb.action('onNameChange'),
-  waiting: false,
 }
 
 const nameErrorProps = {
@@ -19,6 +17,11 @@ const nameErrorProps = {
 
 const load = () => {
   Sb.storiesOf('Wallets/Common/Enter Name Popup', module)
+    .addDecorator(story => (
+      <WalletPopup onExit={Sb.action('onExit')} backButtonType="cancel" headerTitle="Name account">
+        {story()}
+      </WalletPopup>
+    ))
     .add('Enter name', () => <EnterNamePopup {...enterNameProps} />)
     .add('Prefilled name', () => <EnterNamePopup {...enterNameProps} name="mikem's third account" />)
     .add('Name error', () => <EnterNamePopup {...nameErrorProps} />)

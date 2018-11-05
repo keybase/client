@@ -11,13 +11,13 @@ export type OwnProps = {
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
-  const walletName = routeProps.get('walletName')
+  const account = Constants.getAccount(state, accountID)
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
   return {
     accountID,
+    accountName: account.name,
     secretKey,
     username: state.config.username,
-    walletName,
   }
 }
 

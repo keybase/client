@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
 import type {ValidationState} from '../../constants/types/wallets'
-import {EnterNamePopup} from '../common'
+import {EnterNamePopup, WalletPopup} from '../common'
+import * as Styles from '../../styles'
 
 type Props = {|
   createNewAccountError: string,
@@ -22,6 +24,28 @@ class CreateAccount extends React.Component<Props, State> {
   state = {name: ''}
   _onNameChange = name => this.setState({name})
   _onDone = () => this.props.onDone(this.state.name)
+  _getBottomButtons = () => [
+    ...(Styles.isMobile
+      ? []
+      : [
+          <Kb.Button
+            key={0}
+            type="Secondary"
+            onClick={this.props.onCancel}
+            label="Cancel"
+            disabled={this.props.waiting}
+          />,
+        ]),
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={this._onDone}
+      label="Done"
+      waiting={this.props.waiting}
+      fullWidth={Styles.isMobile}
+      disabled={!this.state.name}
+    />,
+  ]
 
   componentDidMount() {
     this.props.onClearErrors()
@@ -42,15 +66,18 @@ class CreateAccount extends React.Component<Props, State> {
 
   render() {
     return (
-      <EnterNamePopup
-        error={this.props.error || this.props.createNewAccountError}
-        name={this.state.name}
-        onBack={this.props.onBack}
-        onCancel={this.props.onCancel}
-        onNameChange={this._onNameChange}
-        onPrimaryClick={this._onDone}
-        waiting={this.props.waiting}
-      />
+      <WalletPopup
+        bottomButtons={this._getBottomButtons()}
+        onExit={this.props.onCancel}
+        backButtonType="cancel"
+        headerTitle="Name account"
+      >
+        <EnterNamePopup
+          error={this.props.error || this.props.createNewAccountError}
+          name={this.state.name}
+          onNameChange={this._onNameChange}
+        />
+      </WalletPopup>
     )
   }
 }

@@ -4,6 +4,7 @@ import * as Sb from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 import {stringToAccountID} from '../../constants/types/wallets'
+import {isMobile} from '../../styles'
 
 const onSelect = Sb.action('onSelect')
 
@@ -61,7 +62,7 @@ const load = () => {
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}
         title="Wallets"
-        style={{height: '100%', width: 240}}
+        style={{height: '100%', width: isMobile ? '100%' : 240}}
       />
     ))
 }

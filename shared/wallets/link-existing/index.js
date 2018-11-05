@@ -1,9 +1,14 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import EnterKeyPopup from './enter-key-popup'
-import {EnterNamePopup} from '../common'
+import {EnterNamePopup, WalletPopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
+import {isLargeScreen} from '../../constants/platform'
 
+// TODO see if it makes sense to refactor this into routing rather than view
+// switching
 type View = 'key' | 'name'
 
 type LinkWalletProps = {|
@@ -42,6 +47,44 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     this.props.onCheckName(this.props.name)
   }
 
+  _getKeyButtons = () => [
+    ...(Styles.isMobile
+      ? []
+      : [<Kb.Button key={0} type="Secondary" onClick={this.props.onCancel} label="Cancel" />]),
+    <Kb.Button
+      key={1}
+      disabled={!this.props.secretKey}
+      type="Wallet"
+      onClick={this._onCheckKey}
+      label="Next"
+      waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
+    />,
+  ]
+
+  _getNameButtons = () => [
+    ...(Styles.isMobile
+      ? []
+      : [
+          <Kb.Button
+            key={0}
+            type="Secondary"
+            onClick={this.props.onCancel}
+            label="Cancel"
+            disabled={this.props.nameValidationState === 'waiting' || this.props.waiting}
+          />,
+        ]),
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={this._onCheckName}
+      label="Done"
+      waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
+      disabled={!this.props.name}
+    />,
+  ]
+
+  _getBottomButtons = () => (this.state.view === 'key' ? this._getKeyButtons() : this._getNameButtons())
+
   componentDidMount() {
     this.props.onClearErrors()
   }
@@ -62,31 +105,26 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   }
 
   render() {
+    let content = null
     switch (this.state.view) {
       case 'key':
-        return (
+        content = (
           <EnterKeyPopup
             error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
-            onCancel={this.props.onCancel}
             onKeyChange={this.props.onKeyChange}
-            onNext={this._onCheckKey}
-            waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
-            onBack={this.props.onBack}
           />
         )
+        break
       case 'name':
-        return (
+        content = (
           <EnterNamePopup
             error={this.props.nameError || this.props.linkExistingAccountError}
             name={this.props.name}
-            onBack={() => this._onViewChange('key')}
-            onCancel={this.props.onCancel}
             onNameChange={this.props.onNameChange}
-            onPrimaryClick={this._onCheckName}
-            waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
           />
         )
+        break
       default:
         /*::
         declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
@@ -94,6 +132,16 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
+    return (
+      <WalletPopup
+        bottomButtons={this._getBottomButtons()}
+        onExit={this.state.view === 'name' ? () => this._onViewChange('key') : this.props.onCancel}
+        backButtonType={this.state.view === 'name' ? 'back' : 'cancel'}
+        headerTitle={isLargeScreen ? 'Link an existing account' : 'Link account'}
+      >
+        {content}
+      </WalletPopup>
+    )
   }
 }
 

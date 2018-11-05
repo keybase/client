@@ -40,7 +40,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   render() {
     return (
       <WalletPopup
-        onClose={this.props.onCancel}
+        onExit={this.props.onCancel}
+        backButtonType="cancel"
         containerStyle={styles.background}
         headerStyle={Styles.collapseStyles([styles.background, styles.header])}
         bottomButtons={[
