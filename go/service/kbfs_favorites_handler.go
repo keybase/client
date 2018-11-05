@@ -1,9 +1,11 @@
-// Handlers for ephemeral-related gregor messages
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+// Handlers for KBFS-favorites-related gregor messages
 
 package service
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"strings"
@@ -19,10 +21,6 @@ const kbfsFavoritesHandlerName = "kbfsFavoritesHandler"
 
 type kbfsFavoritesHandler struct {
 	libkb.Contextified
-
-	// handled stores the set of requests that this client has processed so
-	// that we don't handle a request more than once.
-	handled map[string]bool
 }
 
 var _ libkb.GregorInBandMessageHandler = (*ekHandler)(nil)
@@ -30,7 +28,6 @@ var _ libkb.GregorInBandMessageHandler = (*ekHandler)(nil)
 func newKBFSFavoritesHandler(g *libkb.GlobalContext) *kbfsFavoritesHandler {
 	return &kbfsFavoritesHandler{
 		Contextified: libkb.NewContextified(g),
-		handled:      make(map[string]bool),
 	}
 }
 
@@ -65,21 +62,13 @@ func (r *kbfsFavoritesHandler) favoritesChanged(ctx context.Context,
 	r.G().Log.CDebugf(ctx, "kbfsFavoritesHandler: kbfs."+
 		"favorites received")
 
-	// check whether we have seen this message ID before.
-	// We can't dismiss the message even if we've handled it because we want
-	// all clients to see it.
-	msgID := item.Metadata().MsgID().String()
-	if _, ok := r.handled[msgID]; ok {
-		// we have already handled this message
-		return nil
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx,
+			"failed to locally dismiss favoritesChanged notification: %s", err)
 	}
-	r.handled[msgID] = true
 
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(
-		item.Metadata().UID().Bytes()))
-	if err != nil {
-		return err
-	}
+	kbUID := keybase1.UID(item.Metadata().UID().String())
 	r.Contextified.G().NotifyRouter.HandleFavoritesChanged(kbUID)
 	return nil
 }
