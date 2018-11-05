@@ -4,13 +4,7 @@ import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
 import {isMobile} from '../../constants/platform'
 import Text from '../text'
-import {
-  reactOutputFontScaling,
-  reactOutputNoFontScaling,
-  previewOutput,
-  bigEmojiOutputForFontScaling,
-  markdownStyles,
-} from './react'
+import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import {isSpecialMention, specialMentions} from '../../constants/chat2'
 import parser, {isPlainText, emojiIndexByChar} from '../../markdown/parser'
@@ -373,7 +367,7 @@ const isAllEmoji = ast => {
 class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
   render() {
     const parser = parserFromMeta(this.props.meta)
-    const reactOutput = this.props.allowFontScaling ? reactOutputFontScaling : reactOutputNoFontScaling
+    const {allowFontScaling, styleOverride} = this.props
     const parseTree = parser((this.props.children || '').trim() + '\n', {
       inline: false,
       // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
@@ -383,15 +377,19 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
     const inner = this.props.preview ? (
       <Text
         type={isMobile ? 'Body' : 'BodySmall'}
-        style={markdownStyles.neutralPreviewStyle}
+        style={Styles.collapseStyles([
+          markdownStyles.neutralPreviewStyle,
+          this.props.style,
+          styleOverride?.preview,
+        ])}
         lineClamp={isMobile ? 1 : undefined}
       >
         {previewOutput(parseTree)}
       </Text>
     ) : isAllEmoji(parseTree) ? (
-      bigEmojiOutputForFontScaling(!!this.props.allowFontScaling)(parseTree)
+      bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
     ) : (
-      reactOutput(parseTree)
+      reactOutput(parseTree, {allowFontScaling, styleOverride})
     )
 
     // Mobile doesn't use a wrapper
