@@ -16,7 +16,7 @@ import (
 // Methods should err on the side of performance rather at the cost of serialization.
 // CORE-8119: But they don't yet.
 type BuildPaymentCache interface {
-	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (bool, error)
+	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (own bool, primary bool, err error)
 	PrimaryAccount(libkb.MetaContext) (stellar1.AccountID, error)
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
@@ -55,7 +55,7 @@ func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
 }
 
 func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, error) {
+	accountID stellar1.AccountID) (bool, bool, error) {
 	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
 }
 
