@@ -163,6 +163,10 @@ func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (pr
 			proofConfigs = append(proofConfigs, validConf)
 		}
 		if service.Display != nil {
+			if service.Config != nil && service.Config.Domain != service.Display.Key {
+				p.G().Log.CDebugf(context.TODO(), "Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
+				continue
+			}
 			displayConfigs = append(displayConfigs, *service.Display)
 		}
 	}
