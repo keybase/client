@@ -620,6 +620,12 @@
 			"revisionTime": "2017-03-10T21:57:03Z"
 		},
 		{
+			"checksumSHA1": "XzwNGOYMD2sbnNd4tFW2C3S9drQ=",
+			"path": "github.com/mvdan/xurls",
+			"revision": "e52e821cbfe8fe163ff6f8628ab5869b11fc05af",
+			"revisionTime": "2018-10-21T21:02:31Z"
+		},
+		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
 			"path": "github.com/nf/cr2",
 			"revision": "05d46fef4f2f903240751e25871cd318d001deba",

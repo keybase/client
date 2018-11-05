@@ -16,7 +16,7 @@ type memConversationBackedStorage struct {
 	storage map[string]string
 }
 
-func newMemConvesationBackedStorage() *memConversationBackedStorage {
+func newMemConversationBackedStorage() *memConversationBackedStorage {
 	return &memConversationBackedStorage{
 		storage: make(map[string]string),
 	}
@@ -45,7 +45,7 @@ func (s *memConversationBackedStorage) Put(ctx context.Context, name string, src
 }
 
 func TestUnfurlSetting(t *testing.T) {
-	settings := NewSettings(logger.NewTestLogger(t), newMemConvesationBackedStorage())
+	settings := NewSettings(logger.NewTestLogger(t), newMemConversationBackedStorage())
 	res, err := settings.Get(context.TODO())
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlMode_WHITELISTED, res.Mode)

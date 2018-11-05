@@ -13,6 +13,17 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const commonAssetMetadataType = {
+  none: 0,
+  image: 1,
+  video: 2,
+  audio: 3,
+}
+
+export const commonAssetTag = {
+  primary: 0,
+}
+
 export const commonConversationExistence = {
   active: 0,
   archived: 1,
@@ -85,6 +96,7 @@ export const commonMessageType = {
   reaction: 13,
   sendpayment: 14,
   requestpayment: 15,
+  unfurl: 16,
 }
 
 export const commonNotificationKind = {
@@ -117,17 +129,6 @@ export const commonTopicType = {
   chat: 1,
   dev: 2,
   kbfsfileedit: 3,
-}
-
-export const localAssetMetadataType = {
-  none: 0,
-  image: 1,
-  video: 2,
-  audio: 3,
-}
-
-export const localAssetTag = {
-  primary: 0,
 }
 
 export const localBodyPlaintextVersion = {

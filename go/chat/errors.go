@@ -39,7 +39,7 @@ func NewPermanentUnboxingError(inner error) UnboxingError {
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+	return fmt.Sprintf("Unable to decrypt chat message: %s", e.inner.Error())
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
@@ -52,7 +52,7 @@ func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
 		return err.ExportType()
 	case EphemeralUnboxingError:
 		return chat1.MessageUnboxedErrorType_EPHEMERAL
-	case NotAuthenticatedForThisDeviceError:
+	case NotAuthenticatedForThisDeviceError, InvalidMACError:
 		return chat1.MessageUnboxedErrorType_PAIRWISE_MISSING
 	default:
 		return chat1.MessageUnboxedErrorType_MISC
@@ -104,7 +104,7 @@ func NewTransientUnboxingError(inner error) UnboxingError {
 type TransientUnboxingError struct{ inner error }
 
 func (e TransientUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message (transient): %s", e.inner.Error())
+	return fmt.Sprintf("Unable to decrypt chat message (transient): %s", e.inner.Error())
 }
 
 func (e TransientUnboxingError) IsPermanent() bool { return false }
@@ -145,7 +145,7 @@ func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
 }
 
 func (e EphemeralAlreadyExpiredError) Error() string {
-	return "Unable to decrypt already exploded message"
+	return "Exploding message is expired"
 }
 
 func (e EphemeralAlreadyExpiredError) InternalError() string {
@@ -161,7 +161,7 @@ func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Unable to decrypt exploding message. Missing keys"
+	return "Device is missing required ephemeral keys"
 }
 
 func (e EphemeralUnboxingError) InternalError() string {
@@ -177,7 +177,7 @@ func NewPublicTeamEphemeralKeyError() PublicTeamEphemeralKeyError {
 }
 
 func (e PublicTeamEphemeralKeyError) Error() string {
-	return "Cannot use ephemeral messages for a public team."
+	return "Cannot use exploding messages for a public team."
 }
 
 //=============================================================================
@@ -189,7 +189,7 @@ func NewNotAuthenticatedForThisDeviceError() NotAuthenticatedForThisDeviceError 
 }
 
 func (e NotAuthenticatedForThisDeviceError) Error() string {
-	return "this message is not authenticated for this device"
+	return "Message is not authenticated for this device"
 }
 
 //=============================================================================
@@ -255,7 +255,7 @@ func NewBoxingError(msg string, perm bool) BoxingError {
 }
 
 func (e BoxingError) Error() string {
-	return fmt.Sprintf("boxing error: %s perm: %v", e.Msg, e.Perm)
+	return fmt.Sprintf("encryption error: %s perm: %v", e.Msg, e.Perm)
 }
 
 func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {

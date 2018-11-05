@@ -470,240 +470,6 @@ func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 	}
 }
 
-type AssetMetadataImage struct {
-	Width  int `codec:"width" json:"width"`
-	Height int `codec:"height" json:"height"`
-}
-
-func (o AssetMetadataImage) DeepCopy() AssetMetadataImage {
-	return AssetMetadataImage{
-		Width:  o.Width,
-		Height: o.Height,
-	}
-}
-
-type AssetMetadataVideo struct {
-	Width      int `codec:"width" json:"width"`
-	Height     int `codec:"height" json:"height"`
-	DurationMs int `codec:"durationMs" json:"durationMs"`
-}
-
-func (o AssetMetadataVideo) DeepCopy() AssetMetadataVideo {
-	return AssetMetadataVideo{
-		Width:      o.Width,
-		Height:     o.Height,
-		DurationMs: o.DurationMs,
-	}
-}
-
-type AssetMetadataAudio struct {
-	DurationMs int `codec:"durationMs" json:"durationMs"`
-}
-
-func (o AssetMetadataAudio) DeepCopy() AssetMetadataAudio {
-	return AssetMetadataAudio{
-		DurationMs: o.DurationMs,
-	}
-}
-
-type AssetMetadataType int
-
-const (
-	AssetMetadataType_NONE  AssetMetadataType = 0
-	AssetMetadataType_IMAGE AssetMetadataType = 1
-	AssetMetadataType_VIDEO AssetMetadataType = 2
-	AssetMetadataType_AUDIO AssetMetadataType = 3
-)
-
-func (o AssetMetadataType) DeepCopy() AssetMetadataType { return o }
-
-var AssetMetadataTypeMap = map[string]AssetMetadataType{
-	"NONE":  0,
-	"IMAGE": 1,
-	"VIDEO": 2,
-	"AUDIO": 3,
-}
-
-var AssetMetadataTypeRevMap = map[AssetMetadataType]string{
-	0: "NONE",
-	1: "IMAGE",
-	2: "VIDEO",
-	3: "AUDIO",
-}
-
-type AssetMetadata struct {
-	AssetType__ AssetMetadataType   `codec:"assetType" json:"assetType"`
-	Image__     *AssetMetadataImage `codec:"image,omitempty" json:"image,omitempty"`
-	Video__     *AssetMetadataVideo `codec:"video,omitempty" json:"video,omitempty"`
-	Audio__     *AssetMetadataAudio `codec:"audio,omitempty" json:"audio,omitempty"`
-}
-
-func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
-	switch o.AssetType__ {
-	case AssetMetadataType_IMAGE:
-		if o.Image__ == nil {
-			err = errors.New("unexpected nil value for Image__")
-			return ret, err
-		}
-	case AssetMetadataType_VIDEO:
-		if o.Video__ == nil {
-			err = errors.New("unexpected nil value for Video__")
-			return ret, err
-		}
-	case AssetMetadataType_AUDIO:
-		if o.Audio__ == nil {
-			err = errors.New("unexpected nil value for Audio__")
-			return ret, err
-		}
-	}
-	return o.AssetType__, nil
-}
-
-func (o AssetMetadata) Image() (res AssetMetadataImage) {
-	if o.AssetType__ != AssetMetadataType_IMAGE {
-		panic("wrong case accessed")
-	}
-	if o.Image__ == nil {
-		return
-	}
-	return *o.Image__
-}
-
-func (o AssetMetadata) Video() (res AssetMetadataVideo) {
-	if o.AssetType__ != AssetMetadataType_VIDEO {
-		panic("wrong case accessed")
-	}
-	if o.Video__ == nil {
-		return
-	}
-	return *o.Video__
-}
-
-func (o AssetMetadata) Audio() (res AssetMetadataAudio) {
-	if o.AssetType__ != AssetMetadataType_AUDIO {
-		panic("wrong case accessed")
-	}
-	if o.Audio__ == nil {
-		return
-	}
-	return *o.Audio__
-}
-
-func NewAssetMetadataWithImage(v AssetMetadataImage) AssetMetadata {
-	return AssetMetadata{
-		AssetType__: AssetMetadataType_IMAGE,
-		Image__:     &v,
-	}
-}
-
-func NewAssetMetadataWithVideo(v AssetMetadataVideo) AssetMetadata {
-	return AssetMetadata{
-		AssetType__: AssetMetadataType_VIDEO,
-		Video__:     &v,
-	}
-}
-
-func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
-	return AssetMetadata{
-		AssetType__: AssetMetadataType_AUDIO,
-		Audio__:     &v,
-	}
-}
-
-func (o AssetMetadata) DeepCopy() AssetMetadata {
-	return AssetMetadata{
-		AssetType__: o.AssetType__.DeepCopy(),
-		Image__: (func(x *AssetMetadataImage) *AssetMetadataImage {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Image__),
-		Video__: (func(x *AssetMetadataVideo) *AssetMetadataVideo {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Video__),
-		Audio__: (func(x *AssetMetadataAudio) *AssetMetadataAudio {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Audio__),
-	}
-}
-
-type AssetTag int
-
-const (
-	AssetTag_PRIMARY AssetTag = 0
-)
-
-func (o AssetTag) DeepCopy() AssetTag { return o }
-
-var AssetTagMap = map[string]AssetTag{
-	"PRIMARY": 0,
-}
-
-var AssetTagRevMap = map[AssetTag]string{
-	0: "PRIMARY",
-}
-
-type Asset struct {
-	Filename  string        `codec:"filename" json:"filename"`
-	Region    string        `codec:"region" json:"region"`
-	Endpoint  string        `codec:"endpoint" json:"endpoint"`
-	Bucket    string        `codec:"bucket" json:"bucket"`
-	Path      string        `codec:"path" json:"path"`
-	Size      int64         `codec:"size" json:"size"`
-	MimeType  string        `codec:"mimeType" json:"mimeType"`
-	EncHash   Hash          `codec:"encHash" json:"encHash"`
-	Key       []byte        `codec:"key" json:"key"`
-	VerifyKey []byte        `codec:"verifyKey" json:"verifyKey"`
-	Title     string        `codec:"title" json:"title"`
-	Nonce     []byte        `codec:"nonce" json:"nonce"`
-	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
-	Tag       AssetTag      `codec:"tag" json:"tag"`
-}
-
-func (o Asset) DeepCopy() Asset {
-	return Asset{
-		Filename: o.Filename,
-		Region:   o.Region,
-		Endpoint: o.Endpoint,
-		Bucket:   o.Bucket,
-		Path:     o.Path,
-		Size:     o.Size,
-		MimeType: o.MimeType,
-		EncHash:  o.EncHash.DeepCopy(),
-		Key: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.Key),
-		VerifyKey: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.VerifyKey),
-		Title: o.Title,
-		Nonce: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.Nonce),
-		Metadata: o.Metadata.DeepCopy(),
-		Tag:      o.Tag.DeepCopy(),
-	}
-}
-
 type MessageAttachment struct {
 	Object   Asset   `codec:"object" json:"object"`
 	Preview  *Asset  `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -822,6 +588,16 @@ func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 	}
 }
 
+type MessageUnfurl struct {
+	Unfurl Unfurl `codec:"unfurl" json:"unfurl"`
+}
+
+func (o MessageUnfurl) DeepCopy() MessageUnfurl {
+	return MessageUnfurl{
+		Unfurl: o.Unfurl.DeepCopy(),
+	}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -838,6 +614,7 @@ type MessageBody struct {
 	Reaction__           *MessageReaction             `codec:"reaction,omitempty" json:"reaction,omitempty"`
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
+	Unfurl__             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -910,6 +687,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_REQUESTPAYMENT:
 		if o.Requestpayment__ == nil {
 			err = errors.New("unexpected nil value for Requestpayment__")
+			return ret, err
+		}
+	case MessageType_UNFURL:
+		if o.Unfurl__ == nil {
+			err = errors.New("unexpected nil value for Unfurl__")
 			return ret, err
 		}
 	}
@@ -1056,6 +838,16 @@ func (o MessageBody) Requestpayment() (res MessageRequestPayment) {
 	return *o.Requestpayment__
 }
 
+func (o MessageBody) Unfurl() (res MessageUnfurl) {
+	if o.MessageType__ != MessageType_UNFURL {
+		panic("wrong case accessed")
+	}
+	if o.Unfurl__ == nil {
+		return
+	}
+	return *o.Unfurl__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1151,6 +943,13 @@ func NewMessageBodyWithRequestpayment(v MessageRequestPayment) MessageBody {
 	return MessageBody{
 		MessageType__:    MessageType_REQUESTPAYMENT,
 		Requestpayment__: &v,
+	}
+}
+
+func NewMessageBodyWithUnfurl(v MessageUnfurl) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_UNFURL,
+		Unfurl__:      &v,
 	}
 }
 
@@ -1255,6 +1054,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Requestpayment__),
+		Unfurl__: (func(x *MessageUnfurl) *MessageUnfurl {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Unfurl__),
 	}
 }
 

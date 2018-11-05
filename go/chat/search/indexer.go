@@ -411,7 +411,13 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	pagination := &chat1.Pagination{Num: idx.pageSize}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
-		TopicType: &topicType,
+		ComputeActiveList: false,
+		TopicType:         &topicType,
+		Status: []chat1.ConversationStatus{
+			chat1.ConversationStatus_UNFILED,
+			chat1.ConversationStatus_FAVORITE,
+			chat1.ConversationStatus_MUTED,
+		},
 	}
 	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
