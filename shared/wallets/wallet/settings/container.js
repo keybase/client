@@ -1,10 +1,12 @@
 // @flow
 import Settings, {type SettingsProps} from '.'
-import {compose, namedConnect, lifecycle, safeSubmit} from '../../../util/container'
+import {compose, namedConnect, lifecycle, safeSubmit, type RouteProps} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
@@ -72,7 +74,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
 })
 
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
   lifecycle({
     componentDidMount() {
       this.props.refresh()
