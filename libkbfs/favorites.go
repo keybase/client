@@ -5,11 +5,9 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfssync"
@@ -69,8 +67,7 @@ type Favorites struct {
 	// It may not be consistent with the server's view of the user's
 	// favorites list, if other devices have modified the list since
 	// the last refresh.
-	cache           map[Favorite]bool
-	cacheExpireTime time.Time
+	cache map[Favorite]bool
 
 	inFlightLock sync.Mutex
 	inFlightAdds map[favToAdd]*favReq
@@ -123,16 +120,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	// Fetch a new list if:
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
-	//  * It's stale
-	if req.refresh || f.cache == nil || time.Now().After(f.cacheExpireTime) {
+	if req.refresh || f.cache == nil {
 		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
 			return err
 		}
 
 		f.cache = make(map[Favorite]bool)
-		f.cacheExpireTime = libkb.ForceWallClock(time.Now()).Add(time.
-			Hour * 24 * 7)
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
