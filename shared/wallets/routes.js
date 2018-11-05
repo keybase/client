@@ -51,18 +51,11 @@ const walletChildren = {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-<<<<<<< HEAD
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
-||||||| merged common ancestors
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
-=======
         tags: makeLeafTags({
           layerOnTop: !isMobile,
           renderTopmostOnly: true,
           hideStatusBar: true,
-          underStatusBar: true,
         }),
->>>>>>> origin/master
       },
       createNewAccount,
       linkExisting,
@@ -73,18 +66,11 @@ const walletChildren = {
       },
     },
     component: SendForm,
-<<<<<<< HEAD
-    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
-||||||| merged common ancestors
-    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
-=======
     tags: makeLeafTags({
       layerOnTop: !isMobile,
       renderTopmostOnly: true,
       hideStatusBar: true,
-      underStatusBar: true,
     }),
->>>>>>> origin/master
   },
   settings: {
     children: {
