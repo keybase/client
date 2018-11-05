@@ -54,7 +54,6 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
       const components = []
       statuses.forEach(st => {
-        components.push(JSON.stringify(st))
         memosAndTimes.forEach(mt => {
           readStates.forEach(rs => {
             // a non-complete transaction is already treated as 'unread'.
