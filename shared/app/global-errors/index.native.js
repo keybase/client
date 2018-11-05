@@ -78,7 +78,7 @@ class GlobalError extends React.Component<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Kb.NativeSafeAreaView style={{flexGrow: 0}} />
+        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: Styles.globalColors.transparent}} />
         <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
           <Kb.Box
             style={{

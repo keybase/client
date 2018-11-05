@@ -1,3 +1,3 @@
 // @flow
 // Just act like a box
-export {Box as default} from './box'
+export {Box as default, Box as SafeAreaViewTop} from './box'

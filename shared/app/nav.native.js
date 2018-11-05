@@ -129,7 +129,7 @@ function renderStackRoute(route, shouldRender) {
           barStyle={barStyle(showStatusBarDarkContent)}
         />
       )}
-      {makeSafeAreaOnTop && <Kb.NativeSafeAreaView style={styles.topSafeArea} />}
+      {makeSafeAreaOnTop && <Kb.SafeAreaViewTop />}
       <Kb.BoxGrow>{route.component({shouldRender})}</Kb.BoxGrow>
     </Kb.NativeView>
   )
@@ -392,7 +392,6 @@ const styles = Styles.styleSheetCreate({
   tabBarHeightZero: {height: 0},
   noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   tabSafeArea: {backgroundColor: Styles.globalColors.darkBlue2, flexGrow: 0},
-  topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 })
 
 export default connect(

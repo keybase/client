@@ -500,7 +500,7 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
-        <Kb.NativeSafeAreaView style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
+        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
