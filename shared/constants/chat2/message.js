@@ -551,16 +551,16 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
   if (!preview) {
     return res
   }
-  if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+  if (preview.assetType === RPCChatTypes.commonAssetMetadataType.image && preview.image) {
     const wh = clampAttachmentPreviewSize(preview.image)
     res.height = wh.height
     res.width = wh.width
     res.attachmentType = 'image'
     // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+    if (full && full.assetType === RPCChatTypes.commonAssetMetadataType.video) {
       res.showPlayButton = true
     }
-  } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+  } else if (preview.assetType === RPCChatTypes.commonAssetMetadataType.video && preview.video) {
     const wh = clampAttachmentPreviewSize(preview.video)
     res.height = wh.height
     res.width = wh.width
@@ -1074,9 +1074,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'sendPayment': {
       // Is the payment pending?
       const paymentInfo = getPaymentMessageInfo(state, message)
-      if (!paymentInfo ||
-        ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))
-      ) {
+      if (!paymentInfo || ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
         return false
       }
       return true

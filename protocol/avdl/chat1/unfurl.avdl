@@ -2,7 +2,6 @@
 
 protocol unfurl {
     import idl "common.avdl";
-    import idl "local.avdl";
 
     enum UnfurlType {
         GENERIC_0,

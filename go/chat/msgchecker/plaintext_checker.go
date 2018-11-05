@@ -82,7 +82,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 		chat1.MessageType_DELETEHISTORY,
-		chat1.MessageType_SENDPAYMENT:
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_UNFURL:
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)

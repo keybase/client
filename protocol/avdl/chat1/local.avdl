@@ -95,57 +95,6 @@ protocol local {
     MessageID upto;
   }
 
-  record AssetMetadataImage {
-    int width;
-    int height;
-  }
-
-  record AssetMetadataVideo {
-    int width;
-    int height;
-    int durationMs;
-  }
-
-  record AssetMetadataAudio {
-    int durationMs;
-  }
-
-  @go("nostring")
-  enum AssetMetadataType {
-    NONE_0,
-    IMAGE_1,
-    VIDEO_2,
-    AUDIO_3
-  }
-
-  variant AssetMetadata switch (AssetMetadataType assetType) {
-    case IMAGE: AssetMetadataImage;
-    case VIDEO: AssetMetadataVideo;
-    case AUDIO: AssetMetadataAudio;
-  }
-
-  @go("nostring")
-  enum AssetTag {
-    PRIMARY_0
-  }
-
-  record Asset {
-    string filename;           // original filename of the object
-    string region;             // storage region name
-    string endpoint;           // storage endpoint
-    string bucket;             // storage bucket
-    string path;               // path to the object in bucket
-    long size;                 // size of the object
-    string mimeType;           // mime type of the object
-    Hash encHash;              // hash of ciphertext object
-    bytes key;                 // encryption key
-    bytes verifyKey;           // signature verification key
-    string title;              // title of the asset (defaults to filename if not provided)
-    bytes nonce;               // encryption nonce
-    AssetMetadata metadata;    // type-specific metadata
-    AssetTag tag;              // for multiple previews, a tag to differentiate
-  }
-
   record MessageAttachment {
     Asset object;                // the primary attachment object (can be empty)
     union {null, Asset} preview; // the (optional) preview of object    (V1)
@@ -181,6 +130,10 @@ protocol local {
     string note;
   }
 
+  record MessageUnfurl {
+    Unfurl unfurl;
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -196,6 +149,7 @@ protocol local {
     case REACTION: MessageReaction;
     case SENDPAYMENT: MessageSendPayment;
     case REQUESTPAYMENT: MessageRequestPayment;
+    case UNFURL: MessageUnfurl;
   }
 
   enum OutboxStateType {
