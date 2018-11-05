@@ -159,22 +159,6 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	return ret, err
 }
 
-func (h *UserHandler) Search(ctx context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
-	eng := engine.NewSearchEngine(h.G(), engine.SearchEngineArgs{
-		Query: arg.Query,
-	})
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err = engine.RunEngine2(m, eng)
-	if err == nil {
-		results = eng.GetResults()
-	}
-	return
-}
-
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
 	emails, err := libkb.LoadUserEmails(h.G())
 	if err != nil {

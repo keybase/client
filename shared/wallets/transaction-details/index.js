@@ -266,8 +266,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
-          onShowProfile={props.onShowProfile}
-          // Don't render unread state in detail view.
+          onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
           status={props.status}
@@ -337,6 +336,15 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text selectable={true} type="Body">
             {props.publicMemo}
           </Kb.Text>
+          {!!props.publicMemo &&
+            props.yourRole === 'receiverOnly' &&
+            props.counterpartyType === 'stellarPublicKey' && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
+                <Kb.Text type="BodySemibold" backgroundMode="Information">
+                  Watch out for phishing attacks and dangerous websites.
+                </Kb.Text>
+              </Kb.Box2>
+            )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -442,4 +450,9 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-work',
     },
   }),
+  warningBannerContainer: {
+    backgroundColor: Styles.backgroundModeToColor.Information,
+    borderRadius: 4,
+    padding: Styles.globalMargins.xsmall,
+  },
 })

@@ -46,6 +46,7 @@ func newCmdChatSearchRegexp(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSearchRegexpRunner(g), "search-regexp", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: append(flags, cli.BoolFlag{
 			Name:  "r, regex",

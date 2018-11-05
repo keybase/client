@@ -156,7 +156,7 @@ const sendPayment = (state: TypedState) => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXML = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
+const setLastSentXLM = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
   Saga.put(
     WalletsGen.createSetLastSentXLM({
       lastSentXLM: action.payload.lastSentXLM,
@@ -331,10 +331,6 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
     })
   )
 }
-
-const displayCurrencyReceived = (state: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
-  action.payload.setBuildingCurrency &&
-  Saga.put(WalletsGen.createSetBuildingCurrency({currency: action.payload.currency.code}))
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
   RPCStellarTypes.localChangeDisplayCurrencyLocalRpcPromise(
@@ -662,7 +658,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
   yield Saga.actionToPromise(WalletsGen.loadSendAssetChoices, loadSendAssetChoices)
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
-  yield Saga.actionToAction(WalletsGen.displayCurrencyReceived, displayCurrencyReceived)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
   yield Saga.actionToPromise(WalletsGen.changeAccountName, changeAccountName)
@@ -689,7 +684,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXML)
+  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXLM)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)

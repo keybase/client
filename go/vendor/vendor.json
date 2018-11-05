@@ -803,10 +803,10 @@
 			"revisionTime": "2018-03-14T08:05:35Z"
 		},
 		{
-			"checksumSHA1": "HcDa/j4eMiKGYEo8qmrW+2NDFcE=",
+			"checksumSHA1": "Nl0FMVXiH29jalQ/cyncGEaNSTk=",
 			"path": "github.com/syndtr/goleveldb/leveldb",
-			"revision": "8c81ea47d4c41a385645e133e15510fc6a2a74b4",
-			"revisionTime": "2017-04-09T01:48:31Z"
+			"revision": "a4119e27a65dc634683dd798846ce8ee09620ae9",
+			"revisionTime": "2018-11-02T13:26:33Z"
 		},
 		{
 			"checksumSHA1": "EKIow7XkgNdWvR/982ffIZxKG8Y=",

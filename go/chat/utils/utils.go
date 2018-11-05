@@ -30,6 +30,17 @@ import (
 	context "golang.org/x/net/context"
 )
 
+func AssertLoggedInUID(ctx context.Context, g *globals.Context) (uid gregor1.UID, err error) {
+	if !g.ActiveDevice.HaveKeys() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	k1uid := g.Env.GetUID()
+	if k1uid.IsNil() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	return gregor1.UID(k1uid.ToBytes()), nil
+}
+
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
 // one day, defined as 24*time.Hour. Only whole days are supported for "d"
 // unit, but it can be followed by smaller units, e.g., "1d1h".

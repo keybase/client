@@ -1067,6 +1067,27 @@ export const enoughTimeBetweenMessages = (
       message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
   )
 
+export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
+  switch (message.type) {
+    case 'text':
+    case 'attachment':
+    case 'requestPayment':
+      return true
+    case 'sendPayment': {
+      // Is the payment pending?
+      const paymentInfo = getPaymentMessageInfo(state, message)
+      if (!paymentInfo ||
+        ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))
+      ) {
+        return false
+      }
+      return true
+    }
+    default:
+      return false
+  }
+}
+
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '30 seconds', seconds: 30},
   {text: '5 minutes', seconds: 300},

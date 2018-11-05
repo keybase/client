@@ -11,6 +11,7 @@ type _LeafTags = {
   layerOnTop: boolean,
   modal: boolean,
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
+  renderTopmostOnly: boolean, // desktop only. doesn't render if not the current leaf. valid only with `layerOnTop: true`
   root: boolean, // only used by the root shim to allow special padding logic as its the root container
   showStatusBarDarkContent: boolean, // mobile only
   title: ?string,
@@ -25,6 +26,7 @@ export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   layerOnTop: false,
   modal: false,
   persistChildren: false,
+  renderTopmostOnly: false,
   root: false,
   showStatusBarDarkContent: false,
   title: null,

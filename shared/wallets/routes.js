@@ -24,13 +24,13 @@ import WalletsList from './wallet-list/container'
 const createNewAccount = {
   children: {},
   component: CreateNewAccount,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const linkExisting = {
   children: {},
   component: LinkExisting,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const walletChildren = {
@@ -38,31 +38,53 @@ const walletChildren = {
   exportSecretKey: {
     children: {},
     component: ExportSecretKey,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   linkExisting,
   receive: {
     children: {},
     component: ReceiveModal,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   [Constants.sendReceiveFormRouteKey]: {
     children: {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
+<<<<<<< HEAD
         tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
+||||||| merged common ancestors
+        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+=======
+        tags: makeLeafTags({
+          layerOnTop: !isMobile,
+          renderTopmostOnly: true,
+          hideStatusBar: true,
+          underStatusBar: true,
+        }),
+>>>>>>> origin/master
       },
       createNewAccount,
       linkExisting,
       [Constants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
     },
     component: SendForm,
+<<<<<<< HEAD
     tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true}),
+||||||| merged common ancestors
+    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+=======
+    tags: makeLeafTags({
+      layerOnTop: !isMobile,
+      renderTopmostOnly: true,
+      hideStatusBar: true,
+      underStatusBar: true,
+    }),
+>>>>>>> origin/master
   },
   settings: {
     children: {
@@ -73,21 +95,21 @@ const walletChildren = {
           reallyRemoveAccount: {
             children: {},
             component: ReallyRemoveAccountPopup,
-            tags: makeLeafTags({layerOnTop: !isMobile}),
+            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
           },
         },
         component: RemoveAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       renameAccount: {
         children: {},
         component: RenameAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       setDefaultAccount: {
         children: {},
         component: SetDefaultAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
     },
     component: AccountSettings,

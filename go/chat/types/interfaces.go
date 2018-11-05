@@ -114,6 +114,8 @@ type RegexpSearcher interface {
 }
 
 type Indexer interface {
+	Resumable
+
 	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
@@ -349,4 +351,9 @@ type NativeVideoHelper interface {
 type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
+}
+
+type ConversationBackedStorage interface {
+	Put(ctx context.Context, name string, data interface{}) error
+	Get(ctx context.Context, name string, res interface{}) (bool, error)
 }

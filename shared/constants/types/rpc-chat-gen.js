@@ -266,6 +266,12 @@ export const remoteSyncAllProtVers = {
   v1: 1,
 }
 
+export const unfurlUnfurlMode = {
+  always: 0,
+  never: 1,
+  whitelisted: 2,
+}
+
 export const unfurlUnfurlType = {
   generic: 0,
   youtube: 1,

@@ -393,7 +393,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	src, err := newFileReadResetter(filename)
+	src, err := NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}
@@ -405,7 +405,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
+	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper, callerPreview)
 	if err != nil {
 		return res, err
 	}
@@ -507,7 +507,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				S3Params:       previewParams,
 				Filename:       filename,
 				FileSize:       int64(len(pre.Preview)),
-				Plaintext:      newBufReadResetter(pre.Preview),
+				Plaintext:      NewBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
 				UserID:         uid,

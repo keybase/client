@@ -627,6 +627,14 @@ func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
 
+func (b MessageBody) IsType(typ MessageType) bool {
+	btyp, err := b.MessageType()
+	if err != nil {
+		return false
+	}
+	return btyp == typ
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
@@ -955,6 +963,12 @@ func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }
 
+func (f *ConversationFinalizeInfo) IsResetForUser(username string) bool {
+	// If reset user is the given user, or is blank (only way such a thing
+	// could be in our inbox is if the current user is the one that reset)
+	return f != nil && (f.ResetUser == username || f.ResetUser == "")
+}
+
 func (p *Pagination) Eq(other *Pagination) bool {
 	if p == nil && other == nil {
 		return true
@@ -1105,6 +1119,10 @@ func (c Conversation) GetMaxMessageID() MessageID {
 		}
 	}
 	return maxMsgID
+}
+
+func (c Conversation) IsSelfFinalized(username string) bool {
+	return c.GetMembersType() == ConversationMembersType_KBFS && c.GetFinalizeInfo().IsResetForUser(username)
 }
 
 func (m MessageSummary) GetMessageID() MessageID {

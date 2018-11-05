@@ -1,11 +1,11 @@
 package engine
 
 import (
-	"testing"
-
+	"context"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestMerkleClientHistorical(t *testing.T) {
@@ -114,7 +114,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	// Make sure we can find this after fu is deleted
 	err = libkb.DeleteAccount(m, fu.NormalizedUsername(), fu.Passphrase)
 	require.NoError(t, err)
-	err = tc.G.Logout()
+	err = tc.G.Logout(context.TODO())
 	require.NoError(t, err)
 
 	arg = keybase1.FindNextMerkleRootAfterRevokeArg{

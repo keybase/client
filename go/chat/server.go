@@ -1051,7 +1051,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 		arg.ConvID, arg.MessageID, arg.BackInTime)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1136,7 +1136,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1381,7 +1381,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1630,7 +1630,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("RetryPost: obr: %v", arg.OutboxID))()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
@@ -1674,17 +1674,6 @@ func (h *Server) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
-func (h *Server) assertLoggedInUID(ctx context.Context) (uid gregor1.UID, err error) {
-	if !h.G().ActiveDevice.HaveKeys() {
-		return uid, libkb.LoginRequiredError{}
-	}
-	k1uid := h.G().Env.GetUID()
-	if k1uid.IsNil() {
-		return uid, libkb.LoginRequiredError{}
-	}
-	return gregor1.UID(k1uid.ToBytes()), nil
-}
-
 func (h *Server) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1692,7 +1681,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1748,7 +1737,7 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		}
 	}()
 
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1774,7 +1763,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 			h.Debug(ctx, "JoinConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1840,7 +1829,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 			h.Debug(ctx, "LeaveConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1864,7 +1853,7 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 			h.Debug(ctx, "PreviewConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1888,7 +1877,7 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
 		}
 	}()
-	_, err = h.assertLoggedInUID(ctx)
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2000,7 +1989,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("UnboxMobilePushNotification(%s)",
 		arg.ConvID))()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2150,7 +2139,7 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
@@ -2180,7 +2169,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2230,7 +2219,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SearchInbox")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2292,7 +2281,7 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return nil, err
 	}

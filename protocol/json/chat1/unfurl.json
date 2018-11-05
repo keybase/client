@@ -168,6 +168,33 @@
           "body": "UnfurlYoutube"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UnfurlMode",
+      "symbols": [
+        "ALWAYS_0",
+        "NEVER_1",
+        "WHITELISTED_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettings",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
     }
   ],
   "messages": {},
