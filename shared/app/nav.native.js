@@ -188,10 +188,6 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     }
   }
 
-  _switchTab = tab => {
-    this.props.switchTab(tab)
-  }
-
   render() {
     const props = this.props
 
@@ -411,7 +407,7 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

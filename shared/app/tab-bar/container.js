@@ -1,10 +1,18 @@
 // @flow
+import * as I from 'immutable'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
 import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
+
+type OwnProps = {|
+  hotkeys?: Array<string>,
+  onHotkey?: (cmd: string) => void,
+  routeSelected: Tab,
+  routePath: I.List<string>,
+|}
 
 let KeyHandler = c => c
 if (!isMobile) {
@@ -84,7 +92,7 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   username: stateProps.username || '',
 })
 
-const ConnectedTabBar = connect(
+const ConnectedTabBar = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

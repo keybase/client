@@ -6,6 +6,8 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 
+type OwnProps = {||}
+
 type Props = {
   onRequestPermissions: () => void,
   onNoPermissions: () => void,
@@ -78,7 +80,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default Container.compose(
-  Container.namedConnect(
+  Container.namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d}),
