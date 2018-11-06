@@ -87,20 +87,23 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       flexGrow: 1,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
     },
     isElectron: {
       borderRadius: 'inherit',
       paddingBottom: Styles.globalMargins.xlarge,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
       paddingTop: Styles.globalMargins.xlarge,
       textAlign: 'center',
     },
     isMobile: {},
   }),
   buttonBarContainer: Styles.platformStyles({
-    common: {justifyContent: 'flex-end'},
-    isElectron: {flex: 1},
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
   }),
   buttonBar: Styles.platformStyles({
     isElectron: {

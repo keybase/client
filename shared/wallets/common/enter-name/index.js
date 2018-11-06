@@ -15,7 +15,13 @@ const EnterName = (props: EnterNameProps) => {
   const accountNameMaxLength = 24
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'small' : 'medium'} gapStart={true}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap={Styles.isMobile ? 'small' : 'medium'}
+      style={{flex: 1}}
+      gapStart={!Styles.isMobile}
+    >
       {!Styles.isMobile && (
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Icon type="icon-wallet-add-48" />
@@ -33,6 +39,7 @@ const EnterName = (props: EnterNameProps) => {
           onChangeText={props.onNameChange}
           autoFocus={true}
           maxLength={accountNameMaxLength}
+          hideBorder={Styles.isMobile}
         />
         {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>
@@ -42,7 +49,7 @@ const EnterName = (props: EnterNameProps) => {
       </Kb.Box2>
       <Kb.InfoNote>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall" style={styles.textCenter}>
+          <Kb.Text type="BodySmall" style={styles.infoText}>
             Your account name is encrypted and only visible to you.
           </Kb.Text>
         </Kb.Box2>
@@ -73,10 +80,24 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {width: '100%'},
     isMobile: {
-      justifyContent: 'flex-start',
+      borderBottomWidth: 1,
+      borderColor: Styles.globalColors.black_05,
+      borderStyle: 'solid',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
-  textCenter: {textAlign: 'center'},
+  infoText: Styles.platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+  }),
 })
 
 export default EnterName
