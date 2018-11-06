@@ -1619,3 +1619,9 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 	}
 	return conn, token, nil
 }
+
+// GetQueryRe returns a regex to match the query string on message text. This
+// is used for result highlighting.
+func GetQueryRe(query string) (*regexp.Regexp, error) {
+	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
+}
