@@ -306,6 +306,11 @@ const reactComponentsForMarkdownType = {
     return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
+    let url = node.content
+
+    if (!url.match(/^https?:\/\//)) {
+      url = `http://${node.content}`
+    }
     return (
       <React.Fragment key={state.key}>
         {node.spaceInFront}
@@ -315,8 +320,8 @@ const reactComponentsForMarkdownType = {
           key={state.key}
           style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
           title={node.content}
-          onClickURL={node.content}
-          onLongPressURL={node.content}
+          onClickURL={url}
+          onLongPressURL={url}
         >
           {node.content}
         </Text>
