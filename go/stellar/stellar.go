@@ -226,19 +226,17 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
+func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	bundle, _, err := remote.Fetch(ctx, g)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
-
 	for _, account := range bundle.Accounts {
 		if account.AccountID.Eq(accountID) {
-			return true, nil
+			return true, account.IsPrimary, nil
 		}
 	}
-
-	return false, nil
+	return false, false, nil
 }
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntry, error) {
@@ -456,7 +454,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, err := OwnAccount(m.Ctx(), m.G(),
+	ownRecipient, _, err := OwnAccount(m.Ctx(), m.G(),
 		stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		m.CDebugf("error determining if user own's recipient: %v", err)
