@@ -17,7 +17,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
       paddingRight: Styles.globalMargins.tiny,
     }}
     onClick={onClick}
-    onMouseOver={onHover}
+    onMouseEnter={onHover}
   >
     {!Constants.isSpecialMention(username) ? (
       <Kb.Avatar username={username} size={32} />
@@ -78,8 +78,9 @@ type Data = {|
 
 class MentionHud extends React.Component<MentionHudProps, State> {
   state = {selectedIndex: 0}
-  _setSelectedIndex = selectedIndex =>
+  _setSelectedIndex = selectedIndex => {
     this.setState(p => (p.selectedIndex !== selectedIndex ? {selectedIndex} : null))
+  }
   render() {
     const fullList = makeFullList(this.props)
     const data = makeData(fullList, this.props.filter, this.state.selectedIndex)
@@ -99,6 +100,10 @@ class MentionHud extends React.Component<MentionHudProps, State> {
 type ImplProps = MentionHudProps & {|data: Array<Data>, fullList: Array<Data>|}
 class MentionHudImpl extends React.Component<ImplProps> {
   componentDidUpdate(prevProps: ImplProps) {
+    if (this.props.filter !== prevProps.filter) {
+      this._safeHoverTime = Date.now() + 500
+    }
+
     if (this.props.data.length === 0) {
       if (prevProps.selectedIndex === 0) {
         // We've already done this, so just get out of here so we don't infinite loop
@@ -148,12 +153,21 @@ class MentionHudImpl extends React.Component<ImplProps> {
     }
   }
 
+  // if the filter changes, disable the hover interaction. otherwise if you have the mouse over the area while you're typing it'll start
+  // selecting things and it gets really confusing. Instead when the filter changes we ignore the hover callback for a small amount of time
+  _safeHoverTime = 0
+  _hoverSetSelectedIndex = index => {
+    if (Date.now() > this._safeHoverTime) {
+      this.props.setSelectedIndex(index)
+    }
+  }
+
   rowRenderer = (index: number, props: Data) => {
     return (
       <MentionRowRenderer
         key={props.key}
         onClick={() => this.props.onPickUser(props.username)}
-        onHover={() => this.props.setSelectedIndex(index)}
+        onHover={() => this._hoverSetSelectedIndex(index)}
         {...props}
       />
     )

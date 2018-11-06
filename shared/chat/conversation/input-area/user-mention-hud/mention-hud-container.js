@@ -8,6 +8,7 @@ import {namedConnect} from '../../../../util/container'
 import * as I from 'immutable'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
+import memoize from 'memoize-one'
 
 const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -46,20 +47,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
 
-  const users = participants
-    .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
-    .toArray()
   return {
     ...ownProps,
     _generalChannelConversationIDKey,
     _loadParticipants: dispatchProps._loadParticipants,
     conversationIDKey: stateProps.conversationIDKey,
     filter: stateProps._filter.toLowerCase(),
+    loading: participants.isEmpty(),
     teamType: stateProps.teamType,
-    loading: users.length === 0,
-    users,
+    users: participantsToUsers(participants, stateProps._infoMap),
   }
 }
+
+const participantsToUsers = memoize((p, infoMap) =>
+  p.map(p => ({fullName: infoMap.getIn([p, 'fullname'], ''), username: p})).toArray()
+)
 
 class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   componentDidMount() {
