@@ -23,7 +23,7 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	return cli.Command{
 		Name:         "add-members-bulk",
 		ArgumentHelp: "<team name>",
-		Usage:        "Add a user to a team.",
+		Usage:        "Add users to a team in bulk.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamAddMembersBulkRunner(g)
 			cl.ChooseCommand(cmd, "add-members-bulk", c)
@@ -130,15 +130,15 @@ const teamAddMembersBulkDoc = `"keybase team add-members-bulk" allows you to add
 
 EXAMPLES:
 
-Add an existing keybase user:
+Add existing keybase users as writiers:
 
     keybase team add-members-bulk acme --writers=alice,bob,charlie
 
-Add a user via social assertion:
+Add users via social assertions:
 
     keybase team add-members-bulk acme --writers=alice+alice@github,bob@github,jerry@redder --readers=jon,bob32
 
-Add a user via email:
+Add users via email:
 
     keybase team add-members-bulk acme --readers='[max43@gmail.com]@email,[bill32@yahoo.com]@email' --writers='[lucy32@poems.com]@email'
 
