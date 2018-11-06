@@ -6,6 +6,7 @@ import * as Styles from '../../../styles'
 type EnterNameProps = {|
   error?: string,
   name: string,
+  onEnterKeyDown?: () => void,
   onNameChange: string => void,
 |}
 
@@ -14,25 +15,21 @@ const EnterName = (props: EnterNameProps) => {
   const accountNameMaxLength = 24
 
   return (
-    <>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'small' : 'medium'} gapStart={true}>
       {!Styles.isMobile && (
-        <>
-          <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
-          <Kb.Text type="Header" style={styles.headerText}>
-            Name your account
-          </Kb.Text>
-        </>
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          <Kb.Icon type="icon-wallet-add-48" />
+          <Kb.Text type="Header">Name your account</Kb.Text>
+        </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
           Account name
         </Kb.Text>
-        <Kb.Input
-          hideLabel={true}
-          hideUnderline={true}
-          inputStyle={Styles.collapseStyles([styles.inputElement, styles.tallSingleLineInput])}
+        <Kb.NewInput
           style={styles.input}
           value={props.name}
+          onEnterKeyDown={props.onEnterKeyDown}
           onChangeText={props.onNameChange}
           autoFocus={true}
           maxLength={accountNameMaxLength}
@@ -43,14 +40,14 @@ const EnterName = (props: EnterNameProps) => {
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.InfoNote containerStyle={styles.infoNote}>
+      <Kb.InfoNote>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.textCenter}>
             Your account name is encrypted and only visible to you.
           </Kb.Text>
         </Kb.Box2>
       </Kb.InfoNote>
-    </>
+    </Kb.Box2>
   )
 }
 
@@ -58,10 +55,6 @@ const styles = Styles.styleSheetCreate({
   icon: {
     width: 48,
     height: 48,
-  },
-  headerText: {
-    marginTop: Styles.globalMargins.medium,
-    marginBottom: Styles.globalMargins.medium,
   },
   error: Styles.platformStyles({
     common: {
@@ -79,38 +72,8 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'flex-start',
     },
     isElectron: {width: '100%'},
-  }),
-  inputElement: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      padding: Styles.globalMargins.xtiny,
-      textAlign: 'left',
-    },
-    isElectron: {
-      minWidth: 0,
-      width: '100%',
-    },
     isMobile: {
-      minWidth: '100%',
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-  }),
-  tallSingleLineInput: Styles.platformStyles({
-    isMobile: {
-      paddingBottom: 0,
-      paddingTop: 0,
-    },
-  }),
-  infoNote: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.small,
+      justifyContent: 'flex-start',
     },
   }),
   textCenter: {textAlign: 'center'},
