@@ -334,7 +334,7 @@ const reactComponentsForMarkdownType = {
         <Text
           className="hover-underline"
           type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride?.mailto])}
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
           title={node.content}
           onClickURL={node.mailto}
           onLongPressURL={node.mailto}
