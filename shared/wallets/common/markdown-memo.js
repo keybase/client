@@ -10,7 +10,12 @@ type Props = {
 
 const MarkdownMemo = (props: Props) =>
   props.memo ? (
-    <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={props.style}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="small"
+      fullWidth={true}
+      style={Styles.collapseStyles([props.style, styles.container])}
+    >
       <Kb.Divider vertical={true} style={styles.quoteMarker} />
       <Kb.Markdown style={styles.memo} allowFontScaling={true}>
         {props.memo}
@@ -20,13 +25,15 @@ const MarkdownMemo = (props: Props) =>
 
 const styles = Styles.styleSheetCreate({
   container: {
+    marginBottom: Styles.globalMargins.xxtiny,
+    marginTop: Styles.globalMargins.xxtiny,
     maxWidth: '100%',
   },
   memo: Styles.platformStyles({
     // Taken from text message styling
     common: {
-      width: '100%',
       maxWidth: '100%',
+      width: '100%',
     },
     isElectron: {
       cursor: 'text',
