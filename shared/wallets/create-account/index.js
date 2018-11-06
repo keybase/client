@@ -23,7 +23,8 @@ type State = {|
 class CreateAccount extends React.Component<Props, State> {
   state = {name: ''}
   _onNameChange = name => this.setState({name})
-  _onDone = () => this.props.onDone(this.state.name)
+  _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))
+  _disabled = () => !this.state.name
   _getBottomButtons = () => [
     ...(Styles.isMobile
       ? []
@@ -43,7 +44,7 @@ class CreateAccount extends React.Component<Props, State> {
       label="Done"
       waiting={this.props.waiting}
       fullWidth={Styles.isMobile}
-      disabled={!this.state.name}
+      disabled={this._disabled()}
     />,
   ]
 
@@ -75,6 +76,7 @@ class CreateAccount extends React.Component<Props, State> {
         <EnterName
           error={this.props.error || this.props.createNewAccountError}
           name={this.state.name}
+          onEnterKeyDown={this._onDone}
           onNameChange={this._onNameChange}
         />
       </WalletPopup>
