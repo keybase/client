@@ -19,13 +19,13 @@ const SupportedVersion int = 1
 // staticProofServies are only used for testing or for basic assertion
 // validation
 type staticProofServices struct {
-	collection map[string]libkb.ServiceType
+	externalServices map[string]libkb.ServiceType
 }
 
 func newStaticProofServices() libkb.ExternalServicesCollector {
 	staticServices := getStaticProofServices()
 	p := staticProofServices{
-		collection: make(map[string]libkb.ServiceType),
+		externalServices: make(map[string]libkb.ServiceType),
 	}
 	p.register(staticServices)
 	return &p
@@ -37,21 +37,25 @@ func (p *staticProofServices) register(services []libkb.ServiceType) {
 			continue
 		}
 		for _, k := range st.AllStringKeys() {
-			p.collection[k] = st
+			p.externalServices[k] = st
 		}
 	}
 }
 
 func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
-	return p.collection[strings.ToLower(s)]
+	return p.externalServices[strings.ToLower(s)]
 }
 
 func (p *staticProofServices) ListProofCheckers() []string {
 	var ret []string
-	for k := range p.collection {
+	for k := range p.externalServices {
 		ret = append(ret, k)
 	}
 	return ret
+}
+
+func (p *staticProofServices) GetDisplayPriority(s string) int {
+	return 0
 }
 
 // Contains both the statically known services and loads the configurations for
@@ -59,8 +63,9 @@ func (p *staticProofServices) ListProofCheckers() []string {
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
-	collection map[string]libkb.ServiceType
-	loaded     bool
+	externalServices map[string]libkb.ServiceType
+	displayConfigs   map[string]keybase1.ServiceDisplayConfig
+	loaded           bool
 }
 
 func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
@@ -69,24 +74,25 @@ func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
 
 func newProofServices(g *libkb.GlobalContext) *proofServices {
 	p := &proofServices{
-		Contextified: libkb.NewContextified(g),
-		collection:   make(map[string]libkb.ServiceType),
+		Contextified:     libkb.NewContextified(g),
+		externalServices: make(map[string]libkb.ServiceType),
+		displayConfigs:   make(map[string]keybase1.ServiceDisplayConfig),
 	}
 
 	staticServices := getStaticProofServices()
 	p.Lock()
 	defer p.Unlock()
-	p.register(staticServices)
+	p.registerServiceTypes(staticServices)
 	return p
 }
 
-func (p *proofServices) register(services []libkb.ServiceType) {
+func (p *proofServices) registerServiceTypes(services []libkb.ServiceType) {
 	for _, st := range services {
 		if !useDevelProofCheckers && st.IsDevelOnly() {
 			continue
 		}
 		for _, k := range st.AllStringKeys() {
-			p.collection[k] = st
+			p.externalServices[k] = st
 		}
 	}
 }
@@ -94,22 +100,33 @@ func (p *proofServices) register(services []libkb.ServiceType) {
 func (p *proofServices) GetServiceType(s string) libkb.ServiceType {
 	p.Lock()
 	defer p.Unlock()
-	p.loadParamProofServices()
-	return p.collection[strings.ToLower(s)]
+	p.loadServiceConfigs()
+	return p.externalServices[strings.ToLower(s)]
 }
 
 func (p *proofServices) ListProofCheckers() []string {
 	p.Lock()
 	defer p.Unlock()
-	p.loadParamProofServices()
+	p.loadServiceConfigs()
 	var ret []string
-	for k := range p.collection {
+	for k := range p.externalServices {
 		ret = append(ret, k)
 	}
 	return ret
 }
 
-func (p *proofServices) loadParamProofServices() {
+func (p *proofServices) GetDisplayPriority(s string) int {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs()
+	displayConf, ok := p.displayConfigs[s]
+	if !ok {
+		return 0
+	}
+	return displayConf.Priority
+}
+
+func (p *proofServices) loadServiceConfigs() {
 	// TODO Remove with CORE-8969
 	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
@@ -123,38 +140,50 @@ func (p *proofServices) loadParamProofServices() {
 		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
 		return
 	}
-	serviceConfigs, err := p.parseServiceConfigs(entry)
+	proofConfigs, displayConfigs, err := p.parseServiceConfigs(entry)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
 	}
 	services := []libkb.ServiceType{}
-	for _, config := range serviceConfigs {
+	for _, config := range proofConfigs {
 		services = append(services, NewGenericSocialProofServiceType(config))
 	}
-	p.register(services)
+	p.registerServiceTypes(services)
+	for _, config := range displayConfigs {
+		p.displayConfigs[config.Key] = config
+	}
 }
 
 type proofServicesT struct {
-	Services []keybase1.ParamProofServiceConfig `json:"services"`
+	Services []keybase1.ExternalServiceConfig `json:"services"`
 }
 
-func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (res []*GenericSocialProofConfig, err error) {
+func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (proofConfigs []*GenericSocialProofConfig, displayConfigs []keybase1.ServiceDisplayConfig, err error) {
 	b := []byte(entry.Entry)
 	services := proofServicesT{}
 
 	if err := json.Unmarshal(b, &services); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// Do some basic validation of what we parsed
-	for _, config := range services.Services {
-		validConf, err := NewGenericSocialProofConfig(p.G(), config)
-		if err != nil {
-			p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", config.DisplayName, err)
-			continue
+	for _, service := range services.Services {
+		if service.Config != nil {
+			// Do some basic validation of what we parsed
+			validConf, err := NewGenericSocialProofConfig(p.G(), *service.Config)
+			if err != nil {
+				p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", service.Config.DisplayName, err)
+				continue
+			}
+			proofConfigs = append(proofConfigs, validConf)
 		}
-		res = append(res, validConf)
+		if service.Display != nil {
+			if service.Config != nil && service.Config.Domain != service.Display.Key {
+				p.G().Log.CDebugf(context.TODO(), "Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
+				continue
+			}
+			displayConfigs = append(displayConfigs, *service.Display)
+		}
 	}
-	return res, nil
+	return proofConfigs, displayConfigs, nil
 }

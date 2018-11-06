@@ -10,18 +10,19 @@ import * as Styles from '../../styles'
 // To be used as customComponent in HeaderHoc
 
 type Props = {
-  accountName: string,
+  accountName?: string,
   title: string,
 }
 
 const AccountPageHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
     <Kb.Box2 direction="vertical">
-      {Styles.isMobile && (
-        <Kb.Text type="BodySmallSemibold" style={styles.textAlignCenter}>
-          {props.accountName}
-        </Kb.Text>
-      )}
+      {Styles.isMobile &&
+        !!props.accountName && (
+          <Kb.Text type="BodySmallSemibold" style={styles.textAlignCenter}>
+            {props.accountName}
+          </Kb.Text>
+        )}
       <Kb.Text type="BodyBig" style={styles.textAlignCenter}>
         {props.title}
       </Kb.Text>

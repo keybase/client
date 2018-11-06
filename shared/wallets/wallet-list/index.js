@@ -73,7 +73,7 @@ type Props = {
   title: string,
 }
 
-type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'what is stellar'}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
 class _WalletList extends React.Component<Props> {
   componentDidMount() {
@@ -92,8 +92,6 @@ class _WalletList extends React.Component<Props> {
             onLinkExisting={this.props.onLinkExisting}
           />
         )
-      case 'what is stellar':
-        return <WhatIsStellar key={row.type} onWhatIsStellar={this.props.onWhatIsStellar} />
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -114,11 +112,16 @@ class _WalletList extends React.Component<Props> {
     }
     const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
     const addWallet = 'add wallet'
-    const whatIsStellar = 'what is stellar'
     rows.push({key: addWallet, type: addWallet})
-    rows.push({key: whatIsStellar, type: whatIsStellar})
 
-    return <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
+    return (
+      <>
+        <Kb.BoxGrow>
+          <Kb.List items={rows} renderItem={this._renderRow} keyProperty="key" style={this.props.style} />
+        </Kb.BoxGrow>
+        <WhatIsStellar onWhatIsStellar={this.props.onWhatIsStellar} />
+      </>
+    )
   }
 }
 
@@ -140,10 +143,8 @@ const styles = Styles.styleSheetCreate({
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
     backgroundColor: Styles.globalColors.blue5,
-    bottom: 0,
     height: Styles.globalMargins.large,
     justifyContent: 'center',
-    position: 'absolute',
     width: '100%',
   },
 })

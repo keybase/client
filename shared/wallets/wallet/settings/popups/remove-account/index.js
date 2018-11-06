@@ -25,7 +25,8 @@ const RemoveAccountPopup = (props: Props) => {
 
   return (
     <WalletPopup
-      onClose={props.onClose}
+      onExit={props.onClose}
+      backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
-import {AccountPageHeader, WalletPopup} from '../common'
+import {WalletPopup} from '../common'
 
 type AddressesProps = {|
   federatedAddress?: string,
@@ -31,11 +31,10 @@ const ReceiveModal = (props: Props) => {
 
   return (
     <WalletPopup
-      onClose={props.onClose}
-      customCancelText="Close"
-      customComponent={
-        Styles.isMobile && <AccountPageHeader accountName={props.accountName} title="Receive" />
-      }
+      accountName={props.accountName}
+      headerTitle="Receive"
+      backButtonType="close"
+      onExit={props.onClose}
       containerStyle={styles.container}
     >
       <Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>

@@ -2114,6 +2114,20 @@
     },
     {
       "type": "record",
+      "name": "UserRolePair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertionOrEmail"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -2531,6 +2545,30 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "teamAddMembersMultiRole": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          }
         },
         {
           "name": "sendChatNotification",
