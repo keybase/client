@@ -1336,3 +1336,9 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
 	return obr.OutboxID, nil, err
 }
+
+func (s *NonblockingSender) SendUnfurlNonblock(ctx context.Context, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID chat1.OutboxID) (chat1.OutboxID, error) {
+	res, _, err := s.Send(ctx, convID, msg, clientPrev, &outboxID)
+	return res, err
+}
