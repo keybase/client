@@ -68,21 +68,13 @@ class _SimpleTopLine extends React.Component<Props> {
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.Text
                   type="BodySemibold"
-                  style={{
-                    ...boldOverride,
-                    color: this.props.usernameColor,
-                  }}
+                  style={Styles.collapseStyles([
+                    styles.teamTextStyle,
+                    boldOverride,
+                    {color: this.props.usernameColor},
+                  ])}
                 >
-                  {this.props.teamname}
-                </Kb.Text>
-                <Kb.Text
-                  type="BodySemibold"
-                  style={{
-                    ...boldOverride,
-                    paddingRight: 7,
-                  }}
-                >
-                  {'#' + this.props.channelname}
+                  {this.props.teamname + '#' + this.props.channelname}
                 </Kb.Text>
               </Kb.Box2>
             ) : (
@@ -143,5 +135,15 @@ const unreadDotStyle = {
   marginLeft: 4,
   width: 8,
 }
+
+const styles = Styles.styleSheetCreate({
+  teamTextStyle: Styles.platformStyles({
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
+})
 
 export {SimpleTopLine}
