@@ -9,6 +9,18 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
+const (
+	defaultScore          = 1
+	defaultOpenGraphScore = 10
+)
+
+func getOpenGraphScore(domain string) int {
+	switch domain {
+	default:
+		return defaultOpenGraphScore
+	}
+}
+
 func fullURL(hostname, path string) string {
 	if strings.HasPrefix(path, "//") {
 		return "http:" + path
@@ -19,48 +31,57 @@ func fullURL(hostname, path string) string {
 }
 
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
-	var generic chat1.UnfurlGenericRaw
 	hostname, err := GetHostname(uri)
 	if err != nil {
 		return res, err
 	}
-	generic.Url = uri
-	generic.SiteName = domain
+	generic := new(chat1.UnfurlGenericRaw)
+	generic.SetUrl(uri, defaultScore)
+	generic.SetSiteName(domain, defaultScore)
+
 	c := colly.NewCollector()
+
+	// scrape open graph tags
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
+		openGraphScore := getOpenGraphScore(domain)
 		prop := e.Attr("property")
 		content := e.Attr("content")
 		switch prop {
 		case "og:description":
-			generic.Description = &content
+			generic.SetDescription(&content, openGraphScore)
 		case "og:image":
-			generic.ImageUrl = new(string)
-			*generic.ImageUrl = fullURL(hostname, content)
+			imageUrl := fullURL(hostname, e.Attr("href"))
+			generic.SetImageUrl(&imageUrl, openGraphScore)
 		case "og:site_name":
-			generic.SiteName = content
+			generic.SetSiteName(content, openGraphScore)
 		case "og:pubdate":
 			s.Debug(ctx, "pubdate: %s", content)
 			t, err := time.Parse("2006-01-02T15:04:05Z", content)
 			if err == nil {
-				generic.PublishTime = new(int)
-				*generic.PublishTime = int(t.Unix())
+				publishTime := int(t.Unix())
+				generic.SetPublishTime(&publishTime, openGraphScore)
 			} else {
 				s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
 			}
 		}
 	})
+
+	// scrape title
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
-		generic.Title = e.Text
+		generic.SetTitle(e.Text, defaultScore)
 	})
+
+	// scrape favicon
 	c.OnHTML("head link[rel][href]", func(e *colly.HTMLElement) {
 		rel := strings.ToLower(e.Attr("rel"))
 		if strings.Contains(rel, "shortcut icon") {
-			generic.FaviconUrl = new(string)
-			*generic.FaviconUrl = fullURL(hostname, e.Attr("href"))
+			faviconUrl := fullURL(hostname, e.Attr("href"))
+			generic.SetFaviconUrl(&faviconUrl, defaultScore)
 		}
 	})
+
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
-	return chat1.NewUnfurlRawWithGeneric(generic), nil
+	return chat1.NewUnfurlRawWithGeneric(*generic), nil
 }

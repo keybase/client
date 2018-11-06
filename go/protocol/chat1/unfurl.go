@@ -35,13 +35,20 @@ func (e UnfurlType) String() string {
 }
 
 type UnfurlGenericRaw struct {
-	Title       string  `codec:"title" json:"title"`
-	Url         string  `codec:"url" json:"url"`
-	SiteName    string  `codec:"siteName" json:"siteName"`
-	FaviconUrl  *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
-	ImageUrl    *string `codec:"imageUrl,omitempty" json:"imageUrl,omitempty"`
-	PublishTime *int    `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	Title            string  `codec:"title" json:"title"`
+	Url              string  `codec:"url" json:"url"`
+	SiteName         string  `codec:"siteName" json:"siteName"`
+	FaviconUrl       *string `codec:"faviconUrl,omitempty" json:"faviconUrl,omitempty"`
+	ImageUrl         *string `codec:"imageUrl,omitempty" json:"imageUrl,omitempty"`
+	PublishTime      *int    `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
+	Description      *string `codec:"description,omitempty" json:"description,omitempty"`
+	TitleScore       int     `codec:"titleScore" json:"titleScore"`
+	UrlScore         int     `codec:"urlScore" json:"urlScore"`
+	SiteNameScore    int     `codec:"siteNameScore" json:"siteNameScore"`
+	FaviconUrlScore  int     `codec:"faviconUrlScore" json:"faviconUrlScore"`
+	ImageUrlScore    int     `codec:"imageUrlScore" json:"imageUrlScore"`
+	PublishTimeScore int     `codec:"publishTimeScore" json:"publishTimeScore"`
+	DescriptionScore int     `codec:"descriptionScore" json:"descriptionScore"`
 }
 
 func (o UnfurlGenericRaw) DeepCopy() UnfurlGenericRaw {
@@ -77,6 +84,13 @@ func (o UnfurlGenericRaw) DeepCopy() UnfurlGenericRaw {
 			tmp := (*x)
 			return &tmp
 		})(o.Description),
+		TitleScore:       o.TitleScore,
+		UrlScore:         o.UrlScore,
+		SiteNameScore:    o.SiteNameScore,
+		FaviconUrlScore:  o.FaviconUrlScore,
+		ImageUrlScore:    o.ImageUrlScore,
+		PublishTimeScore: o.PublishTimeScore,
+		DescriptionScore: o.DescriptionScore,
 	}
 }
 
