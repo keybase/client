@@ -23,7 +23,6 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="icon-wallet-open-48" />
     </Kb.Button>,
-
     <Kb.Button
       style={styles.buttonStyle}
       fullWidth={true}
@@ -36,7 +35,8 @@ const Intro = (props: IntroProps) => {
   return (
     <WalletPopup
       bottomButtons={buttons}
-      onClose={props.onClose}
+      backButtonType="close"
+      onExit={props.onClose}
       buttonBarDirection="column"
       containerStyle={styles.container}
     >
