@@ -2,13 +2,11 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import EnterKeyPopup from './enter-key-popup'
+import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
 import {isLargeScreen} from '../../constants/platform'
 
-// TODO see if it makes sense to refactor this into routing rather than view
-// switching
 type View = 'key' | 'name'
 
 type LinkWalletProps = {|
@@ -109,7 +107,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     switch (this.state.view) {
       case 'key':
         content = (
-          <EnterKeyPopup
+          <EnterKey
             error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
             onKeyChange={this.props.onKeyChange}
