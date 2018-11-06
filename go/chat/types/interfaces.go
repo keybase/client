@@ -286,6 +286,9 @@ type ActivityNotifier interface {
 		outboxID chat1.OutboxID)
 	AttachmentUploadProgress(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, bytesComplete, bytesTotal int64)
+
+	PromptUnfurl(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 }
 
 type IdentifyNotifier interface {

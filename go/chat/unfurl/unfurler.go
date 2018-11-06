@@ -7,12 +7,12 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -31,6 +31,7 @@ type UnfurlMessageSender interface {
 
 type Unfurler struct {
 	sync.Mutex
+	globals.Contextified
 	utils.DebugLabeler
 
 	unfurlMap map[string]bool
@@ -39,11 +40,11 @@ type Unfurler struct {
 	packager  *Packager
 	settings  *Settings
 	sender    UnfurlMessageSender
-	kvstore   libkb.KVStorer
 }
 
-func NewUnfurler(log logger.Logger, kvstore libkb.KVStorer, store attachments.Store, s3signer s3.Signer,
+func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer,
 	storage types.ConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
+	log := g.GetLog()
 	extractor := NewExtractor(log)
 	scraper := NewScraper(log)
 	packager := NewPackager(log, store, s3signer, ri)
@@ -56,16 +57,15 @@ func NewUnfurler(log logger.Logger, kvstore libkb.KVStorer, store attachments.St
 		packager:     packager,
 		settings:     settings,
 		sender:       sender,
-		kvstore:      kvstore,
 	}
 }
 
 func (u *Unfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "Complete(%s)", outboxID)()
-	if err := u.kvstore.Delete(u.taskKey(outboxID)); err != nil {
+	if err := u.G().GetKVStore().Delete(u.taskKey(outboxID)); err != nil {
 		u.Debug(ctx, "Complete: failed to delete task: %s", err)
 	}
-	if err := u.kvstore.Delete(u.statusKey(outboxID)); err != nil {
+	if err := u.G().GetKVStore().Delete(u.statusKey(outboxID)); err != nil {
 		u.Debug(ctx, "Complete: failed to delete status: %s", err)
 	}
 }
@@ -86,7 +86,7 @@ func (u *Unfurler) taskKey(outboxID chat1.OutboxID) libkb.DbKey {
 
 func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.Unfurl, err error) {
 	defer u.Trace(ctx, func() error { return nil }, "Status(%s)", outboxID)()
-	found, err := u.kvstore.GetInto(&status, u.statusKey(outboxID))
+	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
 	if err != nil {
 		return status, res, err
 	}
@@ -151,7 +151,7 @@ func (u *Unfurler) extractURLs(ctx context.Context, msg chat1.MessageUnboxed) (r
 }
 
 func (u *Unfurler) getTask(ctx context.Context, outboxID chat1.OutboxID) (res unfurlTask, err error) {
-	found, err := u.kvstore.GetInto(&res, u.taskKey(outboxID))
+	found, err := u.G().GetKVStore().GetInto(&res, u.taskKey(outboxID))
 	if err != nil {
 		return res, err
 	}
@@ -163,7 +163,7 @@ func (u *Unfurler) getTask(ctx context.Context, outboxID chat1.OutboxID) (res un
 
 func (u *Unfurler) saveTask(ctx context.Context, outboxID chat1.OutboxID, uid gregor1.UID,
 	convID chat1.ConversationID, url string) error {
-	return u.kvstore.PutObj(u.taskKey(outboxID), nil, unfurlTask{
+	return u.G().GetKVStore().PutObj(u.taskKey(outboxID), nil, unfurlTask{
 		UID:    uid,
 		ConvID: convID,
 		URL:    url,
@@ -176,11 +176,11 @@ func (u *Unfurler) setTaskResult(ctx context.Context, outboxID chat1.OutboxID, u
 		return err
 	}
 	task.Result = &unfurl
-	return u.kvstore.PutObj(u.taskKey(outboxID), nil, task)
+	return u.G().GetKVStore().PutObj(u.taskKey(outboxID), nil, task)
 }
 
 func (u *Unfurler) setStatus(ctx context.Context, outboxID chat1.OutboxID, status types.UnfurlerTaskStatus) error {
-	return u.kvstore.PutObj(u.statusKey(outboxID), nil, status)
+	return u.G().GetKVStore().PutObj(u.statusKey(outboxID), nil, status)
 }
 
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -195,6 +195,12 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	for _, hit := range hits {
 		switch hit.Typ {
 		case ExtractorHitPrompt:
+			domain, err := GetDomain(hit.URL)
+			if err != nil {
+				u.Debug(ctx, "UnfurlAndSend: error getting domain for prompt: %s", err)
+				continue
+			}
+			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
 			outboxID, err := storage.NewOutboxID()
 			if err != nil {
@@ -215,6 +221,8 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			if _, err := u.sender.SendUnfurlNonblock(ctx, convID, unfurlMsg, msg.GetMessageID(), outboxID); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to send message: %s", err)
 			}
+		default:
+			u.Debug(ctx, "UnfurlAndSend: unknown hit typ: %v", hit.Typ)
 		}
 	}
 }
