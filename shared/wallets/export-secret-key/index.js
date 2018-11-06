@@ -66,8 +66,10 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isMobile: {
-      paddingTop: Styles.globalMargins.medium,
       paddingBottom: Styles.globalMargins.xlarge,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
     },
   }),
   header: Styles.platformStyles({
