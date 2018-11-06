@@ -3,7 +3,6 @@ package stellar
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -710,8 +709,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 }
 
 func randMemoID() (uint64, error) {
-	buf := make([]byte, 8)
-	_, err := rand.Read(buf)
+	buf, err := libkb.RandBytes(8)
 	if err != nil {
 		return 0, err
 	}
