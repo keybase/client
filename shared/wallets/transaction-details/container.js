@@ -70,7 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
-    onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : null,
+    onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
     selectableText: true,
