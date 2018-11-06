@@ -1,9 +1,7 @@
 // @flow
 import type {RouteProps} from '../route-tree/render-route'
-import type {Tab} from '../constants/tabs'
 
 export type OwnProps = RouteProps<{}, {}>
 export type Props = OwnProps & {
-  switchTab: (tab: Tab) => void,
   hideNav: boolean,
 }

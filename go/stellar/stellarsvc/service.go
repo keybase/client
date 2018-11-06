@@ -165,8 +165,8 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return isOwn, err
 	}
-
-	return stellar.OwnAccount(ctx, s.G(), accountID)
+	isOwn, _, err = stellar.OwnAccount(ctx, s.G(), accountID)
+	return isOwn, err
 }
 
 func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg) (res stellar1.SendResultCLILocal, err error) {

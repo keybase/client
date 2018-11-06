@@ -54,7 +54,7 @@ func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
 func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparator merkleSearchComparator, prevRootSeqno keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 	defer m.CTrace(fmt.Sprintf("findFirstLeafWithComparer(%s,%d)", id, prevRootSeqno), func() error { return err })()
 
-	if m.G().Env.GetRunMode() == ProductionRunMode && prevRootSeqno < FirstProdMerkleTreeWithModernShape {
+	if m.G().Env.GetRunMode() == ProductionRunMode && prevRootSeqno < FirstProdMerkleSeqnoWithSkips {
 		return nil, nil, MerkleClientError{"can't operate on old merkle sequence number", merkleErrorOldTree}
 	}
 

@@ -6,12 +6,13 @@ import Box from './box'
 
 type Props = {
   children?: React.Node,
+  style?: Styles.StylesCrossPlatform,
 }
 
 class BoxGrow extends React.Component<Props> {
   render() {
     return (
-      <Box style={styles.outer}>
+      <Box style={Styles.collapseStyles([styles.outer, this.props.style])}>
         <Box style={styles.inner}>{this.props.children}</Box>
       </Box>
     )

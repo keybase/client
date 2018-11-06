@@ -6,6 +6,8 @@ import {settingsTab} from '../../constants/tabs'
 import {feedbackTab} from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   _loggedIn: state.config.loggedIn,
   daemonError: state.config.daemonError,
@@ -39,7 +41,6 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
   copyToClipboard: dispatchProps.copyToClipboard,
   daemonError: stateProps.daemonError,
   error: stateProps.error,
@@ -47,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
 })
 
-const Connected = connect(
+const Connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
