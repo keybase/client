@@ -1869,7 +1869,7 @@ func (u UnfurlRaw) String() string {
 }
 
 func (g *UnfurlGenericRaw) SetTitle(title string, score int) {
-	if score > g.TitleScore {
+	if score > g.TitleScore || g.Title == "" {
 		g.Title = title
 		g.TitleScore = score
 	}
@@ -1890,7 +1890,7 @@ func (g *UnfurlGenericRaw) SetSiteName(siteName string, score int) {
 }
 
 func (g *UnfurlGenericRaw) SetFaviconUrl(faviconUrl *string, score int) {
-	if score > g.UrlScore || g.FaviconUrl == nil {
+	if score > g.FaviconUrlScore || g.FaviconUrl == nil {
 		g.FaviconUrl = faviconUrl
 		g.FaviconUrlScore = score
 	}
@@ -1904,7 +1904,7 @@ func (g *UnfurlGenericRaw) SetImageUrl(imageUrl *string, score int) {
 }
 
 func (g *UnfurlGenericRaw) SetPublishTime(publishTime *int, score int) {
-	if score > g.PublishTimeScore || g.PublishTime == nil {
+	if score > g.PublishTimeScore || g.PublishTime == nil || (g.PublishTime != nil && publishTime != nil && *publishTime > *g.PublishTime) {
 		g.PublishTime = publishTime
 		g.PublishTimeScore = score
 	}
