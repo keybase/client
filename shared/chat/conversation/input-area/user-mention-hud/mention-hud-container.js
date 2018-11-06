@@ -1,13 +1,26 @@
 // @flow
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
-import {MentionHud} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {namedConnect} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as I from 'immutable'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/chat2'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
+import {MentionHud} from '.'
+import {namedConnect} from '../../../../util/container'
+
+type OwnProps = {|
+  filter: string,
+  conversationIDKey: Types.ConversationIDKey,
+  onPickUser?: (string, options?: {notUser: boolean}) => void,
+  onSelectUser?: string => void,
+  pickSelectedUserCounter?: number,
+  selectDownCounter?: number,
+  selectUpCounter?: number,
+  selectedIndex?: number,
+  style?: Styles.StylesCrossPlatform,
+|}
 
 const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -81,7 +94,7 @@ class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   }
 }
 // TODO fix up the typing of this component
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

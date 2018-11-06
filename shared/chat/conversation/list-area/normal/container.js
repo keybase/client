@@ -53,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 let markedInitiallyLoaded = false
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
