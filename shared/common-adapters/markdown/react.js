@@ -309,7 +309,7 @@ const reactComponentsForMarkdownType = {
     let url = node.content
 
     if (!url.match(/^https?:\/\//)) {
-      url = `://${node.content}`
+      url = `http://${node.content}`
     }
     return (
       <React.Fragment key={state.key}>
