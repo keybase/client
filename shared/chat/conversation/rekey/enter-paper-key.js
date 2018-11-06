@@ -8,6 +8,7 @@ type OwnProps = {||}
 
 const mapStateToProps = () => ({
   error: '',
+  hint: '',
   waitingForResponse: false,
 })
 

@@ -1,11 +1,12 @@
 // @flow
+import * as Types from '../constants/types/chat2'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
 import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToProps = state => ({
   baseTeam: '',
