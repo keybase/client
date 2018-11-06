@@ -42,6 +42,7 @@ func newCmdChatSearchInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSearchInboxRunner(g), "search", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: append(chatSearchFlags,
 			cli.BoolFlag{

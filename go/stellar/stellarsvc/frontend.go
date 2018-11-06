@@ -179,7 +179,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAmount, rate.Currency)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, rate.Currency)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -188,7 +188,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrency(ctx, s.G(), outsideAvailableAmount, rate.Currency)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAvailableAmount, rate.Currency)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
@@ -699,7 +699,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, err := stellar.OwnAccount(ctx, s.G(), arg.From)
+	owns, _, err := stellar.OwnAccount(ctx, s.G(), arg.From)
 	if err != nil {
 		return res, err
 	}
@@ -819,6 +819,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		// Exactly one of `from` and `fromPrimaryAccount` must be set.
 		return res, fmt.Errorf("invalid build payment parameters")
 	}
+	fromPrimaryAccount := arg.FromPrimaryAccount
 	if arg.FromPrimaryAccount {
 		primaryAccountID, err := bpc.PrimaryAccount(s.mctx(ctx))
 		if err != nil {
@@ -832,7 +833,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			fromInfo.available = true
 		}
 	} else {
-		owns, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
+		owns, fromPrimary, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
 		if err != nil || !owns {
 			log("OwnsAccount -> owns:%v err:%v", owns, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
@@ -842,6 +843,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		} else {
 			fromInfo.from = arg.From
 			fromInfo.available = true
+			fromPrimaryAccount = fromPrimary
 		}
 	}
 	if fromInfo.available {
@@ -890,32 +892,44 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		recipient, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
-			res.ToErrMsg = "recipient not found"
+			res.ToErrMsg = "Recipient not found."
 			skipRecipient = true
 		} else {
-			readyChecklist.to = true
-			addMinBanner := func(them, amount string) {
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:   "info",
-					Message: fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
-				})
-			}
-			bannerThem := "their"
+			bannerThey := "they"
+			bannerTheir := "their"
 			if recipient.User != nil && !arg.ToIsAccountID {
-				bannerThem = fmt.Sprintf("%s's", recipient.User.Username)
+				bannerThey = recipient.User.Username.String()
+				bannerTheir = fmt.Sprintf("%s's", recipient.User.Username)
 			}
-			if recipient.AccountID == nil {
-				// Sending a payment to a target with no account. (relay)
-				minAmountXLM = "2.01"
-				addMinBanner(bannerThem, minAmountXLM)
+			if recipient.AccountID == nil && !fromPrimaryAccount {
+				// This would have been a relay from a non-primary account.
+				// We cannot allow that.
+				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+					Level:   "error",
+					Message: fmt.Sprintf("Because %v hasn’t set up their wallet yet, you can only send to them from your default account.", bannerThey),
+				})
 			} else {
-				isFunded, err := bpc.IsAccountFunded(s.mctx(ctx), stellar1.AccountID(recipient.AccountID.String()))
-				if err != nil {
-					log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
-				} else if !isFunded {
-					// Sending to a non-funded stellar account.
-					minAmountXLM = "1"
-					addMinBanner(bannerThem, minAmountXLM)
+				readyChecklist.to = true
+				addMinBanner := func(them, amount string) {
+					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+						HideOnConfirm: true,
+						Level:         "info",
+						Message:       fmt.Sprintf("Because it's %s first transaction, you must send at least %s XLM.", them, amount),
+					})
+				}
+				if recipient.AccountID == nil {
+					// Sending a payment to a target with no account. (relay)
+					minAmountXLM = "2.01"
+					addMinBanner(bannerTheir, minAmountXLM)
+				} else {
+					isFunded, err := bpc.IsAccountFunded(s.mctx(ctx), stellar1.AccountID(recipient.AccountID.String()))
+					if err != nil {
+						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
+					} else if !isFunded {
+						// Sending to a non-funded stellar account.
+						minAmountXLM = "1"
+						addMinBanner(bannerTheir, minAmountXLM)
+					}
 				}
 			}
 		}
@@ -996,7 +1010,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			case cmp == -1:
 				// amount is less than minAmountXLM
 				readyChecklist.amount = false // block sending
-				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
+				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s XLM*", minAmountXLM)
 			}
 		}
 
@@ -1005,12 +1019,6 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 
 	// helper so the GUI doesn't have to call FormatCurrency separately
 	if arg.Currency != nil {
-		amountFormatted, err := stellar.FormatCurrency(ctx, s.G(), arg.Amount, *arg.Currency)
-		if err != nil {
-			log("error formatting converted outside amount: %v", err)
-		} else {
-			res.AmountFormatted = amountFormatted
-		}
 		res.WorthAmount = amountX.amountOfAsset
 	}
 
@@ -1255,6 +1263,9 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	if arg.ToIsAccountID {
 		toAccountID, err := libkb.ParseStellarAccountID(arg.To)
 		if err != nil {
+			if verr, ok := err.(libkb.VerboseError); ok {
+				s.G().Log.CDebugf(ctx, verr.Verbose())
+			}
 			return res, fmt.Errorf("recipient: %v", err)
 		}
 		to = toAccountID.String()
@@ -1351,7 +1362,7 @@ func (s *Server) BuildRequestLocal(ctx context.Context, arg stellar1.BuildReques
 		_, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
-			res.ToErrMsg = "recipient not found"
+			res.ToErrMsg = "Recipient not found."
 			skipRecipient = true
 		} else {
 			readyChecklist.to = true

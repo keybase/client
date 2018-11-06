@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   ClickableBox,
   Icon,
   Markdown,
@@ -79,7 +80,7 @@ const EditBox = isMobile
 
 const BigTeamHeader = (props: BigProps) => {
   return (
-    <Box className="header-row" style={styles.bigContainer}>
+    <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
         <Text type="BodyBig">#{props.channelname}</Text>
         {props.canEditChannel && (
@@ -92,12 +93,11 @@ const BigTeamHeader = (props: BigProps) => {
         )}
       </Box>
       {!!props.description && <Markdown style={styles.description}>{props.description}</Markdown>}
-    </Box>
+    </Box2>
   )
 }
 
 const styles = styleSheetCreate({
-  bigContainer: {...globalStyles.flexBoxColumn, alignItems: 'stretch'},
   channelnameContainer: {
     alignSelf: 'center',
     marginTop: globalMargins.medium,

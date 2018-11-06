@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -397,28 +397,76 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 	return err
 }
 
-// AddMemberByAssertion adds an assertion to the team.
-// Does not attempt to resolve the assertion.
+// preprocessAssertion takes an input assertion and determines if this is a valid Keybase-style assertion.
+// If it's an email (or phone) assertion, we assert that it only has one part (and isn't a+b compound).
+// If there is only one factor in the assertion, then that's returned. Otherwise, nil.
+func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, err error) {
+	a, err := externals.AssertionParseAndOnly(m.G(), s)
+	if err != nil {
+		return false, nil, err
+	}
+	urls := a.CollectUrls(nil)
+	if len(urls) == 1 {
+		single = urls[0]
+	}
+	for _, u := range urls {
+		if u.IsServerTrust() {
+			isServerTrustInvite = true
+		}
+	}
+	if isServerTrustInvite && len(urls) > 1 {
+		return false, nil, NewMixedServerTrustAssertionError()
+	}
+	return isServerTrustInvite, single, nil
+}
+
+// AddMemberByAssertionOrEmail adds an assertion to the team. It can handle
+// three major cases:
+//  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
+//  2. joe@reddit WHERE joe isn't a keybase user, and this is a social invitations
+//  3. [bob@gmail.com]@email WHERE there's an email-based invitation in play
+// **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
 // The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
-func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion string,
-	role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
+func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	if kbun.NewNormalizedUsername(assertion).IsValid() {
-		upak, err := engine.ResolveAndCheck(m, assertion, true /* useTracking */)
-		if err != nil {
-			return "", uv, false, err
-		}
-		invite, err := tx.addMemberByUPKV2(ctx, upak, role)
-		return libkb.NewNormalizedUsername(upak.Username), upak.ToUserVersion(), invite, err
-	}
-	typ, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, team.G()), assertion)
+	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+
+	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
 	if err != nil {
 		return "", uv, false, err
 	}
-	g.Log.CDebugf(ctx, "team %s invite sbs member %s/%s", team.Name(), typ, name)
+
+	var doInvite bool
+	var upak keybase1.UserPlusKeysV2
+
+	if isServerTrustInvite {
+		doInvite = true
+	} else {
+		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)
+		if err != nil {
+			if rErr, ok := err.(libkb.ResolutionError); !ok || (rErr.Kind != libkb.ResolutionErrorNotFound) {
+				return "", uv, false, err
+			}
+			doInvite = true
+		}
+	}
+
+	if !doInvite {
+		username = libkb.NewNormalizedUsername(upak.Username)
+		invite, err = tx.addMemberByUPKV2(ctx, upak, role)
+		m.CDebugf("Adding keybase member: %s (isInvite=%v)", username, invite)
+		return username, uv, invite, err
+	}
+
+	if single == nil {
+		return "", uv, false, NewCompoundInviteError(assertion)
+	}
+
+	typ, name := single.ToKeyValuePair()
+	m.CDebugf("team %s invite sbs member %s/%s", team.Name(), typ, name)
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}

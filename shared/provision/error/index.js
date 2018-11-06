@@ -33,6 +33,11 @@ const Wrapper = p => (
   </Container>
 )
 
+const rewriteErrorDesc = {
+  'Provisioner is a different user than we wanted.':
+    'Is the other device using the username you expect? It seems to be different. Please try again!',
+}
+
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
   if (!error) {
@@ -241,7 +246,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
         <Wrapper onBack={onBack}>
           <Text type="Body">
             <Text type="Body" selectable={true}>
-              {error.desc}
+              {rewriteErrorDesc[error.desc] || error.desc}
             </Text>
             <Text type="BodySmall" selectable={true}>
               {' '}

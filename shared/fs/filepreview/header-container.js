@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, lifecycle, setDisplayName} from '../../util/container'
+import {compose, namedConnect, lifecycle} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -33,12 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('FilePreviewHeader'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
   lifecycle({
     componentDidMount() {
       this.props.loadFilePreview(this.props.path)

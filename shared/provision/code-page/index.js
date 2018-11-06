@@ -1,19 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/provision'
-import {RequireImage, Icon, Box2, Text, PlainInput, WaitingButton, BackButton} from '../../common-adapters'
-import {
-  platformStyles,
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  styleSheetCreate,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {iconMeta} from '../../common-adapters/icon.constants'
+import {isAndroid} from '../../constants/platform'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
@@ -81,7 +74,7 @@ class CodePage2 extends React.Component<Props, State> {
     throw new Error('Impossible defaultTab')
   }
 
-  _tabBackground = () => (this.state.tab === 'QR' ? globalColors.blue2 : globalColors.green)
+  _tabBackground = () => (this.state.tab === 'QR' ? Styles.globalColors.blue2 : Styles.globalColors.green)
 
   render() {
     let content
@@ -104,13 +97,13 @@ class CodePage2 extends React.Component<Props, State> {
     }
 
     return (
-      <Box2
+      <Kb.Box2
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
-        style={collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
+        style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        <Box2
+        <Kb.Box2
           direction="vertical"
           fullHeight={true}
           style={
@@ -119,41 +112,45 @@ class CodePage2 extends React.Component<Props, State> {
               : styles.imageContainerOnRight
           }
         >
-          <RequireImage
+          <Kb.RequireImage
             src={this.state.tab === 'QR' ? blueBackground : greenBackground}
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }
           />
-        </Box2>
-        <BackButton
+        </Kb.Box2>
+        <Kb.BackButton
           onClick={this.props.onBack}
-          iconColor={globalColors.white}
+          iconColor={Styles.globalColors.white}
           style={styles.backButton}
           textStyle={styles.backButtonText}
         />
         {!!this.props.error && <ErrorBanner error={this.props.error} />}
-        <Box2 direction="vertical" style={styles.container} fullWidth={true}>
-          <Instructions {...this.props} />
-          {content}
-          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
-        </Box2>
-      </Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+              <Instructions {...this.props} />
+              {content}
+              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+            </Kb.Box2>
+          </Kb.ScrollView>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 }
 
 const ErrorBanner = (props: {error: string}) => (
-  <Box2 direction="vertical" style={styles.errorContainer}>
-    <Text type="Body" style={styles.errorText}>
+  <Kb.Box2 direction="vertical" style={styles.errorContainer}>
+    <Kb.Text type="Body" style={styles.errorText}>
       {props.error}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
-    return <Box2 direction="horizontal" />
+    return <Kb.Box2 direction="horizontal" />
   }
 
   let label
@@ -177,33 +174,33 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
   }
 
   return (
-    <Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
-      <Icon type={icon} color={globalColors.white} />
-      <Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
+      <Kb.Icon type={icon} color={Styles.globalColors.white} />
+      <Kb.Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
         {label}
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   )
 }
 
 const Qr = (props: Props) =>
   props.currentDeviceType === 'desktop' ? (
-    <Box2 direction="vertical" style={styles.qrOnlyContainer}>
+    <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
       <QRImage code={props.textCode} cellSize={10} />
-    </Box2>
+    </Kb.Box2>
   ) : (
-    <Box2
-      style={collapseStyles([
+    <Kb.Box2
+      style={Styles.collapseStyles([
         styles.qrContainer,
         props.currentDeviceAlreadyProvisioned && styles.qrContainerFlip,
       ])}
       direction="vertical"
     >
-      <Box2 direction="vertical" style={styles.qrImageContainer}>
+      <Kb.Box2 direction="vertical" style={styles.qrImageContainer}>
         <QRImage code={props.textCode} />
-      </Box2>
+      </Kb.Box2>
       <QRScan />
-    </Box2>
+    </Kb.Box2>
   )
 
 class EnterText extends React.Component<Props, {code: string}> {
@@ -215,8 +212,8 @@ class EnterText extends React.Component<Props, {code: string}> {
 
   render() {
     return (
-      <Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
-        <PlainInput
+      <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
+        <Kb.PlainInput
           autoFocus={true}
           multiline={true}
           onChangeText={code => this.setState({code})}
@@ -227,7 +224,7 @@ class EnterText extends React.Component<Props, {code: string}> {
           style={styles.enterTextInput}
           value={this.state.code}
         />
-        <WaitingButton
+        <Kb.WaitingButton
           fullWidth={true}
           type="PrimaryColoredBackground"
           backgroundMode="Green"
@@ -237,75 +234,76 @@ class EnterText extends React.Component<Props, {code: string}> {
           style={styles.enterTextButton}
           waitingKey={Constants.waitingKey}
         />
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
 
 const ViewText = (props: Props) => (
-  <Box2 direction="vertical" style={styles.viewTextContainer}>
-    <Text type="Terminal" style={styles.viewTextCode}>
+  <Kb.Box2 direction="vertical" style={styles.viewTextContainer}>
+    <Kb.Text type="Terminal" style={styles.viewTextCode}>
       {props.textCode}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 const Instructions = (p: Props) => (
-  <Box2 direction="vertical">
+  <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
       <React.Fragment>
-        <Text type="Header" style={styles.instructions}>
+        <Kb.Text type="Header" style={styles.instructions}>
           Ready to provision using
-        </Text>
-        <Text type="Header" style={styles.instructionsItalic}>
+        </Kb.Text>
+        <Kb.Text type="Header" style={styles.instructionsItalic}>
           {p.currentDeviceName}.
-        </Text>
+        </Kb.Text>
       </React.Fragment>
     ) : (
       <React.Fragment>
-        <Text type="Header" style={styles.instructions}>
+        <Kb.Text type="Header" style={styles.instructions}>
           On
-          <Text type="Header" style={styles.instructionsItalic}>
+          <Kb.Text type="Header" style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
-          </Text>
+          </Kb.Text>
           , go to
-        </Text>
-        <Text type="Header" style={styles.instructions}>
+        </Kb.Text>
+        <Kb.Text type="Header" style={styles.instructions}>
           Devices
-          <Text type="Header" style={styles.instructionsCarets}>
+          <Kb.Text type="Header" style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
-          </Text>
-          <Text type="Header" style={styles.instructions}>
+          </Kb.Text>
+          <Kb.Text type="Header" style={styles.instructions}>
             Add new
-          </Text>
-          <Text type="Header" style={styles.instructionsCarets}>
+          </Kb.Text>
+          <Kb.Text type="Header" style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
-          </Text>
-          <Text type="Header" style={styles.instructions}>
+          </Kb.Text>
+          <Kb.Text type="Header" style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
-          </Text>
-        </Text>
+          </Kb.Text>
+        </Kb.Text>
       </React.Fragment>
     )}
-  </Box2>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
       // else the background can go above things, annoyingly
       zIndex: 1,
     },
     isMobile: {
+      marginBottom: 0,
       marginLeft: 0,
       marginTop: 0,
     },
   }),
   backButtonText: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
   },
   backgroundOnLeft: {
     marginLeft: -230,
@@ -317,35 +315,38 @@ const styles = styleSheetCreate({
     overflow: 'hidden',
     position: 'relative',
   },
-  container: platformStyles({
+  container: Styles.platformStyles({
     common: {
       justifyContent: 'space-between',
     },
     isElectron: {
       height: '100%',
-      padding: globalMargins.large,
+      padding: Styles.globalMargins.large,
       // else the background can go above things, annoyingly
       zIndex: 1,
     },
     isMobile: {
       flexGrow: 1,
-      padding: globalMargins.small,
+      paddingTop: 0, // increasing this makes it not visible all on one page in small iphones, so lets leave it
+      paddingBottom: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   enterTextButton: {
-    maxWidth: isMobile ? undefined : 460,
+    maxWidth: Styles.isMobile ? undefined : 460,
     width: '100%',
   },
   enterTextContainer: {
-    alignItems: isMobile ? 'stretch' : 'center',
+    alignItems: Styles.isMobile ? 'stretch' : 'center',
     alignSelf: 'stretch',
   },
-  enterTextInput: platformStyles({
+  enterTextInput: Styles.platformStyles({
     common: {
-      ...globalStyles.fontTerminalSemibold,
-      backgroundColor: globalColors.white,
+      ...Styles.globalStyles.fontTerminalSemibold,
+      backgroundColor: Styles.globalColors.white,
       borderRadius: 4,
-      color: globalColors.green,
+      color: Styles.globalColors.green,
       fontSize: 16,
       paddingBottom: 15,
       paddingLeft: 20,
@@ -361,34 +362,34 @@ const styles = styleSheetCreate({
   }),
   errorContainer: {
     alignItems: 'center',
-    backgroundColor: globalColors.red,
-    marginTop: globalMargins.small,
-    padding: isMobile ? globalMargins.tiny : globalMargins.medium,
+    backgroundColor: Styles.globalColors.red,
+    marginTop: Styles.globalMargins.small,
+    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
     width: '100%',
   },
   errorText: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
   imageContainerOnLeft: {
-    ...globalStyles.fillAbsolute,
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.fillAbsolute,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
   imageContainerOnRight: {
-    ...globalStyles.fillAbsolute,
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.fillAbsolute,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
   instructions: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
-  instructionsCarets: platformStyles({
+  instructionsCarets: Styles.platformStyles({
     common: {
-      color: globalColors.white,
+      color: Styles.globalColors.white,
       fontFamily: 'kb',
       fontStyle: 'normal',
       fontWeight: 'normal',
@@ -406,14 +407,14 @@ const styles = styleSheetCreate({
     flexWrap: 'wrap',
   },
   instructionsItalic: {
-    ...globalStyles.italic,
-    color: globalColors.white,
+    ...Styles.globalStyles.italic,
+    color: Styles.globalColors.white,
     textAlign: 'center',
   },
-  qrContainer: platformStyles({
+  qrContainer: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.white,
-      borderRadius: 8,
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
       flexDirection: 'column',
       padding: 4,
     },
@@ -432,21 +433,37 @@ const styles = styleSheetCreate({
     paddingTop: 30,
   },
   qrOnlyContainer: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     borderRadius: 8,
     padding: 20,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+  scrollContent: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      flexGrow: 1,
+      height: '100%',
+    },
+  }),
+  scrollView: {
+    // want the scroll contents to be the full height
+    ...Styles.globalStyles.fillAbsolute,
+    ...Styles.globalStyles.flexBoxColumn,
+  },
   switchTab: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     marginBottom: 4,
   },
   switchTabContainer: {
     alignItems: 'center',
   },
-  viewTextCode: platformStyles({
+  viewTextCode: Styles.platformStyles({
     common: {
-      ...globalStyles.fontTerminalSemibold,
-      color: globalColors.white,
+      ...Styles.globalStyles.fontTerminalSemibold,
+      color: Styles.globalColors.white,
       fontSize: 16,
       textAlign: 'center',
     },
@@ -455,9 +472,9 @@ const styles = styleSheetCreate({
     },
     isMobile: {},
   }),
-  viewTextContainer: platformStyles({
+  viewTextContainer: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.green,
+      backgroundColor: Styles.globalColors.green,
       borderRadius: 4,
     },
     isElectron: {

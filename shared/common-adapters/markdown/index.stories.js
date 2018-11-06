@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
 import Markdown, {type MarkdownMeta} from '.'
-import {parserFromMeta} from './shared'
+import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
@@ -12,6 +12,13 @@ const cases = {
 
   
   foo`,
+  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
+  underscoreweirdness: `under_score the first, \`under_score the second\``,
+  boldweirdness: `How are you *today*?`,
+  transparentEmojis: ` 😀 😁 😍 ☝️ `,
+  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
+  transparentEmojis3: `😶`,
+  nonemoji: `:party-parrot:`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
   paragraphs: `this is a sentence.
@@ -239,15 +246,21 @@ class ShowAST extends React.Component<
 > {
   state = {visible: false}
   render = () => {
-    const parsed = this.props.simple
-      ? parserFromMeta(this.props.meta)((this.props.text || '') + '\n', {
-          inline: false,
-          disableAutoBlockNewlines: true,
-        })
-      : OriginalParser.parse(this.props.text, {
-          channelNameToConvID: (channel: string) => null,
-          isValidMention: (mention: string) => false,
-        })
+    let parsed
+    try {
+      parsed = this.props.simple
+        ? simpleMarkdownParser((this.props.text || '').trim() + '\n', {
+            inline: false,
+            disableAutoBlockNewlines: true,
+            markdownMeta: this.props.meta,
+          })
+        : OriginalParser.parse(this.props.text, {
+            channelNameToConvID: (channel: string) => null,
+            isValidMention: (mention: string) => false,
+          })
+    } catch (error) {
+      parsed = {error}
+    }
 
     return (
       <Kb.Box2 direction="vertical">
@@ -266,7 +279,7 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + '...'
+                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
                       : Array.isArray(v)
                         ? v.map(o => ({type: o.type, content: o.content}))
                         : v,

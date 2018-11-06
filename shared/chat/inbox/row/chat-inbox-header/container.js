@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
-import {connect, compose, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
@@ -25,11 +25,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSelectDown: ownProps.onSelectDown,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ChatInboxHeaderContainer')
-)(ChatInboxHeader)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ChatInboxHeaderContainer')(
+  ChatInboxHeader
+)

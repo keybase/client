@@ -25,11 +25,12 @@ type Props = {
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
+  isDeleteable: boolean,
 }
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
-    ...(props.yourMessage
+    ...(props.isDeleteable
       ? [
           'Divider',
           {

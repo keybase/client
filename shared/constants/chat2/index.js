@@ -266,6 +266,7 @@ export {
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   showAuthorMessageTypes,
+  shouldShowPopup,
   specialMentions,
   uiMessageEditToMessage,
   uiMessageToMessage,

@@ -1,11 +1,13 @@
 // @flow
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
+export {default as BackgroundRepeatBox} from './background-repeat-box'
 export {default as Badge} from './badge'
 export {default as Banner} from './banner'
 export {Box, Box2} from './box'
 export {default as ButtonBar} from './button-bar'
 export {default as Button} from './button'
+export {default as BoxGrow} from './box-grow'
 export {default as Checkbox} from './checkbox'
 export {default as ChoiceList} from './choice-list'
 export {default as ClickableBox} from './clickable-box'

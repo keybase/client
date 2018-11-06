@@ -1,6 +1,7 @@
 // @flow
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
+import type {RouteProps} from '../route-tree/render-route'
 
 export const NullComponent = () => null
 export const actionHasError = (a: Object) => !!a.error
@@ -23,8 +24,8 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
-export {default as connect} from './typed-connect'
+export {default as connect, namedConnect} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile} from '../constants/platform'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export type {TypedActions, TypedState, TypedDispatch, Dispatch}
+export type {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch}

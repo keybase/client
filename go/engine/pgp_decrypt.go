@@ -116,7 +116,7 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
-		res, err := eng.Result()
+		res, err := eng.Result(m)
 		if err != nil {
 			return err
 		}

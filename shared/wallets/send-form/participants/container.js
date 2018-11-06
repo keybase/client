@@ -19,14 +19,17 @@ import {
   type AccountID,
 } from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   // If build.to is set, assume it's a valid username.
   return {
+    isRequest: build.isRequest,
     recipientUsername: build.to,
+    errorMessage: built.toErrMsg,
   }
 }
 
@@ -41,13 +44,11 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   },
 })
 
-const ConnectedParticipantsKeybaseUser = compose(
-  connect(
-    mapStateToPropsKeybaseUser,
-    mapDispatchToPropsKeybaseUser,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsKeybaseUser')
+const ConnectedParticipantsKeybaseUser = namedConnect(
+  mapStateToPropsKeybaseUser,
+  mapDispatchToPropsKeybaseUser,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
 const mapStateToPropsStellarPublicKey = state => {
@@ -66,17 +67,11 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   },
 })
 
-const ConnectedParticipantsStellarPublicKey = compose(
-  connect(
-    mapStateToPropsStellarPublicKey,
-    mapDispatchToPropsStellarPublicKey,
-    (s, d, o) => ({
-      ...o,
-      ...s,
-      ...d,
-    })
-  ),
-  setDisplayName('ParticipantsStellarPublicKey')
+const ConnectedParticipantsStellarPublicKey = namedConnect(
+  mapStateToPropsStellarPublicKey,
+  mapDispatchToPropsStellarPublicKey,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsStellarPublicKey'
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: StateAccount) => ({
@@ -109,38 +104,32 @@ const mapStateToPropsOtherAccount = state => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch, ownProps) => ({
+const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount:
-    ownProps.onCreateNewAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
-        })
-      )),
-  onLinkAccount:
-    ownProps.onLinkAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
-        })
-      )),
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+      })
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+      })
+    ),
 })
 
-const ConnectedParticipantsOtherAccount = compose(
-  connect(
-    mapStateToPropsOtherAccount,
-    mapDispatchToPropsOtherAccount,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsOtherAccount')
+const ConnectedParticipantsOtherAccount = namedConnect(
+  mapStateToPropsOtherAccount,
+  mapDispatchToPropsOtherAccount,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsOtherAccount'
 )(ParticipantsOtherAccount)
 
 const mapStateToPropsChooser = state => {
@@ -156,12 +145,7 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
 
     case 'otherAccount':
-      return (
-        <ConnectedParticipantsOtherAccount
-          onLinkAccount={props.onLinkAccount}
-          onCreateNewAccount={props.onCreateNewAccount}
-        />
-      )
+      return <ConnectedParticipantsOtherAccount />
 
     default:
       /*::
@@ -172,13 +156,11 @@ const ParticipantsChooser = props => {
   }
 }
 
-const ConnectedParticipantsChooser = compose(
-  connect(
-    mapStateToPropsChooser,
-    () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Participants')
+const ConnectedParticipantsChooser = namedConnect(
+  mapStateToPropsChooser,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Participants'
 )(ParticipantsChooser)
 
 export default ConnectedParticipantsChooser

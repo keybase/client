@@ -93,24 +93,6 @@ protocol user {
   array<UserSummary> listTracking(int sessionID, string filter, string assertion);
   string listTrackingJSON(int sessionID, string filter, boolean verbose, string assertion);
 
-  record SearchComponent {
-    string key;
-    string value;
-    double score;
-  }
-
-  record SearchResult {
-    UID uid;
-    string username;
-    array<SearchComponent> components;
-    double score;
-  }
-
-  /**
-    Search for users who match a given query.
-    */
-  array<SearchResult> search(int sessionID, string query);
-
   /**
     Load all the user's public keys (even those in reset key families)
     from the server with no verification

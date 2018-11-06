@@ -1,8 +1,8 @@
-// flow-typed signature: 73eac79b217c5dc04409027dad8aaefb
-// flow-typed version: e29d0afe88/fs-extra_v7.x.x/flow_vx.x.x
+// flow-typed signature: 736900083d1f92195f5af04fec4c5eb7
+// flow-typed version: 564b2e9f7a/fs-extra_v7.x.x/flow_vx.x.x
 
 declare module "fs-extra" {
-  import type { Stats } from "fs";
+  import type { Stats, ReadStream, WriteStream } from "fs";
 
   declare export type SymlinkType = "dir" | "file";
   declare export type FsSymlinkType = "dir" | "file" | "junction";
@@ -115,6 +115,8 @@ declare module "fs-extra" {
     callback: (err: Error) => void
   ): void;
   declare export function createFileSync(file: string): void;
+  declare export function createReadStream(path: string, options?: Object): ReadStream;
+  declare export function createWriteStream(path: string, options?: Object): WriteStream;
 
   declare export function ensureDir(path: string): Promise<void>;
   declare export function ensureDir(
@@ -122,6 +124,9 @@ declare module "fs-extra" {
     callback: (err: Error) => void
   ): void;
   declare export function ensureDirSync(path: string): void;
+
+  declare export function exists(path: string): Promise<boolean>;
+  declare export function exists(path: string, callback?: (exists: boolean) => void): void;
 
   declare export function mkdirs(dir: string): Promise<void>;
   declare export function mkdirs(
@@ -615,6 +620,8 @@ declare module "fs-extra" {
     callback: (err: ErrnoError, stats: Stats) => any
   ): void;
   declare export function stat(path: string | Buffer): Promise<Stats>;
+
+  declare export function statSync(path: string): Stats;
 
   declare export function symlink(
     srcpath: string | Buffer,

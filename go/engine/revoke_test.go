@@ -42,6 +42,17 @@ func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
 	return err
 }
 
+func doRevokeSig(tc libkb.TestContext, u *FakeUser, sig keybase1.SigID) error {
+	revokeEngine := NewRevokeSigsEngine(tc.G, []string{sig.String()})
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, revokeEngine)
+	return err
+}
+
 func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, forceSelf, forceLast bool) error {
 	revokeEngine := NewRevokeDeviceEngine(tc.G, RevokeDeviceEngineArgs{ID: id, ForceSelf: forceSelf, ForceLast: forceLast})
 	uis := libkb.UIs{

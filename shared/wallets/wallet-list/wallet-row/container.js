@@ -2,7 +2,7 @@
 import {WalletRow, type Props} from '.'
 import {connect, isMobile} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
-import {createSelectAccount} from '../../../actions/wallets-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
 const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
@@ -10,19 +10,21 @@ const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
   const name = account.name
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
+  const selectedAccount = getSelectedAccount(state)
   return {
     contents: account.balanceDescription,
-    isSelected: getSelectedAccount(state) === ownProps.accountID,
+    isSelected: selectedAccount === ownProps.accountID,
     keybaseUser,
     name,
+    selectedAccount,
     unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID, 0),
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  _onSelectAccount: (accountID: AccountID) => {
-    dispatch(createSelectAccount({accountID, show: true}))
-  },
+const mapDispatchToProps = dispatch => ({
+  _onClearNewPayments: (accountID: AccountID) => dispatch(WalletsGen.createClearNewPayments({accountID})),
+  _onSelectAccount: (accountID: AccountID) =>
+    dispatch(WalletsGen.createSelectAccount({accountID, show: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
@@ -30,7 +32,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   isSelected: !isMobile && stateProps.isSelected,
   keybaseUser: stateProps.keybaseUser,
   name: stateProps.name,
-  onSelect: () => dispatchProps._onSelectAccount(ownProps.accountID),
+  onSelect: () => {
+    // First clear any new payments on the currently selected acct.
+    dispatchProps._onClearNewPayments(stateProps.selectedAccount)
+    dispatchProps._onSelectAccount(ownProps.accountID)
+  },
   unreadPayments: stateProps.unreadPayments,
 })
 

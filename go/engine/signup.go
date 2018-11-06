@@ -72,7 +72,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SignupEngine#Run", func() error { return err })()
 
 	// make sure we're starting with a clear login state:
-	if err = m.G().Logout(); err != nil {
+	if err = m.G().Logout(m.Ctx()); err != nil {
 		return err
 	}
 

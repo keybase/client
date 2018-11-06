@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Download, {type DownloadProps} from './download'
 import * as FsGen from '../../actions/fs-gen'
 import {formatDurationFromNowTo} from '../../util/timestamp'
@@ -32,11 +32,10 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
     cancel: () => _canceler(downloadKey),
   }: DownloadProps)
 
-export default compose(
-  connect(
+export default
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedDownload')
+    mergeProps,
+'ConnectedDownload'
 )(Download)

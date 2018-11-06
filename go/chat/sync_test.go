@@ -134,7 +134,8 @@ func TestSyncerConnected(t *testing.T) {
 	mconv := convs[1]
 	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
-	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err := ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
@@ -203,7 +204,8 @@ func TestSyncerConnected(t *testing.T) {
 	_, cerr = store.Fetch(ctx, mconv, uid, nil, nil, nil)
 	require.Error(t, cerr)
 	require.IsType(t, storage.MissError{}, cerr)
-	_, serr = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, _, serr = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err = ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
@@ -467,7 +469,8 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	tv, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
 	require.Equal(t, 2, len(tv.Messages))
-	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, nil, nil)
 	require.NoError(t, serr)
 	select {
 	case cid := <-list.bgConvLoads:
@@ -543,7 +546,8 @@ func TestSyncerTeamFilter(t *testing.T) {
 	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
 		chat1.ConversationMembersType_TEAM)
 
-	_, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, nil, nil)
 	require.NoError(t, err)
 	_, iconvs, err := ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)

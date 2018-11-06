@@ -410,7 +410,6 @@ type BuildPaymentResLocal struct {
 	WorthInfo           string            `codec:"worthInfo" json:"worthInfo"`
 	WorthAmount         string            `codec:"worthAmount" json:"worthAmount"`
 	WorthCurrency       string            `codec:"worthCurrency" json:"worthCurrency"`
-	AmountFormatted     string            `codec:"amountFormatted" json:"amountFormatted"`
 	DisplayAmountXLM    string            `codec:"displayAmountXLM" json:"displayAmountXLM"`
 	DisplayAmountFiat   string            `codec:"displayAmountFiat" json:"displayAmountFiat"`
 	SendingIntentionXLM bool              `codec:"sendingIntentionXLM" json:"sendingIntentionXLM"`
@@ -429,7 +428,6 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		WorthInfo:           o.WorthInfo,
 		WorthAmount:         o.WorthAmount,
 		WorthCurrency:       o.WorthCurrency,
-		AmountFormatted:     o.AmountFormatted,
 		DisplayAmountXLM:    o.DisplayAmountXLM,
 		DisplayAmountFiat:   o.DisplayAmountFiat,
 		SendingIntentionXLM: o.SendingIntentionXLM,
@@ -451,6 +449,7 @@ type SendBannerLocal struct {
 	Level         string `codec:"level" json:"level"`
 	Message       string `codec:"message" json:"message"`
 	ProofsChanged bool   `codec:"proofsChanged" json:"proofsChanged"`
+	HideOnConfirm bool   `codec:"hideOnConfirm" json:"hideOnConfirm"`
 }
 
 func (o SendBannerLocal) DeepCopy() SendBannerLocal {
@@ -458,6 +457,7 @@ func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 		Level:         o.Level,
 		Message:       o.Message,
 		ProofsChanged: o.ProofsChanged,
+		HideOnConfirm: o.HideOnConfirm,
 	}
 }
 

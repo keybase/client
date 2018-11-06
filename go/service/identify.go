@@ -57,7 +57,7 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	if err != nil {
 		return res, err
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return res, err
 	}
@@ -135,7 +135,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	if err != nil {
 		return res, err
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return res, err
 	}
@@ -301,7 +301,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
-			idRes, idErr := eng.Result()
+			idRes, idErr := eng.Result(m)
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 				if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {

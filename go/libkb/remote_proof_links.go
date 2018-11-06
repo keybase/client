@@ -59,7 +59,6 @@ func (r *RemoteProofLinks) ForService(st ServiceType) []RemoteProofChainLink {
 			links = links[i:]
 			break
 		}
-
 	}
 
 	return links

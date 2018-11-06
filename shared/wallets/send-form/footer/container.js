@@ -3,7 +3,7 @@ import Footer from '.'
 import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {compose, connect, setDisplayName} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
@@ -33,16 +33,14 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   },
   onClickSend: () => {
     dispatch(WalletsGen.createBuildPayment())
-    onConfirm
-      ? onConfirm()
-      : dispatch(
-          Route.navigateAppend([
-            {
-              props: {},
-              selected: Constants.confirmFormRouteKey,
-            },
-          ])
-        )
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {},
+          selected: Constants.confirmFormRouteKey,
+        },
+      ])
+    )
   },
 })
 
@@ -55,11 +53,4 @@ const mergeProps = (s, d, o) => ({
   worthDescription: s.worthDescription,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('Footer')
-)(Footer)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)

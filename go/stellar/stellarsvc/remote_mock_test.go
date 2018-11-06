@@ -497,6 +497,7 @@ type BackendMock struct {
 	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
 	exchRate string
+	currency string
 }
 
 func NewBackendMock(t testing.TB) *BackendMock {
@@ -507,6 +508,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
 		exchRate: defaultExchangeRate,
+		currency: "USD",
 	}
 }
 
@@ -914,10 +916,20 @@ func (r *BackendMock) AssertBalance(accountID stellar1.AccountID, amount string)
 }
 
 func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (string, error) {
-	return "USD", nil
+	r.Lock()
+	defer r.Unlock()
+	return r.currency, nil
+}
+
+func (r *BackendMock) SetDisplayCurrency(currency string) {
+	r.Lock()
+	defer r.Unlock()
+	r.currency = currency
 }
 
 func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
+	r.Lock()
+	defer r.Unlock()
 	return stellar1.OutsideExchangeRate{
 		Currency: stellar1.OutsideCurrencyCode(currency),
 		Rate:     r.exchRate,

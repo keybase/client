@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Markdown} from '../../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate, isMobile} from '../../../../styles'
 
 export type Props = {
   text: string,
@@ -17,6 +17,7 @@ const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentio
   <Markdown
     style={getStyle(type, isEditing)}
     meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
+    styleOverride={isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
     allowFontScaling={true}
   >
     {text}
@@ -39,18 +40,13 @@ const editing = {
   paddingRight: globalMargins.tiny,
 }
 const sent = platformStyles({
-  common: {
-    width: '100%',
-  },
   isElectron: {
     // Make text selectable. On mobile we implement that differently.
     cursor: 'text',
     userSelect: 'text',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-  },
-  isMobile: {
-    color: globalColors.black_75,
+    width: '100%',
   },
 })
 const sentEditing = {
