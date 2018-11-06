@@ -12,6 +12,13 @@ import {desktopStyles} from '../../../styles'
 import StartConversation from './start-conversation/container'
 import Waiting from './waiting'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
+  listScrollDownCounter: number,
+  onFocusInput: () => void,
+|}
+
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
   listScrollDownCounter: number,
@@ -115,7 +122,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

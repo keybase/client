@@ -175,7 +175,7 @@ const panelContainerStyle = {
   flexDirection: 'column',
 }
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<SelectorOwnProps, _, _, _, _>(
   mapStateToSelectorProps,
   mapDispatchToSelectorProps,
   mergeSelectorProps

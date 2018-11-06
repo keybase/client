@@ -1,9 +1,14 @@
 // @flow
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as WaitingConstants from '../../../../constants/waiting'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import StartConversation from '.'
 import {connect} from '../../../../util/container'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
 
 const mapStateToProps = (state, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
@@ -12,7 +17,7 @@ const mapStateToProps = (state, {conversationIDKey}) => ({
   isError: state.chat2.pendingStatus === 'failed',
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onStart: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
 })
 
@@ -33,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

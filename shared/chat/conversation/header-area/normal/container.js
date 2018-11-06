@@ -1,11 +1,19 @@
 // @flow
 import * as I from 'immutable'
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
+  infoPanelOpen: boolean,
+  onToggleInfoPanel: () => void,
+|}
 
 const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) => {
   let meta = Constants.getMeta(state, conversationIDKey)
@@ -39,7 +47,7 @@ const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) =>
   _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   badgeNumber: stateProps._badgeMap.reduce(
     (res, currentValue, currentConvID) =>
       // only show sum of badges that aren't for the current conversation
@@ -62,7 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-connect<OwnProps, _,_,_,_>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
