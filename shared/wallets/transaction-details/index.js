@@ -53,8 +53,8 @@ type PartyAccountProps = {|
 
 const PartyAccount = (props: PartyAccountProps) => {
   return (
-    <Kb.Box2 direction="horizontal" gap="xtiny" style={{alignSelf: 'flex-start'}}>
-      <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
+      <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
@@ -101,7 +101,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'stellarPublicKey':
       return (
         <Kb.Box2 direction="horizontal">
-          <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
+          <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
           <Kb.Box2 direction="vertical" style={styles.counterpartyText}>
             <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
               {props.counterparty}
@@ -424,6 +424,10 @@ const styles = Styles.styleSheetCreate({
   counterpartyText: {
     justifyContent: 'center',
     marginLeft: Styles.globalMargins.tiny,
+  },
+  icon32: {height: 32, width: 32},
+  partyAccountContainer: {
+    alignSelf: 'flex-start',
   },
   progressIndicator: {height: 50, width: 50},
   rightContainer: {
