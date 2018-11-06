@@ -4,7 +4,7 @@ The Sketch assets for each icon directly determine the final SVG output that is 
 
 ### Fill-rule - even-odd v.s. non-zero
 
-When two distincy `path` elements of an SVG overlap, there are two different ways the itersection can be handled using the `fill-rule` property of SVG groups (`g` element).
+When two distinctly `path` elements of an SVG overlap, there are two different ways the itersection can be handled using the `fill-rule` property of SVG groups (`g` element).
 
 Reference: [The Winding Order of the Fill Rule](https://oreillymedia.github.io/Using_SVG/extras/ch06-fill-rule.html)
 
@@ -13,13 +13,13 @@ Reference: [MDN fill-rule page](https://developer.mozilla.org/en-US/docs/Web/SVG
 **evenodd**
 
 > The value evenodd determines the "insideness" of a point in the shape by drawing a ray from that point to infinity in any direction and counting the number of path segments from the given shape that the ray crosses. If this number is odd, the point is inside; if even, the point is outside.
-> 
+>
 > Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#evenodd
 
 
 **nonzero**
 > The value nonzero determines the "insideness" of a point in the shape by drawing a ray from that point to infinity in any direction and then examining the places where a segment of the shape crosses the ray. Starting with a count of zero, add one each time a path segment crosses the ray from left to right and subtract one each time a path segment crosses the ray from right to left. After counting the crossings, if the result is zero then the point is outside the path. Otherwise, it is inside.
-> 
+>
 > Source: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
 
 

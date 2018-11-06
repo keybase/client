@@ -8,13 +8,13 @@
 - Mac: `brew install fontforge`
 - Window: Install the GUI application and the executable should be available via
   the command line.
-  
+
 ### Other Documentation
 
 [Sketch Best Practices for SVG Export](./SKETCH.md)
 
 [Using Font Forge to Inspect Icon Font Output](./FONTFORGE.md)
-  
+
 
 ### Instructions
 
@@ -43,7 +43,7 @@ If you're modifying a single Sketch asset and want to see how the iconfont looks
 4. Rewrite the SVG file `svgo -i {counter}-kb-iconfont-{name}-{size}.svg -o {counter}-kb-iconfont-{name}-{size}.svg`
 5. Update the iconfont `kb.ttf` with `yarn update-icon-font`
 6. The iconfont should now reflect the single SVG change. **Do not let the Sketch file(s) and the committed SVG assets get out of sync when testing a single SVG**
-    
+
 
 
 ### How SVGs Are Generated
@@ -70,10 +70,10 @@ For instructions on adding/modifying icons look at the instructions in this
 ### Common Errors
 
 1. Flow: `Cannot create Kb.Icon element because property 'iconfont-{name}' is missing in object [1] in property 'type'`
-    - This happens when an icon name refernec via the `type` prop on a `Kb.Icon` component, but Flow cannot find the matching `type` in `icon.constants.js`
+    - This happens when an icon name reference via the `type` prop on a `Kb.Icon` component, but Flow cannot find the matching `type` in `icon.constants.js`
     - Check the naming of the correct file in `images/iconfont/*.svg`
     - Also ensure that the key in the object was not deleted on accident.
-    
+
 2. Fontforge not being installed or unavailable via `PATH` in the shell.
 
 ```bash
@@ -94,7 +94,7 @@ For instructions on adding/modifying icons look at the instructions in this
   error: null,
   cmd: 'fontforge -lang ff -c " Open(\'$GOPATH/client/shared/fonts/kb.ttf\'); SetOS2Value(\'WinAscent\', 962); SetOS2Value(\'WinDescent\', 148); SetOS2Value(\'TypoAscent\', 960); SetOS2Value(\'TypoLineGap\', 0); SetOS2Value(\'TypoDescent\', -64); SetOS2Value(\'HHeadAscent\', 962); SetOS2Value(\'HHeadDescent\', -148); SetGasp(65535, 15); SelectAll(); Move(0, -64); SelectNone(); Select(\'61-kb-iconfont-nav-chat-24\', \'70-kb-iconfont-nav-wallets-24\'); Move(0, -22); ScaleToEm(960, 64); Generate(\'$GOPATH/client/shared/fonts/kb.ttf\'); "',
   file: '/bin/sh',
-  
+
 # ...
 # etc
 # ...
