@@ -6,10 +6,12 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestExtractor(t *testing.T) {
+	uid := gregor1.UID([]byte{0, 1})
 	log := logger.NewTestLogger(t)
 	settingsMod := NewSettings(log, newMemConversationBackedStorage())
 	extractor := NewExtractor(log)
@@ -97,8 +99,8 @@ func TestExtractor(t *testing.T) {
 		for _, w := range tcase.whitelist {
 			settings.Whitelist[w] = true
 		}
-		require.NoError(t, settingsMod.Set(context.TODO(), settings))
-		res, err := extractor.Extract(context.TODO(), tcase.message, settingsMod)
+		require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
+		res, err := extractor.Extract(context.TODO(), uid, tcase.message, settingsMod)
 		require.NoError(t, err)
 		require.Equal(t, tcase.result, res)
 	}

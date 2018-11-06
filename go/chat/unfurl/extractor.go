@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type ExtractorHitTyp int
@@ -47,9 +48,9 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, hit string, whitelist ma
 	return whitelist[domain]
 }
 
-func (e *Extractor) Extract(ctx context.Context, body string, userSettings *Settings) (res []ExtractorHit, err error) {
+func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
 	defer e.Trace(ctx, func() error { return err }, "Extract")()
-	settings, err := userSettings.Get(ctx)
+	settings, err := userSettings.Get(ctx, uid)
 	if err != nil {
 		return res, err
 	}
