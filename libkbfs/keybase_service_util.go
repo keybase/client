@@ -89,7 +89,7 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	if bServer != nil {
 		bServer.RefreshAuthToken(ctx)
 	}
-	config.KBFSOps().RefreshCachedFavorites(ctx)
+	config.KBFSOps().ClearCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
 
 	// Clear any cached MD for all private TLFs, as they shouldn't be

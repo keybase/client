@@ -1101,6 +1101,16 @@ func (k *KeybaseServiceBase) FavoriteList(ctx context.Context, sessionID int) ([
 	return results.FavoriteFolders, nil
 }
 
+// EncryptFavorites encrypts cached favorites to store on disk.
+func (k *KeybaseServiceBase) EncryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
+	return k.kbfsClient.EncryptFavorites(ctx, dataToEncrypt)
+}
+
+// DecryptFavorites decrypts cached favorites stored on disk.
+func (k *KeybaseServiceBase) DecryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
+	return k.kbfsClient.DecryptFavorites(ctx, dataToEncrypt)
+}
+
 // Notify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	// Reduce log spam by not repeating log lines for

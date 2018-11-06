@@ -35,6 +35,8 @@ type KeybaseServiceMeasured struct {
 	favoriteAddTimer                 metrics.Timer
 	favoriteDeleteTimer              metrics.Timer
 	favoriteListTimer                metrics.Timer
+	encryptFavoritesTimer            metrics.Timer
+	decryptFavoritesTimer            metrics.Timer
 	notifyTimer                      metrics.Timer
 	notifyPathUpdatedTimer           metrics.Timer
 	putGitMetadataTimer              metrics.Timer
@@ -62,6 +64,10 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteList", r)
+	encryptFavoritesTimer := metrics.GetOrRegisterTimer("KeybaseService."+
+		"EncryptFavorites", r)
+	decryptFavoritesTimer := metrics.GetOrRegisterTimer("KeybaseService."+
+		"DecryptFavorites", r)
 	notifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Notify", r)
 	notifyPathUpdatedTimer := metrics.GetOrRegisterTimer("KeybaseService.NotifyPathUpdated", r)
 	putGitMetadataTimer := metrics.GetOrRegisterTimer(
@@ -83,6 +89,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		favoriteAddTimer:                 favoriteAddTimer,
 		favoriteDeleteTimer:              favoriteDeleteTimer,
 		favoriteListTimer:                favoriteListTimer,
+		encryptFavoritesTimer:            encryptFavoritesTimer,
+		decryptFavoritesTimer:            decryptFavoritesTimer,
 		notifyTimer:                      notifyTimer,
 		notifyPathUpdatedTimer:           notifyPathUpdatedTimer,
 		putGitMetadataTimer:              putGitMetadataTimer,
@@ -240,6 +248,26 @@ func (k KeybaseServiceMeasured) FavoriteList(ctx context.Context, sessionID int)
 		favorites, err = k.delegate.FavoriteList(ctx, sessionID)
 	})
 	return favorites, err
+}
+
+// EncryptFavorites implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) EncryptFavorites(ctx context.Context,
+	dataIn []byte) (dataOut []byte, err error) {
+	k.favoriteListTimer.Time(func() {
+		dataOut, err = k.delegate.EncryptFavorites(ctx, dataIn)
+	})
+	return dataOut, err
+}
+
+// DecryptFavorites implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) DecryptFavorites(ctx context.Context,
+	dataIn []byte) (dataOut []byte, err error) {
+	k.favoriteListTimer.Time(func() {
+		dataOut, err = k.delegate.DecryptFavorites(ctx, dataIn)
+	})
+	return dataOut, err
 }
 
 // Notify implements the KeybaseService interface for KeybaseServiceMeasured.

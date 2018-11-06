@@ -135,8 +135,14 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(brq.prefetcher)
 
 	// Ignore favorites
+	err := errors.New("Fake error to prevent trying to read favs from disk")
+	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).Return(
+		SessionInfo{}, err)
+	kbfsops.favs.Initialize(ctx)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
 		Return(nil, nil)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
 
@@ -154,7 +160,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	id := rand.Int()
-	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+	ctx, err = NewContextWithCancellationDelayer(NewContextReplayable(
 		timeoutCtx, func(ctx context.Context) context.Context {
 			return context.WithValue(ctx, tCtxID, id)
 		}))

@@ -900,6 +900,18 @@ func (k *KeybaseDaemonLocal) FavoriteList(
 	return k.favoriteStore.FavoriteList(k.currentUID)
 }
 
+// EncryptFavorites implements KeybaseService for KeybaseDaemonLocal
+func (k *KeybaseDaemonLocal) EncryptFavorites(ctx context.Context,
+	dataToEncrypt []byte) ([]byte, error) {
+	return nil, checkContext(ctx)
+}
+
+// DecryptFavorites implements KeybaseService for KeybaseDaemonLocal
+func (k *KeybaseDaemonLocal) DecryptFavorites(ctx context.Context,
+	dataToDecrypt []byte) ([]byte, error) {
+	return nil, checkContext(ctx)
+}
+
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return checkContext(ctx)

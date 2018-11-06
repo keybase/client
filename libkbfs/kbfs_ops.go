@@ -268,6 +268,15 @@ func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
 	fs.favs.RefreshCache(ctx)
 }
 
+// ClearCachedFavorites implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) ClearCachedFavorites(ctx context.Context) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.favs.ClearCache(ctx)
+}
+
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	fav Favorite) error {

@@ -545,6 +545,10 @@ func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) {
 	// no-op
 }
 
+func (fbo *folderBranchOps) ClearCachedFavorites(ctx context.Context) {
+	// no-op
+}
+
 func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
 	fav Favorite) error {
 	return errors.New("DeleteFavorite is not supported by folderBranchOps")
