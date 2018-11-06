@@ -15,12 +15,7 @@ const _commonChildren = {
     makeRouteDefNode({
       component: BarePreview,
       children: _commonChildren,
-      tags: makeLeafTags({
-        hideStatusBar: true,
-        fullscreen: true,
-        underStatusBar: true,
-        title: 'Preview',
-      }),
+      tags: makeLeafTags({fullscreen: true, title: 'Preview'}),
     }),
   preview: () =>
     makeRouteDefNode({

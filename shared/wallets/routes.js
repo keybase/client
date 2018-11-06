@@ -55,7 +55,6 @@ const walletChildren = {
           layerOnTop: !isMobile,
           renderTopmostOnly: true,
           hideStatusBar: true,
-          underStatusBar: true,
         }),
       },
       createNewAccount,
@@ -71,7 +70,6 @@ const walletChildren = {
       layerOnTop: !isMobile,
       renderTopmostOnly: true,
       hideStatusBar: true,
-      underStatusBar: true,
     }),
   },
   settings: {

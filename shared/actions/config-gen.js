@@ -22,7 +22,6 @@ export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
-export const debugDump = 'config:debugDump'
 export const dumpLogs = 'config:dumpLogs'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
@@ -80,7 +79,6 @@ type _DaemonHandshakeWaitPayload = $ReadOnly<{|
   failedReason?: ?string,
   failedFatal?: true,
 |}>
-type _DebugDumpPayload = $ReadOnly<{|items: Array<string>|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
@@ -188,7 +186,6 @@ export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, 
 export const createCheckForUpdate = (payload: _CheckForUpdatePayload) => ({payload, type: checkForUpdate})
 export const createCopyToClipboard = (payload: _CopyToClipboardPayload) => ({payload, type: copyToClipboard})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({payload, type: daemonError})
-export const createDebugDump = (payload: _DebugDumpPayload) => ({payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({payload, type: dumpLogs})
 export const createGlobalError = (payload: _GlobalErrorPayload) => ({payload, type: globalError})
 export const createLink = (payload: _LinkPayload) => ({payload, type: link})
@@ -221,7 +218,6 @@ export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPay
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
 export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
 export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait, _DaemonHandshakeWaitPayload>
-export type DebugDumpPayload = $Call<typeof createDebugDump, _DebugDumpPayload>
 export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
 export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
 export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
@@ -264,7 +260,6 @@ export type Actions =
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
-  | DebugDumpPayload
   | DumpLogsPayload
   | GlobalErrorPayload
   | InstallerRanPayload

@@ -30,7 +30,7 @@ export const isAndroidNewerThanM = isAndroid && parseInt(mobileOsVersion) > 22
 export const isAndroidNewerThanN = isAndroid && parseInt(mobileOsVersion, 10) >= 26
 
 export const isIPhoneX =
-  Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height === 812
+  Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height >= 812
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
