@@ -2410,6 +2410,18 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 	}
 }
 
+type UserRolePair struct {
+	AssertionOrEmail string   `codec:"assertionOrEmail" json:"assertionOrEmail"`
+	Role             TeamRole `codec:"role" json:"role"`
+}
+
+func (o UserRolePair) DeepCopy() UserRolePair {
+	return UserRolePair{
+		AssertionOrEmail: o.AssertionOrEmail,
+		Role:             o.Role.DeepCopy(),
+	}
+}
+
 type BulkRes struct {
 	Invited        []string `codec:"invited" json:"invited"`
 	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
@@ -2678,6 +2690,13 @@ type TeamAddMembersArg struct {
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
+type TeamAddMembersMultiRoleArg struct {
+	SessionID            int            `codec:"sessionID" json:"sessionID"`
+	Name                 string         `codec:"name" json:"name"`
+	Users                []UserRolePair `codec:"users" json:"users"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
 type TeamRemoveMemberArg struct {
 	SessionID int          `codec:"sessionID" json:"sessionID"`
 	Name      string       `codec:"name" json:"name"`
@@ -2897,6 +2916,7 @@ type TeamsInterface interface {
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) error
+	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -3126,6 +3146,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamAddMembers(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamAddMembersMultiRole": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamAddMembersMultiRoleArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamAddMembersMultiRoleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamAddMembersMultiRoleArg)(nil), args)
+						return
+					}
+					err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3782,6 +3818,11 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 
 func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, nil)
 	return
 }
 
