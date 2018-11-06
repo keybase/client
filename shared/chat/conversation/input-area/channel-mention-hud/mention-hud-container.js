@@ -1,6 +1,7 @@
 // @flow
 import {MentionHud} from '.'
 import {namedConnect} from '../../../../util/container'
+import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 
@@ -12,6 +13,7 @@ type OwnProps = {|
   pickSelectedChannelCounter?: number,
   onPickChannel?: (c: string, options?: {notChannel: boolean}) => void,
   onSelectChannel?: (c: string) => void,
+  style?: Styles.StylesCrossPlatform,
 |}
 
 const mapStateToProps = (state, {filter, conversationIDKey}) => {

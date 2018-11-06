@@ -6,7 +6,7 @@ import * as TrackerGen from '../../../../actions/tracker-gen'
 import SetChannelname from '.'
 
 type OwnProps = {|
-  conversationIDKey: Types.ConversationIDKey,
+  message: Types.MessageSetChannelname,
 |}
 
 const mapStateToProps = (state, {message}) => ({

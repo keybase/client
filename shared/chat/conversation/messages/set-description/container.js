@@ -6,7 +6,7 @@ import * as Types from '../../../../constants/types/chat2'
 import SetDescription from '.'
 
 type OwnProps = {|
-  message: Types.Message,
+  message: Types.MessageSetDescription,
 |}
 
 const mapStateToProps = (state, {message}) => ({
