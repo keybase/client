@@ -50,8 +50,9 @@ type EventuallyConsistentQuotaUsage struct {
 	tid     keybase1.TeamID
 	fetcher *fetchDecider
 
-	mu     sync.RWMutex
-	cached cachedQuotaUsage
+	mu      sync.RWMutex
+	cached  cachedQuotaUsage
+	bgFetch bool
 }
 
 // NewEventuallyConsistentQuotaUsage creates a new
@@ -95,6 +96,79 @@ func (q *EventuallyConsistentQuotaUsage) getID(
 	return q.tid.AsUserOrTeam(), nil
 }
 
+func (q *EventuallyConsistentQuotaUsage) cache(
+	ctx context.Context, quotaInfo *kbfsblock.QuotaInfo, doCacheToDisk bool) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	q.cached.limitBytes = quotaInfo.Limit
+	q.cached.gitLimitBytes = quotaInfo.GitLimit
+	if quotaInfo.Total != nil {
+		q.cached.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
+		q.cached.archiveBytes = quotaInfo.Total.Bytes[kbfsblock.UsageArchive]
+		q.cached.gitUsageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageGitWrite]
+		q.cached.gitArchiveBytes =
+			quotaInfo.Total.Bytes[kbfsblock.UsageGitArchive]
+	} else {
+		q.cached.usageBytes = 0
+	}
+	q.cached.timestamp = q.config.Clock().Now()
+
+	dqc := q.config.DiskQuotaCache()
+	if !doCacheToDisk || dqc == nil {
+		return
+	}
+
+	id, err := q.getID(ctx)
+	if err != nil {
+		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
+		return
+	}
+	err = dqc.Put(ctx, id, *quotaInfo)
+	if err != nil {
+		q.log.CDebugf(ctx, "Can't cache quota for %s: %+v", id, err)
+	}
+}
+
+func (q *EventuallyConsistentQuotaUsage) fetch(ctx context.Context) (
+	quotaInfo *kbfsblock.QuotaInfo, err error) {
+	if q.tid.IsNil() {
+		return q.config.BlockServer().GetUserQuotaInfo(ctx)
+	}
+	return q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
+}
+
+func (q *EventuallyConsistentQuotaUsage) doBackgroundFetch() {
+	doFetch := func() bool {
+		q.mu.Lock()
+		defer q.mu.Unlock()
+		if q.bgFetch {
+			return false
+		}
+		q.bgFetch = true
+		return true
+	}()
+	if !doFetch {
+		return
+	}
+
+	defer func() {
+		q.mu.Lock()
+		defer q.mu.Unlock()
+		q.bgFetch = false
+	}()
+
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), ECQUCtxTagKey{}, ECQUID, q.log)
+	q.log.CDebugf(ctx, "Running background quota fetch, without a timeout")
+
+	quotaInfo, err := q.fetch(ctx)
+	if err != nil {
+		q.log.CDebugf(ctx, "Unable to fetch quota in background: %+v", err)
+		return
+	}
+	q.cache(ctx, quotaInfo, true)
+}
+
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	ctx context.Context) (err error) {
 	defer func() {
@@ -122,16 +196,12 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 		}
 	}
 
-	var quotaInfo *kbfsblock.QuotaInfo
-	if q.tid.IsNil() {
-		quotaInfo, err = q.config.BlockServer().GetUserQuotaInfo(getCtx)
-	} else {
-		quotaInfo, err = q.config.BlockServer().GetTeamQuotaInfo(getCtx, q.tid)
-	}
+	quotaInfo, err := q.fetch(getCtx)
 	doCacheToDisk := dqc != nil
 	switch err {
 	case nil:
 	case context.DeadlineExceeded:
+		go q.doBackgroundFetch()
 		if quotaInfoFromCache != nil {
 			q.log.CDebugf(ctx, "Can't contact server; using cached quota")
 			quotaInfo = quotaInfoFromCache
@@ -143,27 +213,7 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 		return err
 	}
 
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	q.cached.limitBytes = quotaInfo.Limit
-	q.cached.gitLimitBytes = quotaInfo.GitLimit
-	if quotaInfo.Total != nil {
-		q.cached.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
-		q.cached.archiveBytes = quotaInfo.Total.Bytes[kbfsblock.UsageArchive]
-		q.cached.gitUsageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageGitWrite]
-		q.cached.gitArchiveBytes =
-			quotaInfo.Total.Bytes[kbfsblock.UsageGitArchive]
-	} else {
-		q.cached.usageBytes = 0
-	}
-	q.cached.timestamp = q.config.Clock().Now()
-
-	if doCacheToDisk {
-		err := dqc.Put(ctx, id, *quotaInfo)
-		if err != nil {
-			q.log.CDebugf(ctx, "Can't cache quota for %s: %+v", id, err)
-		}
-	}
+	q.cache(ctx, quotaInfo, doCacheToDisk)
 	return nil
 }
 
