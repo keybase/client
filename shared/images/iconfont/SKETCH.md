@@ -4,7 +4,7 @@ The Sketch assets for each icon directly determine the final SVG output that is 
 
 ### Fill-rule - even-odd v.s. non-zero
 
-When two distinctly `path` elements of an SVG overlap, there are two different ways the itersection can be handled using the `fill-rule` property of SVG groups (`g` element).
+When two distinct `path` elements of an SVG overlap, there are two different ways the itersection can be handled using the `fill-rule` property of SVG groups (`g` element).
 
 Reference: [The Winding Order of the Fill Rule](https://oreillymedia.github.io/Using_SVG/extras/ch06-fill-rule.html)
 
