@@ -17,7 +17,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
       paddingRight: Styles.globalMargins.tiny,
     }}
     onClick={onClick}
-    onMouseEnter={onHover}
+    onMouseOver={onHover}
   >
     {!Constants.isSpecialMention(username) ? (
       <Kb.Avatar username={username} size={32} />
@@ -154,7 +154,7 @@ class MentionHudImpl extends React.Component<ImplProps> {
   }
 
   // if the filter changes, disable the hover interaction. otherwise if you have the mouse over the area while you're typing it'll start
-  // selecting things and it gets really confusing. Instead when the filter changes we ignore the hover callback for a small amount of time
+  // selecting things and it gets really confusing. Instead when the filter changes we ignore the hover callback for a small amount of timet dif
   _safeHoverTime = 0
   _hoverSetSelectedIndex = index => {
     if (Date.now() > this._safeHoverTime) {
