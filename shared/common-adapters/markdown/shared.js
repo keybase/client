@@ -391,7 +391,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         </Text>
       )
     }
-    const {allowFontScaling, styleOverride} = this.props
+    const {allowFontScaling, styleOverride = {}} = this.props
     let parseTree
     let output
     try {
@@ -423,7 +423,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
         style={Styles.collapseStyles([
           markdownStyles.neutralPreviewStyle,
           this.props.style,
-          styleOverride?.preview,
+          styleOverride.preview,
         ])}
         lineClamp={isMobile ? 1 : undefined}
       >
