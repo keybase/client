@@ -83,7 +83,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: 4,
     },
   }),
-  popupHeight: Styles.platformStyles({isElectron: {height: '525px'}}),
+  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
   container: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -123,7 +123,7 @@ export default compose(
     customComponent: props.headerTitle && (
       <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
     ),
-    style: (styles.popupHeight: any), // cast to any for flow complaining about every possible style
+    style: (styles.popup: any), // cast to any for flow complaining about every possible style
   })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)

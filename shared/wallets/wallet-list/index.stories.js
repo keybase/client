@@ -62,7 +62,7 @@ const load = () => {
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}
         title="Wallets"
-        style={{height: '100%', width: isMobile ? '100%' : 240}}
+        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
       />
     ))
 }

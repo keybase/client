@@ -97,9 +97,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       backgroundColor: Styles.globalColors.yellow,
     },
-    isElectron: {
-      borderRadius: 4,
-    },
   }),
   header: {
     borderBottomWidth: 0,
