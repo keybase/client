@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
+import openURL from '../../util/open-url'
 import TransactionDetails from '.'
 
 const mapStateToProps = (state, ownProps) => {
@@ -24,6 +25,7 @@ const mapStateToProps = (state, ownProps) => {
             yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
+    transactionURL: _transaction.externalTxURL,
     you,
     yourInfoAndCounterparty,
   }
@@ -68,6 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
+    onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : null,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
     selectableText: true,

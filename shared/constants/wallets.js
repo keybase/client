@@ -227,6 +227,7 @@ const _defaultPaymentResult = {
 
 const _defaultPaymentDetail = {
   ..._defaultPaymentCommon,
+  externalTxURL: '',
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   txID: '',
@@ -281,6 +282,7 @@ const rpcPaymentResultToPaymentResult = (w: RPCTypes.PaymentOrErrorLocal, sectio
 const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
   makePaymentDetail({
     ...rpcPaymentToPaymentCommon(p),
+    externalTxURL: p.externalTxURL,
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
     txID: p.txID,
