@@ -1,5 +1,6 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as Types from '../../constants/types/chat2'
+import * as React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
@@ -19,13 +20,13 @@ type State = {
   showFloating: boolean,
 }
 
-class Inbox extends PureComponent<Props, State> {
+class Inbox extends React.PureComponent<Props, State> {
   state = {
     showFloating: false,
   }
 
   _mounted: boolean = false
-  _list: ?VariableSizeList
+  _list: ?VariableSizeList<any>
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -77,6 +78,7 @@ class Inbox extends PureComponent<Props, State> {
       case 'divider':
         return row.showButton ? 68 : 41
     }
+    return 0
   }
 
   _itemRenderer = (index, style) => {
@@ -95,13 +97,16 @@ class Inbox extends PureComponent<Props, State> {
       )
     }
 
+    const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
+    const teamname = row.teamname
+
     return (
       <div style={style}>
         {makeRow({
-          channelname: row.channelname,
-          conversationIDKey: row.conversationIDKey,
+          channelname: (row.type === 'big' && row.channelname) || '',
+          conversationIDKey,
           filtered: !!this.props.filter,
-          teamname: row.teamname,
+          teamname,
           type: row.type,
         })}
       </div>
@@ -130,7 +135,7 @@ class Inbox extends PureComponent<Props, State> {
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
-  _setRef = (list: ?VariableSizeList) => {
+  _setRef = (list: ?VariableSizeList<any>) => {
     this._list = list
   }
 

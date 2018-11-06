@@ -115,7 +115,8 @@ function parseMarkdown(
 // TODO, when named groups are supported on mobile, we can use this instead
 // const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // This copies the functionality of this named group
-const linkRegex = {
+// $FlowIssue treat this like a RegExp
+const linkRegex: RegExp = {
   exec: source => {
     const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
     const result = r.exec(source)
