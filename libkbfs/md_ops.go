@@ -106,7 +106,14 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 		cryptoLeaf := kbfscrypto.MakeEncryptedMerkleLeaf(
 			eLeaf.Version, eLeaf.EncryptedData, kbfsRoot.Nonce)
 		teamID := rmd.GetTlfHandle().FirstResolvedWriter().AsTeamOrBust()
-		minKeyGen := keybase1.PerTeamKeyGeneration(rmd.LatestKeyGeneration())
+		// The merkle tree doesn't yet record which team keygen is
+		// used to encrypt a merkle leaf, so just use 1 as the min
+		// number and let the service scan.  In the future, we should
+		// have the server record the keygen in the merkle leaf header
+		// and use that instead.  (Note that "team keygen" is
+		// completely separate from "application keygen", so we can't
+		// just use `rmd.LatestKeyGeneration()` here.)
+		minKeyGen := keybase1.PerTeamKeyGeneration(1)
 		md.log.CDebugf(ctx, "Decrypting Merkle leaf for team %s with min key "+
 			"generation %d", teamID, minKeyGen)
 		leafBytes, err := md.config.Crypto().DecryptTeamMerkleLeaf(
