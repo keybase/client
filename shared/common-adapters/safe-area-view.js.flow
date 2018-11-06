@@ -8,4 +8,4 @@ export type Props = {|
 |}
 
 export default class SafeAreaView extends React.Component<Props> {}
-export default class SafeAreaViewTop extends React.Component<Props> {}
+export class SafeAreaViewTop extends React.Component<Props> {}
