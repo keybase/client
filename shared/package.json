@@ -16,7 +16,7 @@
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=test BABEL_PLATFORM=Electron jest",
     "update-icon-constants": "yarn run _helper update-icon-constants",
-    "updated-fonts": "yarn run _helper updated-fonts",
+    "update-icon-font": "yarn run _helper update-icon-font",
     "update-protocol": "cd ../protocol && make clean && make",
     "unused-assets": "yarn run _helper unused-assets",
     "build-treeshake": "yarn run _helper build-treeshake",

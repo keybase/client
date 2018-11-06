@@ -53,9 +53,9 @@ type PartyAccountProps = {|
 
 const PartyAccount = (props: PartyAccountProps) => {
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
+      <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
+      <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
@@ -100,13 +100,16 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal" fullHeight={true}>
-          <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-            <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-              {props.counterparty}
-            </Kb.Text>
-          </Kb.Box2>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
+          <Kb.Text
+            type="BodySemibold"
+            selectable={true}
+            style={styles.stellarPublicKey}
+            title={props.counterparty}
+          >
+            {props.counterparty}
+          </Kb.Text>
         </Kb.Box2>
       )
     case 'otherAccount':
@@ -256,7 +259,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
@@ -275,8 +278,9 @@ const TransactionDetails = (props: NotLoadingProps) => {
           unread={false}
           yourRole={props.yourRole}
         />
-        <Kb.Divider />
-
+      </Kb.Box2>
+      <Kb.Divider />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -420,9 +424,9 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
-  counterpartyText: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
+  icon32: {height: 32, width: 32},
+  partyAccountContainer: {
+    alignSelf: 'flex-start',
   },
   progressIndicator: {height: 50, width: 50},
   rightContainer: {
@@ -444,6 +448,10 @@ const styles = Styles.styleSheetCreate({
   },
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
+  },
+  stellarPublicKey: {
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.tiny,
   },
   tooltipText: Styles.platformStyles({
     isElectron: {
