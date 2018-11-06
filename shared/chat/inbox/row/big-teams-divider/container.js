@@ -2,6 +2,10 @@
 import {BigTeamsDivider} from '.'
 import {connect} from '../../../../util/container'
 
+type OwnProps = {|
+  toggle: () => void,
+|}
+
 const mapStateToProps = state => ({
   _badges: state.chat2.badgeMap,
   _metaMap: state.chat2.metaMap,
@@ -14,7 +18,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   toggle: ownProps.toggle,
 })
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps

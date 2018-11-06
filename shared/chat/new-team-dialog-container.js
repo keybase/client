@@ -3,7 +3,9 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
-import {connect, lifecycle, compose, withStateHandlers} from '../util/container'
+import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   baseTeam: '',

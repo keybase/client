@@ -3,9 +3,18 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import {type ConversationIDKey} from '../../constants/types/chat2'
+import * as Types from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, compose, lifecycle} from '../../util/container'
+import {connect, compose, lifecycle, type RouteProps} from '../../util/container'
+
+type OwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey,
+    teamname: string,
+  },
+  {waitingForSave: number}
+>
+
 const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
   if (!conversationIDKey) {
@@ -49,14 +58,17 @@ const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
 
 const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   return {
-    _loadChannelInfo: (teamname: string, conversationIDKey: ConversationIDKey) =>
+    _loadChannelInfo: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({teamname, conversationIDKey})),
     _navigateUp: () => dispatch(navigateUp()),
-    _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
-      dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
-    _updateTopic: (teamname: string, conversationIDKey: ConversationIDKey, newTopic: string) =>
+    _updateChannelName: (
+      teamname: string,
+      conversationIDKey: Types.ConversationIDKey,
+      newChannelName: string
+    ) => dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
+    _updateTopic: (teamname: string, conversationIDKey: Types.ConversationIDKey, newTopic: string) =>
       dispatch(TeamsGen.createUpdateTopic({teamname, conversationIDKey, newTopic})),
-    _onConfirmedDelete: (teamname: string, conversationIDKey: ConversationIDKey) =>
+    _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({teamname, conversationIDKey})),
   }
 }
@@ -91,12 +103,8 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   }
 }
 
-const ConnectedEditChannel: React.ComponentType<{
-  navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
-  routeState: I.RecordOf<{waitingForSave: number}>,
-}> = compose(
-connect<OwnProps, _,_,_,_>(
+const ConnectedEditChannel = compose(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

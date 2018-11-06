@@ -7,6 +7,8 @@ type OwnProps = {
   onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
+  onSelectUp: () => void,
+  onSelectDown: () => void,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
@@ -25,6 +27,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSelectDown: ownProps.onSelectDown,
 })
 
-export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'ChatInboxHeaderContainer')(
-  ChatInboxHeader
-)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ChatInboxHeaderContainer'
+)(ChatInboxHeader)

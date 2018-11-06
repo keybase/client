@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
   onClick: () => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   badgeSubscribe: stateProps.badgeSubscribe,
   onClick: dispatchProps.onClick,
   teamname: stateProps.teamname,
