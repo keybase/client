@@ -67,6 +67,15 @@ const getSvgPaths = shouldPrintSkipped =>
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
 function updateIconFont() {
+  let webfontsGenerator
+  try {
+    webfontsGenerator = require('webfonts-generator')
+  } catch (e) {
+    console.error(
+      '\n\n\n\n>> Web fonts generation is optional, run a full yarn (and not yarn modules) to install it << \n\n\n'
+    )
+    throw e
+  }
   console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
 
