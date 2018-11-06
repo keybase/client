@@ -53,7 +53,7 @@ type PartyAccountProps = {|
 
 const PartyAccount = (props: PartyAccountProps) => {
   return (
-    <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={{alignSelf: 'flex-start'}}>
       <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
