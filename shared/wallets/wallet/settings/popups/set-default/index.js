@@ -39,7 +39,7 @@ const SetDefaultAccountPopup = (props: Props) => {
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={{flex: 1}} fullWidth={true}>
+      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Box style={styles.avatarAndIcon}>
           <Kb.Icon type={Styles.isMobile ? 'icon-wallet-64' : 'icon-wallet-48'} />
           <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
@@ -80,6 +80,7 @@ const styles = Styles.styleSheetCreate({
       bottom: -2,
     },
   }),
+  flexOne: {flex: 1},
   header: {
     borderBottomWidth: 0,
   },
