@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   memo: string,
@@ -17,7 +18,11 @@ const MarkdownMemo = (props: Props) =>
       style={Styles.collapseStyles([props.style, styles.container])}
     >
       <Kb.Divider vertical={true} style={styles.quoteMarker} />
-      <Kb.Markdown style={styles.memo} allowFontScaling={true}>
+      <Kb.Markdown
+        style={styles.memo}
+        styleOverride={isMobile ? styleOverride : undefined}
+        allowFontScaling={true}
+      >
         {props.memo}
       </Kb.Markdown>
     </Kb.Box2>
@@ -41,11 +46,26 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
     },
-    isMobile: {
-      color: Styles.globalColors.black_75,
-    },
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
+})
+
+const styleOverride = Styles.styleSheetCreate({
+  paragraph: {
+    color: Styles.globalColors.black_75,
+  },
+  strong: {
+    color: Styles.globalColors.black_75,
+  },
+  em: {
+    color: Styles.globalColors.black_75,
+  },
+  del: {
+    color: Styles.globalColors.black_75,
+  },
+  link: {
+    color: Styles.globalColors.black_75,
+  },
 })
 
 export default MarkdownMemo
