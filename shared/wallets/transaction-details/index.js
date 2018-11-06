@@ -102,7 +102,12 @@ const Counterparty = (props: CounterpartyProps) => {
       return (
         <Kb.Box2 direction="horizontal">
           <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
-          <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+          <Kb.Text
+            type="BodySemibold"
+            selectable={true}
+            style={styles.stellarPublicKey}
+            title={props.counterparty}
+          >
             {props.counterparty}
           </Kb.Text>
         </Kb.Box2>
@@ -443,6 +448,10 @@ const styles = Styles.styleSheetCreate({
   },
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
+  },
+  stellarPublicKey: {
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.tiny,
   },
   tooltipText: Styles.platformStyles({
     isElectron: {
