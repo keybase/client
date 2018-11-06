@@ -39,39 +39,39 @@ func (rc *TwitterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _
 
 type TwitterServiceType struct{ libkb.BaseServiceType }
 
-func (t TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 var twitterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
-func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
+func (t *TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	if !twitterUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
+func (t *TwitterServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
 }
 
-func (t TwitterServiceType) GetPrompt() string {
+func (t *TwitterServiceType) GetPrompt() string {
 	return "Your username on Twitter"
 }
 
-func (t TwitterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *TwitterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t TwitterServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *TwitterServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
 }
 
-func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
-func (t TwitterServiceType) GetTypeName() string          { return "twitter" }
+func (t *TwitterServiceType) DisplayName(un string) string { return "Twitter" }
+func (t *TwitterServiceType) GetTypeName() string          { return "twitter" }
 
-func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = libkb.FmtMarkup("Permission denied! We can't support <strong>private</strong> feeds.")
 	} else {
@@ -79,12 +79,12 @@ func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.P
 	}
 	return
 }
-func (t TwitterServiceType) GetProofType() string { return t.BaseGetProofType(t) }
+func (t *TwitterServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
-func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextShort(text, id, false)
 }
 
-func (t TwitterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *TwitterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &TwitterChecker{l}
 }

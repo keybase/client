@@ -179,10 +179,11 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf)
-	if perr != nil {
-		return nil, perr
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf, libkb.NewInvalidPVLSelectorError)
+	if perrInner, _ := perr.(libkb.ProofError); perrInner != nil {
+		return nil, perrInner
 	}
+
 	if len(results) != 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Json selector did not match any values")
@@ -227,65 +228,65 @@ type GenericSocialProofServiceType struct {
 	config *GenericSocialProofConfig
 }
 
-func NewGenericSocialProofServiceType(config *GenericSocialProofConfig) GenericSocialProofServiceType {
-	return GenericSocialProofServiceType{
+func NewGenericSocialProofServiceType(config *GenericSocialProofConfig) *GenericSocialProofServiceType {
+	return &GenericSocialProofServiceType{
 		config: config,
 	}
 }
 
-func (t GenericSocialProofServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *GenericSocialProofServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t GenericSocialProofServiceType) NormalizeUsername(s string) (string, error) {
+func (t *GenericSocialProofServiceType) NormalizeUsername(s string) (string, error) {
 	if err := t.config.validateRemoteUsername(s); err != nil {
 		return "", err
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t GenericSocialProofServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
+func (t *GenericSocialProofServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
-func (t GenericSocialProofServiceType) GetPrompt() string {
+func (t *GenericSocialProofServiceType) GetPrompt() string {
 	return fmt.Sprintf("Your username on %s", t.config.DisplayName)
 }
 
-func (t GenericSocialProofServiceType) ToServiceJSON(username string) *jsonw.Wrapper {
+func (t *GenericSocialProofServiceType) ToServiceJSON(username string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, username)
 }
 
-func (t GenericSocialProofServiceType) PostInstructions(username string) *libkb.Markup {
+func (t *GenericSocialProofServiceType) PostInstructions(username string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to %v:`, t.config.DisplayName)
 }
 
-func (t GenericSocialProofServiceType) DisplayName(username string) string {
+func (t *GenericSocialProofServiceType) DisplayName(username string) string {
 	return t.config.DisplayName
 }
-func (t GenericSocialProofServiceType) GetTypeName() string { return t.config.Domain }
+func (t *GenericSocialProofServiceType) GetTypeName() string { return t.config.Domain }
 
-func (t GenericSocialProofServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *GenericSocialProofServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }
 
-func (t GenericSocialProofServiceType) GetProofType() string {
+func (t *GenericSocialProofServiceType) GetProofType() string {
 	return libkb.GenericSocialWebServiceBinding
 }
 
-func (t GenericSocialProofServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *GenericSocialProofServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	// We don't rely only any server trust in FormatProofText so there is nothing to verify here.
 	return nil
 }
 
-func (t GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
+func (t *GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
 	kbUsername string, sigID keybase1.SigID) (string, error) {
 	return t.config.prefillURLWithValues(kbUsername, sigID)
 }
 
-func (t GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &GenericSocialProofChecker{
 		proof:  l,
 		config: t.config,
 	}
 }
 
-func (t GenericSocialProofServiceType) IsDevelOnly() bool { return false }
+func (t *GenericSocialProofServiceType) IsDevelOnly() bool { return false }

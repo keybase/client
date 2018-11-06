@@ -251,14 +251,18 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 
 	if p := r.getFromMemCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		trace += "m"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	if p := r.getFromDiskCache(m, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0 || !p.resolvedTeamName.IsNil()) {
 		p.mutable = isMutable(au)
 		r.putToMemCache(m, ck, *p)
 		trace += "d"
-		return *p
+		ret := *p
+		ret.decorate(au)
+		return ret
 	}
 
 	// We can check the UPAK loader for the username if we're just mapping a UID to a username.
@@ -287,6 +291,14 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	return res
 }
 
+func (res *ResolveResult) decorate(au AssertionURL) {
+	if au.IsKeybase() {
+		res.queriedKbUsername = au.GetValue()
+	} else if au.IsUID() {
+		res.queriedByUID = true
+	}
+}
+
 func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
@@ -295,22 +307,14 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 	}
 
 	if au.IsServerTrust() {
-		if _, ok := au.(AssertionPhoneNumber); ok {
-			return r.resolvePhoneNumberViaServerLookup(m, au, input)
-		}
-		res.err = ResolutionError{Input: input, Msg: "don't know how to resolve", Kind: ResolutionErrorNotFound}
-		return
+		return r.resolveServerTrustAssertion(m, au, input)
 	}
 
 	var key, val string
 	var ares *APIRes
 	var l int
 
-	if au.IsKeybase() {
-		res.queriedKbUsername = au.GetValue()
-	} else if au.IsUID() {
-		res.queriedByUID = true
-	}
+	res.decorate(au)
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
 		return
@@ -425,13 +429,22 @@ func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL
 	return res
 }
 
-type phoneNumberLookup struct {
+type serverTrustUserLookup struct {
 	AppStatusEmbed
 	User *keybase1.PhoneLookupResult `json:"user"`
 }
 
-func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
-	m.CDebugf("resolvePhoneNumberViaServerLookup")
+func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
+	defer m.CTrace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
+
+	enabled := m.G().FeatureFlags.Enabled(m, FeatureIMPTOFU)
+	if enabled {
+		m.CDebugf("Resolver: phone number and email proofs enabled")
+	} else {
+		m.CDebugf("Resolver: phone number and email proofs disabled")
+		res.err = ResolutionError{Input: input, Msg: "Proof type disabled.", Kind: ResolutionErrorInvalidInput}
+		return res
+	}
 
 	key, val, err := au.ToLookup()
 	if err != nil {
@@ -439,29 +452,39 @@ func (r *ResolverImpl) resolvePhoneNumberViaServerLookup(m MetaContext, au Asser
 		return res
 	}
 
-	if key != "phone" {
-		res.err = fmt.Errorf("expected 'phone' assertion")
+	var arg APIArg
+	switch key {
+	case "phone":
+		arg = NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
+		arg.Args = map[string]HTTPValue{"phone_number": S{Val: val}}
+	case "email":
+		arg = NewAPIArgWithMetaContext(m, "email/search")
+		arg.Args = map[string]HTTPValue{"email": S{Val: val}}
+	default:
+		res.err = ResolutionError{Input: input, Msg: fmt.Sprintf("Unexpected assertion: %q for server trust lookup", key), Kind: ResolutionErrorInvalidInput}
 		return res
 	}
 
-	arg := NewAPIArgWithMetaContext(m, "user/phone_numbers_search")
 	arg.SessionType = APISessionTypeREQUIRED
-	arg.Args = make(HTTPArgs)
-	arg.Args["phone_number"] = S{Val: val}
 	arg.AppStatusCodes = []int{SCOk}
 
-	var lookup phoneNumberLookup
+	var lookup serverTrustUserLookup
 	if err := m.G().API.GetDecode(arg, &lookup); err != nil {
 		if appErr, ok := err.(AppStatusError); ok {
 			switch appErr.Code {
 			case SCInputError:
-				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
-			// TODO: Phone number search rate limiting code goes here.
-			case SCChatRateLimit: // with different error const!
-				err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
+				return res
+			case SCRateLimit:
+				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
+				return res
 			}
 		}
-		res.err = err
+		// When the call fails because of timeout or other reason, stop
+		// the process as well. Same reason as other errors - we don't
+		// want to create dead SBS team when there was a resolvable user
+		// but we weren't able to resolve.
+		res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRequestFailed}
 		return res
 	}
 

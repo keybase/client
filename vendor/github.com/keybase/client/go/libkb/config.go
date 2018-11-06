@@ -711,6 +711,10 @@ func (f *JSONConfigFile) GetLogFile() string {
 	return f.GetTopLevelString("log_file")
 }
 
+func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
+	return f.GetTopLevelBool("use_default_log_file")
+}
+
 func (f *JSONConfigFile) GetLogPrefix() string {
 	return f.GetTopLevelString("log_prefix")
 }

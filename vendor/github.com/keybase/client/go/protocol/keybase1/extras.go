@@ -2395,8 +2395,8 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
-func (c ImplicitTeamConflictInfo) IsConflict() bool {
-	return c.Generation > ConflictGeneration(0)
+func (c *ImplicitTeamConflictInfo) IsConflict() bool {
+	return c != nil && c.Generation > ConflictGeneration(0)
 }
 
 const (

@@ -6,11 +6,13 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"hash"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -19,6 +21,9 @@ import (
 
 // we will show some representation of an exploded message in the UI for a week
 const ShowExplosionLifetime = time.Hour * 24 * 7
+
+// If a conversation is larger, only admins can @channel.
+const MaxChanMentionConvSize = 100
 
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
@@ -817,8 +822,16 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"reported": ConversationStatus_REPORTED,
 }
 
+var sha256Pool = sync.Pool{
+	New: func() interface{} {
+		return sha256.New()
+	},
+}
+
 func (t ConversationIDTriple) Hash() []byte {
-	h := sha256.New()
+	h := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(h)
+	h.Reset()
 	h.Write(t.Tlfid)
 	h.Write(t.TopicID)
 	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
@@ -1871,25 +1884,43 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	return 100 * (1 - (len(missingIDs) / numMessages))
 }
 
-func (u UnfurlRaw) String() string {
+func (u UnfurlRaw) GetUrl() string {
+	typ, err := u.UnfurlType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		return u.Generic().Url
+	case UnfurlType_GIPHY:
+		return u.Giphy().ImageUrl
+	}
+	return ""
+}
+
+func (u UnfurlRaw) UnsafeDebugString() string {
 	typ, err := u.UnfurlType()
 	if err != nil {
 		return "<error>"
 	}
 	switch typ {
 	case UnfurlType_GENERIC:
-		return u.Generic().String()
+		return u.Generic().UnsafeDebugString()
+	case UnfurlType_GIPHY:
+		return u.Giphy().UnsafeDebugString()
 	}
 	return "<unknown>"
 }
 
-func (g UnfurlGenericRaw) String() string {
-	yield := func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
+func yieldStr(s *string) string {
+	if s == nil {
+		return ""
 	}
+	return *s
+}
+
+func (g UnfurlGenericRaw) UnsafeDebugString() string {
+
 	publishTime := ""
 	if g.PublishTime != nil {
 		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
@@ -1900,8 +1931,21 @@ SiteName: %s
 PublishTime: %s
 Description: %s
 ImageUrl: %s
-FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
-		yield(g.ImageUrl), yield(g.FaviconUrl))
+Video: %s
+FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yieldStr(g.Description),
+		yieldStr(g.ImageUrl), g.Video, yieldStr(g.FaviconUrl))
+}
+
+func (g UnfurlGiphyRaw) UnsafeDebugString() string {
+
+	return fmt.Sprintf(`GIPHY SPECIAL
+FaviconUrl: %s
+ImageUrl: %s
+Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+}
+
+func (v UnfurlVideo) String() string {
+	return fmt.Sprintf("[url: %s width: %d height: %d mime: %s]", v.Url, v.Width, v.Height, v.MimeType)
 }
 
 func NewUnfurlSettings() UnfurlSettings {

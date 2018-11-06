@@ -54,8 +54,14 @@ func (p *staticProofServices) ListProofCheckers() []string {
 	return ret
 }
 
-func (p *staticProofServices) GetDisplayPriority(s string) int {
-	return 0
+func (p *staticProofServices) ListServicesThatAcceptNewProofs() []string {
+	var ret []string
+	for k, v := range p.externalServices {
+		if v.CanMakeNewProofs() {
+			ret = append(ret, k)
+		}
+	}
+	return ret
 }
 
 // Contains both the statically known services and loads the configurations for
@@ -64,7 +70,6 @@ type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
 	externalServices map[string]libkb.ServiceType
-	displayConfigs   map[string]keybase1.ServiceDisplayConfig
 	loaded           bool
 }
 
@@ -76,7 +81,6 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 	p := &proofServices{
 		Contextified:     libkb.NewContextified(g),
 		externalServices: make(map[string]libkb.ServiceType),
-		displayConfigs:   make(map[string]keybase1.ServiceDisplayConfig),
 	}
 
 	staticServices := getStaticProofServices()
@@ -115,15 +119,17 @@ func (p *proofServices) ListProofCheckers() []string {
 	return ret
 }
 
-func (p *proofServices) GetDisplayPriority(s string) int {
+func (p *proofServices) ListServicesThatAcceptNewProofs() []string {
 	p.Lock()
 	defer p.Unlock()
 	p.loadServiceConfigs()
-	displayConf, ok := p.displayConfigs[s]
-	if !ok {
-		return 0
+	var ret []string
+	for k, v := range p.externalServices {
+		if v.CanMakeNewProofs() {
+			ret = append(ret, k)
+		}
 	}
-	return displayConf.Priority
+	return ret
 }
 
 func (p *proofServices) loadServiceConfigs() {
@@ -151,7 +157,9 @@ func (p *proofServices) loadServiceConfigs() {
 	}
 	p.registerServiceTypes(services)
 	for _, config := range displayConfigs {
-		p.displayConfigs[config.Key] = config
+		if service, ok := p.externalServices[config.Key]; ok {
+			service.SetDisplayConfig(config)
+		}
 	}
 }
 
@@ -159,7 +167,7 @@ type proofServicesT struct {
 	Services []keybase1.ExternalServiceConfig `json:"services"`
 }
 
-func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (proofConfigs []*GenericSocialProofConfig, displayConfigs []keybase1.ServiceDisplayConfig, err error) {
+func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (proofConfigs []*GenericSocialProofConfig, displayConfigs []*keybase1.ServiceDisplayConfig, err error) {
 	b := []byte(entry.Entry)
 	services := proofServicesT{}
 
@@ -182,7 +190,7 @@ func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (pr
 				p.G().Log.CDebugf(context.TODO(), "Invalid display config, key mismatch %s != %s", service.Config.Domain, service.Display.Key)
 				continue
 			}
-			displayConfigs = append(displayConfigs, *service.Display)
+			displayConfigs = append(displayConfigs, service.Display)
 		}
 	}
 	return proofConfigs, displayConfigs, nil
