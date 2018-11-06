@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {iconMeta} from '../../common-adapters/icon.constants'
+import {isAndroid} from '../../constants/platform'
 
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
@@ -413,7 +414,7 @@ const styles = Styles.styleSheetCreate({
   qrContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
-      borderRadius: 8,
+      borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
       flexDirection: 'column',
       padding: 4,
     },

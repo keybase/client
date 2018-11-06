@@ -11,6 +11,8 @@ import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
 
+type OwnProps = {||}
+
 type Props = {
   routeDef: any,
   routeState: any,
@@ -67,7 +69,7 @@ const mapDispatchToProps = dispatch => ({
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
 
-const Connected = connect(
+const Connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

@@ -1,10 +1,12 @@
 // @flow
-import {namedConnect} from '../../../../../util/container'
+import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import SetDefaultAccountPopup from '.'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
@@ -33,6 +35,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SetDefaultAccountPopup')(
-  SetDefaultAccountPopup
-)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'SetDefaultAccountPopup'
+)(SetDefaultAccountPopup)

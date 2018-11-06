@@ -135,6 +135,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_ATTACHMENTUPLOADED,
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
+	MessageType_UNFURL,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -1886,4 +1887,11 @@ Description: %s
 ImageUrl: %s
 FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
 		yield(g.ImageUrl), yield(g.FaviconUrl))
+}
+
+func NewUnfurlSettings() UnfurlSettings {
+	return UnfurlSettings{
+		Mode:      UnfurlMode_WHITELISTED,
+		Whitelist: make(map[string]bool),
+	}
 }

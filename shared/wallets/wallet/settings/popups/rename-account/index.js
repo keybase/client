@@ -9,7 +9,6 @@ type Props = {|
   initialName: string,
   nameValidationState: ValidationState,
   onCancel: () => void,
-  onCheckName: (name: string) => void,
   onClearErrors: () => void,
   onChangeAccountName: (name: string) => void,
   onDone: (name: string) => void,

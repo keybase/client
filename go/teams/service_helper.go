@@ -273,7 +273,7 @@ type AddMembersRes struct {
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
 // On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 	teamName, err := keybase1.TeamNameFromString(teamname)
@@ -286,7 +286,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 	}
 
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		res = make([]AddMembersRes, len(assertions))
+		res = make([]AddMembersRes, len(users))
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
@@ -298,13 +298,13 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 			UV        keybase1.UserVersion
 		}
 		var sweep []sweepEntry
-		for i, assertion := range assertions {
-			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
+		for i, user := range users {
+			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(user.AssertionOrEmail, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -316,7 +316,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 			}
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
-					Assertion: assertion,
+					Assertion: user.AssertionOrEmail,
 					UV:        uv,
 				})
 			}

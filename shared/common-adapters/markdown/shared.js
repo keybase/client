@@ -4,13 +4,7 @@ import * as Styles from '../../styles'
 import React, {PureComponent} from 'react'
 import {isMobile} from '../../constants/platform'
 import Text from '../text'
-import {
-  reactOutputFontScaling,
-  reactOutputNoFontScaling,
-  previewOutput,
-  bigEmojiOutputForFontScaling,
-  markdownStyles,
-} from './react'
+import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './react'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import {isSpecialMention, specialMentions} from '../../constants/chat2'
 import parser, {isPlainText, emojiIndexByChar} from '../../markdown/parser'
@@ -115,7 +109,8 @@ function parseMarkdown(
 // TODO, when named groups are supported on mobile, we can use this instead
 // const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // This copies the functionality of this named group
-const linkRegex = {
+// $FlowIssue treat this like a RegExp
+const linkRegex: RegExp = {
   exec: source => {
     const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
     const result = r.exec(source)
@@ -127,11 +122,16 @@ const linkRegex = {
   },
 }
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
+const textMatch = SimpleMarkdown.anyScopeRegex(
+  new RegExp(
+    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+  )
+)
 
 const wrapInParagraph = (parse, content, state) => [
   {
     type: 'paragraph',
-    content: SimpleMarkdown.parseInline(parse, content, state),
+    content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
   },
 ]
 
@@ -145,7 +145,7 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 }
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
-const rules = (markdownMeta: ?MarkdownMeta) => ({
+const rules = {
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
     ...SimpleMarkdown.defaultRules.newline,
@@ -219,7 +219,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
       const content = isMobile ? capture[1].replace(/\n$/, '') : capture[1]
       return {
-        content: SimpleMarkdown.parseInline(parse, content, state),
+        content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
       }
     },
   },
@@ -252,14 +252,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // unless it has the start of a fence
     // e.g. https://regex101.com/r/ZiDBsO/8
     parse: (capture, parse, state) => {
-      const content = capture[0].replace(/^ *> ?/gm, '')
-      // On mobile we can't have text that isn't wrapped in a Text tag
-      if (isMobile) {
-        return {
-          // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-          content: wrapInParagraph(parse, content.replace(/\n$/, ''), state),
-        }
-      }
+      const content = capture[0].replace(/^ *> */gm, '')
       return {
         content: parse(content, state),
       }
@@ -281,7 +274,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // We'll change most of the stuff here anyways
     ...SimpleMarkdown.defaultRules.autolink,
     match: (source, state, lookBehind) => {
-      const mentionRegex = createMentionRegex(markdownMeta)
+      const mentionRegex = createMentionRegex(state.markdownMeta)
       if (!mentionRegex) {
         return null
       }
@@ -302,7 +295,7 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // Just needs to be a higher order than mentions
     order: SimpleMarkdown.defaultRules.autolink.order + 0.5,
     match: (source, state, lookBehind) => {
-      const channelRegex = createChannelRegex(markdownMeta)
+      const channelRegex = createChannelRegex(state.markdownMeta)
       if (!channelRegex) {
         return null
       }
@@ -315,10 +308,10 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
 
       return null
     },
-    parse: capture => ({
+    parse: (capture, parse, state) => ({
       type: 'channel',
       content: capture[1],
-      convID: channelNameToConvID(markdownMeta, capture[1]),
+      convID: channelNameToConvID(state.markdownMeta, capture[1]),
     }),
   },
   text: {
@@ -327,11 +320,19 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
     // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
-    match: SimpleMarkdown.anyScopeRegex(
-      new RegExp(
-        `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
-      )
-    ),
+    match: (source, state, lookBehind) =>
+      isMobile && !state.inParagraph ? null : textMatch(source, state, lookBehind),
+  },
+  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
+  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
+  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
+  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
+  // it won't match.
+  fallbackParagraph: {
+    order: 10000,
+    // $FlowIssue - tricky to get this to type properly
+    match: (source, state, lookBehind) => (isMobile && !state.inParagraph ? [source] : null),
+    parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
@@ -356,9 +357,9 @@ const rules = (markdownMeta: ?MarkdownMeta) => ({
       return {spaceInFront: capture[1], content: capture[2]}
     },
   },
-})
+}
 
-const parserFromMeta = (meta: ?MarkdownMeta) => SimpleMarkdown.parserFor(rules(meta))
+const simpleMarkdownParser = SimpleMarkdown.parserFor(rules)
 
 const isAllEmoji = ast => {
   const trimmed = ast.filter(n => n.type !== 'newline')
@@ -370,28 +371,67 @@ const isAllEmoji = ast => {
   return false
 }
 
-class SimpleMarkdownComponent extends PureComponent<MarkdownProps> {
+class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: boolean}> {
+  state = {hasError: false}
+
+  static getDerivedStateFromError() {
+    // Update state so the next render will show the fallback UI.
+    return {hasError: true}
+  }
+
+  componentDidCatch(error: any) {
+    logger.error('Error rendering markdown')
+    logger.debug('Error rendering markdown', error)
+  }
+
   render() {
-    const parser = parserFromMeta(this.props.meta)
-    const reactOutput = this.props.allowFontScaling ? reactOutputFontScaling : reactOutputNoFontScaling
-    const parseTree = parser((this.props.children || '').trim() + '\n', {
-      inline: false,
-      // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
-      // So we add our own new line
-      disableAutoBlockNewlines: true,
-    })
+    if (this.state.hasError) {
+      return (
+        <Text type="Body" style={styles.rootWrapper}>
+          {this.props.children || ''}
+        </Text>
+      )
+    }
+    const {allowFontScaling, styleOverride = {}} = this.props
+    let parseTree
+    let output
+    try {
+      parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
+        inline: false,
+        // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
+        // So we add our own new line
+        disableAutoBlockNewlines: true,
+        markdownMeta: this.props.meta,
+      })
+
+      output = this.props.preview
+        ? previewOutput(parseTree)
+        : isAllEmoji(parseTree)
+          ? bigEmojiOutput(parseTree, {allowFontScaling, styleOverride})
+          : reactOutput(parseTree, {allowFontScaling, styleOverride})
+    } catch (e) {
+      logger.error('Error parsing markdown')
+      logger.debug('Error parsing markdown', e)
+      return (
+        <Text type="Body" style={styles.rootWrapper}>
+          {this.props.children || ''}
+        </Text>
+      )
+    }
     const inner = this.props.preview ? (
       <Text
         type={isMobile ? 'Body' : 'BodySmall'}
-        style={markdownStyles.neutralPreviewStyle}
+        style={Styles.collapseStyles([
+          markdownStyles.neutralPreviewStyle,
+          this.props.style,
+          styleOverride.preview,
+        ])}
         lineClamp={isMobile ? 1 : undefined}
       >
-        {previewOutput(parseTree)}
+        {output}
       </Text>
-    ) : isAllEmoji(parseTree) ? (
-      bigEmojiOutputForFontScaling(!!this.props.allowFontScaling)(parseTree)
     ) : (
-      reactOutput(parseTree)
+      output
     )
 
     // Mobile doesn't use a wrapper
@@ -420,5 +460,5 @@ export {
   createMentionRegex,
   isValidMention,
   parseMarkdown,
-  parserFromMeta,
+  simpleMarkdownParser,
 }

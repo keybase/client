@@ -145,7 +145,8 @@
         "DELETEHISTORY_12",
         "REACTION_13",
         "SENDPAYMENT_14",
-        "REQUESTPAYMENT_15"
+        "REQUESTPAYMENT_15",
+        "UNFURL_16"
       ],
       "go": "nostring"
     },
@@ -832,6 +833,15 @@
           "name": "reactionIDs",
           "mpackkey": "r",
           "jsonkey": "r"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "unfurlIDs",
+          "mpackkey": "u",
+          "jsonkey": "u"
         },
         {
           "type": "gregor1.Time",
@@ -1551,6 +1561,160 @@
         {
           "type": "int",
           "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataImage",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataVideo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataAudio",
+      "fields": [
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AssetMetadataType",
+      "symbols": [
+        "NONE_0",
+        "IMAGE_1",
+        "VIDEO_2",
+        "AUDIO_3"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "variant",
+      "name": "AssetMetadata",
+      "switch": {
+        "type": "AssetMetadataType",
+        "name": "assetType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "IMAGE",
+            "def": false
+          },
+          "body": "AssetMetadataImage"
+        },
+        {
+          "label": {
+            "name": "VIDEO",
+            "def": false
+          },
+          "body": "AssetMetadataVideo"
+        },
+        {
+          "label": {
+            "name": "AUDIO",
+            "def": false
+          },
+          "body": "AssetMetadataAudio"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AssetTag",
+      "symbols": [
+        "PRIMARY_0"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "region"
+        },
+        {
+          "type": "string",
+          "name": "endpoint"
+        },
+        {
+          "type": "string",
+          "name": "bucket"
+        },
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
+        },
+        {
+          "type": "bytes",
+          "name": "verifyKey"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "bytes",
+          "name": "nonce"
+        },
+        {
+          "type": "AssetMetadata",
+          "name": "metadata"
+        },
+        {
+          "type": "AssetTag",
+          "name": "tag"
         }
       ]
     }

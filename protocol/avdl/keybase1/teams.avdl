@@ -919,6 +919,13 @@ protocol teams {
 
   void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
 
+  record UserRolePair {
+    string assertionOrEmail;
+    TeamRole role;
+  }
+
+  void teamAddMembersMultiRole(int sessionID, string name, array<UserRolePair> users, boolean sendChatNotification);
+
   void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
 
   void teamLeave(int sessionID, string name, boolean permanent);

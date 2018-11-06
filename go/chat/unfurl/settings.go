@@ -101,3 +101,18 @@ func (s *Settings) SetMode(ctx context.Context, mode chat1.UnfurlMode) (err erro
 		Mode: mode,
 	})
 }
+
+func (s *Settings) Set(ctx context.Context, settings chat1.UnfurlSettings) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Set")()
+	if err = s.storage.Put(ctx, settingsModeName, modeRecord{
+		Mode: settings.Mode,
+	}); err != nil {
+		return err
+	}
+	if err = s.storage.Put(ctx, settingsWhitelistName, whitelistRecord{
+		Whitelist: settings.Whitelist,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
