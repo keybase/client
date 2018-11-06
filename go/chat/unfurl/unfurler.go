@@ -52,6 +52,7 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 	packager := NewPackager(log, store, s3signer, ri)
 	settings := NewSettings(log, storage)
 	return &Unfurler{
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(log, "Unfurler", false),
 		unfurlMap:    make(map[string]bool),
 		extractor:    extractor,
