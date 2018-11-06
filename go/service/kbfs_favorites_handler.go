@@ -23,7 +23,7 @@ type kbfsFavoritesHandler struct {
 	libkb.Contextified
 }
 
-var _ libkb.GregorInBandMessageHandler = (*ekHandler)(nil)
+var _ libkb.GregorInBandMessageHandler = (*kbfsFavoritesHandler)(nil)
 
 func newKBFSFavoritesHandler(g *libkb.GlobalContext) *kbfsFavoritesHandler {
 	return &kbfsFavoritesHandler{
