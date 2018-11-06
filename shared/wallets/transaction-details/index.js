@@ -100,7 +100,7 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal" fullHeight={true}>
+        <Kb.Box2 direction="horizontal">
           <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
             <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
