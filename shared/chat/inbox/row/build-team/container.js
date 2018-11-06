@@ -18,4 +18,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BuildTeam')(BuildTeam)
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, mapDispatchToProps, mergeProps, 'BuildTeam')(BuildTeam)

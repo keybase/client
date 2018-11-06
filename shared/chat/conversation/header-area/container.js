@@ -48,7 +48,7 @@ const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

@@ -58,7 +58,7 @@ const Wrapper = (props: WrapperProps) => {
   return null
 }
 
-const WalletsIcon = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
+const WalletsIcon = Container.namedConnect<OwnProps, _,_,_,_>(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
   Wrapper
 )
 

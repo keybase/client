@@ -25,6 +25,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSelectDown: ownProps.onSelectDown,
 })
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ChatInboxHeaderContainer')(
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'ChatInboxHeaderContainer')(
   ChatInboxHeader
 )

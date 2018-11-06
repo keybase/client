@@ -31,7 +31,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

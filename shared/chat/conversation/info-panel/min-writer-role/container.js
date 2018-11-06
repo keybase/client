@@ -41,6 +41,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSetNewRole: dispatchProps.onSetNewRole,
 })
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'MinWriterRole')(
+export default Container.namedConnect<OwnProps, _,_,_,_>(mapStateToProps, mapDispatchToProps, mergeProps, 'MinWriterRole')(
   MinWriterRole
 )

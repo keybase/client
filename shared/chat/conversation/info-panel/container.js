@@ -113,7 +113,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   teamname: stateProps.teamname,
 })
 
-const ConnectedInfoPanel = connect(
+const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
@@ -175,7 +175,7 @@ const panelContainerStyle = {
   flexDirection: 'column',
 }
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToSelectorProps,
   mapDispatchToSelectorProps,
   mergeSelectorProps

@@ -14,7 +14,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   toggle: ownProps.toggle,
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   () => ({}),
   mergeProps

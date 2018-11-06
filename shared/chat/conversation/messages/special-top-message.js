@@ -110,4 +110,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   measure: ownProps.measure,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage)
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, mapDispatchToProps, mergeProps, 'TopMessage')(TopMessage)

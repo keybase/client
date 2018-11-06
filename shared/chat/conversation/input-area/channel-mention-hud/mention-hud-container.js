@@ -26,4 +26,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ChannelMentionHud')(MentionHud)
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'ChannelMentionHud')(MentionHud)

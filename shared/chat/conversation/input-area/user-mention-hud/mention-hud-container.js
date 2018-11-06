@@ -81,7 +81,7 @@ class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   }
 }
 // TODO fix up the typing of this component
-export default namedConnect(
+export default namedConnect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

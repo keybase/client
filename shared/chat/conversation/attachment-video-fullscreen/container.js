@@ -35,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(
+connect<OwnProps, _,_,_,_>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

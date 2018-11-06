@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, {message}) => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username: message.author})),
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

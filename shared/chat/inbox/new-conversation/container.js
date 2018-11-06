@@ -60,7 +60,7 @@ class NewChooser extends React.PureComponent<Props> {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

@@ -85,4 +85,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'WrapperTimestamp')(WrapperTimestamp)
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'WrapperTimestamp')(WrapperTimestamp)

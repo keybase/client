@@ -27,7 +27,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname || '',
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

@@ -159,7 +159,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
 
-const ConnectedAccountPayment = Container.connect(
+const ConnectedAccountPayment = Container.connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

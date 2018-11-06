@@ -38,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   items: stateProps.items,
 })
 
-const SetExplodePopup = connect(
+const SetExplodePopup = connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

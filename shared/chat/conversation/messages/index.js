@@ -138,7 +138,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
+namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (!this.props.message) {

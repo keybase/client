@@ -131,7 +131,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   typing: stateProps.typing,
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
