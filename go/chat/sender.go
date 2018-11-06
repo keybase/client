@@ -817,6 +817,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
 	}
+	// Unfurl
+	s.G().Unfurler.UnfurlAndSend(ctx, boxed.ClientHeader.Sender, convID, unboxedMsg)
+
 	return []byte{}, boxed, nil
 }
 

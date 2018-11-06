@@ -42,6 +42,8 @@ type Unfurler struct {
 	sender    UnfurlMessageSender
 }
 
+var _ types.Unfurler = (*Unfurler)(nil)
+
 func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer,
 	storage types.ConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
 	log := g.GetLog()

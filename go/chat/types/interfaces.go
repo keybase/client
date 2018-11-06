@@ -360,3 +360,8 @@ type ConversationBackedStorage interface {
 	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
 	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
 }
+
+type Unfurler interface {
+	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msg chat1.MessageUnboxed)
+}
