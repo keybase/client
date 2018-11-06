@@ -256,7 +256,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
@@ -275,8 +275,9 @@ const TransactionDetails = (props: NotLoadingProps) => {
           unread={false}
           yourRole={props.yourRole}
         />
-        <Kb.Divider />
-
+      </Kb.Box2>
+      <Kb.Divider />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
