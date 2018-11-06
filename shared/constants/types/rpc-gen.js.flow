@@ -1875,6 +1875,7 @@ export type ExitCode =
   | 4 // RESTART_4
 
 export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
+export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
   | 0 // ACCESS_DENIED_0
@@ -2181,7 +2182,7 @@ export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binary
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
 export type ParamProofJSON = $ReadOnly<{sigHash: SigID, kbUsername: String}>
 export type ParamProofLogoConfig = $ReadOnly<{url: String, faIcon: String}>
-export type ParamProofServiceConfig = $ReadOnly<{schemaVersion: Int, configVersion: Int, domain: String, displayName: String, group?: ?String, logo?: ?ParamProofLogoConfig, description: String, usernameConfig: ParamProofUsernameConfig, brandColor: String, prefillUrl: String, profileUrl: String, checkUrl: String, checkPath?: ?Array<SelectorEntry>}>
+export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, logo?: ?ParamProofLogoConfig, description: String, usernameConfig: ParamProofUsernameConfig, brandColor: String, prefillUrl: String, profileUrl: String, checkUrl: String, checkPath?: ?Array<SelectorEntry>}>
 export type ParamProofUsernameConfig = $ReadOnly<{re: String, min: Int, max: Int}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
@@ -2405,6 +2406,7 @@ export type SeqType =
   | 3 // SEMIPRIVATE_3
 
 export type Seqno = Int64
+export type ServiceDisplayConfig = $ReadOnly<{priority: Int, key: String, group?: ?String}>
 export type ServiceStatus = $ReadOnly<{version: String, label: String, pid: String, lastExitStatus: String, bundleVersion: String, installStatus: InstallStatus, installAction: InstallAction, status: Status}>
 export type ServicesStatus = $ReadOnly<{service?: ?Array<ServiceStatus>, kbfs?: ?Array<ServiceStatus>, updater?: ?Array<ServiceStatus>}>
 export type Session = $ReadOnly<{uid: UID, username: String, token: String, deviceSubkeyKid: KID, deviceSibkeyKid: KID}>
