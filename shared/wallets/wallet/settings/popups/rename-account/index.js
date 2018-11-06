@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import type {ValidationState} from '../../../../../constants/types/wallets'
-import {EnterNamePopup, WalletPopup} from '../../../../common'
+import {EnterName, WalletPopup} from '../../../../common'
 import * as Styles from '../../../../../styles'
 
 type Props = {|
@@ -71,7 +71,7 @@ class RenameAccountPopup extends React.Component<Props, State> {
         onExit={this.props.onCancel}
         headerTitle="Rename account"
       >
-        <EnterNamePopup
+        <EnterName
           error={this.props.error || this.props.renameAccountError}
           name={this.state.name}
           onNameChange={this._onNameChange}

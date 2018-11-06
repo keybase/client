@@ -9,7 +9,7 @@ type EnterNameProps = {|
   onNameChange: string => void,
 |}
 
-const EnterNamePopup = (props: EnterNameProps) => {
+const EnterName = (props: EnterNameProps) => {
   // TODO use wallet staticConfig to keep in sync with the service
   const accountNameMaxLength = 24
 
@@ -116,4 +116,4 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export default EnterNamePopup
+export default EnterName

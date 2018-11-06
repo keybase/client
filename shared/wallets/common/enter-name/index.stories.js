@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import EnterNamePopup from '.'
+import EnterName from '.'
 import WalletPopup from '../wallet-popup'
 
 const enterNameProps = {
@@ -22,9 +22,9 @@ const load = () => {
         {story()}
       </WalletPopup>
     ))
-    .add('Enter name', () => <EnterNamePopup {...enterNameProps} />)
-    .add('Prefilled name', () => <EnterNamePopup {...enterNameProps} name="mikem's third account" />)
-    .add('Name error', () => <EnterNamePopup {...nameErrorProps} />)
+    .add('Enter name', () => <EnterName {...enterNameProps} />)
+    .add('Prefilled name', () => <EnterName {...enterNameProps} name="mikem's third account" />)
+    .add('Name error', () => <EnterName {...nameErrorProps} />)
 }
 
 export default load

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import EnterKeyPopup from './enter-key-popup'
-import {EnterNamePopup, WalletPopup} from '../common'
+import {EnterName, WalletPopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
 import {isLargeScreen} from '../../constants/platform'
 
@@ -118,7 +118,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
         break
       case 'name':
         content = (
-          <EnterNamePopup
+          <EnterName
             error={this.props.nameError || this.props.linkExistingAccountError}
             name={this.props.name}
             onNameChange={this.props.onNameChange}
