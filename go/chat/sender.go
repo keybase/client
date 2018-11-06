@@ -1104,6 +1104,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 }
 
 var errDelivererUploadInProgress = errors.New("attachment upload in progress")
+var errDelivererUnfurlInProgress = errors.New("unfurling in progress")
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {
@@ -1147,6 +1148,47 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 		return obr, errDelivererUploadInProgress
 	}
 	return obr, nil
+}
+
+func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	if !obr.IsUnfurl() {
+		return obr, nil
+	}
+	status, res, err := s.G().Unfurler.Status(ctx, obr.OutboxID)
+	if err != nil {
+		return obr, err
+	}
+	switch status {
+	case types.UnfurlerTaskStatusSuccess:
+		if res == nil {
+			return obr, errors.New("unfurl success with no result")
+		}
+		unfurl := chat1.MessageUnfurl{
+			Unfurl: *res,
+		}
+		obr.Msg.MessageBody = chat1.NewMessageBodyWithUnfurl(unfurl)
+		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+			return obr, err
+		}
+	case types.UnfurlerTaskStatusUnfurling:
+		s.G().Unfurler.Retry(ctx, obr.OutboxID)
+		return obr, errDelivererUnfurlInProgress
+	case types.UnfurlerTaskStatusFailed:
+		s.G().Unfurler.Retry(ctx, obr.OutboxID)
+		return obr, errors.New("failed to unfurl")
+	}
+	return obr, nil
+}
+
+func (s *Deliverer) processSpecialMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	switch obr.MessageType() {
+	case chat1.MessageType_ATTACHMENT:
+		return s.processAttachment(ctx, obr)
+	case chat1.MessageType_UNFURL:
+		return s.processUnfurl(ctx, obr)
+	default:
+		return obr, nil
+	}
 }
 
 // cancelPendingDuplicateReactions removes duplicate reactions in the outbox.
@@ -1255,14 +1297,18 @@ func (s *Deliverer) deliverLoop() {
 					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
 				err = delivererExpireError{}
 			} else {
-				// Check for an attachment message and process based on upload status
-				obr, err = s.processAttachment(bctx, obr)
-				if err == errDelivererUploadInProgress {
+				// Check for special messages and process based on completion status
+				obr, err = s.processSpecialMessage(bctx, obr)
+				switch err {
+				case errDelivererUploadInProgress:
 					s.Debug(bctx, "deliverLoop: attachment upload in progress, skipping: convID: %s obid: %s",
 						obr.ConvID, obr.OutboxID)
 					continue
-				}
-				if err == nil {
+				case errDelivererUnfurlInProgress:
+					s.Debug(bctx, "deliverLoop: unfurl in progress, skipping: convID: %s obid: %s",
+						obr.ConvID, obr.OutboxID)
+					continue
+				case nil:
 					canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
 					if err == nil && canceled {
 						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",

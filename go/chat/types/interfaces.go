@@ -364,4 +364,6 @@ type ConversationBackedStorage interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID)
 }
