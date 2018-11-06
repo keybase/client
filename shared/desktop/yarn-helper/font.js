@@ -33,9 +33,11 @@ const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
-const mapPaths = shouldPrintSkipped => path => {
+const mapPaths = skipUnmatchedFile => path => {
   const match = path.match(iconfontRegex)
-  if (!match || match.length !== 4) return console.error(`Filename did not match, skipping ${path}`)
+  if (!match || match.length !== 4) {
+    return skipUnmatchedFile ? undefined : console.error(`Filename did not match, skipping ${path}`)
+  }
   const [, counter, name, size] = match
 
   if (!counter) {
@@ -49,15 +51,15 @@ const mapPaths = shouldPrintSkipped => path => {
   const score = Number(counter)
   return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
 }
-const getSvgNames = shouldPrintSkipped =>
+const getSvgNames = skipUnmatchedFile =>
   fs
     .readdirSync(paths.iconfont)
-    .map(mapPaths(shouldPrintSkipped))
+    .map(mapPaths(skipUnmatchedFile))
     .filter(Boolean)
     .sort((x, y) => x.counter - y.counter)
 
-const getSvgPaths = shouldPrintSkipped =>
-  getSvgNames(shouldPrintSkipped).map(i => path.resolve(paths.iconfont, i.filePath))
+const getSvgPaths = skipUnmatchedFile =>
+  getSvgNames(skipUnmatchedFile).map(i => path.resolve(paths.iconfont, i.filePath))
 
 /*
  * This function will read all of the SVG files specified above, and generate a
