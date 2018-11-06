@@ -85,6 +85,7 @@ const strikeStyle = Styles.platformStyles({
     textDecoration: 'line-through',
   },
 })
+
 const quoteStyle = Styles.platformStyles({
   common: {
     borderLeftWidth: 3,
@@ -275,16 +276,11 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  blockQuote: (node, output, state) =>
-    isMobile ? (
-      <Box key={state.key} style={quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
-    ) : (
-      <Box key={state.key} style={quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
-    ),
+  blockQuote: (node, output, state) => (
+    <Box key={state.key} style={quoteStyle}>
+      {output(node.content, {...state, inBlockQuote: true})}
+    </Box>
+  ),
   mention: (node, output, state) => {
     return (
       <Mention
@@ -310,6 +306,11 @@ const reactComponentsForMarkdownType = {
     return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
+    let url = node.content
+
+    if (!url.match(/^https?:\/\//)) {
+      url = `http://${node.content}`
+    }
     return (
       <React.Fragment key={state.key}>
         {node.spaceInFront}
@@ -319,8 +320,8 @@ const reactComponentsForMarkdownType = {
           key={state.key}
           style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
           title={node.content}
-          onClickURL={node.content}
-          onLongPressURL={node.content}
+          onClickURL={url}
+          onLongPressURL={url}
         >
           {node.content}
         </Text>
@@ -368,6 +369,8 @@ const previewOutput = SimpleMarkdown.reactFor(
         return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'newline':
         return ' '
+      case 'blockQuote':
+        return '> ' + output(ast.content, state)
       case 'codeBlock':
         return ' ' + output(ast.content, state)
       default:
