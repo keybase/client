@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+	"golang.org/x/crypto/nacl/secretbox"
 	"path/filepath"
 	"strings"
 
@@ -123,4 +125,70 @@ func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.T
 
 func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg) error {
 	return tlfupgrade.UpgradeTLFForKBFS(ctx, h.G(), arg.TlfName, arg.Public)
+}
+
+// TODO: much of these definitions are copied from EncryptedDB.
+// Maybe we should refactor that slightly to allow this to use it,
+// instead of cherrypicking the code we use here.
+
+// ***
+// If we change this, make sure to update the key derivation reason below!
+// ***
+const cryptoVersion = 1
+
+type boxedData struct {
+	V int
+	N [24]byte
+	E []byte
+}
+
+// EncryptFavorites encrypts cached favorites to store on disk.
+func (h *KBFSHandler) EncryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
+	enckey, err := teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(),
+		"kbfs.favorites")
+	if err != nil {
+		return nil, err
+	}
+	var nonce []byte
+	nonce, err = libkb.RandBytes(24)
+	if err != nil {
+		return nil, err
+	}
+	var fnonce [24]byte
+	copy(fnonce[:], nonce)
+	sealed := secretbox.Seal(nil, dataToEncrypt, &fnonce, &enckey)
+	boxed := boxedData{
+		V: cryptoVersion,
+		E: sealed,
+		N: fnonce,
+	}
+
+	var dat []byte
+	if dat, err = libkb.MPackEncode(boxed); err != nil {
+		return nil, err
+	}
+	return dat, nil
+}
+
+// DecryptFavorites decrypts cached favorites stored on disk.
+func (h *KBFSHandler) DecryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
+	// Decode encrypted box
+	var boxed boxedData
+	if err := libkb.MPackDecode(dataToEncrypt, &boxed); err != nil {
+		return nil, err
+	}
+	if boxed.V > cryptoVersion {
+		return nil, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
+			cryptoVersion)
+	}
+	enckey, err := teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(),
+		"kbfs.favorites")
+	if err != nil {
+		return nil, err
+	}
+	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
+	if !ok {
+		return nil, fmt.Errorf("failed to decrypt item")
+	}
+	return pt, nil
 }
