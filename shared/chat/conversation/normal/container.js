@@ -9,6 +9,11 @@ import Normal from '.'
 import {compose, connect, withStateHandlers} from '../../../util/container'
 import {chatTab} from '../../../constants/tabs'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
+|}
+
 const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -69,7 +74,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-connect<OwnProps, _,_,_,_>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

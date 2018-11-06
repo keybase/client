@@ -5,6 +5,10 @@ import {navigateTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import {BigTeamHeader} from '.'
 
+type OwnProps = {|
+  teamname: string,
+|}
+
 const mapStateToProps = (state, {teamname}) => ({
   badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
   teamname,
@@ -20,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname,
 })
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

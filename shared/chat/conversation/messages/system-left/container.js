@@ -1,9 +1,14 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 import Joined from '.'
 import {connect, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
+
+type OwnProps = {|
+  message: Types.MessageSystemLeft,
+|}
 
 const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
@@ -32,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

@@ -1,6 +1,7 @@
 // @flow
 import {invert} from 'lodash-es'
 import * as React from 'react'
+import * as RPCTypes from '../../../../constants/types/rpc-gen'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
@@ -107,7 +108,13 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
   )
 }
 
-const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}) => (
+type PushCommonProps = {
+  children: React.Node,
+  pusher: string,
+  timestamp: number,
+  onClickUserAvatar: string => void,
+}
+const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
   <UserNotice
     username={pusher}
     style={{marginTop: globalMargins.small}}

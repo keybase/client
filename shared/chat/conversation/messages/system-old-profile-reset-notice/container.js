@@ -5,6 +5,10 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import OldProfileResetNotice from '.'
 import {connect} from '../../../../util/container'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
+
 const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
@@ -14,7 +18,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpFromReset'})),
   startConversation: (participants: Array<string>) =>
@@ -32,7 +36,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

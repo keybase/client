@@ -10,7 +10,7 @@ import {teamsTab} from '../../../../constants/tabs'
 import {connect, isMobile} from '../../../../util/container'
 
 type OwnProps = {|
-  message: Types.Message,
+  message: Types.MessageSystemAddedToTeam,
 |}
 
 const mapStateToProps = (state, ownProps) => {
