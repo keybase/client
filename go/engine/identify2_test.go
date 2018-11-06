@@ -83,10 +83,11 @@ func (i *Identify2WithUIDTester) AllStringKeys() []string     { return nil }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
-func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
-func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
-func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
+func (i *Identify2WithUIDTester) GetDisplayPriority(s string) int { return 0 }
+func (i *Identify2WithUIDTester) DisplayName(n string) string     { return n }
+func (i *Identify2WithUIDTester) GetPrompt() string               { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string            { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string             { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
