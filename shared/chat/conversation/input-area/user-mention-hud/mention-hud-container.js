@@ -13,11 +13,11 @@ import {namedConnect} from '../../../../util/container'
 type OwnProps = {|
   filter: string,
   conversationIDKey: Types.ConversationIDKey,
-  onPickUser: (string, options?: {notUser: boolean}) => void,
-  onSelectUser: string => void,
-  pickSelectedUserCounter: number,
-  selectDownCounter: number,
-  selectUpCounter: number,
+  onPickUser?: (string, options?: {notUser: boolean}) => void,
+  onSelectUser?: string => void,
+  pickSelectedUserCounter?: number,
+  selectDownCounter?: number,
+  selectUpCounter?: number,
   selectedIndex?: number,
   style?: Styles.StylesCrossPlatform,
 |}

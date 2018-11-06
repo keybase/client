@@ -5,6 +5,8 @@ import CreateTeamNotice from '.'
 import {connect} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
@@ -16,7 +18,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       navigateAppend([
@@ -33,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
 })
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
