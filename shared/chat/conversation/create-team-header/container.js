@@ -28,7 +28,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.conversationIDKey),
 })
 
-const Connected = connect<OwnProps, _,_,_,_>(
+const Connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

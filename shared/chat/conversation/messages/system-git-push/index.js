@@ -7,7 +7,6 @@ import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {gitGitPushType} from '../../../../constants/types/rpc-gen'
 
 const branchRefPrefix = 'refs/heads/'
 
@@ -18,7 +17,7 @@ type Props = {
 }
 
 // Map [int] -> 'push type string'
-const gitPushType = invert(gitGitPushType)
+const gitPushType = invert(RPCTypes.gitGitPushType)
 
 const connectedUsernamesProps = {
   onUsernameClicked: 'profile',

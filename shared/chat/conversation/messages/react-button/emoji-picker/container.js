@@ -102,7 +102,7 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect<OwnProps, _,_,_,_>(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

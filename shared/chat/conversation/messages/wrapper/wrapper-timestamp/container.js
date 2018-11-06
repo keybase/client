@@ -47,8 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   // Placeholder messages can be !previous but have a zero-timestamp, so we can't
   // try to show a timestamp for them.
   const showTimestamp =
-    Constants.enoughTimeBetweenMessages(message, previous) ||
-    (message.timestamp && !previous)
+    Constants.enoughTimeBetweenMessages(message, previous) || (message.timestamp && !previous)
 
   const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
@@ -85,4 +84,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, () => ({}), mergeProps, 'WrapperTimestamp')(WrapperTimestamp)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'WrapperTimestamp'
+)(WrapperTimestamp)
