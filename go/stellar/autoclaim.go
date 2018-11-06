@@ -131,8 +131,8 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 				log("error dismissing gregor kick: %v", err)
 				return autoClaimLoopActionHibernate, err
 			}
+			log("successfully dismissed kick")
 		}
-		log("successfully dismissed kick")
 		return autoClaimLoopActionHibernate, nil
 	}
 	log("got next autoclaim: %v", ac.KbTxID)
