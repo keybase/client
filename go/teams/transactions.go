@@ -462,7 +462,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	}
 
 	if single == nil {
-		return "", uv, false, NewCompoundInviteError()
+		return "", uv, false, NewCompoundInviteError(assertion)
 	}
 
 	typ, name := single.ToKeyValuePair()

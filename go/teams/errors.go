@@ -479,12 +479,14 @@ func (e MixedServerTrustAssertionError) Error() string {
 	return "cannot add team members via server trust (email or SMS) and also with checkable assertions"
 }
 
-type CompoundInviteError struct{}
+type CompoundInviteError struct {
+	Assertion string
+}
 
-func NewCompoundInviteError() error {
-	return CompoundInviteError{}
+func NewCompoundInviteError(s string) error {
+	return CompoundInviteError{s}
 }
 
 func (e CompoundInviteError) Error() string {
-	return "cannot pair an invitation with a compound assertion"
+	return fmt.Sprintf("cannot pair an invitation with a compound assertion (%s)", e.Assertion)
 }
