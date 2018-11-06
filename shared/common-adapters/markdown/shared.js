@@ -124,9 +124,34 @@ const linkRegex: RegExp = {
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
-    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|\\w+\\.(${commonTlds.join('|')})|\\n|\\w+:\\S|$)`
+    // [\s\S]+? any char, at least 1 - lazy
+    // (?= // Positive look ahead. It should have these chars ahead
+    //     // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
+    //   [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
+    //   | [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
+    //   | [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
+    //   | \w+\.(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
+    //   | \w+:\S // OR there's letters before a : so stop here.
+    //   | $ // OR we reach the end of the line
+    // )
+    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|\\w+\\.(${commonTlds.join(
+      '|'
+    )})|\\n|\\w+:\\S|$)`
   )
 )
+
+const emailRegex = {
+  exec: source => {
+    const r = /^( *)(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b/i
+    const result = r.exec(source)
+    if (result) {
+      result.groups = {tld: result[5], emailAdress: result[2]}
+      return result
+    }
+    return null
+  },
+}
+const inlineEmailMatch = SimpleMarkdown.inlineRegex(emailRegex)
 
 const wrapInParagraph = (parse, content, state) => [
   {
@@ -355,6 +380,20 @@ const rules = {
     },
     parse: function(capture, parse, state) {
       return {spaceInFront: capture[1], content: capture[2]}
+    },
+  },
+  mailto: {
+    order: SimpleMarkdown.defaultRules.text.order - 0.4,
+    match: (source, state, lookBehind) => {
+      const matches = inlineEmailMatch(source, state, lookBehind)
+      // If there is a match, let's also check if it's a valid tld
+      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
+        return matches
+      }
+      return null
+    },
+    parse: function(capture, parse, state) {
+      return {spaceInFront: capture[1], content: capture[2], mailto: `mailto:${capture[2]}`}
     },
   },
 }

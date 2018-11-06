@@ -317,11 +317,27 @@ const reactComponentsForMarkdownType = {
         <Text
           className="hover-underline"
           type="BodyPrimaryLink"
-          key={state.key}
           style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
           title={node.content}
           onClickURL={url}
           onLongPressURL={url}
+        >
+          {node.content}
+        </Text>
+      </React.Fragment>
+    )
+  },
+  mailto: (node, output, state) => {
+    return (
+      <React.Fragment key={state.key}>
+        {node.spaceInFront}
+        <Text
+          className="hover-underline"
+          type="BodyPrimaryLink"
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
+          title={node.content}
+          onClickURL={node.mailto}
+          onLongPressURL={node.mailto}
         >
           {node.content}
         </Text>

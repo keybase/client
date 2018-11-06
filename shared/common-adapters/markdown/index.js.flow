@@ -55,6 +55,7 @@ export type Props = {
     em?: Styles.StylesCrossPlatform,
     del?: Styles.StylesCrossPlatform,
     link?: Styles.StylesCrossPlatform,
+    mailto?: Styles.StylesCrossPlatform,
     preview?: Styles.StylesCrossPlatform,
   },
 }
