@@ -237,6 +237,9 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 }
 
 func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%+v", arg), func() error { return err })()
+
 	var users []keybase1.UserRolePair
 	for _, a := range arg.Assertions {
 		users = append(users, keybase1.UserRolePair{AssertionOrEmail: a, Role: arg.Role})

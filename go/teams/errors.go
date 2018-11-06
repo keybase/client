@@ -469,14 +469,14 @@ func (e FTLMissingSeedError) Error() string {
 	return fmt.Sprintf("FTL Missing seed at generation: %d", e.gen)
 }
 
-type MixedEmailAssertionError struct{}
+type MixedServerTrustAssertionError struct{}
 
-func NewMixedEmailAssertionError() error {
-	return MixedEmailAssertionError{}
+func NewMixedServerTrustAssertionError() error {
+	return MixedServerTrustAssertionError{}
 }
 
-func (e MixedEmailAssertionError) Error() string {
-	return "cannot add team members with mixed trust"
+func (e MixedServerTrustAssertionError) Error() string {
+	return "cannot add team members via server trust (email or SMS) and also with checkable assertions"
 }
 
 type CompoundInviteError struct{}

@@ -400,7 +400,7 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 // preprocessAssertion takes an input assertion and determines if this is a valid Keybase-style assertion.
 // If it's an email (or phone) assertion, we assert that it only has one part (and isn't a+b compound).
 // If there is only one factor in the assertion, then that's returned. Otherwise, nil.
-func preprocessAssertion(m libkb.MetaContext, s string) (isEmail bool, single libkb.AssertionURL, err error) {
+func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, err error) {
 	a, err := externals.AssertionParseAndOnly(m.G(), s)
 	if err != nil {
 		return false, nil, err
@@ -411,20 +411,21 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isEmail bool, single li
 	}
 	for _, u := range urls {
 		if u.IsServerTrust() {
-			isEmail = true
+			isServerTrustInvite = true
 		}
 	}
-	if isEmail && len(urls) > 1 {
-		return false, nil, NewMixedEmailAssertionError()
+	if isServerTrustInvite && len(urls) > 1 {
+		return false, nil, NewMixedServerTrustAssertionError()
 	}
-	return isEmail, single, nil
+	return isServerTrustInvite, single, nil
 }
 
 // AddMemberByAssertionOrEmail adds an assertion to the team. It can handle
 // three major cases:
-//  1. joe OR joe+joe@reddit
-//  2. joe@reddit where
-// Does not attempt to resolve the assertion.
+//  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
+//  2. joe@reddit WHERE joe isn't a keybase user, and this is a social invitations
+//  3. [bob@gmail.com]@email WHERE there's an email-based invitation in play
+// **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
 // The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
 func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole) (username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
@@ -433,7 +434,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 
 	defer m.CTrace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
-	isEmail, single, err := preprocessAssertion(m, assertion)
+	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
 	if err != nil {
 		return "", uv, false, err
 	}
@@ -441,7 +442,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	var doInvite bool
 	var upak keybase1.UserPlusKeysV2
 
-	if isEmail {
+	if isServerTrustInvite {
 		doInvite = true
 	} else {
 		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)

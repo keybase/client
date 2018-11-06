@@ -1444,7 +1444,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
-	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedEmailAssertionError{})
+	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
 
 	// It should also fail to combine invites with other assertions
 	users = []keybase1.UserRolePair{
