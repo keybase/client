@@ -454,13 +454,14 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	}
 
 	if !doInvite {
-		m.CDebugf("Adding keybase member")
-		_, err = tx.addMemberByUPKV2(ctx, upak, role)
-		return "", uv, false, err
+		username = libkb.NewNormalizedUsername(upak.Username)
+		invite, err = tx.addMemberByUPKV2(ctx, upak, role)
+		m.CDebugf("Adding keybase member: %s (isInvite=%v)", username, invite)
+		return username, uv, invite, err
 	}
 
 	if single == nil {
-		return "", uv, false, errors.New("cannot pair an invitation with a compound assertion")
+		return "", uv, false, NewCompoundInviteError()
 	}
 
 	typ, name := single.ToKeyValuePair()

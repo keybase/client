@@ -478,3 +478,13 @@ func NewMixedEmailAssertionError() error {
 func (e MixedEmailAssertionError) Error() string {
 	return "cannot add team members with mixed trust"
 }
+
+type CompoundInviteError struct{}
+
+func NewCompoundInviteError() error {
+	return CompoundInviteError{}
+}
+
+func (e CompoundInviteError) Error() string {
+	return "cannot pair an invitation with a compound assertion"
+}
