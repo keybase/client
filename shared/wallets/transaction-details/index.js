@@ -102,11 +102,9 @@ const Counterparty = (props: CounterpartyProps) => {
       return (
         <Kb.Box2 direction="horizontal">
           <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
-          <Kb.Box2 direction="vertical" style={styles.counterpartyText}>
-            <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-              {props.counterparty}
-            </Kb.Text>
-          </Kb.Box2>
+          <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
+            {props.counterparty}
+          </Kb.Text>
         </Kb.Box2>
       )
     case 'otherAccount':
@@ -420,10 +418,6 @@ const styles = Styles.styleSheetCreate({
   container: {
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
-  },
-  counterpartyText: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
   },
   icon32: {height: 32, width: 32},
   partyAccountContainer: {
