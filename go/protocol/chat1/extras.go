@@ -1868,55 +1868,6 @@ func (u UnfurlRaw) String() string {
 	return "<unknown>"
 }
 
-func (g *UnfurlGenericRaw) SetTitle(title string, score int) {
-	if score > g.TitleScore || g.Title == "" {
-		g.Title = title
-		g.TitleScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetUrl(url string, score int) {
-	if score > g.UrlScore || g.Url == "" {
-		g.Url = url
-		g.UrlScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetSiteName(siteName string, score int) {
-	if score > g.SiteNameScore || g.SiteName == "" {
-		g.SiteName = siteName
-		g.SiteNameScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetFaviconUrl(faviconUrl *string, score int) {
-	if score > g.FaviconUrlScore || g.FaviconUrl == nil {
-		g.FaviconUrl = faviconUrl
-		g.FaviconUrlScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetImageUrl(imageUrl *string, score int) {
-	if score > g.ImageUrlScore || g.ImageUrl == nil {
-		g.ImageUrl = imageUrl
-		g.ImageUrlScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetPublishTime(publishTime *int, score int) {
-	if score > g.PublishTimeScore || g.PublishTime == nil || (g.PublishTime != nil && publishTime != nil && *publishTime > *g.PublishTime) {
-		g.PublishTime = publishTime
-		g.PublishTimeScore = score
-	}
-}
-
-func (g *UnfurlGenericRaw) SetDescription(description *string, score int) {
-	if score > g.DescriptionScore || g.Description == nil {
-		g.Description = description
-		g.DescriptionScore = score
-	}
-}
-
 func (g UnfurlGenericRaw) String() string {
 	yield := func(s *string) string {
 		if s == nil {

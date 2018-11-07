@@ -31,6 +31,68 @@ func getTwitterScore(domain string) int {
 	}
 }
 
+// Score each attribute we parse from the webpage. If we encounter multiple
+// sources we can use the highest rated one.
+type scoredGenericRaw struct {
+	chat1.UnfurlGenericRaw
+	titleScore       int
+	urlScore         int
+	siteNameScore    int
+	faviconURLScore  int
+	imageURLScore    int
+	publishTimeScore int
+	descriptionScore int
+}
+
+func (g *scoredGenericRaw) setTitle(title string, score int) {
+	if score > g.titleScore || g.Title == "" {
+		g.Title = title
+		g.titleScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setURL(url string, score int) {
+	if score > g.urlScore || g.Url == "" {
+		g.Url = url
+		g.urlScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setSiteName(siteName string, score int) {
+	if score > g.siteNameScore || g.SiteName == "" {
+		g.SiteName = siteName
+		g.siteNameScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setFaviconURL(faviconURL *string, score int) {
+	if score > g.faviconURLScore || g.FaviconUrl == nil {
+		g.FaviconUrl = faviconURL
+		g.faviconURLScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setImageURL(imageURL *string, score int) {
+	if score > g.imageURLScore || g.ImageUrl == nil {
+		g.ImageUrl = imageURL
+		g.imageURLScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setPublishTime(publishTime *int, score int) {
+	if score > g.publishTimeScore || g.PublishTime == nil || (g.PublishTime != nil && publishTime != nil && *publishTime > *g.PublishTime) {
+		g.PublishTime = publishTime
+		g.publishTimeScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setDescription(description *string, score int) {
+	if score > g.descriptionScore || g.Description == nil {
+		g.Description = description
+		g.descriptionScore = score
+	}
+}
+
 func fullURL(hostname, path string) string {
 	if strings.HasPrefix(path, "http") {
 		return path
@@ -41,29 +103,29 @@ func fullURL(hostname, path string) string {
 	}
 }
 
-func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *chat1.UnfurlGenericRaw, score int) {
+func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *scoredGenericRaw, score int) {
 	s.Debug(ctx, "pubdate: %s", content)
 	t, err := time.Parse("2006-01-02T15:04:05Z", content)
 	if err != nil {
 		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
 	} else {
 		publishTime := int(t.Unix())
-		generic.SetPublishTime(&publishTime, score)
+		generic.setPublishTime(&publishTime, score)
 	}
 }
 
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
-	// Setup some defaults with score 0 and hope we can find better info.
-	generic := new(chat1.UnfurlGenericRaw)
-	generic.SetUrl(uri, 0)
-	generic.SetSiteName(domain, 0)
+	// setup some defaults with score 0 and hope we can find better info.
+	generic := new(scoredGenericRaw)
+	generic.setURL(uri, 0)
+	generic.setSiteName(domain, 0)
 
 	// default favicon location as a fallback
 	defaultFaviconURL, err := GetDefaultFaviconURL(uri)
 	if err != nil {
 		return res, err
 	}
-	generic.SetFaviconUrl(&defaultFaviconURL, 0)
+	generic.setFaviconURL(&defaultFaviconURL, 0)
 
 	hostname, err := GetHostname(uri)
 	if err != nil {
@@ -78,20 +140,20 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		content := strings.Trim(e.Attr("content"), " ")
 		switch prop {
 		case "og:title":
-			generic.SetTitle(content, score)
+			generic.setTitle(content, score)
 		case "og:url":
-			generic.SetUrl(content, score)
+			generic.setURL(content, score)
 		case "og:site_name":
-			generic.SetSiteName(content, score)
+			generic.setSiteName(content, score)
 		case "og:image":
 			imageURL := fullURL(hostname, e.Attr("href"))
-			generic.SetImageUrl(&imageURL, score)
+			generic.setImageURL(&imageURL, score)
 			imageURL = fullURL(hostname, content)
-			generic.SetImageUrl(&imageURL, score)
+			generic.setImageURL(&imageURL, score)
 		case "og:pubdate":
 			s.setAndParsePubTime(ctx, content, generic, score)
 		case "og:description":
-			generic.SetDescription(&content, score)
+			generic.setDescription(&content, score)
 		}
 	})
 
@@ -102,18 +164,18 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		content := strings.Trim(e.Attr("content"), " ")
 		switch name {
 		case "twitter:title":
-			generic.SetTitle(content, score)
+			generic.setTitle(content, score)
 		case "twitter:image":
 			imageURL := fullURL(hostname, e.Attr("href"))
-			generic.SetImageUrl(&imageURL, score)
+			generic.setImageURL(&imageURL, score)
 			imageURL = fullURL(hostname, content)
-			generic.SetImageUrl(&imageURL, score)
+			generic.setImageURL(&imageURL, score)
 		case "twitter:description":
-			generic.SetDescription(&content, score)
+			generic.setDescription(&content, score)
 		case "application-name":
-			generic.SetSiteName(content, defaultScore)
+			generic.setSiteName(content, defaultScore)
 		case "description":
-			generic.SetDescription(&content, defaultScore)
+			generic.setDescription(&content, defaultScore)
 		case "pubdate":
 			s.setAndParsePubTime(ctx, content, generic, defaultScore)
 		case "lastmod":
@@ -123,7 +185,7 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 
 	// scrape title
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
-		generic.SetTitle(e.Text, defaultScore)
+		generic.setTitle(e.Text, defaultScore)
 	})
 
 	// scrape favicon
@@ -133,12 +195,12 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 			(strings.Contains(rel, "icon") && e.Attr("type") == "image/x-icon") ||
 			strings.Contains(rel, "apple-touch-icon") {
 			faviconURL := fullURL(hostname, e.Attr("href"))
-			generic.SetFaviconUrl(&faviconURL, defaultScore)
+			generic.setFaviconURL(&faviconURL, defaultScore)
 		}
 	})
 
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
-	return chat1.NewUnfurlRawWithGeneric(*generic), nil
+	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }

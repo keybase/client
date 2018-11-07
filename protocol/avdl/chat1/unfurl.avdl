@@ -17,16 +17,6 @@ protocol unfurl {
       union { null, string } imageUrl;
       union { null, int } publishTime;
       union { null, string } description;
-
-      // Score each attribute we parse from the webpage. If we encounter
-      // multiple sources we can use the highest rated one.
-      int titleScore;
-      int urlScore;
-      int siteNameScore;
-      int faviconUrlScore;
-      int imageUrlScore;
-      int publishTimeScore;
-      int descriptionScore;
     }
 
     record UnfurlYoutubeRaw {

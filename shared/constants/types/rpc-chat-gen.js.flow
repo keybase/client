@@ -1057,7 +1057,7 @@ export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDe
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
 export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
-export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String, titleScore: Int, urlScore: Int, siteNameScore: Int, faviconUrlScore: Int, imageUrlScore: Int, publishTimeScore: Int, descriptionScore: Int}>
+export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
 export type UnfurlMode =
   | 0 // ALWAYS_0
   | 1 // NEVER_1

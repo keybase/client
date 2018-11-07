@@ -58,34 +58,6 @@
             "string"
           ],
           "name": "description"
-        },
-        {
-          "type": "int",
-          "name": "titleScore"
-        },
-        {
-          "type": "int",
-          "name": "urlScore"
-        },
-        {
-          "type": "int",
-          "name": "siteNameScore"
-        },
-        {
-          "type": "int",
-          "name": "faviconUrlScore"
-        },
-        {
-          "type": "int",
-          "name": "imageUrlScore"
-        },
-        {
-          "type": "int",
-          "name": "publishTimeScore"
-        },
-        {
-          "type": "int",
-          "name": "descriptionScore"
         }
       ]
     },
