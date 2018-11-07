@@ -158,7 +158,12 @@ func TestChatSrvUnfurl(t *testing.T) {
 		httpSrv.succeed = true
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 		recvSingleRetry()
-		require.NotNil(t, recvUnfurl())
+		u := recvUnfurl()
+		require.NotNil(t, u)
+		typ, err := u.UnfurlType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
+		require.Equal(t, "MIKE", u.Generic().Title)
 		select {
 		case m := <-listener0.newMessageRemote:
 			require.Equal(t, conv.Id, m.ConvID)
