@@ -79,7 +79,9 @@ func TestScraper(t *testing.T) {
 			r := res.Generic()
 			require.Equal(t, e.Title, r.Title)
 			require.Equal(t, e.SiteName, r.SiteName)
-			require.Equal(t, e.Url, r.Url)
+			if r.UrlScore > 0 {
+				require.Equal(t, e.Url, r.Url)
+			}
 			require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil && r.Description != nil))
 			if e.Description != nil {
 				require.Equal(t, *e.Description, *r.Description)
@@ -145,5 +147,36 @@ func TestScraper(t *testing.T) {
 		Description: strPtr("“Nintendo recommits to “keep the business going” for 3DS https://t.co/wTIJxmGTJH by @KyleOrl”"),
 		ImageUrl:    strPtr("https://pbs.twimg.com/profile_images/2215576731/ars-logo_400x400.png"),
 		FaviconUrl:  strPtr("http://abs.twimg.com/favicons/favicon.ico"),
+	}))
+	testCase("pinterest0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "Halloween",
+		Url:         "https://www.pinterest.com/pinterest/halloween/",
+		SiteName:    "Pinterest",
+		Description: strPtr("Dracula dentures, kitten costumes, no-carve pumpkins—find your next killer idea on Pinterest."),
+		ImageUrl:    strPtr("https://i.pinimg.com/custom_covers/200x150/424605139807203572_1414340303.jpg"),
+		FaviconUrl:  strPtr("https://s.pinimg.com/webapp/style/images/logo_trans_144x144-642179a1.png"),
+	}))
+	testCase("wikipedia0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "Merkle tree - Wikipedia",
+		SiteName:    "0.1",
+		Description: nil,
+		ImageUrl:    strPtr("https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/1200px-Hash_Tree.svg.png"),
+		FaviconUrl:  strPtr("http://127.0.0.1/static/apple-touch/wikipedia.png"),
+	}))
+	testCase("reddit0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "r/Stellar",
+		Url:         "https://www.reddit.com/r/Stellar/",
+		SiteName:    "reddit",
+		Description: strPtr("r/Stellar: Stellar is a decentralized protocol that enables you to send money to anyone in the world, for fractions of a penny, instantly, and in any currency.  \n\n/r/Stellar is for news, announcements and discussion related to Stellar.\n\nPlease focus on community-oriented content, such as news and discussions, instead of individual-oriented content, such as questions and help. Follow the [Stellar Community Guidelines](https://www.stellar.org/community-guidelines/) ."),
+		ImageUrl:    strPtr("https://b.thumbs.redditmedia.com/D857u25iiE2ORpt8yVx7fCuiMlLVP-b5fwSUjaw4lVU.png"),
+		FaviconUrl:  strPtr("https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-57x57.png"),
+	}))
+	testCase("etsy0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
+		Title:       "The Beatles - Minimalist Poster - Sgt Pepper",
+		Url:         "https://www.etsy.com/listing/602032869/the-beatles-minimalist-poster-sgt-pepper?utm_source=OpenGraph&utm_medium=PageTools&utm_campaign=Share",
+		SiteName:    "Etsy",
+		Description: strPtr("The Beatles Sgt Peppers Lonely Hearts Club Ban  Created using mixed media  Fits a 10 x 8 inch frame aperture - photograph shows item framed in a 12 x 10 inch frame  Choose from: high lustre paper - 210g which produces very vibrant colours; textured watercolour paper - 190g - which looks"),
+		ImageUrl:    strPtr("https://i.etsystatic.com/12686588/r/il/c3b4bc/1458062296/il_570xN.1458062296_rary.jpg"),
+		FaviconUrl:  strPtr("http://127.0.0.1/images/favicon.ico"),
 	}))
 }
