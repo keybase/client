@@ -38,7 +38,7 @@ const provider = Sb.createPropProviderWithCommon({
   Participants: props => ({
     recipientType: 'keybaseUser',
   }),
-  ParticipantsKeybaseUser: propd => ({
+  ParticipantsKeybaseUser: props => ({
     isRequest: false,
     recipientUsername: 'chris',
     onShowProfile: Sb.action('onShowProfile'),
