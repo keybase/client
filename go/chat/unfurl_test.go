@@ -78,7 +78,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		timeout := 2 * time.Second
+		timeout := 20 * time.Second
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
