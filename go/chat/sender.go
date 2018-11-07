@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"sync"
 	"time"
 
@@ -976,7 +975,6 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Queue")()
-	debug.PrintStack()
 	// Push onto outbox and immediately return
 	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, identifyBehavior)
 	if err != nil {
