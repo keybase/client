@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
@@ -19,11 +19,11 @@ export type Props = {
   pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only' | null,
   // desktop only
   hoverColor?: ?string,
-  onMouseOver?: ?(event: SyntheticEvent<>) => void,
-  onMouseEnter?: ?() => void,
-  onMouseLeave?: ?() => void,
-  onMouseDown?: ?() => void,
-  onMouseUp?: ?() => void,
+  onMouseOver?: ?(event: SyntheticMouseEvent<>) => void,
+  onMouseEnter?: ?(event: SyntheticMouseEvent<>) => void,
+  onMouseLeave?: ?(event: SyntheticMouseEvent<>) => void,
+  onMouseDown?: ?(event: SyntheticMouseEvent<>) => void,
+  onMouseUp?: ?(event: SyntheticMouseEvent<>) => void,
 }
 
-declare export default class ClickableBox extends Component<Props> {}
+declare export default class ClickableBox extends React.Component<Props> {}
