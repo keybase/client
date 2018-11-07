@@ -41,7 +41,8 @@ type Unfurler struct {
 	sender    UnfurlMessageSender
 
 	// testing
-	unfurlCh chan chat1.Unfurl
+	unfurlCh chan *chat1.Unfurl
+	retryCh  chan struct{}
 }
 
 var _ types.Unfurler = (*Unfurler)(nil)
@@ -63,6 +64,14 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 		settings:     settings,
 		sender:       sender,
 	}
+}
+
+func (u *Unfurler) SetTestingRetryCh(ch chan struct{}) {
+	u.retryCh = ch
+}
+
+func (u *Unfurler) SetTestingUnfurlCh(ch chan *chat1.Unfurl) {
+	u.unfurlCh = ch
 }
 
 func (u *Unfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {
@@ -108,6 +117,9 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "Retry(%s)", outboxID)()
 	u.unfurl(ctx, outboxID)
+	if u.retryCh != nil {
+		u.retryCh <- struct{}{}
+	}
 }
 
 func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxed) (res []ExtractorHit) {
@@ -231,42 +243,49 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		return
 	}
 	ctx = libkb.CopyTagsToBackground(ctx)
-	go func(ctx context.Context) (err error) {
+	go func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
 		defer u.doneUnfurling(outboxID)
 		defer func() {
 			if err != nil {
 				if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusFailed); err != nil {
 					u.Debug(ctx, "unfurl: failed to set failed status: %s", err)
 				}
+			} else {
+				// if it worked, then force Deliverer to run and send our message
+				u.G().MessageDeliverer.ForceDeliverLoop(ctx)
+			}
+		}()
+		defer func() {
+			if u.unfurlCh != nil {
+				u.unfurlCh <- unfurl
 			}
 		}()
 		task, err := u.getTask(ctx, outboxID)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to get task: %s", err)
-			return err
+			return unfurl, err
 		}
 		u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling)
 		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to scrape: %s", err)
-			return err
+			return unfurl, err
 		}
-		unfurl, err := u.packager.Package(ctx, task.UID, task.ConvID, unfurlRaw)
+		packaged, err := u.packager.Package(ctx, task.UID, task.ConvID, unfurlRaw)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to package: %s", err)
-			return err
+			return unfurl, err
 		}
-		if err := u.setTaskResult(ctx, outboxID, unfurl); err != nil {
+		unfurl = new(chat1.Unfurl)
+		*unfurl = packaged
+		if err := u.setTaskResult(ctx, outboxID, *unfurl); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task result: %s", err)
-			return err
+			return unfurl, err
 		}
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusSuccess); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task status: %s", err)
-			return err
+			return unfurl, err
 		}
-		if u.unfurlCh != nil {
-			u.unfurlCh <- unfurl
-		}
-		return nil
+		return unfurl, nil
 	}(ctx)
 }
