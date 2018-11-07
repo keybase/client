@@ -2161,7 +2161,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		re, err = regexp.Compile(arg.Query)
 	} else {
 		// String queries are set case insensitive
-		re, err = regexp.Compile("(?i)" + regexp.QuoteMeta(arg.Query))
+		re, err = utils.GetQueryRe(arg.Query)
 	}
 
 	if err != nil {
