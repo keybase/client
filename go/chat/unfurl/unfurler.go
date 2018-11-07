@@ -121,6 +121,7 @@ func (u *Unfurler) makeMessage(ctx context.Context, fromMsg chat1.MessageUnboxed
 			TlfName:     tlfName,
 			TlfPublic:   public,
 			OutboxID:    &outboxID,
+			Supersedes:  fromMsg.GetMessageID(),
 		},
 		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{}),
 	}

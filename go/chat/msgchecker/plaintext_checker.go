@@ -97,9 +97,11 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline),
 			HeadlineMaxLength)
 	case chat1.MessageType_METADATA:
-		topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
-		if validateTopicNameResOK != topicNameRes {
-			return errors.New(topicNameRes.String())
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
+			if validateTopicNameResOK != topicNameRes {
+				return errors.New(topicNameRes.String())
+			}
 		}
 		return nil
 	case chat1.MessageType_REQUESTPAYMENT:
