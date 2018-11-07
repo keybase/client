@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -818,7 +819,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			chat1.ChatActivitySource_LOCAL)
 	}
 	// Unfurl
-	s.G().Unfurler.UnfurlAndSend(ctx, boxed.ClientHeader.Sender, convID, unboxedMsg)
+	if conv.GetTopicType() == chat1.TopicType_CHAT {
+		s.G().Unfurler.UnfurlAndSend(ctx, boxed.ClientHeader.Sender, convID, unboxedMsg)
+	}
 
 	return []byte{}, boxed, nil
 }
@@ -974,6 +977,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
+	debug.PrintStack()
 	// Push onto outbox and immediately return
 	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, identifyBehavior)
 	if err != nil {

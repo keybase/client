@@ -2,7 +2,6 @@ package unfurl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -111,31 +110,6 @@ func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
 	u.unfurl(ctx, outboxID)
 }
 
-func (u *Unfurler) makeMessage(ctx context.Context, fromMsg chat1.MessageUnboxed, outboxID chat1.OutboxID) (msg chat1.MessagePlaintext, err error) {
-	if !fromMsg.IsValid() {
-		return msg, errors.New("invalid message")
-	}
-	tlfName := fromMsg.Valid().ClientHeader.TlfName
-	public := fromMsg.Valid().ClientHeader.TlfPublic
-	ephemeralMD := fromMsg.Valid().ClientHeader.EphemeralMetadata
-	msg = chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			MessageType: chat1.MessageType_UNFURL,
-			TlfName:     tlfName,
-			TlfPublic:   public,
-			OutboxID:    &outboxID,
-			Supersedes:  fromMsg.GetMessageID(),
-		},
-		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{}),
-	}
-	if ephemeralMD != nil {
-		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: ephemeralMD.Lifetime,
-		}
-	}
-	return msg, nil
-}
-
 func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxed) (res []ExtractorHit) {
 	if !msg.IsValid() {
 		return nil
@@ -214,7 +188,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 				u.Debug(ctx, "UnfurlAndSend: failed to generate outboxID: skipping: %s", err)
 				continue
 			}
-			unfurlMsg, err := u.makeMessage(ctx, msg, outboxID)
+			unfurlMsg, err := MakeBaseUnfurlMessage(ctx, msg, outboxID)
 			if err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to make message: %s", err)
 				continue
