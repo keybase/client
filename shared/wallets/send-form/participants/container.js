@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
+import {isMobile} from '../../../constants/platform'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
@@ -34,9 +36,9 @@ const mapStateToPropsKeybaseUser = state => {
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
-  onShowProfile: (username: string) => {
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
-  },
+  onOpenTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
@@ -44,10 +46,21 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   },
 })
 
+const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
+  const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
+  return {
+    ...stateProps,
+    onShowProfile,
+    onShowSuggestions: dispatchProps.onShowSuggestions,
+    onRemoveProfile: dispatchProps.onRemoveProfile,
+    onChangeRecipient: dispatchProps.onChangeRecipient,
+  }
+}
+
 const ConnectedParticipantsKeybaseUser = namedConnect(
   mapStateToPropsKeybaseUser,
   mapDispatchToPropsKeybaseUser,
-  (s, d, o) => ({...o, ...s, ...d}),
+  mergePropsKeybaseUser,
   'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
@@ -152,7 +165,7 @@ const ParticipantsChooser = props => {
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
     ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
     */
-      return null
+      throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }
 

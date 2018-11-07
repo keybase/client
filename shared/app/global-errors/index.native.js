@@ -1,18 +1,8 @@
 // @flow
-import React, {Component} from 'react'
-import {
-  Box,
-  Button,
-  Text,
-  Icon,
-  NativeScrollView,
-  List,
-  HOCTimers,
-  type PropsWithTimer,
-} from '../../common-adapters/mobile.native'
-import {globalStyles, globalColors, globalMargins, isIPhoneX, platformStyles} from '../../styles'
+import * as React from 'react'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Styles from '../../styles'
 import {RPCError} from '../../util/errors'
-
 import type {Props as _Props} from './index.types'
 
 type Size = 'Closed' | 'Small' | 'Big'
@@ -22,9 +12,9 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = PropsWithTimer<_Props>
+type Props = Kb.PropsWithTimer<_Props>
 
-class GlobalError extends Component<Props, State> {
+class GlobalError extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -67,25 +57,14 @@ class GlobalError extends Component<Props, State> {
       }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
-    if (prevProps.debugDump !== this.props.debugDump) {
-      this._resetError(this.props.debugDump.length > 0)
-    }
-  }
-
-  static maxHeightForSize(size: Size) {
-    return {
-      Big: 500,
-      Closed: 0,
-      Small: 35 + 66 + (isIPhoneX ? globalMargins.medium : 0),
-    }[size]
   }
 
   _renderItem = (index: number, item: string) => {
     return (
-      <Text key={String(index)} type="BodySmall" style={{color: 'white', fontSize: 8, lineHeight: 8}}>
+      <Kb.Text key={String(index)} type="BodySmall" style={{color: 'white', fontSize: 8, lineHeight: 8}}>
         {item}
         {'\n'}
-      </Text>
+      </Kb.Text>
     )
   }
 
@@ -96,36 +75,39 @@ class GlobalError extends Component<Props, State> {
 
     const {onDismiss} = this.props
     const details = this.state.cachedDetails
-    const maxHeight = GlobalError.maxHeightForSize(this.state.size)
 
     return (
-      <Box style={{...containerStyle, maxHeight}}>
-        <Box style={globalStyles.flexBoxColumn}>
-          <Box
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: Styles.globalColors.transparent}} />
+        <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+          <Kb.Box
             style={{
               ...summaryRowStyle,
-              paddingBottom: globalMargins.xtiny,
-              paddingTop: globalMargins.medium,
+              paddingBottom: Styles.globalMargins.xtiny,
               position: 'relative',
             }}
           >
-            <Text
+            <Kb.Text
               type="BodySmallSemibold"
-              style={{color: globalColors.white, flex: 1, textAlign: 'center'}}
+              style={{color: Styles.globalColors.white, flex: 1, textAlign: 'center'}}
               onClick={this._onExpandClick}
             >
+              <Kb.Icon
+                type={this.state.size === 'Big' ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+                color={Styles.globalColors.white_75}
+              />
+              {'  '}
               An error occurred.
-            </Text>
-            <Icon
+            </Kb.Text>
+            <Kb.Icon
               type="iconfont-close"
               onClick={onDismiss}
-              style={closeIconStyle}
-              color={globalColors.white_75}
+              color={Styles.globalColors.white_75}
               fontSize={21}
             />
-          </Box>
-          <Box style={summaryRowStyle}>
-            <Button
+          </Kb.Box>
+          <Kb.Box style={summaryRowStyle}>
+            <Kb.Button
               backgroundMode="Terminal"
               fullWidth={true}
               label="Please tell us"
@@ -134,73 +116,47 @@ class GlobalError extends Component<Props, State> {
               style={{width: '100%'}}
               type="Secondary"
             />
-          </Box>
-        </Box>
-        {this.props.debugDump.length ? (
-          <Box style={{flex: 1}}>
-            <Button
-              onClick={() => this.props.copyToClipboard(this.props.debugDump.join('\n'))}
-              type="Primary"
-              label="Copy"
-            />
-            <List
-              items={this.props.debugDump}
-              renderItem={this._renderItem}
-              indexAsKey={true}
-              style={{height: 500}}
-              windowSize={30}
-            />
-          </Box>
-        ) : (
-          <NativeScrollView>
-            <Text type="BodySmall" selectable={true} style={detailStyle}>
+          </Kb.Box>
+        </Kb.Box>
+        {this.state.size === 'Big' && (
+          <Kb.NativeScrollView>
+            <Kb.Text type="BodySmall" selectable={true} style={detailStyle}>
               {this.props.error && this.props.error.message}
               {'\n\n'}
               {details}
-            </Text>
-          </NativeScrollView>
+            </Kb.Text>
+          </Kb.NativeScrollView>
         )}
-      </Box>
+      </Kb.Box2>
     )
   }
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.black_75,
-  left: 0,
-  overflow: 'hidden',
-  paddingTop: isIPhoneX ? globalMargins.medium : 0,
-  position: 'absolute',
-  right: 0,
-  top: 0,
-}
-
-const summaryRowStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
-  flexShrink: 0,
-  justifyContent: 'flex-start',
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.xsmall,
-  paddingRight: globalMargins.xsmall,
-  paddingTop: globalMargins.tiny,
-}
-
-const detailStyle = {
-  color: globalColors.white_75,
-  fontSize: 14,
-  lineHeight: 19,
-  padding: globalMargins.xtiny,
-  paddingTop: globalMargins.tiny,
-}
-
-const closeIconStyle = platformStyles({
-  isMobile: {
+const styles = Styles.styleSheetCreate({
+  container: {
+    backgroundColor: Styles.globalColors.black_75,
     position: 'absolute',
-    right: globalMargins.xsmall,
-    top: 24,
+    top: 0,
   },
 })
 
-export default HOCTimers(GlobalError)
+const summaryRowStyle = {
+  ...Styles.globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  flexShrink: 0,
+  justifyContent: 'flex-start',
+  paddingBottom: Styles.globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.xsmall,
+  paddingRight: Styles.globalMargins.xsmall,
+  paddingTop: Styles.globalMargins.tiny,
+}
+
+const detailStyle = {
+  color: Styles.globalColors.white_75,
+  fontSize: 14,
+  lineHeight: 19,
+  padding: Styles.globalMargins.xtiny,
+  paddingTop: Styles.globalMargins.tiny,
+}
+
+export default Kb.HOCTimers(GlobalError)

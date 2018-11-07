@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
 import Markdown, {type MarkdownMeta} from '.'
-import {parserFromMeta} from './shared'
+import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
@@ -18,6 +18,7 @@ const cases = {
   transparentEmojis: ` 😀 😁 😍 ☝️ `,
   transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
   transparentEmojis3: `😶`,
+  mailto: `email bob@keybase.io`,
   nonemoji: `:party-parrot:`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
@@ -246,15 +247,21 @@ class ShowAST extends React.Component<
 > {
   state = {visible: false}
   render = () => {
-    const parsed = this.props.simple
-      ? parserFromMeta(this.props.meta)((this.props.text || '').trim() + '\n', {
-          inline: false,
-          disableAutoBlockNewlines: true,
-        })
-      : OriginalParser.parse(this.props.text, {
-          channelNameToConvID: (channel: string) => null,
-          isValidMention: (mention: string) => false,
-        })
+    let parsed
+    try {
+      parsed = this.props.simple
+        ? simpleMarkdownParser((this.props.text || '').trim() + '\n', {
+            inline: false,
+            disableAutoBlockNewlines: true,
+            markdownMeta: this.props.meta,
+          })
+        : OriginalParser.parse(this.props.text, {
+            channelNameToConvID: (channel: string) => null,
+            isValidMention: (mention: string) => false,
+          })
+    } catch (error) {
+      parsed = {error}
+    }
 
     return (
       <Kb.Box2 direction="vertical">

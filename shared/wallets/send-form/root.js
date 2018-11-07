@@ -46,7 +46,6 @@ const styles = Styles.styleSheetCreate({
       flexGrow: 1,
       flexShrink: 1,
       width: '100%',
-      maxWidth: 360,
       maxHeight: '100%',
     },
   }),

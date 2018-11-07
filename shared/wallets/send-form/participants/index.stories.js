@@ -70,7 +70,7 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-export const participantProviderProperties = {
+const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 }

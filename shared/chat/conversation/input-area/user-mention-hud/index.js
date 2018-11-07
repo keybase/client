@@ -100,7 +100,7 @@ class MentionHud extends React.Component<MentionHudProps, State> {
 type ImplProps = MentionHudProps & {|data: Array<Data>, fullList: Array<Data>|}
 class MentionHudImpl extends React.Component<ImplProps> {
   componentDidUpdate(prevProps: ImplProps) {
-    if (this.props.filter !== prevProps.filter) {
+    if (this.props.filter !== prevProps.filter || this.props.data.length !== prevProps.data.length) {
       this._safeHoverTime = Date.now() + 500
     }
 
@@ -154,8 +154,10 @@ class MentionHudImpl extends React.Component<ImplProps> {
   }
 
   // if the filter changes, disable the hover interaction. otherwise if you have the mouse over the area while you're typing it'll start
-  // selecting things and it gets really confusing. Instead when the filter changes we ignore the hover callback for a small amount of timet dif
-  _safeHoverTime = 0
+  // selecting things and it gets really confusing. Instead when the filter changes we ignore the hover callback for a small amount of time
+  // start it in this safe mode so the initial list doesn't fire either
+  _safeHoverTime = Date.now() + 500
+
   _hoverSetSelectedIndex = index => {
     if (Date.now() > this._safeHoverTime) {
       this.props.setSelectedIndex(index)

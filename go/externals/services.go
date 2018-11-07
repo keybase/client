@@ -54,6 +54,10 @@ func (p *staticProofServices) ListProofCheckers() []string {
 	return ret
 }
 
+func (p *staticProofServices) GetDisplayPriority(s string) int {
+	return 0
+}
+
 // Contains both the statically known services and loads the configurations for
 // known services from the server
 type proofServices struct {
@@ -109,6 +113,17 @@ func (p *proofServices) ListProofCheckers() []string {
 		ret = append(ret, k)
 	}
 	return ret
+}
+
+func (p *proofServices) GetDisplayPriority(s string) int {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs()
+	displayConf, ok := p.displayConfigs[s]
+	if !ok {
+		return 0
+	}
+	return displayConf.Priority
 }
 
 func (p *proofServices) loadServiceConfigs() {

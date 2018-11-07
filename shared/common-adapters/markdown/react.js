@@ -85,6 +85,7 @@ const strikeStyle = Styles.platformStyles({
     textDecoration: 'line-through',
   },
 })
+
 const quoteStyle = Styles.platformStyles({
   common: {
     borderLeftWidth: 3,
@@ -185,80 +186,108 @@ class EmojiIfExists extends PureComponent<
   }
 }
 
-const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
+const reactComponentsForMarkdownType = {
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   newline: (node, outputFunc, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
     ) : (
-      <Text type="Body" key={state.key} style={textBlockStyle} allowFontScaling={allowFontScaling}>
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
+        allowFontScaling={state.allowFontScaling}
+      >
         {'\n'}
       </Text>
     ),
   fence: (node, output, state) =>
     isMobile ? (
       <Box key={state.key} style={codeSnippetBlockStyle}>
-        <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
+        <Text
+          type="Body"
+          style={Styles.collapseStyles([codeSnippetBlockTextStyle, state.styleOverride.fence])}
+          allowFontScaling={state.allowFontScaling}
+        >
           {node.content}
         </Text>
       </Box>
     ) : (
-      <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
+      <Text
+        key={state.key}
+        type="Body"
+        style={Styles.collapseStyles([codeSnippetBlockStyle, state.styleOverride.fence])}
+      >
         {node.content}
       </Text>
     ),
   inlineCode: (node, output, state) => {
     return (
-      <Text type="Body" key={state.key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([codeSnippetStyle, state.styleOverride.inlineCode])}
+        allowFontScaling={state.allowFontScaling}
+      >
         {node.content}
       </Text>
     )
   },
   paragraph: (node, output, state) => {
     return (
-      <Text type="Body" key={state.key} style={textBlockStyle} allowFontScaling={allowFontScaling}>
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([textBlockStyle, state.styleOverride.paragraph])}
+        allowFontScaling={state.allowFontScaling}
+      >
         {output(node.content, {...state, inParagraph: true})}
       </Text>
     )
   },
   strong: (node, output, state) => {
     return (
-      <Text type="BodySemibold" key={state.key} style={boldStyle} allowFontScaling={allowFontScaling}>
+      <Text
+        type="BodySemibold"
+        key={state.key}
+        style={Styles.collapseStyles([boldStyle, state.styleOverride.strong])}
+        allowFontScaling={state.allowFontScaling}
+      >
         {output(node.content, state)}
       </Text>
     )
   },
   em: (node, output, state) => {
     return (
-      <Text type="Body" key={state.key} style={italicStyle}>
+      <Text type="Body" key={state.key} style={Styles.collapseStyles([italicStyle, state.styleOverride.em])}>
         {output(node.content, state)}
       </Text>
     )
   },
   del: (node, output, state) => {
     return (
-      <Text type="Body" key={state.key} style={strikeStyle} allowFontScaling={allowFontScaling}>
+      <Text
+        type="Body"
+        key={state.key}
+        style={Styles.collapseStyles([strikeStyle, state.styleOverride.del])}
+        allowFontScaling={state.allowFontScaling}
+      >
         {output(node.content, state)}
       </Text>
     )
   },
-  blockQuote: (node, output, state) =>
-    isMobile ? (
-      <Box key={state.key} style={quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
-    ) : (
-      <Box key={state.key} style={quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
-      </Box>
-    ),
+  blockQuote: (node, output, state) => (
+    <Box key={state.key} style={quoteStyle}>
+      {output(node.content, {...state, inBlockQuote: true})}
+    </Box>
+  ),
   mention: (node, output, state) => {
     return (
       <Mention
         username={node.content}
         key={state.key}
         style={wrapStyle}
-        allowFontScaling={allowFontScaling}
+        allowFontScaling={state.allowFontScaling}
       />
     )
   },
@@ -277,24 +306,45 @@ const reactComponentsForMarkdownType = (allowFontScaling: boolean) => ({
     return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
   },
   link: (node, output, state) => {
+    let url = node.content
+
+    if (!url.match(/^https?:\/\//)) {
+      url = `http://${node.content}`
+    }
     return (
       <React.Fragment key={state.key}>
         {node.spaceInFront}
         <Text
           className="hover-underline"
           type="BodyPrimaryLink"
-          key={state.key}
-          style={linkStyle}
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
           title={node.content}
-          onClickURL={node.content}
-          onLongPressURL={node.content}
+          onClickURL={url}
+          onLongPressURL={url}
         >
           {node.content}
         </Text>
       </React.Fragment>
     )
   },
-})
+  mailto: (node, output, state) => {
+    return (
+      <React.Fragment key={state.key}>
+        {node.spaceInFront}
+        <Text
+          className="hover-underline"
+          type="BodyPrimaryLink"
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
+          title={node.content}
+          onClickURL={node.mailto}
+          onLongPressURL={node.mailto}
+        >
+          {node.content}
+        </Text>
+      </React.Fragment>
+    )
+  },
+}
 
 const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: any) => any}) => (
   node,
@@ -302,27 +352,26 @@ const ruleOutput = (rules: {[key: string]: (node: any, outputFunc: any, state: a
   state
 ) => rules[node.type](node, output, state)
 
-const bigEmojiOutputForFontScaling = (allowFontScaling: boolean) =>
-  SimpleMarkdown.reactFor(
-    ruleOutput({
-      ...reactComponentsForMarkdownType(allowFontScaling),
-      paragraph: (node, output, state) => (
-        <Text type="Body" key={state.key} style={bigTextBlockStyle} allowFontScaling={allowFontScaling}>
-          {output(node.content, {...state, inParagraph: true})}
-        </Text>
-      ),
-      emoji: (node, output, state) => {
-        return (
-          <Emoji
-            emojiName={String(node.content)}
-            size={32}
-            key={state.key}
-            allowFontScaling={allowFontScaling}
-          />
-        )
-      },
-    })
-  )
+const bigEmojiOutput = SimpleMarkdown.reactFor(
+  ruleOutput({
+    ...reactComponentsForMarkdownType,
+    paragraph: (node, output, state) => (
+      <Text type="Body" key={state.key} style={bigTextBlockStyle} allowFontScaling={state.allowFontScaling}>
+        {output(node.content, {...state, inParagraph: true})}
+      </Text>
+    ),
+    emoji: (node, output, state) => {
+      return (
+        <Emoji
+          emojiName={String(node.content)}
+          size={32}
+          key={state.key}
+          allowFontScaling={state.allowFontScaling}
+        />
+      )
+    },
+  })
+)
 
 const previewOutput = SimpleMarkdown.reactFor(
   (ast: any, output: Function, state: any): any => {
@@ -333,9 +382,11 @@ const previewOutput = SimpleMarkdown.reactFor(
 
     switch (ast.type) {
       case 'emoji':
-        return reactComponentsForMarkdownType(false).emoji(ast, output, state)
+        return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'newline':
         return ' '
+      case 'blockQuote':
+        return '> ' + output(ast.content, state)
       case 'codeBlock':
         return ' ' + output(ast.content, state)
       default:
@@ -344,16 +395,6 @@ const previewOutput = SimpleMarkdown.reactFor(
   }
 )
 
-const reactOutputForFontScaling = (allowFontScaling: boolean) =>
-  SimpleMarkdown.reactFor(ruleOutput(reactComponentsForMarkdownType(allowFontScaling)))
-const reactOutputNoFontScaling = reactOutputForFontScaling(false)
-const reactOutputFontScaling = reactOutputForFontScaling(true)
+const reactOutput = SimpleMarkdown.reactFor(ruleOutput(reactComponentsForMarkdownType))
 
-export {
-  EmojiIfExists,
-  bigEmojiOutputForFontScaling,
-  markdownStyles,
-  previewOutput,
-  reactOutputFontScaling,
-  reactOutputNoFontScaling,
-}
+export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput}

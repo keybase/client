@@ -42,7 +42,6 @@ const props = {
   lastMessageIsOurs: false,
   listScrollDownCounter: 0,
   onFocusInput: Sb.action('onFocusInput'),
-  onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
 }
 
 // prettier-ignore

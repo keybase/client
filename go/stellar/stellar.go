@@ -3,6 +3,7 @@ package stellar
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"strings"
@@ -688,8 +689,15 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		useDir = *dir
 	}
 	sp := NewSeqnoProvider(ctx, remoter)
+	// Throw a random ID into the transaction memo so that we get a new txID each time.
+	// This makes it easy to resubmit without hitting a txID collision on the server.
+	memoID, err := randMemoID()
+	if err != nil {
+		return res, err
+	}
+	g.Log.CDebugf(ctx, "using randomized memo ID: %v", memoID)
 	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
-		stellarnet.AddressStr(into.String()), destinationFunded, sp)
+		stellarnet.AddressStr(into.String()), destinationFunded, &memoID, sp)
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
@@ -698,6 +706,14 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,
 	})
+}
+
+func randMemoID() (uint64, error) {
+	buf, err := libkb.RandBytes(8)
+	if err != nil {
+		return 0, err
+	}
+	return binary.LittleEndian.Uint64(buf), nil
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {

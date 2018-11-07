@@ -15,6 +15,13 @@ import Placeholder from './placeholder/container'
 import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
 import {namedConnect, compose, lifecycle} from '../../../util/container'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  measure?: ?() => void,
+  ordinal: Types.Ordinal,
+  previous: ?Types.Ordinal,
+|}
+
 type Props = {
   message: Types.Message,
   previous: ?Types.Message,
@@ -138,7 +145,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (!this.props.message) {

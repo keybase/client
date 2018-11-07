@@ -128,6 +128,7 @@ func CanonicalProofName(t TypedChainLink) string {
 //
 type RemoteProofChainLink interface {
 	TypedChainLink
+	DisplayPriorityKey() string
 	TableKey() string
 	LastWriterWins() bool
 	GetRemoteUsername() string
@@ -157,6 +158,10 @@ type SocialProofChainLink struct {
 	proofText string
 	// signifies a GENERIC_SOCIAL link from a parameterized proof
 	isGeneric bool
+}
+
+func (w *WebProofChainLink) DisplayPriorityKey() string {
+	return w.protocol
 }
 
 func (w *WebProofChainLink) TableKey() string {
@@ -233,6 +238,9 @@ func (w *WebProofChainLink) ComputeTrackDiff(tl *TrackLookup) (res TrackDiff) {
 	return
 }
 
+func (s *SocialProofChainLink) DisplayPriorityKey() string {
+	return s.TableKey()
+}
 func (s *SocialProofChainLink) TableKey() string { return s.service }
 func (s *SocialProofChainLink) Type() string     { return "proof" }
 func (s *SocialProofChainLink) insertIntoTable(tab *IdentityTable) {
@@ -1142,12 +1150,13 @@ func (s *SelfSigChainLink) ToDisplayString() string { return s.unpacked.username
 func (s *SelfSigChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
-func (s *SelfSigChainLink) TableKey() string          { return "keybase" }
-func (s *SelfSigChainLink) LastWriterWins() bool      { return true }
-func (s *SelfSigChainLink) GetRemoteUsername() string { return s.GetUsername() }
-func (s *SelfSigChainLink) GetHostname() string       { return "" }
-func (s *SelfSigChainLink) GetProtocol() string       { return "" }
-func (s *SelfSigChainLink) ProofText() string         { return "" }
+func (s *SelfSigChainLink) DisplayPriorityKey() string { return s.TableKey() }
+func (s *SelfSigChainLink) TableKey() string           { return "keybase" }
+func (s *SelfSigChainLink) LastWriterWins() bool       { return true }
+func (s *SelfSigChainLink) GetRemoteUsername() string  { return s.GetUsername() }
+func (s *SelfSigChainLink) GetHostname() string        { return "" }
+func (s *SelfSigChainLink) GetProtocol() string        { return "" }
+func (s *SelfSigChainLink) ProofText() string          { return "" }
 
 func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 

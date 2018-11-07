@@ -100,9 +100,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   },
 })
 
-export default namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d}),
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
   'TeamDropdownMenu'
 )(InfoPanelMenu)
