@@ -5,7 +5,7 @@ import assetInput, {props4 as assetInputProps} from './asset-input/index.stories
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
-import participants, {participantProviderProperties} from './participants/index.stories'
+import participants from './participants/index.stories'
 import type {Props as AvailableProps} from './available'
 
 import SendRequestForm from '.'
@@ -36,10 +36,16 @@ const provider = Sb.createPropProviderWithCommon({
   ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
   ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
   Participants: props => ({
+    recipientType: 'keybaseUser',
+  }),
+  ParticipantsKeybaseUser: props => ({
+    isRequest: false,
+    recipientUsername: 'chris',
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
+    onRemoveProfile: Sb.action('onRemoveProfile'),
+    onChangeRecipient: Sb.action('onChangeRecipient'),
   }),
-  ...participantProviderProperties,
 })
 
 const load = () => {
