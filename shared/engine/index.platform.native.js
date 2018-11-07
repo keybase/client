@@ -7,7 +7,7 @@ import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
-import {measureStart, measureStop} from '../dev/user-timings'
+import {measureStart, measureStop} from '../util/user-timings'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
