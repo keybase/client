@@ -549,6 +549,15 @@ func (s *HybridConversationSource) completeAttachmentUpload(ctx context.Context,
 	}
 }
 
+func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_UNFURL {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			s.G().Unfurler.Complete(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -589,6 +598,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
+	// complete any active unfurl
+	s.completeUnfurl(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }

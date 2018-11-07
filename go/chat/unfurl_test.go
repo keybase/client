@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -164,13 +166,21 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 		require.Equal(t, "MIKE", u.Generic().Title)
+		var outboxID chat1.OutboxID
 		select {
 		case m := <-listener0.newMessageRemote:
 			require.Equal(t, conv.Id, m.ConvID)
 			require.True(t, m.Message.IsValid())
 			require.Equal(t, chat1.MessageType_UNFURL, m.Message.GetMessageType())
+			require.NotNil(t, m.Message.Valid().OutboxID)
+			b, err := hex.DecodeString(*m.Message.Valid().OutboxID)
+			require.NoError(t, err)
+			outboxID = chat1.OutboxID(b)
 		case <-time.After(timeout):
 			require.Fail(t, "no message")
 		}
+		_, _, err = unfurler.Status(ctx, outboxID)
+		require.Error(t, err)
+		require.IsType(t, libkb.NotFoundError{}, err)
 	})
 }

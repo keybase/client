@@ -366,4 +366,5 @@ type Unfurler interface {
 		msg chat1.MessageUnboxed)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID)
+	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }

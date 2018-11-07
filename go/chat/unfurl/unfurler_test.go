@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -60,6 +61,12 @@ func (d *dummyActivityNotifier) PromptUnfurl(ctx context.Context, uid gregor1.UI
 	}
 }
 
+type dummyDeliverer struct {
+	types.MessageDeliverer
+}
+
+func (d dummyDeliverer) ForceDeliverLoop(ctx context.Context) {}
+
 func TestUnfurler(t *testing.T) {
 	log := logger.NewTestLogger(t)
 	store := attachments.NewStoreTesting(log, nil)
@@ -68,6 +75,7 @@ func TestUnfurler(t *testing.T) {
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	notifier := makeDummyActivityNotifier()
 	g.ChatContext.ActivityNotifier = notifier
+	g.ChatContext.MessageDeliverer = dummyDeliverer{}
 	sender := makeDummySender()
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	storage := newMemConversationBackedStorage()
@@ -77,7 +85,7 @@ func TestUnfurler(t *testing.T) {
 	addr := srv.Start()
 	defer srv.Stop()
 
-	unfurler.unfurlCh = make(chan chat1.Unfurl, 1)
+	unfurler.unfurlCh = make(chan *chat1.Unfurl, 1)
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 2})
 	fromMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
@@ -108,11 +116,13 @@ func TestUnfurler(t *testing.T) {
 	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "0.1"))
 
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	var outboxID chat1.OutboxID
 	select {
 	case msg := <-sender.ch:
 		require.Equal(t, chat1.MessageType_UNFURL, msg.ClientHeader.MessageType)
 		require.Equal(t, fromMsg.Valid().ClientHeader.TlfName, msg.ClientHeader.TlfName)
 		require.NotNil(t, msg.ClientHeader.OutboxID)
+		outboxID = *msg.ClientHeader.OutboxID
 		require.Equal(t, fromMsg.GetMessageID(), msg.ClientHeader.Supersedes)
 	case <-notifier.ch:
 		require.Fail(t, "no notification here")
@@ -121,6 +131,7 @@ func TestUnfurler(t *testing.T) {
 	}
 	select {
 	case unfurl := <-unfurler.unfurlCh:
+		require.NotNil(t, unfurl)
 		typ, err := unfurl.UnfurlType()
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
@@ -132,4 +143,11 @@ func TestUnfurler(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no unfurl")
 	}
+	status, _, err := unfurler.Status(context.TODO(), outboxID)
+	require.NoError(t, err)
+	require.Equal(t, types.UnfurlerTaskStatusSuccess, status)
+	unfurler.Complete(context.TODO(), outboxID)
+	status, _, err = unfurler.Status(context.TODO(), outboxID)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
 }
