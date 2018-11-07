@@ -59,11 +59,11 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 	generic.SetSiteName(domain, 0)
 
 	// default favicon location as a fallback
-	defaultFaviconUrl, err := GetDefaultFaviconUrl(uri)
+	defaultFaviconURL, err := GetDefaultFaviconURL(uri)
 	if err != nil {
 		return res, err
 	}
-	generic.SetFaviconUrl(&defaultFaviconUrl, 0)
+	generic.SetFaviconUrl(&defaultFaviconURL, 0)
 
 	hostname, err := GetHostname(uri)
 	if err != nil {
@@ -84,10 +84,10 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		case "og:site_name":
 			generic.SetSiteName(content, score)
 		case "og:image":
-			imageUrl := fullURL(hostname, e.Attr("href"))
-			generic.SetImageUrl(&imageUrl, score)
-			imageUrl = fullURL(hostname, content)
-			generic.SetImageUrl(&imageUrl, score)
+			imageURL := fullURL(hostname, e.Attr("href"))
+			generic.SetImageUrl(&imageURL, score)
+			imageURL = fullURL(hostname, content)
+			generic.SetImageUrl(&imageURL, score)
 		case "og:pubdate":
 			s.setAndParsePubTime(ctx, content, generic, score)
 		case "og:description":
@@ -104,10 +104,10 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		case "twitter:title":
 			generic.SetTitle(content, score)
 		case "twitter:image":
-			imageUrl := fullURL(hostname, e.Attr("href"))
-			generic.SetImageUrl(&imageUrl, score)
-			imageUrl = fullURL(hostname, content)
-			generic.SetImageUrl(&imageUrl, score)
+			imageURL := fullURL(hostname, e.Attr("href"))
+			generic.SetImageUrl(&imageURL, score)
+			imageURL = fullURL(hostname, content)
+			generic.SetImageUrl(&imageURL, score)
 		case "twitter:description":
 			generic.SetDescription(&content, score)
 		case "application-name":
@@ -132,8 +132,8 @@ func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res ch
 		if strings.Contains(rel, "shortcut icon") ||
 			(strings.Contains(rel, "icon") && e.Attr("type") == "image/x-icon") ||
 			strings.Contains(rel, "apple-touch-icon") {
-			faviconUrl := fullURL(hostname, e.Attr("href"))
-			generic.SetFaviconUrl(&faviconUrl, defaultScore)
+			faviconURL := fullURL(hostname, e.Attr("href"))
+			generic.SetFaviconUrl(&faviconURL, defaultScore)
 		}
 	})
 

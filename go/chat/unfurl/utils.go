@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-func GetDefaultFaviconUrl(uri string) (string, error) {
+func GetDefaultFaviconURL(uri string) (string, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
 		return "", err
