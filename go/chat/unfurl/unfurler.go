@@ -40,6 +40,9 @@ type Unfurler struct {
 	packager  *Packager
 	settings  *Settings
 	sender    UnfurlMessageSender
+
+	// testing
+	unfurlCh chan chat1.Unfurl
 }
 
 var _ types.Unfurler = (*Unfurler)(nil)
@@ -286,6 +289,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusSuccess); err != nil {
 			u.Debug(ctx, "unfurl: failed to set task status: %s", err)
 			return err
+		}
+		if u.unfurlCh != nil {
+			u.unfurlCh <- unfurl
 		}
 		return nil
 	}(ctx)
