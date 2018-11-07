@@ -79,9 +79,6 @@ func TestScraper(t *testing.T) {
 			r := res.Generic()
 			require.Equal(t, e.Title, r.Title)
 			require.Equal(t, e.SiteName, r.SiteName)
-			if r.UrlScore > 0 {
-				require.Equal(t, e.Url, r.Url)
-			}
 			require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil && r.Description != nil))
 			if e.Description != nil {
 				require.Equal(t, *e.Description, *r.Description)
