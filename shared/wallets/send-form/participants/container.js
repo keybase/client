@@ -152,7 +152,7 @@ const ParticipantsChooser = props => {
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
     ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
     */
-      return null
+      throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }
 
