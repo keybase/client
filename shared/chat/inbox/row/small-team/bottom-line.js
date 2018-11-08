@@ -185,7 +185,7 @@ const styles = styleSheetCreate({
       lineHeight: undefined,
     },
     isElectron: {
-      paddingRight: flags.useSimpleMarkdown ? 20 : 30,
+      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
