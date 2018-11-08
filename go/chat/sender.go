@@ -1165,7 +1165,8 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 			return obr, errors.New("unfurl success with no result")
 		}
 		unfurl := chat1.MessageUnfurl{
-			Unfurl: *res,
+			MessageID: obr.Msg.ClientHeader.Supersedes,
+			Unfurl:    *res,
 		}
 		obr.Msg.MessageBody = chat1.NewMessageBodyWithUnfurl(unfurl)
 		if _, err := s.outbox.UpdateMessage(ctx, obr); err != nil {

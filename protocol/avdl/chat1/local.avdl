@@ -132,6 +132,7 @@ protocol local {
 
   record MessageUnfurl {
     Unfurl unfurl;
+    MessageID messageID;
   }
 
   variant MessageBody switch (MessageType messageType) {

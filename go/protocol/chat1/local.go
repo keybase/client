@@ -589,12 +589,14 @@ func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 }
 
 type MessageUnfurl struct {
-	Unfurl Unfurl `codec:"unfurl" json:"unfurl"`
+	Unfurl    Unfurl    `codec:"unfurl" json:"unfurl"`
+	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
 func (o MessageUnfurl) DeepCopy() MessageUnfurl {
 	return MessageUnfurl{
-		Unfurl: o.Unfurl.DeepCopy(),
+		Unfurl:    o.Unfurl.DeepCopy(),
+		MessageID: o.MessageID.DeepCopy(),
 	}
 }
 
