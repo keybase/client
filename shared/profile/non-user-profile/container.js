@@ -2,9 +2,22 @@
 import * as FsGen from '../../actions/fs-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
+import type {Service} from '../../constants/types/search'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
+
+type OwnProps = RouteProps<
+  {
+    username: string,
+    avatar: ?string,
+    fullname: string,
+    fullUsername: string,
+    profileUrl: string,
+    serviceName: Service,
+  },
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
