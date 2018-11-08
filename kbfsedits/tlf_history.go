@@ -242,7 +242,17 @@ var filesToIgnore = map[string]bool{
 
 func ignoreFile(filename string) bool {
 	_, base := path.Split(filename)
-	return filesToIgnore[base] || strings.HasPrefix(base, "._")
+	if filesToIgnore[base] || strings.HasPrefix(base, "._") {
+		return true
+	}
+	// Treat the files to ignore as prefixes, since if they ever
+	// conflict they'll have the conflict suffix.
+	for prefix := range filesToIgnore {
+		if strings.HasPrefix(base, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 // processNotification adds the notification to the recomputer's

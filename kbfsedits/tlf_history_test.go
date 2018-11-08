@@ -145,6 +145,12 @@ func TestTlfHistoryMultipleWrites(t *testing.T) {
 	_ = nn.make("._c", NotificationModify, aliceUID, nil, time.Time{})
 	aliceMessages = append(aliceMessages, nn.encode(t))
 
+	// Alice writes to ".DS_Store (conflicted copy)", which should be ignored.
+	_ = nn.make(
+		".DS_Store (conflicted copy)", NotificationModify, aliceUID, nil,
+		time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
 	expected := writersByRevision{
 		{aliceName, []NotificationMessage{aliceModC, aliceModA}},
 		{bobName, []NotificationMessage{bobModA, bobModC, bobCreateB}},
