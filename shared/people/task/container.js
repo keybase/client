@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import {Task} from '.'
 import * as PeopleGen from '../../actions/people-gen'
 import * as Types from '../../constants/types/people'
@@ -6,7 +7,7 @@ import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {todoTypes} from '../../constants/people'
-import {connect, branch, compose, renderNothing} from '../../util/container'
+import {connect} from '../../util/container'
 import {createGetMyProfile} from '../../actions/tracker-gen'
 import {navigateAppend, switchTo, navigateTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
@@ -183,7 +184,7 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
-const TaskChooser = props => {
+const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
     case todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
