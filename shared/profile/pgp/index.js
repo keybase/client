@@ -8,6 +8,8 @@ import ProvePgpChoice, {type Options as ProvePgpChoiceOptions} from './prove-pgp
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 const ConnectedChoice = connect<OwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({

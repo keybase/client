@@ -5,6 +5,10 @@ import PostProof from '.'
 import {compose, connect, lifecycle, withStateHandlers} from '../../util/container'
 import {type ProvablePlatformsType} from '../../constants/types/more'
 
+type OwnProps = {|
+  onAllowProofCheck: boolean,
+|}
+
 const mapStateToProps = (state, {onAllowProofCheck}) => {
   const profile = state.profile
 
@@ -31,7 +35,7 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
