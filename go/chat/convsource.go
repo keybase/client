@@ -76,12 +76,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
 	pp := attachments.NewPendingPreviews(s.G())
 	for index, m := range thread.Messages {
-		typ, err := m.State()
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to get state: %s", err)
-			continue
-		}
-		if typ != chat1.MessageUnboxedState_OUTBOX {
+		if !m.IsOutbox() {
 			continue
 		}
 		obr := m.Outbox()

@@ -1218,6 +1218,24 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	return nil
 }
 
+func PresentUnfurl(ctx context.Context, unfurl chat1.Unfurl) *chat1.UnfurlDisplay {
+	ud, err := unfurl.DisplayUnfurl(unfurl)
+	if err != nil {
+		return nil
+	}
+	return &ud
+}
+
+func PresentUnfurls(ctx context.Context, unfurls []chat1.Unfurl) (res []chat1.UnfurlDisplay) {
+	for _, u := range unfurls {
+		ud := PresentUnfurl(u)
+		if ud != nil {
+			res = append(res, *ud)
+		}
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1275,6 +1293,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			Unfurls:               PresentUnfurls(ctx, valid.Unfurls),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

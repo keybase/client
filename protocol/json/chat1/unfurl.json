@@ -167,7 +167,7 @@
     },
     {
       "type": "record",
-      "name": "ImageDisplay",
+      "name": "UnfurlImageDisplay",
       "fields": [
         {
           "type": "string",
@@ -202,14 +202,14 @@
         {
           "type": [
             null,
-            "ImageDisplay"
+            "UnfurlImageDisplay"
           ],
           "name": "favicon"
         },
         {
           "type": [
             null,
-            "ImageDisplay"
+            "UnfurlImageDisplay"
           ],
           "name": "image"
         },

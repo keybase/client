@@ -292,14 +292,14 @@ func (o Unfurl) DeepCopy() Unfurl {
 	}
 }
 
-type ImageDisplay struct {
+type UnfurlImageDisplay struct {
 	Url    string `codec:"url" json:"url"`
 	Height int    `codec:"height" json:"height"`
 	Width  int    `codec:"width" json:"width"`
 }
 
-func (o ImageDisplay) DeepCopy() ImageDisplay {
-	return ImageDisplay{
+func (o UnfurlImageDisplay) DeepCopy() UnfurlImageDisplay {
+	return UnfurlImageDisplay{
 		Url:    o.Url,
 		Height: o.Height,
 		Width:  o.Width,
@@ -307,13 +307,13 @@ func (o ImageDisplay) DeepCopy() ImageDisplay {
 }
 
 type UnfurlGenericDisplay struct {
-	Title       string        `codec:"title" json:"title"`
-	Url         string        `codec:"url" json:"url"`
-	SiteName    string        `codec:"siteName" json:"siteName"`
-	Favicon     *ImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
-	Image       *ImageDisplay `codec:"image,omitempty" json:"image,omitempty"`
-	PublishTime *int          `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
-	Description *string       `codec:"description,omitempty" json:"description,omitempty"`
+	Title       string              `codec:"title" json:"title"`
+	Url         string              `codec:"url" json:"url"`
+	SiteName    string              `codec:"siteName" json:"siteName"`
+	Favicon     *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image       *UnfurlImageDisplay `codec:"image,omitempty" json:"image,omitempty"`
+	PublishTime *int                `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
+	Description *string             `codec:"description,omitempty" json:"description,omitempty"`
 }
 
 func (o UnfurlGenericDisplay) DeepCopy() UnfurlGenericDisplay {
@@ -321,14 +321,14 @@ func (o UnfurlGenericDisplay) DeepCopy() UnfurlGenericDisplay {
 		Title:    o.Title,
 		Url:      o.Url,
 		SiteName: o.SiteName,
-		Favicon: (func(x *ImageDisplay) *ImageDisplay {
+		Favicon: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Favicon),
-		Image: (func(x *ImageDisplay) *ImageDisplay {
+		Image: (func(x *UnfurlImageDisplay) *UnfurlImageDisplay {
 			if x == nil {
 				return nil
 			}

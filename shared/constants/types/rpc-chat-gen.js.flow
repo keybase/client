@@ -812,7 +812,6 @@ export type HeaderPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
-export type ImageDisplay = $ReadOnly<{url: String, height: Int, width: Int}>
 export type InboxResType =
   | 0 // VERSIONHIT_0
   | 1 // FULL_1
@@ -1063,8 +1062,9 @@ export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube}
 export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay}
 export type UnfurlGeneric = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?Asset, image?: ?Asset, publishTime?: ?Int, description?: ?String}>
-export type UnfurlGenericDisplay = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?ImageDisplay, image?: ?ImageDisplay, publishTime?: ?Int, description?: ?String}>
+export type UnfurlGenericDisplay = $ReadOnly<{title: String, url: String, siteName: String, favicon?: ?UnfurlImageDisplay, image?: ?UnfurlImageDisplay, publishTime?: ?Int, description?: ?String}>
 export type UnfurlGenericRaw = $ReadOnly<{title: String, url: String, siteName: String, faviconUrl?: ?String, imageUrl?: ?String, publishTime?: ?Int, description?: ?String}>
+export type UnfurlImageDisplay = $ReadOnly<{url: String, height: Int, width: Int}>
 export type UnfurlMode =
   | 0 // ALWAYS_0
   | 1 // NEVER_1

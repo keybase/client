@@ -225,6 +225,10 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 	return ""
 }
 
+func (d DummyAttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, asset chat1.Asset) string {
+	return ""
+}
+
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
