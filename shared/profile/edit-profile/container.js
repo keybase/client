@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Render from '.'
-import {compose, withHandlers, withPropsOnChange, withStateHandlers, connect} from '../../util/container'
+import {connect} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
@@ -70,16 +70,13 @@ class Wrapper extends React.Component<Props, State> {
         onBioChange={this.onBioChange}
         onFullnameChange={this.onFullnameChange}
         onLocationChange={this.onLocationChange}
-        onSubmit={this.onSubmit}
       />
     )
   }
 }
 
-export default compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  )
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
 )(Wrapper)

@@ -1,10 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {compose, connect, lifecycle} from '../../util/container'
+import {compose, connect, lifecycle, type RouteProps} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   return {
@@ -41,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-connect<OwnProps, _, _, _, _>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

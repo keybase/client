@@ -4,6 +4,8 @@ import React, {Component} from 'react'
 import ProveEnterUsername from '.'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 type State = {
   username: ?string,
 }
@@ -42,7 +44,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onContinue: (username: string, platform: ?string) => {
     dispatch(ProfileGen.createUpdateUsername({username}))
 

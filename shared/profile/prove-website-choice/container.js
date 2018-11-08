@@ -3,6 +3,8 @@ import * as ProfileGen from '../../actions/profile-gen'
 import ProveWebsiteChoice from '.'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
