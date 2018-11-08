@@ -353,6 +353,7 @@ protocol local {
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
+    array<Unfurl> unfurls; 
   }
 
   enum MessageUnboxedErrorType {

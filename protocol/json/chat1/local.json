@@ -1080,6 +1080,13 @@
         {
           "type": "ReactionMap",
           "name": "reactions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Unfurl"
+          },
+          "name": "unfurls"
         }
       ]
     },
