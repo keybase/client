@@ -72,8 +72,20 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	if pre.Preview == nil {
-		return res, errors.New("unable to get preview from URL asset")
+	if err := src.Reset(); err != nil {
+		return res, err
+	}
+	uploadPt := src
+	uploadLen := len(dat)
+	uploadMd := pre.BaseMetadata()
+	uploadContentType := pre.ContentType
+	if pre.Preview != nil {
+		uploadPt = attachments.NewBufReadResetter(pre.Preview)
+		uploadLen = len(pre.Preview)
+		uploadMd = pre.PreviewMetadata()
+		uploadContentType = pre.PreviewContentType
+	} else {
+		p.Debug(ctx, "assetFromURL: warning, failed to generate preview for asset, using base")
 	}
 
 	s3params, err := p.ri().GetS3Params(ctx, convID)
@@ -87,8 +99,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	task := attachments.UploadTask{
 		S3Params:       s3params,
 		Filename:       filename,
-		FileSize:       int64(len(dat)),
-		Plaintext:      attachments.NewBufReadResetter(pre.Preview),
+		FileSize:       int64(uploadLen),
+		Plaintext:      uploadPt,
 		S3Signer:       p.s3signer,
 		ConversationID: convID,
 		UserID:         uid,
@@ -97,8 +109,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if res, err = p.store.UploadAsset(ctx, &task, ioutil.Discard); err != nil {
 		return res, err
 	}
-	res.MimeType = pre.PreviewContentType
-	res.Metadata = pre.PreviewMetadata()
+	res.MimeType = uploadContentType
+	res.Metadata = uploadMd
 	return res, nil
 }
 

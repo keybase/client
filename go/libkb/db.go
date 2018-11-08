@@ -176,6 +176,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBUnfurler                 = 0xcb
 	DBStellarDisclaimer        = 0xcc
 	DBFTLStorage               = 0xcd
 	DBTeamAuditor              = 0xce

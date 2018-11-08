@@ -52,9 +52,8 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
-	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
+	return newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		name := r.URL.Query().Get("name")
 		dat, err := ioutil.ReadFile(filepath.Join("testcases", name+".html"))
@@ -62,6 +61,22 @@ func TestScraper(t *testing.T) {
 		_, err = io.Copy(w, bytes.NewBuffer(dat))
 		require.NoError(t, err)
 	})
+}
+
+func compareGenericUnfurls(t *testing.T, e chat1.UnfurlGenericRaw, r chat1.UnfurlGenericRaw) {
+	require.Equal(t, e.Title, r.Title)
+	require.Equal(t, e.SiteName, r.SiteName)
+	require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil && r.Description != nil))
+	require.True(t, e.Description == nil || *e.Description == *r.Description)
+	require.True(t, (e.ImageUrl == nil && r.ImageUrl == nil) || (e.ImageUrl != nil && r.ImageUrl != nil))
+	require.True(t, e.ImageUrl == nil || *e.ImageUrl == *r.ImageUrl)
+	require.True(t, (e.FaviconUrl == nil && r.FaviconUrl == nil) || (e.FaviconUrl != nil && r.FaviconUrl != nil))
+	require.True(t, e.FaviconUrl == nil || *e.FaviconUrl == *r.FaviconUrl)
+}
+
+func TestScraper(t *testing.T) {
+	scraper := NewScraper(logger.NewTestLogger(t))
+	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()
 	defer srv.Stop()
 	testCase := func(name string, expected chat1.UnfurlRaw) {
@@ -77,14 +92,7 @@ func TestScraper(t *testing.T) {
 		case chat1.UnfurlType_GENERIC:
 			e := expected.Generic()
 			r := res.Generic()
-			require.Equal(t, e.Title, r.Title)
-			require.Equal(t, e.SiteName, r.SiteName)
-			require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil && r.Description != nil))
-			require.True(t, e.Description == nil || *e.Description == *r.Description)
-			require.True(t, (e.ImageUrl == nil && r.ImageUrl == nil) || (e.ImageUrl != nil && r.ImageUrl != nil))
-			require.True(t, e.ImageUrl == nil || *e.ImageUrl == *r.ImageUrl)
-			require.True(t, (e.FaviconUrl == nil && r.FaviconUrl == nil) || (e.FaviconUrl != nil && r.FaviconUrl != nil))
-			require.True(t, e.FaviconUrl == nil || *e.FaviconUrl == *r.FaviconUrl)
+			compareGenericUnfurls(t, e, r)
 		default:
 			require.Fail(t, "unknown unfurl typ")
 		}
