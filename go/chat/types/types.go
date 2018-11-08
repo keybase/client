@@ -282,3 +282,14 @@ const (
 	UnfurlerTaskStatusSuccess
 	UnfurlerTaskStatusFailed
 )
+
+type DummyUnfurler struct{}
+
+func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) {
+}
+func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error) {
+	return UnfurlerTaskStatusFailed, nil, nil
+}
+func (d DummyUnfurler) Retry(ctx context.Context, outboxID chat1.OutboxID)    {}
+func (d DummyUnfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {}
