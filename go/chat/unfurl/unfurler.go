@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -176,6 +177,31 @@ func (u *Unfurler) setStatus(ctx context.Context, outboxID chat1.OutboxID, statu
 	return u.G().GetKVStore().PutObj(u.statusKey(outboxID), nil, status)
 }
 
+func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.MessageUnboxed, outboxID chat1.OutboxID) (msg chat1.MessagePlaintext, err error) {
+	if !fromMsg.IsValid() {
+		return msg, errors.New("invalid message")
+	}
+	tlfName := fromMsg.Valid().ClientHeader.TlfName
+	public := fromMsg.Valid().ClientHeader.TlfPublic
+	ephemeralMD := fromMsg.Valid().ClientHeader.EphemeralMetadata
+	msg = chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_UNFURL,
+			TlfName:     tlfName,
+			TlfPublic:   public,
+			OutboxID:    &outboxID,
+			Supersedes:  fromMsg.GetMessageID(),
+		},
+		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{}),
+	}
+	if ephemeralMD != nil {
+		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: ephemeralMD.Lifetime,
+		}
+	}
+	return msg, nil
+}
+
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 	defer u.Trace(ctx, func() error { return nil }, "UnfurlAndSend")()
@@ -200,7 +226,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 				u.Debug(ctx, "UnfurlAndSend: failed to generate outboxID: skipping: %s", err)
 				continue
 			}
-			unfurlMsg, err := MakeBaseUnfurlMessage(ctx, msg, outboxID)
+			unfurlMsg, err := u.makeBaseUnfurlMessage(ctx, msg, outboxID)
 			if err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to make message: %s", err)
 				continue
@@ -246,6 +272,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	go func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
 		defer u.doneUnfurling(outboxID)
 		defer func() {
+			if u.unfurlCh != nil {
+				u.unfurlCh <- unfurl
+			}
 			if err != nil {
 				if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusFailed); err != nil {
 					u.Debug(ctx, "unfurl: failed to set failed status: %s", err)
@@ -253,11 +282,6 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 			} else {
 				// if it worked, then force Deliverer to run and send our message
 				u.G().MessageDeliverer.ForceDeliverLoop(ctx)
-			}
-		}()
-		defer func() {
-			if u.unfurlCh != nil {
-				u.unfurlCh <- unfurl
 			}
 		}()
 		task, err := u.getTask(ctx, outboxID)
