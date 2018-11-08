@@ -4,6 +4,7 @@ import * as PeopleGen from '../../actions/people-gen'
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
+import type {IconType} from '../../common-adapters/icon.constants'
 import {todoTypes} from '../../constants/people'
 import {connect, branch, compose, renderNothing} from '../../util/container'
 import {createGetMyProfile} from '../../actions/tracker-gen'
@@ -12,14 +13,20 @@ import {createShowUserProfile} from '../../actions/profile-gen'
 import openURL from '../../util/open-url'
 import {isMobile} from '../../constants/platform'
 
+type TodoOwnProps = {|
+  badged: boolean,
+  confirmLabel: string,
+  dismissable: boolean,
+  icon: IconType,
+  instructions: string,
+  todoType: Types.TodoType,
+|}
+
 const installLinkURL = 'https://keybase.io/download'
-
 const onSkipTodo = (type: Types.TodoType, dispatch) => () => dispatch(PeopleGen.createSkipTodo({type}))
-
 const mapStateToProps = state => ({myUsername: state.config.username || ''})
 
-// ----- AVATAR TEAM ----- //
-const avatarTeamConnector = connect(
+const AvatarTeamConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
     onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
@@ -30,10 +37,9 @@ const avatarTeamConnector = connect(
     onConfirm: () => dispatchProps.onConfirm(),
     onDismiss: dispatchProps.onDismiss,
   })
-)
+)(Task)
 
-// ----- AVATAR USER ----- //
-const avatarUserConnector = connect(
+const AvatarUserConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
     onConfirm: () => {
@@ -45,13 +51,12 @@ const avatarUserConnector = connect(
   }),
   (stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
-    onConfirm: () => dispatchProps.onConfirm(),
+    onConfirm: dispatchProps.onConfirm,
     onDismiss: dispatchProps.onDismiss,
   })
-)
+)(Task)
 
-// ----- BIO ----- //
-const bioConnector = connect(
+const BioConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
     _onConfirm: (username: string) => {
@@ -66,10 +71,9 @@ const bioConnector = connect(
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
   })
-)
+)(Task)
 
-// ----- PROOF ----- //
-const proofConnector = connect(
+const ProofConnector = connect<TodoOwnProps, _, _, _, _>(
   mapStateToProps,
   dispatch => ({
     _onConfirm: (username: string) => dispatch(createShowUserProfile({username})),
@@ -80,40 +84,36 @@ const proofConnector = connect(
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
   })
-)
+)(Task)
 
-// ----- DEVICE ----- //
-const deviceConnector = connect(
+const DeviceConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => openURL(installLinkURL),
     onDismiss: onSkipTodo('device', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- FOLLOW ----- //
-const followConnector = connect(
+const FollowConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- CHAT ----- //
-const chatConnector = connect(
+const ChatConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- PAPERKEY ----- //
-const paperKeyConnector = connect(
+const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -127,10 +127,9 @@ const paperKeyConnector = connect(
     onDismiss: () => {},
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- TEAM ----- //
-const teamConnector = connect(
+const TeamConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -140,10 +139,9 @@ const teamConnector = connect(
     onDismiss: onSkipTodo('team', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- FOLDER ----- //
-const folderConnector = connect(
+const FolderConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -158,10 +156,9 @@ const folderConnector = connect(
     onDismiss: onSkipTodo('folder', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- GITREPO ----- //
-const gitRepoConnector = connect(
+const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -171,10 +168,9 @@ const gitRepoConnector = connect(
     onDismiss: onSkipTodo('gitRepo', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
+)(Task)
 
-// ----- TEAMSHOWCASE ----- //
-const teamShowcaseConnector = connect(
+const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onConfirm: () => {
@@ -185,21 +181,36 @@ const teamShowcaseConnector = connect(
     onDismiss: onSkipTodo('teamShowcase', dispatch),
   }),
   (s, d, o) => ({...o, ...s, ...d})
-)
-
-export default compose(
-  // TODO remove all this branch and just make a component
-  branch(props => props.todoType === todoTypes.avatarTeam, avatarTeamConnector),
-  branch(props => props.todoType === todoTypes.avatarUser, avatarUserConnector),
-  branch(props => props.todoType === todoTypes.bio, bioConnector),
-  branch(props => props.todoType === todoTypes.proof, proofConnector),
-  branch(props => props.todoType === todoTypes.device, deviceConnector),
-  branch(props => props.todoType === todoTypes.follow, followConnector),
-  branch(props => props.todoType === todoTypes.chat, chatConnector),
-  branch(props => props.todoType === todoTypes.paperkey, paperKeyConnector),
-  branch(props => props.todoType === todoTypes.team, teamConnector),
-  branch(props => props.todoType === todoTypes.folder, folderConnector),
-  branch(props => props.todoType === todoTypes.gitRepo, gitRepoConnector),
-  branch(props => props.todoType === todoTypes.teamShowcase, teamShowcaseConnector),
-  branch(props => !props.onConfirm, renderNothing)
 )(Task)
+
+const TaskChooser = props => {
+  switch (props.todoType) {
+    case todoTypes.avatarTeam:
+      return <AvatarTeamConnector {...props} />
+    case todoTypes.avatarUser:
+      return <AvatarUserConnector {...props} />
+    case todoTypes.bio:
+      return <BioConnector {...props} />
+    case todoTypes.proof:
+      return <ProofConnector {...props} />
+    case todoTypes.device:
+      return <DeviceConnector {...props} />
+    case todoTypes.follow:
+      return <FollowConnector {...props} />
+    case todoTypes.chat:
+      return <ChatConnector {...props} />
+    case todoTypes.paperkey:
+      return <PaperKeyConnector {...props} />
+    case todoTypes.team:
+      return <TeamConnector {...props} />
+    case todoTypes.folder:
+      return <FolderConnector {...props} />
+    case todoTypes.gitRepo:
+      return <GitRepoConnector {...props} />
+    case todoTypes.teamShowcase:
+      return <TeamShowcaseConnector {...props} />
+  }
+  return null
+}
+
+export default TaskChooser
