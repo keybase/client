@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch, {routeProps}) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

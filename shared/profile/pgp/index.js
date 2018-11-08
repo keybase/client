@@ -8,7 +8,7 @@ import ProvePgpChoice, {type Options as ProvePgpChoiceOptions} from './prove-pgp
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {connect} from '../../util/container'
 
-const ConnectedChoice = connect(
+const ConnectedChoice = connect<OwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onCancel: () => dispatch(navigateUp()),
@@ -17,7 +17,7 @@ const ConnectedChoice = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(ProvePgpChoice)
 
-const ConnectedImport = connect(
+const ConnectedImport = connect<OwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onCancel: () => dispatch(navigateUp()),
@@ -25,7 +25,7 @@ const ConnectedImport = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(ImportPgp)
 
-const ConnectedPgpInfo = connect(
+const ConnectedPgpInfo = connect<OwnProps, _, _, _, _>(
   ({profile: {pgpInfo}}) => ({
     ...pgpInfo,
   }),
@@ -40,7 +40,7 @@ const ConnectedPgpInfo = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(PgpInfo)
 
-const ConnectedGeneratePgp = connect(
+const ConnectedGeneratePgp = connect<OwnProps, _, _, _, _>(
   () => ({}),
   dispatch => ({
     onCancel: () => dispatch(ProfileGen.createCancelPgpGen()),
@@ -48,7 +48,7 @@ const ConnectedGeneratePgp = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(GeneratePgp)
 
-const ConnectedFinished = connect(
+const ConnectedFinished = connect<OwnProps, _, _, _, _>(
   ({profile: {pgpPublicKey}}) => ({
     pgpKeyString: pgpPublicKey || 'Error getting public key...',
   }),

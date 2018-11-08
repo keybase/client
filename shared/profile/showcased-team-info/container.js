@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

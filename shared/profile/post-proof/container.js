@@ -42,7 +42,7 @@ export default compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

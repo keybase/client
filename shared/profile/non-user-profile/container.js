@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onStartChat: () => dispatchProps._onStartChat(stateProps.fullUsername),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

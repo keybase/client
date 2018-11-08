@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import Render from '.'
 import {compose, withHandlers, withPropsOnChange, withStateHandlers, connect} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
@@ -6,6 +7,8 @@ import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 import {HeaderOnMobile} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
+
+type OwnProps = {||}
 
 const mapStateToProps = state => {
   if (!state.config.username) {
@@ -22,26 +25,61 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
-  onEditProfile: (bio: string, fullname: string, location: string) =>
+  _onSubmit: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),
 })
 
+const Component = HeaderOnMobile(Render)
+
+type Props = {|
+  bio: string,
+  fullname: string,
+  location: string,
+  onBack: () => void,
+  _onSubmit: (bio: string, fullname: string, location: string) => void,
+  title: string,
+|}
+type State = {|
+  bio: string,
+  fullname: string,
+  location: string,
+|}
+
+class Wrapper extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {bio: this.props.bio, fullname: this.props.fullname, location: this.props.location}
+  }
+
+  onBioChange = bio => this.setState({bio})
+  onFullnameChange = fullname => this.setState({fullname})
+  onLocationChange = location => this.setState({location})
+  onSubmit = () => this.props._onSubmit(this.state.bio, this.state.fullname, this.state.location)
+
+  render() {
+    const bioLengthLeft = this.props.bio ? maxProfileBioChars - this.props.bio.length : maxProfileBioChars
+    const extra = isMobile ? {} : {onCancel: this.props.onBack}
+
+    return (
+      <Component
+        {...this.props}
+        {...this.state}
+        {...extra}
+        bioLengthLeft={bioLengthLeft}
+        onSubmit={this.onSubmit}
+        onBioChange={this.onBioChange}
+        onFullnameChange={this.onFullnameChange}
+        onLocationChange={this.onLocationChange}
+        onSubmit={this.onSubmit}
+      />
+    )
+  }
+}
+
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
-  ),
-  withStateHandlers(props => ({bio: props.bio, fullname: props.fullname, location: props.location}), {
-    onBioChange: () => bio => ({bio}),
-    onFullnameChange: () => fullname => ({fullname}),
-    onLocationChange: () => location => ({location}),
-  }),
-  withPropsOnChange(['bio'], props => ({
-    bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
-  })),
-  withHandlers({
-    ...(isMobile ? {} : {onCancel: ({onBack}) => () => onBack()}),
-    onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile(bio, fullname, location),
-  })
-)(HeaderOnMobile(Render))
+  )
+)(Wrapper)
