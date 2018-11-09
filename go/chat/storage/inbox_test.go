@@ -968,7 +968,7 @@ func TestInboxCacheOnLogout(t *testing.T) {
 	uid := keybase1.MakeTestUID(3)
 	inboxMemCache.Put(gregor1.UID(uid), &inboxDiskData{})
 	require.NotEmpty(t, len(inboxMemCache.datMap))
-	err := inboxMemCache.OnLogout()
+	err := inboxMemCache.OnLogout(libkb.NewMetaContextTODO(nil))
 	require.NoError(t, err)
 	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
 	require.Empty(t, len(inboxMemCache.datMap))

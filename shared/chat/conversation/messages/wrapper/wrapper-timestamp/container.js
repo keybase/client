@@ -3,7 +3,7 @@ import * as React from 'react'
 import {WrapperTimestamp} from '../'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import {setDisplayName, compose, connect} from '../../../../../util/container'
+import {namedConnect} from '../../../../../util/container'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type OwnProps = {|
@@ -36,6 +36,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     orangeLineAbove: messageIDWithOrangeLine === ownProps.message.id,
     ordinal: ownProps.message.ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: Constants.shouldShowPopup(state, ownProps.message),
   }
 }
 
@@ -43,11 +44,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {ordinal, previous} = stateProps
   const {message} = ownProps
 
-  // Placeholder messages can pass this test ("orangeLineAbove || !previous")
-  // but have a zero-timestamp, so we can't try to show a timestamp for them.
+  // Placeholder messages can be !previous but have a zero-timestamp, so we can't
+  // try to show a timestamp for them.
   const showTimestamp =
-    Constants.enoughTimeBetweenMessages(message, previous) ||
-    (message.timestamp && (stateProps.orangeLineAbove || !previous))
+    Constants.enoughTimeBetweenMessages(message, previous) || (message.timestamp && !previous)
 
   const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
@@ -78,16 +78,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     orangeLineAbove: stateProps.orangeLineAbove,
     ordinal,
     previous: ownProps.previous,
+    shouldShowPopup: stateProps.shouldShowPopup,
     timestamp,
     type,
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('WrapperTimestamp')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'WrapperTimestamp'
 )(WrapperTimestamp)

@@ -1727,7 +1727,7 @@ const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.Attachment
       convID: Types.keyToConversationID(conversationIDKey),
       messageID,
       backInTime,
-      assetTypes: [RPCChatTypes.localAssetMetadataType.image, RPCChatTypes.localAssetMetadataType.video],
+      assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     })
 
@@ -1939,6 +1939,7 @@ const markThreadAsRead = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
+    | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
     | RouteTreeGen.Actions,
   state: TypedState
@@ -2737,6 +2738,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],

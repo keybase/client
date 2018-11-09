@@ -1,11 +1,16 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
 import {connect} from '../../../util/container'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
 
 type Props = {
   type: 'invite' | 'none' | 'broken',
@@ -44,7 +49,7 @@ const mapDispatchToProps = dispatch => ({
     : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let type
   let users
 
@@ -75,7 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

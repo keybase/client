@@ -6,7 +6,7 @@ if (process.env['KEYBASE_FEATURES']) {
   console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
 }
 
-let features = featureFlagsOverride && featureFlagsOverride.split(',')
+let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
 
 const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 

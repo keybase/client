@@ -1,17 +1,17 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {Box2, Button, CopyText, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SmallAccountID, WalletPopup} from '../common'
 import * as Types from '../../constants/types/wallets'
 
 type Props = {
   accountID: Types.AccountID,
+  accountName: string,
   secretKey: ?string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
-  walletName: ?string,
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
@@ -22,8 +22,8 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
   render() {
     const header = (
       <React.Fragment>
-        {this.props.walletName ? (
-          <Text type="BodySmallSemibold">{this.props.walletName}</Text>
+        {this.props.accountName ? (
+          <Text type="BodySmallSemibold">{this.props.accountName}</Text>
         ) : (
           <SmallAccountID accountID={this.props.accountID} />
         )}
@@ -33,17 +33,12 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
       </React.Fragment>
     )
 
-    const mobileHeaderWrapper = (
-      <Box2 direction="horizontal" centerChildren={true} style={styles.header}>
-        <Box2 direction="vertical">{header}</Box2>
-      </Box2>
-    )
-
     return (
       <WalletPopup
-        onClose={this.props.onClose}
-        customCancelText="Close"
-        customComponent={Styles.isMobile && mobileHeaderWrapper}
+        onExit={this.props.onClose}
+        backButtonType="close"
+        accountName={this.props.accountName}
+        headerTitle="Secret key"
         containerStyle={styles.container}
       >
         <Icon
@@ -51,16 +46,17 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
           style={iconCastPlatformStyles(styles.icon)}
         />
         {!Styles.isMobile && header}
+        <Box2 direction="horizontal" style={styles.warningContainer}>
+          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>
+            Only paste your secret key in 100% safe places. Anyone with this key could steal your
+            Stellar&nbsp;account.
+          </Text>
+        </Box2>
         {!!this.props.secretKey && (
           <Box2 direction="vertical" style={styles.secretKeyContainer}>
             <CopyText withReveal={true} text={this.props.secretKey} />
           </Box2>
         )}
-        <InfoNote>
-          <Text type="BodySmall" style={styles.infoNoteText}>
-            Only paste your secret key in 100% safe places.
-          </Text>
-        </InfoNote>
         {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
       </WalletPopup>
     )
@@ -85,7 +81,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: Styles.globalMargins.xlarge,
+      marginBottom: Styles.globalMargins.medium,
     },
   }),
   icon: Styles.platformStyles({
@@ -108,11 +104,20 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isElectron: {
-      maxWidth: 272,
       marginBottom: Styles.globalMargins.medium,
     },
     isMobile: {
       marginBottom: Styles.globalMargins.xlarge,
     },
   }),
+  warningContainer: {
+    backgroundColor: Styles.globalColors.yellow,
+    borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.medium,
+    padding: Styles.globalMargins.xsmall,
+    width: '100%',
+  },
+  warningText: {
+    textAlign: 'center',
+  },
 })

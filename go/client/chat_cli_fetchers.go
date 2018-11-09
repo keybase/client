@@ -15,12 +15,12 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
-type chatCLIConversationFetcher struct {
+type chatCLIConvFetcher struct {
 	query            chat1.GetConversationForCLILocalQuery
 	resolvingRequest chatConversationResolvingRequest
 }
 
-func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
+func (f chatCLIConvFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (chat1.ConversationLocal, []chat1.MessageUnboxed, error) {
 	resolver, err := newChatConversationResolver(g)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, err
@@ -63,21 +63,19 @@ type chatCLIInboxFetcher struct {
 	query chat1.GetInboxSummaryForCLILocalQuery
 }
 
-func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, err error) {
+func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) ([]chat1.ConversationLocal, error) {
 	chatClient, err := GetChatLocalClient(g)
 	if err != nil {
 		return nil, fmt.Errorf("Getting chat service client error: %s", err)
 	}
 
-	var convs []chat1.ConversationLocal
 	res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
 	if err != nil {
 		return nil, err
 	}
-	convs = res.Conversations
 	if res.Offline {
 		g.UI.GetTerminalUI().PrintfUnescaped(ColorString(g, "yellow", "WARNING: inbox results obtained in OFFLINE mode\n"))
 	}
 
-	return convs, nil
+	return res.Conversations, nil
 }

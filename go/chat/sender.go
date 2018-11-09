@@ -305,8 +305,9 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 
 	// Get all affected messages to be deleted
 	deletes := []chat1.MessageID{deleteTargetID}
-	// Add in any reaction messages the deleteTargetID may have
-	deletes = append(deletes, deleteTarget.ServerHeader.ReactionIDs...)
+	// Add in any reaction/unfurl messages the deleteTargetID may have
+	deletes = append(deletes,
+		append(deleteTarget.ServerHeader.ReactionIDs, deleteTarget.ServerHeader.UnfurlIDs...)...)
 	for _, m := range tv.Messages {
 		if !m.IsValid() {
 			continue

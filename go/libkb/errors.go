@@ -2520,3 +2520,28 @@ func NewUserReverifyNeededError(s string) error {
 func (e UserReverifyNeededError) Error() string {
 	return fmt.Sprintf("User green link error: %s", e.msg)
 }
+
+//=============================================================================
+
+type VerboseError interface {
+	Error() string
+	Verbose() string
+}
+
+type InvalidStellarAccountIDError struct {
+	details string
+}
+
+func NewInvalidStellarAccountIDError(details string) InvalidStellarAccountIDError {
+	return InvalidStellarAccountIDError{
+		details: details,
+	}
+}
+
+func (e InvalidStellarAccountIDError) Error() string {
+	return "Invalid Stellar address."
+}
+
+func (e InvalidStellarAccountIDError) Verbose() string {
+	return fmt.Sprintf("Invalid Stellar address: %s", e.details)
+}

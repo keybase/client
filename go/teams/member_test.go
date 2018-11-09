@@ -33,11 +33,11 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 
 	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
@@ -699,7 +699,7 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	// (all of that tested in memberSetupSubteam)
 
 	switchTo := func(to *kbtest.FakeUser) {
-		tc.G.Logout()
+		tc.G.Logout(context.TODO())
 		err := to.Login(tc.G)
 		require.NoError(t, err)
 	}
@@ -748,7 +748,7 @@ func TestLeave(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := otherA.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -756,7 +756,7 @@ func TestLeave(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := otherB.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -764,7 +764,7 @@ func TestLeave(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -806,7 +806,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := otherA.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -814,7 +814,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := otherB.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -822,7 +822,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -842,7 +842,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	// They are now an implicit admin and not an explicit member.
 	// So this should fail, but with a reasonable error.
 	t.Logf("try to leave again")
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	err = otherA.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, subteamName, false)
@@ -1363,15 +1363,15 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 	team := createTeam(tc)
 	t.Logf("Created team %q", team)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	// alice tracks bob and charlie
 	alice.Login(tc.G)
@@ -1385,13 +1385,13 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 
 	// bob and charlie reset
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	bob.Login(tc.G)
 	kbtest.ResetAccount(tc, bob)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 	charlie.Login(tc.G)
 	kbtest.ResetAccount(tc, charlie)
-	tc.G.Logout()
+	tc.G.Logout(context.TODO())
 
 	// alice fails to invite bob into the team since her tracking statement of him is broken
 	alice.Login(tc.G)
@@ -1400,7 +1400,7 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	_, err = AddMembers(context.TODO(), tc.G, team, []string{bob.Username}, keybase1.TeamRole_ADMIN)
+	_, err = AddMembers(context.TODO(), tc.G, team, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
 	require.Error(t, err)
 	amerr, ok := err.(AddMembersError)
 	require.True(t, ok)

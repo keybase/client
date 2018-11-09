@@ -7,7 +7,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
-import {compose, connect, isMobile, setDisplayName} from '../../../../../util/container'
+import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -154,11 +154,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ExplodingPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ExplodingPopup'
 )(Exploding)

@@ -378,25 +378,27 @@ func (d *Service) purgeOldChatAttachmentData() {
 }
 
 func (d *Service) startChatModules() {
-	uid := d.G().Env.GetUID()
-	if !uid.IsNil() {
-		uid := d.G().Env.GetUID().ToBytes()
+	kuid := d.G().Env.GetUID()
+	if !kuid.IsNil() {
+		uid := kuid.ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
+		g.Indexer.Start(chat.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
 
-func (d *Service) stopChatModules() {
-	<-d.ChatG().MessageDeliverer.Stop(context.Background())
-	<-d.ChatG().ConvLoader.Stop(context.Background())
-	<-d.ChatG().FetchRetrier.Stop(context.Background())
-	<-d.ChatG().EphemeralPurger.Stop(context.Background())
-	<-d.ChatG().InboxSource.Stop(context.Background())
+func (d *Service) stopChatModules(m libkb.MetaContext) {
+	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
+	<-d.ChatG().ConvLoader.Stop(m.Ctx())
+	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
+	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
+	<-d.ChatG().InboxSource.Stop(m.Ctx())
+	<-d.ChatG().Indexer.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -705,18 +707,20 @@ func (d *Service) slowChecks() {
 		d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
 	}
 	go func() {
+		ctx := context.Background()
+		m := libkb.NewMetaContext(ctx, d.G()).WithLogTag("SLOWCHK")
 		for {
 			<-ticker.C
-			d.G().Log.Debug("+ slow checks loop")
-			d.G().Log.Debug("| checking if current device should log out")
-			if err := d.G().LogoutSelfCheck(); err != nil {
-				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			m.CDebugf("+ slow checks loop")
+			m.CDebugf("| checking if current device should log out")
+			if err := d.G().LogoutSelfCheck(m.Ctx()); err != nil {
+				m.CDebugf("LogoutSelfCheck error: %s", err)
 			}
-			d.G().Log.Debug("| checking if current device is a clone")
+			m.CDebugf("| checking if current device is a clone")
 			if err := d.deviceCloneSelfCheck(); err != nil {
-				d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
+				m.CDebugf("deviceCloneSelfCheck error: %s", err)
 			}
-			d.G().Log.Debug("- slow checks loop")
+			m.CDebugf("- slow checks loop")
 		}
 	}()
 }
@@ -821,17 +825,17 @@ func (d *Service) OnLogin() error {
 	return nil
 }
 
-func (d *Service) OnLogout() (err error) {
-	defer d.G().Trace("Service#OnLogout", func() error { return err })()
+func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
+	defer m.CTrace("Service#OnLogout", func() error { return err })()
 	log := func(s string) {
-		d.G().Log.Debug("Service#OnLogout: %s", s)
+		m.CDebugf("Service#OnLogout: %s", s)
 	}
 
 	log("cancelling live RPCs")
 	d.G().RPCCanceller.CancelLiveContexts()
 
 	log("shutting down chat modules")
-	d.stopChatModules()
+	d.stopChatModules(m)
 
 	log("shutting down gregor")
 	if d.gregor != nil {

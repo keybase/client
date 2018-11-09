@@ -22,7 +22,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   state = {
     showingToast: false,
   }
-  _attachmentRef = null
+  _attachmentRef = React.createRef()
 
   componentDidMount() {
     this.props.onLoadSecretKey()
@@ -35,14 +35,15 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
     this.props.onCopyKey()
   }
 
-  _getAttachmentRef = () => this._attachmentRef
+  _getAttachmentRef = () => this._attachmentRef.current
 
   render() {
     return (
       <WalletPopup
-        onClose={this.props.onCancel}
-        containerStyle={styles.backgroundColor}
-        headerStyle={Styles.collapseStyles([styles.backgroundColor, styles.header])}
+        onExit={this.props.onCancel}
+        backButtonType="cancel"
+        containerStyle={styles.background}
+        headerStyle={Styles.collapseStyles([styles.background, styles.header])}
         bottomButtons={[
           <Kb.Button
             fullWidth={Styles.isMobile}
@@ -50,7 +51,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             label="Copy secret key"
             onClick={this.copy}
             type="Wallet"
-            ref={r => (this._attachmentRef = r)}
+            ref={this._attachmentRef}
             waiting={this.props.loading}
             disabled={this.props.waiting}
           />,
@@ -92,9 +93,11 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  backgroundColor: {
-    backgroundColor: Styles.globalColors.yellow,
-  },
+  background: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.yellow,
+    },
+  }),
   header: {
     borderBottomWidth: 0,
   },

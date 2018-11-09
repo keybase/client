@@ -2,13 +2,9 @@
 import ConfirmSend from '.'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {connect} from '../../util/container'
-import type {NavigateUpPayload} from '../../actions/route-tree-gen'
+import {connect, type RouteProps} from '../../util/container'
 
-type OwnProps = {
-  navigateUp?: () => NavigateUpPayload, // if routed
-  onBack?: () => void, // if direct
-}
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const build = state.wallets.building
@@ -22,7 +18,7 @@ const mapStateToProps = state => {
       ]
     : []
   ).concat(
-    (built.banners || []).map(banner => ({
+    (built.banners || []).filter(banner => !banner.hideOnConfirm).map(banner => ({
       bannerBackground: Constants.bannerLevelToBackground(banner.level),
       bannerText: banner.message,
     }))
@@ -39,14 +35,29 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, onBack}: OwnProps) => ({
-  onBack: () => (navigateUp ? dispatch(navigateUp()) : onBack && onBack()),
-  onClose: () => (navigateUp ? dispatch(navigateUp()) : onBack && onBack()),
+const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
+  _onBack: () => dispatch(navigateUp()),
+  _onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
+  _onClose: () => dispatch(navigateUp()),
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o) => {
+    // Clear sentPaymentError when navigating away.
+    return {
+      ...s,
+      onBack: () => {
+        d._onClearErrors()
+        d._onBack()
+      },
+      onClose: () => {
+        d._onClearErrors()
+        d._onClose()
+      },
+      onSendClick: d.onSendClick,
+    }
+  }
 )(ConfirmSend)

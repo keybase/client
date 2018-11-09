@@ -88,7 +88,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
     },
     {
       onClick: () => this.props.onSendToAnotherAccount(),
-      title: 'To another account',
+      title: 'To one of my other Stellar accounts',
     },
   ]
 

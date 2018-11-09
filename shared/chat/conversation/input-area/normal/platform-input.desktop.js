@@ -379,21 +379,21 @@ const isTyping = typing => {
   }
 }
 
-const InputAccessory = Component => props => (
+const MentionHud = props => (
   <Kb.Box style={styles.accessoryContainer}>
     <Kb.Box style={styles.accessory}>
-      <Component {...props} />
+      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
     </Kb.Box>
   </Kb.Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
+const ChannelMentionHud = props => (
+  <Kb.Box style={styles.accessoryContainer}>
+    <Kb.Box style={styles.accessory}>
+      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
+    </Kb.Box>
+  </Kb.Box>
+)
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   <Kb.Box>

@@ -94,6 +94,8 @@ export type {
   MessageID,
   MessageRequestPayment,
   MessageSendPayment,
+  MessageSetChannelname,
+  MessageSetDescription,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

@@ -12,9 +12,6 @@ import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
 import LongPressable from './long-pressable'
 
-// Message types that have an ellipsis/meatball menu
-const popupableMessageTypes = ['text', 'attachment', 'sendPayment', 'requestPayment']
-
 /**
  * WrapperTimestamp adds the orange line, timestamp, menu button, menu, reacji
  * button, and exploding meta tag.
@@ -37,6 +34,7 @@ export type Props = {|
   // 'wrapper-author': additionally render WrapperAuthor and tell it the message type
   type: 'wrapper-author' | 'children',
   orangeLineAbove: boolean,
+  shouldShowPopup: boolean,
 |}
 
 // TODO flow gets confused since the props are ambiguous
@@ -94,7 +92,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         >
           {/* Additional Box here because NativeTouchableHighlight only supports one child */}
           <Box>
-            <Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsFlexEnd}>
+            <Box2 direction="horizontal" fullWidth={true}>
               {props.type === 'children' && props.children}
               {/* Additional checks on props.message.type to appease flow */}
               {props.type === 'wrapper-author' &&
@@ -112,6 +110,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 )}
               {props.decorate &&
                 menuButtons({
+                  shouldShowPopup: props.shouldShowPopup,
                   conversationIDKey: props.conversationIDKey,
                   exploded: props.exploded,
                   isRevoked: props.isRevoked,
@@ -134,15 +133,16 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {(props.message.type === 'text' ||
           props.message.type === 'attachment' ||
           props.message.type === 'sendPayment' ||
-          props.message.type === 'requestPayment') && (
-          <MessagePopup
-            attachTo={props.getAttachmentRef}
-            message={props.message}
-            onHidden={props.toggleShowingMenu}
-            position="top center"
-            visible={props.showingMenu}
-          />
-        )}
+          props.message.type === 'requestPayment') &&
+          props.shouldShowPopup && (
+            <MessagePopup
+              attachTo={props.getAttachmentRef}
+              message={props.message}
+              onHidden={props.toggleShowingMenu}
+              position="top center"
+              visible={props.showingMenu}
+            />
+          )}
       </Box>
     )
   }
@@ -158,8 +158,9 @@ type MenuButtonsProps = {
   ordinal: Types.Ordinal,
   setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
-  toggleShowingMenu: () => void,
+  shouldShowPopup: boolean,
   showMenuButton: boolean,
+  toggleShowingMenu: () => void,
 }
 const menuButtons = (props: MenuButtonsProps) => (
   <Box2
@@ -193,7 +194,7 @@ const menuButtons = (props: MenuButtonsProps) => (
                 style={styles.reactButton}
               />
               <Box ref={props.setAttachmentRef}>
-                {popupableMessageTypes.includes(props.message.type) && (
+                {props.shouldShowPopup && (
                   <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={14} />
                 )}
               </Box>

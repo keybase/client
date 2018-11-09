@@ -13,7 +13,14 @@ import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
 import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
-import {setDisplayName, connect, compose, lifecycle} from '../../../util/container'
+import {namedConnect, compose, lifecycle} from '../../../util/container'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  measure?: ?() => void,
+  ordinal: Types.Ordinal,
+  previous: ?Types.Ordinal,
+|}
 
 type Props = {
   message: Types.Message,
@@ -138,12 +145,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('MessageFactory'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'MessageFactory'),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (!this.props.message) {

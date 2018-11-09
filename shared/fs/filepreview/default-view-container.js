@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -38,11 +38,9 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default compose(
-  connect(
+export default namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('FilePreviewDefaultView')
+    mergeProps,
+  'FilePreviewDefaultView'
 )(DefaultView)

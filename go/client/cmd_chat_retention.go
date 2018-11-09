@@ -58,6 +58,7 @@ Use the team policy for this channel:
 		ArgumentHelp: "[conversation]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSetRetentionRunner(g), "retention-policy", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: append(getConversationResolverFlags(), []cli.Flag{
 			cli.BoolFlag{

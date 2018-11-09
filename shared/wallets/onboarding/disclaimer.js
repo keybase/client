@@ -43,7 +43,6 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     const label = 'Yes, I agree'.concat(this.state.secondsLeft ? ` (${this.state.secondsLeft})` : '')
     const buttons = [
       <Kb.WaitingButton
-        labelStyle={styles.labelStyle}
         style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
         waitingKey={Constants.acceptDisclaimerWaitingKey}
         disabled={this.state.secondsLeft > 0}
@@ -66,7 +65,8 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     return (
       <WalletPopup
         bottomButtons={buttons}
-        onClose={this.props.onNotNow}
+        onExit={this.props.onNotNow}
+        backButtonType="close"
         buttonBarDirection="column"
         containerStyle={styles.container}
         buttonBarStyle={styles.buttonBar}

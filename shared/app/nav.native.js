@@ -1,29 +1,23 @@
 // @flow
+import * as I from 'immutable'
+import * as Kb from '../common-adapters/mobile.native'
+import * as Styles from '../styles'
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import React, {Component} from 'react'
+import RpcStats from './rpc-stats'
 import TabBar from './tab-bar/container'
-import {
-  Box,
-  NativeKeyboard,
-  NativeKeyboardAvoidingView,
-  NativeAnimated,
-  NativeStatusBar,
-} from '../common-adapters/mobile.native'
+import type {Props, OwnProps} from './nav.types'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
+import {addSizeListener} from '../styles/status-bar'
 import {chatTab, loginTab} from '../constants/tabs'
 import {connect} from '../util/container'
-import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles'
-import {addSizeListener} from '../styles/status-bar'
-import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
+import {makeLeafTags} from '../route-tree'
 import {navigateUp} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
-import type {Props, OwnProps} from './nav.types'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
-import {makeLeafTags} from '../route-tree'
-import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
   mode: 'modal' | 'card',
@@ -67,7 +61,7 @@ class CardStackShim extends Component<CardStackShimProps> {
 
   _transitionConfig = () => ({
     containerStyle: {
-      backgroundColor: globalColors.fastBlank,
+      backgroundColor: Styles.globalColors.fastBlank,
     },
   })
 
@@ -99,14 +93,14 @@ class CardStackShim extends Component<CardStackShimProps> {
         headerMode="none"
         mode={this.props.mode}
         style={this.props.hidden ? styles.hiddenTransitioner : undefined}
-        cardStyle={{backgroundColor: globalColors.fastBlank}}
+        cardStyle={styles.card}
         transitionConfig={this._transitionConfig}
       />
     )
   }
 }
 
-const barStyle = (showStatusBarDarkContent, underStatusBar) => {
+const barStyle = showStatusBarDarkContent => {
   // android always uses light-content
   if (!isIOS) {
     return 'light-content'
@@ -116,41 +110,32 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   if (showStatusBarDarkContent) {
     return 'dark-content'
   }
-  // replicates original behaviour of showing light text
-  // in the status bar when 'underStatusBar' is set to true
-  if (underStatusBar) {
-    return 'light-content'
-  }
   // default to showing dark-content (dark text/icons) when
   // on iOS
   return 'dark-content'
 }
 
 function renderStackRoute(route, shouldRender) {
-  const {underStatusBar, showStatusBarDarkContent, hideStatusBar, root} = route.tags || {}
-
-  let style
-  if (root) {
-    style = styles.sceneWrapStyleNoStatusBarPadding
-  } else {
-    style =
-      route.tags && route.tags.underStatusBar
-        ? styles.sceneWrapStyleNoStatusBarPadding
-        : styles.sceneWrapStyleWithStatusBarPadding
-  }
+  const {showStatusBarDarkContent, hideStatusBar, root, underNotch} = route.tags || {}
+  // We always wrap with a safe top area unless
+  // 1. Root view
+  // 2. They want to go under the notch
+  // 3. Android and they hide the status bar
+  const makeSafeAreaOnTop = !root && !underNotch && !(Styles.isAndroid && hideStatusBar)
 
   return (
-    <Box style={style}>
+    <Kb.NativeView style={styles.routeOuter}>
       {!isIPhoneX && (
-        <NativeStatusBar
-          hidden={hideStatusBar && !isIPhoneX}
+        <Kb.NativeStatusBar
+          hidden={hideStatusBar}
           translucent={true}
           backgroundColor="rgba(0, 26, 51, 0.25)"
-          barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
+          barStyle={barStyle(showStatusBarDarkContent)}
         />
       )}
-      {route.component({shouldRender})}
-    </Box>
+      {makeSafeAreaOnTop && <Kb.SafeAreaViewTop />}
+      <Kb.BoxGrow>{route.component({shouldRender})}</Kb.BoxGrow>
+    </Kb.NativeView>
   )
 }
 
@@ -188,10 +173,6 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     }
   }
 
-  _switchTab = tab => {
-    this.props.switchTab(tab)
-  }
-
   render() {
     const props = this.props
 
@@ -207,22 +188,25 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     )
 
     // if the route is under the status bar keep this at 0 always
-    const keyboardVerticalOffset =
-      props.routeStack.last()?.tags?.underStatusBar === true ? 0 : this.state.verticalOffset
+    const keyboardVerticalOffset = this.state.verticalOffset
 
     const content = (
-      <Box style={styles.content}>
+      <Kb.NativeView style={styles.content}>
         {stacks}
         {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         <GlobalError key="globalError" />
-        <AnimatedTabBar show={!props.hideNav}>
-          <TabBar routeSelected={props.routeSelected} routePath={props.routePath} />
-        </AnimatedTabBar>
-      </Box>
+        {!props.hideNav && (
+          <Kb.NativeSafeAreaView style={props.keyboardShowing ? styles.noTabSafeArea : styles.tabSafeArea}>
+            <AnimatedTabBar show={!props.keyboardShowing}>
+              <TabBar routeSelected={props.routeSelected} routePath={props.routePath} />
+            </AnimatedTabBar>
+          </Kb.NativeSafeAreaView>
+        )}
+      </Kb.NativeView>
     )
     return (
-      <Box style={styles.container}>
-        <NativeKeyboardAvoidingView
+      <Kb.NativeView style={styles.container}>
+        <Kb.NativeKeyboardAvoidingView
           style={styles.keyboard}
           behavior={isIOS ? 'padding' : undefined}
           /** TODO get rid of this once a better fix exists
@@ -233,8 +217,8 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
           {content}
-        </NativeKeyboardAvoidingView>
-      </Box>
+        </Kb.NativeKeyboardAvoidingView>
+      </Kb.NativeView>
     )
   }
 }
@@ -251,14 +235,14 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
     super(props)
 
     this.state = {
-      offset: new NativeAnimated.Value(props.show ? tabBarHeight : 0),
+      offset: new Kb.NativeAnimated.Value(props.show ? tabBarHeight : 0),
     }
   }
 
   componentDidUpdate(prevProps: AnimatedTabBarProps) {
     if (!isIOS) return null
     if (this.props.show !== prevProps.show) {
-      NativeAnimated.timing(this.state.offset, {
+      Kb.NativeAnimated.timing(this.state.offset, {
         duration: 200,
         toValue: this.props.show ? tabBarHeight : 0,
       }).start()
@@ -268,15 +252,22 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
   render() {
     if (isIOS) {
       return (
-        <NativeAnimated.View style={{maxHeight: this.state.offset}}>
+        <Kb.NativeAnimated.View
+          style={Styles.collapseStyles([{maxHeight: this.state.offset}, styles.tabBar])}
+        >
           {this.props.children}
-        </NativeAnimated.View>
+        </Kb.NativeAnimated.View>
       )
     } else {
       return (
-        <Box style={this.props.show ? styles.tabBarHeightBar : styles.tabBarHeightZero}>
+        <Kb.NativeView
+          style={Styles.collapseStyles([
+            this.props.show ? styles.tabBarHeightBar : styles.tabBarHeightZero,
+            styles.tabBar,
+          ])}
+        >
           {this.props.children}
-        </Box>
+        </Kb.NativeView>
       )
     }
   }
@@ -291,11 +282,11 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   _keyboardHideListener = null
 
   componentDidMount() {
-    this._keyboardShowListener = NativeKeyboard.addListener(
+    this._keyboardShowListener = Kb.NativeKeyboard.addListener(
       isIOS ? 'keyboardWillShow' : 'keyboardDidShow',
       () => this.setState({keyboardShowing: true})
     )
-    this._keyboardHideListener = NativeKeyboard.addListener(
+    this._keyboardHideListener = Kb.NativeKeyboard.addListener(
       isIOS ? 'keyboardWillHide' : 'keyboardDidHide',
       () => this.setState({keyboardShowing: false})
     )
@@ -318,7 +309,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const curPath = curLastPath ? curLastPath.path : I.List()
     const curTags = curLastPath ? curLastPath.tags : {}
     if (!nextPath.equals(curPath) && (!curTags || !curTags.keepKeyboardOnLeave)) {
-      NativeKeyboard.dismiss()
+      Kb.NativeKeyboard.dismiss()
     }
   }
 
@@ -335,7 +326,8 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       component: () => (
         <MainNavStack
           {...this.props}
-          hideNav={this.props.hideNav || this.state.keyboardShowing}
+          hideNav={this.props.hideNav}
+          keyboardShowing={this.state.keyboardShowing}
           routeStack={mainScreens}
         />
       ),
@@ -355,11 +347,11 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
 
     return (
-      <Box style={styles.shimContainer}>
+      <>
         {shim}
         {layers}
         <RpcStats />
-      </Box>
+      </>
     )
   }
 }
@@ -380,9 +372,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   navigateUp: dispatchProps.navigateUp,
 })
 
-const styles = styleSheetCreate({
-  container: {...globalStyles.fullHeight},
-  content: {...globalStyles.flexGrow},
+const styles = Styles.styleSheetCreate({
+  card: {backgroundColor: Styles.globalColors.fastBlank},
+  container: {flexGrow: 1, position: 'relative'},
+  content: {...Styles.globalStyles.flexGrow},
   hiddenTransitioner: {
     height: '100%',
     left: -9999,
@@ -390,28 +383,18 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   keyboard: {
-    ...globalStyles.fillAbsolute,
-    backgroundColor: globalColors.fastBlank,
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.fastBlank,
   },
-  sceneWrapStyleNoStatusBarPadding: {
-    ...globalStyles.fullHeight,
-    backgroundColor: globalColors.fastBlank,
-  },
-  sceneWrapStyleWithStatusBarPadding: {
-    ...globalStyles.fullHeight,
-    backgroundColor: globalColors.fastBlank,
-    paddingTop: isIPhoneX ? 40 : statusBarHeight,
-  },
-  shimContainer: {...globalStyles.fillAbsolute},
-  tabBarHeightBar: {
-    height: tabBarHeight,
-  },
-  tabBarHeightZero: {
-    height: 0,
-  },
+  routeOuter: {height: '100%', position: 'relative'},
+  tabBar: {overflow: 'hidden'},
+  tabBarHeightBar: {height: tabBarHeight},
+  tabBarHeightZero: {height: 0},
+  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
+  tabSafeArea: {backgroundColor: Styles.globalColors.darkBlue2, flexGrow: 0},
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

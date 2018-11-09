@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isDarwin} from '../../../../constants/platform'
-import {connect, compose, setDisplayName, withProps} from '../../../../util/container'
+import {namedConnect, compose, withProps} from '../../../../util/container'
 import ChatFilterRow from '.'
 
 type OwnProps = {
@@ -45,12 +45,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ChatFilterRow'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
   withProps(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))

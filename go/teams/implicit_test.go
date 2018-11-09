@@ -325,7 +325,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
 	require.NoError(t, err)
 	require.Equal(t, true, impTeamName.IsPublic)
-	err = tc.G.Logout()
+	err = tc.G.Logout(context.TODO())
 	require.NoError(t, err)
 
 	for i := 0; i < 2; i++ {

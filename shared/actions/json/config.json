@@ -95,7 +95,6 @@
       "sound": "boolean",
       "writeFile": "boolean"
     },
-    "debugDump": {"items": "Array<string>"},
     "setDeletedSelf": {"deletedUsername": "string"},
     "loggedOut": {},
     "loggedIn": {"causedByStartup": "boolean"},

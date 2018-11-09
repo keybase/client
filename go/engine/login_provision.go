@@ -1050,8 +1050,8 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	}
 
 	// the best way to cleanup is to logout...
-	m.G().Log.Debug("an error occurred during provisioning, logging out")
-	m.G().Logout()
+	m.CDebugf("an error occurred during provisioning, logging out")
+	m.G().Logout(m.Ctx())
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

@@ -468,3 +468,25 @@ func NewFTLMissingSeedError(g keybase1.PerTeamKeyGeneration) error {
 func (e FTLMissingSeedError) Error() string {
 	return fmt.Sprintf("FTL Missing seed at generation: %d", e.gen)
 }
+
+type MixedServerTrustAssertionError struct{}
+
+func NewMixedServerTrustAssertionError() error {
+	return MixedServerTrustAssertionError{}
+}
+
+func (e MixedServerTrustAssertionError) Error() string {
+	return "cannot add team members via server trust (email or SMS) and also with checkable assertions"
+}
+
+type CompoundInviteError struct {
+	Assertion string
+}
+
+func NewCompoundInviteError(s string) error {
+	return CompoundInviteError{s}
+}
+
+func (e CompoundInviteError) Error() string {
+	return fmt.Sprintf("cannot pair an invitation with a compound assertion (%s)", e.Assertion)
+}

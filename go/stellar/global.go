@@ -113,6 +113,7 @@ func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.Stella
 	return s.cachedServerConf, nil
 }
 
+// `trigger` is optional, and is of the gregor message that caused the kick.
 func (s *Stellar) KickAutoClaimRunner(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	// Create the ACR if one does not exist.
 	mctx.CDebugf("KickAutoClaimRunner(trigger:%v)", trigger)
