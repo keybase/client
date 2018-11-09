@@ -15,14 +15,17 @@ const (
 	defaultTwitterScore   = 10
 	defaultOpenGraphScore = 11
 )
+
+type setterType int
+
 const (
-	setTitle       = "title"
-	setURL         = "url"
-	setSiteName    = "site_name"
-	setFaviconURL  = "favicon_url"
-	setImageURL    = "image_url"
-	setPublishTime = "publish_time"
-	setDescription = "description"
+	setTitle setterType = iota
+	setURL
+	setSiteName
+	setFaviconURL
+	setImageURL
+	setPublishTime
+	setDescription
 )
 
 func getOpenGraphScore(domain string, e *colly.HTMLElement) int {
@@ -68,7 +71,7 @@ func getAppleTouchFaviconScore(domain string, e *colly.HTMLElement) int {
 type attrRanker struct {
 	content func(e *colly.HTMLElement) []string
 	score   func(domain string, e *colly.HTMLElement) int
-	setter  string
+	setter  setterType
 }
 
 func getHrefAttr(e *colly.HTMLElement) []string {
