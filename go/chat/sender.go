@@ -368,7 +368,8 @@ func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION,
+		chat1.MessageType_UNFURL:
 	default:
 		// nothing to do here
 		return msg.ClientHeader.EphemeralMetadata, nil
@@ -1181,7 +1182,7 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
-func (s *Deliverer) processSpecialMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	switch obr.MessageType() {
 	case chat1.MessageType_ATTACHMENT:
 		return s.processAttachment(ctx, obr)
@@ -1299,7 +1300,7 @@ func (s *Deliverer) deliverLoop() {
 				err = delivererExpireError{}
 			} else {
 				// Check for special messages and process based on completion status
-				obr, err = s.processSpecialMessage(bctx, obr)
+				obr, err = s.processBackgroundTaskMessage(bctx, obr)
 				switch err {
 				case errDelivererUploadInProgress:
 					s.Debug(bctx, "deliverLoop: attachment upload in progress, skipping: convID: %s obid: %s",

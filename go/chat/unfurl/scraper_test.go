@@ -63,17 +63,6 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 	})
 }
 
-func compareGenericUnfurls(t *testing.T, e chat1.UnfurlGenericRaw, r chat1.UnfurlGenericRaw) {
-	require.Equal(t, e.Title, r.Title)
-	require.Equal(t, e.SiteName, r.SiteName)
-	require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil && r.Description != nil))
-	require.True(t, e.Description == nil || *e.Description == *r.Description)
-	require.True(t, (e.ImageUrl == nil && r.ImageUrl == nil) || (e.ImageUrl != nil && r.ImageUrl != nil))
-	require.True(t, e.ImageUrl == nil || *e.ImageUrl == *r.ImageUrl)
-	require.True(t, (e.FaviconUrl == nil && r.FaviconUrl == nil) || (e.FaviconUrl != nil && r.FaviconUrl != nil))
-	require.True(t, e.FaviconUrl == nil || *e.FaviconUrl == *r.FaviconUrl)
-}
-
 func TestScraper(t *testing.T) {
 	scraper := NewScraper(logger.NewTestLogger(t))
 	srv := createTestCaseHTTPSrv(t)
@@ -92,7 +81,17 @@ func TestScraper(t *testing.T) {
 		case chat1.UnfurlType_GENERIC:
 			e := expected.Generic()
 			r := res.Generic()
-			compareGenericUnfurls(t, e, r)
+			require.Equal(t, e.Title, r.Title)
+			require.Equal(t, e.SiteName, r.SiteName)
+			require.True(t, (e.Description == nil && r.Description == nil) || (e.Description != nil &&
+				r.Description != nil))
+			require.True(t, e.Description == nil || *e.Description == *r.Description)
+			require.True(t, (e.ImageUrl == nil && r.ImageUrl == nil) || (e.ImageUrl != nil &&
+				r.ImageUrl != nil))
+			require.True(t, e.ImageUrl == nil || *e.ImageUrl == *r.ImageUrl)
+			require.True(t, (e.FaviconUrl == nil && r.FaviconUrl == nil) || (e.FaviconUrl != nil &&
+				r.FaviconUrl != nil))
+			require.True(t, e.FaviconUrl == nil || *e.FaviconUrl == *r.FaviconUrl)
 		default:
 			require.Fail(t, "unknown unfurl typ")
 		}

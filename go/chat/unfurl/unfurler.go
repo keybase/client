@@ -183,7 +183,6 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	}
 	tlfName := fromMsg.Valid().ClientHeader.TlfName
 	public := fromMsg.Valid().ClientHeader.TlfPublic
-	ephemeralMD := fromMsg.Valid().ClientHeader.EphemeralMetadata
 	msg = chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_UNFURL,
@@ -193,11 +192,6 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 			Supersedes:  fromMsg.GetMessageID(),
 		},
 		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{}),
-	}
-	if ephemeralMD != nil {
-		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: ephemeralMD.Lifetime,
-		}
 	}
 	return msg, nil
 }
