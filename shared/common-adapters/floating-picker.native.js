@@ -7,7 +7,7 @@ import Overlay from './overlay'
 import Text from './text'
 import type {Props} from './floating-picker'
 
-const FloatingPicker = (props: Props) => {
+const FloatingPicker = <T: string | number>(props: Props<T>) => {
   if (!props.visible) {
     return null
   }

@@ -3,12 +3,12 @@ import * as React from 'react'
 
 // Mobile only. Show native dropdown UI.
 
-export type PickerItem = {|label: string, value: string | number|}
+export type PickerItem<T> = {|label: string, value: T|}
 
-export type Props = {
-  items: PickerItem[], // values must be unique
-  selectedValue: string | number,
-  onSelect: (string | number) => void,
+export type Props<T: string | number> = {
+  items: PickerItem<T>[], // values must be unique
+  selectedValue: T,
+  onSelect: T => void,
   header?: React.Node,
   prompt?: React.Node,
   promptString?: string, // used on android as title of selection popup
@@ -18,4 +18,4 @@ export type Props = {
   visible: boolean,
 }
 
-declare export default class FloatingPicker extends React.Component<Props> {}
+declare export default class FloatingPicker<T: string | number> extends React.Component<Props<T>> {}
