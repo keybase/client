@@ -245,7 +245,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
               ref={this.props.setAttachmentRef}
               style={Styles.collapseStyles([
                 styles.explodingIconContainer,
-                this.props.explodingModeSeconds && {
+                !!this.props.explodingModeSeconds && {
                   backgroundColor: Styles.globalColors.black_75,
                 },
               ])}
