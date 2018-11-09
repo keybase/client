@@ -102,6 +102,7 @@ something unrelated
 
 > Separate paragraph
 `,
+  'Quotes super nested': `> > > > > > > > > foo bar`,
   'Quotes 3': `> _foo_ and *bar*! \`\`\`
 a = 1
 \`\`\`
