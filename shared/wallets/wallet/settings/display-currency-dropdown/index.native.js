@@ -27,6 +27,7 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
     this.setState(s => ({
       showingMenu: !s.showingMenu,
     }))
+  _close = () => this.setState({selected: this.props.selected.code, showingMenu: false})
   _onDone = () => {
     this.props.onCurrencyChange(this.state.selected)
     this.setState({showingMenu: false})
@@ -56,8 +57,8 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
           selectedValue={this.state.selected}
           onSelect={selected => this.setState({selected})}
           prompt={<Prompt />}
-          onHidden={this._toggleShowingMenu}
-          onCancel={this._toggleShowingMenu}
+          onHidden={this._close}
+          onCancel={this._close}
           onDone={this._onDone}
           visible={this.state.showingMenu}
         />
