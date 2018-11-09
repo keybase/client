@@ -103,7 +103,7 @@ func TestScraper(t *testing.T) {
 		SiteName:    "CNN",
 		Description: strPtr("Just weeks after visiting the White House, Kanye West appears to be a little tired of politics."),
 		ImageUrl:    strPtr("https://cdn.cnn.com/cnnnext/dam/assets/181011162312-11-week-in-photos-1011-super-tease.jpg"),
-		FaviconUrl:  strPtr("http://127.0.0.1/favicon.ie9.ico"),
+		FaviconUrl:  strPtr("http://cdn.cnn.com/cnn/.e/img/3.0/global/misc/apple-touch-icon.png"),
 	}))
 	testCase("wsj0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "U.S. Stocks Jump as Tough Month Sets to Wrap",
@@ -111,7 +111,7 @@ func TestScraper(t *testing.T) {
 		SiteName:    "WSJ",
 		Description: strPtr("A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors."),
 		ImageUrl:    strPtr("https://images.wsj.net/im-33925/social"),
-		FaviconUrl:  strPtr("https://s.wsj.net/media/wsj_favicon-16x16.png"),
+		FaviconUrl:  strPtr("https://s.wsj.net/media/wsj_apple-touch-icon-180x180.png"),
 	}))
 	testCase("nytimes0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "First Up if Democrats Win: Campaign and Ethics Changes, Infrastructure and Drug Prices",
@@ -119,7 +119,7 @@ func TestScraper(t *testing.T) {
 		SiteName:    "0.1", // the default for these tests (from the localhost domain)
 		Description: strPtr("House Democratic leaders, for the first time, laid out an ambitious opening salvo of bills for a majority, including an overhaul of campaign and ethics laws."),
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
-		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/favicon-4bf96cb6a1093748bf5b3c429accb9b4.ico"),
+		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/apple-touch-icon-319373aaf4524d94d38aa599c56b8655.png"),
 	}))
 	testCase("github0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "keybase/client",
@@ -143,7 +143,7 @@ func TestScraper(t *testing.T) {
 		SiteName:    "Twitter",
 		Description: strPtr("“Nintendo recommits to “keep the business going” for 3DS https://t.co/wTIJxmGTJH by @KyleOrl”"),
 		ImageUrl:    strPtr("https://pbs.twimg.com/profile_images/2215576731/ars-logo_400x400.png"),
-		FaviconUrl:  strPtr("http://abs.twimg.com/favicons/favicon.ico"),
+		FaviconUrl:  strPtr("https://abs.twimg.com/icons/apple-touch-icon-192x192.png"),
 	}))
 	testCase("pinterest0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Halloween",
@@ -166,7 +166,7 @@ func TestScraper(t *testing.T) {
 		SiteName:    "reddit",
 		Description: strPtr("r/Stellar: Stellar is a decentralized protocol that enables you to send money to anyone in the world, for fractions of a penny, instantly, and in any currency.  \n\n/r/Stellar is for news, announcements and discussion related to Stellar.\n\nPlease focus on community-oriented content, such as news and discussions, instead of individual-oriented content, such as questions and help. Follow the [Stellar Community Guidelines](https://www.stellar.org/community-guidelines/) ."),
 		ImageUrl:    strPtr("https://b.thumbs.redditmedia.com/D857u25iiE2ORpt8yVx7fCuiMlLVP-b5fwSUjaw4lVU.png"),
-		FaviconUrl:  strPtr("https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-57x57.png"),
+		FaviconUrl:  strPtr("https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-180x180.png"),
 	}))
 	testCase("etsy0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "The Beatles - Minimalist Poster - Sgt Pepper",
