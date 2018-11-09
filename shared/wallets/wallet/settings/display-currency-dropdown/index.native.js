@@ -20,9 +20,9 @@ const Prompt = () => (
   </Kb.Box2>
 )
 
-type State = {selected: Types.CurrencyCode, showingMenu: boolean}
+type State = {selected: Types.CurrencyCode, showingMenu: boolean, showingToast: boolean}
 class DisplayCurrencyDropdown extends React.Component<Props, State> {
-  state = {selected: this.props.selected.code, showingMenu: false}
+  state = {selected: this.props.selected.code, showingMenu: false, showingToast: false}
   _toggleShowingMenu = () =>
     this.setState(s => ({
       showingMenu: !s.showingMenu,
@@ -30,6 +30,14 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
   _onDone = () => {
     this.props.onCurrencyChange(this.state.selected)
     this.setState({showingMenu: false})
+  }
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.selected.code === this.state.selected && prevProps.selected.code !== this.state.selected) {
+      this.setState({showingToast: true})
+      setTimeout(() => this.setState({showingToast: false}), 1000)
+    } else if (this.props.selected.code !== prevProps.selected.code) {
+      this.setState({selected: this.props.selected.code})
+    }
   }
   render() {
     return (
@@ -53,6 +61,14 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
           onDone={this._onDone}
           visible={this.state.showingMenu}
         />
+        <Kb.Toast visible={this.state.showingToast}>
+          <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.white} fontSize={22} />
+            <Kb.Text type="BodySemibold" style={styles.toastText}>
+              Saved
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.Toast>
       </>
     )
   }
@@ -65,6 +81,9 @@ const styles = Styles.styleSheetCreate({
   },
   textAlignCenter: {
     textAlign: 'center',
+  },
+  toastText: {
+    color: Styles.globalColors.white,
   },
 })
 
