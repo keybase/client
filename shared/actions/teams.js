@@ -904,6 +904,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
 function* _createChannel(action: TeamsGen.CreateChannelPayload) {
   const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.createChannelWaitingKey(teamname)}))
   try {
     const result = yield Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -953,6 +954,8 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     )
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
+  } finally {
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.createChannelWaitingKey(teamname)}))
   }
 }
 

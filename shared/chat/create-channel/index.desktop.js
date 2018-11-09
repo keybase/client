@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
+import * as Constants from '../../constants/teams'
+import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import type {Props} from './index.types'
 
@@ -10,39 +11,39 @@ const errorHeader = (errorText: string) => {
   }
 
   return (
-    <Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
-      <Text
+    <Kb.Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
+      <Kb.Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
         backgroundMode={'HighRisk'}
       >
         {errorText}
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box>
   )
 }
 
 const CreateChannel = (props: Props) => (
-  <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
-    <Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
-      <Avatar isTeam={true} teamname={props.teamname} size={32} />
-      <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+  <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+    <Kb.Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
+      <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
+      <Kb.Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
         {props.teamname}
-      </Text>
-      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+      </Kb.Text>
+      <Kb.Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
         New chat channel
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box>
     {errorHeader(props.errorText)}
-    <Box style={_boxStyle}>
-      <Box style={_backStyle} onClick={props.onBack}>
-        <Icon style={_backIcon} type="iconfont-arrow-left" />
-        <Text type="BodyPrimaryLink" onClick={props.onBack}>
+    <Kb.Box style={_boxStyle}>
+      <Kb.Box style={_backStyle} onClick={props.onBack}>
+        <Kb.Icon style={_backIcon} type="iconfont-arrow-left" />
+        <Kb.Text type="BodyPrimaryLink" onClick={props.onBack}>
           Back
-        </Text>
-      </Box>
-      <Box style={_inputStyle}>
-        <Input
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Box style={_inputStyle}>
+        <Kb.Input
           autoFocus={true}
           style={{minWidth: 450}}
           hintText="Channel name"
@@ -50,9 +51,9 @@ const CreateChannel = (props: Props) => (
           onEnterKeyDown={props.onSubmit}
           onChangeText={channelname => props.onChannelnameChange(channelname)}
         />
-      </Box>
-      <Box style={_inputStyle}>
-        <Input
+      </Kb.Box>
+      <Kb.Box style={_inputStyle}>
+        <Kb.Input
           autoFocus={false}
           style={{minWidth: 450}}
           hintText="Description or topic (optional)"
@@ -60,13 +61,18 @@ const CreateChannel = (props: Props) => (
           onEnterKeyDown={props.onSubmit}
           onChangeText={description => props.onDescriptionChange(description)}
         />
-      </Box>
-      <ButtonBar>
-        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
-        <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </ButtonBar>
-    </Box>
-  </PopupDialog>
+      </Kb.Box>
+      <Kb.ButtonBar>
+        <Kb.Button type="Secondary" onClick={props.onClose} label="Cancel" />
+        <Kb.WaitingButton
+          waitingKey={Constants.createChannelWaitingKey(props.teamname)}
+          type="Primary"
+          onClick={props.onSubmit}
+          label="Save"
+        />
+      </Kb.ButtonBar>
+    </Kb.Box>
+  </Kb.PopupDialog>
 )
 
 const _inputStyle = {
