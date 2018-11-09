@@ -424,14 +424,14 @@ export const uiMessageEditToMessage = (
   }
 }
 
-const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
+const uiMessageToSystemMessage = (common, body): ?Types.Message => {
   switch (body.systemType) {
     case RPCChatTypes.localMessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
       const {adder = '', addee = '', team = '', admins} = body.addedtoteam || {}
-      const isAdmin = (admins || []).includes(minimum.author)
+      const isAdmin = (admins || []).includes(common.author)
       return makeMessageSystemAddedToTeam({
-        ...minimum,
+        ...common,
         addee,
         adder,
         isAdmin,
@@ -476,7 +476,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           break
       }
       return makeMessageSystemInviteAccepted({
-        ...minimum,
+        ...common,
         adder,
         inviteType,
         invitee,
@@ -487,7 +487,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
     case RPCChatTypes.localMessageSystemType.complexteam: {
       const {team = ''} = body.complexteam || {}
       return makeMessageSystemSimpleToComplex({
-        ...minimum,
+        ...common,
         team,
       })
     }
@@ -495,14 +495,14 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
         text: new HiddenString(`${creator} created a new team ${team}.`),
-        ...minimum,
+        ...common,
       })
     }
     case RPCChatTypes.localMessageSystemType.gitpush: {
       const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs} =
         body.gitpush || {}
       return makeMessageSystemGitPush({
-        ...minimum,
+        ...common,
         pushType,
         pusher,
         refs: refs || [],
@@ -515,7 +515,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         text: new HiddenString(`${user} changed team avatar`),
-        ...minimum,
+        ...common,
       })
     }
     default:
@@ -684,7 +684,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.leave:
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
-      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
+      return m.messageBody.system ? uiMessageToSystemMessage(common, m.messageBody.system) : null
     case RPCChatTypes.commonMessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({
