@@ -174,9 +174,9 @@ const provider = Sb.createPropProviderWithCommon({
     visible: false,
     yourMessage: false,
   }),
-  WrapperTimestamp: p => {
+  WrapperMessage: p => {
     const {children, isEditing, measure, message, previous} = p
-    // Want to mimick the timestamp logic in WrapperTimestamp
+    // Want to mimick the timestamp logic in WrapperMessage
     const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
     return {
       children,

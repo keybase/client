@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
-import {WrapperTimestamp} from '../'
+import {WrapperMessage} from '../'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import {namedConnect} from '../../../../../util/container'
-import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type OwnProps = {|
   children?: React.Node,
@@ -44,19 +43,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {ordinal, previous} = stateProps
   const {message} = ownProps
 
-  // Placeholder messages can be !previous but have a zero-timestamp, so we can't
-  // try to show a timestamp for them.
-  const showTimestamp =
-    Constants.enoughTimeBetweenMessages(message, previous) || (message.timestamp && !previous)
-
-  const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
-
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
     Constants.authorIsCollapsible(message) &&
     Constants.authorIsCollapsible(previous)
-  const isShowingUsername = !previous || !sequentialUserMessages || !!timestamp
+  const isShowingUsername = !previous || !sequentialUserMessages
 
   let type = 'children'
   if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
@@ -79,7 +71,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ordinal,
     previous: ownProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
-    timestamp,
     type,
   }
 }
@@ -88,5 +79,5 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps,
-  'WrapperTimestamp'
-)(WrapperTimestamp)
+  'WrapperMessage'
+)(WrapperMessage)

@@ -1,5 +1,5 @@
 // @flow
-import WrapperTimestamp from './wrapper-timestamp'
+import WrapperMessage from './wrapper-message'
 import WrapperAuthor from './wrapper-author'
 
-export {WrapperAuthor, WrapperTimestamp}
+export {WrapperAuthor, WrapperMessage}
