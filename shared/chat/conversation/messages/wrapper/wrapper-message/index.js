@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import {Box, Box2, Icon, OverlayParentHOC, type OverlayParentProps} from '../../../../../common-adapters'
 import {dismiss as dismissKeyboard} from '../../../../../util/keyboard'
-import Timestamp from '../timestamp'
 import * as Styles from '../../../../../styles'
 import WrapperAuthor from '../wrapper-author/container'
 import ReactionsRow from '../../reactions-row/container'
@@ -13,7 +12,7 @@ import ExplodingMeta from '../exploding-meta/container'
 import LongPressable from './long-pressable'
 
 /**
- * WrapperTimestamp adds the orange line, timestamp, menu button, menu, reacji
+ * WrapperMessage adds the orange line, menu button, menu, reacji
  * button, and exploding meta tag.
  */
 
@@ -29,7 +28,6 @@ export type Props = {|
   previous: ?Types.Message,
   children?: React.Node,
   isEditing: boolean,
-  timestamp: string,
   // 'children': render children directly
   // 'wrapper-author': additionally render WrapperAuthor and tell it the message type
   type: 'wrapper-author' | 'children',
@@ -44,16 +42,11 @@ type State = {
   showingPicker: boolean,
   showMenuButton: boolean,
 }
-class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
+class _WrapperMessage extends React.Component<Props & OverlayParentProps, State> {
   state = {showingPicker: false, showMenuButton: false}
   componentDidUpdate(prevProps: Props) {
-    if (this.props.measure) {
-      if (
-        this.props.orangeLineAbove !== prevProps.orangeLineAbove ||
-        this.props.timestamp !== prevProps.timestamp
-      ) {
-        this.props.measure()
-      }
+    if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
+      this.props.measure()
     }
   }
   _onMouseOver = () => {
@@ -69,11 +62,10 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
-          className={Styles.classNames('WrapperTimestamp-hoverBox', {
+          className={Styles.classNames('WrapperMessage-hoverBox', {
             active: props.showingMenu || this.state.showingPicker,
-            'WrapperTimestamp-decorated': props.decorate,
+            'WrapperMessage-decorated': props.decorate,
           })}
           {...(Styles.isMobile && props.decorate
             ? {
@@ -147,7 +139,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
     )
   }
 }
-const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
+const WrapperMessage = OverlayParentHOC(_WrapperMessage)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -261,4 +253,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default WrapperTimestamp
+export default WrapperMessage
