@@ -6,17 +6,16 @@ import ErrorPage from '../provision/error/container'
 import PaperKey from './paper-key/container'
 import RevokeDevice from './device-revoke/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import {isIPhoneX} from '../constants/platform'
 
 const routeTree = makeRouteDefNode({
   children: {
     error: {
       component: ErrorPage,
-      tags: makeLeafTags({hideStatusBar: true, underStatusBar: !isIPhoneX, fullscreen: true}),
+      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
     },
     codePage: {
       component: CodePage,
-      tags: makeLeafTags({hideStatusBar: true, underStatusBar: !isIPhoneX, fullscreen: true}),
+      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
     },
     devicePage: {
       children: {

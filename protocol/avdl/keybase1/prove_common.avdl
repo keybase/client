@@ -118,14 +118,10 @@ protocol proveCommon {
   }
 
   record ParamProofServiceConfig {
-    @jsonkey("schema_version")
-    int schemaVersion;
-    @jsonkey("config_version")
-    int configVersion;
+    int version;
     string domain;
     @jsonkey("display_name")
     string displayName;
-    union { null, string } group;
     union { null, ParamProofLogoConfig} logo;
     string description;
     @jsonkey("username")
@@ -142,4 +138,16 @@ protocol proveCommon {
     array<SelectorEntry> checkPath;
   }
 
+  record ServiceDisplayConfig {
+    int priority;
+    string key;
+    union { null, string } group;
+  }
+
+  record ExternalServiceConfig {
+    @jsonkey("schema_version")
+    int schemaVersion;
+    union { null, ServiceDisplayConfig } display;
+    union { null, ParamProofServiceConfig } config;
+  }
 }

@@ -34,7 +34,8 @@ const SetDefaultAccountPopup = (props: Props) => {
 
   return (
     <WalletPopup
-      onClose={props.onClose}
+      onExit={props.onClose}
+      backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
@@ -84,6 +85,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
+      textAlign: 'center',
     },
     isElectron: {
       marginBottom: Styles.globalMargins.medium,

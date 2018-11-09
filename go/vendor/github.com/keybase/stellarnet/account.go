@@ -3,12 +3,12 @@ package stellarnet
 import (
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	snetwork "github.com/stellar/go/network"
@@ -104,7 +104,7 @@ func NewAccount(address AddressStr) *Account {
 func (a *Account) load() error {
 	internal, err := Client().LoadAccount(a.address.String())
 	if err != nil {
-		return errMapAccount(err)
+		return errMap(err)
 	}
 
 	a.internal = &internal
@@ -246,7 +246,7 @@ func IsMasterKeyActive(accountID AddressStr) (bool, error) {
 func AccountSeqno(address AddressStr) (uint64, error) {
 	seqno, err := Client().SequenceForAccount(address.String())
 	if err != nil {
-		return 0, errMapAccount(err)
+		return 0, errMap(err)
 	}
 	return uint64(seqno), nil
 }
@@ -346,7 +346,7 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 	var page PaymentsPage
 	err = getDecodeJSONStrict(Client().URL+"/transactions/"+txID+"/payments", Client().HTTP.Get, &page)
 	if err != nil {
-		return nil, errMap(err)
+		return nil, err
 	}
 	return page.Embedded.Records, nil
 }
@@ -355,7 +355,7 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 func TxDetails(txID string) (horizon.Transaction, error) {
 	var embed TransactionEmbed
 	if err := getDecodeJSONStrict(Client().URL+"/transactions/"+txID, Client().HTTP.Get, &embed); err != nil {
-		return horizon.Transaction{}, errMap(err)
+		return horizon.Transaction{}, err
 	}
 	return embed.Transaction, nil
 }
@@ -408,12 +408,31 @@ func HashTx(tx xdr.Transaction) (string, error) {
 func CheckTxID(txID string) (string, error) {
 	bs, err := hex.DecodeString(txID)
 	if err != nil {
-		return "", Error{Display: "invalid transaction ID", Details: fmt.Sprintf("error decoding transaction ID: %v", err)}
+		return "", fmt.Errorf("error decoding transaction ID: %v", err)
 	}
 	if len(bs) != 32 {
-		return "", Error{Display: "invalid transaction ID", Details: fmt.Sprintf("unexpected transaction ID length: %v bytes", len(bs))}
+		return "", fmt.Errorf("unexpected transaction ID length: %v bytes", len(bs))
 	}
 	return hex.EncodeToString(bs), nil
+}
+
+func isOpNoDestination(inErr error) bool {
+	herr, ok := inErr.(*horizon.Error)
+	if !ok {
+		return false
+	}
+	resultCodes, err := herr.ResultCodes()
+	if err != nil {
+		return false
+	}
+	if resultCodes.TransactionCode != "tx_failed" {
+		return false
+	}
+	if len(resultCodes.OperationCodes) != 1 {
+		// only handle one operation now
+		return false
+	}
+	return resultCodes.OperationCodes[0] == "op_no_destination"
 }
 
 // SendXLM sends 'amount' lumens from 'from' account to 'to' account.
@@ -448,7 +467,7 @@ func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32
 func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
 	sig, err := PaymentXLMTransaction(from, to, amount, memoText, Client())
 	if err != nil {
-		return 0, "", errMap(err)
+		return 0, "", err
 	}
 	return Submit(sig.Signed)
 }
@@ -467,7 +486,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 		build.MemoText{Value: memoText},
 	)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	return sign(from, tx)
 }
@@ -477,7 +496,7 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
 	sig, err := CreateAccountXLMTransaction(from, to, amount, memoText, Client())
 	if err != nil {
-		return 0, "", errMap(err)
+		return 0, "", err
 	}
 	return Submit(sig.Signed)
 }
@@ -497,7 +516,7 @@ func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount, memoText s
 		build.MemoText{Value: memoText},
 	)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	return sign(from, tx)
 }
@@ -515,7 +534,7 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 		build.MemoText{Value: defaultMemo},
 	)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	return sign(from, tx)
 }
@@ -525,25 +544,29 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 // If `toIsFunded` then this is just an account merge transaction.
 // Otherwise the transaction is two operations: [create_account, account_merge].
 func RelocateTransaction(from SeedStr, to AddressStr, toIsFunded bool,
-	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
-	if toIsFunded {
-		return AccountMergeTransaction(from, to, seqnoProvider)
-	}
-	tx, err := build.Transaction(
+	memoID *uint64, seqnoProvider build.SequenceProvider) (res SignResult, err error) {
+	muts := []build.TransactionMutator{
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
-		build.CreateAccount(
+	}
+	if !toIsFunded {
+		muts = append(muts, build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: "1"},
-		),
+		))
+	}
+	muts = append(muts, []build.TransactionMutator{
 		build.AccountMerge(
 			build.Destination{AddressOrSeed: to.String()},
 		),
-		build.MemoText{Value: defaultMemo},
-	)
+	}...)
+	if memoID != nil {
+		muts = append(muts, build.MemoID{Value: *memoID})
+	}
+	tx, err := build.Transaction(muts...)
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	return sign(from, tx)
 }
@@ -559,16 +582,16 @@ type SignResult struct {
 func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error) {
 	txe, err := tx.Sign(from.SecureNoLogString())
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	seqno := uint64(txe.E.Tx.SeqNum)
 	signed, err := txe.Base64()
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	txHashHex, err := tx.HashHex()
 	if err != nil {
-		return res, errMap(err)
+		return res, err
 	}
 	return SignResult{
 		Seqno:  seqno,
@@ -592,8 +615,9 @@ func (a *Account) paymentsLink(cursor string, limit int) string {
 	link := Client().URL + "/accounts/" + a.address.String() + "/payments"
 	if cursor != "" {
 		return fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
+	} else {
+		return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
 	}
-	return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
 }
 
 // transactionsLink returns the horizon endpoint to get payment information.
@@ -601,8 +625,31 @@ func (a *Account) transactionsLink(cursor string, limit int) string {
 	link := Client().URL + "/accounts/" + a.address.String() + "/transactions"
 	if cursor != "" {
 		return fmt.Sprintf("%s?cursor=%s&order=desc&limit=%d", link, cursor, limit)
+	} else {
+		return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
 	}
-	return fmt.Sprintf("%s?order=desc&limit=%d", link, limit)
+}
+
+// errMap maps some horizon errors to stellarnet errors.
+func errMap(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	// the error might be wrapped, so get the unwrapped error
+	xerr := errors.Cause(err)
+
+	if isOpNoDestination(xerr) {
+		return ErrDestinationAccountNotFound
+	}
+
+	if herr, ok := xerr.(*horizon.Error); ok {
+		if herr.Problem.Status == 404 {
+			return ErrSourceAccountNotFound
+		}
+	}
+
+	return err
 }
 
 func minBytes(bs []byte, deflt byte) byte {
@@ -624,7 +671,7 @@ func minBytes(bs []byte, deflt byte) byte {
 func getDecodeJSONStrict(url string, getter func(string) (*http.Response, error), dest interface{}) error {
 	resp, err := getter(url)
 	if err != nil {
-		return errMap(err)
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
@@ -633,16 +680,10 @@ func getDecodeJSONStrict(url string, getter func(string) (*http.Response, error)
 		}
 		err := json.NewDecoder(resp.Body).Decode(&horizonError.Problem)
 		if err != nil {
-			return Error{
-				Display: "stellar network error",
-				Details: fmt.Sprintf("horizon http error: %v %v, decode body error: %s", resp.StatusCode, resp.Status, err),
-			}
+			return fmt.Errorf("horizon http error: %v %v", resp.StatusCode, resp.Status)
 		}
-		return errMap(horizonError)
+		return horizonError
 	}
-	if err := json.NewDecoder(resp.Body).Decode(dest); err != nil {
-		return errMap(err)
-	}
-
-	return nil
+	err = json.NewDecoder(resp.Body).Decode(dest)
+	return err
 }

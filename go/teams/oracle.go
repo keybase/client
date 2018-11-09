@@ -27,7 +27,7 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 			// per team keys start from generation 1.
 			min = 1
 		}
-		for gen := min; gen <= team.Generation(); gen++ {
+		for gen := team.Generation(); gen >= min; gen-- {
 			key, err := team.encryptionKeyAtGen(mctx.Ctx(), gen)
 			if err != nil {
 				mctx.CDebugf("Failed to get key gen %d: %v", gen, err)
@@ -67,20 +67,14 @@ func TryDecryptWithTeamKey(mctx libkb.MetaContext, arg keybase1.TryDecryptWithTe
 	mctx.CDebugf("Repolling team")
 
 	// Repoll the team and if we get more keys, try again.
-	lastGen := team.Generation()
 	loadArg.Refreshers = keybase1.TeamRefreshers{}
 	loadArg.ForceRepoll = true
 	team, err = Load(mctx.Ctx(), mctx.G(), loadArg)
 	if err != nil {
 		return nil, err
 	}
-	if team.Generation() == lastGen {
-		// There are no new keys to try
-		mctx.CDebugf("Reloading team did not yield any new keys")
-		return nil, libkb.DecryptionError{}
-	}
 	mctx.CDebugf("Reloaded team %q, max key generation is %d", team.ID, team.Generation())
-	ret, found, err = tryKeys(lastGen + 1)
+	ret, found, err = tryKeys(1)
 	if err != nil {
 		return nil, err
 	}

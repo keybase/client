@@ -49,6 +49,7 @@ const load = () => {
         {story()}
       </Box2>
     ))
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Sending to Keybase user', () => (
       <TransactionDetails
         {...props}

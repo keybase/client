@@ -154,4 +154,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ExplodingPopup')(Exploding)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ExplodingPopup'
+)(Exploding)

@@ -32,7 +32,7 @@ const RootLogin = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(_RootLogin)
 
-const addTags = component => ({component, tags: makeLeafTags({underStatusBar: true})})
+const addTags = component => ({component, tags: makeLeafTags({hideStatusBar: true})})
 
 const recursiveLazyRoutes = I.Seq({
   feedback: addTags(Feedback),

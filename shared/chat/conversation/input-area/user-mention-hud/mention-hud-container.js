@@ -1,13 +1,27 @@
 // @flow
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
-import {MentionHud} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {namedConnect} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as I from 'immutable'
+import * as React from 'react'
+import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/chat2'
 import logger from '../../../../logger'
 import type {MentionHudProps} from '.'
+import memoize from 'memoize-one'
+import {MentionHud} from '.'
+import {namedConnect} from '../../../../util/container'
+
+type OwnProps = {|
+  filter: string,
+  conversationIDKey: Types.ConversationIDKey,
+  onPickUser?: (string, options?: {notUser: boolean}) => void,
+  onSelectUser?: string => void,
+  pickSelectedUserCounter?: number,
+  selectDownCounter?: number,
+  selectUpCounter?: number,
+  selectedIndex?: number,
+  style?: Styles.StylesCrossPlatform,
+|}
 
 const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -46,20 +60,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
 
-  const users = participants
-    .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
-    .toArray()
   return {
     ...ownProps,
     _generalChannelConversationIDKey,
     _loadParticipants: dispatchProps._loadParticipants,
     conversationIDKey: stateProps.conversationIDKey,
     filter: stateProps._filter.toLowerCase(),
+    loading: participants.isEmpty(),
     teamType: stateProps.teamType,
-    loading: users.length === 0,
-    users,
+    users: participantsToUsers(participants, stateProps._infoMap),
   }
 }
+
+const participantsToUsers = memoize((p, infoMap) =>
+  p.map(p => ({fullName: infoMap.getIn([p, 'fullname'], ''), username: p})).toArray()
+)
 
 class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   componentDidMount() {
@@ -81,7 +96,7 @@ class AutoLoadMentionHud extends React.Component<MentionHudProps> {
   }
 }
 // TODO fix up the typing of this component
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

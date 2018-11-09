@@ -23,7 +23,7 @@ const Overlay = (props: Props) => {
       >
         <TouchableWithoutFeedback onPress={props.onHidden}>
           {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
-          <Box style={styles.flexOne} />
+          <Box style={styles.touchArea} />
         </TouchableWithoutFeedback>
         {props.children}
       </Box2>
@@ -38,8 +38,8 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.black_40,
     justifyContent: 'flex-end',
   },
-  flexOne: {
-    flex: 1,
+  touchArea: {
+    ...globalStyles.fillAbsolute,
   },
 })
 

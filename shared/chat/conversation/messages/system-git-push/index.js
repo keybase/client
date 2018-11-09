@@ -1,12 +1,12 @@
 // @flow
 import {invert} from 'lodash-es'
 import * as React from 'react'
+import * as RPCTypes from '../../../../constants/types/rpc-gen'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {gitGitPushType} from '../../../../constants/types/rpc-gen'
 
 const branchRefPrefix = 'refs/heads/'
 
@@ -17,7 +17,7 @@ type Props = {
 }
 
 // Map [int] -> 'push type string'
-const gitPushType = invert(gitGitPushType)
+const gitPushType = invert(RPCTypes.gitGitPushType)
 
 const connectedUsernamesProps = {
   onUsernameClicked: 'profile',
@@ -107,7 +107,13 @@ const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onVi
   )
 }
 
-const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}) => (
+type PushCommonProps = {
+  children: React.Node,
+  pusher: string,
+  timestamp: number,
+  onClickUserAvatar: string => void,
+}
+const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
   <UserNotice
     username={pusher}
     style={{marginTop: globalMargins.small}}

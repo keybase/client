@@ -65,7 +65,8 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     return (
       <WalletPopup
         bottomButtons={buttons}
-        onClose={this.props.onNotNow}
+        onExit={this.props.onNotNow}
+        backButtonType="close"
         buttonBarDirection="column"
         containerStyle={styles.container}
         buttonBarStyle={styles.buttonBar}

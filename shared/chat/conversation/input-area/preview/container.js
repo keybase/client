@@ -5,6 +5,10 @@ import * as Types from '../../../../constants/types/chat2'
 import ChannelPreview from '.'
 import {connect} from '../../../../util/container'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
+
 const mapStateToProps = (state, {conversationIDKey}) => {
   const _meta = Constants.getMeta(state, conversationIDKey)
   return {
@@ -26,7 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onLeaveChannel: () => dispatchProps._onLeaveChannel(stateProps._conversationIDKey),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

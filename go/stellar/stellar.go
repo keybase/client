@@ -3,6 +3,7 @@ package stellar
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
@@ -60,6 +62,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return false, err
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
+	go getGlobal(g).KickAutoClaimRunner(libkb.NewMetaContext(ctx, g), gregor1.MsgID{})
 	return true, nil
 }
 
@@ -226,19 +229,17 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
+func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
 	bundle, _, err := remote.Fetch(ctx, g)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
-
 	for _, account := range bundle.Accounts {
 		if account.AccountID.Eq(accountID) {
-			return true, nil
+			return true, account.IsPrimary, nil
 		}
 	}
-
-	return false, nil
+	return false, false, nil
 }
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntry, error) {
@@ -456,7 +457,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
 	}
 
-	ownRecipient, err := OwnAccount(m.Ctx(), m.G(),
+	ownRecipient, _, err := OwnAccount(m.Ctx(), m.G(),
 		stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		m.CDebugf("error determining if user own's recipient: %v", err)
@@ -688,8 +689,15 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		useDir = *dir
 	}
 	sp := NewSeqnoProvider(ctx, remoter)
+	// Throw a random ID into the transaction memo so that we get a new txID each time.
+	// This makes it easy to resubmit without hitting a txID collision on the server.
+	memoID, err := randMemoID()
+	if err != nil {
+		return res, err
+	}
+	g.Log.CDebugf(ctx, "using randomized memo ID: %v", memoID)
 	sig, err := stellarnet.RelocateTransaction(stellarnet.SeedStr(skey.SecureNoLogString()),
-		stellarnet.AddressStr(into.String()), destinationFunded, sp)
+		stellarnet.AddressStr(into.String()), destinationFunded, &memoID, sp)
 	if err != nil {
 		return res, fmt.Errorf("error building claim transaction: %v", err)
 	}
@@ -698,6 +706,14 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		Dir:               useDir,
 		SignedTransaction: sig.Signed,
 	})
+}
+
+func randMemoID() (uint64, error) {
+	buf, err := libkb.RandBytes(8)
+	if err != nil {
+		return 0, err
+	}
+	return binary.LittleEndian.Uint64(buf), nil
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {

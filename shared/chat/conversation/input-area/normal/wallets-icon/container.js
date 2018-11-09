@@ -3,8 +3,14 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
+import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
+
+type OwnProps = {|
+  size: number,
+  style?: Styles.StylesCrossPlatform,
+|}
 
 const mapStateToProps = state => ({
   _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),
@@ -58,8 +64,11 @@ const Wrapper = (props: WrapperProps) => {
   return null
 }
 
-const WalletsIcon = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
-  Wrapper
-)
+const WalletsIcon = Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'WalletsIcon'
+)(Wrapper)
 
 export default WalletsIcon

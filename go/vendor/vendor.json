@@ -575,10 +575,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "9DIyp8QFlTCu0gVt5PW7vA3fZe0=",
+			"checksumSHA1": "X618HA40TGuF28A9zkDpXpl98so=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "c8202c99b0703ffa3248c6a9e2be8d1ca2f07a47",
-			"revisionTime": "2018-10-25T17:28:32Z"
+			"revision": "ec308c87133d9cd9ced3648aee0559cec74e238a",
+			"revisionTime": "2018-11-06T14:21:05Z"
 		},
 		{
 			"path": "github.com/kr/pty",
@@ -618,6 +618,12 @@
 			"path": "github.com/miekg/dns",
 			"revision": "c862b7e359850847d4945cce311db2ea90cab7c0",
 			"revisionTime": "2017-03-10T21:57:03Z"
+		},
+		{
+			"checksumSHA1": "XzwNGOYMD2sbnNd4tFW2C3S9drQ=",
+			"path": "github.com/mvdan/xurls",
+			"revision": "e52e821cbfe8fe163ff6f8628ab5869b11fc05af",
+			"revisionTime": "2018-10-21T21:02:31Z"
 		},
 		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",

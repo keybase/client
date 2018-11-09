@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -170,4 +171,26 @@ func TestFormatVideoDuration(t *testing.T) {
 	testCase(4500000, "1:15:00")
 	testCase(4536000, "1:15:36")
 	testCase(3906000, "1:05:06")
+}
+
+func TestGetQueryRe(t *testing.T) {
+	queries := []string{
+		"foo",
+		"foo bar",
+		"foo bar, baz? :+1:",
+	}
+	expectedRe := []string{
+		"foo",
+		"foo bar",
+		"foo bar, baz\\? :\\+1:",
+	}
+	for i, query := range queries {
+		re, err := GetQueryRe(query)
+		require.NoError(t, err)
+		expected := regexp.MustCompile("(?i)" + expectedRe[i])
+		require.Equal(t, expected, re)
+		t.Logf("query: %v, expectedRe: %v, re: %v", query, expectedRe, re)
+		ok := re.MatchString(query)
+		require.True(t, ok)
+	}
 }
