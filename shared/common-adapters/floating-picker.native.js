@@ -30,6 +30,7 @@ const FloatingPicker = <T: string | number>(props: Props<T>) => {
           onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
+          itemStyle={styles.fontFamilyOpenSans}
         >
           {props.items.map(item => (
             <Picker.Item key={item.label} {...item} />
@@ -54,6 +55,9 @@ const styles = Styles.styleSheetCreate({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  fontFamilyOpenSans: {
+    fontFamily: 'OpenSans',
   },
   overlay: {
     ...Styles.globalStyles.flexBoxColumn,
