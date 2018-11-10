@@ -367,7 +367,11 @@ const rootReducer = (
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           )
-
+          logger.info(
+            `rootReducer: selectConversation: setting orange line: convID: ${
+              action.payload.conversationIDKey
+            } max: ${maxMsgID} read: ${readMsgID}`
+          )
           if (maxMsgID > readMsgID) {
             // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
