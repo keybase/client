@@ -10,6 +10,8 @@ import {
 } from '../../util/container'
 import * as Constants from '../../constants/teams'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
@@ -36,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedEditTeamDescription = compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

@@ -19,6 +19,8 @@ import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
+type OwnProps = RouteProps<{}, {}>
+
 const cleanPhoneNumber: string => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
 }
@@ -107,7 +109,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

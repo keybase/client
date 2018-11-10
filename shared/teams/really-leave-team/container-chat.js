@@ -8,6 +8,8 @@ import {getCanPerform, hasCanPerform, leaveTeamWaitingKey} from '../../constants
 import {type Teamname} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 
+type OwnProps = RouteProps<{}, {}>
+
 type Props = {|
   ...$Exact<RenderProps>,
   _canLeaveTeam: boolean,
@@ -69,7 +71,7 @@ class Switcher extends React.PureComponent<Props> {
 }
 
 export default Container.compose(
-  Container.connect(
+Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

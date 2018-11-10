@@ -5,6 +5,8 @@ import ReallyLeaveTeam from '.'
 import {navigateTo} from '../../../actions/route-tree'
 import {teamsTab} from '../../../constants/tabs'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {routeProps}) => ({
   member: routeProps.get('username') || routeProps.get('email'),
   name: routeProps.get('teamname'),
@@ -26,7 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

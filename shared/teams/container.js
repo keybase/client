@@ -11,6 +11,8 @@ import {compose, lifecycle, connect} from '../util/container'
 import {getSortedTeamnames} from '../constants/teams'
 import {type Teamname} from '../constants/types/teams'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = state => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
@@ -65,7 +67,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

@@ -7,6 +7,8 @@ import Title from '.'
 import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {teamname}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
@@ -31,7 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

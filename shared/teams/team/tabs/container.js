@@ -5,6 +5,8 @@ import Tabs from '.'
 import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
@@ -42,7 +44,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

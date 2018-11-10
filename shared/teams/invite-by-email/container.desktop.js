@@ -7,6 +7,8 @@ import {navigateAppend} from '../../actions/route-tree'
 import {connect} from '../../util/container'
 import {type OwnProps} from './container'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {routeProps}: OwnProps) => {
   const inviteError = Constants.getEmailInviteError(state)
   return {
@@ -53,7 +55,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
