@@ -548,7 +548,17 @@ const rootReducer = (
         return null
       }
 
-      const messageOrdinals = oldMessageOrdinals.withMutations(
+      let messageOrdinals = oldMessageOrdinals.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
+              set.subtract(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageOrdinals = messageOrdinals.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -583,16 +593,23 @@ const rootReducer = (
 
             map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
               // add new ones, remove deleted ones, sort
-              set
-                .concat(ordinals)
-                .subtract(convoToDeletedOrdinals[cid])
-                .sort()
+              set.concat(ordinals).sort()
             )
           })
         }
       )
 
-      const messageMap = oldMessageMap.withMutations(
+      let messageMap = oldMessageMap.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, (m = I.Map()) =>
+              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageMap = messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -611,11 +628,6 @@ const rootReducer = (
               }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
-
-            // remove deleted
-            map.update(conversationIDKey, (m = I.Map()) =>
-              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
-            )
           })
         }
       )
