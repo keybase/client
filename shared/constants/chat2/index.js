@@ -232,6 +232,7 @@ export {
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,
+  isDecryptingSnippet,
   makeConversationMeta,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,

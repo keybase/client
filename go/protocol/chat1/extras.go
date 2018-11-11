@@ -1885,10 +1885,10 @@ func (g UnfurlGenericRaw) String() string {
 	}
 	publishTime := ""
 	if g.PublishTime != nil {
-		publishTime = fmt.Sprintf("%d", *g.PublishTime)
+		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
 	}
 	return fmt.Sprintf(`Title: %s
-URL: %s
+Url: %s
 SiteName: %s
 PublishTime: %s
 Description: %s

@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@]|[.?]+[\w/=])*)?)/i
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -278,11 +278,17 @@ const rules = {
     // e.g. https://regex101.com/r/ZiDBsO/8
     parse: (capture, parse, state) => {
       const content = capture[0].replace(/^ *> */gm, '')
+      const blockQuoteRecursionLevel = state.blockQuoteRecursionLevel || 0
+      const nextState = {...state, blockQuoteRecursionLevel: blockQuoteRecursionLevel + 1}
+
       return {
-        content: parse(content, state),
+        content: parse(content, nextState),
       }
     },
     match: (source, state, lookbehind) => {
+      if (state.blockQuoteRecursionLevel > 6) {
+        return null
+      }
       const regex = /^( *>(?:[^\n](?!```))+\n?)+/
       // make sure the look behind is empty
       const emptyLookbehind = /^$|\n *$/
@@ -426,7 +432,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
   render() {
     if (this.state.hasError) {
       return (
-        <Text type="Body" style={styles.rootWrapper}>
+        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle])}>
           {this.props.children || ''}
         </Text>
       )
@@ -452,7 +458,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)
       return (
-        <Text type="Body" style={styles.rootWrapper}>
+        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle])}>
           {this.props.children || ''}
         </Text>
       )

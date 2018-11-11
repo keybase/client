@@ -25,14 +25,15 @@ const valuesCached = memoize((badgeMap, unreadMap, metaMap) =>
       hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
       conversation: v,
     }))
-    .sort((a, b) =>
-      a.hasBadge
-        ? b.hasBadge
-          ? b.conversation.timestamp - a.conversation.timestamp
-          : -1
-        : b.hasBadge
-          ? 1
-          : b.conversation.timestamp - a.conversation.timestamp
+    .sort(
+      (a, b) =>
+        a.hasBadge
+          ? b.hasBadge
+            ? b.conversation.timestamp - a.conversation.timestamp
+            : -1
+          : b.hasBadge
+            ? 1
+            : b.conversation.timestamp - a.conversation.timestamp
     )
     .take(maxShownConversations)
     .valueSeq()
@@ -43,11 +44,7 @@ const valuesCached = memoize((badgeMap, unreadMap, metaMap) =>
 let _username: string
 export const conversationsToSend = (state: TypedState) => {
   _username = state.config.username
-  return valuesCached(
-    state.chat2.badgeMap,
-    state.chat2.unreadMap,
-    state.chat2.metaMap,
-  )
+  return valuesCached(state.chat2.badgeMap, state.chat2.unreadMap, state.chat2.metaMap)
 }
 
 export const changeAffectsWidget = (
@@ -98,6 +95,7 @@ export const serialize = ({
       ? []
       : Constants.getRowParticipants(conversation, _username).toArray(),
     showBold: styles.showBold,
+    isDecryptingSnippet: false,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,
     subColor: styles.subColor,

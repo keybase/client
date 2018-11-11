@@ -431,7 +431,7 @@ const onChatInboxSynced = (syncRes, state) => {
       const username = state.config.username || ''
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
@@ -453,7 +453,9 @@ const onChatInboxSynced = (syncRes, state) => {
       // Unbox items
       actions.push(
         Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys: items.map(i => Types.stringToConversationIDKey(i.convID)),
+          conversationIDKeys: items
+            .filter(i => i.shouldUnbox)
+            .map(i => Types.stringToConversationIDKey(i.conv.convID)),
           force: true,
         })
       )

@@ -230,7 +230,7 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 	return nil
 }
 
-func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {
+func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConvFetcher, err error) {
 	fetcher.query.MessageTypes = []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
@@ -253,7 +253,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 	fetcher.query.MarkAsRead = markAsRead
 
 	if fetcher.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
-		return chatCLIConversationFetcher{}, err
+		return chatCLIConvFetcher{}, err
 	}
 
 	return fetcher, nil

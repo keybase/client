@@ -770,17 +770,29 @@ func (o ConversationStaleUpdate) DeepCopy() ConversationStaleUpdate {
 	}
 }
 
+type ChatSyncIncrementalConv struct {
+	Conv        UnverifiedInboxUIItem `codec:"conv" json:"conv"`
+	ShouldUnbox bool                  `codec:"shouldUnbox" json:"shouldUnbox"`
+}
+
+func (o ChatSyncIncrementalConv) DeepCopy() ChatSyncIncrementalConv {
+	return ChatSyncIncrementalConv{
+		Conv:        o.Conv.DeepCopy(),
+		ShouldUnbox: o.ShouldUnbox,
+	}
+}
+
 type ChatSyncIncrementalInfo struct {
-	Items []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Items []ChatSyncIncrementalConv `codec:"items" json:"items"`
 }
 
 func (o ChatSyncIncrementalInfo) DeepCopy() ChatSyncIncrementalInfo {
 	return ChatSyncIncrementalInfo{
-		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+		Items: (func(x []ChatSyncIncrementalConv) []ChatSyncIncrementalConv {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UnverifiedInboxUIItem, len(x))
+			ret := make([]ChatSyncIncrementalConv, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
