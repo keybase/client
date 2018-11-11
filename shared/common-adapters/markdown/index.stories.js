@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../index'
 import Markdown, {type MarkdownMeta} from '.'
-import {parserFromMeta} from './shared'
+import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
@@ -12,6 +12,14 @@ const cases = {
 
   
   foo`,
+  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
+  underscoreweirdness: `under_score the first, \`under_score the second\``,
+  boldweirdness: `How are you *today*?`,
+  transparentEmojis: ` 😀 😁 😍 ☝️ `,
+  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
+  transparentEmojis3: `😶`,
+  mailto: `email bob@keybase.io`,
+  nonemoji: `:party-parrot:`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
   paragraphs: `this is a sentence.
@@ -43,6 +51,7 @@ Ignore:
   mailto:blah@blah.com
   nytimes.json
 Include:
+  https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
   http://abc.io
   http://cbs.io/
   *http://cnn.io*
@@ -57,6 +66,7 @@ Include:
   http://t.co
   t.co
   10.0.0.24
+  https://10.0.0.24
   google.com
   keybase.io/a/user/lookup?one=1&two=2
   keybase.io/a/user/path_with_underscore
@@ -92,6 +102,7 @@ something unrelated
 
 > Separate paragraph
 `,
+  'Quotes super nested': `> > > > > > > > > foo bar`,
   'Quotes 3': `> _foo_ and *bar*! \`\`\`
 a = 1
 \`\`\`
@@ -239,15 +250,21 @@ class ShowAST extends React.Component<
 > {
   state = {visible: false}
   render = () => {
-    const parsed = this.props.simple
-      ? parserFromMeta(this.props.meta)((this.props.text || '') + '\n', {
-          inline: false,
-          disableAutoBlockNewlines: true,
-        })
-      : OriginalParser.parse(this.props.text, {
-          channelNameToConvID: (channel: string) => null,
-          isValidMention: (mention: string) => false,
-        })
+    let parsed
+    try {
+      parsed = this.props.simple
+        ? simpleMarkdownParser((this.props.text || '').trim() + '\n', {
+            inline: false,
+            disableAutoBlockNewlines: true,
+            markdownMeta: this.props.meta,
+          })
+        : OriginalParser.parse(this.props.text, {
+            channelNameToConvID: (channel: string) => null,
+            isValidMention: (mention: string) => false,
+          })
+    } catch (error) {
+      parsed = {error}
+    }
 
     return (
       <Kb.Box2 direction="vertical">
@@ -266,7 +283,7 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + '...'
+                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
                       : Array.isArray(v)
                         ? v.map(o => ({type: o.type, content: o.content}))
                         : v,

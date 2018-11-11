@@ -110,13 +110,15 @@ export const updateMeta = (
   meta: Types.ConversationMeta
 ): Types.ConversationMeta => {
   // Older/same version and same state?
-  if (meta.inboxVersion === old.inboxVersion) {
-    return old.merge({
-      snippet: meta.snippet,
-      snippetDecoration: meta.snippetDecoration,
-    })
-  } else if (meta.inboxVersion <= old.inboxVersion && meta.trustedState === old.trustedState) {
-    return old
+  if (meta.trustedState === old.trustedState) {
+    if (meta.inboxVersion === old.inboxVersion) {
+      return old.merge({
+        snippet: meta.snippet,
+        snippetDecoration: meta.snippetDecoration,
+      })
+    } else if (meta.inboxVersion < old.inboxVersion) {
+      return old
+    }
   }
 
   const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
@@ -356,3 +358,6 @@ export const getConversationRetentionPolicy = (
   const conv = getMeta(state, conversationIDKey)
   return conv.retentionPolicy
 }
+
+export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
+  meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'

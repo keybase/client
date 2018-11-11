@@ -39,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
+    isDecryptingSnippet: Constants.isDecryptingSnippet(stateProps._meta),
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
@@ -58,7 +59,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

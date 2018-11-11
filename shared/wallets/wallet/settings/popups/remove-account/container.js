@@ -1,8 +1,10 @@
 // @flow
-import {compose, connect, setDisplayName, safeSubmitPerMount} from '../../../../../util/container'
+import {compose, namedConnect, safeSubmitPerMount, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import RemoveAccountPopup from '.'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
@@ -15,21 +17,19 @@ const mapStateToProps = (state, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-    _onClose: () => dispatch(ownProps.navigateUp()),
-    _onDelete: (accountID: Types.AccountID) => {
-      dispatch(
-        ownProps.navigateAppend([
-          {
-            props: {accountID},
-            selected: 'reallyRemoveAccount',
-          },
-        ])
-      )
-    },
-  }
-}
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  _onClose: () => dispatch(ownProps.navigateUp()),
+  _onDelete: (accountID: Types.AccountID) => {
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          props: {accountID},
+          selected: 'reallyRemoveAccount',
+        },
+      ])
+    )
+  },
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   balance: stateProps.balance,
@@ -39,11 +39,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('RemoveAccountPopup'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'RemoveAccountPopup'),
   safeSubmitPerMount(['onDelete'])
 )(RemoveAccountPopup)

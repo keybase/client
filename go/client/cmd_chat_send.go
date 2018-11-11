@@ -67,6 +67,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: flags,
 	}

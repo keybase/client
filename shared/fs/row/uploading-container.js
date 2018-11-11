@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Uploading from './uploading'
 
 type OwnProps = {
@@ -34,11 +34,4 @@ const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: Own
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ConnectedUploadingRow')
-)(Uploading)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedUploadingRow')(Uploading)

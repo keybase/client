@@ -4,13 +4,15 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampLine} from '../transaction'
+import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
+import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
+  // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
   loading: false,
@@ -21,8 +23,7 @@ export type NotLoadingProps = {|
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
   title: string,
-  // onChat and onShowProfile are used only when counterpartyType ===
-  // 'keybaseUser'.
+  // onChat is used only when counterpartyType === 'keybaseUser'.
   onChat: string => void,
   onLoadPaymentDetail: () => void,
   onShowProfile: string => void,
@@ -45,64 +46,74 @@ export type Props =
   | NotLoadingProps
   | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
-type CounterpartyIconProps = {|
-  onShowProfile: string => void,
-  counterparty: string,
-  counterpartyType: Types.CounterpartyType,
+type PartyAccountProps = {|
+  accountID: ?Types.AccountID,
+  accountName: string,
 |}
 
-export const CounterpartyIcon = (props: CounterpartyIconProps) => {
-  const size = 32
-  switch (props.counterpartyType) {
-    case 'keybaseUser':
-      return (
-        <Kb.Avatar
-          onClick={() => props.onShowProfile(props.counterparty)}
-          username={props.counterparty}
-          size={size}
-        />
-      )
-    case 'stellarPublicKey':
-      return <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: size, width: size}} />
-    case 'otherAccount':
-      return <Kb.Icon type="icon-wallet-32" style={{height: size, width: size}} />
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
-      return null
-  }
+const PartyAccount = (props: PartyAccountProps) => {
+  return (
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
+      <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
+      <Kb.Box2 direction="vertical">
+        <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
+        {props.accountID && <SmallAccountID accountID={props.accountID} />}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
-type CounterpartyTextProps = {|
+type CounterpartyProps = {|
+  accountID: ?Types.AccountID,
   counterparty: string,
+  // counterpartyMeta is used only when counterpartyType ===  'keybaseUser'.
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  // onChat and onShowProfile are used only when counterpartyType ===
+  // 'keybaseUser'.
+  onChat: string => void,
   onShowProfile: string => void,
 |}
 
-export const CounterpartyText = (props: CounterpartyTextProps) => {
+const Counterparty = (props: CounterpartyProps) => {
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
-        <Kb.ConnectedUsernames
-          colorFollowing={true}
-          colorBroken={true}
-          inline={true}
-          onUsernameClicked={props.onShowProfile}
-          type="BodySmallSemibold"
-          underline={true}
-          usernames={[props.counterparty]}
-        />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.NameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            onClick={() => props.onShowProfile(props.counterparty)}
+            username={props.counterparty}
+            metaOne={props.counterpartyMeta}
+            underline={true}
+            metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
+          />
+          <Kb.Button
+            type="Secondary"
+            label="Chat"
+            small={true}
+            style={styles.chatButton}
+            onClick={() => props.onChat(props.counterparty)}
+          />
+        </Kb.Box2>
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-          {props.counterparty}
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
+          <Kb.Text
+            type="BodySemibold"
+            selectable={true}
+            style={styles.stellarPublicKey}
+            title={props.counterparty}
+          >
+            {props.counterparty}
+          </Kb.Text>
+        </Kb.Box2>
       )
     case 'otherAccount':
-      return <Kb.Text type="BodySemibold">{props.counterparty}</Kb.Text>
+      return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -113,60 +124,18 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   return null
 }
 
-type CounterpartyProps = {|
+type YourAccountProps = {|
   accountID: ?Types.AccountID,
-  counterparty: string,
-  counterpartyMeta: ?string,
-  counterpartyType: Types.CounterpartyType,
+  accountName: ?string,
+  you: string,
   onShowProfile: string => void,
 |}
 
-const Counterparty = (props: CounterpartyProps) => {
-  if (props.counterpartyType === 'keybaseUser') {
-    return (
-      <Kb.NameWithIcon
-        colorFollowing={true}
-        horizontal={true}
-        onClick={() => props.onShowProfile(props.counterparty)}
-        username={props.counterparty}
-        metaOne={props.counterpartyMeta}
-        underline={true}
-        metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
-      />
-    )
+const YourAccount = (props: YourAccountProps) => {
+  if (props.accountName) {
+    return <PartyAccount accountID={props.accountID} accountName={props.accountName} />
   }
-
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <CounterpartyIcon
-        counterparty={props.counterparty}
-        counterpartyType={props.counterpartyType}
-        onShowProfile={props.onShowProfile}
-      />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
-        <CounterpartyText
-          counterparty={props.counterparty}
-          counterpartyType={props.counterpartyType}
-          onShowProfile={props.onShowProfile}
-        />
-        {props.counterpartyType !== 'stellarPublicKey' &&
-          props.accountID && <SmallAccountID accountID={props.accountID} />}
-      </Kb.Box2>
-    </Kb.Box2>
-  )
-}
-
-const YourAccount = props => {
-  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
-  return props.counterpartyType === 'otherAccount' && props.yourAccountName ? (
-    <Counterparty
-      counterpartyType={props.counterpartyType}
-      counterparty={props.yourAccountName}
-      accountID={yourAccountID}
-      onShowProfile={() => {}}
-      counterpartyMeta=""
-    />
-  ) : (
     <Kb.NameWithIcon
       colorFollowing={true}
       horizontal={true}
@@ -174,7 +143,7 @@ const YourAccount = props => {
       underline={true}
       username={props.you}
       metaOne="You"
-      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+      metaTwo={props.accountID ? <SmallAccountID accountID={props.accountID} /> : null}
     />
   )
 }
@@ -216,13 +185,23 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: NotLoadingProps) => {
+  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
+  const yourAccountName = props.counterpartyType === 'otherAccount' ? props.yourAccountName : null
+  const you = (
+    <YourAccount
+      accountID={yourAccountID}
+      accountName={yourAccountName}
+      you={props.you}
+      onShowProfile={props.onShowProfile}
+    />
+  )
+
   let counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
   if (props.status === 'canceled') {
     // Canceled relay, recipient might not have accountID. Don't show.
     counterpartyAccountID = null
   }
-  const you = <YourAccount {...props} />
 
   const counterparty = (
     <Counterparty
@@ -230,6 +209,7 @@ const propsToParties = (props: NotLoadingProps) => {
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}
+      onChat={props.onChat}
       onShowProfile={props.onShowProfile}
     />
   )
@@ -252,31 +232,55 @@ const propsToParties = (props: NotLoadingProps) => {
   }
 }
 
+type TimestampLineProps = {|
+  error: string,
+  timestamp: ?Date,
+  selectableText: boolean,
+|}
+
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return <TimestampError error={props.error} />
+  }
+  const timestamp = props.timestamp
+  if (!timestamp) {
+    return <TimestampPending />
+  }
+  const human = formatTimeForStellarDetail(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
+  return (
+    <Kb.Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+      {human}
+    </Kb.Text>
+  )
+}
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
-    <Kb.ScrollView style={styles.scrollView}>
+    <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          detailView={true}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
-          onChat={props.onChat}
-          onShowProfile={props.onShowProfile}
-          // Don't render unread state in detail view.
+          onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
           status={props.status}
           statusDetail={props.statusDetail}
           timestamp={props.timestamp}
+          unread={false}
           yourRole={props.yourRole}
         />
-        <Kb.Divider />
-
+      </Kb.Box2>
+      <Kb.Divider />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -329,16 +333,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
               timestamp={props.timestamp}
             />
           )}
-          {props.onCancelPayment && (
-            <Kb.WaitingButton
-              waitingKey={props.onCancelPaymentWaitingKey}
-              type="Danger"
-              label="Cancel"
-              onClick={props.onCancelPayment}
-              small={true}
-              style={{alignSelf: 'flex-start'}}
-            />
-          )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -346,6 +340,15 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text selectable={true} type="Body">
             {props.publicMemo}
           </Kb.Text>
+          {!!props.publicMemo &&
+            props.yourRole === 'receiverOnly' &&
+            props.counterpartyType === 'stellarPublicKey' && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
+                <Kb.Text type="BodySemibold" backgroundMode="Information">
+                  Watch out for phishing attacks and dangerous websites.
+                </Kb.Text>
+              </Kb.Box2>
+            )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -359,6 +362,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
+        {props.onCancelPayment && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
+            <Kb.WaitingButton
+              waitingKey={props.onCancelPaymentWaitingKey}
+              type="Danger"
+              label="Cancel transaction"
+              onClick={props.onCancelPayment}
+              small={true}
+              style={styles.button}
+            />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   )
@@ -384,12 +399,34 @@ class LoadTransactionDetails extends React.Component<Props> {
 export default LoadTransactionDetails
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    alignSelf: 'center',
+  },
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      minHeight: 0,
+    },
+    isElectron: {
+      marginTop: 'auto',
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.medium,
+    },
+  }),
+  chatButton: {
+    alignSelf: 'flex-start',
+    marginTop: Styles.globalMargins.tiny,
+  },
   container: {
+    alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
-  counterPartyText: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
+  icon32: {height: 32, width: 32},
+  partyAccountContainer: {
+    alignSelf: 'flex-start',
   },
   progressIndicator: {height: 50, width: 50},
   rightContainer: {
@@ -397,8 +434,12 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
   },
   scrollView: {
-    height: '100%',
+    display: 'flex',
+    flexGrow: 1,
     width: '100%',
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
   },
   statusBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -408,9 +449,18 @@ const styles = Styles.styleSheetCreate({
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
+  stellarPublicKey: {
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
   tooltipText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-work',
     },
   }),
+  warningBannerContainer: {
+    backgroundColor: Styles.backgroundModeToColor.Information,
+    borderRadius: 4,
+    padding: Styles.globalMargins.xsmall,
+  },
 })

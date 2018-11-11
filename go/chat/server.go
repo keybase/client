@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -134,16 +131,24 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
+func (h *Server) suspendComponent(ctx context.Context, suspendable types.Suspendable) func() {
+	if canceled := suspendable.Suspend(ctx); canceled {
+		h.Debug(ctx, "suspendComponent: canceled background task")
+	}
+	return func() {
+		suspendable.Resume(ctx)
+	}
+}
+
 // suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
 // a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
 // conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	if canceled := h.G().ConvLoader.Suspend(ctx); canceled {
-		h.Debug(ctx, "suspendConvLoader: canceled background task")
-	}
-	return func() {
-		h.G().ConvLoader.Resume(ctx)
-	}
+	return h.suspendComponent(ctx, h.G().ConvLoader)
+}
+
+func (h *Server) suspendInboxSource(ctx context.Context) func() {
+	return h.suspendComponent(ctx, h.G().InboxSource)
 }
 
 func (h *Server) getUID() gregor1.UID {
@@ -153,6 +158,7 @@ func (h *Server) getUID() gregor1.UID {
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
+	ctx = makeLocalizerCancelableContext(ctx)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
@@ -162,41 +168,37 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		}
 	}()
 	defer h.suspendConvLoader(ctx)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
-	}
-
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		return res, libkb.LoginRequiredError{}
 	}
 
 	// Create localized conversation callback channel
 	chatUI := h.getChatUI(arg.SessionID)
-	localizeCb := make(chan NonblockInboxResult, 1)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back
 	// as our result
-	localizer := NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox)
-	if _, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination); err != nil {
+	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
+		true, arg.MaxUnbox, arg.Query, arg.Pagination)
+	if err != nil {
 		// If this is a convID based query, let's go ahead and drop those onto
 		// the retrier
 		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
-				h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+				h.G().FetchRetrier.Failure(ctx, uid,
 					NewConversationRetry(h.G(), convID, nil, InboxLoad))
 			}
 		} else {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to load untrusted inbox, general query")
-			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+			h.G().FetchRetrier.Failure(ctx, uid,
 				NewFullInboxRetry(h.G(), arg.Query, arg.Pagination))
 		}
 		return res, err
 	}
 
 	// Wait for inbox to get sent to us
-	var lres NonblockInboxResult
+	var lres types.AsyncInboxResult
 	if arg.SkipUnverified {
 		select {
 		case lres = <-localizeCb:
@@ -243,31 +245,31 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	convLocalsCh := make(chan chat1.ConversationLocal, len(lres.InboxRes.ConvsUnverified))
 	for convRes := range localizeCb {
 		wg.Add(1)
-		go func(convRes NonblockInboxResult) {
-			if convRes.Err != nil {
+		go func(convRes types.AsyncInboxResult) {
+			if convRes.ConvLocal.Error != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
-					convRes.Conv.GetConvID(), convRes.Err.Message)
+					convRes.Conv.GetConvID(), convRes.ConvLocal.Error.Message)
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     utils.PresentConversationErrorLocal(*convRes.Err),
+					Error:     utils.PresentConversationErrorLocal(*convRes.ConvLocal.Error),
 				})
 
 				// If we get a transient failure, add this to the retrier queue
-				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
-					h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
+				if convRes.ConvLocal.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
+					h.G().FetchRetrier.Failure(ctx, uid,
 						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
-			} else if convRes.ConvRes != nil {
-				pconv := utils.PresentConversationLocal(*convRes.ConvRes, h.G().Env.GetUsername().String())
+			} else {
+				pconv := utils.PresentConversationLocal(convRes.ConvLocal, h.G().Env.GetUsername().String())
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
 						err.Error())
 				} else {
 					h.Debug(ctx, "GetInboxNonblockLocal: sending verified conv: id: %s tlf: %s bytes: %d",
-						convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded(), len(jbody))
+						convRes.Conv.GetConvID(), convRes.ConvLocal.Info.TLFNameExpanded(), len(jbody))
 					start := time.Now()
 					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 						SessionID: arg.SessionID,
@@ -276,10 +278,10 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
 						convRes.Conv.GetConvID(), time.Now().Sub(start))
 				}
-				convLocalsCh <- *convRes.ConvRes
+				convLocalsCh <- convRes.ConvLocal
 
 				// Send a note to the retrier that we actually loaded this guy successfully
-				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
+				h.G().FetchRetrier.Success(ctx, uid,
 					NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
 						&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 			}
@@ -296,7 +298,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	for convLocal := range convLocalsCh {
 		convLocals = append(convLocals, convLocal)
 	}
-	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid.ToBytes(), convLocals); err != nil {
+	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid, convLocals); err != nil {
 		// Don't abort the operation on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
 	}
@@ -314,10 +316,10 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		fmt.Sprintf("MarkAsReadLocal(%s, %v)", arg.ConversationID, arg.MsgID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
@@ -356,20 +358,21 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (res chat1.GetInboxAndUnboxLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	if arg.Query != nil && arg.Query.TopicType != nil && *arg.Query.TopicType != chat1.TopicType_CHAT {
+		// make this cancelable for things like KBFS file edit convs
+		ctx = makeLocalizerCancelableContext(ctx)
+	}
 	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		err = libkb.LoginRequiredError{}
-		return res, err
-	}
+
 	// Read inbox from the source
-	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -394,17 +397,13 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxUILocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
-		return res, err
-	}
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		err = libkb.LoginRequiredError{}
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
 	// Read inbox from the source
-	localizer := NewBlockingLocalizer(h.G())
-	ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
@@ -427,16 +426,16 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	defer h.Trace(ctx, func() error { return err }, "GetCachedThread")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetThreadLocalRes{}, err
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
 	}
 
 	// Get messages from local disk only
-	uid := h.G().Env.GetUID()
-	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination, 0)
+	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid,
+		arg.Query, arg.Pagination, 0)
 	if err != nil {
-		return chat1.GetThreadLocalRes{}, err
+		return res, err
 	}
 
 	return chat1.GetThreadLocalRes{
@@ -453,7 +452,8 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	defer h.Trace(ctx, func() error { return err }, "GetThreadLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
 
@@ -463,9 +463,8 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}
 
 	// Get messages from the source
-	uid := h.G().Env.GetUID()
-	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Reason, arg.Query, arg.Pagination)
+	thread, err := h.G().ConvSource.Pull(ctx, arg.ConversationID, uid,
+		arg.Reason, arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -641,6 +640,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 	}()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	// Lock conversation while this is running
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
 		return res, err
@@ -648,7 +648,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	defer h.G().ConvSource.ReleaseConversationLock(ctx, uid, arg.ConversationID)
 	h.Debug(ctx, "GetThreadNonblock: conversation lock obtained")
 
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if _, err := utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
 	// If this is from a push or foreground, set us into the foreground
@@ -824,11 +824,11 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	defer h.Trace(ctx, func() error { return err },
 		fmt.Sprintf("NewConversationLocal(%s|%v)", arg.TlfName, arg.MembersType))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
 		arg.TopicType, arg.MembersType, arg.TlfVisibility, h.remoteClient)
 	if err != nil {
@@ -847,7 +847,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	defer h.Trace(ctx, func() error { return err }, "GetInboxSummaryForCLILocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
@@ -855,14 +855,14 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	if len(arg.After) > 0 {
 		after, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
-			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
 		before, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
-			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
 
@@ -947,8 +947,8 @@ func (h *Server) GetConversationForCLILocal(ctx context.Context, arg chat1.GetCo
 	defer h.Trace(ctx, func() error { return err }, "GetConversationForCLILocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetConversationForCLILocalRes{}, err
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
 	}
 
 	if arg.Limit.AtMost <= 0 {
@@ -964,7 +964,7 @@ func (h *Server) GetConversationForCLILocal(ctx context.Context, arg chat1.GetCo
 	if arg.Since != nil {
 		since, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
 		if err != nil {
-			return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", *arg.Since, since)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", *arg.Since, since)
 		}
 	}
 
@@ -1015,10 +1015,10 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 	defer h.Trace(ctx, func() error { return err }, "GetMessagesLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	reason := chat1.GetThreadReason_GENERAL
 	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID, arg.MessageIDs,
 		!arg.DisableResolveSupersedes, &reason)
@@ -1040,7 +1040,7 @@ func (h *Server) GetNextAttachmentMessageLocal(ctx context.Context,
 		arg.ConvID, arg.MessageID, arg.BackInTime)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1070,7 +1070,8 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
 
@@ -1089,10 +1090,10 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 		tlfname := "<error fetching TLF name>"
 
 		// Get TLF name to post
-		uid := h.G().Env.GetUID()
-		ib, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{arg.ConversationID},
-		}, nil)
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+			nil, &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{arg.ConversationID},
+			}, nil)
 		if err != nil {
 			h.Debug(ctx, "SetConversationStatusLocal: failed to fetch conversation: %s", err.Error())
 		} else {
@@ -1124,7 +1125,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1369,7 +1370,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1507,10 +1508,10 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
@@ -1524,14 +1525,6 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
-func (h *Server) getDownloadTempDir(basename string) (string, error) {
-	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
-	if err := os.MkdirAll(p, os.ModePerm); err != nil {
-		return "", err
-	}
-	return filepath.Join(p, basename), nil
-}
-
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1539,10 +1532,10 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
@@ -1550,45 +1543,18 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	filename := arg.Filename
-	if filename == "" {
-		// No filename means we will create one in the OS temp dir
-		// Get the sent file name first
-		reason := chat1.GetThreadReason_GENERAL
-		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
-			[]chat1.MessageID{arg.MessageID}, true, &reason)
-		if err != nil {
-			return res, err
-		}
-		if !unboxed[0].IsValid() {
-			return res, errors.New("unable to download attachment from invalid message")
-		}
-		body := unboxed[0].Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil || typ != chat1.MessageType_ATTACHMENT {
-			return res, fmt.Errorf("invalid message type for download: %v", typ)
-		}
-		basepath := body.Attachment().Object.Filename
-		basename := path.Base(basepath)
-		fullpath, err := h.getDownloadTempDir(basename)
-		if err != nil {
-			return res, err
-		}
-		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-		if err != nil {
-			return res, err
-		}
-		filename = f.Name()
-		darg.Sink = f
-	} else {
-		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
-			return res, err
-		}
+	filename, sink, err := attachments.SinkFromFilename(ctx, h.G(), uid,
+		arg.ConversationID, arg.MessageID, arg.Filename)
+	if err != nil {
+		return res, err
 	}
-
+	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
 	if err != nil {
 		return res, err
+	}
+	if err := attachments.Quarantine(ctx, filename); err != nil {
+		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
 	}
 	return chat1.DownloadFileAttachmentLocalRes{
 		Filename:         filename,
@@ -1605,7 +1571,7 @@ type downloadAttachmentArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
+func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (res chat1.DownloadAttachmentLocalRes, err error) {
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1622,19 +1588,11 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
 
-	obj, err := attachments.AssetFromMessage(ctx, h.G(), uid, arg.ConversationID, arg.MessageID, arg.Preview)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	fetcher := h.G().AttachmentURLSrv.GetAttachmentFetcher()
-	if err := fetcher.FetchAttachment(ctx, arg.Sink, arg.ConversationID, obj, h.remoteClient,
-		attachments.NewS3Signer(h.remoteClient), progress); err != nil {
-		arg.Sink.Close()
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if err := arg.Sink.Close(); err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
+	err = attachments.Download(ctx, h.G(), uid, arg.ConversationID,
+		arg.MessageID, arg.Sink, arg.Preview, progress, h.remoteClient)
+	if err != nil {
+		return res, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
@@ -1646,11 +1604,11 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return err
 	}
-	uid := h.G().Env.GetUID()
-	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
+	outbox := storage.NewOutbox(h.G(), uid)
 	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
 		return err
 	}
@@ -1661,7 +1619,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("RetryPost: obr: %v", arg.OutboxID))()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
@@ -1698,24 +1656,6 @@ func (h *Server) setTestRemoteClient(ri chat1.RemoteInterface) {
 	h.rc = ri
 }
 
-func (h *Server) assertLoggedIn(ctx context.Context) error {
-	if !h.G().ActiveDevice.HaveKeys() {
-		return libkb.LoginRequiredError{}
-	}
-	return nil
-}
-
-func (h *Server) assertLoggedInUID(ctx context.Context) (uid gregor1.UID, err error) {
-	if !h.G().ActiveDevice.HaveKeys() {
-		return uid, libkb.LoginRequiredError{}
-	}
-	k1uid := h.G().Env.GetUID()
-	if k1uid.IsNil() {
-		return uid, libkb.LoginRequiredError{}
-	}
-	return gregor1.UID(k1uid.ToBytes()), nil
-}
-
 func (h *Server) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1723,7 +1663,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1741,10 +1681,10 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("StartTyping(%s)", arg.ConversationID))()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return err
 	}
-	uid := h.G().Env.GetUID()
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
 		return err
@@ -1755,7 +1695,7 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		return nil
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
-		Uid:      uid.ToBytes(),
+		Uid:      uid,
 		DeviceID: deviceID,
 		ConvID:   arg.ConversationID,
 		Typing:   arg.Typing,
@@ -1779,7 +1719,7 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		}
 	}()
 
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1805,7 +1745,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 			h.Debug(ctx, "JoinConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1833,9 +1773,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(teamConvs.Conversations),
-	})
+	teamConvsLocal, _, err := h.G().InboxSource.Localize(ctx, uid,
+		utils.RemoteConvs(teamConvs.Conversations), types.ConversationLocalizerBlocking)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
 		return res, err
@@ -1872,7 +1811,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 			h.Debug(ctx, "LeaveConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1896,7 +1835,7 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 			h.Debug(ctx, "PreviewConversationLocal: result obtained offline")
 		}
 	}()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1920,7 +1859,7 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
 		}
 	}()
-	_, err = h.assertLoggedInUID(ctx)
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -1967,10 +1906,10 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
 		}
 	}()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
@@ -2003,7 +1942,7 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 			h.Debug(ctx, "SetAppNotificationSettingsLocal: result obtained offline")
 		}
 	}()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
 
@@ -2032,7 +1971,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("UnboxMobilePushNotification(%s)",
 		arg.ConvID))()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2060,7 +1999,7 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 	strSettings map[string]bool) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetGlobalAppNotificationSettings")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
 	var settings chat1.GlobalAppNotificationSettings
@@ -2083,7 +2022,7 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetGlobalAppNotificationSettings")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
 	}
 	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
@@ -2093,15 +2032,16 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	arg chat1.AddTeamMemberAfterResetArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "AddTeamMemberAfterReset")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Lookup conversation to get team ID
-	iboxRes, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{arg.ConvID},
-	}, nil)
+	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{arg.ConvID},
+		}, nil)
 	if err != nil {
 		return err
 	}
@@ -2148,10 +2088,10 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *chat1.RetentionPolicy, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetTeamRetentionLocal(%s)", teamID)()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	tlfID, err := chat1.MakeTLFID(teamID.String())
 	if err != nil {
 		return res, err
@@ -2181,14 +2121,15 @@ func (h *Server) SetConvMinWriterRoleLocal(ctx context.Context, arg chat1.SetCon
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
 
-	ibox, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
 	if err != nil {
 		return err
 	}
@@ -2210,7 +2151,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SearchRegexp")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2220,7 +2161,7 @@ func (h *Server) SearchRegexp(ctx context.Context, arg chat1.SearchRegexpArg) (r
 		re, err = regexp.Compile(arg.Query)
 	} else {
 		// String queries are set case insensitive
-		re, err = regexp.Compile("(?i)" + regexp.QuoteMeta(arg.Query))
+		re, err = utils.GetQueryRe(arg.Query)
 	}
 
 	if err != nil {
@@ -2260,7 +2201,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SearchInbox")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
@@ -2322,7 +2263,7 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
-	uid, err := h.assertLoggedInUID(ctx)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return nil, err
 	}

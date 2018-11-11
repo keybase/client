@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {
@@ -183,10 +183,5 @@ const mergeProps = (s, d, o: OwnProps) => ({
 export default compose(
   FilesLoadingHoc,
   // $FlowIssue @jzila/@songgao lots of exposed flow issues here
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedRows')
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedRows')
 )(Rows)

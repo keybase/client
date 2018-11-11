@@ -7,8 +7,7 @@
   ],
   "actions": {
     "abandonPayment": {
-      "_description":
-        "Signal that a payment being built is abandoned and reset the form fields to their initial states."
+      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
     },
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer",
@@ -17,6 +16,11 @@
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
+    },
+    "addNewPayment": {
+      "_description": "Mark a payment we were just notified about as being unseen",
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID"
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
@@ -46,6 +50,13 @@
     "clearBuiltRequest": {
       "_description": "Clear a prepared request once it has been sent or canceled"
     },
+    "clearErrors": {
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+    },
+    "clearNewPayments": {
+      "_description": "Clear our idea of which payments have not been seen by the user yet",
+      "accountID": "Types.AccountID"
+    },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
       "conversationIDKey?": "ChatTypes.ConversationIDKey",
@@ -64,8 +75,7 @@
       "setBuildingTo?": "boolean"
     },
     "createdNewAccount": {
-      "_description":
-        "The service responded with an error or that the create new account operation succeeded",
+      "_description": "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
@@ -98,12 +108,12 @@
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID"
     },
-    "loadWalletSettings": {
-      "_description": "Load wallet settings"
+    "loadWalletDisclaimer": {
+      "_description": "Load wallet disclaimer"
     },
-    "walletSettingsReceived": {
-      "_description": "Received wallet settings",
-      "settings": "StellarRPCTypes.WalletSettings"
+    "walletDisclaimerReceived": {
+      "_description": "Received wallet disclaimer",
+      "accepted": "boolean"
     },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"
@@ -215,7 +225,7 @@
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID",
+      "paymentID": "Types.PaymentID"
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"
@@ -225,7 +235,8 @@
     },
     "sentPayment": {
       "_description": "Successfully sent a payment",
-      "kbTxID": "HiddenString"
+      "kbTxID": "HiddenString",
+      "lastSentXLM": "boolean"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
@@ -268,8 +279,7 @@
       "writeFile": "boolean"
     },
     "openSendRequestForm": {
-      "_description":
-        "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",
+      "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",
       "amount?": "string",
       "currency?": "string",
       "from?": "Types.AccountID",
@@ -287,8 +297,7 @@
       "setBuildingTo?": "boolean"
     },
     "linkedExistingAccount": {
-      "_description":
-        "The service responded with an error or that the link existing operation succeeded",
+      "_description": "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
@@ -324,9 +333,6 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
-    },
-    "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog."
     }
   }
 }

@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 
 type OwnProps = {
   routePath: I.List<string>,
@@ -16,11 +16,9 @@ const mapDispatchToProps = (dispatch, {path, routePath, inDestinationPicker}: Ow
     : () => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
-export default compose(
-  connect(
+export default namedConnect(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ConnectedOpenHOC')
+    (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedOpenHOC'
 )

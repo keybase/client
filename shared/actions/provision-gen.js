@@ -39,7 +39,10 @@ type _ShowCodePagePayload = $ReadOnly<{|
   error: ?HiddenString,
 |}>
 type _ShowDeviceListPagePayload = $ReadOnly<{|devices: Array<Types.Device>|}>
-type _ShowFinalErrorPagePayload = $ReadOnly<{|finalError: RPCError|}>
+type _ShowFinalErrorPagePayload = $ReadOnly<{|
+  finalError: RPCError,
+  fromDeviceAdd: boolean,
+|}>
 type _ShowGPGPagePayload = void
 type _ShowNewDeviceNamePagePayload = $ReadOnly<{|
   existingDevices: Array<string>,

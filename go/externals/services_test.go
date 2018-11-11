@@ -19,13 +19,16 @@ func TestLoadParamServices(t *testing.T) {
 	entry, err := tc.G.GetParamProofStore().GetLatestEntry(m)
 	require.NoError(t, err)
 
-	serviceConfigs, err := proofServices.parseServiceConfigs(entry)
+	proofConfigs, displayConfigs, err := proofServices.parseServiceConfigs(entry)
 	require.NoError(t, err)
-	require.NotNil(t, serviceConfigs)
+	require.NotNil(t, proofConfigs)
+	require.NotNil(t, displayConfigs)
+	require.NotZero(t, len(proofConfigs))
+	require.NotZero(t, len(displayConfigs))
 
 	// assert that we parse the dev gubble configuration correctly
 	var gubbleConf *GenericSocialProofConfig
-	for _, config := range serviceConfigs {
+	for _, config := range proofConfigs {
 		if config.Domain == "gubble.social" {
 			gubbleConf = config
 			break
@@ -33,11 +36,8 @@ func TestLoadParamServices(t *testing.T) {
 	}
 	t.Logf("Found config %+v", gubbleConf)
 	require.NotNil(t, gubbleConf)
-	require.Equal(t, 1, gubbleConf.SchemaVersion)
-	require.True(t, gubbleConf.ConfigVersion >= 1)
+	require.True(t, gubbleConf.Version >= 1)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
-	group := "gubble"
-	require.EqualValues(t, &group, gubbleConf.Group)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
 		Re:  "^([a-zA-Z0-9_])+$",
 		Min: 2,
@@ -67,4 +67,15 @@ func TestLoadParamServices(t *testing.T) {
 			Key:   "keybase_proofs",
 		},
 	}, gubbleConf.CheckPath)
+
+	found := false
+	for _, config := range displayConfigs {
+		if config.Key == "gubble.social" {
+			group := "gubble"
+			require.EqualValues(t, &group, config.Group)
+			found = true
+			break
+		}
+	}
+	require.True(t, found)
 }

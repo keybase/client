@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../util/container'
+import {compose, namedConnect} from '../util/container'
 import Files from '.'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -29,10 +29,5 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
 
 export default compose(
   SecurityPrefsPromptingHoc,
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('Files')
+  namedConnect(mapStateToProps, () => ({}), mergeProps, 'Files')
 )(Files)

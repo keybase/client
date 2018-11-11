@@ -7,9 +7,12 @@ import {
   lifecycle,
   withStateHandlers,
   connect,
+  type RouteProps,
 } from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {upperFirst} from 'lodash-es'
+
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   return {
@@ -35,7 +38,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

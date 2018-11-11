@@ -8,7 +8,7 @@ import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import * as Styles from '../styles'
-import {compose, connect, setDisplayName} from '../util/container'
+import {compose, namedConnect} from '../util/container'
 
 type TProps = PropsWithTimer<{
   getAttachmentRef: () => ?React.Component<any>,
@@ -110,8 +110,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  setDisplayName('CopyText'),
+  namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'CopyText'),
   HOCTimers
 )(_CopyText)
 

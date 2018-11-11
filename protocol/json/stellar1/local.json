@@ -421,16 +421,6 @@
     },
     {
       "type": "record",
-      "name": "WalletSettings",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "acceptedDisclaimer"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "SendAssetChoiceLocal",
       "fields": [
         {
@@ -501,10 +491,6 @@
         },
         {
           "type": "string",
-          "name": "amountFormatted"
-        },
-        {
-          "type": "string",
           "name": "displayAmountXLM",
           "lint": "ignore"
         },
@@ -541,6 +527,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "boolean",
+          "name": "hideOnConfirm"
         }
       ]
     },
@@ -1109,14 +1099,14 @@
       ],
       "response": "CurrencyLocal"
     },
-    "getWalletSettingsLocal": {
+    "hasAcceptedDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "WalletSettings"
+      "response": "bool"
     },
     "acceptDisclaimerLocal": {
       "request": [

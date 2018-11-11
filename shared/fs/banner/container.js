@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Banner from '.'
 
 const mapStateToProps = (state, {path}) => {
@@ -12,11 +12,4 @@ const mapStateToProps = (state, {path}) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Banner')
-)(Banner)
+export default namedConnect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}), 'Banner')(Banner)

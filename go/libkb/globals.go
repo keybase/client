@@ -38,7 +38,7 @@ type LoginHook interface {
 }
 
 type LogoutHook interface {
-	OnLogout() error
+	OnLogout(m MetaContext) error
 }
 
 type StandaloneChatConnector interface {
@@ -267,20 +267,26 @@ func (g *GlobalContext) simulateServiceRestart() {
 	g.ActiveDevice.Clear()
 }
 
-func (g *GlobalContext) Logout() error {
+func (g *GlobalContext) Logout(ctx context.Context) (err error) {
+	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
+	ctx = mctx.Ctx()
+
+	defer mctx.CTrace("GlobalContext#Logout", func() error { return err })()
+
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 
-	ctx := context.Background()
-	mctx := NewMetaContext(ctx, g)
+	mctx.CDebugf("GlobalContext#Logout: after switchUserMu acquisition")
 
 	username := g.Env.GetUsername()
 
 	g.ActiveDevice.Clear()
 
-	g.LocalSigchainGuard().Clear(ctx, "Logout")
+	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
-	g.CallLogoutHooks()
+	mctx.CDebugf("+ GlobalContext#Logout: calling logout hooks")
+	g.CallLogoutHooks(mctx)
+	mctx.CDebugf("- GlobalContext#Logout: called logout hooks")
 
 	g.ClearPerUserKeyring()
 
@@ -312,14 +318,14 @@ func (g *GlobalContext) Logout() error {
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil {
 		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
-			g.Log.Debug("clear stored secret error: %s", err)
+			mctx.CDebugf("clear stored secret error: %s", err)
 		}
 	}
 	g.secretStoreMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
-		g.Log.Debug("Logout ConfigReload error: %s", err)
+		mctx.CDebugf("Logout ConfigReload error: %s", err)
 	}
 
 	// send logout notification
@@ -357,12 +363,8 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
-	err := RemoteSettingsRepairman(g)
-	if err != nil {
-		return err
-	}
 	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
-	err = c.Load(false)
+	err := c.Load(false)
 	if err != nil {
 		return err
 	}
@@ -950,12 +952,12 @@ func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
 	g.logoutHooks = append(g.logoutHooks, hook)
 }
 
-func (g *GlobalContext) CallLogoutHooks() {
+func (g *GlobalContext) CallLogoutHooks(m MetaContext) {
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
-		if err := h.OnLogout(); err != nil {
-			g.Log.Warning("OnLogout hook error: %s", err)
+		if err := h.OnLogout(m); err != nil {
+			m.CWarningf("OnLogout hook error: %s", err)
 		}
 	}
 }
@@ -992,21 +994,22 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
-func (g *GlobalContext) LogoutSelfCheck() error {
+func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
+	mctx := NewMetaContext(ctx, g)
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
-		g.Log.Debug("LogoutSelfCheck: no uid")
+		mctx.CDebugf("LogoutSelfCheck: no uid")
 		return nil
 	}
 	deviceID := g.ActiveDevice.DeviceID()
 	if deviceID.IsNil() {
-		g.Log.Debug("LogoutSelfCheck: no device id")
+		mctx.CDebugf("LogoutSelfCheck: no device id")
 		return nil
 	}
 
 	arg := APIArg{
-		NetContext: context.Background(),
-		Endpoint:   "selfcheck",
+		MetaContext: mctx,
+		Endpoint:    "selfcheck",
 		Args: HTTPArgs{
 			"uid":       S{Val: uid.String()},
 			"device_id": S{Val: deviceID.String()},
@@ -1023,10 +1026,10 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 		return err
 	}
 
-	g.Log.Debug("LogoutSelfCheck: should log out? %v", logout)
+	mctx.CDebugf("LogoutSelfCheck: should log out? %v", logout)
 	if logout {
-		g.Log.Debug("LogoutSelfCheck: logging out...")
-		return g.Logout()
+		mctx.CDebugf("LogoutSelfCheck: logging out...")
+		return g.Logout(mctx.Ctx())
 	}
 
 	return nil

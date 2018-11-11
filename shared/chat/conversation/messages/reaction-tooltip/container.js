@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, isMobile, setDisplayName} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
@@ -99,11 +99,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ReactionTooltip')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ReactionTooltip'
 )(ReactionTooltip)

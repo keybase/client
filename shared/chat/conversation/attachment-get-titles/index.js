@@ -1,20 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import {
-  Box,
-  Box2,
-  Button,
-  Icon,
-  OrientedImage,
-  Input,
-  PopupDialog,
-  Text,
-  ButtonBar,
-  ScrollView,
-  WaitingButton,
-} from '../../../common-adapters/index'
-import {globalMargins, globalStyles, isMobile, isIPhoneX} from '../../../styles'
+import * as Kb from '../../../common-adapters/index'
+import * as Styles from '../../../styles'
 
 export type PathToInfo = {
   [path: string]: {
@@ -37,7 +25,7 @@ type State = {
 
 class GetTitles extends React.Component<Props, State> {
   state: State
-  _input: ?Input
+  _input: ?Kb.Input
 
   constructor(props: Props) {
     super(props)
@@ -108,62 +96,60 @@ class GetTitles extends React.Component<Props, State> {
     if (!info) return null
 
     return (
-      <PopupDialog onClose={this.props.onClose} styleContainer={isIPhoneX ? {marginTop: 30} : undefined}>
-        <ScrollView style={{height: '100%', width: '100%'}}>
-          <Box style={isMobile ? stylesMobile : stylesDesktop}>
-            <Box style={{...globalStyles.flexBoxCenter, height: 150, width: 150}}>
-              {info.type === 'image' ? (
-                <OrientedImage
-                  src={path}
-                  style={isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
-                />
-              ) : (
-                <Icon type="icon-file-uploading-48" />
-              )}
-            </Box>
-            {paths.length > 0 && (
-              <Box2
-                direction="vertical"
-                style={{
-                  alignItems: 'center',
-                  marginTop: globalMargins.xtiny,
-                  maxWidth: isMobile ? 300 : undefined,
-                }}
-              >
-                <Text type="BodySmallSemibold">Filename</Text>
-                <Text type="BodySmall">
-                  {info.filename} ({this.state.index + 1} of {paths.length})
-                </Text>
-              </Box2>
+      <Kb.ScrollView style={{height: '100%', width: '100%'}}>
+        <Kb.Box style={Styles.isMobile ? stylesMobile : stylesDesktop}>
+          <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, height: 150, width: 150}}>
+            {info.type === 'image' ? (
+              <Kb.OrientedImage
+                src={path}
+                style={Styles.isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
+              />
+            ) : (
+              <Kb.Icon type="icon-file-uploading-48" />
             )}
-            <Input
-              style={isMobile ? stylesInputMobile : stylesInputDesktop}
-              autoFocus={true}
-              floatingHintTextOverride={titleHint}
-              hintText={titleHint}
-              value={info.title}
-              onEnterKeyDown={this._onNext}
-              ref={this._setRef}
-              onChangeText={this._updateTitle}
-              selectTextOnFocus={true}
-            />
-            <ButtonBar style={{flexShrink: 0}}>
-              <Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
-              {this._isLast() ? (
-                <WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
-              ) : (
-                <Button type="Primary" onClick={this._onNext} label="Next" />
-              )}
-            </ButtonBar>
-          </Box>
-        </ScrollView>
-      </PopupDialog>
+          </Kb.Box>
+          {paths.length > 0 && (
+            <Kb.Box2
+              direction="vertical"
+              style={{
+                alignItems: 'center',
+                marginTop: Styles.globalMargins.xtiny,
+                maxWidth: Styles.isMobile ? 300 : undefined,
+              }}
+            >
+              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+              <Kb.Text type="BodySmall">
+                {info.filename} ({this.state.index + 1} of {paths.length})
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+          <Kb.Input
+            style={Styles.isMobile ? stylesInputMobile : stylesInputDesktop}
+            autoFocus={true}
+            floatingHintTextOverride={titleHint}
+            hintText={titleHint}
+            value={info.title}
+            onEnterKeyDown={this._onNext}
+            ref={this._setRef}
+            onChangeText={this._updateTitle}
+            selectTextOnFocus={true}
+          />
+          <Kb.ButtonBar style={{flexShrink: 0}}>
+            <Kb.Button type="Secondary" onClick={this.props.onClose} label="Cancel" />
+            {this._isLast() ? (
+              <Kb.WaitingButton type="Primary" waitingKey={null} onClick={this._onNext} label="Send" />
+            ) : (
+              <Kb.Button type="Primary" onClick={this._onNext} label="Next" />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.ScrollView>
     )
   }
 }
 
 const stylesDesktop = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
@@ -180,7 +166,7 @@ const stylesInputDesktop = {
 }
 
 const stylesMobile = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   justifyContent: 'flex-start',
@@ -194,4 +180,4 @@ const stylesInputMobile = {
   paddingRight: 20,
 }
 
-export default GetTitles
+export default Kb.HeaderOrPopup(GetTitles)

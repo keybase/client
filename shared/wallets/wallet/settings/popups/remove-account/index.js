@@ -13,27 +13,20 @@ export type Props = {|
 
 const RemoveAccountPopup = (props: Props) => {
   const buttons = [
-    <Kb.Button
-      fullWidth={Styles.isMobile}
-      key={0}
-      label="Cancel"
-      onClick={props.onClose}
-      type="Secondary"
-      style={styles.button}
-    />,
+    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Secondary" />,
     <Kb.Button
       fullWidth={Styles.isMobile}
       key={1}
       label="Yes, remove"
       onClick={props.onDelete}
       type="Danger"
-      style={styles.button}
     />,
   ]
 
   return (
     <WalletPopup
-      onClose={props.onClose}
+      onExit={props.onClose}
+      backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >

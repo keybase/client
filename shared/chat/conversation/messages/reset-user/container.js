@@ -6,6 +6,10 @@ import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
 import {compose, connect} from '../../../../util/container'
 
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
+
 const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const username = meta.resetParticipants.first() || ''
@@ -14,7 +18,7 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
   _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
@@ -31,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

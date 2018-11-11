@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import ReactionsRow from '.'
@@ -38,11 +38,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   emojis: getOrderedReactions(stateProps._reactions),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ReactionsRow')
-)(ReactionsRow)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ReactionsRow')(
+  ReactionsRow
+)

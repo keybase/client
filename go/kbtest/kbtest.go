@@ -139,7 +139,7 @@ func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
-	if err := tc.G.Logout(); err != nil {
+	if err := tc.G.Logout(context.TODO()); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }
@@ -398,4 +398,16 @@ func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.Phone
 		return "", err
 	}
 	return resp.VerificationCode, nil
+}
+
+func VerifyEmailAuto(mctx libkb.MetaContext, email string) error {
+	arg := libkb.APIArg{
+		Endpoint:    "test/verify_email_auto",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"email": libkb.S{Val: email},
+		},
+	}
+	_, err := mctx.G().API.Post(arg)
+	return err
 }

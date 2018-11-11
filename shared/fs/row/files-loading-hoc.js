@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 
@@ -54,11 +54,6 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedFilesLoadingHoc'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFilesLoadingHoc'),
   FilesLoadingHoc
 )

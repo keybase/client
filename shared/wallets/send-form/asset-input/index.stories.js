@@ -22,6 +22,7 @@ const props1 = {
   bottomLabel: '$1 = 5.0992345 XLM',
   displayUnit: 'USD ($)',
   inputPlaceholder: '0.00',
+  numDecimalsAllowed: 2,
   topLabel: 'XLM worth:',
 }
 
@@ -30,6 +31,7 @@ const props2 = {
   bottomLabel: '1 XLM = $0.2303',
   displayUnit: 'XLM',
   inputPlaceholder: '0.0000000',
+  numDecimalsAllowed: 7,
   value: '129',
 }
 
@@ -38,6 +40,7 @@ const props3 = {
   bottomLabel: 'Issuer: Stronghold.com',
   displayUnit: 'BTC',
   inputPlaceholder: '0.0000000',
+  numDecimalsAllowed: 7,
   value: '0.08',
 }
 
@@ -47,6 +50,7 @@ export const props4 = {
   bottomLabel: '1 XLM = $0.2303',
   displayUnit: 'XLM',
   inputPlaceholder: '0.0000000',
+  numDecimalsAllowed: 7,
   value: '3.4289000',
 }
 
@@ -86,7 +90,8 @@ const load = () => {
     .add('USD over warning', () => <AssetInput {...props1} {...warning1} />)
     .add('XLM over warning', () => <AssetInput {...props2} {...warning2} />)
     .add('asset type warning', () => <AssetInput {...props3} {...warning3} />)
-    .add('Input validation', () => <StatefulAssetInput {...props2} />)
+    .add('Input validation (XLM)', () => <StatefulAssetInput {...props2} />)
+    .add('Input validation (Currency)', () => <StatefulAssetInput {...props1} />)
 }
 
 export default load

@@ -1,7 +1,20 @@
 // @flow
 import {MentionHud} from '.'
-import {compose, connect, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
+import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  filter: string,
+  selectDownCounter?: number,
+  selectUpCounter?: number,
+  pickSelectedChannelCounter?: number,
+  onPickChannel?: (c: string, options?: {notChannel: boolean}) => void,
+  onSelectChannel?: (c: string) => void,
+  style?: Styles.StylesCrossPlatform,
+|}
 
 const mapStateToProps = (state, {filter, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -26,11 +39,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ChannelMentionHud')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ChannelMentionHud'
 )(MentionHud)
