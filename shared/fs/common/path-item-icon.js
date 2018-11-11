@@ -13,12 +13,14 @@ type PathItemIconProps = {
   size?: 32 | 16 | 12,
 }
 
+const getSizeForAvatar = (size?: 32 | 16 | 12) => (size === 12 ? 16 : size || 32)
+
 const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
   switch (spec.type) {
     case 'teamAvatar':
       return (
         <Avatar
-          size={size === 12 ? 16 : size || 32}
+          size={getSizeForAvatar(size)}
           teamname={spec.teamName}
           isTeam={true}
           style={style && avatarCastPlatformStyles(style)}
@@ -27,7 +29,7 @@ const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
     case 'avatar':
       return (
         <Avatar
-          size={size === 12 ? 16 : size || 32}
+          size={getSizeForAvatar(size)}
           username={spec.username}
           style={style && avatarCastPlatformStyles(style)}
         />
@@ -37,7 +39,7 @@ const PathItemIcon = ({spec, style, size}: PathItemIconProps) => {
       // TODO: fix this when we have support for three avatars as in design.
       return (
         <Avatar
-          size={size === 12 ? 16 : size || 32}
+          size={getSizeForAvatar(size)}
           username={spec.usernames[0]}
           style={style && avatarCastPlatformStyles(style)}
         />
