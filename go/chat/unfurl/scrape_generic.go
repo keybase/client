@@ -10,57 +10,103 @@ import (
 )
 
 func fullURL(hostname, path string) string {
-	if strings.HasPrefix(path, "//") {
+	if strings.HasPrefix(path, "http") {
+		return path
+	} else if strings.HasPrefix(path, "//") {
 		return "http:" + path
-	} else if strings.HasPrefix(path, "/") {
+	} else {
 		return "http://" + hostname + path
 	}
-	return path
+}
+
+func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *scoredGenericRaw, score int) {
+	s.Debug(ctx, "pubdate: %s", content)
+	t, err := time.Parse("2006-01-02T15:04:05Z", content)
+	if err != nil {
+		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
+	} else {
+		publishTime := int(t.Unix())
+		generic.setPublishTime(&publishTime, score)
+	}
+}
+
+func (s *Scraper) setAttr(ctx context.Context, attr, hostname, domain string, generic *scoredGenericRaw, e *colly.HTMLElement) {
+	ranker, ok := attrRankMap[attr]
+	if !ok { // invalid attribute, ignore
+		return
+	}
+	contents := ranker.content(e)
+	score := ranker.score(domain, e)
+	for _, content := range contents {
+		content = strings.Trim(content, " ")
+		if content == "" {
+			continue
+		}
+		switch ranker.setter {
+		case setTitle:
+			generic.setTitle(content, score)
+		case setURL:
+			url := fullURL(hostname, content)
+			generic.setURL(url, score)
+		case setSiteName:
+			generic.setSiteName(content, score)
+		case setFaviconURL:
+			url := fullURL(hostname, content)
+			generic.setFaviconURL(&url, score)
+		case setImageURL:
+			url := fullURL(hostname, content)
+			generic.setImageURL(&url, score)
+		case setPublishTime:
+			s.setAndParsePubTime(ctx, content, generic, score)
+		case setDescription:
+			generic.setDescription(&content, score)
+		}
+	}
 }
 
 func (s *Scraper) scrapeGeneric(ctx context.Context, uri, domain string) (res chat1.UnfurlRaw, err error) {
-	var generic chat1.UnfurlGenericRaw
 	hostname, err := GetHostname(uri)
 	if err != nil {
 		return res, err
 	}
-	generic.Url = uri
-	generic.SiteName = domain
+
+	// default favicon location as a fallback
+	defaultFaviconURL, err := GetDefaultFaviconURL(uri)
+	if err != nil {
+		return res, err
+	}
+
+	// setup some defaults with score 0 and hope we can find better info.
+	generic := new(scoredGenericRaw)
+	generic.setURL(uri, 0)
+	generic.setSiteName(domain, 0)
+	generic.setFaviconURL(&defaultFaviconURL, 0)
+
 	c := colly.NewCollector()
-	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
-		prop := e.Attr("property")
-		content := e.Attr("content")
-		switch prop {
-		case "og:description":
-			generic.Description = &content
-		case "og:image":
-			generic.ImageUrl = new(string)
-			*generic.ImageUrl = fullURL(hostname, content)
-		case "og:site_name":
-			generic.SiteName = content
-		case "og:pubdate":
-			s.Debug(ctx, "pubdate: %s", content)
-			t, err := time.Parse("2006-01-02T15:04:05Z", content)
-			if err == nil {
-				generic.PublishTime = new(int)
-				*generic.PublishTime = int(t.Unix())
-			} else {
-				s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
-			}
-		}
-	})
 	c.OnHTML("head title", func(e *colly.HTMLElement) {
-		generic.Title = e.Text
+		s.setAttr(ctx, "title", hostname, domain, generic, e)
 	})
 	c.OnHTML("head link[rel][href]", func(e *colly.HTMLElement) {
 		rel := strings.ToLower(e.Attr("rel"))
 		if strings.Contains(rel, "shortcut icon") {
-			generic.FaviconUrl = new(string)
-			*generic.FaviconUrl = fullURL(hostname, e.Attr("href"))
+			s.setAttr(ctx, "shortcut icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "icon") && e.Attr("type") == "image/x-icon" {
+			s.setAttr(ctx, "icon", hostname, domain, generic, e)
+		} else if strings.Contains(rel, "apple-touch-icon") {
+			s.setAttr(ctx, "apple-touch-icon", hostname, domain, generic, e)
 		}
 	})
+	c.OnHTML("head meta[content][name]", func(e *colly.HTMLElement) {
+		attr := strings.ToLower(e.Attr("name"))
+		s.setAttr(ctx, attr, hostname, domain, generic, e)
+	})
+	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
+		attr := strings.ToLower(e.Attr("property"))
+		s.setAttr(ctx, attr, hostname, domain, generic, e)
+	})
+
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
-	return chat1.NewUnfurlRawWithGeneric(generic), nil
+	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }
