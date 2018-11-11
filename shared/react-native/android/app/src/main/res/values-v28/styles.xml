@@ -5,10 +5,12 @@
         <item name="android:windowBackground">@color/white</item>
         <item name="android:colorBackground">@color/white</item>
     </style>
+
+
     <style name="ActivityTheme">
-        <item name="android:windowLayoutInDisplayCutoutMode">
-          never
-        </item>
+      <item name="android:windowLayoutInDisplayCutoutMode">
+        never
+      </item>
     </style>
 
     <style name="SplashTheme" parent="AppTheme">

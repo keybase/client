@@ -95,7 +95,7 @@ android {
         jumboMode true
     }
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion 28
     buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
@@ -106,15 +106,6 @@ android {
         versionName "2.10.0"
         ndk {
             abiFilters "armeabi-v7a", "x86"
-        }
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(KB_RELEASE_STORE_FILE)
-            storePassword KB_RELEASE_STORE_PASSWORD
-            keyAlias KB_RELEASE_KEY_ALIAS
-            keyPassword KB_RELEASE_KEY_PASSWORD
         }
     }
 
@@ -138,7 +129,6 @@ android {
         }
 
         release {
-            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -179,8 +169,7 @@ configurations.all {
 dependencies {
     def supportLibVersion = project.supportLibVersion
     def googlePlayServicesVersion = project.googlePlayServicesVersion
-
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation "com.google.android.gms:play-services-gcm:$googlePlayServicesVersion"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
@@ -189,7 +178,7 @@ dependencies {
     implementation 'com.facebook.fresco:animated-gif:1.10.0'
     implementation 'com.facebook.fresco:fresco:1.10.0'
     debugImplementation 'com.hanhuy.android:viewserver:1.0.3'
-    implementation  project(':keybaselib')
+    implementation project(':keybaselib')
     testImplementation 'junit:junit:4.12'
     implementation project(':react-native-camera')
     implementation project(':react-native-image-picker')
