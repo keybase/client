@@ -39,7 +39,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
-    isDecryptingSnippet: Constants.isDecryptingSnippet(stateProps._meta),
+    isDecryptingSnippet:
+      (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta),
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
