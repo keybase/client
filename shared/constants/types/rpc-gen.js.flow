@@ -1621,6 +1621,12 @@ export const simpleFSPathType = {
   kbfsArchived: 2,
 }
 
+export const simpleFSPrefetchStatus = {
+  notStarted: 0,
+  inProgress: 1,
+  complete: 2,
+}
+
 export const simpleFSRevisionSpanType = {
   default: 0,
   lastFive: 1,
@@ -1845,7 +1851,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean}>
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean, prefetchStatus: PrefetchStatus}>
 export type DirentType =
   | 0 // FILE_0
   | 1 // DIR_1
@@ -2212,6 +2218,11 @@ export type PhoneNumberVerifiedMsg = $ReadOnly<{phoneNumber: PhoneNumber}>
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 export type PingResponse = $ReadOnly<{timestamp: Time}>
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
+export type PrefetchStatus =
+  | 0 // NOT_STARTED_0
+  | 1 // IN_PROGRESS_1
+  | 2 // COMPLETE_2
+
 export type Probe = $ReadOnly<{i /* index */: Int, s /* teamSeqno */: Seqno}>
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 export type ProblemSetDevices = $ReadOnly<{problemSet: ProblemSet, devices?: ?Array<Device>}>

@@ -678,6 +678,12 @@ export const simpleFSPathType = {
   kbfsArchived: 2,
 }
 
+export const simpleFSPrefetchStatus = {
+  notStarted: 0,
+  inProgress: 1,
+  complete: 2,
+}
+
 export const simpleFSRevisionSpanType = {
   default: 0,
   lastFive: 1,
