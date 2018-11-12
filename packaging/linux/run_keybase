@@ -9,6 +9,8 @@ set -e -u -o pipefail
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
 startup_token="$runtime_dir/startup_mode"
+logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+mkdir -p "$logdir"
 
 set_autostart_vars() {
     # To keep the autostart file stable, so that we don't have to stomp on user
@@ -180,6 +182,9 @@ run_redirector() {
 
 start_systemd() {
   echo Starting via systemd...
+
+  systemctl --user set-environment KEYBASE_LOGDIR="$logdir"
+
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
   systemctl --user daemon-reload
@@ -215,13 +220,15 @@ start_systemd() {
   # so that we don't race against the service shutting down.
   systemctl --user restart keybase.service kbfs.service keybase.gui.service
   write_startup_token "systemd"
+
+  # Remove user-level environment variable to avoid polluting other services,
+  # though unlikely due to KEYBASE_ namespace.
+  systemctl --user unset-environment KEYBASE_LOGDIR
 }
 
 start_background() {
   export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
   export KEYBASE_DEBUG=1
-  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-  mkdir -p "$logdir"
 
   echo Launching keybase service...
   # We set the --auto-forked flag here so that updated clients that try to
