@@ -4,11 +4,13 @@ import * as React from 'react'
 import * as Types from '../constants/types/people'
 import People from './'
 import * as PeopleGen from '../actions/people-gen'
-import {connect} from '../util/container'
+import {connect, type RouteProps} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import {getPeopleDataWaitingKey} from '../constants/people'
 import * as WaitingConstants from '../constants/waiting'
+
+type OwnProps = RouteProps<{}, {}>
 
 type Props = {
   oldItems: I.List<Types.PeopleScreenItem>,
@@ -75,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

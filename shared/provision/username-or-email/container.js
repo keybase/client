@@ -19,7 +19,7 @@ const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     dispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

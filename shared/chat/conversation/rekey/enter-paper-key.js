@@ -1,7 +1,7 @@
 // @flow
 import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
-import {connect, compose, withStateHandlers} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
 
 type OwnProps = {||}
@@ -13,7 +13,7 @@ const mapStateToProps = () => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onEnterPaperkey: (paperKey: string) => {
+  onSubmit: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
     dispatch(navigateUp())
     dispatch(navigateUp())
@@ -21,20 +21,8 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-export default compose(
-  // $FlowIssue recompose confuses flow into thinking paperKey doesn't exist
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  withStateHandlers(
-    {paperKey: ''},
-    {
-      onChangePaperKey: () => paperKey => ({paperKey}),
-      onSubmit: (_, {paperKey, _onEnterPaperkey}) => () => {
-        _onEnterPaperkey(paperKey)
-      },
-    }
-  )
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
 )(EnterPaperkey)

@@ -6,6 +6,7 @@ import {navigateUp} from '../../actions/route-tree'
 import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {compose, connect} from '../../util/container'
 
+type OwnProps = {||}
 class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   componentDidMount() {
     this.props.setAllowDeleteAccount(false)
@@ -41,7 +42,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
