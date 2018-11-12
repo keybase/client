@@ -134,8 +134,13 @@ protocol NotifyChat {
     StaleUpdateType updateType;
   }
 
+  record ChatSyncIncrementalConv {
+    UnverifiedInboxUIItem conv;
+    boolean shouldUnbox;
+  }
+
   record ChatSyncIncrementalInfo {
-    array<UnverifiedInboxUIItem> items;
+    array<ChatSyncIncrementalConv> items;
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {

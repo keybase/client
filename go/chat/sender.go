@@ -368,7 +368,8 @@ func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 
 	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION,
+		chat1.MessageType_UNFURL:
 	default:
 		// nothing to do here
 		return msg.ClientHeader.EphemeralMetadata, nil
@@ -1104,8 +1105,16 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	return nil
 }
 
-var errDelivererUploadInProgress = errors.New("attachment upload in progress")
-var errDelivererUnfurlInProgress = errors.New("unfurling in progress")
+type delivererBackgroundTaskError struct {
+	Typ string
+}
+
+func (e delivererBackgroundTaskError) Error() string {
+	return fmt.Sprintf("%s in progress", e.Typ)
+}
+
+var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
+var errDelivererUnfurlInProgress = delivererBackgroundTaskError{Typ: "unfurl"}
 
 func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsAttachment() {
@@ -1182,7 +1191,7 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 	return obr, nil
 }
 
-func (s *Deliverer) processSpecialMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+func (s *Deliverer) processBackgroundTaskMessage(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	switch obr.MessageType() {
 	case chat1.MessageType_ATTACHMENT:
 		return s.processAttachment(ctx, obr)
@@ -1300,23 +1309,19 @@ func (s *Deliverer) deliverLoop() {
 				err = delivererExpireError{}
 			} else {
 				// Check for special messages and process based on completion status
-				obr, err = s.processSpecialMessage(bctx, obr)
-				switch err {
-				case errDelivererUploadInProgress:
-					s.Debug(bctx, "deliverLoop: attachment upload in progress, skipping: convID: %s obid: %s",
-						obr.ConvID, obr.OutboxID)
-					continue
-				case errDelivererUnfurlInProgress:
-					s.Debug(bctx, "deliverLoop: unfurl in progress, skipping: convID: %s obid: %s",
-						obr.ConvID, obr.OutboxID)
-					continue
-				case nil:
+				obr, err = s.processBackgroundTaskMessage(bctx, obr)
+				if err == nil {
 					canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
 					if err == nil && canceled {
 						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
 							obr.ConvID, obr.OutboxID)
 						continue
 					}
+				} else if _, ok := err.(delivererBackgroundTaskError); ok {
+					// check for bkg task error and loop around if we hit one
+					s.Debug(bctx, "deliverLoop: bkg task in progress, skipping: convID: %s obid: %s task: %s",
+						obr.ConvID, obr.OutboxID, err)
+					continue
 				}
 				if err == nil {
 					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)

@@ -138,7 +138,7 @@ func TestUnfurler(t *testing.T) {
 		require.NotNil(t, unfurl.Generic().Image)
 		require.NotNil(t, unfurl.Generic().Favicon)
 		require.NotNil(t, unfurl.Generic().Description)
-		require.Equal(t, "U.S. Stocks Jump as Tough Month Sets to Wrap - WSJ", unfurl.Generic().Title)
+		require.Equal(t, "U.S. Stocks Jump as Tough Month Sets to Wrap", unfurl.Generic().Title)
 		require.Equal(t, "WSJ", unfurl.Generic().SiteName)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no unfurl")

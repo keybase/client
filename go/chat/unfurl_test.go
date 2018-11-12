@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -157,6 +158,24 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.Nil(t, recvUnfurl())
 
 		t.Logf("now work")
+		recvAndCheckUnfurlMsg := func() {
+			var outboxID chat1.OutboxID
+			select {
+			case m := <-listener0.newMessageRemote:
+				require.Equal(t, conv.Id, m.ConvID)
+				require.True(t, m.Message.IsValid())
+				require.Equal(t, chat1.MessageType_UNFURL, m.Message.GetMessageType())
+				require.NotNil(t, m.Message.Valid().OutboxID)
+				b, err := hex.DecodeString(*m.Message.Valid().OutboxID)
+				require.NoError(t, err)
+				outboxID = chat1.OutboxID(b)
+			case <-time.After(timeout):
+				require.Fail(t, "no message")
+			}
+			_, _, err := unfurler.Status(ctx, outboxID)
+			require.Error(t, err)
+			require.IsType(t, libkb.NotFoundError{}, err)
+		}
 		httpSrv.succeed = true
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 		recvSingleRetry()
@@ -166,21 +185,12 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 		require.Equal(t, "MIKE", u.Generic().Title)
-		var outboxID chat1.OutboxID
-		select {
-		case m := <-listener0.newMessageRemote:
-			require.Equal(t, conv.Id, m.ConvID)
-			require.True(t, m.Message.IsValid())
-			require.Equal(t, chat1.MessageType_UNFURL, m.Message.GetMessageType())
-			require.NotNil(t, m.Message.Valid().OutboxID)
-			b, err := hex.DecodeString(*m.Message.Valid().OutboxID)
-			require.NoError(t, err)
-			outboxID = chat1.OutboxID(b)
-		case <-time.After(timeout):
-			require.Fail(t, "no message")
-		}
-		_, _, err = unfurler.Status(ctx, outboxID)
-		require.Error(t, err)
-		require.IsType(t, libkb.NotFoundError{}, err)
+		recvAndCheckUnfurlMsg()
+
+		t.Logf("exploding unfurl")
+		dur := gregor1.ToDurationSec(60 * time.Second)
+		mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		recvAndCheckUnfurlMsg()
 	})
 }

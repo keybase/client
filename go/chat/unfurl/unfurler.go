@@ -101,16 +101,18 @@ func (u *Unfurler) taskKey(outboxID chat1.OutboxID) libkb.DbKey {
 
 func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.Unfurl, err error) {
 	defer u.Trace(ctx, func() error { return nil }, "Status(%s)", outboxID)()
-	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
-	if err != nil {
-		return status, res, err
-	}
-	if !found {
-		return status, res, libkb.NotFoundError{}
-	}
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
-		return status, res, err
+		u.Debug(ctx, "Status: error finding task: outboxID: %s err: %s", outboxID, err)
+		return status, nil, err
+	}
+	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
+	if err != nil {
+		return status, nil, err
+	}
+	if !found {
+		u.Debug(ctx, "Status: failed to find status, using unfurling: outboxID: %s", outboxID)
+		status = types.UnfurlerTaskStatusUnfurling
 	}
 	return status, task.Result, nil
 }
@@ -183,7 +185,6 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	}
 	tlfName := fromMsg.Valid().ClientHeader.TlfName
 	public := fromMsg.Valid().ClientHeader.TlfPublic
-	ephemeralMD := fromMsg.Valid().ClientHeader.EphemeralMetadata
 	msg = chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_UNFURL,
@@ -195,11 +196,6 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{
 			MessageID: fromMsg.GetMessageID(),
 		}),
-	}
-	if ephemeralMD != nil {
-		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: ephemeralMD.Lifetime,
-		}
 	}
 	return msg, nil
 }
@@ -233,12 +229,14 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 				u.Debug(ctx, "UnfurlAndSend: failed to make message: %s", err)
 				continue
 			}
+			u.Debug(ctx, "UnfurlAndSend: saving task for outboxID: %s", outboxID)
 			if err := u.saveTask(ctx, outboxID, uid, convID, hit.URL); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to save task: %s", err)
 				continue
 			}
 			// Unfurl in background and send the message (requires nonblocking sender)
 			u.unfurl(ctx, outboxID)
+			u.Debug(ctx, "UnfurlAndSend: sending message for outboxID: %s", outboxID)
 			if _, err := u.sender.SendUnfurlNonblock(ctx, convID, unfurlMsg, msg.GetMessageID(), outboxID); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to send message: %s", err)
 			}
@@ -291,7 +289,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 			u.Debug(ctx, "unfurl: failed to get task: %s", err)
 			return unfurl, err
 		}
-		u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling)
+		if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusUnfurling); err != nil {
+			u.Debug(ctx, "unfurl: failed to set status: %s", err)
+		}
 		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL)
 		if err != nil {
 			u.Debug(ctx, "unfurl: failed to scrape: %s", err)
