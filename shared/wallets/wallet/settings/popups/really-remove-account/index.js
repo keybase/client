@@ -88,6 +88,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             attachTo={this._getAttachmentRef}
             position={'top center'}
           >
+            {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
             <Kb.Text type="BodySmall" style={styles.toastText}>
               Copied to clipboard
             </Kb.Text>
@@ -127,9 +128,17 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-  toastText: {
-    color: Styles.globalColors.white,
-  },
+  toastText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: 10,
+      paddingRight: 10,
+      paddingTop: 5,
+    },
+  }),
   warningText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.brown_60,

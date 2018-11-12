@@ -57,6 +57,7 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
           selectedValue={this.state.selected}
           onSelect={selected => this.setState({selected})}
           prompt={<Prompt />}
+          promptString="Pick a display currency"
           onHidden={this._close}
           onCancel={this._close}
           onDone={this._onDone}
