@@ -4,6 +4,10 @@ import * as ConfigGen from '../../actions/config-gen'
 import Splash from '.'
 import {connect, isMobile} from '../../util/container'
 
+type OwnProps = {|
+  navigateAppend: (...Array<any>) => any,
+|}
+
 const mapStateToProps = state => ({
   _failedReason: state.config.daemonHandshakeFailedReason,
   _retriesLeft: state.config.daemonHandshakeRetriesLeft,
@@ -14,7 +18,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onRetry: () => dispatch(ConfigGen.createStartHandshake()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let status = ''
   let failed = ''
 
@@ -37,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

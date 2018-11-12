@@ -4,6 +4,8 @@ import React, {Component} from 'react'
 import ProveEnterUsername from '.'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 type State = {
   username: ?string,
 }
@@ -42,7 +44,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onContinue: (username: string, platform: ?string) => {
     dispatch(ProfileGen.createUpdateUsername({username}))
 
@@ -64,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
