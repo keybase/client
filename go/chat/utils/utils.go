@@ -14,6 +14,7 @@ import (
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
@@ -1218,8 +1219,8 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	return nil
 }
 
-func PresentUnfurl(ctx context.Context, unfurl chat1.Unfurl) *chat1.UnfurlDisplay {
-	ud, err := unfurl.DisplayUnfurl(unfurl)
+func PresentUnfurl(ctx context.Context, u chat1.Unfurl) *chat1.UnfurlDisplay {
+	ud, err := unfurl.DisplayUnfurl(u)
 	if err != nil {
 		return nil
 	}
