@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/wallets'
 export type Props = {|
   currencies: I.List<Types.Currency>,
   onCurrencyChange: Types.CurrencyCode => void,
+  saveCurrencyWaiting: boolean,
   selected: Types.Currency,
   waiting: boolean,
 |}

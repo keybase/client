@@ -46,9 +46,13 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
         <Kb.DropdownButton
           disabled={this.props.waiting}
           selected={
-            <Kb.Text type="BodyBig" style={styles.textAlignCenter}>
-              {this.props.selected.description}
-            </Kb.Text>
+            this.props.selected.description && !this.props.waiting ? (
+              <Kb.Text type="BodyBig" style={styles.textAlignCenter}>
+                {this.props.selected.description}
+              </Kb.Text>
+            ) : (
+              <Kb.ProgressIndicator type="Small" style={styles.progressIndicator} />
+            )
           }
           toggleOpen={this._toggleShowingMenu}
         />
@@ -77,6 +81,10 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  progressIndicator: {
+    height: 22,
+    width: 22,
+  },
   promptContainer: {
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,

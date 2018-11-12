@@ -20,14 +20,18 @@ const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.C
   return items.concat([...currencies].map(s => makeDropdownItem(s, s.code === currency.code)))
 }
 
-const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
+const makeDropdownItem = (item: Types.Currency, isSelected: boolean, waiting?: boolean) => (
   <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
-    <Kb.Text
-      type="BodyBig"
-      style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
-    >
-      {item.description}
-    </Kb.Text>
+    {item.description && !waiting ? (
+      <Kb.Text
+        type="BodyBig"
+        style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
+      >
+        {item.description}
+      </Kb.Text>
+    ) : (
+      <Kb.ProgressIndicator type="Small" style={styles.progressIndicator} />
+    )}
   </Kb.Box2>
 )
 
@@ -37,7 +41,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
       <Kb.Dropdown
         disabled={props.waiting}
         items={makeDropdownItems(props.currencies, props.selected)}
-        selected={makeDropdownItem(props.selected, false)}
+        selected={makeDropdownItem(props.selected, false, props.waiting)}
         onChanged={(node: React.Node) => {
           // $ForceType doesn't understand key will be string
           const selectedCode: Types.CurrencyCode = node.key
@@ -47,9 +51,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         }}
         style={styles.dropdown}
       />
-      {!Styles.isMobile && (
-        <Kb.SaveIndicator saving={props.waiting} minSavingTimeMs={300} savedTimeoutMs={2500} />
-      )}
+      <Kb.SaveIndicator saving={props.saveCurrencyWaiting} minSavingTimeMs={300} savedTimeoutMs={2500} />
     </Kb.Box2>
   )
 }
@@ -70,6 +72,10 @@ const styles = Styles.styleSheetCreate({
   },
   itemSelected: {
     color: Styles.globalColors.blue,
+  },
+  progressIndicator: {
+    height: 17,
+    width: 17,
   },
 })
 

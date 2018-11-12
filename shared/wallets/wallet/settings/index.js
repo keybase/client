@@ -21,6 +21,7 @@ export type SettingsProps = {|
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
   refresh: () => void,
+  saveCurrencyWaiting: boolean,
 |}
 
 const HoverText = Styles.isMobile
@@ -110,20 +111,24 @@ const AccountSettings = (props: SettingsProps) => {
           {Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />}
           <Kb.Box2
             direction="vertical"
+            gap="tiny"
             style={Styles.collapseStyles([styles.sidePaddings, {marginBottom: Styles.globalMargins.small}])}
           >
-            <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
               <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
             </Kb.Box2>
             <DisplayCurrencyDropdown
               currencies={props.currencies}
               selected={props.currency}
               onCurrencyChange={props.onCurrencyChange}
+              saveCurrencyWaiting={props.saveCurrencyWaiting}
               waiting={props.currencyWaiting}
             />
-            <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
-            <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
-            <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
+              <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
+              <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
+              <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
+            </Kb.Box2>
           </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
@@ -165,6 +170,9 @@ const styles = Styles.styleSheetCreate({
   accountIDContainer: {
     alignSelf: 'flex-start',
     maxWidth: '100%',
+  },
+  alignSelfFlexStart: {
+    alignSelf: 'flex-start',
   },
   deleteOpacity: {
     opacity: 0.3,

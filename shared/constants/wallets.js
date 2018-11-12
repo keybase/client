@@ -479,6 +479,7 @@ const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
+const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `wallets:getDisplayCurrency:${id}`
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const buildPaymentWaitingKey = 'wallets:buildPayment'
@@ -611,6 +612,7 @@ export {
   getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
+  getDisplayCurrencyWaitingKey,
   getDefaultAccountID,
   getFederatedAddress,
   getPayment,
