@@ -7,6 +7,8 @@ import CodePage2 from '.'
 import {withProps, compose, withStateHandlers, namedConnect, safeSubmit} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
@@ -26,7 +28,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
   safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers(
     {mountKey: '0'},

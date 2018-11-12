@@ -1,75 +1,74 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/provision'
-import {ButtonBar, BackButton, Icon, Box2, Text, PlainInput, WaitingButton} from '../../common-adapters'
-import {
-  globalColors,
-  globalMargins,
-  globalStyles,
-  styleSheetCreate,
-  isMobile,
-  isAndroid,
-  platformStyles,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   onBack: () => void,
-  onSubmit: () => void,
-  onChangePaperKey: (val: string) => void,
-  paperKey: string,
+  onSubmit: string => void,
   hint: string,
   error: string,
   waitingForResponse?: ?boolean,
 }
 
-const PaperKey = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
-    <BackButton onClick={props.onBack} style={styles.backButton} />
-    <Box2
-      direction="vertical"
-      style={styles.contents}
-      centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
-      gap={isMobile ? 'tiny' : 'medium'}
-    >
-      <Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-        <Icon type="icon-paper-key-48" />
-        <Text type="Header" style={styles.hint}>
-          {props.hint}
-        </Text>
-      </Box2>
-      <Box2 direction="vertical" style={styles.inputContainer}>
-        <PlainInput
-          autoFocus={true}
-          multiline={true}
-          rowsMax={3}
-          placeholder="Type in your paper key"
-          textType="Header"
-          style={styles.input}
-          onEnterKeyDown={props.onSubmit}
-          onChangeText={props.onChangePaperKey}
-          value={props.paperKey}
-        />
-      </Box2>
-      {!!props.error && <Text type="BodySmallError">{props.error}</Text>}
-      <ButtonBar fullWidth={true}>
-        <WaitingButton
-          label="Continue"
-          type="Primary"
-          fullWidth={true}
-          onClick={props.onSubmit}
-          enabled={!!props.paperKey}
-          waitingKey={Constants.waitingKey}
-        />
-      </ButtonBar>
-    </Box2>
-  </Box2>
-)
+class PaperKey extends React.Component<Props, {paperKey: string}> {
+  state = {paperKey: ''}
+  _onSubmit = () => this.props.onSubmit(this.state.paperKey)
 
-const styles = styleSheetCreate({
-  backButton: platformStyles({
+  render() {
+    const props = this.props
+
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="medium">
+        <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
+        <Kb.Box2
+          direction="vertical"
+          style={styles.contents}
+          centerChildren={!Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
+          gap={Styles.isMobile ? 'tiny' : 'medium'}
+        >
+          <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
+            <Kb.Icon type="icon-paper-key-48" />
+            <Kb.Text type="Header" style={styles.hint}>
+              {props.hint}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.inputContainer}>
+            <Kb.PlainInput
+              autoFocus={true}
+              multiline={true}
+              rowsMax={3}
+              placeholder="Type in your paper key"
+              textType="Header"
+              style={styles.input}
+              onEnterKeyDown={this._onSubmit}
+              onChangeText={paperKey => this.setState({paperKey})}
+              value={this.state.paperKey}
+            />
+          </Kb.Box2>
+          {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+          <Kb.ButtonBar fullWidth={true}>
+            <Kb.WaitingButton
+              label="Continue"
+              type="Primary"
+              fullWidth={true}
+              onClick={this._onSubmit}
+              enabled={!!this.state.paperKey}
+              waitingKey={Constants.waitingKey}
+            />
+          </Kb.ButtonBar>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+}
+
+const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
@@ -78,23 +77,23 @@ const styles = styleSheetCreate({
   }),
   contents: {
     flexGrow: 1,
-    maxWidth: isMobile ? 300 : 460,
+    maxWidth: Styles.isMobile ? 300 : 460,
     width: '100%',
   },
   hint: {
-    ...globalStyles.italic,
+    ...Styles.globalStyles.italic,
   },
   input: {
-    color: globalColors.black,
-    ...globalStyles.fontTerminal,
+    color: Styles.globalColors.black,
+    ...Styles.globalStyles.fontTerminal,
   },
   inputContainer: {
-    borderColor: globalColors.black_10,
+    borderColor: Styles.globalColors.black_10,
     borderRadius: 4,
     borderStyle: 'solid',
     borderWidth: 1,
     minHeight: 77,
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
     width: '100%',
   },
 })

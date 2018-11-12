@@ -9,7 +9,12 @@ import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import * as WaitingConstants from '../../constants/waiting'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|
+  ...$Exact<RouteProps<{}, {}>>,
+  prompt: string,
+  username: ?string,
+  waitingForResponse: boolean,
+|}
 
 type State = {
   showTyping: boolean,
@@ -73,7 +78,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
