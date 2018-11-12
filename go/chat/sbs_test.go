@@ -86,7 +86,24 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 	}
 }
 
-func TestChatSrvSBS(t *testing.T) {
+func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
+	mctx := libkb.NewMetaContextTODO(g)
+	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber))
+
+	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
+	require.NoError(t, err)
+
+	require.NoError(t, phonenumbers.VerifyPhoneNumber(mctx, phoneNumber, code))
+
+	t.Logf("Added and verified phone number: %s", phoneNumber.String())
+}
+
+type sbsTestCase struct {
+	getChatAssertion func(user *kbtest.FakeUser) string
+	sbsVerify        func(user *kbtest.FakeUser, g *libkb.GlobalContext)
+}
+
+func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
 			ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
@@ -106,21 +123,27 @@ func TestChatSrvSBS(t *testing.T) {
 				ctc.as(t, users[1]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
 			}
 
-			tc0 := ctc.world.Tcs[users[0].Username]
 			tc1 := ctc.world.Tcs[users[1].Username]
 			ctx := ctc.as(t, users[0]).startCtx
 			listener0 := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 			listener1 := newServerChatListener()
 			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
-			kickTeamRekeyd(tc0.Context().ExternalG(), t)
-			name := users[0].Username + "," + users[1].Username + "@rooter"
+
+			convoAssertions := []string{
+				users[0].Username,
+				testCase.getChatAssertion(users[1]),
+			}
+			displayName := strings.Join(convoAssertions, ",")
+
+			t.Logf("Creating a convo with display name %q", displayName)
+
 			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 				chat1.NewConversationLocalArg{
-					TlfName:          name,
+					TlfName:          displayName,
 					TopicType:        chat1.TopicType_CHAT,
 					TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
-					MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
+					MembersType:      mt,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 				})
 			require.NoError(t, err)
@@ -139,8 +162,11 @@ func TestChatSrvSBS(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, libkb.ChatNotInTeamError{}, err)
 
-			t.Logf("proving rooter now")
-			proveRooter(t, tc1.Context().ExternalG(), users[1])
+			t.Logf("running sbsVerify now")
+
+			kickTeamRekeyd(tc1.Context().ExternalG(), t)
+			testCase.sbsVerify(users[1], tc1.Context().ExternalG())
+
 			t.Logf("uid1: %s", users[1].User.GetUID())
 			t.Logf("teamID: %s", ncres.Conv.Info.Triple.Tlfid)
 			t.Logf("convID: %x", ncres.Conv.GetConvID().DbShortForm())
@@ -205,123 +231,22 @@ func TestChatSrvSBS(t *testing.T) {
 
 }
 
-type sbsTestCase struct {
-	getChatAssertion func(user *kbtest.FakeUser) string
-	sbsVerify        func(user *kbtest.FakeUser, g *libkb.GlobalContext)
-}
-
-func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
-	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		// Only run this test for imp teams
-		if mt != chat1.ConversationMembersType_IMPTEAMNATIVE {
-			return
-		}
-
-		ctc := makeChatTestContext(t, "TestChatSrvPhoneNumber", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-
-		ctx := ctc.as(t, users[0]).startCtx
-		tc1 := ctc.world.Tcs[users[1].Username]
-
-		listener0 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
-		listener1 := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
-
-		convoAssertions := []string{
-			users[0].Username,
-			testCase.getChatAssertion(users[1]),
-		}
-		displayName := strings.Join(convoAssertions, ",")
-
-		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
-			chat1.NewConversationLocalArg{
-				TlfName:          displayName,
-				TopicType:        chat1.TopicType_CHAT,
-				TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
-				MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			})
-		require.NoError(t, err)
-
-		mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "brrring",
-		}))
-
-		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-			ConversationID: ncres.Conv.GetConvID(),
-			Query: &chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-			},
-		})
-		require.NoError(t, err)
-		require.Equal(t, 1, len(tvres.Thread.Messages))
-
-		t.Logf("Running SBS verification now")
-
-		kickTeamRekeyd(tc1.Context().ExternalG(), t)
-		testCase.sbsVerify(users[1], tc1.Context().ExternalG())
-
-		t.Logf("uid1: %s", users[1].User.GetUID())
-		t.Logf("teamID: %s", ncres.Conv.Info.Triple.Tlfid)
-		t.Logf("convID: %x", ncres.Conv.GetConvID().DbShortForm())
-
-		select {
-		case rres := <-listener0.membersUpdate:
-			require.Equal(t, ncres.Conv.GetConvID(), rres.ConvID)
-			require.Equal(t, 1, len(rres.Members))
-			require.Equal(t, users[1].Username, rres.Members[0].Member)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no resolve")
-		}
-		select {
-		case rres := <-listener1.joinedConv:
-			require.Equal(t, ncres.Conv.GetConvID().String(), rres.ConvID)
-			require.Equal(t, 2, len(rres.Participants))
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no resolve")
-		}
-
-		// Try to read as user newly added to the impteam.
-		tvres, err = ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-			ConversationID: ncres.Conv.GetConvID(),
-			Query: &chat1.GetThreadQuery{
-				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-			},
-		})
-		require.NoError(t, err)
-		require.Equal(t, 1, len(tvres.Thread.Messages))
-		msg := tvres.Thread.Messages[0]
-		require.True(t, msg.IsValid())
-		require.Equal(t, "brrring", msg.Valid().MessageBody.Text().Body)
-
-		// See if new user can send
-		mustPostLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "pronto",
-		}))
-
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+func TestChatSrvRooter(t *testing.T) {
+	runChatSBSScenario(t, sbsTestCase{
+		getChatAssertion: func(user *kbtest.FakeUser) string {
+			return fmt.Sprintf("%s@rooter", user.Username)
+		},
+		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			proveRooter(t, g, user)
+		},
 	})
 }
 
-func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
-	mctx := libkb.NewMetaContextTODO(g)
-	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber))
-
-	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
-	require.NoError(t, err)
-
-	require.NoError(t, phonenumbers.VerifyPhoneNumber(mctx, phoneNumber, code))
-
-	t.Logf("Added and verified phone number: %s", phoneNumber.String())
-}
-
 func TestChatSrvPhone(t *testing.T) {
-	phone := kbtest.GenerateTestPhoneNumber()
+	var phone string
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
+			phone = kbtest.GenerateTestPhoneNumber()
 			return fmt.Sprintf("%s@phone", phone)
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
