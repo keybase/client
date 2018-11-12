@@ -725,29 +725,29 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   )
 }
 
-const moveOrCopyOpen = isMobile
-  ? (state, action) =>
-      Saga.all([
-        Saga.put(
-          FsGen.createSetMoveOrCopyDestinationParentPath({
-            index: action.payload.currentIndex + 1,
-            path: action.payload.path,
-          })
-        ),
-        Saga.put(
-          putActionIfOnPath(
-            action.payload.routePath,
-            navigateAppend([{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}])
-          )
-        ),
-      ])
-  : (state, action) =>
-      Saga.put(
-        FsGen.createSetMoveOrCopyDestinationParentPath({
-          index: action.payload.currentIndex,
-          path: action.payload.path,
-        })
+const moveOrCopyOpenMobile = (state, action) =>
+  Saga.all([
+    Saga.put(
+      FsGen.createSetMoveOrCopyDestinationParentPath({
+        index: action.payload.currentIndex + 1,
+        path: action.payload.path,
+      })
+    ),
+    Saga.put(
+      putActionIfOnPath(
+        action.payload.routePath,
+        navigateAppend([{props: {index: action.payload.currentIndex + 1}, selected: 'destinationPicker'}])
       )
+    ),
+  ])
+
+const moveOrCopyOpenDesktop = (state, action) =>
+  Saga.put(
+    FsGen.createSetMoveOrCopyDestinationParentPath({
+      index: action.payload.currentIndex,
+      path: action.payload.path,
+    })
+  )
 
 const showMoveOrCopy = isMobile
   ? (state, action) =>
@@ -786,7 +786,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
-  yield Saga.actionToAction(FsGen.moveOrCopyOpen, moveOrCopyOpen)
+  yield Saga.actionToAction(FsGen.moveOrCopyOpen, isMobile ? moveOrCopyOpenMobile : moveOrCopyOpenDesktop)
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
 
