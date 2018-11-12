@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -1106,27 +1105,41 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 
 func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	updatedMsgs := make(map[chat1.MessageID]bool)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		return
+	}
 	for _, msg := range msgs {
-		if !msg.IsValid() {
+		if !msg.IsValid() || msg.Valid().ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
 			continue
 		}
 		body := msg.Valid().MessageBody
 		if typ, err := body.MessageType(); err != nil || typ != chat1.MessageType_UNFURL {
 			continue
 		}
-		unfurl, err := display.DisplayUnfurl(ctx, s.G().AttachmentURLSrv, convID, body.Unfurl().Unfurl)
-		if err != nil {
-			continue
-		}
-		act := chat1.NewChatActivityWithMessageUnfurled(chat1.UnfurlUpdateNotif{
-			ConvID:      convID,
-			UnfurlMsgID: msg.GetMessageID(),
-			TargetMsgID: body.Unfurl().MessageID,
-			Unfurl:      unfurl,
-		})
-		s.G().ActivityNotifier.Activity(ctx, uid, msg.Valid().ClientHeader.Conv.TopicType,
-			&act, chat1.ChatActivitySource_LOCAL)
+		updatedMsgs[body.Unfurl().MessageID] = true
 	}
+	var msgIDs []chat1.MessageID
+	for msgID := range updatedMsgs {
+		msgIDs = append(msgIDs, msgID)
+	}
+	unfurledMsgs, err := s.GetMessages(ctx, conv, uid, msgIDs, nil)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: fails to get messages to notify: %s", err)
+		return
+	}
+	var notif chat1.UnfurlUpdateNotifs
+	for _, msg := range unfurledMsgs {
+		notif.Updates = append(notif.Updates, chat1.UnfurlUpdateNotif{
+			ConvID: convID,
+			Msg:    utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID),
+		})
+	}
+	act := chat1.NewChatActivityWithMessageUnfurled(notif)
+	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+		&act, chat1.ChatActivitySource_LOCAL)
 }
 
 // notifyReactionUpdates notifies the GUI after reactions are received

@@ -350,18 +350,34 @@ func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
 }
 
 type UnfurlUpdateNotif struct {
-	ConvID      ConversationID `codec:"convID" json:"convID"`
-	UnfurlMsgID MessageID      `codec:"unfurlMsgID" json:"unfurlMsgID"`
-	TargetMsgID MessageID      `codec:"targetMsgID" json:"targetMsgID"`
-	Unfurl      UnfurlDisplay  `codec:"unfurl" json:"unfurl"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Msg    UIMessage      `codec:"msg" json:"msg"`
 }
 
 func (o UnfurlUpdateNotif) DeepCopy() UnfurlUpdateNotif {
 	return UnfurlUpdateNotif{
-		ConvID:      o.ConvID.DeepCopy(),
-		UnfurlMsgID: o.UnfurlMsgID.DeepCopy(),
-		TargetMsgID: o.TargetMsgID.DeepCopy(),
-		Unfurl:      o.Unfurl.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+		Msg:    o.Msg.DeepCopy(),
+	}
+}
+
+type UnfurlUpdateNotifs struct {
+	Updates []UnfurlUpdateNotif `codec:"updates" json:"updates"`
+}
+
+func (o UnfurlUpdateNotifs) DeepCopy() UnfurlUpdateNotifs {
+	return UnfurlUpdateNotifs{
+		Updates: (func(x []UnfurlUpdateNotif) []UnfurlUpdateNotif {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UnfurlUpdateNotif, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Updates),
 	}
 }
 
@@ -378,7 +394,7 @@ type ChatActivity struct {
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
 	ReactionUpdate__             *ReactionUpdateNotif            `codec:"reactionUpdate,omitempty" json:"reactionUpdate,omitempty"`
-	MessageUnfurled__            *UnfurlUpdateNotif              `codec:"messageUnfurled,omitempty" json:"messageUnfurled,omitempty"`
+	MessageUnfurled__            *UnfurlUpdateNotifs             `codec:"messageUnfurled,omitempty" json:"messageUnfurled,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -557,7 +573,7 @@ func (o ChatActivity) ReactionUpdate() (res ReactionUpdateNotif) {
 	return *o.ReactionUpdate__
 }
 
-func (o ChatActivity) MessageUnfurled() (res UnfurlUpdateNotif) {
+func (o ChatActivity) MessageUnfurled() (res UnfurlUpdateNotifs) {
 	if o.ActivityType__ != ChatActivityType_MESSAGE_UNFURLED {
 		panic("wrong case accessed")
 	}
@@ -644,7 +660,7 @@ func NewChatActivityWithReactionUpdate(v ReactionUpdateNotif) ChatActivity {
 	}
 }
 
-func NewChatActivityWithMessageUnfurled(v UnfurlUpdateNotif) ChatActivity {
+func NewChatActivityWithMessageUnfurled(v UnfurlUpdateNotifs) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_MESSAGE_UNFURLED,
 		MessageUnfurled__: &v,
@@ -731,7 +747,7 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReactionUpdate__),
-		MessageUnfurled__: (func(x *UnfurlUpdateNotif) *UnfurlUpdateNotif {
+		MessageUnfurled__: (func(x *UnfurlUpdateNotifs) *UnfurlUpdateNotifs {
 			if x == nil {
 				return nil
 			}

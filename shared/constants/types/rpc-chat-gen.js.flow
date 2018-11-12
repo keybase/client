@@ -645,7 +645,7 @@ export type ChannelMention =
   | 2 // HERE_2
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo} | {activityType: 11, reactionUpdate: ?ReactionUpdateNotif} | {activityType: 12, messageUnfurled: ?UnfurlUpdateNotif}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo} | {activityType: 11, reactionUpdate: ?ReactionUpdateNotif} | {activityType: 12, messageUnfurled: ?UnfurlUpdateNotifs}
 export type ChatActivitySource =
   | 0 // LOCAL_0
   | 1 // REMOTE_1
@@ -1079,7 +1079,8 @@ export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1
 
-export type UnfurlUpdateNotif = $ReadOnly<{convID: ConversationID, unfurlMsgID: MessageID, targetMsgID: MessageID, unfurl: UnfurlDisplay}>
+export type UnfurlUpdateNotif = $ReadOnly<{convID: ConversationID, msg: UIMessage}>
+export type UnfurlUpdateNotifs = $ReadOnly<{updates?: ?Array<UnfurlUpdateNotif>}>
 export type UnfurlYoutube = $ReadOnly<{}>
 export type UnfurlYoutubeDisplay = $ReadOnly<{}>
 export type UnfurlYoutubeRaw = $ReadOnly<{}>

@@ -100,9 +100,11 @@ protocol NotifyChat {
 
   record UnfurlUpdateNotif {
     ConversationID convID;
-    MessageID unfurlMsgID;
-    MessageID targetMsgID;
-    UnfurlDisplay unfurl;
+    UIMessage msg;
+  }
+
+  record UnfurlUpdateNotifs {
+    array<UnfurlUpdateNotif> updates;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -117,7 +119,7 @@ protocol NotifyChat {
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
     case REACTION_UPDATE: ReactionUpdateNotif;
-    case MESSAGE_UNFURLED: UnfurlUpdateNotif;
+    case MESSAGE_UNFURLED: UnfurlUpdateNotifs;
   }
 
   record TyperInfo {

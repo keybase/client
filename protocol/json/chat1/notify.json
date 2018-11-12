@@ -291,16 +291,21 @@
           "name": "convID"
         },
         {
-          "type": "MessageID",
-          "name": "unfurlMsgID"
-        },
+          "type": "UIMessage",
+          "name": "msg"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlUpdateNotifs",
+      "fields": [
         {
-          "type": "MessageID",
-          "name": "targetMsgID"
-        },
-        {
-          "type": "UnfurlDisplay",
-          "name": "unfurl"
+          "type": {
+            "type": "array",
+            "items": "UnfurlUpdateNotif"
+          },
+          "name": "updates"
         }
       ]
     },
@@ -394,7 +399,7 @@
             "name": "MESSAGE_UNFURLED",
             "def": false
           },
-          "body": "UnfurlUpdateNotif"
+          "body": "UnfurlUpdateNotifs"
         }
       ]
     },
