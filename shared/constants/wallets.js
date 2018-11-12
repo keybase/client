@@ -490,6 +490,8 @@ const searchKey = 'walletSearch'
 const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
+const validateAccountNameWaitingKey = 'wallets:validateAccountName'
+const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -653,4 +655,6 @@ export {
   unknownAccount,
   updatePaymentDetail,
   updatePaymentsReceived,
+  validateAccountNameWaitingKey,
+  validateSecretKeyWaitingKey,
 }

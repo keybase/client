@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  CopyText,
+  Icon,
+  ProgressIndicator,
+  Text,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SmallAccountID, WalletPopup} from '../common'
 import * as Types from '../../constants/types/wallets'
@@ -8,7 +16,7 @@ import * as Types from '../../constants/types/wallets'
 type Props = {
   accountID: Types.AccountID,
   accountName: string,
-  secretKey: ?string,
+  secretKey: string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
@@ -52,11 +60,15 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
             Stellar&nbsp;account.
           </Text>
         </Box2>
-        {!!this.props.secretKey && (
-          <Box2 direction="vertical" style={styles.secretKeyContainer}>
-            <CopyText withReveal={true} text={this.props.secretKey} />
-          </Box2>
-        )}
+        <Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
+          <CopyText withReveal={true} text={this.props.secretKey} />
+          {!this.props.secretKey && (
+            <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.progressContainer}>
+              <ProgressIndicator style={styles.progressIndicator} type="Small" />
+              <Text type="BodySmall">fetching and decrypting secret key...</Text>
+            </Box2>
+          )}
+        </Box2>
         {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
       </WalletPopup>
     )
@@ -98,18 +110,31 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.medium,
     textAlign: 'center',
   },
-  progressContainer: {
-    marginBottom: Styles.globalMargins.medium,
-  },
+  progressContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.fillAbsolute,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.white_90,
+      display: 'flex',
+      justifyContent: 'center',
+    },
+  }),
+  progressIndicator: Styles.platformStyles({
+    isElectron: {
+      height: 17,
+      width: 17,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
   secretKeyContainer: Styles.platformStyles({
     common: {
-      width: '100%',
+      position: 'relative',
     },
     isElectron: {
       marginBottom: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.xlarge,
     },
   }),
   warningContainer: {
