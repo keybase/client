@@ -14,7 +14,7 @@ import (
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/pager"
-	"github.com/keybase/client/go/chat/unfurl"
+	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
@@ -1219,17 +1219,18 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	return nil
 }
 
-func PresentUnfurl(ctx context.Context, u chat1.Unfurl) *chat1.UnfurlDisplay {
-	ud, err := unfurl.DisplayUnfurl(u)
+func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.ConversationID, u chat1.Unfurl) *chat1.UnfurlDisplay {
+	ud, err := display.DisplayUnfurl(ctx, g.AttachmentURLSrv, convID, u)
 	if err != nil {
 		return nil
 	}
 	return &ud
 }
 
-func PresentUnfurls(ctx context.Context, unfurls []chat1.Unfurl) (res []chat1.UnfurlDisplay) {
+func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	unfurls []chat1.Unfurl) (res []chat1.UnfurlDisplay) {
 	for _, u := range unfurls {
-		ud := PresentUnfurl(u)
+		ud := PresentUnfurl(ctx, g, convID, u)
 		if ud != nil {
 			res = append(res, *ud)
 		}
@@ -1294,7 +1295,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
-			Unfurls:               PresentUnfurls(ctx, valid.Unfurls),
+			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
