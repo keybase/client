@@ -1010,6 +1010,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		AttachmentUploaded: mb.Attachmentuploaded__,
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
+		Unfurl:             mb.Unfurl__,
 	}
 }
 
@@ -1133,6 +1134,7 @@ type MsgContent struct {
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
+	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.

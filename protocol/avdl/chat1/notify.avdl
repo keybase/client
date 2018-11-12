@@ -233,4 +233,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
 }

@@ -67,6 +67,7 @@ type NotifyListener interface {
 		bytesComplete, bytesTotal int64)
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
+	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -144,9 +145,14 @@ func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID 
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
 }
-func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 }
-func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
+func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIRequestInfo) {
+}
+func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, domain string) {
 }
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -1124,6 +1130,21 @@ func (n *NotifyRouter) HandleChatSubteamRename(ctx context.Context, uid keybase1
 			})
 		}, func(ctx context.Context, listener NotifyListener) {
 			listener.ChatSubteamRename(uid, convIDs)
+		})
+}
+
+func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	n.notifyChatCommon(ctx, "ChatPromptUnfurl", chat1.TopicType_CHAT,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatPromptUnfurl(ctx, chat1.ChatPromptUnfurlArg{
+				Uid:    uid,
+				ConvID: convID,
+				MsgID:  msgID,
+				Domain: domain,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatPromptUnfurl(uid, convID, msgID, domain)
 		})
 }
 
