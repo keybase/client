@@ -6,7 +6,7 @@ import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
-import {measureStart, measureStop} from '../dev/user-timings'
+import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 
 // A session is a series of calls back and forth tied together with a single sessionID

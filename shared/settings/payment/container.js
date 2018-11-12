@@ -67,7 +67,7 @@ class PaymentStateHolder extends Component<Props, State> {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   (state: TypedState, ownProps: OwnProps) => {
     const {
       planBilling: {plan, errorMessage},

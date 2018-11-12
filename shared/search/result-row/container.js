@@ -81,4 +81,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   }
 }
 
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(SearchResultRow)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(
+  SearchResultRow
+)
