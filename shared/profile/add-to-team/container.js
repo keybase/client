@@ -7,6 +7,7 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
+  type RouteProps,
 } from '../../util/container'
 import {mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -14,6 +15,8 @@ import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
 import {navigateAppend} from '../../actions/route-tree'
 import type {TeamRoleType} from '../../constants/types/teams'
+
+type OwnProps = RouteProps<{username: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   return {
@@ -87,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
