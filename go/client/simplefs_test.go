@@ -218,6 +218,19 @@ func (s SimpleFSMock) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	return keybase1.SimpleFSQuotaUsage{}, nil
 }
 
+// SimpleFSFolderSyncConfig implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSFolderSyncConfig(
+	_ context.Context, _ keybase1.Path) (
+	keybase1.FolderSyncConfig, error) {
+	return keybase1.FolderSyncConfig{}, nil
+}
+
+// SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
+	_ context.Context, _ keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

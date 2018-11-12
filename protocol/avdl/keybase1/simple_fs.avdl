@@ -425,4 +425,24 @@ protocol SimpleFS {
    It should only be called after explicit user confirmation.
    */
   void simpleFSReset(Path path);
+
+  enum FolderSyncMode {
+    DISABLED_0,
+    ENABLED_1
+    // TODO(KBFS-3522): add partial mode.
+  }
+
+  record FolderSyncConfig {
+    FolderSyncMode mode;
+    // TODO(KBFS-3522): add specific paths to sync in partial mode.
+  }
+
+  // simpleFSFolderSyncConfig returns the current sync config for the
+  // folder specified in `path` (e.g., whether syncing is enabled for
+  // that folder).
+  FolderSyncConfig simpleFSFolderSyncConfig(Path path);
+
+  // simpleFSSetFolderSyncConfig sets the sync config for the folder
+  // specified in `path`.
+  void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
 }

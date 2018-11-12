@@ -603,6 +603,24 @@
           "name": "gitLimitBytes"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "FolderSyncMode",
+      "symbols": [
+        "DISABLED_0",
+        "ENABLED_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfig",
+      "fields": [
+        {
+          "type": "FolderSyncMode",
+          "name": "mode"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1001,6 +1019,28 @@
       ],
       "response": null,
       "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
+    },
+    "simpleFSFolderSyncConfig": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "FolderSyncConfig"
+    },
+    "simpleFSSetFolderSyncConfig": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "config",
+          "type": "FolderSyncConfig"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
