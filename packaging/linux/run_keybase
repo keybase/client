@@ -204,6 +204,7 @@ start_systemd() {
       QT_IM_MODULE
       QT4_IM_MODULE
       XMODIFIERS
+      XDG_DOWNLOAD_DIR
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
 
