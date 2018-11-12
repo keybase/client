@@ -317,17 +317,20 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 	return nil
 }
 
+// startOfValidatedChainForLeaf returns the earliest revision in the
+// chain leading up to `leafRev` that's been validated so far.  If no
+// validations have occurred yet, it returns `leafRev`.
 func (md *MDOpsStandard) startOfValidatedChainForLeaf(
 	tlfID tlf.ID, leafRev kbfsmd.Revision) kbfsmd.Revision {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	revs, ok := md.leafChainsValidated[tlfID]
 	if !ok {
-		return kbfsmd.RevisionUninitialized
+		return leafRev
 	}
 	min, ok := revs[leafRev]
 	if !ok {
-		return kbfsmd.RevisionUninitialized
+		return leafRev
 	}
 	return min
 }
@@ -463,14 +466,11 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	}
 
 	// Otherwise it's valid, as long as there's a valid chain of MD
-	// revisions between the two.  First, see if what chain we've
+	// revisions between the two.  First, see which chain we've
 	// already validated, and if this revision falls in that chain,
 	// we're done.  Otherwise, just fetch the part of the chain we
 	// haven't validated yet.
 	newChainEnd := md.startOfValidatedChainForLeaf(irmd.TlfID(), leaf.Revision)
-	if newChainEnd == kbfsmd.RevisionUninitialized {
-		newChainEnd = leaf.Revision
-	}
 	if newChainEnd <= irmd.Revision() {
 		return nil
 	}
