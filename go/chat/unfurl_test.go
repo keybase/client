@@ -142,7 +142,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		t.Logf("whitelist and send again")
 		require.NoError(t, settings.WhitelistAdd(ctx, uid, "0.1"))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		select {
 		case <-listener0.newMessageRemote:
@@ -175,6 +175,16 @@ func TestChatSrvUnfurl(t *testing.T) {
 			_, _, err := unfurler.Status(ctx, outboxID)
 			require.Error(t, err)
 			require.IsType(t, libkb.NotFoundError{}, err)
+			select {
+			case mu := <-listener0.messagesUnfurled:
+				require.Equal(t, 1, len(mu.Updates))
+				require.Equal(t, conv.Id, mu.Updates[0].ConvID)
+				require.Equal(t, origID, mu.Updates[0].Msg.GetMessageID())
+				require.True(t, mu.Updates[0].Msg.IsValid())
+				require.Equal(t, 1, len(mu.Updates[0].Msg.Valid().Unfurls))
+			case <-time.After(timeout):
+				require.Fail(t, "no message unfurl")
+			}
 		}
 		httpSrv.succeed = true
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
