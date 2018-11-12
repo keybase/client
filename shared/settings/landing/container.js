@@ -6,6 +6,7 @@ import Landing from '.'
 import {connect, compose} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 
+type OwnProps = {||}
 const mapStateToProps = (state, ownProps: {}) => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
@@ -93,11 +94,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: {}) => {
     },
   }
 }
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Bootstrapable
-)(Landing)
+
+const connected = connect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)
+export default compose(connected, Bootstrapable)(Landing)

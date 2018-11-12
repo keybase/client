@@ -6,6 +6,7 @@ import {createShowUserProfile} from '../../actions/profile-gen'
 import {navigateAppend} from '../../actions/route-tree'
 import {connect, lifecycle, compose} from '../../util/container'
 
+type OwnProps = {||}
 const mapStateToProps = state => ({
   ...state.settings.invites,
   inviteEmail: '',
@@ -26,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
