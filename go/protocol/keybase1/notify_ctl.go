@@ -12,6 +12,8 @@ type NotificationChannels struct {
 	Session         bool `codec:"session" json:"session"`
 	Users           bool `codec:"users" json:"users"`
 	Kbfs            bool `codec:"kbfs" json:"kbfs"`
+	KbfsDesktop     bool `codec:"kbfsDesktop" json:"kbfsDesktop"`
+	KbfsLegacy      bool `codec:"kbfsLegacy" json:"kbfsLegacy"`
 	Tracking        bool `codec:"tracking" json:"tracking"`
 	Favorites       bool `codec:"favorites" json:"favorites"`
 	Paperkeys       bool `codec:"paperkeys" json:"paperkeys"`
@@ -20,7 +22,6 @@ type NotificationChannels struct {
 	App             bool `codec:"app" json:"app"`
 	Chat            bool `codec:"chat" json:"chat"`
 	PGP             bool `codec:"pgp" json:"pgp"`
-	Kbfsrequest     bool `codec:"kbfsrequest" json:"kbfsrequest"`
 	Badges          bool `codec:"badges" json:"badges"`
 	Reachability    bool `codec:"reachability" json:"reachability"`
 	Team            bool `codec:"team" json:"team"`
@@ -37,6 +38,8 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Session:         o.Session,
 		Users:           o.Users,
 		Kbfs:            o.Kbfs,
+		KbfsDesktop:     o.KbfsDesktop,
+		KbfsLegacy:      o.KbfsLegacy,
 		Tracking:        o.Tracking,
 		Favorites:       o.Favorites,
 		Paperkeys:       o.Paperkeys,
@@ -45,7 +48,6 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		App:             o.App,
 		Chat:            o.Chat,
 		PGP:             o.PGP,
-		Kbfsrequest:     o.Kbfsrequest,
 		Badges:          o.Badges,
 		Reachability:    o.Reachability,
 		Team:            o.Team,

@@ -25,6 +25,14 @@
         },
         {
           "type": "boolean",
+          "name": "kbfsDesktop"
+        },
+        {
+          "type": "boolean",
+          "name": "kbfsLegacy"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {
@@ -54,10 +62,6 @@
         {
           "type": "boolean",
           "name": "pgp"
-        },
-        {
-          "type": "boolean",
-          "name": "kbfsrequest"
         },
         {
           "type": "boolean",
