@@ -352,12 +352,13 @@ func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.DirentType = deTy2Ty(t)
 	de.Writable = (fi.Mode()&0222 != 0)
 
-	if lwg, ok := fi.Sys().(libfs.LastWriterGetter); ok {
-		lastWriter, err := lwg.LastWriter()
+	if lwg, ok := fi.Sys().(libfs.KBFSMetadataForSimpleFSGetter); ok {
+		md, err := lwg.KBFSMetadataForSimpleFS()
 		if err != nil {
 			return err
 		}
-		de.LastWriterUnverified = lastWriter
+		de.LastWriterUnverified = md.LastWriter
+		de.PrefetchStatus = md.PrefetchStatus
 	}
 	de.Name = fi.Name()
 	return nil

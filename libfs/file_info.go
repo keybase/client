@@ -1,16 +1,22 @@
-// Copyright 2017 Keybase Inc. All rights reserved.
+// Copyright 2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
 package libfs
 
 import (
+	"errors"
 	"os"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 )
+
+// ErrUnknownPrefetchStatus is returned when the prefetch status given by the
+// KBFSOps's NodeMetadata is invalid.
+var ErrUnknownPrefetchStatus = errors.New(
+	"Failed to determine prefetch status")
 
 // FileInfo is a wrapper around libkbfs.EntryInfo that implements the
 // os.FileInfo interface.
@@ -66,10 +72,10 @@ func (fi *FileInfo) IsDir() bool {
 	return fi.ei.Type == libkbfs.Dir
 }
 
-// LastWriterGetter is an interface for something that can return the
-// last KBFS writer of a directory entry.
-type LastWriterGetter interface {
-	LastWriter() (keybase1.User, error)
+// KBFSMetadataForSimpleFSGetter is an interface for something that can return
+// the last KBFS writer and prefetch status of a directory entry.
+type KBFSMetadataForSimpleFSGetter interface {
+	KBFSMetadataForSimpleFS() (KBFSMetadataForSimpleFS, error)
 }
 
 // PrevRevisionsGetter is an interface for something that can return
@@ -82,39 +88,62 @@ type fileInfoSys struct {
 	fi *FileInfo
 }
 
-var _ LastWriterGetter = fileInfoSys{}
+type KBFSMetadataForSimpleFS struct {
+	LastWriter     keybase1.User
+	PrefetchStatus keybase1.PrefetchStatus
+}
 
-func (fis fileInfoSys) LastWriter() (keybase1.User, error) {
+var _ KBFSMetadataForSimpleFSGetter = fileInfoSys{}
+
+func (fis fileInfoSys) KBFSMetadataForSimpleFS() (KBFSMetadataForSimpleFS,
+	error) {
 	if fis.fi.node == nil {
 		// This won't return any last writer for symlinks themselves.
 		// TODO: if we want symlink last writers, we'll need to add a
 		// new interface to KBFSOps to get them.
-		return keybase1.User{}, nil
+		return KBFSMetadataForSimpleFS{}, nil
 	}
 	md, err := fis.fi.fs.config.KBFSOps().GetNodeMetadata(
 		fis.fi.fs.ctx, fis.fi.node)
 	if err != nil {
-		return keybase1.User{}, err
+		return KBFSMetadataForSimpleFS{}, err
 	}
+	var prefetchStatus keybase1.PrefetchStatus
+	switch md.PrefetchStatus {
+	case "NoPrefetch":
+		prefetchStatus = keybase1.PrefetchStatus_NOT_STARTED
+	case "TriggeredPrefetch":
+		prefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
+	case "FinishedPrefetch":
+		prefetchStatus = keybase1.PrefetchStatus_COMPLETE
+	case "Unknown":
+		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
+	default:
+		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
+	}
+
 	lastWriterName := md.LastWriterUnverified
 	if lastWriterName == "" {
 		// This can happen in old, buggy team folders where the writer
 		// isn't properly set.  See KBFS-2939.
-		return keybase1.User{}, nil
+		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
 	}
 
 	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
 		fis.fi.fs.ctx, lastWriterName.String())
 	if err != nil {
-		return keybase1.User{}, err
+		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
 	}
 	uid, err := id.AsUser()
 	if err != nil {
-		return keybase1.User{}, err
+		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
 	}
-	return keybase1.User{
-		Uid:      uid,
-		Username: lastWriterName.String(),
+	return KBFSMetadataForSimpleFS{
+		LastWriter: keybase1.User{
+			Uid:      uid,
+			Username: lastWriterName.String(),
+		},
+		PrefetchStatus: prefetchStatus,
 	}, nil
 }
 
