@@ -1,12 +1,7 @@
-New features:
-• See recent file activity in the widget
-• Enabled zooming to change app font size
-• Get notified when devices get added or revoked
-• Better pasting images from clipboard
-• Better looking image attachments
-Fixes:
-• Fix launching on startup on OSX
-• Fix pasting attachments on new conversations
-• Fix missing timestamps
-• Better performance in chat
-• Inbox wouldn't load after sign in/out sometimes
+• Additional information in inbox while decrypting a message
+• Timestamps on all chat messages
+• Better handling of long teamnames in inbox
+• Fix for downloads crashing sometimes
+• Fix for QR codes not showing during provisioning sometimes
+• Better waiting indicators while creating team channels
+• Fix issues with @mentioning users while mouse is over the user list
