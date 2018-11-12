@@ -67,6 +67,7 @@ type NotifyListener interface {
 		bytesComplete, bytesTotal int64)
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
+	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -83,6 +84,9 @@ type NotifyListener interface {
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
+	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
+	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
+	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
 }
 
 type NoopNotifyListener struct{}
@@ -141,9 +145,14 @@ func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID 
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
 }
-func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 }
-func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
+func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIRequestInfo) {
+}
+func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, domain string) {
 }
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -165,6 +174,9 @@ func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
 func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)               {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)            {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)          {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1121,6 +1133,21 @@ func (n *NotifyRouter) HandleChatSubteamRename(ctx context.Context, uid keybase1
 		})
 }
 
+func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	n.notifyChatCommon(ctx, "ChatPromptUnfurl", chat1.TopicType_CHAT,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatPromptUnfurl(ctx, chat1.ChatPromptUnfurlArg{
+				Uid:    uid,
+				ConvID: convID,
+				MsgID:  msgID,
+				Domain: domain,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatPromptUnfurl(uid, convID, msgID, domain)
+		})
+}
+
 type notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
 type notifyChatFn2 func(context.Context, NotifyListener)
 
@@ -1660,16 +1687,16 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 	n.G().Log.CDebugf(ctx, "- Sent NewTeamEK notification")
 }
 
-func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat) {
+func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat,
+	typ keybase1.AvatarUpdateType) {
 	if n == nil {
 		return
 	}
-
 	arg := keybase1.AvatarUpdatedArg{
 		Name:    name,
 		Formats: formats,
+		Typ:     typ,
 	}
-
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			go func() {
@@ -1682,6 +1709,63 @@ func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, for
 	})
 	if n.listener != nil {
 		n.listener.AvatarUpdated(name, formats)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberAdded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberAdded(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberAdded(phoneNumber)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberVerified(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberVerified(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberVerified(phoneNumber)
+	}
+}
+
+func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyPhoneNumberClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PhoneNumberSuperseded(context.Background(), phoneNumber)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PhoneNumberSuperseded(phoneNumber)
 	}
 }
 

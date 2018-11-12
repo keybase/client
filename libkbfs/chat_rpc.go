@@ -808,3 +808,9 @@ func (c *ChatRPC) ChatRequestInfo(
 	_ context.Context, _ chat1.ChatRequestInfoArg) error {
 	return nil
 }
+
+// ChatPromptUnfurl implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatPromptUnfurl(_ context.Context, _ chat1.ChatPromptUnfurlArg) error {
+	return nil
+}

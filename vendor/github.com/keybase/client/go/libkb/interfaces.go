@@ -46,7 +46,6 @@ type configGetter interface {
 	GetDebug() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
-	GetAutoWallet() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -389,8 +388,9 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
-	ChatInboxSearchHit(context.Context, chat1.ChatInboxSearchHitArg) error
-	ChatInboxSearchDone(context.Context, chat1.ChatInboxSearchDoneArg) error
+	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
+	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 }
 
 type PromptDefault int
@@ -405,7 +405,7 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
-	// The ErrorWriter is not escaped: 	it should not be used to show unescaped user-originated data.
+	// The ErrorWriter is not escaped: it should not be used to show unescaped user-originated data.
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
@@ -417,6 +417,7 @@ type TerminalUI interface {
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptPasswordMaybeScripted(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	TerminalSize() (width int, height int)
 }
@@ -588,6 +589,7 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
+	GetDisplayPriority(n string) int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and
@@ -650,7 +652,6 @@ type TeamAuditor interface {
 
 type Stellar interface {
 	OnLogout()
-	CreateWalletGated(context.Context) error
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
@@ -821,7 +822,7 @@ type ChatHelper interface {
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
+		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 }
 
