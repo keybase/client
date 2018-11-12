@@ -23,6 +23,7 @@ const setupEngineListeners = () => {
     favorites: false,
     kbfs: true,
     kbfsDesktop: !isMobile,
+    kbfsrequest: false,
     kbfsLegacy: false,
     keyfamily: false,
     paperkeys: false,

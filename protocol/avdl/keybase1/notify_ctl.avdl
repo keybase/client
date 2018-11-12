@@ -18,6 +18,7 @@ protocol notifyCtl {
     boolean app;
     boolean chat;
     boolean pgp;
+    boolean kbfsrequest; // deprecated
     boolean badges;
     boolean reachability;
     boolean team;

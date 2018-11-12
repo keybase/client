@@ -65,6 +65,10 @@
         },
         {
           "type": "boolean",
+          "name": "kbfsrequest"
+        },
+        {
+          "type": "boolean",
           "name": "badges"
         },
         {
