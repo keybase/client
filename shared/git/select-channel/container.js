@@ -10,8 +10,11 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
+  type RouteProps,
 } from '../../util/container'
 import SelectChannel from '.'
+
+type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
 
 export type SelectChannelProps = {
   teamname: string,
@@ -57,13 +60,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     channelNames,
   }
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

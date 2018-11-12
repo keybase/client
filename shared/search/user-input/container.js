@@ -167,7 +167,7 @@ export type Props = _Props & {
 
 const noResults = []
 const ConnectedUserInput = compose(
-  namedConnect(
+namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o: OwnProps) => ({

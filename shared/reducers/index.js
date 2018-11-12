@@ -24,7 +24,7 @@ import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
-import {reducerTimer} from '../dev/user-timings'
+import {reducerTimer} from '../util/user-timings'
 
 import type {TypedState} from '../constants/reducer'
 

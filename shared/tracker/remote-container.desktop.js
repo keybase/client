@@ -9,6 +9,9 @@ import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
 import {branch, remoteConnect, compose, lifecycle, renderNothing, withStateHandlers} from '../util/container'
 
+type OwnProps = any //
+type State = any // this type is HUGE and annoying. lets not port it over
+
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
@@ -60,7 +63,7 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  remoteConnect(s => s, mapDispatchToProps, mergeProps),
+  remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps),
   branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
