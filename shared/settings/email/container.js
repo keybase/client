@@ -4,6 +4,7 @@ import UpdateEmail from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
 const mapStateToProps = state => {
   const {waitingForResponse} = state.settings
   const {emails, error} = state.settings.email
@@ -29,7 +30,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

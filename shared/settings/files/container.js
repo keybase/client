@@ -6,6 +6,10 @@ import {connect, compose, lifecycle} from '../../util/container'
 import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import {navigateAppend} from '../../actions/route-tree'
 
+type OwnProps = {|
+  shouldPromptSecurityPrefs: boolean,
+  showSecurityPrefsOnce: () => boolean,
+|}
 const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
@@ -33,7 +37,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 const ConnectedFiles = compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

@@ -1,26 +1,22 @@
 // @flow
+import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
-import {compose, renderNothing, branch, connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
+
+type OwnProps = RouteProps<{id: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)
-  const git = (gitMap ? gitMap.get(routeProps.get('id')) : null) || null
+  const git = (gitMap && gitMap.get(routeProps.get('id'))) || {}
 
-  return git
-    ? {
-        error: Constants.getError(state),
-        name: git.name,
-        teamname: git.teamname,
-        waitingKey: Constants.loadingWaitingKey,
-      }
-    : {
-        error: null,
-        name: '',
-        teamname: '',
-        waitingKey: '',
-      }
+  return {
+    error: Constants.getError(state),
+    name: git.name || '',
+    teamname: git.teamname || '',
+    waitingKey: Constants.loadingWaitingKey,
+  }
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
@@ -33,25 +29,17 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   onClose: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) =>
-  stateProps.name
-    ? {
-        ...stateProps,
-        ...dispatchProps,
-        onDelete: (notifyTeam: boolean) =>
-          dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
-      }
-    : {
-        ...stateProps,
-        onClose: dispatchProps.onClose,
-        onDelete: () => {},
-      }
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  onDelete: (notifyTeam: boolean) =>
+    dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
+})
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  branch(props => !props.name, renderNothing)
-)(DeleteRepo)
+const NullWrapper = props => (props.name ? <DeleteRepo {...props} /> : null)
+
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(NullWrapper)

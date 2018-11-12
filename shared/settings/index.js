@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import * as Types from '../constants/types/settings'
 import SettingsContainer from './render'
@@ -6,7 +7,7 @@ import {connect} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|children: React.Node, ...$Exact<RouteProps<{}, {}>>|}
 
 const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
   _badgeNumbers: state.notifications.get('navBadges'),
@@ -30,7 +31,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selectedTab: stateProps.selectedTab,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

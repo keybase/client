@@ -4,7 +4,9 @@ import {type RouteProps} from '../../route-tree/render-route'
 import {createShowUserProfile} from '../../actions/profile-gen'
 import {connect} from '../../util/container'
 
-const mapDispatchToProps = (dispatch, {navigateUp}: RouteProps<{}, {}>) => ({
+type OwnProps = RouteProps<{}, {}>
+
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onClick: username => {
     dispatch(navigateUp())
     dispatch(createShowUserProfile({username}))
@@ -14,7 +16,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: RouteProps<{}, {}>) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

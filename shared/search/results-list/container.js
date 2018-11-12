@@ -7,6 +7,7 @@ import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
 export type OwnProps = {|
+  keyboardDismissMode?: 'none' | 'on-drag',
   searchKey: string,
   onShowTracker?: (id: string) => void,
   onClick?: (id: string) => void,
@@ -55,12 +56,9 @@ export type Props = _Props & {pending: boolean}
 const Chooser = (props: any) =>
   props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />
 
-export default
-  namedConnect(
-    // $FlowIssue
-    mapStateToProps,
-    // $FlowIssue
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d}),
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
   'ResultsList'
 )(Chooser)

@@ -1,6 +1,8 @@
 // @flow
 import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
-import {connect, compose, defaultProps} from '../util/container'
+import {connect, compose, defaultProps, type RouteProps} from '../util/container'
+
+type OwnProps = RouteProps<{source: string, title: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => ({
   source: routeProps.get('source'),
@@ -12,7 +14,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const WebLinks = compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

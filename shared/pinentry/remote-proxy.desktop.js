@@ -53,7 +53,8 @@ const mapStateToProps = state => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-export default connect(
+type OwnProps = {||}
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})
