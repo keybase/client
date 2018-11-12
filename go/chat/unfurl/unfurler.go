@@ -106,10 +106,12 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 		return status, res, err
 	}
 	if !found {
+		u.Debug(ctx, "Status: failed to find status: outboxID: %s", outboxID)
 		return status, res, libkb.NotFoundError{}
 	}
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
+		u.Debug(ctx, "Status: error finding task: outboxID: %s err: %s", outboxID, err)
 		return status, res, err
 	}
 	return status, task.Result, nil
@@ -225,12 +227,14 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 				u.Debug(ctx, "UnfurlAndSend: failed to make message: %s", err)
 				continue
 			}
+			u.Debug(ctx, "UnfurlAndSend: saving task for outboxID: %s", outboxID)
 			if err := u.saveTask(ctx, outboxID, uid, convID, hit.URL); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to save task: %s", err)
 				continue
 			}
 			// Unfurl in background and send the message (requires nonblocking sender)
 			u.unfurl(ctx, outboxID)
+			u.Debug(ctx, "UnfurlAndSend: sending messagr for outboxID: %s", outboxID)
 			if _, err := u.sender.SendUnfurlNonblock(ctx, convID, unfurlMsg, msg.GetMessageID(), outboxID); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: failed to send message: %s", err)
 			}
