@@ -358,3 +358,6 @@ export const getConversationRetentionPolicy = (
   const conv = getMeta(state, conversationIDKey)
   return conv.retentionPolicy
 }
+
+export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
+  meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'

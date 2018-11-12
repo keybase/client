@@ -23,6 +23,7 @@ type Props = {
   youAreReset: boolean,
   hasResetUsers: boolean,
   isSelected: boolean,
+  isDecryptingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -52,6 +53,8 @@ class BottomLine extends PureComponent<Props> {
           Waiting for participants to rekey
         </Text>
       )
+    } else if (this.props.isDecryptingSnippet) {
+      content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
     } else if (this.props.snippet) {
       const style = collapseStyles([
         styles.bottomLine,

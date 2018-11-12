@@ -9,10 +9,20 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-func GetHostname(uri string) (res string, err error) {
+func GetDefaultFaviconURL(uri string) (string, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
-		return res, err
+		return "", err
+	}
+	parsed.Path = "favicon.ico"
+	parsed.RawQuery = ""
+	return parsed.String(), nil
+}
+
+func GetHostname(uri string) (string, error) {
+	parsed, err := url.Parse(uri)
+	if err != nil {
+		return "", err
 	}
 	return parsed.Hostname(), nil
 }
