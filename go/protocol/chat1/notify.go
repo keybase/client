@@ -51,6 +51,7 @@ const (
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
 	ChatActivityType_REACTION_UPDATE               ChatActivityType = 11
+	ChatActivityType_MESSAGE_UNFURLED              ChatActivityType = 12
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -68,6 +69,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"EXPUNGE":                       9,
 	"EPHEMERAL_PURGE":               10,
 	"REACTION_UPDATE":               11,
+	"MESSAGE_UNFURLED":              12,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -83,6 +85,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	9:  "EXPUNGE",
 	10: "EPHEMERAL_PURGE",
 	11: "REACTION_UPDATE",
+	12: "MESSAGE_UNFURLED",
 }
 
 func (e ChatActivityType) String() string {
@@ -346,6 +349,22 @@ func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
 	}
 }
 
+type UnfurlUpdateNotif struct {
+	ConvID      ConversationID `codec:"convID" json:"convID"`
+	UnfurlMsgID MessageID      `codec:"unfurlMsgID" json:"unfurlMsgID"`
+	TargetMsgID MessageID      `codec:"targetMsgID" json:"targetMsgID"`
+	Unfurl      UnfurlDisplay  `codec:"unfurl" json:"unfurl"`
+}
+
+func (o UnfurlUpdateNotif) DeepCopy() UnfurlUpdateNotif {
+	return UnfurlUpdateNotif{
+		ConvID:      o.ConvID.DeepCopy(),
+		UnfurlMsgID: o.UnfurlMsgID.DeepCopy(),
+		TargetMsgID: o.TargetMsgID.DeepCopy(),
+		Unfurl:      o.Unfurl.DeepCopy(),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -359,6 +378,7 @@ type ChatActivity struct {
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
 	ReactionUpdate__             *ReactionUpdateNotif            `codec:"reactionUpdate,omitempty" json:"reactionUpdate,omitempty"`
+	MessageUnfurled__            *UnfurlUpdateNotif              `codec:"messageUnfurled,omitempty" json:"messageUnfurled,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -416,6 +436,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_REACTION_UPDATE:
 		if o.ReactionUpdate__ == nil {
 			err = errors.New("unexpected nil value for ReactionUpdate__")
+			return ret, err
+		}
+	case ChatActivityType_MESSAGE_UNFURLED:
+		if o.MessageUnfurled__ == nil {
+			err = errors.New("unexpected nil value for MessageUnfurled__")
 			return ret, err
 		}
 	}
@@ -532,6 +557,16 @@ func (o ChatActivity) ReactionUpdate() (res ReactionUpdateNotif) {
 	return *o.ReactionUpdate__
 }
 
+func (o ChatActivity) MessageUnfurled() (res UnfurlUpdateNotif) {
+	if o.ActivityType__ != ChatActivityType_MESSAGE_UNFURLED {
+		panic("wrong case accessed")
+	}
+	if o.MessageUnfurled__ == nil {
+		return
+	}
+	return *o.MessageUnfurled__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -606,6 +641,13 @@ func NewChatActivityWithReactionUpdate(v ReactionUpdateNotif) ChatActivity {
 	return ChatActivity{
 		ActivityType__:   ChatActivityType_REACTION_UPDATE,
 		ReactionUpdate__: &v,
+	}
+}
+
+func NewChatActivityWithMessageUnfurled(v UnfurlUpdateNotif) ChatActivity {
+	return ChatActivity{
+		ActivityType__:    ChatActivityType_MESSAGE_UNFURLED,
+		MessageUnfurled__: &v,
 	}
 }
 
@@ -689,6 +731,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReactionUpdate__),
+		MessageUnfurled__: (func(x *UnfurlUpdateNotif) *UnfurlUpdateNotif {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageUnfurled__),
 	}
 }
 

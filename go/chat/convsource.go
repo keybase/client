@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -1103,8 +1104,34 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
+func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	for _, msg := range msgs {
+		if !msg.IsValid() {
+			continue
+		}
+		body := msg.Valid().MessageBody
+		if typ, err := body.MessageType(); err != nil || typ != chat1.MessageType_UNFURL {
+			continue
+		}
+		unfurl, err := display.DisplayUnfurl(ctx, s.G().AttachmentURLSrv, convID, body.Unfurl().Unfurl)
+		if err != nil {
+			continue
+		}
+		act := chat1.NewChatActivityWithMessageUnfurled(chat1.UnfurlUpdateNotif{
+			ConvID:      convID,
+			UnfurlMsgID: msg.GetMessageID(),
+			TargetMsgID: body.Unfurl().MessageID,
+			Unfurl:      unfurl,
+		})
+		s.G().ActivityNotifier.Activity(ctx, uid, msg.Valid().ClientHeader.Conv.TopicType,
+			&act, chat1.ChatActivitySource_LOCAL)
+	}
+}
+
 // notifyReactionUpdates notifies the GUI after reactions are received
-func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
@@ -1131,7 +1158,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})
-			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_LOCAL)
+			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity,
+				chat1.ChatActivitySource_LOCAL)
 		}
 	}
 }
@@ -1194,6 +1222,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
+	s.notifyUnfurls(ctx, uid, convID, msgs)
 	return nil
 }
 
