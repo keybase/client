@@ -292,6 +292,18 @@ func (o Unfurl) DeepCopy() Unfurl {
 	}
 }
 
+type UnfurlResult struct {
+	Unfurl Unfurl `codec:"unfurl" json:"unfurl"`
+	Url    string `codec:"url" json:"url"`
+}
+
+func (o UnfurlResult) DeepCopy() UnfurlResult {
+	return UnfurlResult{
+		Unfurl: o.Unfurl.DeepCopy(),
+		Url:    o.Url,
+	}
+}
+
 type UnfurlImageDisplay struct {
 	Url    string `codec:"url" json:"url"`
 	Height int    `codec:"height" json:"height"`

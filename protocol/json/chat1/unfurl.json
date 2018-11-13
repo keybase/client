@@ -167,6 +167,20 @@
     },
     {
       "type": "record",
+      "name": "UnfurlResult",
+      "fields": [
+        {
+          "type": "Unfurl",
+          "name": "unfurl"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnfurlImageDisplay",
       "fields": [
         {

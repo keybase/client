@@ -47,6 +47,11 @@ protocol unfurl {
       case YOUTUBE: UnfurlYoutube;
     }
 
+    record UnfurlResult {
+        Unfurl unfurl;
+        string url;
+    }
+
     record UnfurlImageDisplay {
         string url;
         int height;

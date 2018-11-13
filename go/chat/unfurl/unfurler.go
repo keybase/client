@@ -99,7 +99,7 @@ func (u *Unfurler) taskKey(outboxID chat1.OutboxID) libkb.DbKey {
 	}
 }
 
-func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.Unfurl, err error) {
+func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.UnfurlResult, err error) {
 	defer u.Trace(ctx, func() error { return nil }, "Status(%s)", outboxID)()
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
@@ -114,7 +114,13 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 		u.Debug(ctx, "Status: failed to find status, using unfurling: outboxID: %s", outboxID)
 		status = types.UnfurlerTaskStatusUnfurling
 	}
-	return status, task.Result, nil
+	if task.Result != nil {
+		return status, &chat1.UnfurlResult{
+			Unfurl: *task.Result,
+			Url:    task.URL,
+		}, nil
+	}
+	return status, nil, nil
 }
 
 func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
@@ -203,13 +209,26 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 	defer u.Trace(ctx, func() error { return nil }, "UnfurlAndSend")()
+	// early out for errors
+	if !msg.IsValid() {
+		return
+	}
 	// get URL hits
 	hits := u.extractURLs(ctx, uid, msg)
 	if len(hits) == 0 {
 		return
 	}
+	// get a map for all the URLs we have already unfurled
+	prevUnfurled := make(map[string]bool)
+	for _, u := range msg.Valid().Unfurls {
+		prevUnfurled[u.Url] = true
+	}
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {
+		if prevUnfurled[hit.URL] {
+			u.Debug(ctx, "UnfurlAndSend: skipping prev unfurled")
+			continue
+		}
 		switch hit.Typ {
 		case ExtractorHitPrompt:
 			domain, err := GetDomain(hit.URL)

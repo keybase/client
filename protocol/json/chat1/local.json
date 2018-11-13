@@ -428,7 +428,7 @@
       "name": "MessageUnfurl",
       "fields": [
         {
-          "type": "Unfurl",
+          "type": "UnfurlResult",
           "name": "unfurl"
         },
         {
@@ -1092,7 +1092,7 @@
         {
           "type": {
             "type": "array",
-            "items": "Unfurl"
+            "items": "UnfurlResult"
           },
           "name": "unfurls"
         }
