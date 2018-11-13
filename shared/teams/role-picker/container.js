@@ -7,6 +7,8 @@ import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
 
+type OwnProps = RouteProps<{}, {}>
+
 type StateProps = {
   _memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
@@ -77,7 +79,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 }
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

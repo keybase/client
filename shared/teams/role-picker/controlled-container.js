@@ -5,6 +5,7 @@ import {connect, compose, withHandlers, withStateHandlers} from '../../util/cont
 import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
 import {type TeamRoleType} from '../../constants/types/teams'
 
+type OwnProps = RouteProps<{}, {}>
 /*
   Pass through via routeprops
   onComplete gets selected role
@@ -64,7 +65,7 @@ const ControlledRolePicker = props => (
 )
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

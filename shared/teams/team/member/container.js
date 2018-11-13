@@ -12,6 +12,8 @@ import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
+type OwnProps = RouteProps<{}, {}>
+
 type StateProps = {
   teamname: string,
   following: boolean,
@@ -108,7 +110,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   // $FlowIssue this type is messed up, TODO cleanup
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

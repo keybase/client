@@ -16,6 +16,8 @@ import {
   withStateHandlers,
 } from '../../util/container'
 
+type OwnProps = RouteProps<{}, {}>
+
 const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
@@ -89,7 +91,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
 })
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
