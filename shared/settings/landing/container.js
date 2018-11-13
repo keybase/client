@@ -1,13 +1,14 @@
-// @noflow
+// @flow
 import logger from '../../logger'
 import * as SettingsGen from '../../actions/settings-gen'
+import {connect, compose} from '../../util/container'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
-import {connect, compose} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 
 type OwnProps = {||}
-const mapStateToProps = (state, ownProps: {}) => {
+
+const mapStateToProps = state => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
   let accountProps
@@ -55,7 +56,7 @@ const mapStateToProps = (state, ownProps: {}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: (a: any) => void, ownProps: {}) => ({
+const mapDispatchToProps = (dispatch: (a: any) => void) => ({
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassphrase())
@@ -67,7 +68,7 @@ const mapDispatchToProps = (dispatch: (a: any) => void, ownProps: {}) => ({
   onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', props: {selectedLevel}}])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: {}) => {
+const mergeProps = (stateProps, dispatchProps) => {
   if (!stateProps.bootstrapDone) {
     return {
       ...stateProps,
@@ -86,6 +87,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: {}) => {
         onChangeRememberPassphrase: (checked: boolean) => dispatchProps.onChangeRememberPassphrase(checked),
       },
       plan: {
+        // $FlowIssue
         ...stateProps.originalProps.plan,
         onInfo: selectedLevel => {
           dispatchProps.onInfo(selectedLevel)
@@ -95,5 +97,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: {}) => {
   }
 }
 
-const connected = connect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)
-export default compose(connected, Bootstrapable)(Landing)
+export default compose(
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  Bootstrapable
+)(Landing)

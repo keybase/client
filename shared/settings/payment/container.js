@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import logger from '../../logger'
 import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'
@@ -70,6 +70,7 @@ class PaymentStateHolder extends Component<Props, State> {
 export default connect<OwnProps, _, _, _, _>(
   (state: TypedState, ownProps: OwnProps) => {
     const {
+      // $FlowIssue
       planBilling: {plan, errorMessage},
     } = state
     if (!plan) {
