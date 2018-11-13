@@ -470,6 +470,7 @@ func (cache *DiskMDCacheLocal) Shutdown(ctx context.Context) {
 	select {
 	case <-cache.shutdownCh:
 		cache.log.CWarningf(ctx, "Shutdown called more than once")
+		return
 	default:
 	}
 	close(cache.shutdownCh)
