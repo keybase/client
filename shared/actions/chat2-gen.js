@@ -305,7 +305,7 @@ type _PreviewConversationPayload = $ReadOnly<{|
   teamname?: string,
   channelname?: string,
   conversationIDKey?: Types.ConversationIDKey,
-  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction',
+  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction' | 'requestedPayment',
 |}>
 type _RequestInfoReceivedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

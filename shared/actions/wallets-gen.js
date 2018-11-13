@@ -227,6 +227,7 @@ type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|
   kbRqID: HiddenString,
   lastSentXLM: boolean,
+  requestee: string,
 |}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,

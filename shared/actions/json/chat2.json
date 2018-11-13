@@ -61,7 +61,8 @@
         "'convertAdHoc'",
         "'memberView'",
         "'newChannel'",
-        "'transaction'"
+        "'transaction'",
+        "'requestedPayment'"
       ]
     },
     "createConversation": {

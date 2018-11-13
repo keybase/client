@@ -190,7 +190,8 @@
     "requestedPayment": {
       "_description": "Successfully request payment",
       "kbRqID": "HiddenString",
-      "lastSentXLM": "boolean"
+      "lastSentXLM": "boolean",
+      "requestee": "string"
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",

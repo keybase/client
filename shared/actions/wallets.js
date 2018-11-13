@@ -185,6 +185,7 @@ const requestPayment = (state: TypedState) =>
     WalletsGen.createRequestedPayment({
       kbRqID: new HiddenString(kbRqID),
       lastSentXLM: state.wallets.building.currency === 'XLM',
+      requestee: state.wallets.building.to,
     })
   )
 
@@ -534,7 +535,7 @@ const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayloa
     .catch(err => logger.error(`Error cancelling request: ${err.message}`))
 }
 
-const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.AbandonPaymentPayload) => {
+const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
   const path = getPath(routeState)
   const lastNode = path.last()
@@ -548,6 +549,20 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
     const pathAboveForm = path.slice(0, firstFormIndex)
     return Saga.put(Route.navigateTo(pathAboveForm))
   }
+}
+
+const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.RequestedPaymentPayload) => {
+  // nav to previewed conversation if we aren't already on the chat tab
+  const routeState = state.routeTree.routeState
+  const path = getPath(routeState)
+  if (path.first() === Tabs.chatTab) {
+    return maybeNavigateAwayFromSendForm(state, action)
+  }
+  // not on chat tab; preview
+  logger.info('Navigating to conversation because we requested a payment')
+  return Saga.put(
+    Chat2Gen.createPreviewConversation({participants: [action.payload.requestee], reason: 'requestedPayment'})
+  )
 }
 
 const setupEngineListeners = () => {
@@ -702,7 +717,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltRequest)
-  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateAwayFromSendForm)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateToConversation)
 
   // Effects of abandoning payments
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuilding)
