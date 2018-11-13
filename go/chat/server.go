@@ -2308,6 +2308,10 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		if err != nil {
+			return err
+		}
 		if len(msgs) != 1 {
 			return errors.New("message not found")
 		}

@@ -98,6 +98,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
+		uid := users[0].User.GetUID().ToBytes()
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
@@ -231,6 +232,21 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 		require.Equal(t, "MIKE", u.Generic().Title)
 		recvAndCheckUnfurlMsg()
+
+		t.Logf("make sure we don't unfurl twice")
+		getConv, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		require.NoError(t, err)
+		getRes, err := tc.Context().ConvSource.GetMessages(ctx, getConv, uid, []chat1.MessageID{origID}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(getRes))
+		unboxed := getRes[0]
+		tc.Context().Unfurler.UnfurlAndSend(ctx, uid, conv.Id, unboxed)
+		time.Sleep(200 * time.Millisecond)
+		select {
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "should not unfurl twice")
+		default:
+		}
 
 		t.Logf("exploding unfurl")
 		dur := gregor1.ToDurationSec(60 * time.Second)
