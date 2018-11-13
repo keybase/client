@@ -9,6 +9,8 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -40,6 +42,7 @@ func (d *dummyHTTPSrv) Start() string {
 	port := listener.Addr().(*net.TCPAddr).Port
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", d.handle)
+	mux.HandleFunc("/favicon.ico", d.handleFavicon)
 	d.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
@@ -50,6 +53,14 @@ func (d *dummyHTTPSrv) Start() string {
 
 func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
+}
+
+func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+	f, err := os.Open(filepath.Join("unfurl", "testcases", "nytimes.ico"))
+	require.NoError(d.t, err)
+	_, err = io.Copy(w, f)
+	require.NoError(d.t, err)
 }
 
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
@@ -182,6 +193,13 @@ func TestChatSrvUnfurl(t *testing.T) {
 				require.Equal(t, origID, mu.Updates[0].Msg.GetMessageID())
 				require.True(t, mu.Updates[0].Msg.IsValid())
 				require.Equal(t, 1, len(mu.Updates[0].Msg.Valid().Unfurls))
+				typ, err := mu.Updates[0].Msg.Valid().Unfurls[0].UnfurlType()
+				require.NoError(t, err)
+				require.Equal(t, chat1.UnfurlType_GENERIC, typ)
+				generic := mu.Updates[0].Msg.Valid().Unfurls[0].Generic()
+				require.Nil(t, generic.Image)
+				require.NotNil(t, generic.Favicon)
+				require.Equal(t, "MIKE", generic.Title)
 			case <-time.After(timeout):
 				require.Fail(t, "no message unfurl")
 			}
