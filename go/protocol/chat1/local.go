@@ -4296,6 +4296,102 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 	}
 }
 
+type UnfurlPromptAction int
+
+const (
+	UnfurlPromptAction_ALWAYS UnfurlPromptAction = 0
+	UnfurlPromptAction_NEVER  UnfurlPromptAction = 1
+	UnfurlPromptAction_ACCEPT UnfurlPromptAction = 2
+	UnfurlPromptAction_NOTNOW UnfurlPromptAction = 3
+)
+
+func (o UnfurlPromptAction) DeepCopy() UnfurlPromptAction { return o }
+
+var UnfurlPromptActionMap = map[string]UnfurlPromptAction{
+	"ALWAYS": 0,
+	"NEVER":  1,
+	"ACCEPT": 2,
+	"NOTNOW": 3,
+}
+
+var UnfurlPromptActionRevMap = map[UnfurlPromptAction]string{
+	0: "ALWAYS",
+	1: "NEVER",
+	2: "ACCEPT",
+	3: "NOTNOW",
+}
+
+func (e UnfurlPromptAction) String() string {
+	if v, ok := UnfurlPromptActionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UnfurlPromptResult struct {
+	ActionType__ UnfurlPromptAction `codec:"actionType" json:"actionType"`
+	Accept__     *string            `codec:"accept,omitempty" json:"accept,omitempty"`
+}
+
+func (o *UnfurlPromptResult) ActionType() (ret UnfurlPromptAction, err error) {
+	switch o.ActionType__ {
+	case UnfurlPromptAction_ACCEPT:
+		if o.Accept__ == nil {
+			err = errors.New("unexpected nil value for Accept__")
+			return ret, err
+		}
+	}
+	return o.ActionType__, nil
+}
+
+func (o UnfurlPromptResult) Accept() (res string) {
+	if o.ActionType__ != UnfurlPromptAction_ACCEPT {
+		panic("wrong case accessed")
+	}
+	if o.Accept__ == nil {
+		return
+	}
+	return *o.Accept__
+}
+
+func NewUnfurlPromptResultWithAlways() UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: UnfurlPromptAction_ALWAYS,
+	}
+}
+
+func NewUnfurlPromptResultWithNever() UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: UnfurlPromptAction_NEVER,
+	}
+}
+
+func NewUnfurlPromptResultWithNotnow() UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: UnfurlPromptAction_NOTNOW,
+	}
+}
+
+func NewUnfurlPromptResultWithAccept(v string) UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: UnfurlPromptAction_ACCEPT,
+		Accept__:     &v,
+	}
+}
+
+func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
+	return UnfurlPromptResult{
+		ActionType__: o.ActionType__.DeepCopy(),
+		Accept__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Accept__),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4700,6 +4796,12 @@ type ProfileChatSearchArg struct {
 type GetStaticConfigArg struct {
 }
 
+type ResolveUnfurlPromptArg struct {
+	ConvID ConversationID     `codec:"convID" json:"convID"`
+	MsgID  MessageID          `codec:"msgID" json:"msgID"`
+	Result UnfurlPromptResult `codec:"result" json:"result"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4760,6 +4862,7 @@ type LocalInterface interface {
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
+	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5695,6 +5798,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"resolveUnfurlPrompt": {
+				MakeArg: func() interface{} {
+					var ret [1]ResolveUnfurlPromptArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ResolveUnfurlPromptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ResolveUnfurlPromptArg)(nil), args)
+						return
+					}
+					err = i.ResolveUnfurlPrompt(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -6005,5 +6124,10 @@ func (c LocalClient) ProfileChatSearch(ctx context.Context, identifyBehavior key
 
 func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getStaticConfig", []interface{}{GetStaticConfigArg{}}, &res)
+	return
+}
+
+func (c LocalClient) ResolveUnfurlPrompt(ctx context.Context, __arg ResolveUnfurlPromptArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.resolveUnfurlPrompt", []interface{}{__arg}, nil)
 	return
 }

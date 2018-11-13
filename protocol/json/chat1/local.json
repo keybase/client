@@ -23,6 +23,10 @@
     {
       "path": "chat_ui.avdl",
       "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -2613,6 +2617,54 @@
           "name": "deletableByDeleteHistory"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UnfurlPromptAction",
+      "symbols": [
+        "ALWAYS_0",
+        "NEVER_1",
+        "ACCEPT_2",
+        "NOTNOW_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlPromptResult",
+      "switch": {
+        "type": "UnfurlPromptAction",
+        "name": "actionType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ALWAYS",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "NEVER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "NOTNOW",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "ACCEPT",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3925,6 +3977,23 @@
     "getStaticConfig": {
       "request": [],
       "response": "StaticConfig"
+    },
+    "resolveUnfurlPrompt": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "result",
+          "type": "UnfurlPromptResult"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

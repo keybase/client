@@ -70,7 +70,7 @@ protocol unfurl {
     variant UnfurlDisplay switch (UnfurlType unfurlType) {
         case GENERIC: UnfurlGenericDisplay;
         case YOUTUBE: UnfurlYoutubeDisplay;
-    }   
+    }
 
     enum UnfurlMode {
       ALWAYS_0,

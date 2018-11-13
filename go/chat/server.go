@@ -2286,3 +2286,7 @@ func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, e
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, nil
 }
+
+func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfurlPromptArg) (err error) {
+	return err
+}
