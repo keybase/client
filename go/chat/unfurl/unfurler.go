@@ -193,7 +193,9 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 			OutboxID:    &outboxID,
 			Supersedes:  fromMsg.GetMessageID(),
 		},
-		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{}),
+		MessageBody: chat1.NewMessageBodyWithUnfurl(chat1.MessageUnfurl{
+			MessageID: fromMsg.GetMessageID(),
+		}),
 	}
 	return msg, nil
 }

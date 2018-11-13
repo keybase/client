@@ -72,7 +72,7 @@ const colors = {
   white_90: 'rgba(255, 255, 255, 0.90)',
   white_90_on_white: '#ffffff',
   yellow: '#fff75a',
-  yellow2: '#dbd22a',
+  yellow2: '#FFB800',
   yellow3: '#fffdcc',
   yellowGreen: '#a8cf36',
   yellowGreen2: '#94b52f',

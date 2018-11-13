@@ -132,6 +132,7 @@ protocol local {
 
   record MessageUnfurl {
     Unfurl unfurl;
+    MessageID messageID;
   }
 
   variant MessageBody switch (MessageType messageType) {
@@ -353,6 +354,7 @@ protocol local {
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
+    array<Unfurl> unfurls; 
   }
 
   enum MessageUnboxedErrorType {

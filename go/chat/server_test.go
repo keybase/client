@@ -1927,6 +1927,7 @@ type serverChatListener struct {
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 	reactionUpdate          chan chat1.ReactionUpdateNotif
+	messagesUnfurled        chan chat1.UnfurlUpdateNotifs
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1985,6 +1986,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.ephemeralPurge <- activity.EphemeralPurge()
 	case chat1.ChatActivityType_REACTION_UPDATE:
 		n.reactionUpdate <- activity.ReactionUpdate()
+	case chat1.ChatActivityType_MESSAGE_UNFURLED:
+		n.messagesUnfurled <- activity.MessageUnfurled()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2034,6 +2037,7 @@ func newServerChatListener() *serverChatListener {
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
+		messagesUnfurled:        make(chan chat1.UnfurlUpdateNotifs, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),

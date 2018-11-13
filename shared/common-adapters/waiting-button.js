@@ -60,7 +60,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const ConnectedWaitingButton = namedConnect(
+const ConnectedWaitingButton = namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

@@ -112,6 +112,7 @@ const keybaseUserProps = {
 const stellarPublicKeyProps = {
   recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  setReadyToSend: Sb.action('setReadyToSend'),
 }
 
 const otherAccountProps = {

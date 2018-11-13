@@ -5,6 +5,8 @@ import {proveCommonProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => {
   const profile = state.profile
   const isGood = profile.proofFound && profile.proofStatus === proveCommonProofStatus.ok
@@ -27,11 +29,11 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
