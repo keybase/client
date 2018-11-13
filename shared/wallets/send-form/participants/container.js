@@ -69,6 +69,9 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
+  setReadyToSend: (readyToSend: boolean) => {
+    dispatch(WalletsGen.createSetReadyToSend({readyToSend}))
+  },
 })
 
 const ConnectedParticipantsStellarPublicKey = namedConnect(

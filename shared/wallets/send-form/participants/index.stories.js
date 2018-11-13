@@ -114,6 +114,7 @@ const stellarPublicKeyProps = {
   recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onScanQRCode: Sb.action('onScanQRCode'),
+  setReadyToSend: Sb.action('setReadyToSend'),
 }
 
 const otherAccountProps = {

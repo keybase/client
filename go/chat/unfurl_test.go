@@ -7,8 +7,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -40,6 +43,7 @@ func (d *dummyHTTPSrv) Start() string {
 	port := listener.Addr().(*net.TCPAddr).Port
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", d.handle)
+	mux.HandleFunc("/favicon.ico", d.handleFavicon)
 	d.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
@@ -50,6 +54,14 @@ func (d *dummyHTTPSrv) Start() string {
 
 func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
+}
+
+func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+	f, err := os.Open(filepath.Join("unfurl", "testcases", "nytimes.ico"))
+	require.NoError(d.t, err)
+	_, err = io.Copy(w, f)
+	require.NoError(d.t, err)
 }
 
 func (d *dummyHTTPSrv) handle(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +117,10 @@ func TestChatSrvUnfurl(t *testing.T) {
 		unfurler.SetTestingRetryCh(retryCh)
 		unfurler.SetTestingUnfurlCh(unfurlCh)
 		tc.ChatG.Unfurler = unfurler
+		fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
+		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), fetcher,
+			func() chat1.RemoteInterface { return mockSigningRemote{} })
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		recvSingleRetry := func() {
 			select {
@@ -142,7 +158,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		t.Logf("whitelist and send again")
 		require.NoError(t, settings.WhitelistAdd(ctx, uid, "0.1"))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		select {
 		case <-listener0.newMessageRemote:
@@ -175,6 +191,33 @@ func TestChatSrvUnfurl(t *testing.T) {
 			_, _, err := unfurler.Status(ctx, outboxID)
 			require.Error(t, err)
 			require.IsType(t, libkb.NotFoundError{}, err)
+			select {
+			case mu := <-listener0.messagesUnfurled:
+				require.Equal(t, 1, len(mu.Updates))
+				require.Equal(t, conv.Id, mu.Updates[0].ConvID)
+				require.Equal(t, origID, mu.Updates[0].Msg.GetMessageID())
+				require.True(t, mu.Updates[0].Msg.IsValid())
+				require.Equal(t, 1, len(mu.Updates[0].Msg.Valid().Unfurls))
+				typ, err := mu.Updates[0].Msg.Valid().Unfurls[0].UnfurlType()
+				require.NoError(t, err)
+				require.Equal(t, chat1.UnfurlType_GENERIC, typ)
+				generic := mu.Updates[0].Msg.Valid().Unfurls[0].Generic()
+				require.Nil(t, generic.Image)
+				require.NotNil(t, generic.Favicon)
+				require.NotZero(t, len(generic.Favicon.Url))
+				resp, err := http.Get(generic.Favicon.Url)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				var buf bytes.Buffer
+				_, err = io.Copy(&buf, resp.Body)
+				require.NoError(t, err)
+				refBytes, err := ioutil.ReadFile(filepath.Join("unfurl", "testcases", "nytimes_sol.ico"))
+				require.NoError(t, err)
+				require.True(t, bytes.Equal(refBytes, buf.Bytes()))
+				require.Equal(t, "MIKE", generic.Title)
+			case <-time.After(timeout):
+				require.Fail(t, "no message unfurl")
+			}
 		}
 		httpSrv.succeed = true
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
