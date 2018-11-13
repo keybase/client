@@ -2,16 +2,17 @@
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
-import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect, type TypedState} from '../util/container'
-import {createSelector} from 'reselect'
+import {compose, lifecycle, connect, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
+
+type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Types.GitInfo>) => {
+const getRepos = state => {
+  const git = Constants.getIdToGit(state)
   if (!git) {
     return {
       personals: [],
@@ -24,9 +25,9 @@ const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Typ
     personals: sortRepos(personals).map(g => g.id),
     teams: sortRepos(teams).map(g => g.id),
   }
-})
+}
 
-const mapStateToProps = (state: TypedState, {routeState}) => {
+const mapStateToProps = (state, {routeState}) => {
   return {
     ...getRepos(state),
     expandedSet: routeState.get('expandedSet'),
@@ -57,7 +58,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

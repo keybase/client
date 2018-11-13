@@ -78,68 +78,93 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           onMouseEnter={this._onMouseEnter}
           onMouseLeave={this._onMouseLeave}
         >
-          <Kb.Text type="BodySemibold" style={styles.title}>
-            {this.props.title}
-          </Kb.Text>
           <Kb.Box
             style={Kb.iconCastPlatformStyles(
               Styles.collapseStyles([
-                styles.loading,
-                !this.state.loaded && styles.spinner,
+                styles.backgroundContainer,
                 {
-                  height: this.props.height,
-                  width: this.props.width,
+                  // Add 6 extra width+height to the background container to create the background
+                  // for the image. We use this in conjunction with the margin to reliably
+                  // center the image in the background container.
+                  width: this.props.width + 6,
+                  minHeight: this.props.height + 6,
                 },
               ])
             )}
           >
             {!!this.props.path && (
-              <ImageRender
-                ref={ref => {
-                  this.imageRef = ref
-                }}
-                src={this.props.path}
-                videoSrc={this.props.fullPath}
-                onLoad={this._setLoaded}
-                onLoadedVideo={this._setVideoLoaded}
-                loaded={this.state.loaded}
-                inlineVideoPlayable={this.props.inlineVideoPlayable}
+              <React.Fragment>
+                <ImageRender
+                  ref={ref => {
+                    this.imageRef = ref
+                  }}
+                  src={this.props.path}
+                  videoSrc={this.props.fullPath}
+                  onLoad={this._setLoaded}
+                  onLoadedVideo={this._setVideoLoaded}
+                  loaded={this.state.loaded}
+                  inlineVideoPlayable={this.props.inlineVideoPlayable}
+                  style={Styles.collapseStyles([
+                    styles.image,
+                    {
+                      opacity: this.state.loaded ? 1 : 0,
+                      width: this.props.width,
+                      height: this.props.height,
+                      backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
+                    },
+                  ])}
+                />
+                {this.props.title.length > 0 && (
+                  <Kb.Text
+                    type="Body"
+                    style={Styles.collapseStyles([
+                      styles.title,
+                      {
+                        marginTop: !this.state.loaded && !isMobile ? this.props.height : undefined,
+                      },
+                    ])}
+                  >
+                    {this.props.title}
+                  </Kb.Text>
+                )}
+              </React.Fragment>
+            )}
+            {!this.state.playingVideo && (
+              <Kb.Box
                 style={Styles.collapseStyles([
-                  styles.image,
+                  styles.absoluteContainer,
                   {
-                    height: this.props.height,
-                    opacity: this.state.loaded ? 1 : 0,
                     width: this.props.width,
+                    height: this.props.height,
                   },
                 ])}
-              />
-            )}
-            {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-              <Kb.ProgressIndicator style={styles.progress} />
-            )}
-            {!!this.props.showButton &&
-              !this.state.playingVideo && (
-                <Kb.Icon
-                  type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                  style={Kb.iconCastPlatformStyles(styles.playButton)}
-                />
-              )}
-            {this.props.videoDuration.length > 0 &&
-              !this.state.playingVideo &&
-              this.state.loaded && (
-                <Kb.Box style={styles.durationContainer}>
-                  <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
-                    {this.props.videoDuration}
-                  </Kb.Text>
-                </Kb.Box>
-              )}
-            {!!this.props.arrowColor && (
-              <Kb.Box style={styles.downloadedIconWrapper}>
-                <Kb.Icon
-                  type="iconfont-download"
-                  style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                  color={this.props.arrowColor}
-                />
+              >
+                {!!this.props.showButton && (
+                  <Kb.Icon
+                    type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                    style={Kb.iconCastPlatformStyles(styles.playButton)}
+                  />
+                )}
+                {this.props.videoDuration.length > 0 &&
+                  this.state.loaded && (
+                    <Kb.Box style={styles.durationContainer}>
+                      <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                        {this.props.videoDuration}
+                      </Kb.Text>
+                    </Kb.Box>
+                  )}
+                {!!this.props.arrowColor && (
+                  <Kb.Box style={styles.downloadedIconWrapper}>
+                    <Kb.Icon
+                      type="iconfont-download"
+                      style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                      color={this.props.arrowColor}
+                    />
+                  </Kb.Box>
+                )}
+                {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+                  <Kb.ProgressIndicator style={styles.progress} />
+                )}
               </Kb.Box>
             )}
           </Kb.Box>
@@ -158,7 +183,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             type="BodySmallPrimaryLink"
             onClick={this.props.onShowInFinder}
             style={styles.link}
-            className={!isMobile ? 'hover-underline' : undefined}
+            className={Styles.classNames({'hover-underline': !isMobile})}
           >
             Show in {Styles.fileUIName}
           </Kb.Text>
@@ -198,23 +223,31 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 3,
   },
   image: {
+    ...Styles.globalStyles.rounded,
     backgroundColor: Styles.globalColors.fastBlank,
     maxWidth: 320,
     position: 'relative',
+    margin: 3,
+  },
+  absoluteContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   imageContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    padding: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
     width: '100%',
   },
   link: {
     color: Styles.globalColors.black_60,
   },
-  loading: {
+  backgroundContainer: {
     backgroundColor: Styles.globalColors.black_05,
-    borderRadius: Styles.globalMargins.xtiny,
-    maxWidth: 320,
+    borderRadius: Styles.borderRadius,
+    maxWidth: 330,
     position: 'relative',
   },
   playButton: {
@@ -228,25 +261,18 @@ const styles = Styles.styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  progress: Styles.platformStyles({
-    isElectron: {
-      bottom: '50%',
-      left: '50%',
-      marginBottom: -24,
-      marginLeft: -24,
-      marginRight: -24,
-      marginTop: -24,
-      position: 'absolute',
-      right: '50%',
-      top: '50%',
-      width: 48,
-    },
-    isMobile: {
-      margin: 'auto',
-      position: 'absolute',
-      width: 48,
-    },
-  }),
+  progress: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -24,
+    marginLeft: -24,
+    marginRight: -24,
+    marginTop: -24,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+    width: 48,
+  },
   progressContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -255,21 +281,13 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_40,
     marginRight: Styles.globalMargins.tiny,
   },
-  spinner: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxCenter,
-      alignItems: 'center',
-      flex: 1,
-      margin: 'auto',
-    },
-  }),
   title: Styles.platformStyles({
+    common: {
+      padding: 5,
+    },
     isElectron: {
       wordBreak: 'break-word',
+      display: 'block',
     },
   }),
 })

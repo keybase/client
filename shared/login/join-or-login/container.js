@@ -2,13 +2,13 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Intro from '.'
-import {connect, type TypedState, isMobile} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...Array<any>) => any,
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   let bannerMessage = null
 
   if (state.config.justDeletedSelf) {
@@ -33,7 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSignup: dispatchProps.onSignup,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

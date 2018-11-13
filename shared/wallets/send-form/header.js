@@ -1,62 +1,70 @@
 // @flow
 import * as React from 'react'
-import {BackButton, Box2, Icon, iconCastPlatformStyles} from '../../common-adapters'
-import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
-type Props = {onBack?: () => void, whiteBackground?: boolean}
+type Props = {onBack?: ?() => void, whiteBackground?: boolean}
 
 const Header = (props: Props) => (
-  <Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
-    <Box2
+  <Kb.Box2 direction="horizontal" style={styles.headerContainer} fullWidth={true}>
+    <Kb.Box2
       direction="horizontal"
-      style={collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
+      style={Styles.collapseStyles([styles.header, props.whiteBackground && styles.whiteBackground])}
       fullWidth={true}
     >
-      {props.onBack && <BackButton style={styles.backButton} onClick={props.onBack} />}
-      <Icon type="icon-stellar-coins-flying-48" style={iconCastPlatformStyles(styles.icon)} />
-    </Box2>
-  </Box2>
+      {props.onBack && <Kb.BackButton style={styles.backButton} onClick={props.onBack} />}
+      <Kb.Icon type="icon-stellar-coins-flying-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  backButton: {
-    bottom: 14,
-    left: 16,
-    position: 'absolute',
-  },
-  header: platformStyles({
+const styles = Styles.styleSheetCreate({
+  backButton: Styles.platformStyles({
     common: {
-      alignSelf: 'flex-end',
-      backgroundColor: globalColors.purple,
-      justifyContent: 'center',
-      position: 'relative',
+      position: 'absolute',
     },
     isElectron: {
-      borderTopLeftRadius: '4px',
-      borderTopRightRadius: '4px',
+      left: 16,
+      top: 18,
     },
     isMobile: {
-      height: 60,
+      left: 4,
     },
   }),
-  headerContainer: platformStyles({
+  header: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-end',
+      backgroundColor: Styles.globalColors.purple,
+      justifyContent: 'center',
+      position: 'relative',
+      flexShrink: 0,
+    },
+    isElectron: {
+      borderTopLeftRadius: 4,
+      borderTopRightRadius: 4,
+    },
+    isMobile: {
+      height: 48,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
     isElectron: {
       height: 48,
     },
     isMobile: {
-      height: 60,
+      height: 48,
     },
   }),
-  icon: platformStyles({
+  icon: Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -9,
     },
   }),
-  whiteBackground: platformStyles({
+  whiteBackground: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.white,
-      borderBottomColor: globalColors.black_10,
+      backgroundColor: Styles.globalColors.white,
+      borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 2,
     },
     isElectron: {

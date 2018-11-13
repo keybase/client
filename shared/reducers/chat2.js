@@ -10,6 +10,8 @@ import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
+import {partition} from 'lodash-es'
+import {actionHasError} from '../util/container'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -116,9 +118,7 @@ const metaMapReducer = (metaMap, action) => {
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromEphemeralPurge || action.payload.fromExpunge
-                ? meta
-                : Constants.updateMeta(old, meta)
+              return action.payload.fromExpunge ? meta : Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
@@ -214,6 +214,13 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
               })
       )
     }
+    case Chat2Gen.pendingMessageWasEdited: {
+      const {conversationIDKey, ordinal, text} = action.payload
+      return messageMap.updateIn(
+        [conversationIDKey, ordinal],
+        message => (!message || message.type !== 'text' ? message : message.set('text', text))
+      )
+    }
     case Chat2Gen.attachmentUploading:
       const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
       const ordinal = convMap.get(action.payload.outboxID)
@@ -257,24 +264,30 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('transferState', null)
       })
     case Chat2Gen.attachmentDownload:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
+      return messageMap.updateIn(
+        [action.payload.message.conversationIDKey, action.payload.message.ordinal],
+        message => {
+          if (!message || message.type !== 'attachment') {
+            return message
+          }
+          return message.set('transferState', 'downloading')
         }
-        return message.set('transferState', 'downloading')
-      })
+      )
     case Chat2Gen.attachmentDownloaded:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
+      return messageMap.updateIn(
+        [action.payload.message.conversationIDKey, action.payload.message.ordinal],
+        message => {
+          if (!message || message.type !== 'attachment') {
+            return message
+          }
+          const path = actionHasError(action) ? '' : action.payload.path
           return message
+            .set('downloadPath', path)
+            .set('transferProgress', 0)
+            .set('transferState', null)
+            .set('fileURLCached', true) // assume we have this on the service now
         }
-        const path = action.error ? '' : action.payload.path
-        return message
-          .set('downloadPath', path)
-          .set('transferProgress', 0)
-          .set('transferState', null)
-          .set('fileURLCached', true) // assume we have this on the service now
-      })
+      )
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)
       if (action.payload.clearExistingMessages) {
@@ -354,7 +367,11 @@ const rootReducer = (
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           )
-
+          logger.info(
+            `rootReducer: selectConversation: setting orange line: convID: ${
+              action.payload.conversationIDKey
+            } max: ${maxMsgID} read: ${readMsgID}`
+          )
           if (maxMsgID > readMsgID) {
             // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
@@ -438,7 +455,7 @@ const rootReducer = (
         }
 
         // Editing your last message
-        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
+        const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
           return message && message.type === 'text' && message.author === editLastUser && !message.exploded
@@ -456,7 +473,9 @@ const rootReducer = (
         Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
       )
     case Chat2Gen.messagesAdd: {
-      const {messages, context, shouldClearOthers} = action.payload
+      const {context, shouldClearOthers} = action.payload
+      // pull out deletes and handle at the end
+      const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
       // we want the clear applied when we call findExisting
       let oldMessageOrdinals = state.messageOrdinals
       let oldPendingOutboxToOrdinal = state.pendingOutboxToOrdinal
@@ -470,6 +489,12 @@ const rootReducer = (
         const key = String(m.conversationIDKey)
         map[key] = map[key] || []
         map[key].push(m)
+        return map
+      }, {})
+      const convoToDeletedOrdinals: {[cid: string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
+        const key = String(m.conversationIDKey)
+        map[key] = map[key] || new Set()
+        map[key].add(m.ordinal)
         return map
       }, {})
 
@@ -527,8 +552,18 @@ const rootReducer = (
         return null
       }
 
-      const messageOrdinals = oldMessageOrdinals.withMutations(
-        (map: I.Map<Types.ConversationIDKey, I.SortedSet<Types.Ordinal>>) => {
+      let messageOrdinals = oldMessageOrdinals.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
+              set.subtract(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageOrdinals = messageOrdinals.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
             const messages = convoToMessages[cid]
@@ -560,14 +595,25 @@ const rootReducer = (
               return arr
             }, [])
 
-            map.update(conversationIDKey, I.SortedSet(), (set: I.SortedSet<Types.Ordinal>) =>
-              set.concat(ordinals)
+            map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
+              // add new ones, remove deleted ones, sort
+              set.concat(ordinals).sort()
             )
           })
         }
       )
 
-      const messageMap = oldMessageMap.withMutations(
+      let messageMap = oldMessageMap.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, (m = I.Map()) =>
+              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageMap = messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -813,13 +859,35 @@ const rootReducer = (
       const {conversationIDKey, messageID, requestInfo} = action.payload
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
+    case Chat2Gen.attachmentFullscreenSelection: {
+      const {message} = action.payload
+      return state.set('attachmentFullscreenMessage', message)
+    }
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state
+    case Chat2Gen.attachmentDownloaded:
+      const {message, path} = action.payload
+      let nextState = state
+      // check fullscreen attachment message in case we downloaded it
+      if (
+        state.attachmentFullscreenMessage &&
+        state.attachmentFullscreenMessage.conversationIDKey === message.conversationIDKey &&
+        state.attachmentFullscreenMessage.id === message.id &&
+        message.type === 'attachment'
+      ) {
+        nextState = nextState.set('attachmentFullscreenMessage', message.set('downloadPath', path))
+      }
+      return nextState.withMutations(s => {
+        s.set('metaMap', metaMapReducer(state.metaMap, action))
+        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
+        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      })
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
+    case Chat2Gen.pendingMessageWasEdited:
     case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
@@ -829,7 +897,6 @@ const rootReducer = (
     case Chat2Gen.attachmentMobileSave:
     case Chat2Gen.attachmentMobileSaved:
     case Chat2Gen.attachmentDownload:
-    case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
@@ -855,6 +922,8 @@ const rootReducer = (
     // Saga only actions
     case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
+    case Chat2Gen.attachmentPasted:
+    case Chat2Gen.attachmentFullscreenNext:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:

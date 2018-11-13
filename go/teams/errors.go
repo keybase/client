@@ -441,3 +441,52 @@ func NewAuditError(format string, args ...interface{}) error {
 func (e AuditError) Error() string {
 	return fmt.Sprintf("Audit error: %s", e.Msg)
 }
+
+type KBFSKeyGenerationError struct {
+	Required, Exists int
+}
+
+func NewKBFSKeyGenerationError(required, exists int) KBFSKeyGenerationError {
+	return KBFSKeyGenerationError{
+		Required: required,
+		Exists:   exists,
+	}
+}
+
+func (e KBFSKeyGenerationError) Error() string {
+	return fmt.Sprintf("KBFS key generation too low: %v < %v", e.Exists, e.Required)
+}
+
+type FTLMissingSeedError struct {
+	gen keybase1.PerTeamKeyGeneration
+}
+
+func NewFTLMissingSeedError(g keybase1.PerTeamKeyGeneration) error {
+	return FTLMissingSeedError{gen: g}
+}
+
+func (e FTLMissingSeedError) Error() string {
+	return fmt.Sprintf("FTL Missing seed at generation: %d", e.gen)
+}
+
+type MixedServerTrustAssertionError struct{}
+
+func NewMixedServerTrustAssertionError() error {
+	return MixedServerTrustAssertionError{}
+}
+
+func (e MixedServerTrustAssertionError) Error() string {
+	return "cannot add team members via server trust (email or SMS) and also with checkable assertions"
+}
+
+type CompoundInviteError struct {
+	Assertion string
+}
+
+func NewCompoundInviteError(s string) error {
+	return CompoundInviteError{s}
+}
+
+func (e CompoundInviteError) Error() string {
+	return fmt.Sprintf("cannot pair an invitation with a compound assertion (%s)", e.Assertion)
+}

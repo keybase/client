@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, lifecycle, type TypedState, setDisplayName} from '../../util/container'
+import {compose, namedConnect, lifecycle} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -18,7 +18,7 @@ type Props = {
   onLoadingStateChange: (isLoading: boolean) => void,
 }
 
-const mapStateToProps = (state: TypedState, {path}: Props) => {
+const mapStateToProps = (state, {path}: Props) => {
   return {
     _serverInfo: state.fs.localHTTPServerInfo,
     _pathItem: state.fs.pathItems.get(path, Constants.makeFile()),
@@ -87,12 +87,7 @@ const stylesLoadingText = platformStyles({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ViewContainer'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ViewContainer'),
   lifecycle({
     componentDidMount() {
       if (!this.props.isSymlink && !this.props.mimeType) {

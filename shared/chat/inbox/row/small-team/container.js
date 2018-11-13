@@ -3,11 +3,11 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey
   const _meta = Constants.getMeta(state, _conversationIDKey)
   const youAreReset = _meta.membershipType === 'youAreReset'
@@ -39,6 +39,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
+    isDecryptingSnippet:
+      (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta),
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
@@ -58,7 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

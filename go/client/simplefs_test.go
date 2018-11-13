@@ -64,6 +64,11 @@ func (s SimpleFSMock) SimpleFSCopyRecursive(ctx context.Context, arg keybase1.Si
 	return nil
 }
 
+// SimpleFSSymlink - make a symlink
+func (s SimpleFSMock) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) error {
+	return nil
+}
+
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (s SimpleFSMock) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
 	return nil
@@ -200,6 +205,11 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
 	return keybase1.FSFolderEditHistory{}, nil
+}
+
+// SimpleFSReset implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
+	return nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.

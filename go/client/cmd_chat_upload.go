@@ -44,6 +44,7 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				done:         make(chan bool, 1),
 			}
 			cl.ChooseCommand(cmd, "upload", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: flags,
 	}

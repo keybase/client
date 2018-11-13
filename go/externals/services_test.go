@@ -19,13 +19,16 @@ func TestLoadParamServices(t *testing.T) {
 	entry, err := tc.G.GetParamProofStore().GetLatestEntry(m)
 	require.NoError(t, err)
 
-	serviceConfigs, err := proofServices.parseServiceConfigs(entry)
+	proofConfigs, displayConfigs, err := proofServices.parseServiceConfigs(entry)
 	require.NoError(t, err)
-	require.NotNil(t, serviceConfigs)
+	require.NotNil(t, proofConfigs)
+	require.NotNil(t, displayConfigs)
+	require.NotZero(t, len(proofConfigs))
+	require.NotZero(t, len(displayConfigs))
 
 	// assert that we parse the dev gubble configuration correctly
 	var gubbleConf *GenericSocialProofConfig
-	for _, config := range serviceConfigs {
+	for _, config := range proofConfigs {
 		if config.Domain == "gubble.social" {
 			gubbleConf = config
 			break
@@ -33,17 +36,19 @@ func TestLoadParamServices(t *testing.T) {
 	}
 	t.Logf("Found config %+v", gubbleConf)
 	require.NotNil(t, gubbleConf)
-	require.Equal(t, 1, gubbleConf.Version)
+	require.True(t, gubbleConf.Version >= 1)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
-	require.Contains(t, []string{"GubbleSocial", "Gubble.social", "Gubble.Social"}, gubbleConf.DisplayName)
-	var group *keybase1.ProofServiceGroup
-	require.EqualValues(t, group, gubbleConf.Group)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
 		Re:  "^([a-zA-Z0-9_])+$",
 		Min: 2,
 		Max: 20,
 	}, gubbleConf.UsernameConfig)
-	require.Equal(t, "#33A0FF", gubbleConf.BrandColor)
+	require.NotZero(t, len(gubbleConf.BrandColor))
+	require.NotNil(t, gubbleConf.Logo)
+	require.NotZero(t, len(gubbleConf.Logo.Url))
+	require.NotZero(t, len(gubbleConf.Logo.FaIcon))
+	require.NotZero(t, len(gubbleConf.DisplayName))
+	require.NotZero(t, len(gubbleConf.Description))
 
 	serverURI := tc.G.Env.GetServerURI()
 	gubbleRoot := fmt.Sprintf("%s/_/gubble_universe/gubble_social", serverURI)
@@ -62,4 +67,15 @@ func TestLoadParamServices(t *testing.T) {
 			Key:   "keybase_proofs",
 		},
 	}, gubbleConf.CheckPath)
+
+	found := false
+	for _, config := range displayConfigs {
+		if config.Key == "gubble.social" {
+			group := "gubble"
+			require.EqualValues(t, &group, config.Group)
+			found = true
+			break
+		}
+	}
+	require.True(t, found)
 }

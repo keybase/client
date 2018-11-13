@@ -70,7 +70,7 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-export const participantProviderProperties = {
+const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 }
@@ -101,6 +101,7 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
+  isRequest: false,
   recipientUsername: '',
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
@@ -111,6 +112,7 @@ const keybaseUserProps = {
 const stellarPublicKeyProps = {
   recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  setReadyToSend: Sb.action('setReadyToSend'),
 }
 
 const otherAccountProps = {
@@ -128,6 +130,12 @@ const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
+    ))
+    .add('Request from Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} isRequest={true} recipientUsername="chris" />
+    ))
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />

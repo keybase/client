@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, lifecycle, type TypedState} from '../../../../util/container'
+import {compose, connect, lifecycle} from '../../../../util/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import {getMeta} from '../../../../constants/chat2'
 import {makeRetentionNotice} from '../../../../util/teams'
@@ -13,7 +13,7 @@ type OwnProps = {
   measure: ?() => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = getMeta(state, ownProps.conversationIDKey)
   let canChange = true
   // We almost definitely already have the permissions, but check just in case something changes
@@ -53,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

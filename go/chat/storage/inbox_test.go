@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"encoding/hex"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -22,17 +22,12 @@ import (
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := setupCommonTest(t, name)
+	ctc := setupCommonTest(t, name)
 
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
-	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
-	u, err := kbtest.CreateAndSignupFakeUser("ib", ltc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("ib", ctc.TestContext.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	return tc, NewInbox(tc.Context()), uid
+	return ctc, NewInbox(ctc.Context()), uid
 }
 
 func makeTlfID() chat1.TLFID {
@@ -798,6 +793,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		HomeDir:             tc.Context().GetEnv().GetHome(),
 		MobileSharedHomeDir: "x",
 	}, nil, tc.Context().GetLog)
+	require.NoError(t, os.MkdirAll(tc.G.Env.GetConfigDir(), os.ModePerm))
 	numConvs := 10
 	var convs []types.RemoteConversation
 	for i := numConvs - 1; i >= 0; i-- {
@@ -972,7 +968,7 @@ func TestInboxCacheOnLogout(t *testing.T) {
 	uid := keybase1.MakeTestUID(3)
 	inboxMemCache.Put(gregor1.UID(uid), &inboxDiskData{})
 	require.NotEmpty(t, len(inboxMemCache.datMap))
-	err := inboxMemCache.OnLogout()
+	err := inboxMemCache.OnLogout(libkb.NewMetaContextTODO(nil))
 	require.NoError(t, err)
 	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
 	require.Empty(t, len(inboxMemCache.datMap))

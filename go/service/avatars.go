@@ -97,8 +97,7 @@ func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.Incomin
 		if err := r.source.ClearCacheForName(m, msg.Name, msg.Formats); err != nil {
 			return err
 		}
-
-		r.G().NotifyRouter.HandleAvatarUpdated(ctx, msg.Name, msg.Formats)
+		r.G().NotifyRouter.HandleAvatarUpdated(ctx, msg.Name, msg.Formats, msg.Typ)
 	}
 
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())

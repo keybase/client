@@ -97,7 +97,11 @@ class UserInput extends Component<Props, State> {
       !trim(this.props.usernameText) &&
       this.props.onEnterEmptyText
     ) {
-      this.props.selectedSearchId ? this.props.onAddSelectedUser() : this.props.onEnterEmptyText()
+      if (this.props.selectedSearchId) {
+        this.props.onAddSelectedUser()
+      } else {
+        this.props.onEnterEmptyText()
+      }
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
       ev.preventDefault()

@@ -158,49 +158,6 @@
     },
     {
       "type": "record",
-      "name": "SearchComponent",
-      "fields": [
-        {
-          "type": "string",
-          "name": "key"
-        },
-        {
-          "type": "string",
-          "name": "value"
-        },
-        {
-          "type": "double",
-          "name": "score"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "SearchResult",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SearchComponent"
-          },
-          "name": "components"
-        },
-        {
-          "type": "double",
-          "name": "score"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UserSummary2",
       "fields": [
         {
@@ -274,34 +231,6 @@
             "MerkleRootV2"
           ],
           "name": "res"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PhoneNumber",
-      "fields": [],
-      "doc": "Phone number support for TOFU chats.",
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "UserPhoneNumber",
-      "fields": [
-        {
-          "type": "PhoneNumber",
-          "name": "phoneNumber",
-          "jsonkey": "phone_number"
-        },
-        {
-          "type": "boolean",
-          "name": "verified",
-          "jsonkey": "verified"
-        },
-        {
-          "type": "UnixTime",
-          "name": "ctime",
-          "jsonkey": "ctime"
         }
       ]
     }
@@ -515,23 +444,6 @@
       ],
       "response": "string"
     },
-    "search": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "query",
-          "type": "string"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "SearchResult"
-      },
-      "doc": "Search for users who match a given query."
-    },
     "loadAllPublicKeysUnverified": {
       "request": [
         {
@@ -623,6 +535,17 @@
       "doc": "getUPAK returns a UPAK. Used mainly for debugging.",
       "lint": "ignore"
     },
+    "getUPAKLite": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": "UPKLiteV1AllIncarnations",
+      "doc": "getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.",
+      "lint": "ignore"
+    },
     "uploadUserAvatar": {
       "request": [
         {
@@ -678,48 +601,6 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
-    },
-    "addPhoneNumber": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "phoneNumber",
-          "type": "PhoneNumber"
-        }
-      ],
-      "response": null
-    },
-    "verifyPhoneNumber": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "phoneNumber",
-          "type": "PhoneNumber"
-        },
-        {
-          "name": "code",
-          "type": "string"
-        }
-      ],
-      "response": null
-    },
-    "getPhoneNumbers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "UserPhoneNumber"
-      }
     }
   },
   "namespace": "keybase.1"

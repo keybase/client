@@ -1,5 +1,4 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
@@ -9,6 +8,7 @@ import {RPCError} from '../../util/errors'
 export type _OutOfDate = {
   critical: boolean,
   message?: string,
+  updating: boolean,
 }
 export type OutOfDate = I.RecordOf<_OutOfDate>
 
@@ -38,7 +38,7 @@ export type _State = {
   menubarWindowID: number,
   notifySound: boolean,
   openAtLogin: boolean,
-  outOfDate?: OutOfDate,
+  outOfDate?: ?OutOfDate,
   pushLoaded: boolean,
   registered: boolean,
   startupDetailsLoaded: boolean,

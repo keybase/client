@@ -13,7 +13,6 @@ import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import InviteGenerated from './invite-generated/container'
-import DevMenu from '../dev/dev-menu'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 // import PlanDetails from './plan-details/container'
@@ -64,13 +63,6 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    ...(__DEV__
-      ? {
-          [Constants.devMenuTab]: {
-            component: DevMenu,
-          },
-        }
-      : {}),
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {

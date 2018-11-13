@@ -36,6 +36,8 @@ module.exports = function(api /*: Api */) {
     }
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')
-    return {}
+    return {
+      presets: ['module:metro-react-native-babel-preset'],
+    }
   }
 }

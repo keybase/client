@@ -39,7 +39,8 @@ func (c *cmdWalletSetMobileOnly) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletSetMobileOnly) Run() error {
+func (c *cmdWalletSetMobileOnly) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	accountID, err := libkb.ParseStellarAccountID(c.accountID)
 	if err != nil {
 		return err

@@ -88,9 +88,8 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 	convs = tlfRes.Conversations
 
 	// Localize the conversations
-	res, err = NewBlockingLocalizer(c.G()).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(convs),
-	})
+	res, _, err = c.G().InboxSource.Localize(ctx, uid, utils.RemoteConvs(convs),
+		types.ConversationLocalizerBlocking)
 	if err != nil {
 		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())
 		return res, err

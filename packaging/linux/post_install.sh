@@ -37,31 +37,6 @@ make_mountpoint() {
   fi
 }
 
-run_redirector() {
-  make_mountpoint
-
-  # Only start the root redirector if it hasn't been explicitly disabled.
-  if redirector_enabled ; then
-    # Hardcode the logdir instead of using $HOME, because `sudo` on
-    # Ubuntu preserves the user's $HOME for some reason.
-    logdir="/var/log/keybase"
-    mkdir -p "$logdir"
-    echo Starting root redirector at $rootmount.
-    nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
-    t=5
-    while ! mountpoint "$rootmount" &> /dev/null; do
-        sleep 1
-        t=$[t-1]
-        if [ $t -eq 0 ]; then
-            echo "Redirector hasn't started yet."
-            break
-        fi
-    done
-  elif killall `basename "$krbin"` &> /dev/null ; then
-    echo "Killing root redirector"
-  fi
-}
-
 if redirector_enabled ; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
@@ -83,21 +58,6 @@ if [ -n "$currlink" ] ; then
     if rm "$rootmount" &> /dev/null ; then
         echo Replacing old $rootmount symlink.
     fi
-    mounts=$(cat /proc/mounts | awk '{print $2}')
-    # If the user currently has something mounted at $currlink, then
-    # start the redirector.  Otherwise don't bother; the next
-    # `run_keybase` call will start it.
-    #
-    # TODO: Set $IFS in case any of the mountpoints contain a space?
-    # Probably not a big deal since all this loop does is start the
-    # redirector, which would also be done by the next call to
-    # `run_keybase`.
-    for m in $mounts; do
-      if [ "$m" = "$currlink" ]; then
-        run_redirector
-        break
-      fi
-    done
 elif [ -d "$rootmount" ] ; then
     # Handle upgrading from old builds that don't have the rootlink.
     currowner=`stat -c %U "$rootmount"`
@@ -109,14 +69,55 @@ elif [ -d "$rootmount" ] ; then
         fi
         rmdir "$rootmount"
         echo You must run run_keybase to restore file system access.
-    elif killall `basename "$krbin"` &> /dev/null ; then
-        # Restart the root redirector in case the binary has been updated.
-        fusermount -u "$rootmount" &> /dev/null
-        run_redirector
+    elif ! redirector_enabled ; then
+        if killall `basename "$krbin"` &> /dev/null ; then
+            echo "Stopping existing root redirector."
+        fi
+    elif killall -USR1 `basename "$krbin"` &> /dev/null ; then
+        echo "Restarting existing root redirector."
+        # If the redirector is still owned by root, that probably
+        # means we're sill running an old version and it needs to be
+        # manually killed and restarted.  Instead, run it as the user
+        # currently running kbfsfuse.
+        krName=`basename "$krbin"`
+        krUser=`ps -o user= -C "$krName" 2> /dev/null | head -1`
+        if [ "$krUser" = "root" ]; then
+            newUser=`ps -o user= -C "kbfsfuse" 2> /dev/null | head -1`
+            killall "$krName" &> /dev/null
+            if [ -n "$newUser" -a "$newUser" != "root" ]; then
+                # Try our best to get the user's $XDG_CACHE_HOME,
+                # though depending on how it's set, it might not be
+                # available to su.
+                userCacheHome=`su -c 'echo -n $XDG_CACHE_HOME' - $newUser`
+                log="${userCacheHome:-~$newUser/.cache}/keybase/keybase.redirector.log"
+                su -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
+                echo "Root redirector now running as $newUser."
+            else
+                # The redirector is running as root, and either root
+                # is running kbfsfuse, or no one is.  In either case,
+                # just make sure it restarts (since the -USR1 restart
+                # won't work for older versions).
+                echo "Restarting root redirector as root."
+                killall "$krName" &> /dev/null
+                logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+                mkdir -p "$logdir"
+                log="$logdir/keybase.redirector.log"
+                nohup "$krbin" "$rootmount" &>> $log &
+            fi
+        fi
+        t=5
+        while ! mountpoint "$rootmount" &> /dev/null; do
+            sleep 1
+            t=$[t-1]
+            if [ $t -eq 0 ]; then
+                echo "Redirector hasn't started yet."
+                break
+            fi
+       done
     fi
 fi
 
-# Just in case the redirector wasn't run in any of the above cases.
+# Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint
 
 # Delete the keybasehelper system user, to clean up after older

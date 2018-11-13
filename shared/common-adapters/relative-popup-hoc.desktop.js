@@ -4,7 +4,7 @@ import * as React from 'react'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
-import EscapeHandler from '../util/escape-handler'
+import EscapeHandler from '../util/escape-handler.desktop'
 import {connect} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
@@ -279,9 +279,12 @@ function ModalPositionRelative<PP>(
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
-            <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(this.props: PP)} />
-            </EscapeHandler>
+            {this.props.onClosePopup && (
+              <EscapeHandler onESC={this.props.onClosePopup}>
+                <WrappedComponent {...(this.props: PP)} />
+              </EscapeHandler>
+            )}
+            {!this.props.onClosePopup && <WrappedComponent {...(this.props: PP)} />}
           </Box>
         </Modal>
       )
@@ -291,12 +294,15 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
+// TODO maybe a better type?
+type OwnProps = any
+
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
     PopupComponent
   )
 
-  const C: React.ComponentType<Props<any>> = connect(
+  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
     () => ({}),
     (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {

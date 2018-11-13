@@ -36,17 +36,32 @@ func (o TeamMemberOutReset) DeepCopy() TeamMemberOutReset {
 	}
 }
 
+type WalletAccountInfo struct {
+	AccountID string `codec:"accountID" json:"accountID"`
+	NumUnread int    `codec:"numUnread" json:"numUnread"`
+}
+
+func (o WalletAccountInfo) DeepCopy() WalletAccountInfo {
+	return WalletAccountInfo{
+		AccountID: o.AccountID,
+		NumUnread: o.NumUnread,
+	}
+}
+
 type BadgeState struct {
 	NewTlfs                   int                     `codec:"newTlfs" json:"newTlfs"`
 	RekeysNeeded              int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
 	NewFollowers              int                     `codec:"newFollowers" json:"newFollowers"`
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
 	HomeTodoItems             int                     `codec:"homeTodoItems" json:"homeTodoItems"`
+	NewDevices                []DeviceID              `codec:"newDevices" json:"newDevices"`
+	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
 	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
 	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
+	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -56,6 +71,28 @@ func (o BadgeState) DeepCopy() BadgeState {
 		NewFollowers:  o.NewFollowers,
 		InboxVers:     o.InboxVers,
 		HomeTodoItems: o.HomeTodoItems,
+		NewDevices: (func(x []DeviceID) []DeviceID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NewDevices),
+		RevokedDevices: (func(x []DeviceID) []DeviceID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RevokedDevices),
 		Conversations: (func(x []BadgeConversationInfo) []BadgeConversationInfo {
 			if x == nil {
 				return nil
@@ -111,6 +148,17 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.TeamsWithResetUsers),
+		UnreadWalletAccounts: (func(x []WalletAccountInfo) []WalletAccountInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]WalletAccountInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UnreadWalletAccounts),
 	}
 }
 

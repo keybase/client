@@ -34,7 +34,6 @@ func (n NullConfiguration) GetParamProofKitFilename() string                    
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
-func (n NullConfiguration) GetAutoWallet() (bool, bool)                                    { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
@@ -108,6 +107,7 @@ func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { re
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
+func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -180,7 +180,6 @@ type TestParameters struct {
 	DevelName                string
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
-	DisableAutoWallet        bool
 	EnvironmentFeatureFlags  FeatureFlags
 
 	// set to true to use production run mode in tests
@@ -352,8 +351,10 @@ func (e *Env) GetHome() string             { return e.HomeFinder.Home(false) }
 func (e *Env) GetMobileSharedHome() string { return e.HomeFinder.MobileSharedHome(false) }
 func (e *Env) GetConfigDir() string        { return e.HomeFinder.ConfigDir() }
 func (e *Env) GetCacheDir() string         { return e.HomeFinder.CacheDir() }
+func (e *Env) GetSharedCacheDir() string   { return e.HomeFinder.SharedCacheDir() }
 func (e *Env) GetSandboxCacheDir() string  { return e.HomeFinder.SandboxCacheDir() }
 func (e *Env) GetDataDir() string          { return e.HomeFinder.DataDir() }
+func (e *Env) GetSharedDataDir() string    { return e.HomeFinder.SharedDataDir() }
 func (e *Env) GetLogDir() string           { return e.HomeFinder.LogDir() }
 
 func (e *Env) SendSystemChatMessages() bool {
@@ -544,6 +545,15 @@ func (e *Env) GetDbFilename() string {
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
 		func() string { return e.GetConfig().GetDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), DBFile) },
+	)
+}
+
+func (e *Env) GetChatOutboxStorageEngine() string {
+	return e.GetString(
+		func() string { return e.cmd.GetChatOutboxStorageEngine() },
+		func() string { return os.Getenv("KEYBASE_CHAT_OUTBOXSTORAGEENGINE") },
+		func() string { return e.GetConfig().GetChatOutboxStorageEngine() },
+		func() string { return "" },
 	)
 }
 
@@ -802,11 +812,6 @@ func (e *Env) GetEmail() string {
 // Upgrade sigchains to contain per-user-keys.
 func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
-}
-
-// Automatically create a wallet for the logged-in user.
-func (e *Env) GetAutoWallet() bool {
-	return !e.Test.DisableAutoWallet
 }
 
 // If true, do not logout after user.key_change notification handler
@@ -1338,6 +1343,7 @@ type AppConfig struct {
 	UPAKCacheSize                  int
 	PayloadCacheSize               int
 	ProofCacheSize                 int
+	OutboxStorageEngine            string
 }
 
 var _ CommandLine = AppConfig{}
@@ -1396,6 +1402,13 @@ func (c AppConfig) GetVDebugSetting() string {
 
 func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	return c.ChatInboxSourceLocalizeThreads, true
+}
+
+func (c AppConfig) GetChatOutboxStorageEngine() string {
+	if len(c.OutboxStorageEngine) > 0 {
+		return c.OutboxStorageEngine
+	}
+	return ""
 }
 
 // Default is 500, compacted size of each file is 2MB, so turning

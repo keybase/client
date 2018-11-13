@@ -33,6 +33,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSList(cl, g),
 			NewCmdSimpleFSCopy(cl, g),
 			NewCmdSimpleFSMove(cl, g),
+			NewCmdSimpleFSSymlink(cl, g),
 			NewCmdSimpleFSRead(cl, g),
 			NewCmdSimpleFSRemove(cl, g),
 			NewCmdSimpleFSMkdir(cl, g),
@@ -45,6 +46,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSHistory(cl, g),
 			NewCmdSimpleFSQuota(cl, g),
 			NewCmdSimpleFSRecover(cl, g),
+			NewCmdSimpleFSReset(cl, g),
 		}, getBuildSpecificFSCommands(cl, g)...),
 	}
 }

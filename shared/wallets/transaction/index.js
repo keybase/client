@@ -2,9 +2,16 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
-import {Avatar, Box2, ClickableBox, Icon, ConnectedUsernames, WaitingButton} from '../../common-adapters'
-import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {
+  Avatar,
+  Box2,
+  ClickableBox,
+  Icon,
+  ConnectedUsernames,
+  Text,
+  WaitingButton,
+} from '../../common-adapters'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
 
@@ -15,7 +22,7 @@ type CounterpartyIconProps = {|
   counterpartyType: Types.CounterpartyType,
 |}
 
-export const CounterpartyIcon = (props: CounterpartyIconProps) => {
+const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -39,37 +46,15 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   }
 }
 
-type StellarPublicKeyProps = {|
-  publicKey: string,
-  showFullKey: boolean,
-  textType: TextType,
-|}
-
-const StellarPublicKey = (props: StellarPublicKeyProps) => {
-  const key = props.publicKey
-  return (
-    <Text type={props.textType} selectable={props.showFullKey} title={key}>
-      {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
-    </Text>
-  )
-}
-
 type CounterpartyTextProps = {|
-  large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   onShowProfile: string => void,
-  showFullKey: boolean,
-  textType?: 'Body' | 'BodySmall' | 'BodySemibold',
-  textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
-  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
+  textTypeSemibold: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
-  const textTypeSemiboldItalic =
-    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
-
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -78,21 +63,20 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorBroken={true}
           inline={true}
           onUsernameClicked={props.onShowProfile}
-          type={textTypeSemibold}
+          type={props.textTypeSemibold}
           underline={true}
           usernames={[props.counterparty]}
         />
       )
     case 'stellarPublicKey':
+      const key = props.counterparty
       return (
-        <StellarPublicKey
-          publicKey={props.counterparty}
-          showFullKey={props.showFullKey}
-          textType={textTypeSemibold}
-        />
+        <Text type={props.textTypeSemibold} selectable={false} title={key}>
+          {key.substr(0, 6) + '...' + key.substr(-5)}
+        </Text>
       )
     case 'otherAccount':
-      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
+      return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -104,9 +88,11 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {|
+  detailView: boolean,
   large: boolean,
   pending: boolean,
   yourRole: Types.Role,
+  canceled: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
@@ -116,9 +102,11 @@ type DetailProps = {|
 |}
 
 const Detail = (props: DetailProps) => {
-  const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
+  // u2026 is an ellipsis
+  const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
   const amount = props.isXLM ? (
     <Text selectable={props.selectableText} type={textTypeExtrabold}>
@@ -137,28 +125,30 @@ const Detail = (props: DetailProps) => {
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
-      large={props.large}
       onShowProfile={props.onShowProfile}
-      showFullKey={false}
-      textType={textType}
       textTypeSemibold={textTypeSemibold}
+      textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
   )
+
+  const textStyle = props.canceled ? styles.lineThrough : null
 
   switch (props.yourRole) {
     case 'senderOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold}>
-            {verbPhrase} {amount} from this account to {counterparty()}.
+          <Text type={textTypeSemibold} style={textStyle}>
+            {verbPhrase} {amount} from this account to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       } else {
-        const verbPhrase = props.pending ? 'Sending' : 'You sent'
+        const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
-          <Text type={textTypeSemibold}>
-            {verbPhrase} {amount} to {counterparty()}.
+          <Text type={textTypeSemibold} style={textStyle}>
+            {verbPhrase} {amount} to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -166,23 +156,26 @@ const Detail = (props: DetailProps) => {
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textTypeSemibold}>
-            {verbPhrase} {amount} from {counterparty()} to this account.
+          <Text type={textTypeSemibold} style={textStyle}>
+            {verbPhrase} {amount} from {counterparty()} to this account
+            {textSentenceEnd}
           </Text>
         )
       } else {
-        const verbPhrase = props.pending ? 'sending' : 'sent you'
+        const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
-          <Text type={textTypeSemibold}>
-            {counterparty()} {verbPhrase} {amount}.
+          <Text type={textTypeSemibold} style={textStyle}>
+            {counterparty()} {verbPhrase} {amount}
+            {textSentenceEnd}
           </Text>
         )
       }
     case 'senderAndReceiver':
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
-        <Text type={textTypeSemibold}>
-          {verbPhrase} {amount} from this account to itself.
+        <Text type={textTypeSemibold} style={textStyle}>
+          {verbPhrase} {amount} from this account to itself
+          {textSentenceEnd}
         </Text>
       )
     default:
@@ -197,6 +190,7 @@ const Detail = (props: DetailProps) => {
 type AmountXLMProps = {|
   yourRole: Types.Role,
   amountXLM: string,
+  canceled: boolean,
   pending: boolean,
   selectableText: boolean,
 |}
@@ -236,82 +230,133 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
 }
 
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
+  const color = props.pending || props.canceled ? globalColors.black_20 : roleToColor(props.yourRole)
 
   const amount = getAmount(props.yourRole, props.amountXLM)
   return (
-    <Text selectable={props.selectableText} style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text
+      selectable={props.selectableText}
+      style={collapseStyles([
+        {color, flexShrink: 0, textAlign: 'right'},
+        props.canceled && styles.lineThrough,
+      ])}
+      type="BodyExtrabold"
+    >
       {amount}
     </Text>
   )
 }
 
-type TimestampLineProps = {|
+type TimestampErrorProps = {|
   error: string,
   status?: Types.StatusSimplified,
+|}
+
+export const TimestampError = (props: TimestampErrorProps) => (
+  <Text type="BodySmallError">
+    {props.status ? capitalize(props.status) + ' • ' : ''}
+    The Stellar network did not approve this transaction - {props.error}
+  </Text>
+)
+
+export const TimestampPending = () => (
+  <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+)
+
+type TimestampLineProps = {|
+  error: string,
+  status: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
 
-export const TimestampLine = (props: TimestampLineProps) => {
+const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
-    return (
-      <Text type="BodySmallError">
-        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
-      </Text>
-    )
+    return <TimestampError error={props.error} status={props.status} />
   }
-  if (!props.timestamp) {
-    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+  const timestamp = props.timestamp
+  if (!timestamp) {
+    return <TimestampPending />
   }
-  const human = formatTimeForMessages(props.timestamp)
-  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
+  const human = formatTimeForMessages(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
+  let status = capitalize(props.status)
+  // 'cancelable' -> show 'pending' and completed -> show nothing
+  switch (status) {
+    case 'Completed':
+      status = null
+      break
+    case 'Cancelable':
+      status = 'Pending'
+      break
+  }
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {props.status && props.status !== 'completed' ? ` • ${capitalize(props.status)}` : null}
+      {status ? ` • ${status}` : null}
     </Text>
   )
 }
+
+type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {|
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  large: boolean,
-  // Ignored if yourRole is receiverOnly and counterpartyType is
-  // stellarPublicKey.
+  detailView?: boolean,
+  // Ignored if counterpartyType is stellarPublicKey and yourRole is
+  // receiverOnly.
   memo: string,
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
-  onRetryPayment?: () => void,
+  // onShowProfile is used only when counterpartyType === 'keybaseUser'.
   onSelectTransaction?: () => void,
   onShowProfile: string => void,
+  readState: ReadState,
   selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+  unread: boolean,
   yourRole: Types.Role,
 |}
 
 export const Transaction = (props: Props) => {
-  const pending = !props.timestamp || props.status !== 'completed'
-  const showMemo =
-    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
+  let large: boolean
+  let showMemo: boolean
+  switch (props.counterpartyType) {
+    case 'keybaseUser':
+      large = true
+      showMemo = true
+      break
+    case 'stellarPublicKey':
+      large = true
+      showMemo = props.yourRole !== 'receiverOnly'
+      break
+    case 'otherAccount':
+      large = true
+      showMemo = !!props.memo
+      break
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
+      */
+      throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
+  }
+  const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
-    <Box2
-      direction="vertical"
-      fullWidth={true}
-      style={{backgroundColor: pending ? globalColors.blue4 : globalColors.white}}
-    >
+    <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
         <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            large={props.large}
+            large={large}
             onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
@@ -322,8 +367,10 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
-              large={props.large}
+              detailView={!!props.detailView}
+              large={large}
               pending={pending}
+              canceled={props.status === 'canceled'}
               yourRole={props.yourRole}
               counterparty={props.counterparty}
               counterpartyType={props.counterpartyType}
@@ -333,23 +380,29 @@ export const Transaction = (props: Props) => {
               selectableText={props.selectableText}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
-            <Box2 direction="horizontal" fullWidth={true}>
+            <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
-                <WaitingButton
-                  type="Danger"
-                  label="Cancel"
-                  small={true}
-                  style={styles.cancelButton}
-                  onClick={evt => {
-                    evt.stopPropagation()
-                    props.onCancelPayment && props.onCancelPayment()
-                  }}
-                  waitingKey={props.onCancelPaymentWaitingKey}
-                />
+                <Box2 direction="vertical" gap="tiny">
+                  <Text type="BodySmall">
+                    {props.counterparty} can claim this when they set up their wallet.
+                  </Text>
+                  <WaitingButton
+                    type="Danger"
+                    label="Cancel"
+                    small={true}
+                    style={styles.cancelButton}
+                    onClick={evt => {
+                      evt.stopPropagation()
+                      props.onCancelPayment && props.onCancelPayment()
+                    }}
+                    waitingKey={props.onCancelPaymentWaitingKey}
+                  />
+                </Box2>
               )}
               <Box2 direction="horizontal" style={{flex: 1}} />
               <AmountXLM
                 selectableText={props.selectableText}
+                canceled={props.status === 'canceled'}
                 pending={pending}
                 yourRole={props.yourRole}
                 amountXLM={props.amountXLM}
@@ -357,6 +410,9 @@ export const Transaction = (props: Props) => {
             </Box2>
           </Box2>
         </Box2>
+        {props.readState === 'oldestUnread' && (
+          <Box2 direction="horizontal" fullWidth={true} style={styles.orangeLine} />
+        )}
       </ClickableBox>
     </Box2>
   )
@@ -365,16 +421,18 @@ export const Transaction = (props: Props) => {
 const styles = styleSheetCreate({
   cancelButton: {
     alignSelf: 'flex-start',
-    marginTop: globalMargins.tiny,
   },
   container: {
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  lineThrough: {
+    textDecorationLine: 'line-through',
+  },
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },
-  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
+  orangeLine: {backgroundColor: globalColors.orange, height: 1},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

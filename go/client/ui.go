@@ -4,6 +4,7 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -819,6 +820,17 @@ func (ui *UI) Configure() error {
 
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
+}
+
+func (ui *UI) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, prompt string) (ret string, err error) {
+	if isatty.IsTerminal(os.Stdin.Fd()) {
+		return ui.PromptPassword(pd, prompt)
+	}
+	ret, err = bufio.NewReader(os.Stdin).ReadString('\n')
+	if err == io.EOF && len(ret) > 0 {
+		err = nil
+	}
+	return ret, err
 }
 
 func (ui *UI) GetTerminalSize() (int, int) {

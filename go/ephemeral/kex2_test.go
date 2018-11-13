@@ -44,7 +44,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	if upgradePerUserKey {
 		// The test user has a PUK, but it's not automatically loaded. We have to
 		// explicitly sync it.
-		keyring, err := tcX.G.GetPerUserKeyring()
+		keyring, err := tcX.G.GetPerUserKeyring(context.Background())
 		require.NoError(t, err)
 		err = keyring.Sync(libkb.NewMetaContext(context.Background(), tcX.G))
 		require.NoError(t, err)

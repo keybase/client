@@ -43,7 +43,8 @@ const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
     metas = smallMetas.sort(sortByTimestsamp)
   } else {
     metas = I.Seq(smallMetas)
-      .partialSort(smallTeamsCollapsedMaxShown, sortByTimestsamp)
+      .sort(sortByTimestsamp)
+      .take(smallTeamsCollapsedMaxShown)
       .toArray()
   }
   return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))

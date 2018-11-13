@@ -160,46 +160,6 @@ func (o UserSettings) DeepCopy() UserSettings {
 	}
 }
 
-type SearchComponent struct {
-	Key   string  `codec:"key" json:"key"`
-	Value string  `codec:"value" json:"value"`
-	Score float64 `codec:"score" json:"score"`
-}
-
-func (o SearchComponent) DeepCopy() SearchComponent {
-	return SearchComponent{
-		Key:   o.Key,
-		Value: o.Value,
-		Score: o.Score,
-	}
-}
-
-type SearchResult struct {
-	Uid        UID               `codec:"uid" json:"uid"`
-	Username   string            `codec:"username" json:"username"`
-	Components []SearchComponent `codec:"components" json:"components"`
-	Score      float64           `codec:"score" json:"score"`
-}
-
-func (o SearchResult) DeepCopy() SearchResult {
-	return SearchResult{
-		Uid:      o.Uid.DeepCopy(),
-		Username: o.Username,
-		Components: (func(x []SearchComponent) []SearchComponent {
-			if x == nil {
-				return nil
-			}
-			ret := make([]SearchComponent, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Components),
-		Score: o.Score,
-	}
-}
-
 type UserSummary2 struct {
 	Uid        UID    `codec:"uid" json:"uid"`
 	Username   string `codec:"username" json:"username"`
@@ -272,27 +232,6 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
-// Phone number support for TOFU chats.
-type PhoneNumber string
-
-func (o PhoneNumber) DeepCopy() PhoneNumber {
-	return o
-}
-
-type UserPhoneNumber struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone_number"`
-	Verified    bool        `codec:"verified" json:"verified"`
-	Ctime       UnixTime    `codec:"ctime" json:"ctime"`
-}
-
-func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
-	return UserPhoneNumber{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-		Verified:    o.Verified,
-		Ctime:       o.Ctime.DeepCopy(),
-	}
-}
-
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -360,11 +299,6 @@ type ListTrackingJSONArg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
 
-type SearchArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Query     string `codec:"query" json:"query"`
-}
-
 type LoadAllPublicKeysUnverifiedArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -396,6 +330,10 @@ type GetUPAKArg struct {
 	Uid UID `codec:"uid" json:"uid"`
 }
 
+type GetUPAKLiteArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
 type UploadUserAvatarArg struct {
 	Filename string         `codec:"filename" json:"filename"`
 	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
@@ -412,21 +350,6 @@ type FindNextMerkleRootAfterResetArg struct {
 	Uid        UID             `codec:"uid" json:"uid"`
 	ResetSeqno Seqno           `codec:"resetSeqno" json:"resetSeqno"`
 	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
-}
-
-type AddPhoneNumberArg struct {
-	SessionID   int         `codec:"sessionID" json:"sessionID"`
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-}
-
-type VerifyPhoneNumberArg struct {
-	SessionID   int         `codec:"sessionID" json:"sessionID"`
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
-	Code        string      `codec:"code" json:"code"`
-}
-
-type GetPhoneNumbersArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type UserInterface interface {
@@ -455,8 +378,6 @@ type UserInterface interface {
 	// If assertion is empty, it will use the current logged in user.
 	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
-	// Search for users who match a given query.
-	Search(context.Context, SearchArg) ([]SearchResult, error)
 	// Load all the user's public keys (even those in reset key families)
 	// from the server with no verification
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
@@ -466,6 +387,8 @@ type UserInterface interface {
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
+	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
+	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
@@ -475,9 +398,6 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
-	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
-	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
-	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -692,22 +612,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"search": {
-				MakeArg: func() interface{} {
-					var ret [1]SearchArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SearchArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]SearchArg)(nil), args)
-						return
-					}
-					ret, err = i.Search(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"loadAllPublicKeysUnverified": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadAllPublicKeysUnverifiedArg
@@ -804,6 +708,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getUPAKLite": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUPAKLiteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUPAKLiteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUPAKLiteArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUPAKLite(ctx, typedArgs[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"uploadUserAvatar": {
 				MakeArg: func() interface{} {
 					var ret [1]UploadUserAvatarArg
@@ -848,54 +768,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.FindNextMerkleRootAfterReset(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"addPhoneNumber": {
-				MakeArg: func() interface{} {
-					var ret [1]AddPhoneNumberArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]AddPhoneNumberArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]AddPhoneNumberArg)(nil), args)
-						return
-					}
-					err = i.AddPhoneNumber(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"verifyPhoneNumber": {
-				MakeArg: func() interface{} {
-					var ret [1]VerifyPhoneNumberArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]VerifyPhoneNumberArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]VerifyPhoneNumberArg)(nil), args)
-						return
-					}
-					err = i.VerifyPhoneNumber(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getPhoneNumbers": {
-				MakeArg: func() interface{} {
-					var ret [1]GetPhoneNumbersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetPhoneNumbersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetPhoneNumbersArg)(nil), args)
-						return
-					}
-					ret, err = i.GetPhoneNumbers(ctx, typedArgs[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -988,12 +860,6 @@ func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSON
 	return
 }
 
-// Search for users who match a given query.
-func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.search", []interface{}{__arg}, &res)
-	return
-}
-
 // Load all the user's public keys (even those in reset key families)
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
@@ -1029,6 +895,13 @@ func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, er
 	return
 }
 
+// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
+func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
+	__arg := GetUPAKLiteArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res)
+	return
+}
+
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
 	return
@@ -1047,21 +920,5 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) AddPhoneNumber(ctx context.Context, __arg AddPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.addPhoneNumber", []interface{}{__arg}, nil)
-	return
-}
-
-func (c UserClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.verifyPhoneNumber", []interface{}{__arg}, nil)
-	return
-}
-
-func (c UserClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
-	__arg := GetPhoneNumbersArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.getPhoneNumbers", []interface{}{__arg}, &res)
 	return
 }

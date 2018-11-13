@@ -2,12 +2,13 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
+import * as SettingsConstants from '../../../../../constants/settings'
 import * as Types from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {walletsTab} from '../../../../../constants/tabs'
+import * as Tabs from '../../../../../constants/tabs'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -38,9 +39,11 @@ const commonLoadingProps = {
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: '',
+  cancelButtonLabel: '',
   icon: 'sending',
   loading: true,
   onCancel: null,
+  onClaimLumens: null,
   onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
@@ -50,17 +53,25 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => ({
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
   paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
 
 const sendMapDispatchToProps = dispatch => ({
+  onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
+  onClaimLumens: () =>
+    dispatch(
+      Container.isMobile
+        ? RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.walletsTab]})
+        : RouteTreeGen.createSwitchTo({path: [Tabs.walletsTab]})
+    ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createSelectAccount({accountID}))
+    const root = Container.isMobile ? [Tabs.settingsTab, SettingsConstants.walletsTab] : [Tabs.walletsTab]
     dispatch(
       RouteTreeGen.createNavigateTo({
-        path: [walletsTab, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
+        path: [...root, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
       })
     )
   },
@@ -81,17 +92,26 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     }
   }
   const {_you: you} = stateProps
+  const youAreSender = you === ownProps.message.author
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
     balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
+    cancelButtonLabel: 'Cancel',
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
-    onCancel: null,
+    onCancel:
+      paymentInfo.status === 'cancelable' && youAreSender
+        ? () => dispatchProps.onCancel(paymentInfo.paymentID)
+        : null,
+    onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
-    onSeeDetails: () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID),
+    onSeeDetails:
+      paymentInfo.status === 'completed'
+        ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
+        : null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
@@ -104,14 +124,14 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   }
 }
 
-const SendPaymentPopup = Container.connect(
+const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps
 )(PaymentPopup)
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
+const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
   requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
 })
@@ -150,7 +170,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
 
   let bottomLine = ''
   if (requestInfo.asset !== 'native' && requestInfo.asset !== 'currency') {
-    bottomLine = requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
+    bottomLine = requestInfo.asset.issuerVerifiedDomain || requestInfo.asset.issuerAccountID || ''
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${
@@ -163,9 +183,11 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     balanceChange: '',
     balanceChangeColor: '',
     bottomLine,
+    cancelButtonLabel: 'Cancel request',
     icon: 'receiving',
     loading: false,
     onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
+    onClaimLumens: null,
     onHidden: ownProps.onHidden,
     onSeeDetails: null,
     position: ownProps.position,
@@ -178,7 +200,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
   }
 }
 
-const RequestPaymentPopup = Container.connect(
+const RequestPaymentPopup = Container.connect<RequestOwnProps, _, _, _, _>(
   requestMapStateToProps,
   requestMapDispatchToProps,
   requestMergeProps

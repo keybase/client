@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ConfigTypes from '../constants/types/config'
+import flags from '../util/feature-flags'
 
 type Props = {
   outOfDate?: ConfigTypes.OutOfDate,
@@ -14,6 +15,7 @@ const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
   (outOfDate.message ? `: ${outOfDate.message}` : '.')
 
 const OutOfDate = ({outOfDate, updateNow}: Props) =>
+  flags.outOfDateBanner &&
   !!outOfDate && (
     <Kb.Box2
       style={outOfDate.critical ? styles.boxCritical : styles.boxNonCritical}
@@ -28,23 +30,33 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
       >
         {getOutOfDateText(outOfDate)}
       </Kb.Text>
-      <Kb.Text
-        backgroundMode="Information"
-        type="BodySmallSemibold"
-        style={outOfDate.critical ? styles.textCritical : undefined}
-      >
-        Please{' '}
+      {outOfDate.updating ? (
         <Kb.Text
           backgroundMode="Information"
           type="BodySmallSemibold"
-          underline={!!updateNow}
           style={outOfDate.critical ? styles.textCritical : undefined}
-          onClick={updateNow}
         >
-          update now
+          Updating ...
         </Kb.Text>
-        .
-      </Kb.Text>
+      ) : (
+        <Kb.Text
+          backgroundMode="Information"
+          type="BodySmallSemibold"
+          style={outOfDate.critical ? styles.textCritical : undefined}
+        >
+          Please{' '}
+          <Kb.Text
+            backgroundMode="Information"
+            type="BodySmallSemibold"
+            underline={!!updateNow}
+            style={outOfDate.critical ? styles.textCritical : undefined}
+            onClick={updateNow}
+          >
+            update now
+          </Kb.Text>
+          .
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
 

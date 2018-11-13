@@ -962,6 +962,7 @@ const (
 	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
 	TeamInviteCategory_SBS     TeamInviteCategory = 4
 	TeamInviteCategory_SEITAN  TeamInviteCategory = 5
+	TeamInviteCategory_PHONE   TeamInviteCategory = 6
 )
 
 func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
@@ -973,6 +974,7 @@ var TeamInviteCategoryMap = map[string]TeamInviteCategory{
 	"EMAIL":   3,
 	"SBS":     4,
 	"SEITAN":  5,
+	"PHONE":   6,
 }
 
 var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
@@ -982,6 +984,7 @@ var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	3: "EMAIL",
 	4: "SBS",
 	5: "SEITAN",
+	6: "PHONE",
 }
 
 func (e TeamInviteCategory) String() string {
@@ -2407,6 +2410,18 @@ func (o TeamAndMemberShowcase) DeepCopy() TeamAndMemberShowcase {
 	}
 }
 
+type UserRolePair struct {
+	AssertionOrEmail string   `codec:"assertionOrEmail" json:"assertionOrEmail"`
+	Role             TeamRole `codec:"role" json:"role"`
+}
+
+func (o UserRolePair) DeepCopy() UserRolePair {
+	return UserRolePair{
+		AssertionOrEmail: o.AssertionOrEmail,
+		Role:             o.Role.DeepCopy(),
+	}
+}
+
 type BulkRes struct {
 	Invited        []string `codec:"invited" json:"invited"`
 	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
@@ -2559,6 +2574,7 @@ type TeamOperation struct {
 	ListFirst              bool `codec:"listFirst" json:"listFirst"`
 	ChangeTarsDisabled     bool `codec:"changeTarsDisabled" json:"changeTarsDisabled"`
 	DeleteChatHistory      bool `codec:"deleteChatHistory" json:"deleteChatHistory"`
+	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -2581,6 +2597,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ListFirst:              o.ListFirst,
 		ChangeTarsDisabled:     o.ChangeTarsDisabled,
 		DeleteChatHistory:      o.DeleteChatHistory,
+		DeleteOtherMessages:    o.DeleteOtherMessages,
 	}
 }
 
@@ -2601,6 +2618,20 @@ type TeamDebugRes struct {
 func (o TeamDebugRes) DeepCopy() TeamDebugRes {
 	return TeamDebugRes{
 		Chain: o.Chain.DeepCopy(),
+	}
+}
+
+type TeamProfileAddEntry struct {
+	TeamName       TeamName `codec:"teamName" json:"teamName"`
+	Open           bool     `codec:"open" json:"open"`
+	DisabledReason string   `codec:"disabledReason" json:"disabledReason"`
+}
+
+func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
+	return TeamProfileAddEntry{
+		TeamName:       o.TeamName.DeepCopy(),
+		Open:           o.Open,
+		DisabledReason: o.DisabledReason,
 	}
 }
 
@@ -2671,6 +2702,13 @@ type TeamAddMembersArg struct {
 	Assertions           []string `codec:"assertions" json:"assertions"`
 	Role                 TeamRole `codec:"role" json:"role"`
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
+type TeamAddMembersMultiRoleArg struct {
+	SessionID            int            `codec:"sessionID" json:"sessionID"`
+	Name                 string         `codec:"name" json:"name"`
+	Users                []UserRolePair `codec:"users" json:"users"`
+	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 type TeamRemoveMemberArg struct {
@@ -2837,6 +2875,11 @@ type SetTarsDisabledArg struct {
 	Disabled bool   `codec:"disabled" json:"disabled"`
 }
 
+type TeamProfileAddListArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type UploadTeamAvatarArg struct {
 	Teamname             string         `codec:"teamname" json:"teamname"`
 	Filename             string         `codec:"filename" json:"filename"`
@@ -2892,6 +2935,7 @@ type TeamsInterface interface {
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamAddMembers(context.Context, TeamAddMembersArg) error
+	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -2925,6 +2969,7 @@ type TeamsInterface interface {
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 	GetTarsDisabled(context.Context, string) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
+	TeamProfileAddList(context.Context, TeamProfileAddListArg) ([]TeamProfileAddEntry, error)
 	UploadTeamAvatar(context.Context, UploadTeamAvatarArg) error
 	TryDecryptWithTeamKey(context.Context, TryDecryptWithTeamKeyArg) ([]byte, error)
 	// FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being
@@ -3121,6 +3166,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamAddMembers(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamAddMembersMultiRole": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamAddMembersMultiRoleArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamAddMembersMultiRoleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamAddMembersMultiRoleArg)(nil), args)
+						return
+					}
+					err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3605,6 +3666,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamProfileAddList": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamProfileAddListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamProfileAddListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamProfileAddListArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamProfileAddList(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"uploadTeamAvatar": {
 				MakeArg: func() interface{} {
 					var ret [1]UploadTeamAvatarArg
@@ -3780,6 +3857,11 @@ func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg
 	return
 }
 
+func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, nil)
+	return
+}
+
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
 	return
@@ -3937,6 +4019,11 @@ func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool
 
 func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamProfileAddList(ctx context.Context, __arg TeamProfileAddListArg) (res []TeamProfileAddEntry, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamProfileAddList", []interface{}{__arg}, &res)
 	return
 }
 

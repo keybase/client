@@ -12,25 +12,24 @@ type ConfirmSendProps = {|
   onClose: () => void,
   onSendClick: () => void,
   onBack: () => void,
-  amount: string,
-  assetType: string,
-  assetConversion?: string,
-  waiting?: boolean,
   encryptedNote?: string,
   publicMemo?: string,
   banners?: Array<BannerType>,
   sendFailed: boolean,
-  waitingKey?: string,
+  waitingKey: string,
+  sendingIntentionXLM: boolean,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
-        amount={props.amount}
-        assetType={props.assetType}
-        assetConversion={props.assetConversion}
         onBack={props.onBack}
+        sendingIntentionXLM={props.sendingIntentionXLM}
+        displayAmountXLM={props.displayAmountXLM}
+        displayAmountFiat={props.displayAmountFiat}
       />
       <Kb.ScrollView style={styles.scrollView}>
         {(props.banners || []).map(banner => (
@@ -67,7 +66,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.amount} {props.assetType}
+                  {props.displayAmountXLM}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>

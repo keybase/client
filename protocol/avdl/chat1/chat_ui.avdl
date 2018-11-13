@@ -6,6 +6,7 @@ protocol chatUi {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
+  import idl "unfurl.avdl";
 
   record UIPagination {
     string next;
@@ -154,6 +155,7 @@ protocol chatUi {
     boolean hasPairwiseMacs;
     union { null, UIPaymentInfo } paymentInfo;
     union { null, UIRequestInfo } requestInfo;
+    array<UnfurlDisplay> unfurls;
   }
 
   record UIMessageOutbox {
@@ -200,24 +202,12 @@ protocol chatUi {
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
 
-  record ChatSearchHit {
-    array<UIMessage> beforeMessages;
-    UIMessage hitMessage;
-    array<UIMessage> afterMessages;
-    array<string>  matches;
-  }
-
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
-  record ChatInboxSearchHit {
-    ConversationID convID;
-    string convName;
-    array<ChatSearchHit> hits;
-  }
-
-  void chatInboxSearchHit(int sessionID, ChatInboxSearchHit searchHit);
-  void chatInboxSearchDone(int sessionID, int numHits, int numConvs);
+  void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
+  void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
+  void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

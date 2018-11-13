@@ -26,12 +26,13 @@ type Props = {
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
+  isDeleteable: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
-    ...(props.yourMessage
+    ...(props.isDeleteable
       ? [
           {
             danger: true,

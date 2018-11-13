@@ -963,20 +963,30 @@ func (api *ExternalAPIEngine) DoRequest(
 func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
-	var url1 *url.URL
-	var req *http.Request
-	url1, err = url.Parse(arg.Endpoint)
-
+	url1, err := url.Parse(arg.Endpoint)
 	if err != nil {
-		return
+		return nil, nil, nil, err
 	}
-	req, err = api.PrepareGet(*url1, arg)
-	if err != nil {
-		return
+	// If the specified endpoint has any query parameters attached, add them to
+	// the uArgs.
+	if arg.uArgs == nil {
+		arg.uArgs = url1.Query()
+	} else {
+		for k, v := range url1.Query() {
+			if _, ok := arg.uArgs[k]; ok {
+				arg.uArgs[k] = append(arg.uArgs[k], v...)
+			} else {
+				arg.uArgs[k] = v
+			}
+		}
 	}
 
-	ar, hr, tr, err = api.DoRequest(arg, req, restype)
-	return
+	req, err := api.PrepareGet(*url1, arg)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return api.DoRequest(arg, req, restype)
 }
 
 func (api *ExternalAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {

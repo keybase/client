@@ -43,6 +43,7 @@ Please don't actually use retention-policy-dev:
 		ArgumentHelp: "<conversation> <seconds>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSetRetentionDevRunner(g), "retention-policy-dev", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getConversationResolverFlags(),
 	}

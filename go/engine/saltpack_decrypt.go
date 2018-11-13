@@ -173,7 +173,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		m.CDebugf("adding device key for decryption: %v", key.GetKID())
 		addToKeyring(keyring, key)
 
-		perUserKeyring, err := m.G().GetPerUserKeyring()
+		perUserKeyring, err := m.G().GetPerUserKeyring(m.Ctx())
 		if err != nil {
 			return err
 		}

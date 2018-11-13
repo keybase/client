@@ -52,8 +52,8 @@ const providers = Storybook.createPropProviderWithCommon({
     onViewAll: () => {},
   }),
   FilesPreview: () => ({
-    tlfRows: [],
-    onViewAll: () => {},
+    loadTlfUpdates: () => Storybook.action('loadTlfUpdates'),
+    userTlfUpdates: [],
   }),
 })
 

@@ -4,7 +4,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
-import WalletsAndDetails from './wallets-and-details'
+import WalletsAndDetails from './wallets-and-details/container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
@@ -18,18 +18,19 @@ import {
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
+import ChooseAsset from './send-form/choose-asset/container'
 import WalletsList from './wallet-list/container'
 
 const createNewAccount = {
   children: {},
   component: CreateNewAccount,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const linkExisting = {
   children: {},
   component: LinkExisting,
-  tags: makeLeafTags({layerOnTop: !isMobile}),
+  tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
 }
 
 const walletChildren = {
@@ -37,26 +38,39 @@ const walletChildren = {
   exportSecretKey: {
     children: {},
     component: ExportSecretKey,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   linkExisting,
   receive: {
     children: {},
     component: ReceiveModal,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
   },
   [Constants.sendReceiveFormRouteKey]: {
     children: {
       [Constants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({
+          layerOnTop: !isMobile,
+          renderTopmostOnly: true,
+          hideStatusBar: true,
+        }),
       },
       createNewAccount,
       linkExisting,
+      [Constants.chooseAssetFormRouteKey]: {
+        children: {},
+        component: ChooseAsset,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({
+      layerOnTop: !isMobile,
+      renderTopmostOnly: true,
+      hideStatusBar: true,
+    }),
   },
   settings: {
     children: {
@@ -67,21 +81,21 @@ const walletChildren = {
           reallyRemoveAccount: {
             children: {},
             component: ReallyRemoveAccountPopup,
-            tags: makeLeafTags({layerOnTop: !isMobile}),
+            tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
           },
         },
         component: RemoveAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       renameAccount: {
         children: {},
         component: RenameAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
       setDefaultAccount: {
         children: {},
         component: SetDefaultAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
       },
     },
     component: AccountSettings,
@@ -98,6 +112,8 @@ const walletChildren = {
 const routeTree = isMobile
   ? makeRouteDefNode({
       children: {
+        createNewAccount,
+        linkExisting,
         wallet: {
           children: walletChildren,
           component: Wallet,

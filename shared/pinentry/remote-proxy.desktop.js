@@ -7,7 +7,7 @@ import * as React from 'react'
 import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, mapProps, type TypedState, compose} from '../util/container'
+import {NullComponent, connect, mapProps, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
@@ -49,11 +49,12 @@ class RemotePinentrys extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-export default connect(
+type OwnProps = {||}
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

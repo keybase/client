@@ -2,12 +2,11 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import type {TypedState} from '../../constants/reducer'
 import GPGSign from '.'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   importError: state.provision.gpgImportError,
 })
 
@@ -32,7 +31,7 @@ const mergeProps = ({importError}, dispatchProps) =>
         onSubmit: dispatchProps.onSubmitGpgMethod,
       }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

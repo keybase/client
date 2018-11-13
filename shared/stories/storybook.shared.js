@@ -9,6 +9,7 @@ import {action} from '@storybook/addon-actions'
 import Box from '../common-adapters/box'
 import Text from '../common-adapters/text'
 import ClickableBox from '../common-adapters/clickable-box'
+import RandExp from 'randexp'
 
 type SelectorMap = {
   [componentDisplayName: string]: (any => any) | Object,
@@ -133,13 +134,26 @@ class StorybookErrorBoundary extends React.Component<
 
 class Rnd {
   _seed = 0
-  constructor(seed: number) {
-    this._seed = seed
+  constructor(seed: number | string) {
+    if (typeof seed === 'string') {
+      this._seed = seed.split('').reduce((acc, _, i) => seed.charCodeAt(i) + acc, 0)
+    } else {
+      this._seed = seed
+    }
   }
 
   next = () => {
     this._seed = (this._seed * 16807) % 2147483647
     return this._seed
+  }
+
+  // Inclusive
+  randInt = (low: number, high: number) => (this.next() % (high + 1 - low)) + low
+
+  generateString = (regex: RegExp): string => {
+    const r = new RandExp(regex)
+    r.randInt = this.randInt
+    return r.gen()
   }
 }
 

@@ -116,6 +116,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({pushLoaded: action.payload.pushLoaded})
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
+        // keep it if we're logged out
+        defaultUsername: action.payload.username || state.defaultUsername,
         deviceID: action.payload.deviceID,
         deviceName: action.payload.deviceName,
         followers: I.Set(action.payload.followers),
@@ -150,8 +152,6 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       }
       return state.merge({globalError})
     }
-    case ConfigGen.debugDump:
-      return state.merge({debugDump: action.payload.items})
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
@@ -177,19 +177,23 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.setAccounts:
       return state.merge({
         configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: action.payload.defaultUsername,
+        defaultUsername: state.defaultUsername || action.payload.defaultUsername, // keep it if we have one
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
-    case ConfigGen.outOfDate:
+    case ConfigGen.updateNow:
+      return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
+    case ConfigGen.updateInfo:
       return state.set(
         'outOfDate',
-        Constants.makeOutOfDate({
-          critical: action.payload.critical,
-          message: action.payload.message,
-        })
+        action.payload.isOutOfDate
+          ? Constants.makeOutOfDate({
+              critical: action.payload.critical,
+              message: action.payload.message,
+            })
+          : null
       )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
@@ -204,7 +208,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
-    case ConfigGen.updateNow:
+    case ConfigGen.checkForUpdate:
       return state
     default:
       /*::

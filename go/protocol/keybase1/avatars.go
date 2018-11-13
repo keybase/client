@@ -53,8 +53,9 @@ func (o LoadAvatarsRes) DeepCopy() LoadAvatarsRes {
 }
 
 type AvatarClearCacheMsg struct {
-	Name    string         `codec:"name" json:"name"`
-	Formats []AvatarFormat `codec:"formats" json:"formats"`
+	Name    string           `codec:"name" json:"name"`
+	Formats []AvatarFormat   `codec:"formats" json:"formats"`
+	Typ     AvatarUpdateType `codec:"typ" json:"typ"`
 }
 
 func (o AvatarClearCacheMsg) DeepCopy() AvatarClearCacheMsg {
@@ -71,6 +72,7 @@ func (o AvatarClearCacheMsg) DeepCopy() AvatarClearCacheMsg {
 			}
 			return ret
 		})(o.Formats),
+		Typ: o.Typ.DeepCopy(),
 	}
 }
 

@@ -20,8 +20,8 @@ import (
 func NewCmdOneshot(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
 		cli.StringFlag{
-			Name:  "p, paperkey",
-			Usage: "specify a paper key (or try the KEYBASE_PAPERKEY environment variable)",
+			Name:  "paperkey",
+			Usage: "DANGEROUS: specify a paper key (or try the KEYBASE_PAPERKEY environment variable)",
 		},
 		cli.StringFlag{
 			Name:  "u,username",
@@ -46,21 +46,23 @@ changes to the user's sigchain. It will rather hold the given paperkey in
 memory for as long as the service is running (or until "keybase logout" is
 called) and then will disappear.
 
-It needs a username and a paperkey to work, either passed in via command-line
-flags or the environment.
+It needs a username and a paperkey to work, either passed in via standard input,
+command-line flags, or the environment.
 
-Passing a paperkey via the environment or via command line flags is
-potentially unsafe. Other processes running on the machine can inspect these
-data, so "oneshot" is strongly advised against on a multi-tenant system where
-users can examine each other's processes. But it might be a good fit for
-Docker deployments.
+The default way to pass a paperkey into oneshot is via standard input.
+On a terminal, you'll get a familiar passphrase prompt. In a script or
+programmatic environment, when standard input is not a terminal, you can pipe
+the paper key to standard input, with or without a trailing newline.
+
+Otherwise, and this is more dangerous, you can pass a paperkey via the environment
+or via command line flags. Other processes running on the machine can inspect these
+data, so be very careful with this input choice.
 
 Also note that by default keybase shouldn't be run as root, but in Docker (or
 other containers), root can be the best option, so you can use "keybase oneshot"
 in concert with the KEYBASE_ALLOW_ROOT=1 environment variable.
 
-Some features won't work in oneshot mode, such as: (1) ephemeral messaging;
-and (2) cryptocurrency integrations.`,
+Some features won't work in oneshot mode, like ephemeral messaging.`,
 	}
 	return cmd
 }
@@ -87,7 +89,12 @@ func (c *CmdOneshot) Run() error {
 		return err
 	}
 
-	err = client.LoginOneshot(context.Background(), keybase1.LoginOneshotArg{SessionID: 0, Username: c.Username, PaperKey: c.PaperKey})
+	paperkey, err := c.getPaperKey()
+	if err != nil {
+		return err
+	}
+
+	err = client.LoginOneshot(context.Background(), keybase1.LoginOneshotArg{SessionID: 0, Username: c.Username, PaperKey: paperkey})
 	return err
 }
 
@@ -96,18 +103,26 @@ func (c *CmdOneshot) ParseArgv(ctx *cli.Context) (err error) {
 	if nargs != 0 {
 		return errors.New("didn't expect any arguments")
 	}
-	c.Username, err = c.getOption(ctx, "username")
+	c.Username, err = c.getOption(ctx, "username", true /* required */)
 	if err != nil {
 		return err
 	}
-	c.PaperKey, err = c.getOption(ctx, "paperkey")
+	c.PaperKey, err = c.getOption(ctx, "paperkey", false /* required */)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *CmdOneshot) getOption(ctx *cli.Context, s string) (string, error) {
+func (c *CmdOneshot) getPaperKey() (ret string, err error) {
+	if len(c.PaperKey) > 0 {
+		return c.PaperKey, nil
+	}
+	ret, err = c.G().UI.GetTerminalUI().PromptPasswordMaybeScripted(PromptDescriptorPaperKey, "paper key: ")
+	return ret, err
+}
+
+func (c *CmdOneshot) getOption(ctx *cli.Context, s string, required bool) (string, error) {
 	v := ctx.String(s)
 	if len(v) > 0 {
 		return v, nil
@@ -117,7 +132,11 @@ func (c *CmdOneshot) getOption(ctx *cli.Context, s string) (string, error) {
 	if len(v) > 0 {
 		return v, nil
 	}
-	return "", fmt.Errorf("Need a --%s option or a %s environment variable", s, envVarName)
+	var err error
+	if required {
+		err = fmt.Errorf("Need a --%s option or a %s environment variable", s, envVarName)
+	}
+	return "", err
 }
 
 func (c *CmdOneshot) GetUsage() libkb.Usage {

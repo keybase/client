@@ -7,12 +7,14 @@ import {
   lifecycle,
   withStateHandlers,
   connect,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {upperFirst} from 'lodash-es'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{teamname: string}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   return {
     errorText: upperFirst(state.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
@@ -36,7 +38,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

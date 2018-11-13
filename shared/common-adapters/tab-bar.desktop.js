@@ -2,20 +2,14 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
+import Meta from './meta'
 import Text from './text'
 import Avatar from './avatar'
 import Badge from './badge'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  desktopStyles,
-  collapseStyles,
-} from '../styles'
+import * as Styles from '../styles'
 
 // TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
 
@@ -36,13 +30,13 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
   }
 
   render() {
-    const selectedColor = this.props.selectedColor || globalColors.blue
+    const selectedColor = this.props.selectedColor || Styles.globalColors.blue
     const borderLocation = this.props.onBottom ? 'borderTop' : 'borderBottom'
     const underlineStyle = this.props.underlined ? {textDecoration: 'underlined'} : {}
     return (
       <Box
         style={{
-          ...desktopStyles.clickable,
+          ...Styles.desktopStyles.clickable,
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '8px 12px',
           ...this.props.style,
@@ -50,12 +44,12 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       >
         <Text
           type="BodySmallSemibold"
-          style={platformStyles({
+          style={Styles.platformStyles({
             common: {
-              color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
+              color: this.props.selected ? Styles.globalColors.black_75 : Styles.globalColors.black_60,
             },
             isElectron: {
-              ...desktopStyles.clickable,
+              ...Styles.desktopStyles.clickable,
               ...underlineStyle,
             },
           })}
@@ -70,12 +64,12 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
 const HighlightLine = () => (
   <Box
     style={{
-      ...globalStyles.fillAbsolute,
+      ...Styles.globalStyles.fillAbsolute,
       borderTopRightRadius: 4,
       borderBottomRightRadius: 4,
-      backgroundColor: globalColors.white,
-      marginTop: globalMargins.xtiny,
-      marginBottom: globalMargins.tiny,
+      backgroundColor: Styles.globalColors.white,
+      marginTop: Styles.globalMargins.xtiny,
+      marginBottom: Styles.globalMargins.tiny,
       right: undefined,
       width: 2,
     }}
@@ -106,10 +100,10 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
     if (this.props.source.type !== 'avatar') return null // needed to make flow happy
     return (
       <Box
-        className={'nav-item-avatar' + (this.props.selected ? ' selected' : '')}
-        style={platformStyles({
+        className={Styles.classNames('nav-item-avatar', {selected: this.props.selected})}
+        style={Styles.platformStyles({
           isElectron: {
-            ...globalStyles.flexBoxColumn,
+            ...Styles.globalStyles.flexBoxColumn,
             alignItems: 'center',
             cursor: 'pointer',
             justifyContent: 'center',
@@ -124,7 +118,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
-          loadingColor={globalColors.blue3_40}
+          loadingColor={Styles.globalColors.blue3_40}
         />
         {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>
@@ -141,7 +135,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               ...stylesNavText,
               color: undefined,
               textAlign: 'center',
-              ...desktopStyles.clickable,
+              ...Styles.desktopStyles.clickable,
               ...this.props.styleLabel,
               marginTop: 3,
             }}
@@ -153,7 +147,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
     )
   }
 
-  _renderNav(badgeNumber: number) {
+  _renderNav(badgeNumber: number, isNew: boolean) {
     if (this.props.source.type !== 'nav') return null // needed to make flow happy
     return (
       <Box onClick={this.props.onClick}>
@@ -168,7 +162,17 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
             <Box style={styleBadgeNav}>
               <Badge
                 badgeNumber={badgeNumber}
-                badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
+                badgeStyle={{marginLeft: 0, marginRight: Styles.globalMargins.tiny}}
+              />
+            </Box>
+          )}
+          {isNew && (
+            <Box style={styleBadgeNav}>
+              <Meta
+                title="new"
+                size="Small"
+                style={{alignSelf: 'center', marginRight: 4}}
+                backgroundColor={Styles.globalColors.blue2}
               />
             </Box>
           )}
@@ -188,7 +192,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
 
   _renderIcon(color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return null // needed to make flow happy
-    const backgroundColor = globalColors.darkBlue3
+    const backgroundColor = Styles.globalColors.darkBlue3
     return (
       <Box
         style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}
@@ -196,13 +200,13 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
       >
         <Icon
           type={this.props.source.icon}
-          style={collapseStyles([stylesIcon, this.props.styleIcon])}
+          style={Styles.collapseStyles([stylesIcon, this.props.styleIcon])}
           color={color}
         />
         {!!this.props.label && (
           <Text
             type="BodySemibold"
-            style={{color, textAlign: 'center', ...desktopStyles.clickable, ...this.props.styleLabel}}
+            style={{color, textAlign: 'center', ...Styles.desktopStyles.clickable, ...this.props.styleLabel}}
           >
             {this.props.label}
           </Text>
@@ -221,14 +225,14 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
   }
 
   render() {
-    const color = this.props.selected ? globalColors.white : globalColors.blue3_60
+    const color = this.props.selected ? Styles.globalColors.white : Styles.globalColors.blue3_60
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
       case 'avatar':
         return this._renderAvatar(color, badgeNumber)
       case 'nav':
-        return this._renderNav(badgeNumber)
+        return this._renderNav(badgeNumber, this.props.isNew)
       case 'icon':
       default:
         return this._renderIcon(color, badgeNumber)
@@ -267,9 +271,9 @@ class TabBar extends React.Component<Props> {
     const tabBarButtons = (
       <Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           flexShrink: 0,
-          borderBottom: `solid 1px ${globalColors.black_10}`,
+          borderBottom: `solid 1px ${Styles.globalColors.black_10}`,
           ...this.props.styleTabBar,
         }}
       >
@@ -287,19 +291,19 @@ class TabBar extends React.Component<Props> {
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
 }
 
 const stylesTabBarButtonIcon = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
+  ...Styles.globalStyles.flexBoxRow,
+  ...Styles.desktopStyles.clickable,
   flex: 1,
   alignItems: 'center',
   paddingLeft: 20,
   position: 'relative',
 }
 
-const stylesIcon = platformStyles({
+const stylesIcon = Styles.platformStyles({
   common: {
     height: 14,
     paddingRight: 6,
@@ -310,8 +314,8 @@ const stylesIcon = platformStyles({
 })
 
 const stylesTabBarNavIcon = {
-  ...globalStyles.flexBoxColumn,
-  ...desktopStyles.clickable,
+  ...Styles.globalStyles.flexBoxColumn,
+  ...Styles.desktopStyles.clickable,
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
@@ -321,16 +325,16 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${globalColors.darkBlue4}; }
-  .nav-item:hover .img { color: ${globalColors.white}; }
-  .nav-item.selected .img { color: ${globalColors.white}; }
+  .nav-item .img { color: ${Styles.globalColors.darkBlue4}; }
+  .nav-item:hover .img { color: ${Styles.globalColors.white}; }
+  .nav-item.selected .img { color: ${Styles.globalColors.white}; }
 
   .nav-item .title { color: transparent; }
-  .nav-item-avatar .title { color: ${globalColors.white}; }
-  .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${globalColors.white}; }
-  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.white}; opacity: 1.0; }
+  .nav-item-avatar .title { color: ${Styles.globalColors.white}; }
+  .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${Styles.globalColors.white}; }
+  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${Styles.globalColors.white}; opacity: 1.0; }
   .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${
-    globalColors.white
+    Styles.globalColors.white
   }; opacity: 1.0;}
 `
 

@@ -7,13 +7,13 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import ErrorComponent from './error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
+import Folders from './folders/container'
 import React, {Component} from 'react'
-import {orderBy, chunk} from 'lodash-es'
+import {chunk} from 'lodash-es'
 import moment from 'moment'
 import UserActions from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
-import {UsernameText} from '../common-adapters/usernames'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
 import flags from '../util/feature-flags'
 
@@ -228,26 +228,6 @@ class Profile extends Component<Props, State> {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
-    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
-      <Kb.Box key={folder.path} style={styleFolderLine}>
-        <Kb.Icon
-          type={shared.folderIconType(folder)}
-          fontSize={16}
-          color={Styles.globalColors.black_75}
-          style={styleFolderIcon}
-          onClick={() => this.props.onFolderClick(folder)}
-        />
-        <Kb.Text
-          type="Body"
-          style={{...styleFolderTextLine, ...styleFolderText}}
-          onClick={() => this.props.onFolderClick(folder)}
-        >
-          {folder.isPublic ? 'public/' : 'private/'}
-          <UsernameText type="Body" users={folder.users} style={styleFolderText} />
-        </Kb.Text>
-      </Kb.Box>
-    ))
-
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
@@ -325,7 +305,8 @@ class Profile extends Component<Props, State> {
               onOpenPrivateFolder={this.props.onOpenPrivateFolder}
               onRefresh={this.props.refresh}
               onUnfollow={this.props.onUnfollow}
-              onSendOrRequestLumens={this.props.onSendOrRequestLumens}
+              onSendLumens={this.props.onSendLumens}
+              onRequestLumens={this.props.onRequestLumens}
               onAcceptProofs={this.props.onAcceptProofs}
               waiting={this.props.waiting}
             />
@@ -368,7 +349,7 @@ class Profile extends Component<Props, State> {
               currentlyFollowing={false}
             />
           )}
-          {!this.props.loading && folders}
+          {!this.props.loading && <Folders profileUsername={this.props.username} />}
         </Kb.Box>
       </Kb.Box>
     )
@@ -399,7 +380,9 @@ class Profile extends Component<Props, State> {
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingTop: Styles.isIPhoneX ? 40 : Styles.globalMargins.tiny + Styles.statusBarHeight,
+            paddingTop: Styles.globalMargins.tiny,
+            paddingLeft: Styles.globalMargins.tiny,
+            paddingRight: Styles.globalMargins.tiny,
           }}
         >
           {this.props.onBack && (
@@ -517,6 +500,7 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
+        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
@@ -627,7 +611,6 @@ const styles = Styles.styleSheetCreate({
 const styleBack = {
   left: 0,
   position: 'absolute',
-  top: Styles.isIPhoneX ? 36 : 22,
 }
 
 const styleHeader = {
@@ -653,23 +636,6 @@ const styleActions = {
 const styleProofsAndFolders = {
   paddingLeft: Styles.globalMargins.medium,
   paddingRight: Styles.globalMargins.medium,
-}
-
-const styleFolderLine = {
-  ...Styles.globalStyles.flexBoxRow,
-  marginTop: Styles.globalMargins.tiny,
-}
-
-const styleFolderTextLine = {
-  flex: 1,
-}
-
-const styleFolderText = {
-  color: Styles.globalColors.black_60,
-}
-
-const styleFolderIcon = {
-  marginRight: Styles.globalMargins.tiny,
 }
 
 const styleMeta = {

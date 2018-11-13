@@ -16,8 +16,8 @@ import (
 
 func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, preview bool) (res chat1.Asset, err error) {
-
-	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true)
+	reason := chat1.GetThreadReason_GENERAL
+	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true, &reason)
 	if err != nil {
 		return res, err
 	}
@@ -75,21 +75,21 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 	return res, nil
 }
 
-type fileReadResetter struct {
+type FileReadResetter struct {
 	filename string
 	file     *os.File
 	buf      *bufio.Reader
 }
 
-func newFileReadResetter(name string) (*fileReadResetter, error) {
-	f := &fileReadResetter{filename: name}
+func NewFileReadResetter(name string) (*FileReadResetter, error) {
+	f := &FileReadResetter{filename: name}
 	if err := f.open(); err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (f *fileReadResetter) open() error {
+func (f *FileReadResetter) open() error {
 	ff, err := os.Open(f.filename)
 	if err != nil {
 		return err
@@ -99,11 +99,11 @@ func (f *fileReadResetter) open() error {
 	return nil
 }
 
-func (f *fileReadResetter) Read(p []byte) (int, error) {
+func (f *FileReadResetter) Read(p []byte) (int, error) {
 	return f.buf.Read(p)
 }
 
-func (f *fileReadResetter) Reset() error {
+func (f *FileReadResetter) Reset() error {
 	_, err := f.file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (f *fileReadResetter) Reset() error {
 	return nil
 }
 
-func (f *fileReadResetter) Close() error {
+func (f *FileReadResetter) Close() error {
 	f.buf = nil
 	if f.file != nil {
 		return f.file.Close()
@@ -120,23 +120,23 @@ func (f *fileReadResetter) Close() error {
 	return nil
 }
 
-type bufReadResetter struct {
+type BufReadResetter struct {
 	buf []byte
 	r   *bytes.Reader
 }
 
-func newBufReadResetter(buf []byte) *bufReadResetter {
-	return &bufReadResetter{
+func NewBufReadResetter(buf []byte) *BufReadResetter {
+	return &BufReadResetter{
 		buf: buf,
 		r:   bytes.NewReader(buf),
 	}
 }
 
-func (b *bufReadResetter) Read(p []byte) (int, error) {
+func (b *BufReadResetter) Read(p []byte) (int, error) {
 	return b.r.Read(p)
 }
 
-func (b *bufReadResetter) Reset() error {
+func (b *BufReadResetter) Reset() error {
 	b.r.Reset(b.buf)
 	return nil
 }

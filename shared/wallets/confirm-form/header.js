@@ -5,19 +5,13 @@ import * as Styles from '../../styles'
 
 type HeaderProps = {|
   onBack: () => void,
-  amount: string,
-  assetType: string,
-  assetConversion?: string,
+  sendingIntentionXLM: boolean,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
 |}
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-    <Kb.BackButton
-      onClick={props.onBack}
-      style={styles.backButton}
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButtonText}
-    />
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
         type={
@@ -28,12 +22,23 @@ const Header = (props: HeaderProps) => (
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-        {'Sending Lumens worth'.toUpperCase()}
+        {(props.sendingIntentionXLM ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
       </Kb.Text>
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
-        {props.assetConversion ? props.assetConversion : props.amount}
+        {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
       </Kb.Text>
+      {props.sendingIntentionXLM && !!props.displayAmountFiat && (
+          <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+            {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
+          </Kb.Text>
+        )}
     </Kb.Box2>
+    <Kb.BackButton
+      onClick={props.onBack}
+      style={styles.backButton}
+      iconColor={Styles.globalColors.white}
+      textStyle={styles.backButtonText}
+    />
   </Kb.Box2>
 )
 

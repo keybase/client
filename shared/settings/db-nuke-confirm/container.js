@@ -4,8 +4,9 @@ import DBNukeConfirm from './index'
 import {createDbNuke} from '../../actions/settings-gen'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => {
     dispatch(navigateUp())
   },
@@ -15,7 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

@@ -7,17 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -271,23 +268,6 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 	return h.G().GetOutOfDateInfo(), nil
 }
 
-func getNeedUpdate() (bool, error) {
-	updaterPath, err := install.UpdaterBinPath()
-	if err != nil {
-		return false, err
-	}
-	cmd := exec.Command(updaterPath, "need-update")
-	out, err := cmd.Output()
-	if err != nil {
-		return false, err
-	}
-	needUpdate, err := strconv.ParseBool(strings.TrimSpace(string(out)))
-	if err != nil {
-		return false, err
-	}
-	return needUpdate, nil
-}
-
 func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
 	outOfDateInfo := h.G().GetOutOfDateInfo()
 	if len(outOfDateInfo.UpgradeTo) != 0 {
@@ -298,7 +278,7 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 			Message: outOfDateInfo.CustomMessage,
 		}, nil
 	}
-	needUpdate, err := getNeedUpdate() // This is from the updater.
+	needUpdate, err := install.GetNeedUpdate() // This is from the updater.
 	if err != nil {
 		h.G().Log.Errorf("Error calling updater: %s", err)
 		return keybase1.UpdateInfo{
@@ -316,17 +296,7 @@ func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, 
 }
 
 func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
-	updaterPath, err := install.UpdaterBinPath()
-	if err != nil {
-		return err
-	}
-	pid, err := libcmdline.SpawnDetachedProcess(
-		updaterPath, []string{"check"}, h.G().Log)
-	if err != nil {
-		return err
-	}
-	h.G().Log.Debug("Starting background updater process (%s). pid=%d", updaterPath, pid)
-	return nil
+	return install.StartUpdateIfNeeded(ctx, h.G().Log)
 }
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {

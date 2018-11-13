@@ -35,19 +35,21 @@ class Conversation extends React.PureComponent<Props> {
         )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          isPending={this.props.isPending}
           infoPanelOpen={false}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          isPending={this.props.isPending}
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
+          isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
           onScrollDown={this.props.onScrollDown}
           conversationIDKey={this.props.conversationIDKey}

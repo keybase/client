@@ -1,0 +1,85 @@
+@namespace("chat.1")
+
+protocol unfurl {
+    import idl "common.avdl";
+
+    enum UnfurlType {
+      GENERIC_0,
+      YOUTUBE_1
+    }
+
+
+    record UnfurlGenericRaw {
+      string title;
+      string url;
+      string siteName;
+      union { null, string } faviconUrl;
+      union { null, string } imageUrl;
+      union { null, int } publishTime;
+      union { null, string } description;
+    }
+
+    record UnfurlYoutubeRaw {
+        // TODO
+    }
+
+    variant UnfurlRaw switch (UnfurlType unfurlType) {
+      case GENERIC: UnfurlGenericRaw;
+      case YOUTUBE: UnfurlYoutubeRaw;
+    }
+
+    record UnfurlGeneric {
+      string title;
+      string url;
+      string siteName;
+      union { null, Asset } favicon;
+      union { null, Asset } image;
+      union { null, int } publishTime;
+      union { null, string } description;
+    }
+
+    record UnfurlYoutube {
+        // TODO
+    }
+
+    variant Unfurl switch (UnfurlType unfurlType) {
+      case GENERIC: UnfurlGeneric;
+      case YOUTUBE: UnfurlYoutube;
+    }
+
+    record UnfurlImageDisplay {
+        string url;
+        int height;
+        int width;
+    }
+
+    record UnfurlGenericDisplay {
+        string title;
+        string url;
+        string siteName;
+        union { null, UnfurlImageDisplay } favicon;
+        union { null, UnfurlImageDisplay } image;
+        union { null, int } publishTime;
+        union { null, string } description;
+    }
+
+    record UnfurlYoutubeDisplay {
+        // TODO
+    }
+
+    variant UnfurlDisplay switch (UnfurlType unfurlType) {
+        case GENERIC: UnfurlGenericDisplay;
+        case YOUTUBE: UnfurlYoutubeDisplay;
+    }   
+
+    enum UnfurlMode {
+      ALWAYS_0,
+      NEVER_1,
+      WHITELISTED_2
+    }
+
+    record UnfurlSettings {
+      UnfurlMode mode;
+      map<string, boolean> whitelist;
+    }
+}

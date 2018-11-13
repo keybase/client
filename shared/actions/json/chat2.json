@@ -60,7 +60,8 @@
         "'teamHeader'",
         "'convertAdHoc'",
         "'memberView'",
-        "'newChannel'"
+        "'newChannel'",
+        "'transaction'"
       ]
     },
     "createConversation": {
@@ -110,7 +111,6 @@
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
-      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
       "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
       "fromInboxRefresh?": "boolean" // If true from an inbox refresh
     },
@@ -151,8 +151,7 @@
       "outboxID": "Types.OutboxID"
     },
     "setPendingConversationExistingConversationIDKey": {
-      "_description":
-        "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
       "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
@@ -186,6 +185,11 @@
       "mentionsAt": "I.Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
       "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+    },
+    "pendingMessageWasEdited": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
     },
     // Mark a message as deleted
     "messagesWereDeleted": {
@@ -291,8 +295,7 @@
     },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "message": "Types.Message"
     },
     // Saving an attachment to mobile storage
     "attachmentMobileSave": {
@@ -313,14 +316,13 @@
     },
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "message": "Types.Message",
       "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paths": "Array<string>",
+      "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>"
     },
     // Update progress on an upload
@@ -333,6 +335,19 @@
     "attachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
+    },
+    // Image data pasted into a conversation
+    "attachmentPasted": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "data": "Buffer"
+    },
+    "attachmentFullscreenSelection": {
+      "message": "Types.Message"
+    },
+    "attachmentFullscreenNext": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "backInTime": "boolean"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
@@ -402,8 +417,7 @@
       "policy": "RetentionPolicy"
     },
     "updateConvRetentionPolicy": {
-      "_description":
-        "Consume a service notification that a conversation's retention policy has been updated",
+      "_description": "Consume a service notification that a conversation's retention policy has been updated",
       "conv": "RPCChatTypes.InboxUIItem"
     },
     "updateTeamRetentionPolicy": {
@@ -429,8 +443,7 @@
       "new": "boolean"
     },
     "handleSeeingExplodingMessages": {
-      "_description":
-        "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
+      "_description": "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     },
     "setWalletsOld": {
       "_description": "Set that wallets in chat is not new."
@@ -447,8 +460,7 @@
       "error": "Error"
     },
     "setMinWriterRole": {
-      "_description":
-        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
     },

@@ -14,13 +14,12 @@ import {
   withHandlers,
   withPropsOnChange,
   withStateHandlers,
-  type TypedState,
 } from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length,
+    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
     name: teamname,
     _yourRole: getRole(state, teamname),
     errorText: upperFirst(state.teams.teamInviteError),

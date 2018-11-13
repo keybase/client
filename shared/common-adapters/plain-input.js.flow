@@ -37,7 +37,7 @@ export type Props = {|
   rowsMax?: number,
   style?: StylesCrossPlatform,
   textType?: TextType,
-  type?: 'password' | 'text' | 'number',
+  type?: 'password' | 'text',
   value?: string, // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API
 
   /* Platform discrepancies */

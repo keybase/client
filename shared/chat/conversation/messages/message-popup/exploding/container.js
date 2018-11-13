@@ -7,7 +7,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
+import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -21,7 +21,7 @@ export type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
@@ -61,8 +61,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onDownload: () =>
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onEdit: () =>
@@ -155,11 +154,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ExplodingPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ExplodingPopup'
 )(Exploding)

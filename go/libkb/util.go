@@ -299,6 +299,13 @@ func IsValidHostname(s string) bool {
 	return true
 }
 
+var phoneRE = regexp.MustCompile("^[1-9][0-9]{1,14}$")
+
+// IsPossiblePhoneNumber checks if s is string of digits starting with 1.
+func IsPossiblePhoneNumber(s string) bool {
+	return phoneRE.MatchString(s)
+}
+
 func RandBytes(length int) ([]byte, error) {
 	var n int
 	var err error
@@ -901,4 +908,8 @@ func DecodeHexFixed(dst, src []byte) error {
 			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
 	}
 	return nil
+}
+
+func IsIOS() bool {
+	return isIOS
 }

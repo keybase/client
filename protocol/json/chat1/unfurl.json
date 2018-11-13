@@ -1,0 +1,291 @@
+{
+  "protocol": "unfurl",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "UnfurlType",
+      "symbols": [
+        "GENERIC_0",
+        "YOUTUBE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "faviconUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutubeRaw",
+      "fields": []
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlRaw",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGenericRaw"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutubeRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGeneric",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutube",
+      "fields": []
+    },
+    {
+      "type": "variant",
+      "name": "Unfurl",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGeneric"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutube"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlImageDisplay",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericDisplay",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "publishTime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlYoutubeDisplay",
+      "fields": []
+    },
+    {
+      "type": "variant",
+      "name": "UnfurlDisplay",
+      "switch": {
+        "type": "UnfurlType",
+        "name": "unfurlType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GENERIC",
+            "def": false
+          },
+          "body": "UnfurlGenericDisplay"
+        },
+        {
+          "label": {
+            "name": "YOUTUBE",
+            "def": false
+          },
+          "body": "UnfurlYoutubeDisplay"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UnfurlMode",
+      "symbols": [
+        "ALWAYS_0",
+        "NEVER_1",
+        "WHITELISTED_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettings",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

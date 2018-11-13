@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Types from '../../../../constants/types/chat2'
@@ -15,7 +15,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   isNew: Constants.getIsExplodingNew(state),
   items: Constants.messageExplodeDescriptions,
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
@@ -38,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   items: stateProps.items,
 })
 
-const SetExplodePopup = connect(
+const SetExplodePopup = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

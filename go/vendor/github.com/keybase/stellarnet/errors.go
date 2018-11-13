@@ -16,3 +16,6 @@ var ErrSeedNotAddress = errors.New("string provided is a seed not an address")
 
 // ErrUnknownKeypairType is returned if the string parses to an unknown keypair type.
 var ErrUnknownKeypairType = errors.New("unknown keypair type")
+
+// ErrAssetNotFound is returned if no asset matches a code/issuer pair.
+var ErrAssetNotFound = errors.New("asset not found")

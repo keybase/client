@@ -139,6 +139,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
 		}
 		return NewPermanentUnboxingError(err)
 	case teams.TeamDoesNotExistError,
+		teams.KBFSKeyGenerationError,
+		libkb.KeyMaskNotFoundError,
 		DecryptionKeyNotFoundError,
 		NotAuthenticatedForThisDeviceError,
 		InvalidMACError:
@@ -193,6 +195,10 @@ func (b *basicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
 }
 
+func (b *basicUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
+	return 0
+}
+
 func (b *basicUnboxConversationInfo) IsPublic() bool {
 	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
@@ -228,6 +234,10 @@ func (p *extraInboxUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationF
 
 func (p *extraInboxUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
+}
+
+func (p *extraInboxUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
+	return 0
 }
 
 func (p *extraInboxUnboxConversationInfo) IsPublic() bool {
@@ -1195,7 +1205,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
+	defer b.Trace(ctx, func() error { return err }, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
 
 	// First stamp all of the messages as received
 	now := gregor1.ToTime(b.clock.Now())
@@ -1301,11 +1311,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		msg.ClientHeader.TlfPublic)
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
-	}
-	// Make sure the ID we get back matches what has been put on the message
-	if !nameInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
-		return nil, NewBoxingError(fmt.Sprintf("invalid TLFID for name in header, %s != %s", nameInfo.ID,
-			msg.ClientHeader.Conv.Tlfid), true)
 	}
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 

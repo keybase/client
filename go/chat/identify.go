@@ -378,7 +378,7 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 			return keybase1.TLFIdentifyFailure{}, err
 		}
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}

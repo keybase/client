@@ -1,37 +1,51 @@
 // @flow
+import * as React from 'react'
 import {WalletList, type Props} from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTree from '../../actions/route-tree'
-import {connect, type TypedState, isMobile} from '../../util/container'
+import openURL from '../../util/open-url'
+import {connect, isMobile} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
+import Onboarding from '../onboarding/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
+  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   accounts: getAccountIDs(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'createNewAccount'}]))
+    dispatch(
+      RouteTree.navigateAppend([
+        {props: {showOnCreation: true, backButton: isMobile}, selected: 'createNewAccount'},
+      ])
+    )
   },
   onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {
     dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
   },
+  onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
   refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+  acceptedDisclaimer: stateProps.acceptedDisclaimer,
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
+  onWhatIsStellar: dispatchProps.onWhatIsStellar,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
   style: ownProps.style,
   title: 'Wallets',
 })
 
+const WalletListOrOnboarding = (props: Props) =>
+  props.acceptedDisclaimer ? <WalletList {...props} /> : <Onboarding />
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(WalletList)
+)(WalletListOrOnboarding)

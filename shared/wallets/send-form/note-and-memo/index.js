@@ -5,32 +5,38 @@ import * as Styles from '../../../styles'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
-type Props = {
-  publicMemo: string, // Initial value only
-  publicMemoError?: string,
+type SecretNoteProps = {
   secretNote: string, // Initial value only
   secretNoteError?: string,
-  onChangePublicMemo: string => void,
   onChangeSecretNote: string => void,
   toSelf: boolean,
+}
+
+type PublicMemoProps = {
+  publicMemo: string, // Initial value only
+  publicMemoError?: string,
+  onChangePublicMemo: string => void,
 }
 
 // TODO use wallet staticConfig to keep in sync with the service
 const secretNoteMaxLength = 500
 const publicMemoMaxLength = 28
 
-type State = {
+type SecretNoteState = {
   emojiPickerOpen: boolean,
-  publicMemo: string,
   secretNote: string,
 }
-class NoteAndMemo extends React.Component<Props, State> {
+
+type PublicMemoState = {
+  publicMemo: string,
+}
+
+class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
   static defaultProps = {
     toSelf: false,
   }
   state = {
     emojiPickerOpen: false,
-    publicMemo: this.props.publicMemo,
     secretNote: this.props.secretNote,
   }
   _emojiIcon = React.createRef()
@@ -40,23 +46,34 @@ class NoteAndMemo extends React.Component<Props, State> {
     this.props.onChangeSecretNote(secretNote)
     this.setState(s => (s.secretNote === secretNote ? null : {secretNote}))
   }
-  _onChangePublicMemo = (publicMemo: string) => {
-    this.props.onChangePublicMemo(publicMemo)
-    this.setState(s => (s.publicMemo === publicMemo ? null : {publicMemo}))
-  }
 
   _insertEmoji = (emoji: string) => {
     if (this._note.current) {
-      this._note.current.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start) + emoji + text.slice(selection.end)
-        const pos = selection.start + 1
-        return {text: newText, selection: {start: pos, end: pos}}
-      }, true)
+      const noteInput = this._note.current
+      const selection = noteInput.getSelection()
+      if (!selection) {
+        return
+      }
+      const secretNote =
+        this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
+      const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
+      this.props.onChangeSecretNote(secretNote)
+      this.setState({secretNote}, () => {
+        const noteInput = this._note.current
+        if (noteInput) {
+          noteInput.setSelection(newSelection)
+        }
+      })
     }
   }
 
   _emojiPickerToggle = () => {
-    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+    this.setState(({emojiPickerOpen}) => {
+      if (emojiPickerOpen && this._note.current) {
+        this._note.current.focus()
+      }
+      return {emojiPickerOpen: !emojiPickerOpen}
+    })
   }
 
   _emojiPickerOnClick = emoji => {
@@ -66,8 +83,7 @@ class NoteAndMemo extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {/* Encrypted Note */}
+      <>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.PlainInput
@@ -123,13 +139,25 @@ class NoteAndMemo extends React.Component<Props, State> {
             <Kb.Text type="BodySmallError">{this.props.secretNoteError}</Kb.Text>
           )}
         </Kb.Box2>
-        <Kb.Divider
-          style={Styles.collapseStyles([
-            styles.divider,
-            this.props.secretNoteError ? {backgroundColor: Styles.globalColors.red} : {},
-          ])}
-        />
-        {/* Public Memo */}
+        <Divider error={!!this.props.secretNoteError} />
+      </>
+    )
+  }
+}
+
+class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
+  state = {
+    publicMemo: this.props.publicMemo,
+  }
+
+  _onChangePublicMemo = (publicMemo: string) => {
+    this.props.onChangePublicMemo(publicMemo)
+    this.setState(s => (s.publicMemo === publicMemo ? null : {publicMemo}))
+  }
+
+  render() {
+    return (
+      <>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.PlainInput
             multiline={true}
@@ -151,16 +179,15 @@ class NoteAndMemo extends React.Component<Props, State> {
             <Kb.Text type="BodySmallError">{this.props.publicMemoError}</Kb.Text>
           )}
         </Kb.Box2>
-        <Kb.Divider
-          style={Styles.collapseStyles([
-            styles.divider,
-            this.props.publicMemoError ? {backgroundColor: Styles.globalColors.red} : {},
-          ])}
-        />
-      </Kb.Box2>
+        <Divider error={!!this.props.publicMemoError} />
+      </>
     )
   }
 }
+
+const Divider = ({error}: {error: boolean}) => (
+  <Kb.Divider style={error ? Styles.collapseStyles([styles.divider, styles.dividerError]) : styles.divider} />
+)
 
 const placeholderColor = Styles.globalColors.black_20
 
@@ -186,9 +213,9 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   input: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black_75_on_white,
     padding: 0,
   },
 })
 
-export default NoteAndMemo
+export {SecretNote, PublicMemo}

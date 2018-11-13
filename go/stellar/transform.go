@@ -118,6 +118,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
+	loc.Unread = p.Unread
 
 	return loc, nil
 }
@@ -171,6 +172,11 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	if err != nil {
 		return nil, err
 	}
+	// Hack: newPaymentLocal doesn't calculate delta right for relays and gui kills wallet tab when it sees NONE for relays.
+	loc.Delta = stellar1.BalanceDelta_INCREASE
+	if p.From.Uid.Equal(mctx.G().GetMyUID()) {
+		loc.Delta = stellar1.BalanceDelta_DECREASE
+	}
 
 	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
 	if err != nil {
@@ -206,11 +212,21 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ShowCancel = true
 	}
 	if p.Claim != nil {
-		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
+		loc.StatusSimplified = p.Claim.ToPaymentStatus()
 		loc.ToAccountID = &p.Claim.ToStellar
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""
 		loc.ToAccountName = ""
+		if p.Claim.ToPaymentStatus() == stellar1.PaymentStatus_CANCELED {
+			// canceled payment. blank out toAssertion and stow in originalToAssertion
+			// set delta to what it would have been had the payment completed
+			loc.ToAssertion = ""
+			loc.OriginalToAssertion = p.ToAssertion
+			loc.Delta = stellar1.BalanceDelta_INCREASE
+			if acctID == p.FromStellar {
+				loc.Delta = stellar1.BalanceDelta_DECREASE
+			}
+		}
 		if username, err := lookupUsername(mctx, p.Claim.To.Uid); err == nil {
 			loc.ToUsername = username
 			loc.ToType = stellar1.ParticipantType_KEYBASE
@@ -253,7 +269,7 @@ func formatWorth(mctx libkb.MetaContext, amount, currency *string) (worth, worth
 		return "", "", nil
 	}
 
-	worth, err = FormatCurrency(mctx.Ctx(), mctx.G(), *amount, stellar1.OutsideCurrencyCode(*currency))
+	worth, err = FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), *amount, stellar1.OutsideCurrencyCode(*currency))
 	if err != nil {
 		return "", "", err
 	}
@@ -348,7 +364,7 @@ func newPaymentLocal(mctx libkb.MetaContext,
 		if err != nil {
 			return nil, err
 		}
-		currentWorth, err := FormatCurrency(mctx.Ctx(), mctx.G(), outsideAmount, exchRate.Currency)
+		currentWorth, err := FormatCurrencyWithCodeSuffix(mctx.Ctx(), mctx.G(), outsideAmount, exchRate.Currency)
 		if err != nil {
 			return nil, err
 		}

@@ -14,9 +14,11 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/service"
+	service "github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -285,6 +287,60 @@ func testConfig(t *testing.T, g *libkb.GlobalContext) {
 	if config.ServerURI == "" {
 		t.Fatal("No service URI")
 	}
+}
+
+type FakeGregorState struct {
+	items []gregor.Item
+}
+
+func (s FakeGregorState) Items() ([]gregor.Item, error) {
+	return s.items, nil
+}
+func (s FakeGregorState) GetItem(msgID gregor.MsgID) (i gregor.Item, r bool) { return }
+func (s FakeGregorState) ItemsInCategory(c gregor.Category) (i []gregor.Item, e error) {
+	return
+}
+func (s FakeGregorState) ItemsWithCategoryPrefix(c gregor.Category) (i []gregor.Item, r error) {
+	return
+}
+func (s FakeGregorState) Marshal() (b []byte, e error)              { return }
+func (s FakeGregorState) Hash() (b []byte, e error)                 { return }
+func (s FakeGregorState) Export() (p gregor.ProtocolState, e error) { return }
+
+func buildGregorItem(category, deviceID, msgID string) gregor.Item {
+	imd := gregor1.ItemAndMetadata{
+		Md_: &gregor1.Metadata{
+			MsgID_: gregor1.MsgID([]byte(msgID)),
+		},
+		Item_: &gregor1.Item{
+			Category_: gregor1.Category(category),
+			Body_:     gregor1.Body(fmt.Sprintf(`{"device_id": "%s"}`, deviceID)),
+		},
+	}
+	return gregor.Item(imd)
+}
+
+func TestDismissDeviceChangeNotifications(t *testing.T) {
+	c := context.TODO()
+	dismisser := &libkb.FakeGregorDismisser{}
+	exceptedDeviceID := "active-device-id"
+	state := &FakeGregorState{
+		items: []gregor.Item{
+			buildGregorItem("anything.else", "a-device-id", "not-dismissable-1"),
+			buildGregorItem("device.new", exceptedDeviceID, "not-dismissable-2"),
+			buildGregorItem("device.new", "a-device-id", "dismissable-1"),
+			buildGregorItem("device.revoked", "another-device-id", "dismissable-2"),
+		},
+	}
+	expectedDismissedIDs := []gregor.MsgID{
+		gregor1.MsgID("dismissable-1"),
+		gregor1.MsgID("dismissable-2"),
+	}
+	require.Equal(t, []gregor.MsgID(nil), dismisser.PeekDismissedIDs())
+	err := service.LoopAndDismissForDeviceChangeNotifications(c, dismisser,
+		state, exceptedDeviceID)
+	require.NoError(t, err)
+	require.Equal(t, expectedDismissedIDs, dismisser.PeekDismissedIDs())
 }
 
 func idLiteArg(id keybase1.UserOrTeamID, assertion string) keybase1.IdentifyLiteArg {

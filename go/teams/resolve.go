@@ -142,6 +142,13 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
+			if resErr, ok := err.(libkb.ResolutionError); ok && resErr.Kind == libkb.ResolutionErrorRateLimited {
+				// If we are rate limited, do not proceed further, so we don't
+				// create "dead" implicit team that will never get SBSed,
+				// because that assertion was already resolvable, just not for
+				// us.
+				return resErr
+			}
 			sa, err := expr.ToSocialAssertion()
 			if err != nil {
 				// Could not convert to a social assertion.
@@ -177,6 +184,11 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		return nil
 	}
 
+	if resolvedAssertion.ResolveResult.IsServerTrust() && g.Env.GetRunMode() != libkb.ProductionRunMode {
+		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
+		return nil
+	}
+
 	id2arg := keybase1.Identify2Arg{
 		Uid:           resolvedAssertion.UID,
 		UserAssertion: resolvedAssertion.Assertion.String(),
@@ -194,8 +206,8 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		idRes, _ := eng.Result()
-		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+		idRes, _ := eng.Result(m)
+		m.CDebugf("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
 }
@@ -228,6 +240,7 @@ func deduplicateImplicitTeamDisplayName(name *keybase1.ImplicitTeamDisplayName) 
 			writers.UnresolvedUsers = append(writers.UnresolvedUsers, u)
 		}
 	}
+
 	for _, u := range name.Readers.KeybaseUsers {
 		if unseen(u) {
 			readers.KeybaseUsers = append(readers.KeybaseUsers, u)

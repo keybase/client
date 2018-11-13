@@ -7,12 +7,18 @@ import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
 
+const stripePatternName = Styles.isMobile
+  ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
+  : 'pattern-stripes-blue-5-black-5-desktop.png'
+const stripePatternSize = Styles.isMobile ? 18 : 9
+
 type Props = {
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
   navigateUp: () => any,
   onLoadMore: () => void,
+  onMarkAsRead: () => void,
   sections: any[],
 }
 
@@ -25,16 +31,26 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.accountID !== this.props.accountID) {
+      prevProps.onMarkAsRead()
+    }
+  }
+
+  componentWillUnmount = () => {
+    this.props.onMarkAsRead()
+  }
+
   _renderItem = ({item, index, section}) => {
     const children = []
     if (item === 'notLoadedYet') {
       children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+    } else if (item === 'noPayments') {
+      children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'Your assets') {
       children.push(
         <Asset accountID={this.props.accountID} index={item} key={`${this.props.accountID}:${item}`} />
       )
-    } else if (item === 'noPayments') {
-      children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
         <Transaction
@@ -63,9 +79,15 @@ class Wallet extends React.Component<Props> {
   }
 
   _renderSectionHeader = ({section}) => (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
+    <Kb.BackgroundRepeatBox
+      imageHeight={stripePatternSize}
+      imageName={stripePatternName}
+      imageWidth={stripePatternSize}
+      skipBackground={!section.stripeHeader}
+      style={styles.sectionHeader}
+    >
       <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-    </Kb.Box2>
+    </Kb.BackgroundRepeatBox>
   )
 
   _onEndReached = () => {
@@ -90,10 +112,6 @@ class Wallet extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  assetHeader: {
-    backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.xtiny,
-  },
   historyPlaceholder: {
     marginTop: 36,
   },
@@ -106,6 +124,12 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 10,
     width: 20,
+  },
+  sectionHeader: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.blue5,
+    padding: Styles.globalMargins.xtiny,
+    width: '100%',
   },
   spinner: {
     height: 46,

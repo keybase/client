@@ -3,13 +3,12 @@ import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
-import Button from './button'
-import ButtonBar from './button-bar'
+import Button, {type Props as ButtonProps} from './button'
 import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import * as Styles from '../styles'
-import {compose, connect, setDisplayName} from '../util/container'
+import {compose, namedConnect} from '../util/container'
 
 type TProps = PropsWithTimer<{
   getAttachmentRef: () => ?React.Component<any>,
@@ -39,7 +38,15 @@ class _ToastContainer extends React.Component<TProps, TState> {
 }
 const ToastContainer = HOCTimers(_ToastContainer)
 
+type OwnProps = {|
+  buttonType?: $PropertyType<ButtonProps, 'type'>,
+  containerStyle?: Styles.StylesCrossPlatform,
+  withReveal?: boolean,
+  text: string,
+|}
+
 export type Props = PropsWithTimer<{
+  buttonType?: $PropertyType<ButtonProps, 'type'>,
   containerStyle?: Styles.StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
@@ -79,29 +86,27 @@ class _CopyText extends React.Component<Props, State> {
         {/* $FlowIssue innerRef not typed yet */}
         <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
-          lineClamp={1}
+          lineClamp={this._isRevealed() ? 1 : null}
           type="Body"
           selectable={true}
-          style={Styles.collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
+          style={styles.text}
           allowHighlightText={true}
           ref={r => (this._textRef = r)}
         >
-          {this._isRevealed() ? this.props.text : '••••••••••••'}
+          {this._isRevealed() ? this.props.text : '•••••••••••• '}
+          {!this._isRevealed() && (
+            <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+              Reveal
+            </Text>
+          )}
         </Text>
-        {!this._isRevealed() && (
-          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
-            Reveal
-          </Text>
-        )}
-        <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
-          <Button type="Primary" style={styles.button} onClick={this.copy}>
-            <Icon
-              type="iconfont-clipboard"
-              color={Styles.globalColors.white}
-              fontSize={Styles.isMobile ? 20 : 16}
-            />
-          </Button>
-        </ButtonBar>
+        <Button type={this.props.buttonType || 'Primary'} style={styles.button} onClick={this.copy}>
+          <Icon
+            type="iconfont-clipboard"
+            color={Styles.globalColors.white}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
+        </Button>
       </Box2>
     )
   }
@@ -112,27 +117,21 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  connect(
+  namedConnect<OwnProps, _, _, _, _>(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o) => ({...o, ...s, ...d}),
+    'CopyText'
   ),
-  setDisplayName('CopyText'),
   HOCTimers
 )(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = Styles.styleSheetCreate({
-  buttonContainer: {
-    flexGrow: 1,
-    minHeight: 0,
-    width: 'auto',
-  },
   button: Styles.platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
-      height: '100%',
     },
     isElectron: {
       paddingBottom: 6,
@@ -168,7 +167,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.blue,
+      flexGrow: 1,
+      flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
+      minWidth: 0,
       textAlign: 'left',
     },
     isAndroid: {
@@ -177,6 +179,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       userSelect: 'all',
+      wordBreak: 'break-all',
     },
     isMobile: {
       height: 15,

@@ -1,9 +1,12 @@
 // @flow
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
+import {isMobile} from '../../../constants/platform'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {
   getAccount,
   getAccounts,
@@ -12,24 +15,30 @@ import {
   linkExistingWaitingKey,
   createNewAccountWaitingKey,
 } from '../../../constants/wallets'
-import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
+import {
+  stringToAccountID,
+  type Account as StateAccount,
+  type AccountID,
+} from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
-const mapStateToPropsKeybaseUser = (state: TypedState) => {
-  const build = state.wallets.buildingPayment
-  const built = state.wallets.builtPayment
+const mapStateToPropsKeybaseUser = state => {
+  const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   // If build.to is set, assume it's a valid username.
   return {
-    recipientUsername: built.toUsername || build.to,
+    isRequest: build.isRequest,
+    recipientUsername: build.to,
+    errorMessage: built.toErrMsg,
   }
 }
 
-const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
-  onShowProfile: (username: string) => {
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
-  },
+const mapDispatchToPropsKeybaseUser = dispatch => ({
+  onOpenTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
@@ -37,18 +46,27 @@ const mapDispatchToPropsKeybaseUser = (dispatch: Dispatch) => ({
   },
 })
 
-const ConnectedParticipantsKeybaseUser = compose(
-  connect(
-    mapStateToPropsKeybaseUser,
-    mapDispatchToPropsKeybaseUser,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsKeybaseUser')
+const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
+  const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
+  return {
+    ...stateProps,
+    onShowProfile,
+    onShowSuggestions: dispatchProps.onShowSuggestions,
+    onRemoveProfile: dispatchProps.onRemoveProfile,
+    onChangeRecipient: dispatchProps.onChangeRecipient,
+  }
+}
+
+const ConnectedParticipantsKeybaseUser = namedConnect(
+  mapStateToPropsKeybaseUser,
+  mapDispatchToPropsKeybaseUser,
+  mergePropsKeybaseUser,
+  'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
-const mapStateToPropsStellarPublicKey = (state: TypedState) => {
-  const build = state.wallets.buildingPayment
-  const built = state.wallets.builtPayment
+const mapStateToPropsStellarPublicKey = state => {
+  const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   return {
     recipientPublicKey: build.to,
@@ -56,37 +74,34 @@ const mapStateToPropsStellarPublicKey = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsStellarPublicKey = (dispatch: Dispatch) => ({
+const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  setReadyToSend: (readyToSend: boolean) => {
+    dispatch(WalletsGen.createSetReadyToSend({readyToSend}))
+  },
 })
 
-const ConnectedParticipantsStellarPublicKey = compose(
-  connect(
-    mapStateToPropsStellarPublicKey,
-    mapDispatchToPropsStellarPublicKey,
-    (s, d, o) => ({
-      ...o,
-      ...s,
-      ...d,
-    })
-  ),
-  setDisplayName('ParticipantsStellarPublicKey')
+const ConnectedParticipantsStellarPublicKey = namedConnect(
+  mapStateToPropsStellarPublicKey,
+  mapDispatchToPropsStellarPublicKey,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsStellarPublicKey'
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: StateAccount) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
   isDefault: stateAccount.isDefault,
-  name: stateAccount.name || stateAccount.accountID,
+  name: stateAccount.name,
   unknown: stateAccount === unknownAccount,
 })
 
-const mapStateToPropsOtherAccount = (state: TypedState) => {
-  const build = state.wallets.buildingPayment
+const mapStateToPropsOtherAccount = state => {
+  const build = state.wallets.building
 
-  const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
+  const fromAccount = makeAccount(getAccount(state, build.from))
   const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
@@ -105,26 +120,36 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch: Dispatch) => ({
-  onChangeFromAccount: (from: string) => {
+const mapDispatchToPropsOtherAccount = dispatch => ({
+  onChangeFromAccount: (from: AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+      })
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+      })
+    ),
 })
 
-const ConnectedParticipantsOtherAccount = compose(
-  connect(
-    mapStateToPropsOtherAccount,
-    mapDispatchToPropsOtherAccount,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsOtherAccount')
+const ConnectedParticipantsOtherAccount = namedConnect(
+  mapStateToPropsOtherAccount,
+  mapDispatchToPropsOtherAccount,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsOtherAccount'
 )(ParticipantsOtherAccount)
 
-const mapStateToPropsChooser = (state: TypedState) => {
-  const recipientType = state.wallets.buildingPayment.recipientType
+const mapStateToPropsChooser = state => {
+  const recipientType = state.wallets.building.recipientType
   return {recipientType}
 }
 
@@ -136,29 +161,22 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
 
     case 'otherAccount':
-      return (
-        <ConnectedParticipantsOtherAccount
-          onLinkAccount={props.onLinkAccount}
-          onCreateNewAccount={props.onCreateNewAccount}
-        />
-      )
+      return <ConnectedParticipantsOtherAccount />
 
     default:
       /*::
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
     ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
     */
-      return null
+      throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }
 
-const ConnectedParticipantsChooser = compose(
-  connect(
-    mapStateToPropsChooser,
-    () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Participants')
+const ConnectedParticipantsChooser = namedConnect(
+  mapStateToPropsChooser,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Participants'
 )(ParticipantsChooser)
 
 export default ConnectedParticipantsChooser

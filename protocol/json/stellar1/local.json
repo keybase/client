@@ -55,6 +55,10 @@
         },
         {
           "type": "string",
+          "name": "issuerVerifiedDomain"
+        },
+        {
+          "type": "string",
           "name": "balanceTotal"
         },
         {
@@ -100,7 +104,8 @@
         "CLAIMABLE_2",
         "COMPLETED_3",
         "ERROR_4",
-        "UNKNOWN_5"
+        "UNKNOWN_5",
+        "CANCELED_6"
       ]
     },
     {
@@ -204,6 +209,10 @@
         {
           "type": "string",
           "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "originalToAssertion"
         },
         {
           "type": "string",
@@ -363,6 +372,10 @@
         },
         {
           "type": "string",
+          "name": "originalToAssertion"
+        },
+        {
+          "type": "string",
           "name": "note"
         },
         {
@@ -376,6 +389,11 @@
         {
           "type": "string",
           "name": "publicNoteType"
+        },
+        {
+          "type": "string",
+          "name": "externalTxURL",
+          "lint": "ignore"
         }
       ]
     },
@@ -398,16 +416,6 @@
         {
           "type": "string",
           "name": "name"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "WalletSettings",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "acceptedDisclaimer"
         }
       ]
     },
@@ -455,10 +463,6 @@
         },
         {
           "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -476,6 +480,28 @@
         {
           "type": "string",
           "name": "worthInfo"
+        },
+        {
+          "type": "string",
+          "name": "worthAmount"
+        },
+        {
+          "type": "string",
+          "name": "worthCurrency"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
         },
         {
           "type": {
@@ -501,6 +527,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "boolean",
+          "name": "hideOnConfirm"
         }
       ]
     },
@@ -515,6 +545,57 @@
         {
           "type": "boolean",
           "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BuildRequestResLocal",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "readyToRequest"
+        },
+        {
+          "type": "string",
+          "name": "toErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "amountErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "secretNoteErrMsg"
+        },
+        {
+          "type": "string",
+          "name": "worthDescription"
+        },
+        {
+          "type": "string",
+          "name": "worthInfo"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "sendingIntentionXLM",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SendBannerLocal"
+          },
+          "name": "banners"
         }
       ]
     },
@@ -685,6 +766,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -1006,21 +1091,24 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         }
       ],
       "response": "CurrencyLocal"
     },
-    "getWalletSettingsLocal": {
+    "hasAcceptedDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "WalletSettings"
+      "response": "bool"
     },
-    "setAcceptedDisclaimerLocal": {
+    "acceptDisclaimerLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -1185,6 +1273,41 @@
         }
       ],
       "response": "SendPaymentResLocal"
+    },
+    "buildRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "secretNote",
+          "type": "string"
+        }
+      ],
+      "response": "BuildRequestResLocal"
     },
     "getRequestDetailsLocal": {
       "request": [

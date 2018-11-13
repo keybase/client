@@ -67,20 +67,20 @@ type _SetTeamRepoSettingsPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createBadgeAppForGit = (payload: _BadgeAppForGitPayload) => ({error: false, payload, type: badgeAppForGit})
-export const createCreatePersonalRepo = (payload: _CreatePersonalRepoPayload) => ({error: false, payload, type: createPersonalRepo})
-export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({error: false, payload, type: createTeamRepo})
-export const createDeletePersonalRepo = (payload: _DeletePersonalRepoPayload) => ({error: false, payload, type: deletePersonalRepo})
-export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({error: false, payload, type: deleteTeamRepo})
-export const createLoadGit = (payload: _LoadGitPayload) => ({error: false, payload, type: loadGit})
-export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: false, payload, type: loadGitRepo})
-export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
-export const createNavToGit = (payload: _NavToGitPayload) => ({error: false, payload, type: navToGit})
-export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({error: false, payload, type: navigateToTeamRepo})
-export const createRepoCreated = (payload: _RepoCreatedPayload) => ({error: false, payload, type: repoCreated})
-export const createRepoDeleted = (payload: _RepoDeletedPayload) => ({error: false, payload, type: repoDeleted})
-export const createSetError = (payload: _SetErrorPayload) => ({error: false, payload, type: setError})
-export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({error: false, payload, type: setTeamRepoSettings})
+export const createBadgeAppForGit = (payload: _BadgeAppForGitPayload) => ({payload, type: badgeAppForGit})
+export const createCreatePersonalRepo = (payload: _CreatePersonalRepoPayload) => ({payload, type: createPersonalRepo})
+export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({payload, type: createTeamRepo})
+export const createDeletePersonalRepo = (payload: _DeletePersonalRepoPayload) => ({payload, type: deletePersonalRepo})
+export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({payload, type: deleteTeamRepo})
+export const createLoadGit = (payload: _LoadGitPayload) => ({payload, type: loadGit})
+export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({payload, type: loadGitRepo})
+export const createLoaded = (payload: _LoadedPayload) => ({payload, type: loaded})
+export const createNavToGit = (payload: _NavToGitPayload) => ({payload, type: navToGit})
+export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({payload, type: navigateToTeamRepo})
+export const createRepoCreated = (payload: _RepoCreatedPayload) => ({payload, type: repoCreated})
+export const createRepoDeleted = (payload: _RepoDeletedPayload) => ({payload, type: repoDeleted})
+export const createSetError = (payload: _SetErrorPayload) => ({payload, type: setError})
+export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({payload, type: setTeamRepoSettings})
 
 // Action Payloads
 export type BadgeAppForGitPayload = $Call<typeof createBadgeAppForGit, _BadgeAppForGitPayload>

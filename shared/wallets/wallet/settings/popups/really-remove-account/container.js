@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
+import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -7,7 +7,9 @@ import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
 
@@ -19,7 +21,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createSecretKeySeen({accountID}))
     dispatch(navigateUp())
@@ -33,6 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     ),
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
@@ -43,11 +47,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ReallyRemoveAccountPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ReallyRemoveAccountPopup'
 )(ReallyRemoveAccountPopup)

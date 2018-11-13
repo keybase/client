@@ -10,6 +10,7 @@ type Props = {
   isDefaultWallet: boolean,
   onReceive: () => void,
   onBack: ?() => void,
+  onRequest: () => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
@@ -44,7 +45,7 @@ const Header = (props: Props) => (
           <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
         </Kb.Box2>
       )}
-      {props.walletName && (
+      {!!props.walletName && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
           <SmallAccountID accountID={props.accountID} />
         </Kb.Box2>
@@ -87,7 +88,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
     },
     {
       onClick: () => this.props.onSendToAnotherAccount(),
-      title: 'To another account',
+      title: 'To one of my other Stellar accounts',
     },
   ]
 

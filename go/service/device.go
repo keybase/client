@@ -4,9 +4,11 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -17,13 +19,15 @@ import (
 type DeviceHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	gregor *gregorHandler
 }
 
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
-func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler {
+func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorHandler) *DeviceHandler {
 	return &DeviceHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		gregor:       gregor,
 	}
 }
 
@@ -77,6 +81,50 @@ func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.Ch
 		return ok, nil
 	}
 	return false, errors.New(libkb.CheckDeviceName.Hint)
+}
+
+type _deviceChange struct {
+	DeviceID string `json:"device_id"`
+}
+
+func LoopAndDismissForDeviceChangeNotifications(c context.Context, dismisser libkb.GregorDismisser,
+	gregorState gregor.State, exceptedDeviceID string) (err error) {
+
+	items, err := gregorState.Items()
+	if err != nil {
+		return err
+	}
+	var body _deviceChange
+	for _, item := range items {
+		category := item.Category().String()
+		if !(category == "device.revoked" || category == "device.new") {
+			continue
+		}
+		err := json.Unmarshal(item.Body().Bytes(), &body)
+		if err != nil {
+			return err
+		}
+		itemID := item.Metadata().MsgID()
+		if body.DeviceID != string(exceptedDeviceID) {
+			dismisser.DismissItem(c, nil, itemID)
+		}
+	}
+	return nil
+}
+
+func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) error {
+	gcli, err := h.gregor.getGregorCli()
+	if err != nil {
+		return err
+	}
+	state, err := gcli.StateMachineState(c, nil, true)
+	if err != nil {
+		return err
+	}
+	activeDeviceID := h.G().ActiveDevice.DeviceID().String()
+	dismisser := h.G().GregorDismisser
+	err = LoopAndDismissForDeviceChangeNotifications(c, dismisser, state, activeDeviceID)
+	return err
 }
 
 func (h *DeviceHandler) CheckDeviceNameForUser(_ context.Context, arg keybase1.CheckDeviceNameForUserArg) error {

@@ -333,9 +333,12 @@ export const uiRequestInfoToChatRequestInfo = (
     logger.error('Received UIRequestInfo with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
     asset = WalletConstants.makeAssetDescription({
-      code: r.asset.code,
-      issuerAccountID: WalletTypes.stringToAccountID(r.asset.issuer),
+      code: assetResult.code,
+      issuerAccountID: WalletTypes.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
     })
   } else if (r.currency) {
     asset = 'currency'
@@ -355,13 +358,14 @@ export const uiPaymentInfoToChatPaymentInfo = (
   if (!p) {
     return null
   }
+  const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
     paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
-    status: WalletConstants.statusSimplifiedToString[p.status],
+    status: serviceStatus === 'claimable' ? 'cancelable' : serviceStatus,
     statusDescription: p.statusDescription,
     worth: p.worth,
   })
@@ -547,16 +551,16 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
   if (!preview) {
     return res
   }
-  if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+  if (preview.assetType === RPCChatTypes.commonAssetMetadataType.image && preview.image) {
     const wh = clampAttachmentPreviewSize(preview.image)
     res.height = wh.height
     res.width = wh.width
     res.attachmentType = 'image'
     // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+    if (full && full.assetType === RPCChatTypes.commonAssetMetadataType.video) {
       res.showPlayButton = true
     }
-  } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+  } else if (preview.assetType === RPCChatTypes.commonAssetMetadataType.video && preview.video) {
     const wh = clampAttachmentPreviewSize(preview.video)
     res.height = wh.height
     res.width = wh.width
@@ -833,9 +837,7 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
-    explodingUnreadable:
-      o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral ||
-      o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -959,7 +961,7 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.OrderedSet()).findLast(o =>
       // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
       mm.getIn([o, 'id'])
     )
@@ -976,8 +978,15 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
+export const specialMentions = ['here', 'channel', 'everyone']
+
 export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
   if (!old) {
+    return m
+  }
+
+  // only merge if its the same id and type
+  if (old.id !== m.id || old.type !== m.type) {
     return m
   }
 
@@ -993,12 +1002,29 @@ export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
 }
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
+  const validUpgrade = (
+    old: Types.MessageText | Types.MessageAttachment,
+    m: Types.MessageText | Types.MessageAttachment
+  ) => {
+    if (old.submitState !== 'pending' && m.submitState === 'pending') {
+      // we may be making sure we got our pending message in the thread view, but if we already
+      // got the message, then don't blow it away with a pending version.
+      return false
+    }
+    return true
+  }
   if (old.type === 'text' && m.type === 'text') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     if (old.submitState === 'pending') {
       // we sent an attachment, service replied
       // with the real message. replace our placeholder but
@@ -1038,6 +1064,25 @@ export const enoughTimeBetweenMessages = (
       message.timestamp &&
       message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
   )
+
+export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
+  switch (message.type) {
+    case 'text':
+    case 'attachment':
+    case 'requestPayment':
+      return true
+    case 'sendPayment': {
+      // Is the payment pending?
+      const paymentInfo = getPaymentMessageInfo(state, message)
+      if (!paymentInfo || ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
+        return false
+      }
+      return true
+    }
+    default:
+      return false
+  }
+}
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '30 seconds', seconds: 30},

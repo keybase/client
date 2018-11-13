@@ -22,6 +22,12 @@ protocol favorite {
     boolean notificationsOn;  // user wants to be notified when this folder changes
     boolean created;          // this folder was just created by this user
     FolderType folderType;    // what type of folder is this?
+
+    // supply the team ID of the underlying team if known. optional so that
+    // the frontend doesn't need to be changed to support it.
+    @jsonkey("team_id") @mpackkey("team_id")
+    union { null, TeamID } teamID;
+
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

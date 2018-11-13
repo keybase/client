@@ -60,12 +60,10 @@ const Wrapper = (props: WrapperProps) =>
     />
   )
 
-const Connected = Container.compose(
-  Container.connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  Container.setDisplayName('ExplodingMeta')
+const Connected = Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ExplodingMeta'
 )(Wrapper)
 export default Connected

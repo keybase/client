@@ -28,6 +28,7 @@ import {
   TouchableHighlight as NativeTouchableHighlight,
   TouchableOpacity as NativeTouchableOpacity,
   WebView as NativeWebView,
+  View as NativeView,
 } from 'react-native'
 import NativeScrollView from './scroll-view.native'
 import NativeImage from './native-image.native'
@@ -66,4 +67,5 @@ export {
   NativeTouchableHighlight,
   NativeTouchableOpacity,
   NativeWebView,
+  NativeView,
 }

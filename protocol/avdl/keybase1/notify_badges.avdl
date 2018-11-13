@@ -12,6 +12,11 @@ protocol NotifyBadges {
     gregor1.MsgID id;
   }
 
+  record WalletAccountInfo {
+    string accountID;
+    int numUnread;
+  }
+
   record BadgeState {
     @lint("ignore")
     int newTlfs;
@@ -20,11 +25,14 @@ protocol NotifyBadges {
     int inboxVers;
     int homeTodoItems;
 
+    array<DeviceID> newDevices;
+    array<DeviceID> revokedDevices;
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
     array<string> newTeamNames;
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
+    array<WalletAccountInfo> unreadWalletAccounts;
   }
 
   record BadgeConversationInfo {

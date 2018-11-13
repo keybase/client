@@ -62,7 +62,6 @@ function UsernameText(props: Props) {
         ? {color: props.redColor || Styles.globalColors.red}
         : null),
       ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
-      ...(u.you ? Styles.globalStyles.italic : null),
       ...(props.colorYou && u.you
         ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
         : null),
@@ -85,7 +84,7 @@ function UsernameText(props: Props) {
         <Text
           type={props.type}
           backgroundMode={props.backgroundMode}
-          className={props.underline ? 'hover-underline' : undefined}
+          className={Styles.classNames({'hover-underline': props.underline})}
           onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
           style={userStyle}
         >

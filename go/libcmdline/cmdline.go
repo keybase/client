@@ -114,9 +114,6 @@ func (p CommandLine) GetVDebugSetting() string {
 func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
 	return p.GetBool("upgrade-per-user-key", true)
 }
-func (p CommandLine) GetAutoWallet() (bool, bool) {
-	return p.GetBool("auto-wallet", true)
-}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -380,6 +377,10 @@ func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 		return ret, true
 	}
 	return 0, false
+}
+
+func (p CommandLine) GetChatOutboxStorageEngine() string {
+	return p.GetGString("chat-outboxstorageengine")
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {

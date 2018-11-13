@@ -42,6 +42,8 @@ type Props = {
   shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
+  deleteFileOrFolder?: () => void,
+  moveOrCopy?: () => void,
 }
 
 const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: () => void) => (
@@ -57,7 +59,7 @@ const ShareNative = DownloadTrackingHoc(
       <Box2 direction="horizontal">
         <ProgressIndicator style={styles.progressIndicator} />
         <Text type="BodyBig" style={styles.menuRowTextDisabled}>
-          Send to other app
+          Preparing to send to other app
         </Text>
       </Box2>
     ) : (
@@ -73,7 +75,7 @@ const Save = DownloadTrackingHoc(
       <Box2 direction="horizontal">
         <ProgressIndicator style={styles.progressIndicator} />
         <Text type="BodyBig" style={styles.menuRowTextDisabled}>
-          Save
+          Saving
         </Text>
       </Box2>
     ) : (
@@ -143,6 +145,23 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
             onClick: hideMenuOnClick(props.ignoreFolder, hideMenu),
             subTitle: 'The folder will no longer appear in your folders list.',
             danger: true,
+          },
+        ]
+      : []),
+    ...(props.moveOrCopy
+      ? [
+          {
+            title: 'Move or Copy',
+            onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
+          },
+        ]
+      : []),
+    ...(props.type === 'file' && props.deleteFileOrFolder
+      ? [
+          {
+            title: 'Delete',
+            danger: true,
+            onClick: hideMenuOnClick(props.deleteFileOrFolder, hideMenu),
           },
         ]
       : []),

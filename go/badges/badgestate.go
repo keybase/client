@@ -55,6 +55,12 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	}
 	b.state.InboxVers = int(b.inboxVers)
 
+	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
+	for accountID, count := range b.walletUnreadMap {
+		info := keybase1.WalletAccountInfo{AccountID: string(accountID), NumUnread: count}
+		b.state.UnreadWalletAccounts = append(b.state.UnreadWalletAccounts, info)
+	}
+
 	return b.state, nil
 }
 
@@ -91,6 +97,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
+	b.state.NewDevices = []keybase1.DeviceID{}
+	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
@@ -150,6 +158,30 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			b.state.RekeysNeeded += body.Count
 		case "follow":
 			b.state.NewFollowers++
+		case "device.new":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.new' item: %v", err)
+				continue
+			}
+			newDeviceID, err := jsw.AtKey("device_id").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.new' item without 'device_id': %v", err)
+				continue
+			}
+			b.state.NewDevices = append(b.state.NewDevices, keybase1.DeviceID(newDeviceID))
+		case "device.revoked":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.revoked' item: %v", err)
+				continue
+			}
+			revokedDeviceID, err := jsw.AtKey("device_id").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.revoked' item without 'device_id': %v", err)
+				continue
+			}
+			b.state.RevokedDevices = append(b.state.RevokedDevices, keybase1.DeviceID(revokedDeviceID))
 		case "new_git_repo":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
