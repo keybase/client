@@ -57,7 +57,12 @@ const load = () => {
   ]
 
   let s = Sb.storiesOf(`Provision/CodePage2`, module).addDecorator(
-    Sb.createPropProviderWithCommon({QRScan: QRScanProps})
+    Sb.createPropProviderWithCommon({
+      QRScan: QRScanProps,
+      QRScanNotAuthorized: {
+        onOpenSettings: Sb.action('onOpenSettings'),
+      },
+    })
   )
   variants.forEach(({current, provisioned, otherType}) => {
     let otherName
