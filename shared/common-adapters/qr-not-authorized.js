@@ -1,9 +1,13 @@
 // @flow
 import * as React from 'react'
+import * as ConfigGen from '../actions/config-gen'
+import {connect} from '../util/container'
 import Text from './text'
 import {Box2} from './box'
 import Icon from './icon'
 import {styleSheetCreate, globalColors} from '../styles'
+
+type OwnProps = {||}
 
 const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (
   <Box2 direction="vertical" style={styles.container} gap="tiny">
@@ -30,4 +34,14 @@ const styles = styleSheetCreate({
   },
 })
 
-export default QRScanNotAuthorized
+const mapDispatchToProps = dispatch => ({
+  onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
+})
+
+export default connect<OwnProps, _, _, _, _>(
+  () => ({}),
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => ({
+    ...dispatchProps,
+  })
+)(QRScanNotAuthorized)

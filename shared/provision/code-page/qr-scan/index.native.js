@@ -16,7 +16,7 @@ const QRScan = (props: Props) => (
         flashMode={RNCamera.Constants.FlashMode.off}
         permissionDialogTitle={'Permission to use camera'}
         permissionDialogMessage={'We need access to your camera to scan in the secret code'}
-        notAuthorizedView={<QRNotAuthorized onOpenSettings={props.onOpenSettings} />}
+        notAuthorizedView={<QRNotAuthorized />}
         onBarCodeRead={({data}) => props.onSubmitTextCode(data)}
         barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
         style={styles.camera}

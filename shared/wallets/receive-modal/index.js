@@ -98,7 +98,7 @@ const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
       <Kb.Text type="BodySmallSemibold">Your Stellar QR code:</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.qrContainer} centerChildren={true}>
-        <QrImage address={stellarAddress} />
+        <QrImage address={federatedAddress} />
       </Kb.Box2>
     </Kb.Box2>
   </Kb.Box2>
@@ -108,7 +108,7 @@ const QrImage = ({address}) => {
   const qr = QRCodeGen(4, 'L')
   qr.addData(address)
   qr.make()
-  const size = qr.getModuleCount() * (4 / 2) // retina
+  const size = qr.getModuleCount() * (6 / 2) // retina
   // Purple2
   const url = qr.createDataURL(8, 0, [0x84, 0x5c, 0xdb])
   return <Kb.Image src={url} style={{height: size, width: size}} />

@@ -96,7 +96,7 @@ const load = () => {
   ))
   s = s.add('QR Scan Not Authorized', () => (
     <Box2 direction="vertical" style={{height: 200, width: 200}}>
-      <QRNotAuthorized onOpenSettings={Sb.action('onOpenSettings')} />
+      <QRNotAuthorized />
     </Box2>
   ))
 
