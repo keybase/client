@@ -43,10 +43,10 @@ func (a SyncAction) Execute(
 
 	switch a {
 	case SyncEnable:
-		err = c.SetTlfSyncState(fb.Tlf, true)
+		_, err = c.SetTlfSyncState(fb.Tlf, true)
 
 	case SyncDisable:
-		err = c.SetTlfSyncState(fb.Tlf, false)
+		_, err = c.SetTlfSyncState(fb.Tlf, false)
 
 	default:
 		return fmt.Errorf("Unknown action %s", a)

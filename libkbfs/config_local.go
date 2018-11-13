@@ -1533,31 +1533,34 @@ func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 }
 
 // SetTlfSyncState implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
+func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
+	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return errors.Errorf("invalid disk cache type to set TLF sync "+
-				"state: %T", c.diskBlockCache)
+			return nil, errors.Errorf(
+				"invalid disk cache type to set TLF sync state: %T",
+				c.diskBlockCache)
 		}
 		if !diskCacheWrapped.IsSyncCacheEnabled() {
-			return errors.New("sync block cache is not enabled")
+			return nil, errors.New("sync block cache is not enabled")
 		}
 	}
 	if !c.IsTestMode() {
 		if c.storageRoot == "" {
-			return errors.New("empty storageRoot specified for non-test run")
+			return nil, errors.New(
+				"empty storageRoot specified for non-test run")
 		}
 		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer ldb.Close()
 		tlfBytes, err := tlfID.MarshalText()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if isSynced {
 			if cancel, ok := c.tlfClearCancels[tlfID]; ok {
@@ -1566,26 +1569,33 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 			err = ldb.Put(tlfBytes, nil, nil)
 		} else {
 			err = ldb.Delete(tlfBytes, nil)
-			// Start a background goroutine deleting all the blocks
-			// from this TLF.
-			ctx, cancel := context.WithCancel(context.Background())
-			if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
-				oldCancel()
-			}
-			c.tlfClearCancels[tlfID] = cancel
-			diskBlockCache := c.diskBlockCache
-			go func() {
-				defer cancel()
-				diskBlockCache.ClearAllTlfBlocks(ctx, tlfID)
-			}()
 		}
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
+
+	ch := make(chan error, 1)
+	if isSynced {
+		ch <- nil
+	} else {
+		// Start a background goroutine deleting all the blocks
+		// from this TLF.
+		ctx, cancel := context.WithCancel(context.Background())
+		if oldCancel, ok := c.tlfClearCancels[tlfID]; ok {
+			oldCancel()
+		}
+		c.tlfClearCancels[tlfID] = cancel
+		diskBlockCache := c.diskBlockCache
+		go func() {
+			defer cancel()
+			ch <- diskBlockCache.ClearAllTlfBlocks(ctx, tlfID)
+		}()
+	}
+
 	c.syncedTlfs[tlfID] = isSynced
 	<-c.bops.TogglePrefetcher(true)
-	return nil
+	return ch, nil
 }
 
 // PrefetchStatus implements the Config interface for ConfigLocal.

@@ -109,7 +109,7 @@ type diskLimiterGetter interface {
 
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
-	SetTlfSyncState(tlfID tlf.ID, isSynced bool) error
+	SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error)
 }
 
 type blockRetrieverGetter interface {

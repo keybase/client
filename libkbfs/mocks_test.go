@@ -790,10 +790,11 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(tlfID interface{}) 
 }
 
 // SetTlfSyncState mocks base method
-func (m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
+func (m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error) {
 	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, isSynced)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(<-chan error)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SetTlfSyncState indicates an expected call of SetTlfSyncState
@@ -7720,10 +7721,11 @@ func (mr *MockConfigMockRecorder) IsSyncedTlf(tlfID interface{}) *gomock.Call {
 }
 
 // SetTlfSyncState mocks base method
-func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
+func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error) {
 	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, isSynced)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(<-chan error)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SetTlfSyncState indicates an expected call of SetTlfSyncState

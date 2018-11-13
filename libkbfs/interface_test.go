@@ -71,9 +71,9 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
 }
 
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
-	isSynced bool) error {
+	isSynced bool) (<-chan error, error) {
 	t.syncedTlfs[tlfID] = isSynced
-	return nil
+	return nil, nil
 }
 
 type testInitModeGetter struct {

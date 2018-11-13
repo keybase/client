@@ -943,7 +943,12 @@ func (cache *DiskBlockCacheLocal) deleteNextBatchFromClearedTlf(
 // ClearAllTlfBlocks implements the DiskBlockCache interface for
 // DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) ClearAllTlfBlocks(
-	ctx context.Context, tlfID tlf.ID) error {
+	ctx context.Context, tlfID tlf.ID) (err error) {
+	defer func() {
+		cache.log.CDebugf(ctx,
+			"Finished clearing blocks from %s: %+v", tlfID, err)
+	}()
+
 	// Delete the blocks in batches, so we don't keep the lock for too
 	// long.
 	for {

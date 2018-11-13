@@ -2029,9 +2029,11 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 	switch arg.Config.Mode {
 	case keybase1.FolderSyncMode_DISABLED:
-		return k.config.SetTlfSyncState(tlfID, false)
+		_, err = k.config.SetTlfSyncState(tlfID, false)
+		return err
 	case keybase1.FolderSyncMode_ENABLED:
-		return k.config.SetTlfSyncState(tlfID, true)
+		_, err = k.config.SetTlfSyncState(tlfID, true)
+		return err
 	default:
 		return simpleFSError{
 			fmt.Sprintf("Unknown config mode: %s", arg.Config.Mode)}

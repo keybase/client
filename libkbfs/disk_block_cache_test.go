@@ -6,10 +6,12 @@ package libkbfs
 
 import (
 	"math"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -547,24 +549,15 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	require.Equal(t, block1, block)
 }
 
-func TestSyncBlockCacheStaticLimit(t *testing.T) {
-	t.Parallel()
-	t.Log("Test that disk cache eviction works when we hit the static limit.")
-	cache, config := initDiskBlockCacheTest(t)
-	standardCache := cache.syncCache
-	defer shutdownDiskBlockCacheTest(standardCache)
-
-	ctx := context.Background()
-	clock := config.TestClock()
-
-	numTlfs := 10
-	numBlocksPerTlf := 5
-	numBlocks := numTlfs * numBlocksPerTlf
-
+func seedDiskBlockCacheForTest(
+	t *testing.T, ctx context.Context, cache *diskBlockCacheWrapped,
+	config diskBlockCacheConfig, numTlfs, numBlocksPerTlf int) {
 	t.Log("Seed the cache with some blocks.")
+	clock := config.Clock().(*TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		config.SetTlfSyncState(currTlf, true)
+		_, err := config.SetTlfSyncState(currTlf, true)
+		require.NoError(t, err)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
@@ -574,6 +567,20 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 			clock.Add(time.Second)
 		}
 	}
+}
+
+func TestSyncBlockCacheStaticLimit(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that disk cache eviction works when we hit the static limit.")
+	cache, config := initDiskBlockCacheTest(t)
+	standardCache := cache.syncCache
+	defer shutdownDiskBlockCacheTest(standardCache)
+	ctx := context.Background()
+
+	numTlfs := 10
+	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
+	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	require.Equal(t, 0, cache.workingSetCache.numBlocks)
@@ -638,4 +645,45 @@ func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
 	getRev2, err = cache.GetLastUnrefRev(ctx, tlf2)
 	require.NoError(t, err)
 	require.Equal(t, rev2, getRev2)
+}
+
+func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that blocks are cleaned up after unsyncing a TLF.")
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfscache")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+
+	// Use a real config, since we need the real SetTlfSyncState
+	// implementation.
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "u1")
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	clock := newTestClockNow()
+	config.SetClock(clock)
+
+	config.EnableDiskLimiter(tempdir)
+	config.loadSyncedTlfsLocked()
+	config.diskCacheMode = DiskCacheModeLocal
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	cache := config.DiskBlockCache().(*diskBlockCacheWrapped)
+	standardCache := cache.syncCache
+	err = standardCache.WaitUntilStarted()
+	require.NoError(t, err)
+
+	numTlfs := 3
+	numBlocksPerTlf := 5
+	numBlocks := numTlfs * numBlocksPerTlf
+	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	require.Equal(t, numBlocks, standardCache.numBlocks)
+
+	tlfToUnsync := tlf.FakeID(1, tlf.Private)
+	ch, err := config.SetTlfSyncState(tlfToUnsync, false)
+	require.NoError(t, err)
+	t.Log("Waiting for unsynced blocks to be cleared.")
+	err = <-ch
+	require.NoError(t, err)
+	require.Equal(t, numBlocks-numBlocksPerTlf, standardCache.numBlocks)
 }

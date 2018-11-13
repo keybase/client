@@ -846,7 +846,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
-	err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	_, err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
 	require.NoError(t, err)
 	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -883,7 +883,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.Equal(t, kbfsmd.RevisionUninitialized, lastRev)
 
 	t.Log("Set new TLF to syncing, and add a new revision")
-	err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	_, err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
 	require.NoError(t, err)
 	_, _, err = kbfsOps.CreateDir(ctx, bNode, "c")
 	require.NoError(t, err)
