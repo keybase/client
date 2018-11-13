@@ -6,10 +6,15 @@
 
 package libfuse
 
-import "github.com/keybase/kbfs/libkbfs"
+import (
+	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/libquarantine"
+)
 
 // NewQuarantineXattrHandler returns a handler that doesn't handle Xattr calls
 // on this platform.
 func NewQuarantineXattrHandler(libkbfs.Node, *Folder) XattrHandler {
 	return NoXattrHandler{}
 }
+
+var newDiskXattrStorage = libquarantine.NewNoopXattrStorage

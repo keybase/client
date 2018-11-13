@@ -268,6 +268,8 @@ type Node interface {
 	GetFile(ctx context.Context) billy.File
 	// EntryType is the type of the entry represented by this node.
 	EntryType() EntryType
+	// GetBlockID returns the block ID of the node.
+	GetBlockID() kbfsblock.ID
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect

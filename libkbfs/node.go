@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
@@ -65,6 +66,14 @@ func makeNodeStandard(core *nodeCore) *nodeStandard {
 	n := &nodeStandard{core}
 	runtime.SetFinalizer(n, nodeStandardFinalizer)
 	return n
+}
+
+func (n *nodeStandard) GetBlockID() (blockID kbfsblock.ID) {
+	return n.core.pathNode.BlockPointer.ID
+}
+
+func (n *nodeStandard) GetCanonicalPath() string {
+	return n.core.cache.PathFromNode(n).CanonicalPathString()
 }
 
 func (n *nodeStandard) GetID() NodeID {

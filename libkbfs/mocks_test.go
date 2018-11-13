@@ -1453,6 +1453,18 @@ func (mr *MockNodeMockRecorder) EntryType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EntryType", reflect.TypeOf((*MockNode)(nil).EntryType))
 }
 
+// GetBlockID mocks base method
+func (m *MockNode) GetBlockID() kbfsblock.ID {
+	ret := m.ctrl.Call(m, "GetBlockID")
+	ret0, _ := ret[0].(kbfsblock.ID)
+	return ret0
+}
+
+// GetBlockID indicates an expected call of GetBlockID
+func (mr *MockNodeMockRecorder) GetBlockID() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockID", reflect.TypeOf((*MockNode)(nil).GetBlockID))
+}
+
 // MockKBFSOps is a mock of KBFSOps interface
 type MockKBFSOps struct {
 	ctrl     *gomock.Controller

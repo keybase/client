@@ -11,6 +11,8 @@ import (
 
 	"bazil.org/fuse"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/libquarantine"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 )
 
@@ -39,15 +41,16 @@ func makeQuarantine(timestamp time.Time) []byte {
 type QuarantineXattrHandler struct {
 	node   libkbfs.Node
 	folder *Folder
-
-	bytesSet bool
-	bytes    []byte
 }
 
 // NewQuarantineXattrHandler returns a handler that handles
 // com.apple.quarantine, but returns fuse.ENOTSUP for all other xattrs.
-func NewQuarantineXattrHandler(node libkbfs.Node, folder *Folder) XattrHandler {
-	return &QuarantineXattrHandler{node: node, folder: folder}
+func NewQuarantineXattrHandler(node libkbfs.Node, folder *Folder,
+) XattrHandler {
+	return &QuarantineXattrHandler{
+		node:   node,
+		folder: folder,
+	}
 }
 
 var _ XattrHandler = (*QuarantineXattrHandler)(nil)
@@ -59,7 +62,8 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 		fmt.Sprintf("%s %s", h.node.GetBasename(), req.Name))
 	defer func() { h.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	h.folder.fs.log.CDebugf(ctx, "QuarantineXattrHandler Getxattr %s %s", h.node.GetBasename(), req.Name)
+	h.folder.fs.log.CDebugf(ctx,
+		"QuarantineXattrHandler Getxattr %s %s", h.node.GetBasename(), req.Name)
 	defer func() { err = h.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	if req.Name != quarantineXattrName {
@@ -68,33 +72,41 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	if h.bytesSet {
-		if h.bytes == nil {
+	xattr, err := h.folder.fs.xattrStorage.Get(
+		ctx, h.node.GetBlockID(), libquarantine.XattrAppleQuarantine)
+	switch err {
+	case nil:
+		if len(xattr) == 0 {
 			return fuse.ENOATTR
 		}
-		resp.Xattr = make([]byte, len(h.bytes))
-		copy(resp.Xattr, h.bytes)
+		resp.Xattr = xattr
 		return nil
-	}
+	case ldberrors.ErrNotFound:
+		// We don't have an Xattr value stored locally, so just use a
+		// quarantine value.
 
-	// Stat on the node to get the Mtime.
+		// Stat on the node to get the Mtime.
 
-	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
-	if err = libkbfs.EnableDelayedCancellationWithGracePeriod(
-		ctx, h.folder.fs.config.DelayedCancellationGracePeriod()); err != nil {
-		return err
-	}
-	de, err := h.folder.fs.config.KBFSOps().Stat(ctx, h.node)
-	if err != nil {
-		if _, ok := err.(libkbfs.NoSuchNameError); ok {
-			// The node is not found, so just return ENOTSUP
-			return fuse.ENOTSUP
+		// This fits in situation 1 as described in
+		// libkbfs/delayed_cancellation.go
+		if err = libkbfs.EnableDelayedCancellationWithGracePeriod(ctx,
+			h.folder.fs.config.DelayedCancellationGracePeriod()); err != nil {
+			return err
 		}
+		de, err := h.folder.fs.config.KBFSOps().Stat(ctx, h.node)
+		if err != nil {
+			if _, ok := err.(libkbfs.NoSuchNameError); ok {
+				// The node is not found, so just return ENOTSUP
+				return fuse.ENOTSUP
+			}
+			return err
+		}
+
+		resp.Xattr = makeQuarantine(time.Unix(0, de.Mtime))
+		return nil
+	default:
 		return err
 	}
-
-	resp.Xattr = makeQuarantine(time.Unix(0, de.Mtime))
-	return nil
 }
 
 // Setxattr implements the fs.NodeSetxattrer interface.
@@ -113,23 +125,21 @@ func (h *QuarantineXattrHandler) Setxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	// TODO persist to local db, and clear if block ID changes
-	h.bytes = make([]byte, len(req.Xattr))
-	copy(h.bytes, req.Xattr)
-	h.bytesSet = true
-
-	return nil
+	return h.folder.fs.xattrStorage.Set(ctx,
+		h.node.GetBlockID(), libquarantine.XattrAppleQuarantine, req.Xattr)
 }
 
 // Removexattr implements the fs.NodeRemovexattrer interface.
-func (h *QuarantineXattrHandler) Removexattr(ctx context.Context, req *fuse.RemovexattrRequest) error {
+func (h *QuarantineXattrHandler) Removexattr(
+	ctx context.Context, req *fuse.RemovexattrRequest) error {
 	if req.Name != quarantineXattrName {
 		// The request is not about quarantine. Let the OS fallback to ._ file
 		// based method.
 		return fuse.ENOTSUP
 	}
 
-	h.bytes = nil
-	h.bytesSet = true
-	return nil
+	return h.folder.fs.xattrStorage.Set(ctx,
+		h.node.GetBlockID(), libquarantine.XattrAppleQuarantine, nil)
 }
+
+var newDiskXattrStorage = libquarantine.NewDiskXattrStorage
