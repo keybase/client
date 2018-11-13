@@ -146,6 +146,43 @@ func (s Bundle) CheckInvariants() error {
 	return nil
 }
 
+// CheckInvariants checks that the BundleRestricted satisfies
+// 1. No duplicate account IDs
+// 2. At most one primary account
+// 3. Non-negative revision numbers
+func (r BundleRestricted) CheckInvariants() error {
+	accountIDs := make(map[AccountID]bool)
+	var foundPrimary bool
+	for _, entry := range r.Accounts {
+		_, found := accountIDs[entry.AccountID]
+		if found {
+			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
+		}
+		accountIDs[entry.AccountID] = true
+		if entry.IsPrimary {
+			if foundPrimary {
+				return errors.New("multiple primary accounts")
+			}
+			foundPrimary = true
+		}
+		if entry.Mode == AccountMode_NONE {
+			return errors.New("account missing mode")
+		}
+	}
+	if r.Revision < 1 {
+		return fmt.Errorf("revision %v < 1", r.Revision)
+	}
+	for accID, accBundle := range r.AccountBundles {
+		if accID != accBundle.AccountID {
+			return fmt.Errorf("account ID mismatch in bundle for %v", accID)
+		}
+		if accBundle.Revision < 1 {
+			return fmt.Errorf("account bundle revision %v < 1 for %v", r.Revision, accID)
+		}
+	}
+	return nil
+}
+
 func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	for _, entry := range s.Accounts {
 		if entry.IsPrimary {

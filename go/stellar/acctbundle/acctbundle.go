@@ -139,6 +139,10 @@ type BundleEncoded struct {
 
 // BoxAndEncode encrypts and encodes a BundleRestricted object.
 func BoxAndEncode(a *stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, puk libkb.PerUserKeySeed) (*BoxedEncoded, error) {
+	err := a.CheckInvariants()
+	if err != nil {
+		return nil, err
+	}
 
 	accountsVisible, accountsSecret := visibilitySplit(a)
 
