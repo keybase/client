@@ -1106,11 +1106,6 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	updatedMsgs := make(map[chat1.MessageID]bool)
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
-	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
-		return
-	}
 	for _, msg := range msgs {
 		if !msg.IsValid() || msg.Valid().ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
 			continue
@@ -1128,6 +1123,11 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 	var msgIDs []chat1.MessageID
 	for msgID := range updatedMsgs {
 		msgIDs = append(msgIDs, msgID)
+	}
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		return
 	}
 	unfurledMsgs, err := s.GetMessages(ctx, conv, uid, msgIDs, nil)
 	if err != nil {
