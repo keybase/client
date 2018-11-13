@@ -325,6 +325,13 @@ func (m MessageUnboxed) IsError() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsOutbox() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -863,6 +870,14 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 
 func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
+}
+
+func (o OutboxRecord) IsUnfurl() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
+}
+
+func (o OutboxRecord) MessageType() MessageType {
+	return o.Msg.ClientHeader.MessageType
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {

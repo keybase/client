@@ -52,9 +52,8 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
-	srv := newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
+func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
+	return newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		name := r.URL.Query().Get("name")
 		dat, err := ioutil.ReadFile(filepath.Join("testcases", name+".html"))
@@ -62,6 +61,11 @@ func TestScraper(t *testing.T) {
 		_, err = io.Copy(w, bytes.NewBuffer(dat))
 		require.NoError(t, err)
 	})
+}
+
+func TestScraper(t *testing.T) {
+	scraper := NewScraper(logger.NewTestLogger(t))
+	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()
 	defer srv.Stop()
 	testCase := func(name string, expected chat1.UnfurlRaw) {

@@ -286,6 +286,9 @@ type ActivityNotifier interface {
 		outboxID chat1.OutboxID)
 	AttachmentUploadProgress(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, bytesComplete, bytesTotal int64)
+
+	PromptUnfurl(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 }
 
 type IdentifyNotifier interface {
@@ -315,6 +318,7 @@ type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
+	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
@@ -354,6 +358,14 @@ type StellarLoader interface {
 }
 
 type ConversationBackedStorage interface {
-	Put(ctx context.Context, name string, data interface{}) error
-	Get(ctx context.Context, name string, res interface{}) (bool, error)
+	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
+}
+
+type Unfurler interface {
+	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msg chat1.MessageUnboxed)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID)
+	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }

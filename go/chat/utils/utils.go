@@ -14,6 +14,7 @@ import (
 	emoji "gopkg.in/kyokomi/emoji.v1"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
@@ -538,6 +539,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return msg.Valid().MessageBody.Delete().MessageIDs, nil
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		return []chat1.MessageID{msg.Valid().MessageBody.Attachmentuploaded().MessageID}, nil
+	case chat1.MessageType_UNFURL:
+		return []chat1.MessageID{msg.Valid().MessageBody.Unfurl().MessageID}, nil
 	default:
 		return nil, nil
 	}
@@ -1216,6 +1219,25 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	return nil
 }
 
+func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.ConversationID, u chat1.Unfurl) *chat1.UnfurlDisplay {
+	ud, err := display.DisplayUnfurl(ctx, g.AttachmentURLSrv, convID, u)
+	if err != nil {
+		return nil
+	}
+	return &ud
+}
+
+func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	unfurls []chat1.Unfurl) (res []chat1.UnfurlDisplay) {
+	for _, u := range unfurls {
+		ud := PresentUnfurl(ctx, g, convID, u)
+		if ud != nil {
+			res = append(res, *ud)
+		}
+	}
+	return res
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1273,6 +1295,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

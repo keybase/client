@@ -377,7 +377,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
-
+	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
@@ -1927,6 +1927,7 @@ type serverChatListener struct {
 	expunge                 chan chat1.ExpungeInfo
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 	reactionUpdate          chan chat1.ReactionUpdateNotif
+	messagesUnfurled        chan chat1.UnfurlUpdateNotifs
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1941,6 +1942,7 @@ type serverChatListener struct {
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
+	unfurlPrompt     chan chat1.MessageID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1984,6 +1986,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.ephemeralPurge <- activity.EphemeralPurge()
 	case chat1.ChatActivityType_REACTION_UPDATE:
 		n.reactionUpdate <- activity.ReactionUpdate()
+	case chat1.ChatActivityType_MESSAGE_UNFURLED:
+		n.messagesUnfurled <- activity.MessageUnfurled()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2018,6 +2022,10 @@ func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID c
 func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
 	n.subteamRename <- convIDs
 }
+func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, domain string) {
+	n.unfurlPrompt <- msgID
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2029,6 +2037,7 @@ func newServerChatListener() *serverChatListener {
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
 		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 		reactionUpdate:          make(chan chat1.ReactionUpdateNotif, buf),
+		messagesUnfurled:        make(chan chat1.UnfurlUpdateNotifs, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2043,6 +2052,7 @@ func newServerChatListener() *serverChatListener {
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
 		subteamRename:    make(chan []chat1.ConversationID, buf),
+		unfurlPrompt:     make(chan chat1.MessageID, buf),
 	}
 }
 

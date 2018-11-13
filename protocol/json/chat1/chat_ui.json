@@ -19,6 +19,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -629,6 +633,13 @@
             "UIRequestInfo"
           ],
           "name": "requestInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UnfurlDisplay"
+          },
+          "name": "unfurls"
         }
       ]
     },

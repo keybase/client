@@ -275,8 +275,13 @@
       "to": "string"
     },
     "setLastSentXLM": {
+      "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
       "writeFile": "boolean"
+    },
+    "setReadyToSend": {
+      "_description": "Set whether the payment is ready to send",
+      "readyToSend": "boolean"
     },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",

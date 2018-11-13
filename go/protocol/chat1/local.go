@@ -589,12 +589,14 @@ func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 }
 
 type MessageUnfurl struct {
-	Unfurl Unfurl `codec:"unfurl" json:"unfurl"`
+	Unfurl    Unfurl    `codec:"unfurl" json:"unfurl"`
+	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
 func (o MessageUnfurl) DeepCopy() MessageUnfurl {
 	return MessageUnfurl{
-		Unfurl: o.Unfurl.DeepCopy(),
+		Unfurl:    o.Unfurl.DeepCopy(),
+		MessageID: o.MessageID.DeepCopy(),
 	}
 }
 
@@ -2156,6 +2158,7 @@ type MessageUnboxedValid struct {
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
+	Unfurls               []Unfurl                    `codec:"unfurls" json:"unfurls"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2229,6 +2232,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.ChannelNameMentions),
 		Reactions: o.Reactions.DeepCopy(),
+		Unfurls: (func(x []Unfurl) []Unfurl {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Unfurl, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Unfurls),
 	}
 }
 

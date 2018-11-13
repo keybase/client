@@ -51,6 +51,7 @@ const (
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
 	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
 	ChatActivityType_REACTION_UPDATE               ChatActivityType = 11
+	ChatActivityType_MESSAGE_UNFURLED              ChatActivityType = 12
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -68,6 +69,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"EXPUNGE":                       9,
 	"EPHEMERAL_PURGE":               10,
 	"REACTION_UPDATE":               11,
+	"MESSAGE_UNFURLED":              12,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -83,6 +85,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	9:  "EXPUNGE",
 	10: "EPHEMERAL_PURGE",
 	11: "REACTION_UPDATE",
+	12: "MESSAGE_UNFURLED",
 }
 
 func (e ChatActivityType) String() string {
@@ -346,6 +349,38 @@ func (o ReactionUpdateNotif) DeepCopy() ReactionUpdateNotif {
 	}
 }
 
+type UnfurlUpdateNotif struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Msg    UIMessage      `codec:"msg" json:"msg"`
+}
+
+func (o UnfurlUpdateNotif) DeepCopy() UnfurlUpdateNotif {
+	return UnfurlUpdateNotif{
+		ConvID: o.ConvID.DeepCopy(),
+		Msg:    o.Msg.DeepCopy(),
+	}
+}
+
+type UnfurlUpdateNotifs struct {
+	Updates []UnfurlUpdateNotif `codec:"updates" json:"updates"`
+}
+
+func (o UnfurlUpdateNotifs) DeepCopy() UnfurlUpdateNotifs {
+	return UnfurlUpdateNotifs{
+		Updates: (func(x []UnfurlUpdateNotif) []UnfurlUpdateNotif {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UnfurlUpdateNotif, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Updates),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -359,6 +394,7 @@ type ChatActivity struct {
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
 	EphemeralPurge__             *EphemeralPurgeNotifInfo        `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
 	ReactionUpdate__             *ReactionUpdateNotif            `codec:"reactionUpdate,omitempty" json:"reactionUpdate,omitempty"`
+	MessageUnfurled__            *UnfurlUpdateNotifs             `codec:"messageUnfurled,omitempty" json:"messageUnfurled,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -416,6 +452,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_REACTION_UPDATE:
 		if o.ReactionUpdate__ == nil {
 			err = errors.New("unexpected nil value for ReactionUpdate__")
+			return ret, err
+		}
+	case ChatActivityType_MESSAGE_UNFURLED:
+		if o.MessageUnfurled__ == nil {
+			err = errors.New("unexpected nil value for MessageUnfurled__")
 			return ret, err
 		}
 	}
@@ -532,6 +573,16 @@ func (o ChatActivity) ReactionUpdate() (res ReactionUpdateNotif) {
 	return *o.ReactionUpdate__
 }
 
+func (o ChatActivity) MessageUnfurled() (res UnfurlUpdateNotifs) {
+	if o.ActivityType__ != ChatActivityType_MESSAGE_UNFURLED {
+		panic("wrong case accessed")
+	}
+	if o.MessageUnfurled__ == nil {
+		return
+	}
+	return *o.MessageUnfurled__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -606,6 +657,13 @@ func NewChatActivityWithReactionUpdate(v ReactionUpdateNotif) ChatActivity {
 	return ChatActivity{
 		ActivityType__:   ChatActivityType_REACTION_UPDATE,
 		ReactionUpdate__: &v,
+	}
+}
+
+func NewChatActivityWithMessageUnfurled(v UnfurlUpdateNotifs) ChatActivity {
+	return ChatActivity{
+		ActivityType__:    ChatActivityType_MESSAGE_UNFURLED,
+		MessageUnfurled__: &v,
 	}
 }
 
@@ -689,6 +747,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReactionUpdate__),
+		MessageUnfurled__: (func(x *UnfurlUpdateNotifs) *UnfurlUpdateNotifs {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageUnfurled__),
 	}
 }
 
@@ -977,6 +1042,13 @@ type ChatRequestInfoArg struct {
 	Info   UIRequestInfo  `codec:"info" json:"info"`
 }
 
+type ChatPromptUnfurlArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Domain string         `codec:"domain" json:"domain"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -999,6 +1071,7 @@ type NotifyChatInterface interface {
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
+	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1341,6 +1414,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatPromptUnfurl": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatPromptUnfurlArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatPromptUnfurlArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatPromptUnfurlArg)(nil), args)
+						return
+					}
+					err = i.ChatPromptUnfurl(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1455,5 +1544,10 @@ func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPayment
 
 func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPromptUnfurlArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg})
 	return
 }
