@@ -223,7 +223,10 @@ type _RefreshPaymentsPayload = $ReadOnly<{|
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
-type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString|}>
+type _RequestedPaymentPayload = $ReadOnly<{|
+  kbRqID: HiddenString,
+  lastSentXLM: boolean,
+|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   secretKey: HiddenString,
