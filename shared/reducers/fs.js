@@ -116,10 +116,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(
-        ['downloads', key, 'state'],
-        original =>
-          original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
+      return state.withMutations(s => s
+        .updateIn(
+          ['downloads', key, 'state'],
+          original =>
+            original && original
+              .set('completePortion', completePortion)
+              .set('endEstimate', endEstimate)
+        )
       )
     }
     case FsGen.downloadSuccess: {
@@ -137,18 +141,21 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.uploadWritingSuccess: {
       const {path} = action.payload
-      return state
-        .removeIn(['uploads', 'errors', path])
-        .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
+      return (
+        state.withMutations(s => s
+          .removeIn(['uploads', 'errors', path])
+          .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
+        )
+      )
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
       return (
-        state
-          // $FlowFixMe
+        state.withMutations(s => s
           .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
           .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
           .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
+        )
       )
     }
     case FsGen.fuseStatusResult:
