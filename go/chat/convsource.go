@@ -1106,6 +1106,9 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	updatedMsgs := make(map[chat1.MessageID]bool)
+	// Gather up all the messages affected by these unfurls with the purpose of
+	// computing the new unfurls for each one. Once we have them all, we send that to the UI
+	// so it can replace whatever it has in the store.
 	for _, msg := range msgs {
 		if !msg.IsValid() || msg.Valid().ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
 			continue
