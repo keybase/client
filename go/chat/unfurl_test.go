@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -97,14 +98,12 @@ func TestChatSrvUnfurl(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
-		uid := users[0].User.GetUID().ToBytes()
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
 		httpAddr := httpSrv.Start()
 		defer httpSrv.Stop()
 		storage := NewDevConversationBackedStorage(tc.Context(), func() chat1.RemoteInterface { return ri })
-		settings := unfurl.NewSettings(tc.Context().GetLog(), storage)
 		sender := NewNonblockingSender(tc.Context(),
 			NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 				func() chat1.RemoteInterface { return ri }))
@@ -146,20 +145,23 @@ func TestChatSrvUnfurl(t *testing.T) {
 
 		t.Logf("send for prompt")
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("http://%s", httpAddr)})
-		msgID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		select {
 		case notificationID := <-listener0.unfurlPrompt:
-			require.Equal(t, msgID, notificationID)
+			require.Equal(t, origID, notificationID)
 		case <-time.After(timeout):
 			require.Fail(t, "no prompt")
 		}
-
-		t.Logf("whitelist and send again")
-		require.NoError(t, settings.WhitelistAdd(ctx, uid, "0.1"))
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		t.Logf("whitelist and resolve")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            origID,
+				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
 		select {
 		case <-listener0.newMessageRemote:
 			require.Fail(t, "no unfurl yet")
