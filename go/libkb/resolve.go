@@ -458,8 +458,7 @@ func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionUR
 			case SCInputError:
 				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorInvalidInput}
 				return res
-			case SCChatRateLimit: // with different error const!
-				// TODO: Phone number search rate limiting code goes here.
+			case SCRateLimit:
 				res.err = ResolutionError{Input: input, Msg: err.Error(), Kind: ResolutionErrorRateLimited}
 				return res
 			}

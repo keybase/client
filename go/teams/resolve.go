@@ -131,7 +131,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 // preventTeamCreationOnError checks if an error coming from resolver should
 // prevent us from creating a team. We don't want a team where we don't know if
 // SBS user is resolvable but we just were unable to get the answer.
-func preventTeamCreationOnError(err error) bool {
+func shouldPreventTeamCreation(err error) bool {
 	if resErr, ok := err.(libkb.ResolutionError); ok {
 		switch resErr.Kind {
 		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
@@ -155,7 +155,7 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
-			if preventTeamCreationOnError(err) {
+			if shouldPreventTeamCreation(err) {
 				// but if we are not sure, better to bail out
 				return err
 			}
