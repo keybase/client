@@ -4797,9 +4797,10 @@ type GetStaticConfigArg struct {
 }
 
 type ResolveUnfurlPromptArg struct {
-	ConvID ConversationID     `codec:"convID" json:"convID"`
-	MsgID  MessageID          `codec:"msgID" json:"msgID"`
-	Result UnfurlPromptResult `codec:"result" json:"result"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	MsgID            MessageID                    `codec:"msgID" json:"msgID"`
+	Result           UnfurlPromptResult           `codec:"result" json:"result"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type LocalInterface interface {

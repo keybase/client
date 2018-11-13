@@ -3991,6 +3991,10 @@
         {
           "name": "result",
           "type": "UnfurlPromptResult"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": null

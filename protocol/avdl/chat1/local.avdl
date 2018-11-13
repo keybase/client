@@ -923,5 +923,5 @@ protocol local {
     case NOTNOW: void;
     case ACCEPT: string;
   }
-  void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result);
+  void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

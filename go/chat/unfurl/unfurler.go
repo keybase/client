@@ -315,3 +315,23 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		return unfurl, nil
 	}(ctx)
 }
+
+func (u *Unfurler) GetSettings(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
+	defer u.Trace(ctx, func() error { return nil }, "GetSettings")()
+	return u.settings.Get(ctx, uid)
+}
+
+func (u *Unfurler) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "WhitelistAdd")()
+	return u.settings.WhitelistAdd(ctx, uid, domain)
+}
+
+func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "WhitelistRemove")()
+	return u.settings.WhitelistRemove(ctx, uid, domain)
+}
+
+func (u *Unfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "SetMode")()
+	return u.settings.SetMode(ctx, uid, mode)
+}
