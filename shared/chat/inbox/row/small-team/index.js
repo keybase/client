@@ -14,6 +14,7 @@ export type Props = {
   hasResetUsers: boolean,
   hasUnread: boolean,
   iconHoverColor: string,
+  isDecryptingSnippet: boolean,
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -135,6 +136,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 hasResetUsers={props.hasResetUsers}
                 youNeedToRekey={props.youNeedToRekey}
                 isSelected={props.isSelected}
+                isDecryptingSnippet={props.isDecryptingSnippet}
               />
             </Kb.Box>
           </Kb.Box>

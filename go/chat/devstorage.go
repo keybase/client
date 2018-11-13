@@ -6,8 +6,8 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -26,13 +26,13 @@ func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteI
 	}
 }
 
-func (s *DevConversationBackedStorage) Put(ctx context.Context, name string, src interface{}) (err error) {
+func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
-	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {
 		return err
 	}
-	username := s.G().ActiveDevice.Username(libkb.NewMetaContext(ctx, s.G().ExternalG())).String()
+	username := un.String()
 	dat, err := json.Marshal(src)
 	if err != nil {
 		return err
@@ -58,14 +58,14 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, name string, src
 	return nil
 }
 
-func (s *DevConversationBackedStorage) Get(ctx context.Context, name string, dest interface{}) (found bool, err error) {
+func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, name string,
+	dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
-	uid, err := utils.AssertLoggedInUID(ctx, s.G())
+	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {
 		return false, err
 	}
-	username := s.G().ActiveDevice.Username(libkb.NewMetaContext(ctx, s.G().ExternalG())).String()
-
+	username := un.String()
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, true, s.ri, uid, username,
 		chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
 		name, nil)

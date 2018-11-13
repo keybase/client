@@ -68,12 +68,6 @@ func tokensFromMsg(msg chat1.MessageUnboxed) []string {
 	return tokenize(msg.SearchableText())
 }
 
-// getQueryRe returns a regex to match the query string on message text. This
-// is used for result highlighting.
-func getQueryRe(query string) (*regexp.Regexp, error) {
-	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
-}
-
 func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
 	if set == nil {
 		return nil

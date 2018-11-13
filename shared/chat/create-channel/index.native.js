@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, HeaderHoc, Input, Text, ButtonBar} from '../../common-adapters'
+import * as Constants from '../../constants/teams'
+import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 import type {Props} from './index.types'
@@ -11,62 +12,67 @@ const errorHeader = (errorText: string) => {
   }
 
   return (
-    <Box
+    <Kb.Box
       style={{
         backgroundColor: globalColors.red,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text
+      <Kb.Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
         backgroundMode={'HighRisk'}
       >
         {errorText}
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box>
   )
 }
 
 const CreateChannel = (props: Props) => (
-  <Box>
+  <Kb.Box>
     {errorHeader(props.errorText)}
-    <Box style={_boxStyle}>
-      <Box style={_inputStyle}>
-        <Input
+    <Kb.Box style={_boxStyle}>
+      <Kb.Box style={_inputStyle}>
+        <Kb.Input
           autoFocus={true}
           hintText="Channel name"
           value={props.channelname}
           onChangeText={channelname => props.onChannelnameChange(channelname)}
         />
-      </Box>
-      <Box style={_inputStyle}>
-        <Input
+      </Kb.Box>
+      <Kb.Box style={_inputStyle}>
+        <Kb.Input
           autoCorrect={true}
           autoFocus={false}
           hintText="Description or topic (optional)"
           value={props.description}
           onChangeText={description => props.onDescriptionChange(description)}
         />
-      </Box>
-      <ButtonBar>
-        <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </ButtonBar>
-    </Box>
-  </Box>
+      </Kb.Box>
+      <Kb.ButtonBar>
+        <Kb.WaitingButton
+          waitingKey={Constants.createChannelWaitingKey(props.teamname)}
+          type="Primary"
+          onClick={props.onSubmit}
+          label="Save"
+        />
+      </Kb.ButtonBar>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const Header = (props: Props) => (
-  <Box style={_headerStyle}>
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-      <Avatar isTeam={true} teamname={props.teamname} size={16} />
-      <Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}} lineClamp={1}>
+  <Kb.Box style={_headerStyle}>
+    <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
+      <Kb.Avatar isTeam={true} teamname={props.teamname} size={16} />
+      <Kb.Text type="BodySmallSemibold" style={{marginLeft: globalMargins.xtiny}} lineClamp={1}>
         {props.teamname}
-      </Text>
-    </Box>
-    <Text type="BodyBig">New channel</Text>
-  </Box>
+      </Kb.Text>
+    </Kb.Box>
+    <Kb.Text type="BodyBig">New channel</Kb.Text>
+  </Kb.Box>
 )
 
 const _headerStyle = {
@@ -88,5 +94,5 @@ export default compose(
   withProps(props => ({
     customComponent: <Header {...props} />,
   })),
-  HeaderHoc
+  Kb.HeaderHoc
 )(CreateChannel)

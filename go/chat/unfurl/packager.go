@@ -72,8 +72,27 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	if pre.Preview == nil {
-		return res, errors.New("unable to get preview from URL asset")
+	if err := src.Reset(); err != nil {
+		return res, err
+	}
+	uploadPt := src
+	uploadLen := len(dat)
+	uploadMd := pre.BaseMetadata()
+	uploadContentType := pre.ContentType
+	if pre.Preview != nil {
+		uploadPt = attachments.NewBufReadResetter(pre.Preview)
+		uploadLen = len(pre.Preview)
+		uploadMd = pre.PreviewMetadata()
+		uploadContentType = pre.PreviewContentType
+	} else {
+		p.Debug(ctx, "assetFromURL: warning, failed to generate preview for asset, using base")
+	}
+	atyp, err := uploadMd.AssetType()
+	if err != nil {
+		return res, err
+	}
+	if atyp != chat1.AssetMetadataType_IMAGE {
+		return res, fmt.Errorf("invalid asset for unfurl package: %v", atyp)
 	}
 
 	s3params, err := p.ri().GetS3Params(ctx, convID)
@@ -87,8 +106,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	task := attachments.UploadTask{
 		S3Params:       s3params,
 		Filename:       filename,
-		FileSize:       int64(len(dat)),
-		Plaintext:      attachments.NewBufReadResetter(pre.Preview),
+		FileSize:       int64(uploadLen),
+		Plaintext:      uploadPt,
 		S3Signer:       p.s3signer,
 		ConversationID: convID,
 		UserID:         uid,
@@ -97,8 +116,8 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if res, err = p.store.UploadAsset(ctx, &task, ioutil.Discard); err != nil {
 		return res, err
 	}
-	res.MimeType = pre.PreviewContentType
-	res.Metadata = pre.PreviewMetadata()
+	res.MimeType = uploadContentType
+	res.Metadata = uploadMd
 	return res, nil
 }
 
@@ -121,16 +140,18 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		if raw.Generic().ImageUrl != nil {
 			asset, err := p.assetFromURL(ctx, *raw.Generic().ImageUrl, uid, convID)
 			if err != nil {
-				return res, err
+				p.Debug(ctx, "Package: failed to get image asset URL: %s", err)
+			} else {
+				g.Image = &asset
 			}
-			g.Image = &asset
 		}
 		if raw.Generic().FaviconUrl != nil {
 			asset, err := p.assetFromURL(ctx, *raw.Generic().FaviconUrl, uid, convID)
 			if err != nil {
-				return res, err
+				p.Debug(ctx, "Package: failed to get favicon asset URL: %s", err)
+			} else {
+				g.Favicon = &asset
 			}
-			g.Favicon = &asset
 		}
 		return chat1.NewUnfurlWithGeneric(g), nil
 	default:

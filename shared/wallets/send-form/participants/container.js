@@ -78,6 +78,9 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  setReadyToSend: (readyToSend: boolean) => {
+    dispatch(WalletsGen.createSetReadyToSend({readyToSend}))
+  },
 })
 
 const ConnectedParticipantsStellarPublicKey = namedConnect(

@@ -20,7 +20,7 @@ func NewScraper(logger logger.Logger) *Scraper {
 }
 
 func (s *Scraper) Scrape(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Scrape(%s)", uri)()
+	defer s.Trace(ctx, func() error { return err }, "Scrape")()
 	typ, domain, err := ClassifyDomainFromURI(uri)
 	if err != nil {
 		return res, err

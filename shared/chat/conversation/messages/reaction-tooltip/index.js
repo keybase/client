@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, Icon, NameWithIcon, Overlay, SectionList, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import ReactButton from '../react-button/container'
 
 export type Props = {|
@@ -32,7 +32,7 @@ export const ReactionTooltip = (props: Props) => {
     title: r.emoji,
   }))
   return (
-    <Overlay
+    <Kb.Overlay
       attachTo={props.attachmentRef}
       onHidden={props.onHidden}
       position="top center"
@@ -40,22 +40,22 @@ export const ReactionTooltip = (props: Props) => {
       propagateOutsideClicks={true}
       style={styles.overlay}
     >
-      <Box2
+      <Kb.Box2
         onMouseLeave={props.onMouseLeave}
         onMouseOver={props.onMouseOver}
         direction="vertical"
         gap="tiny"
         style={styles.listContainer}
       >
-        {isMobile && (
-          <Box2 direction="horizontal">
-            <Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
+        {Styles.isMobile && (
+          <Kb.Box2 direction="horizontal">
+            <Kb.Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
               Close
-            </Text>
-            <Box2 direction="horizontal" style={{flex: 1}} />
-          </Box2>
+            </Kb.Text>
+            <Kb.Box2 direction="horizontal" style={{flex: 1}} />
+          </Kb.Box2>
         )}
-        <SectionList
+        <Kb.SectionList
           alwaysBounceVertical={false}
           initialNumToRender={19} // Keeps height from trashing on mobile
           sections={sections}
@@ -64,18 +64,28 @@ export const ReactionTooltip = (props: Props) => {
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
         />
-        {isMobile && (
-          <ClickableBox onClick={props.onAddReaction}>
-            <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
-              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />
-              <Text type="BodySemibold" style={styles.addReactionButtonText}>
+        {Styles.isMobile && (
+          <Kb.ClickableBox onClick={props.onAddReaction}>
+            <Kb.Box2
+              centerChildren={true}
+              direction="horizontal"
+              gap="xtiny"
+              style={styles.addReactionButton}
+            >
+              <Kb.Icon
+                type="iconfont-reacji"
+                color={Styles.globalColors.black_40}
+                fontSize={22}
+                style={Kb.iconCastPlatformStyles(styles.addReactionButtonIcon)}
+              />
+              <Kb.Text type="BodySemibold" style={styles.addReactionButtonText}>
                 Add a reaction
-              </Text>
-            </Box2>
-          </ClickableBox>
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         )}
-      </Box2>
-    </Overlay>
+      </Kb.Box2>
+    </Kb.Overlay>
   )
 }
 
@@ -83,7 +93,7 @@ type ListItem = {fullName: string, key: string, username: string}
 
 const renderItem = ({item}: {item: ListItem}) => {
   return (
-    <NameWithIcon
+    <Kb.NameWithIcon
       key={item.key}
       colorFollowing={true}
       containerStyle={styles.userContainer}
@@ -104,7 +114,7 @@ const renderSectionHeader = ({
     title: string,
   },
 }) => (
-  <Box2
+  <Kb.Box2
     key={section.title}
     direction="horizontal"
     gap="tiny"
@@ -118,53 +128,56 @@ const renderSectionHeader = ({
       ordinal={section.ordinal}
       emoji={section.title}
     />
-    <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
+    <Kb.Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   addReactionButton: {
-    borderColor: globalColors.black_10,
-    borderRadius: 20,
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 2,
     height: 40,
-    marginBottom: globalMargins.large,
-    marginLeft: globalMargins.large,
-    marginRight: globalMargins.large,
-    marginTop: globalMargins.xtiny,
-    paddingLeft: globalMargins.large,
-    paddingRight: globalMargins.large,
+    marginBottom: Styles.globalMargins.large,
+    marginLeft: Styles.globalMargins.large,
+    marginRight: Styles.globalMargins.large,
+    marginTop: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.large,
+    paddingRight: Styles.globalMargins.large,
+  },
+  addReactionButtonIcon: {
+    marginRight: Styles.globalMargins.tiny,
   },
   addReactionButtonText: {
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
   },
   buttonContainer: {
     alignItems: 'center',
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
     flexShrink: 0,
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
   closeButton: {
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
   emojiText: {
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
     flex: -1,
   },
-  list: platformStyles({
+  list: Styles.platformStyles({
     isElectron: {
-      paddingBottom: globalMargins.small,
+      paddingBottom: Styles.globalMargins.small,
     },
   }),
-  listContainer: platformStyles({
+  listContainer: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.white,
+      backgroundColor: Styles.globalColors.white,
     },
     isElectron: {
       maxHeight: 320,
@@ -175,17 +188,17 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-  overlay: platformStyles({
+  overlay: Styles.platformStyles({
     isElectron: {
-      margin: globalMargins.tiny,
+      margin: Styles.globalMargins.tiny,
     },
   }),
   userContainer: {
-    backgroundColor: globalColors.white,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.tiny + globalMargins.medium,
-    paddingRight: globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
+    backgroundColor: Styles.globalColors.white,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny + Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
   },
 })
 

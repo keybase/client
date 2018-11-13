@@ -67,6 +67,7 @@ type NotifyListener interface {
 		bytesComplete, bytesTotal int64)
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
+	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -144,9 +145,14 @@ func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID 
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
 }
-func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 }
-func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
+func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, info chat1.UIRequestInfo) {
+}
+func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, domain string) {
 }
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -406,8 +412,8 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfsdesktop` notification type
+		if n.getNotificationChannels(id).Kbfsdesktop {
 			// In the background do...
 			go func() {
 				// A send of a `FSActivity` RPC with the notification
@@ -461,8 +467,8 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			// In the background do...
 			wg.Add(1)
 			go func() {
@@ -495,8 +501,8 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfsrequest` notification type
-		if n.getNotificationChannels(id).Kbfsrequest {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			wg.Add(1)
 			// In the background do...
 			go func() {
@@ -524,8 +530,8 @@ func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSy
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			// In the background do...
 			go func() {
 				// A send of a `FSSyncStatusResponse` RPC with the notification
@@ -1124,6 +1130,21 @@ func (n *NotifyRouter) HandleChatSubteamRename(ctx context.Context, uid keybase1
 			})
 		}, func(ctx context.Context, listener NotifyListener) {
 			listener.ChatSubteamRename(uid, convIDs)
+		})
+}
+
+func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	n.notifyChatCommon(ctx, "ChatPromptUnfurl", chat1.TopicType_CHAT,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			cli.ChatPromptUnfurl(ctx, chat1.ChatPromptUnfurlArg{
+				Uid:    uid,
+				ConvID: convID,
+				MsgID:  msgID,
+				Domain: domain,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatPromptUnfurl(uid, convID, msgID, domain)
 		})
 }
 

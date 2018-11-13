@@ -103,7 +103,7 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        <Kb.SafeAreaView style={styles.safeArea}>
+        <Kb.SafeAreaView style={Styles.collapseStyles([styles.safeArea, Styles.globalStyles.flexBoxColumn])}>
           <Kb.Box2
             direction="vertical"
             fullHeight={true}
