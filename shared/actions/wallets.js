@@ -222,12 +222,6 @@ const loadAccounts = (
 ) =>
   !actionHasError(action) &&
   RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
-    // load the display currency of each wallet, now that we have the IDs
-    action.type === WalletsGen.loadAccounts &&
-      res &&
-      res.map(account =>
-        WalletsGen.createLoadDisplayCurrency({accountID: ((account.accountID: any): Types.AccountID)})
-      )
     return WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
     })
@@ -507,6 +501,12 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
     })
   )
 
+const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
+  // load the display currency of each wallet, now that we have the IDs
+  action.payload.accounts.map(account =>
+    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  )
+
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
   RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
     .then(request => WalletsGen.createRequestDetailReceived({request}))
@@ -683,6 +683,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     createdOrLinkedAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
+
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,
