@@ -156,7 +156,10 @@ const sendPayment = (state: TypedState) => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXLM = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
+const setLastSentXLM = (
+  state: TypedState,
+  action: WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload
+) =>
   Saga.put(
     WalletsGen.createSetLastSentXLM({
       lastSentXLM: action.payload.lastSentXLM,
@@ -178,7 +181,12 @@ const requestPayment = (state: TypedState) =>
       note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
+  ).then(kbRqID =>
+    WalletsGen.createRequestedPayment({
+      kbRqID: new HiddenString(kbRqID),
+      lastSentXLM: state.wallets.building.currency === 'XLM',
+    })
+  )
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 const clearBuiltRequest = () => Saga.put(WalletsGen.createClearBuiltRequest())
@@ -684,7 +692,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXLM)
+  yield Saga.actionToAction([WalletsGen.sentPayment, WalletsGen.requestedPayment], setLastSentXLM)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
