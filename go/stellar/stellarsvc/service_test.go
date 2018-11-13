@@ -850,7 +850,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
 // makes it mobile only.  The subsequent fetch fails because it is
-// a recently provisioned mobile device.  After 14 days, the fetch works.
+// a recently provisioned mobile device.  After 7 days, the fetch works.
 func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
