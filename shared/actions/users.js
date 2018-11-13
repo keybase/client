@@ -24,6 +24,7 @@ const updateProofState = (action: TrackerGen.UpdateProofStatePayload, state: Typ
   if (isRed) {
     return Saga.put(
       UsersGen.createUpdateBrokenState({
+        fromTracker: true,
         newlyBroken: [username],
         newlyFixed: [],
       })
@@ -31,6 +32,7 @@ const updateProofState = (action: TrackerGen.UpdateProofStatePayload, state: Typ
   } else {
     return Saga.put(
       UsersGen.createUpdateBrokenState({
+        fromTracker: true,
         newlyBroken: [],
         newlyFixed: [username],
       })
@@ -38,9 +40,18 @@ const updateProofState = (action: TrackerGen.UpdateProofStatePayload, state: Typ
   }
 }
 
+const updateBrokenState = (state: TypedState, action: UsersGen.UpdateBrokenStatePayload) =>
+  !action.payload.fromTracker &&
+  Saga.all(
+    action.payload.newlyBroken
+      .concat(action.payload.newlyFixed)
+      .map(u => Saga.put(TrackerGen.createGetProfile({username: u})))
+  )
+
 function* usersSaga(): Saga.SagaGenerator<any, any> {
   // Temporary until tracker gets refactored a bit. Listen for proof updates and update our broken state
   yield Saga.safeTakeEveryPure(TrackerGen.updateProofState, updateProofState)
+  yield Saga.actionToAction(UsersGen.updateBrokenState, updateBrokenState)
 }
 
 export default usersSaga
