@@ -236,6 +236,7 @@ export const notifyChatChatActivityType = {
   expunge: 9,
   ephemeralPurge: 10,
   reactionUpdate: 11,
+  messageUnfurled: 12,
 }
 
 export const notifyChatStaleUpdateType = {

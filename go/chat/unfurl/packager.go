@@ -87,6 +87,13 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	} else {
 		p.Debug(ctx, "assetFromURL: warning, failed to generate preview for asset, using base")
 	}
+	atyp, err := uploadMd.AssetType()
+	if err != nil {
+		return res, err
+	}
+	if atyp != chat1.AssetMetadataType_IMAGE {
+		return res, fmt.Errorf("invalid asset for unfurl package: %v", atyp)
+	}
 
 	s3params, err := p.ri().GetS3Params(ctx, convID)
 	if err != nil {
@@ -133,16 +140,18 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		if raw.Generic().ImageUrl != nil {
 			asset, err := p.assetFromURL(ctx, *raw.Generic().ImageUrl, uid, convID)
 			if err != nil {
-				return res, err
+				p.Debug(ctx, "Package: failed to get image asset URL: %s", err)
+			} else {
+				g.Image = &asset
 			}
-			g.Image = &asset
 		}
 		if raw.Generic().FaviconUrl != nil {
 			asset, err := p.assetFromURL(ctx, *raw.Generic().FaviconUrl, uid, convID)
 			if err != nil {
-				return res, err
+				p.Debug(ctx, "Package: failed to get favicon asset URL: %s", err)
+			} else {
+				g.Favicon = &asset
 			}
-			g.Favicon = &asset
 		}
 		return chat1.NewUnfurlWithGeneric(g), nil
 	default:

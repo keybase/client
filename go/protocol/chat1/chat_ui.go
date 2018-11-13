@@ -503,6 +503,7 @@ type UIMessageValid struct {
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
 	PaymentInfo           *UIPaymentInfo         `codec:"paymentInfo,omitempty" json:"paymentInfo,omitempty"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
+	Unfurls               []UnfurlDisplay        `codec:"unfurls" json:"unfurls"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -584,6 +585,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.RequestInfo),
+		Unfurls: (func(x []UnfurlDisplay) []UnfurlDisplay {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UnfurlDisplay, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Unfurls),
 	}
 }
 

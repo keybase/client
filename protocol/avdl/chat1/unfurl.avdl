@@ -47,6 +47,31 @@ protocol unfurl {
       case YOUTUBE: UnfurlYoutube;
     }
 
+    record UnfurlImageDisplay {
+        string url;
+        int height;
+        int width;
+    }
+
+    record UnfurlGenericDisplay {
+        string title;
+        string url;
+        string siteName;
+        union { null, UnfurlImageDisplay } favicon;
+        union { null, UnfurlImageDisplay } image;
+        union { null, int } publishTime;
+        union { null, string } description;
+    }
+
+    record UnfurlYoutubeDisplay {
+        // TODO
+    }
+
+    variant UnfurlDisplay switch (UnfurlType unfurlType) {
+        case GENERIC: UnfurlGenericDisplay;
+        case YOUTUBE: UnfurlYoutubeDisplay;
+    }   
+
     enum UnfurlMode {
       ALWAYS_0,
       NEVER_1,
