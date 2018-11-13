@@ -172,6 +172,5 @@ func UserIsOnlyWriter(username kbname.NormalizedUsername, canon CanonicalName) b
 	if err != nil {
 		return false
 	}
-	fmt.Printf("SONGGAO %s %s %#+v\n", username, canon, ws)
 	return len(ws) == 1 && ws[0] == string(username)
 }
