@@ -348,7 +348,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       (r, idx) =>
         r.tags.hideStatusBar ? (
           <React.Fragment key={String(idx)}>
-            <NativeStatusBar hidden={!isIPhoneX} translucent={true} />
+            <Kb.NativeStatusBar hidden={!isIPhoneX} translucent={true} />
             {r.leafComponent({shouldRender: true})}
           </React.Fragment>
         ) : (

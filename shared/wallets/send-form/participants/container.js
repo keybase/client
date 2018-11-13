@@ -43,6 +43,7 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
     onShowSuggestions: dispatchProps.onShowSuggestions,
     onRemoveProfile: dispatchProps.onRemoveProfile,
     onChangeRecipient: dispatchProps.onChangeRecipient,
+    onScanQRCode: dispatchProps.onScanQRCode,
   }
 }
 
