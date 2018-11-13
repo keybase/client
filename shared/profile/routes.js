@@ -42,7 +42,7 @@ const proveEnterUsername = makeRouteDefNode({
 const profileRoute = makeRouteDefNode({
   component: Profile,
   initialState: {currentFriendshipsTab: 'Followers'},
-  tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
+  tags: makeLeafTags({underNotch: true, title: 'Profile'}),
   children: {
     profile: () => profileRoute,
     addToTeam: {
@@ -98,12 +98,12 @@ const profileRoute = makeRouteDefNode({
         [WalletConstants.confirmFormRouteKey]: {
           children: {},
           component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
         },
         [WalletConstants.chooseAssetFormRouteKey]: {
           children: {},
           component: ChooseAsset,
-          tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
         },
         qrScan: {
           component: QRScan,
@@ -111,7 +111,7 @@ const profileRoute = makeRouteDefNode({
         },
       },
       component: SendForm,
-      tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
     },
   },
 })

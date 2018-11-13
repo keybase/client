@@ -770,17 +770,29 @@ func (o ConversationStaleUpdate) DeepCopy() ConversationStaleUpdate {
 	}
 }
 
+type ChatSyncIncrementalConv struct {
+	Conv        UnverifiedInboxUIItem `codec:"conv" json:"conv"`
+	ShouldUnbox bool                  `codec:"shouldUnbox" json:"shouldUnbox"`
+}
+
+func (o ChatSyncIncrementalConv) DeepCopy() ChatSyncIncrementalConv {
+	return ChatSyncIncrementalConv{
+		Conv:        o.Conv.DeepCopy(),
+		ShouldUnbox: o.ShouldUnbox,
+	}
+}
+
 type ChatSyncIncrementalInfo struct {
-	Items []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Items []ChatSyncIncrementalConv `codec:"items" json:"items"`
 }
 
 func (o ChatSyncIncrementalInfo) DeepCopy() ChatSyncIncrementalInfo {
 	return ChatSyncIncrementalInfo{
-		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+		Items: (func(x []ChatSyncIncrementalConv) []ChatSyncIncrementalConv {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UnverifiedInboxUIItem, len(x))
+			ret := make([]ChatSyncIncrementalConv, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -965,6 +977,13 @@ type ChatRequestInfoArg struct {
 	Info   UIRequestInfo  `codec:"info" json:"info"`
 }
 
+type ChatPromptUnfurlArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Domain string         `codec:"domain" json:"domain"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -987,6 +1006,7 @@ type NotifyChatInterface interface {
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
+	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1329,6 +1349,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatPromptUnfurl": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatPromptUnfurlArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatPromptUnfurlArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatPromptUnfurlArg)(nil), args)
+						return
+					}
+					err = i.ChatPromptUnfurl(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1443,5 +1479,10 @@ func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPayment
 
 func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPromptUnfurlArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg})
 	return
 }

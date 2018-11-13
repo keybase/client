@@ -171,13 +171,7 @@
       "fields": [
         {
           "type": "int",
-          "name": "schemaVersion",
-          "jsonkey": "schema_version"
-        },
-        {
-          "type": "int",
-          "name": "configVersion",
-          "jsonkey": "config_version"
+          "name": "version"
         },
         {
           "type": "string",
@@ -187,13 +181,6 @@
           "type": "string",
           "name": "displayName",
           "jsonkey": "display_name"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "group"
         },
         {
           "type": [
@@ -238,6 +225,52 @@
           },
           "name": "checkPath",
           "jsonkey": "check_path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ServiceDisplayConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "priority"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "group"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ExternalServiceConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "schemaVersion",
+          "jsonkey": "schema_version"
+        },
+        {
+          "type": [
+            null,
+            "ServiceDisplayConfig"
+          ],
+          "name": "display"
+        },
+        {
+          "type": [
+            null,
+            "ParamProofServiceConfig"
+          ],
+          "name": "config"
         }
       ]
     }

@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Text, ConnectedUsernames} from '../../../../common-adapters'
+import {Text, ConnectedUsernames, Box2} from '../../../../common-adapters'
 import {globalColors, globalMargins} from '../../../../styles'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import {formatTimeForMessages, formatTimeForChat} from '../../../../util/timestamp'
 
 type Props = {
   channelname: string,
@@ -30,14 +30,17 @@ class Joined extends React.PureComponent<Props> {
         onAvatarClicked={() => onUsernameClicked(author)}
         title={formatTimeForMessages(timestamp)}
         topLine={
-          <ConnectedUsernames
-            inline={true}
-            type="BodySmallSemibold"
-            onUsernameClicked={onUsernameClicked}
-            colorFollowing={true}
-            underline={true}
-            usernames={[author]}
-          />
+          <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+            <ConnectedUsernames
+              inline={true}
+              type="BodySmallSemibold"
+              onUsernameClicked={onUsernameClicked}
+              colorFollowing={true}
+              underline={true}
+              usernames={[author]}
+            />
+            <Text type="BodyTiny">{formatTimeForChat(this.props.message.timestamp)}</Text>
+          </Box2>
         }
         bottomLine={
           <Text type="BodySmall">

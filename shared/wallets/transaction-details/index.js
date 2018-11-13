@@ -4,8 +4,9 @@ import * as Types from '../../constants/types/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampLine} from '../transaction'
+import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
+import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 export type NotLoadingProps = {|
   amountUser: string,
@@ -52,9 +53,9 @@ type PartyAccountProps = {|
 
 const PartyAccount = (props: PartyAccountProps) => {
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true}>
-      <Kb.Icon type="icon-wallet-32" style={{height: 32, width: 32}} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
+      <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
+      <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
         {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
@@ -99,13 +100,16 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal" fullHeight={true}>
-          <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.counterpartyText}>
-            <Kb.Text type="BodySemibold" selectable={true} title={props.counterparty}>
-              {props.counterparty}
-            </Kb.Text>
-          </Kb.Box2>
+        <Kb.Box2 direction="horizontal">
+          <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
+          <Kb.Text
+            type="BodySemibold"
+            selectable={true}
+            style={styles.stellarPublicKey}
+            title={props.counterparty}
+          >
+            {props.counterparty}
+          </Kb.Text>
         </Kb.Box2>
       )
     case 'otherAccount':
@@ -228,30 +232,55 @@ const propsToParties = (props: NotLoadingProps) => {
   }
 }
 
+type TimestampLineProps = {|
+  error: string,
+  timestamp: ?Date,
+  selectableText: boolean,
+|}
+
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return <TimestampError error={props.error} />
+  }
+  const timestamp = props.timestamp
+  if (!timestamp) {
+    return <TimestampPending />
+  }
+  const human = formatTimeForStellarDetail(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
+  return (
+    <Kb.Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+      {human}
+    </Kb.Text>
+  )
+}
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
-    <Kb.ScrollView style={styles.scrollView}>
+    <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          detailView={true}
           memo={props.memo}
           onCancelPayment={null}
           onCancelPaymentWaitingKey=""
-          onShowProfile={props.onShowProfile}
-          // Don't render unread state in detail view.
+          onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"
           selectableText={true}
           status={props.status}
           statusDetail={props.statusDetail}
           timestamp={props.timestamp}
+          unread={false}
           yourRole={props.yourRole}
         />
-        <Kb.Divider />
-
+      </Kb.Box2>
+      <Kb.Divider />
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -304,16 +333,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
               timestamp={props.timestamp}
             />
           )}
-          {props.onCancelPayment && (
-            <Kb.WaitingButton
-              waitingKey={props.onCancelPaymentWaitingKey}
-              type="Danger"
-              label="Cancel"
-              onClick={props.onCancelPayment}
-              small={true}
-              style={{alignSelf: 'flex-start'}}
-            />
-          )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -321,6 +340,15 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text selectable={true} type="Body">
             {props.publicMemo}
           </Kb.Text>
+          {!!props.publicMemo &&
+            props.yourRole === 'receiverOnly' &&
+            props.counterpartyType === 'stellarPublicKey' && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
+                <Kb.Text type="BodySemibold" backgroundMode="Information">
+                  Watch out for phishing attacks and dangerous websites.
+                </Kb.Text>
+              </Kb.Box2>
+            )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -334,6 +362,18 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Text>
           )}
         </Kb.Box2>
+        {props.onCancelPayment && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true} style={styles.buttonBox}>
+            <Kb.WaitingButton
+              waitingKey={props.onCancelPaymentWaitingKey}
+              type="Danger"
+              label="Cancel transaction"
+              onClick={props.onCancelPayment}
+              small={true}
+              style={styles.button}
+            />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   )
@@ -359,16 +399,34 @@ class LoadTransactionDetails extends React.Component<Props> {
 export default LoadTransactionDetails
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    alignSelf: 'center',
+  },
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      minHeight: 0,
+    },
+    isElectron: {
+      marginTop: 'auto',
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.medium,
+    },
+  }),
   chatButton: {
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.tiny,
   },
   container: {
+    alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
-  counterpartyText: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
+  icon32: {height: 32, width: 32},
+  partyAccountContainer: {
+    alignSelf: 'flex-start',
   },
   progressIndicator: {height: 50, width: 50},
   rightContainer: {
@@ -376,8 +434,12 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
   },
   scrollView: {
-    height: '100%',
+    display: 'flex',
+    flexGrow: 1,
     width: '100%',
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
   },
   statusBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -387,9 +449,18 @@ const styles = Styles.styleSheetCreate({
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
+  stellarPublicKey: {
+    justifyContent: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
   tooltipText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-work',
     },
   }),
+  warningBannerContainer: {
+    backgroundColor: Styles.backgroundModeToColor.Information,
+    borderRadius: 4,
+    padding: Styles.globalMargins.xsmall,
+  },
 })

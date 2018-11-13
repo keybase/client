@@ -251,6 +251,10 @@ func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.Ephemer
 
 type DummyIndexer struct{}
 
+func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
 	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
@@ -264,3 +268,28 @@ func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, u
 func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
+
+type DummyNativeVideoHelper struct{}
+
+func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	return nil, 0, nil
+}
+
+type UnfurlerTaskStatus int
+
+const (
+	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
+	UnfurlerTaskStatusSuccess
+	UnfurlerTaskStatusFailed
+)
+
+type DummyUnfurler struct{}
+
+func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) {
+}
+func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error) {
+	return UnfurlerTaskStatusFailed, nil, nil
+}
+func (d DummyUnfurler) Retry(ctx context.Context, outboxID chat1.OutboxID)    {}
+func (d DummyUnfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {}

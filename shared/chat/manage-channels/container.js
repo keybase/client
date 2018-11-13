@@ -12,10 +12,13 @@ import {
   withHandlers,
   withStateHandlers,
   withPropsOnChange,
+  type RouteProps,
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
@@ -102,14 +105,14 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
   withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
-      acc[c.convID] = c.selected
+      acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
       return acc
     }, {}),
   })),
@@ -125,7 +128,9 @@ export default compose(
     onToggle: props => (convID: ChatTypes.ConversationIDKey) =>
       props.setNextChannelState({
         ...props.nextChannelState,
-        [convID]: !props.nextChannelState[convID],
+        [ChatTypes.conversationIDKeyToString(convID)]: !props.nextChannelState[
+          ChatTypes.conversationIDKeyToString(convID)
+        ],
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),

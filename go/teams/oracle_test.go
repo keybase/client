@@ -66,13 +66,6 @@ func TestTeamUnboxOracle(t *testing.T) {
 	require.NoError(t, err)
 	require.ElementsMatch(t, ret, clearText)
 
-	// MinGeneration too high should break it, as oracle will miss the
-	// key.
-	arg.MinGeneration = keybase1.PerTeamKeyGeneration(3)
-	ret, err = TryDecryptWithTeamKey(mctx, arg)
-	require.Error(t, err)
-	require.IsType(t, libkb.DecryptionError{}, err)
-
 	// Do same encryption scheme but with generation 1.
 	buf, pub = encryptWithTeamKey(t, team, clearText, nonce, keybase1.PerTeamKeyGeneration(1))
 	arg.EncryptedData = buf

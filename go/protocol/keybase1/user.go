@@ -160,46 +160,6 @@ func (o UserSettings) DeepCopy() UserSettings {
 	}
 }
 
-type SearchComponent struct {
-	Key   string  `codec:"key" json:"key"`
-	Value string  `codec:"value" json:"value"`
-	Score float64 `codec:"score" json:"score"`
-}
-
-func (o SearchComponent) DeepCopy() SearchComponent {
-	return SearchComponent{
-		Key:   o.Key,
-		Value: o.Value,
-		Score: o.Score,
-	}
-}
-
-type SearchResult struct {
-	Uid        UID               `codec:"uid" json:"uid"`
-	Username   string            `codec:"username" json:"username"`
-	Components []SearchComponent `codec:"components" json:"components"`
-	Score      float64           `codec:"score" json:"score"`
-}
-
-func (o SearchResult) DeepCopy() SearchResult {
-	return SearchResult{
-		Uid:      o.Uid.DeepCopy(),
-		Username: o.Username,
-		Components: (func(x []SearchComponent) []SearchComponent {
-			if x == nil {
-				return nil
-			}
-			ret := make([]SearchComponent, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Components),
-		Score: o.Score,
-	}
-}
-
 type UserSummary2 struct {
 	Uid        UID    `codec:"uid" json:"uid"`
 	Username   string `codec:"username" json:"username"`
@@ -339,11 +299,6 @@ type ListTrackingJSONArg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
 
-type SearchArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Query     string `codec:"query" json:"query"`
-}
-
 type LoadAllPublicKeysUnverifiedArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -423,8 +378,6 @@ type UserInterface interface {
 	// If assertion is empty, it will use the current logged in user.
 	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
-	// Search for users who match a given query.
-	Search(context.Context, SearchArg) ([]SearchResult, error)
 	// Load all the user's public keys (even those in reset key families)
 	// from the server with no verification
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
@@ -655,22 +608,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.ListTrackingJSON(ctx, typedArgs[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"search": {
-				MakeArg: func() interface{} {
-					var ret [1]SearchArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SearchArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]SearchArg)(nil), args)
-						return
-					}
-					ret, err = i.Search(ctx, typedArgs[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -920,12 +857,6 @@ func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (re
 
 func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
-	return
-}
-
-// Search for users who match a given query.
-func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.search", []interface{}{__arg}, &res)
 	return
 }
 

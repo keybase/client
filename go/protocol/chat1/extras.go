@@ -135,6 +135,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_ATTACHMENTUPLOADED,
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
+	MessageType_UNFURL,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -627,6 +628,14 @@ func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
 
+func (b MessageBody) IsType(typ MessageType) bool {
+	btyp, err := b.MessageType()
+	if err != nil {
+		return false
+	}
+	return btyp == typ
+}
+
 func (b MessageBody) SearchableText() string {
 	typ, err := b.MessageType()
 	if err != nil {
@@ -856,6 +865,14 @@ func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
 
+func (o OutboxRecord) IsUnfurl() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
+}
+
+func (o OutboxRecord) MessageType() MessageType {
+	return o.Msg.ClientHeader.MessageType
+}
+
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
 	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }
@@ -953,6 +970,12 @@ func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
 // which doesn't make much sense in other uses (like chat).
 func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
+}
+
+func (f *ConversationFinalizeInfo) IsResetForUser(username string) bool {
+	// If reset user is the given user, or is blank (only way such a thing
+	// could be in our inbox is if the current user is the one that reset)
+	return f != nil && (f.ResetUser == username || f.ResetUser == "")
 }
 
 func (p *Pagination) Eq(other *Pagination) bool {
@@ -1105,6 +1128,10 @@ func (c Conversation) GetMaxMessageID() MessageID {
 		}
 	}
 	return maxMsgID
+}
+
+func (c Conversation) IsSelfFinalized(username string) bool {
+	return c.GetMembersType() == ConversationMembersType_KBFS && c.GetFinalizeInfo().IsResetForUser(username)
 }
 
 func (m MessageSummary) GetMessageID() MessageID {
@@ -1835,4 +1862,44 @@ func (idx *ConversationIndex) PercentIndexed(conv Conversation) int {
 	}
 	missingIDs := idx.MissingIDs(min, max)
 	return 100 * (1 - (len(missingIDs) / numMessages))
+}
+
+func (u UnfurlRaw) String() string {
+	typ, err := u.UnfurlType()
+	if err != nil {
+		return "<error>"
+	}
+	switch typ {
+	case UnfurlType_GENERIC:
+		return u.Generic().String()
+	}
+	return "<unknown>"
+}
+
+func (g UnfurlGenericRaw) String() string {
+	yield := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
+	}
+	publishTime := ""
+	if g.PublishTime != nil {
+		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
+	}
+	return fmt.Sprintf(`Title: %s
+Url: %s
+SiteName: %s
+PublishTime: %s
+Description: %s
+ImageUrl: %s
+FaviconUrl: %s`, g.Title, g.Url, g.SiteName, publishTime, yield(g.Description),
+		yield(g.ImageUrl), yield(g.FaviconUrl))
+}
+
+func NewUnfurlSettings() UnfurlSettings {
+	return UnfurlSettings{
+		Mode:      UnfurlMode_WHITELISTED,
+		Whitelist: make(map[string]bool),
+	}
 }

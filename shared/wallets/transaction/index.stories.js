@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
+import {platformStyles, styleSheetCreate} from '../../styles'
 import Transaction from '.'
 
 const now = new Date()
@@ -54,7 +55,6 @@ const addConfigs = (stories, namePrefix, storyFn) => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
       const components = []
       statuses.forEach(st => {
-        components.push(JSON.stringify(st))
         memosAndTimes.forEach(mt => {
           readStates.forEach(rs => {
             // a non-complete transaction is already treated as 'unread'.
@@ -72,6 +72,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
                 onSelectTransaction: Sb.action('onSelectTransaction'),
                 onShowProfile: Sb.action('onShowProfile'),
                 selectableText: false,
+                unread: false,
               })
             )
           })
@@ -82,10 +83,21 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   })
 }
 
+const styles = styleSheetCreate({
+  container: platformStyles({
+    isElectron: {
+      maxWidth: 520,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
+})
+
 const load = () => {
   const stories = Sb.storiesOf('Wallets/Transaction', module)
     .addDecorator(story => (
-      <Box2 direction="vertical" style={{maxWidth: 520}}>
+      <Box2 direction="vertical" style={styles.container}>
         {story()}
       </Box2>
     ))

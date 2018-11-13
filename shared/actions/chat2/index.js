@@ -431,7 +431,7 @@ const onChatInboxSynced = (syncRes, state) => {
       const username = state.config.username || ''
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
@@ -453,7 +453,9 @@ const onChatInboxSynced = (syncRes, state) => {
       // Unbox items
       actions.push(
         Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys: items.map(i => Types.stringToConversationIDKey(i.convID)),
+          conversationIDKeys: items
+            .filter(i => i.shouldUnbox)
+            .map(i => Types.stringToConversationIDKey(i.conv.convID)),
           force: true,
         })
       )
@@ -1727,7 +1729,7 @@ const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.Attachment
       convID: Types.keyToConversationID(conversationIDKey),
       messageID,
       backInTime,
-      assetTypes: [RPCChatTypes.localAssetMetadataType.image, RPCChatTypes.localAssetMetadataType.video],
+      assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     })
 
@@ -1939,6 +1941,7 @@ const markThreadAsRead = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
+    | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
     | RouteTreeGen.Actions,
   state: TypedState
@@ -2737,6 +2740,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],

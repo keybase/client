@@ -344,6 +344,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	searcher.SetPageSize(2)
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
+	ictx := IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	g.Indexer = indexer
 
@@ -375,7 +377,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
-
+	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
@@ -1939,6 +1941,7 @@ type serverChatListener struct {
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
+	unfurlPrompt     chan chat1.MessageID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -2016,6 +2019,10 @@ func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID c
 func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
 	n.subteamRename <- convIDs
 }
+func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, domain string) {
+	n.unfurlPrompt <- msgID
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2041,6 +2048,7 @@ func newServerChatListener() *serverChatListener {
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
 		subteamRename:    make(chan []chat1.ConversationID, buf),
+		unfurlPrompt:     make(chan chat1.MessageID, buf),
 	}
 }
 
@@ -5084,7 +5092,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		// Once deleted we can't log back in or send
 		g3 := ctc.as(t, users[3]).h.G().ExternalG()
-		require.NoError(t, g3.Logout())
+		require.NoError(t, g3.Logout(context.TODO()))
 		require.Error(t, users[3].Login(g3))
 		_, err = ctc.as(t, users[3]).chatLocalHandler().PostLocal(ctx3, chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -5122,10 +5130,10 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		t.Logf("get a PUK for user 1 and not for user 2")
 		g1 := ctc.as(t, users[1]).h.G().ExternalG()
-		require.NoError(t, g1.Logout())
+		require.NoError(t, g1.Logout(context.TODO()))
 		require.NoError(t, users[1].Login(g1))
 		g2 := ctc.as(t, users[2]).h.G().ExternalG()
-		require.NoError(t, g2.Logout())
+		require.NoError(t, g2.Logout(context.TODO()))
 
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddTeamMemberAfterReset(ctx,
 			chat1.AddTeamMemberAfterResetArg{

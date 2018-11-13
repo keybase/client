@@ -134,8 +134,13 @@ protocol NotifyChat {
     StaleUpdateType updateType;
   }
 
+  record ChatSyncIncrementalConv {
+    UnverifiedInboxUIItem conv;
+    boolean shouldUnbox;
+  }
+
   record ChatSyncIncrementalInfo {
-    array<UnverifiedInboxUIItem> items;
+    array<ChatSyncIncrementalConv> items;
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {
@@ -228,4 +233,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
 }

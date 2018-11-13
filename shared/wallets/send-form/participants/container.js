@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
@@ -8,21 +9,24 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {compose, connect, setDisplayName, isMobile} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
+  const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
   // If build.to is set, assume it's a valid username.
   return {
+    isRequest: build.isRequest,
     recipientUsername: build.to,
+    errorMessage: built.toErrMsg,
   }
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
-  onShowProfile: (username: string) => {
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
-  },
+  onOpenTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
@@ -31,13 +35,22 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
 })
 
-const ConnectedParticipantsKeybaseUser = compose(
-  connect(
-    mapStateToPropsKeybaseUser,
-    mapDispatchToPropsKeybaseUser,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsKeybaseUser')
+const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
+  const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
+  return {
+    ...stateProps,
+    onShowProfile,
+    onShowSuggestions: dispatchProps.onShowSuggestions,
+    onRemoveProfile: dispatchProps.onRemoveProfile,
+    onChangeRecipient: dispatchProps.onChangeRecipient,
+  }
+}
+
+const ConnectedParticipantsKeybaseUser = namedConnect(
+  mapStateToPropsKeybaseUser,
+  mapDispatchToPropsKeybaseUser,
+  mergePropsKeybaseUser,
+  'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
 const mapStateToPropsStellarPublicKey = state => {
@@ -57,17 +70,11 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
 })
 
-const ConnectedParticipantsStellarPublicKey = compose(
-  connect(
-    mapStateToPropsStellarPublicKey,
-    mapDispatchToPropsStellarPublicKey,
-    (s, d, o) => ({
-      ...o,
-      ...s,
-      ...d,
-    })
-  ),
-  setDisplayName('ParticipantsStellarPublicKey')
+const ConnectedParticipantsStellarPublicKey = namedConnect(
+  mapStateToPropsStellarPublicKey,
+  mapDispatchToPropsStellarPublicKey,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsStellarPublicKey'
 )(ParticipantsStellarPublicKey)
 
 const makeAccount = (stateAccount: Types.Account) => ({
@@ -102,38 +109,32 @@ const mapStateToPropsOtherAccount = state => {
   }
 }
 
-const mapDispatchToPropsOtherAccount = (dispatch, ownProps) => ({
+const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount:
-    ownProps.onCreateNewAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
-        })
-      )),
-  onLinkAccount:
-    ownProps.onLinkAccount ||
-    (() =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
-        })
-      )),
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'createNewAccount'}],
+      })
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: true, fromSendForm: true}, selected: 'linkExisting'}],
+      })
+    ),
 })
 
-const ConnectedParticipantsOtherAccount = compose(
-  connect(
-    mapStateToPropsOtherAccount,
-    mapDispatchToPropsOtherAccount,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('ParticipantsOtherAccount')
+const ConnectedParticipantsOtherAccount = namedConnect(
+  mapStateToPropsOtherAccount,
+  mapDispatchToPropsOtherAccount,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ParticipantsOtherAccount'
 )(ParticipantsOtherAccount)
 
 const mapStateToPropsChooser = state => {
@@ -149,29 +150,22 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
 
     case 'otherAccount':
-      return (
-        <ConnectedParticipantsOtherAccount
-          onLinkAccount={props.onLinkAccount}
-          onCreateNewAccount={props.onCreateNewAccount}
-        />
-      )
+      return <ConnectedParticipantsOtherAccount />
 
     default:
       /*::
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (recipientType: empty) => any
     ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.recipientType);
     */
-      return null
+      throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
 }
 
-const ConnectedParticipantsChooser = compose(
-  connect(
-    mapStateToPropsChooser,
-    () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Participants')
+const ConnectedParticipantsChooser = namedConnect(
+  mapStateToPropsChooser,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Participants'
 )(ParticipantsChooser)
 
 export default ConnectedParticipantsChooser

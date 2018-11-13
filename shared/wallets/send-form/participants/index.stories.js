@@ -70,7 +70,7 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-export const participantProviderProperties = {
+const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 }
@@ -101,6 +101,7 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
+  isRequest: false,
   recipientUsername: '',
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
@@ -136,9 +137,10 @@ const load = () => {
     .add('To Keybase user chris', () => (
       <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
     ))
-    .add('To stellar address', () => (
-      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} onScanQRCode={null} />
+    .add('Request from Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} isRequest={true} recipientUsername="chris" />
     ))
+    .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('To stellar address with QR', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />

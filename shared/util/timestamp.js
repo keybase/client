@@ -2,6 +2,26 @@
 
 import moment from 'moment'
 
+export function formatTimeForChat(time: number): ?string {
+  const m = moment(time)
+  const now = moment()
+  const today = now.clone().startOf('day')
+  const lastWeek = today.clone().subtract(7, 'day')
+  const lastMonth = today.clone().subtract(1, 'month')
+  const lastYear = today.clone().subtract(1, 'year')
+  const hma = m.format('h:mm A')
+
+  if (m.isSame(today, 'd')) {
+    return hma
+  } else if (m.isAfter(lastWeek)) {
+    return `${hma} - ${m.format('ddd')}`
+  } else if (m.isAfter(lastMonth)) {
+    return `${hma} - ${m.format('D MMM')}`
+  } else if (m.isAfter(lastYear)) {
+    return `${hma} - ${m.format('D MMM YY')}`
+  }
+}
+
 export function formatTimeForConversationList(time: number, nowOverride?: ?number): string {
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()
@@ -81,6 +101,11 @@ export const formatDurationFromNowTo = (timeInFuture?: number): string =>
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)
   return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
+}
+
+export function formatTimeForStellarDetail(timestamp: Date) {
+  const m = moment(timestamp)
+  return m.format('ddd, MMM DD YYYY - h:mm A') // Tue, Jan 5 2018 - 4:34 PM
 }
 
 export function formatTimeForStellarTooltip(timestamp: Date) {

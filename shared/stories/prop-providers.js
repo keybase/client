@@ -49,10 +49,11 @@ export const Usernames = (following: string[] = defaultFollowing, you: string = 
   },
 })
 
+// Pass "waitingKey: true" to this to render the waiting state
 export const WaitingButton = () => ({
   WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
     ...ownProps,
-    storeWaiting: false,
+    storeWaiting: ownProps.waitingKey === 'true',
   }),
 })
 

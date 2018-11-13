@@ -1,12 +1,14 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
-import {connect, compose, setDisplayName} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
   onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
+  onSelectUp: () => void,
+  onSelectDown: () => void,
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
@@ -25,11 +27,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSelectDown: ownProps.onSelectDown,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('ChatInboxHeaderContainer')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ChatInboxHeaderContainer'
 )(ChatInboxHeader)

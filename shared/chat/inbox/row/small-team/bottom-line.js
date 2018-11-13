@@ -1,5 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
+import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -22,6 +23,7 @@ type Props = {
   youAreReset: boolean,
   hasResetUsers: boolean,
   isSelected: boolean,
+  isDecryptingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -51,6 +53,8 @@ class BottomLine extends PureComponent<Props> {
           Waiting for participants to rekey
         </Text>
       )
+    } else if (this.props.isDecryptingSnippet) {
+      content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
     } else if (this.props.snippet) {
       const style = collapseStyles([
         styles.bottomLine,
@@ -184,23 +188,23 @@ const styles = styleSheetCreate({
       lineHeight: undefined,
     },
     isElectron: {
+      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
       lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
-      paddingRight: 30,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
     },
     isMobile: {
+      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_40,
       flex: 1,
       fontSize: 14,
-      paddingRight: 30,
     },
   }),
   contentBox: {

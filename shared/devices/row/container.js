@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
-import {connect, compose, setDisplayName} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import DeviceRow from '.'
 
 type OwnProps = {deviceID: Types.DeviceID, firstItem: boolean}
@@ -33,6 +33,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.type,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('DeviceRow'))(
-  DeviceRow
-)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)

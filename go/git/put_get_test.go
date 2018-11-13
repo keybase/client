@@ -132,7 +132,7 @@ func TestPutAndGet(t *testing.T) {
 func ResetAccountAndLogout(tc libkb.TestContext, u *kbtest.FakeUser) {
 	err := libkb.ResetAccount(libkb.NewMetaContextForTest(tc), u.NormalizedUsername(), u.Passphrase)
 	require.NoError(tc.T, err)
-	err = tc.G.Logout()
+	err = tc.G.Logout(context.TODO())
 	require.NoError(tc.T, err)
 }
 
@@ -313,7 +313,7 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 	require.Equal(t, true, firstRepo.CanDelete, "owners/admins should be able to delete")
 
 	// Now log in as u1, load the repo again, and confirm that u1 sees it as CanDelete=FALSE.
-	err = tc.G.Logout()
+	err = tc.G.Logout(context.TODO())
 	require.NoError(t, err)
 	err = u1.Login(tc.G)
 	require.NoError(t, err)

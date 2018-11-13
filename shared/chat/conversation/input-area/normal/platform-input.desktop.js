@@ -245,10 +245,8 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
               ref={this.props.setAttachmentRef}
               style={Styles.collapseStyles([
                 styles.explodingIconContainer,
-                {
-                  backgroundColor: this.props.explodingModeSeconds
-                    ? Styles.globalColors.black_75
-                    : Styles.globalColors.white,
+                !!this.props.explodingModeSeconds && {
+                  backgroundColor: Styles.globalColors.black_75,
                 },
               ])}
             >
@@ -284,14 +282,7 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
             autoFocus={false}
             small={true}
-            style={Styles.collapseStyles([
-              styles.input,
-              {
-                backgroundColor: this.props.isEditing
-                  ? Styles.globalColors.yellow3
-                  : Styles.globalColors.white,
-              },
-            ])}
+            style={styles.input}
             ref={this._inputSetRef}
             hintText={hintText}
             hideUnderline={true}
@@ -388,21 +379,21 @@ const isTyping = typing => {
   }
 }
 
-const InputAccessory = Component => props => (
+const MentionHud = props => (
   <Kb.Box style={styles.accessoryContainer}>
     <Kb.Box style={styles.accessory}>
-      <Component {...props} />
+      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
     </Kb.Box>
   </Kb.Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
+const ChannelMentionHud = props => (
+  <Kb.Box style={styles.accessoryContainer}>
+    <Kb.Box style={styles.accessory}>
+      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
+    </Kb.Box>
+  </Kb.Box>
+)
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   <Kb.Box>

@@ -82,7 +82,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
 		chat1.MessageType_DELETEHISTORY,
-		chat1.MessageType_SENDPAYMENT:
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_UNFURL:
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)
@@ -96,9 +97,11 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline),
 			HeadlineMaxLength)
 	case chat1.MessageType_METADATA:
-		topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
-		if validateTopicNameResOK != topicNameRes {
-			return errors.New(topicNameRes.String())
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
+			if validateTopicNameResOK != topicNameRes {
+				return errors.New(topicNameRes.String())
+			}
 		}
 		return nil
 	case chat1.MessageType_REQUESTPAYMENT:

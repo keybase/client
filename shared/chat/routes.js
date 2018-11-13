@@ -70,19 +70,19 @@ const chatChildren = {
   },
   attachmentFullscreen: {
     component: AttachmentFullscreen,
-    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    tags: makeLeafTags(
+      isMobile ? {hideStatusBar: true, fullscreen: true, underNotch: true} : {layerOnTop: true}
+    ),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentVideoFullscreen: {
     component: AttachmentVideoFullscreen,
-    tags: makeLeafTags(
-      isMobile ? {hideStatusBar: true, underStatusBar: true, fullscreen: true} : {layerOnTop: true}
-    ),
+    tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentGetTitles: {
     component: AttachmentGetTitles,
-    tags: makeLeafTags({layerOnTop: true}),
+    tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   infoPanel: {
@@ -108,12 +108,12 @@ const chatChildren = {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
       },
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
       },
       qrScan: {
         component: QRScan,
@@ -121,7 +121,7 @@ const chatChildren = {
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, hideStatusBar: true, underStatusBar: true}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
   },
 }
 

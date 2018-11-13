@@ -33,7 +33,7 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 	if err != nil {
 		return idUI, nil, err
 	}
-	res, err = eng.Result()
+	res, err = eng.Result(m)
 	if err != nil {
 		return idUI, nil, err
 	}

@@ -178,11 +178,11 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 %~1
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 %~1
+SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

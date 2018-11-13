@@ -5,6 +5,8 @@ import * as Constants from '../../../constants/chat2'
 import {connect} from '../../../util/container'
 import NewConversation from '.'
 
+type OwnProps = {||}
+
 type Props = {
   isSelected: boolean,
   onCancel: () => void,
@@ -26,7 +28,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
   onClick: () =>
     dispatch(
@@ -60,7 +62,7 @@ class NewChooser extends React.PureComponent<Props> {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

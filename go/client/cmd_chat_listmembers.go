@@ -31,6 +31,7 @@ func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		ArgumentHelp: "[conversation [channel name]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListMembersRunner(g), "list-members", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}

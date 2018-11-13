@@ -5,10 +5,10 @@ import assetInput, {props4 as assetInputProps} from './asset-input/index.stories
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
-import participants, {participantProviderProperties} from './participants/index.stories'
+import participants from './participants/index.stories'
 import type {Props as AvailableProps} from './available'
 
-import {SendForm, RequestForm} from '.'
+import SendRequestForm from '.'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
@@ -36,17 +36,16 @@ const provider = Sb.createPropProviderWithCommon({
   ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
   ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
   Participants: props => ({
+    recipientType: 'keybaseUser',
+  }),
+  ParticipantsKeybaseUser: props => ({
+    isRequest: false,
+    recipientUsername: 'chris',
     onShowProfile: Sb.action('onShowProfile'),
     onShowSuggestions: Sb.action('onShowSuggestions'),
+    onRemoveProfile: Sb.action('onRemoveProfile'),
+    onChangeRecipient: Sb.action('onChangeRecipient'),
   }),
-  Root: props => ({
-    onClose: Sb.action('onClose'),
-    onLinkAccount: Sb.action('onLinkAccount'),
-    onCreateNewAccount: Sb.action('onCreateNewAccount'),
-    isProcessing: props.isProcessing,
-    isRequest: props.isRequest,
-  }),
-  ...participantProviderProperties,
 })
 
 const load = () => {
@@ -59,8 +58,8 @@ const load = () => {
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClose={Sb.action('onClose')} />)
-    .add('Request', () => <RequestForm onClose={Sb.action('onClose')} />)
+    .add('Send', () => <SendRequestForm isRequest={false} onClose={Sb.action('onClose')} />)
+    .add('Request', () => <SendRequestForm isRequest={true} onClose={Sb.action('onClose')} />)
 }
 
 export default load

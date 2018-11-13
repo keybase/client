@@ -3,8 +3,14 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
+import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
+
+type OwnProps = {|
+  size: number,
+  style?: Styles.StylesCrossPlatform,
+|}
 
 const mapStateToProps = state => ({
   _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),
@@ -29,14 +35,16 @@ const mapDispatchToProps = dispatch => ({
 
 const renderNothingProps = {shouldRender: false}
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  if (stateProps._meta.teamType !== 'adhoc' || stateProps._meta.participants.size !== 2) {
-    // Only show this for one-on-one conversations
+  // Only show this for adhoc conversations.
+  if (stateProps._meta.teamType !== 'adhoc') {
     return renderNothingProps
   }
-  const to = stateProps._meta.participants.find(u => u !== stateProps._you)
-  if (!to) {
+  const otherParticipants = stateProps._meta.participants.filter(u => u !== stateProps._you)
+  // Only show this for one-on-one conversations.
+  if (otherParticipants.size !== 1) {
     return renderNothingProps
   }
+  const to = otherParticipants.first()
   return {
     isNew: stateProps.isNew,
     onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
@@ -56,13 +64,11 @@ const Wrapper = (props: WrapperProps) => {
   return null
 }
 
-const WalletsIcon = Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Container.setDisplayName('WalletsIcon')
+const WalletsIcon = Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'WalletsIcon'
 )(Wrapper)
 
 export default WalletsIcon

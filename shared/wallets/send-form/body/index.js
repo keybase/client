@@ -9,14 +9,10 @@ import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import type {Banner as BannerType} from '../../../constants/types/wallets'
 
-type SendBodyProps = {
+type SendBodyProps = {|
   banners: Array<BannerType>,
   isProcessing?: boolean,
-  onChooseAsset?: () => void,
-  onConfirm?: () => void,
-  onCreateNewAccount?: () => void,
-  onLinkAccount?: () => void,
-}
+|}
 
 type RequestBodyProps = {
   banners: Array<BannerType>,
@@ -36,13 +32,13 @@ export const SendBody = (props: SendBodyProps) => (
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
       ))}
-      <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
-      <AssetInput onChooseAsset={props.onChooseAsset} />
+      <Participants />
+      <AssetInput />
       <Kb.Divider />
       <SecretNote />
       <PublicMemo />
     </Kb.ScrollView>
-    <Footer onConfirm={props.onConfirm} />
+    <Footer />
   </Kb.Box2>
 )
 

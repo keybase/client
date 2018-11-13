@@ -3,13 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {Notifications} from '.'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  withStateHandlers,
-} from '../../../../util/container'
+import {compose, namedConnect, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -61,12 +55,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(
+  namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
+    mergeProps,
+    'LifecycleNotifications'
   ),
-  setDisplayName('LifecycleNotifications'),
   withStateHandlers(
     props => ({
       channelWide: props._storeChannelWide,

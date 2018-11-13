@@ -13,21 +13,21 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
     mouseDown: false,
     mouseIn: false,
   }
-  _onMouseEnter = () => {
+  _onMouseEnter = e => {
     this.setState({mouseIn: true})
-    this.props.onMouseEnter && this.props.onMouseEnter()
+    this.props.onMouseEnter && this.props.onMouseEnter(e)
   }
-  _onMouseLeave = () => {
+  _onMouseLeave = e => {
     this.setState({mouseIn: false})
-    this.props.onMouseLeave && this.props.onMouseLeave()
+    this.props.onMouseLeave && this.props.onMouseLeave(e)
   }
-  _onMouseDown = () => {
+  _onMouseDown = e => {
     this.setState({mouseDown: true})
-    this.props.onMouseDown && this.props.onMouseDown()
+    this.props.onMouseDown && this.props.onMouseDown(e)
   }
-  _onMouseUp = () => {
+  _onMouseUp = e => {
     this.setState({mouseDown: false})
-    this.props.onMouseUp && this.props.onMouseUp()
+    this.props.onMouseUp && this.props.onMouseUp(e)
   }
 
   render() {

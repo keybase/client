@@ -380,7 +380,9 @@ class Profile extends Component<Props, State> {
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingTop: Styles.isIPhoneX ? 40 : Styles.globalMargins.tiny + Styles.statusBarHeight,
+            paddingTop: Styles.globalMargins.tiny,
+            paddingLeft: Styles.globalMargins.tiny,
+            paddingRight: Styles.globalMargins.tiny,
           }}
         >
           {this.props.onBack && (
@@ -498,6 +500,7 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
+        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: trackerStateColors.header.background}} />
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
@@ -608,7 +611,6 @@ const styles = Styles.styleSheetCreate({
 const styleBack = {
   left: 0,
   position: 'absolute',
-  top: Styles.isIPhoneX ? 36 : 22,
 }
 
 const styleHeader = {

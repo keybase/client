@@ -88,6 +88,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {|
+  detailView: boolean,
   large: boolean,
   pending: boolean,
   yourRole: Types.Role,
@@ -104,6 +105,8 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeSemiboldItalic = props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
+  // u2026 is an ellipsis
+  const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
   const amount = props.isXLM ? (
     <Text selectable={props.selectableText} type={textTypeExtrabold}>
@@ -136,14 +139,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from this account to {counterparty()}.
+            {verbPhrase} {amount} from this account to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} to {counterparty()}.
+            {verbPhrase} {amount} to {counterparty()}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -152,14 +157,16 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account.
+            {verbPhrase} {amount} from {counterparty()} to this account
+            {textSentenceEnd}
           </Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {counterparty()} {verbPhrase} {amount}.
+            {counterparty()} {verbPhrase} {amount}
+            {textSentenceEnd}
           </Text>
         )
       }
@@ -167,7 +174,8 @@ const Detail = (props: DetailProps) => {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold} style={textStyle}>
-          {verbPhrase} {amount} from this account to itself.
+          {verbPhrase} {amount} from this account to itself
+          {textSentenceEnd}
         </Text>
       )
     default:
@@ -239,26 +247,39 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
-type TimestampLineProps = {|
+type TimestampErrorProps = {|
   error: string,
   status?: Types.StatusSimplified,
+|}
+
+export const TimestampError = (props: TimestampErrorProps) => (
+  <Text type="BodySmallError">
+    {props.status ? capitalize(props.status) + ' • ' : ''}
+    The Stellar network did not approve this transaction - {props.error}
+  </Text>
+)
+
+export const TimestampPending = () => (
+  <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+)
+
+type TimestampLineProps = {|
+  error: string,
+  status: Types.StatusSimplified,
   timestamp: ?Date,
   selectableText: boolean,
 |}
 
-export const TimestampLine = (props: TimestampLineProps) => {
+const TimestampLine = (props: TimestampLineProps) => {
   if (props.error) {
-    return (
-      <Text type="BodySmallError">
-        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
-      </Text>
-    )
+    return <TimestampError error={props.error} status={props.status} />
   }
-  if (!props.timestamp) {
-    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+  const timestamp = props.timestamp
+  if (!timestamp) {
+    return <TimestampPending />
   }
-  const human = formatTimeForMessages(props.timestamp)
-  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
+  const human = formatTimeForMessages(timestamp)
+  const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
   // 'cancelable' -> show 'pending' and completed -> show nothing
   switch (status) {
@@ -284,6 +305,7 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  detailView?: boolean,
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string,
@@ -298,6 +320,7 @@ export type Props = {|
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
+  unread: boolean,
   yourRole: Types.Role,
 |}
 
@@ -314,7 +337,7 @@ export const Transaction = (props: Props) => {
       showMemo = props.yourRole !== 'receiverOnly'
       break
     case 'otherAccount':
-      large = !!props.memo
+      large = true
       showMemo = !!props.memo
       break
     default:
@@ -325,8 +348,7 @@ export const Transaction = (props: Props) => {
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
   const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
-  const unread = props.readState === 'unread' || props.readState === 'oldestUnread'
-  const backgroundColor = pending || unread ? globalColors.blue4 : globalColors.white
+  const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -345,6 +367,7 @@ export const Transaction = (props: Props) => {
               timestamp={props.timestamp}
             />
             <Detail
+              detailView={!!props.detailView}
               large={large}
               pending={pending}
               canceled={props.status === 'canceled'}
@@ -410,7 +433,6 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.xtiny,
   },
   orangeLine: {backgroundColor: globalColors.orange, height: 1},
-  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,

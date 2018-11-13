@@ -112,7 +112,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flexGrow: 1,
-      maxWidth: 360,
       paddingTop: 98,
       width: '100%',
     },
