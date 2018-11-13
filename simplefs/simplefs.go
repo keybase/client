@@ -1982,3 +1982,58 @@ func (k *SimpleFS) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	res.GitLimitBytes = status.GitLimitBytes
 	return res, nil
 }
+
+func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
+	tlfID tlf.ID, config keybase1.FolderSyncConfig,
+	err error) {
+	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	if err != nil {
+		return tlf.NullID, keybase1.FolderSyncConfig{}, err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), tlfName, t)
+	if err != nil {
+		return tlf.NullID, keybase1.FolderSyncConfig{}, err
+	}
+
+	config = keybase1.FolderSyncConfig{Mode: keybase1.FolderSyncMode_DISABLED}
+	if k.config.IsSyncedTlf(tlfHandle.TlfID()) {
+		config.Mode = keybase1.FolderSyncMode_ENABLED
+	}
+	return tlfHandle.TlfID(), config, nil
+}
+
+// SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
+func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
+	ctx context.Context, path keybase1.Path) (
+	keybase1.FolderSyncConfigAndStatus, error) {
+	_, config, err := k.getSyncConfig(ctx, path)
+	if err != nil {
+		return keybase1.FolderSyncConfigAndStatus{}, err
+	}
+	return keybase1.FolderSyncConfigAndStatus{Config: config}, err
+}
+
+// SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
+	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	tlfID, config, err := k.getSyncConfig(ctx, arg.Path)
+	if err != nil {
+		return err
+	}
+
+	if arg.Config.Mode == config.Mode {
+		// Already done!
+		return nil
+	}
+
+	switch arg.Config.Mode {
+	case keybase1.FolderSyncMode_DISABLED:
+		return k.config.SetTlfSyncState(tlfID, false)
+	case keybase1.FolderSyncMode_ENABLED:
+		return k.config.SetTlfSyncState(tlfID, true)
+	default:
+		return simpleFSError{
+			fmt.Sprintf("Unknown config mode: %s", arg.Config.Mode)}
+	}
+}
