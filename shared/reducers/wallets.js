@@ -144,6 +144,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .set('building', state.get('building').merge({sendAssetChoices}))
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
+    case WalletsGen.setReadyToSend:
+      return state.set(
+        'builtPayment',
+        state.get('builtPayment').merge({readyToSend: action.payload.readyToSend})
+      )
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
