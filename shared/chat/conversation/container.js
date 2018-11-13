@@ -10,6 +10,8 @@ import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
+type OwnProps = {||}
+
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
@@ -75,7 +77,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let type
   switch (stateProps.conversationIDKey) {
     case Constants.noConversationIDKey:
@@ -105,7 +107,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps

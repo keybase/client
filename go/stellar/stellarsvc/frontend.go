@@ -835,7 +835,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	} else {
 		owns, fromPrimary, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
 		if err != nil || !owns {
-			log("OwnsAccount -> owns:%v err:%v", owns, err)
+			log("OwnsAccount (from) -> owns:%v err:%v", owns, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 				Level:   "error",
 				Message: "Could not find source account.",
@@ -928,7 +928,19 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 					} else if !isFunded {
 						// Sending to a non-funded stellar account.
 						minAmountXLM = "1"
-						addMinBanner(bannerTheir, minAmountXLM)
+						owns, _, err := bpc.OwnsAccount(s.mctx(ctx), stellar1.AccountID(recipient.AccountID.String()))
+						log("OwnsAccount (to) -> owns:%v err:%v", owns, err)
+						if !owns || err != nil {
+							// Likely sending to someone else's account.
+							addMinBanner(bannerTheir, minAmountXLM)
+						} else {
+							// Sending to our own account.
+							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+								HideOnConfirm: true,
+								Level:         "info",
+								Message:       fmt.Sprintf("Because it's the first transaction on your receiving account, you must send at least %v.", minAmountXLM),
+							})
+						}
 					}
 				}
 			}

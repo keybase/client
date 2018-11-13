@@ -284,44 +284,47 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 	}
 }
 
-func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversation,
-	topicNameChanged []chat1.ConversationID) (res []chat1.Conversation) {
-	m := make(map[string]bool)
+func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Conversation,
+	topicNameChanged []chat1.ConversationID) (m map[string]bool) {
+	m = make(map[string]bool)
 	for _, t := range topicNameChanged {
 		m[t.String()] = true
 	}
 	for _, conv := range convs {
-		include := false
+		if m[conv.GetConvID().String()] {
+			continue
+		}
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
 			if conv.GetTopicType() != chat1.TopicType_CHAT ||
 				conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
-				m[conv.GetConvID().String()] ||
 				conv.GetConvID().Eq(s.GetSelectedConversation()) {
-				include = true
+				m[conv.GetConvID().String()] = true
 			}
 		default:
-			include = true
-		}
-		if include {
-			res = append(res, conv)
+			m[conv.GetConvID().String()] = true
 		}
 	}
-	return res
+	return m
 }
 
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
-	allConvs []chat1.UnverifiedInboxUIItem) {
+	allConvs []chat1.Conversation, shouldUnboxMap map[string]bool) {
 	if len(allConvs) == 0 {
 		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
 		s.G().ActivityNotifier.InboxSynced(ctx, uid, chat1.TopicType_NONE,
 			chat1.NewChatSyncResultWithCurrent())
 		return
 	}
-	m := make(map[chat1.TopicType][]chat1.UnverifiedInboxUIItem)
+	m := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
 	for _, c := range allConvs {
-		m[c.TopicType] = append(m[c.TopicType], c)
+		m[c.GetTopicType()] = append(m[c.GetTopicType()], chat1.ChatSyncIncrementalConv{
+			Conv: utils.PresentRemoteConversation(types.RemoteConversation{
+				Conv: c,
+			}),
+			ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
+		})
 	}
 	for _, topicType := range chat1.TopicTypeMap {
 		if topicType == chat1.TopicType_NONE {
@@ -421,9 +424,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 					chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
-				convs := utils.PresentRemoteConversations(
-					utils.RemoteConvs(s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)))
-				s.notifyIncrementalSync(ctx, uid, convs)
+				shouldUnboxMap := s.getShouldUnboxSyncConvMap(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
+				s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
 			}
 		}
 

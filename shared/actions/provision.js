@@ -365,16 +365,23 @@ class ProvisioningManager {
       }
       this._stashedResponse = null
       this._stashedResponseKey = null
-      // clear errors and nav to root always
-      return Saga.sequentially([
-        Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')})),
-        Saga.put(
-          RouteTreeGen.createNavigateTo({
-            parentPath: [],
-            path: doingDeviceAdd ? devicesRoot : [Tabs.loginTab],
-          })
-        ),
-      ])
+
+      // clear errors always, and nav to root if we actually canceled something
+      return Saga.sequentially(
+        [
+          Saga.put(ProvisionGen.createProvisionError({error: new HiddenString('')})),
+          ...(response
+            ? [
+                Saga.put(
+                  RouteTreeGen.createNavigateTo({
+                    parentPath: [],
+                    path: doingDeviceAdd ? devicesRoot : [Tabs.loginTab],
+                  })
+                ),
+              ]
+            : []),
+        ].filter(Boolean)
+      )
     }
   }
 }

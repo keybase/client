@@ -18,6 +18,7 @@ const cases = {
   transparentEmojis: ` 😀 😁 😍 ☝️ `,
   transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
   transparentEmojis3: `😶`,
+  mailto: `email bob@keybase.io`,
   nonemoji: `:party-parrot:`,
   quoteInParagraph: `Do you remember when you said:
 > Where do I make the left turn?`,
@@ -50,6 +51,7 @@ Ignore:
   mailto:blah@blah.com
   nytimes.json
 Include:
+  https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
   http://abc.io
   http://cbs.io/
   *http://cnn.io*
@@ -64,6 +66,7 @@ Include:
   http://t.co
   t.co
   10.0.0.24
+  https://10.0.0.24
   google.com
   keybase.io/a/user/lookup?one=1&two=2
   keybase.io/a/user/path_with_underscore
@@ -99,6 +102,7 @@ something unrelated
 
 > Separate paragraph
 `,
+  'Quotes super nested': `> > > > > > > > > foo bar`,
   'Quotes 3': `> _foo_ and *bar*! \`\`\`
 a = 1
 \`\`\`

@@ -105,4 +105,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactButton')(Wrapper)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ReactButton'
+)(Wrapper)

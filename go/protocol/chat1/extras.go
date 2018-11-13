@@ -865,6 +865,14 @@ func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
 
+func (o OutboxRecord) IsUnfurl() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_UNFURL
+}
+
+func (o OutboxRecord) MessageType() MessageType {
+	return o.Msg.ClientHeader.MessageType
+}
+
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
 	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }
@@ -1877,10 +1885,10 @@ func (g UnfurlGenericRaw) String() string {
 	}
 	publishTime := ""
 	if g.PublishTime != nil {
-		publishTime = fmt.Sprintf("%d", *g.PublishTime)
+		publishTime = fmt.Sprintf("%v", time.Unix(int64(*g.PublishTime), 0))
 	}
 	return fmt.Sprintf(`Title: %s
-URL: %s
+Url: %s
 SiteName: %s
 PublishTime: %s
 Description: %s

@@ -16,7 +16,7 @@ import (
 
 type CmdChatRead struct {
 	libkb.Contextified
-	fetcher        chatCLIConversationFetcher
+	fetcher        chatCLIConvFetcher
 	showDeviceName bool
 }
 
@@ -44,7 +44,7 @@ func (c *CmdChatRead) Fetch() (conversations chat1.ConversationLocal, messages [
 }
 
 func (c *CmdChatRead) SetTeamChatForTest(n string) {
-	c.fetcher = chatCLIConversationFetcher{
+	c.fetcher = chatCLIConvFetcher{
 		query: chat1.GetConversationForCLILocalQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			Limit: chat1.UnreadFirstNumLimit{

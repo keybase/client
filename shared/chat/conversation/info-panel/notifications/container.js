@@ -55,7 +55,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LifecycleNotifications'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'LifecycleNotifications'
+  ),
   withStateHandlers(
     props => ({
       channelWide: props._storeChannelWide,

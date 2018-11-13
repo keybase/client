@@ -1,7 +1,6 @@
 package search
 
 import (
-	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -93,26 +92,4 @@ func TestTokenize(t *testing.T) {
 	}
 	// empty case
 	require.Nil(t, tokenize(""))
-}
-
-func TestGetQueryRe(t *testing.T) {
-	queries := []string{
-		"foo",
-		"foo bar",
-		"foo bar, baz? :+1:",
-	}
-	expectedRe := []string{
-		"foo",
-		"foo bar",
-		"foo bar, baz\\? :\\+1:",
-	}
-	for i, query := range queries {
-		re, err := getQueryRe(query)
-		require.NoError(t, err)
-		expected := regexp.MustCompile("(?i)" + expectedRe[i])
-		require.Equal(t, expected, re)
-		t.Logf("query: %v, expectedRe: %v, re: %v", query, expectedRe, re)
-		ok := re.MatchString(query)
-		require.True(t, ok)
-	}
 }

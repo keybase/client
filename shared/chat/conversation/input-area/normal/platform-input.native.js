@@ -229,21 +229,21 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 }
 
-const InputAccessory = Component => props => (
+const MentionHud = props => (
   <Box style={styles.accessoryContainer}>
     <Box style={styles.accessory}>
-      <Component {...props} />
+      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
     </Box>
   </Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
+const ChannelMentionHud = props => (
+  <Box style={styles.accessoryContainer}>
+    <Box style={styles.accessory}>
+      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
+    </Box>
+  </Box>
+)
 
 const Typing = () => (
   <Box style={styles.typing}>

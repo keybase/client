@@ -1060,6 +1060,19 @@ protocol teams {
   boolean getTarsDisabled(string name);
   void setTarsDisabled(string name, boolean disabled);
 
+  // List of teams for that "Add to team..." screen on the profile screen.
+  // All return values are server-trust so only use where safe.
+  array<TeamProfileAddEntry> teamProfileAddList(int sessionID, string username);
+
+  record TeamProfileAddEntry {
+    TeamName teamName;
+    boolean open;
+    // Reason for disabling selection.
+    // "" if enabled
+    // Examples: "modalduality is already a member.", "Only admins can add people."
+    string disabledReason;
+  }
+
   void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
 
   bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce,

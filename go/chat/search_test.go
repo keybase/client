@@ -661,6 +661,29 @@ func TestChatSearchInbox(t *testing.T) {
 		verifyHit(convID, []chat1.MessageID{msgID2, msgID3}, msgID4, nil, []string{query}, convHit.Hits[0])
 		verifySearchDone(1)
 
+		// Test search boosting with a query indexing would miss
+		query = "ited"
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{msgID2, msgID3}, msgID4, nil, []string{query}, convHit.Hits[0])
+		verifySearchDone(1)
+
+		// Test search boost conv/msg limits
+		indexer1.SetMaxBoostConvs(0)
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 0, len(res.Hits))
+		verifySearchDone(0)
+
+		indexer1.SetMaxBoostConvs(5)
+		indexer1.SetMaxBoostMsgs(0)
+		res = runSearch(query, opts, false /* expectedReindex*/)
+		require.Equal(t, 0, len(res.Hits))
+		verifySearchDone(0)
+		indexer1.SetMaxBoostMsgs(5)
+
 		// Test delete
 		msgID6 := mustDeleteMsg(tc2.startCtx, t, ctc, u2, conv, msgID4)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)

@@ -152,8 +152,6 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       }
       return state.merge({globalError})
     }
-    case ConfigGen.debugDump:
-      return state.merge({debugDump: action.payload.items})
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
