@@ -24,8 +24,12 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) =>
-  (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: any) => {
+  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
+    // didn't change state.building; no need to call build
+    return
+  }
+  return (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -68,6 +72,7 @@ const buildPayment = (state: TypedState, action: any) =>
       throw error
     }
   })
+}
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
   state.wallets.acceptedDisclaimer
@@ -669,16 +674,15 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
-    a =>
-      [
-        WalletsGen.buildPayment,
-        WalletsGen.setBuildingAmount,
-        WalletsGen.setBuildingCurrency,
-        WalletsGen.setBuildingFrom,
-        WalletsGen.setBuildingIsRequest,
-        WalletsGen.setBuildingTo,
-      ].includes(a.type) ||
-      (a.type === WalletsGen.displayCurrencyReceived && a.payload.setBuildingCurrency),
+    [
+      WalletsGen.buildPayment,
+      WalletsGen.setBuildingAmount,
+      WalletsGen.setBuildingCurrency,
+      WalletsGen.setBuildingFrom,
+      WalletsGen.setBuildingIsRequest,
+      WalletsGen.setBuildingTo,
+      WalletsGen.displayCurrencyReceived,
+    ],
     buildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
