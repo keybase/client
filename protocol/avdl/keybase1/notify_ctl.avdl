@@ -8,8 +8,8 @@ protocol notifyCtl {
     boolean session;
     boolean users;
     boolean kbfs;
-    boolean kbfsDesktop;
-    boolean kbfsLegacy;
+    boolean kbfsdesktop;
+    boolean kbfslegacy;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;

@@ -12,8 +12,8 @@ type NotificationChannels struct {
 	Session         bool `codec:"session" json:"session"`
 	Users           bool `codec:"users" json:"users"`
 	Kbfs            bool `codec:"kbfs" json:"kbfs"`
-	KbfsDesktop     bool `codec:"kbfsDesktop" json:"kbfsDesktop"`
-	KbfsLegacy      bool `codec:"kbfsLegacy" json:"kbfsLegacy"`
+	Kbfsdesktop     bool `codec:"kbfsdesktop" json:"kbfsdesktop"`
+	Kbfslegacy      bool `codec:"kbfslegacy" json:"kbfslegacy"`
 	Tracking        bool `codec:"tracking" json:"tracking"`
 	Favorites       bool `codec:"favorites" json:"favorites"`
 	Paperkeys       bool `codec:"paperkeys" json:"paperkeys"`
@@ -39,8 +39,8 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Session:         o.Session,
 		Users:           o.Users,
 		Kbfs:            o.Kbfs,
-		KbfsDesktop:     o.KbfsDesktop,
-		KbfsLegacy:      o.KbfsLegacy,
+		Kbfsdesktop:     o.Kbfsdesktop,
+		Kbfslegacy:      o.Kbfslegacy,
 		Tracking:        o.Tracking,
 		Favorites:       o.Favorites,
 		Paperkeys:       o.Paperkeys,

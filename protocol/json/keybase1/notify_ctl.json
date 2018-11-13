@@ -25,11 +25,11 @@
         },
         {
           "type": "boolean",
-          "name": "kbfsDesktop"
+          "name": "kbfsdesktop"
         },
         {
           "type": "boolean",
-          "name": "kbfsLegacy"
+          "name": "kbfslegacy"
         },
         {
           "type": "boolean",
