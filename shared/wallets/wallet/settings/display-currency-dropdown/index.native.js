@@ -21,7 +21,7 @@ const Prompt = () => (
 )
 
 type State = {selected: Types.CurrencyCode, showingMenu: boolean, showingToast: boolean}
-class DisplayCurrencyDropdown extends React.Component<Props, State> {
+class _DisplayCurrencyDropdown extends React.Component<Kb.PropsWithTimer<Props>, State> {
   state = {selected: this.props.selected.code, showingMenu: false, showingToast: false}
   _toggleShowingMenu = () =>
     this.setState(s => ({
@@ -32,10 +32,10 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
     this.props.onCurrencyChange(this.state.selected)
     this.setState({showingMenu: false})
   }
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Kb.PropsWithTimer<Props>, prevState: State) {
     if (this.props.selected.code === this.state.selected && prevProps.selected.code !== this.state.selected) {
       this.setState({showingToast: true})
-      setTimeout(() => this.setState({showingToast: false}), 1000)
+      this.props.setTimeout(() => this.setState({showingToast: false}), 1000)
     } else if (this.props.selected.code !== prevProps.selected.code) {
       this.setState({selected: this.props.selected.code})
     }
@@ -79,6 +79,7 @@ class DisplayCurrencyDropdown extends React.Component<Props, State> {
     )
   }
 }
+const DisplayCurrencyDropdown = Kb.HOCTimers(_DisplayCurrencyDropdown)
 
 const styles = Styles.styleSheetCreate({
   progressIndicator: {
