@@ -184,6 +184,18 @@ start_systemd() {
   echo Starting via systemd...
 
   systemctl --user set-environment KEYBASE_LOGDIR="$logdir"
+  if [ -n "${XDG_CACHE_HOME:-}" ]; then
+      systemctl --user import-environment XDG_CACHE_HOME
+  fi
+  if [ -n "${XDG_DATA_HOME:-}" ]; then
+      systemctl --user import-environment XDG_DATA_HOME
+  fi
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+      systemctl --user import-environment XDG_CONFIG_HOME
+  fi
+  if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+      systemctl --user import-environment XDG_RUNTIME_DIR
+  fi
 
   # This script is intended to be run after updates, so we need to reload
   # potentially changed unit files.
