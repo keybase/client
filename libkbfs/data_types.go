@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -834,6 +835,10 @@ func (s PrefetchStatus) String() string {
 		return "FinishedPrefetch"
 	}
 	return "Unknown"
+}
+
+func (s PrefetchStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
 }
 
 // ToProtocol transforms a PrefetchStatus to a kbgitkbfs.PrefetchStatus, while
