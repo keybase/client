@@ -1251,6 +1251,9 @@ type DiskBlockCache interface {
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
 		prefetchStatus PrefetchStatus) error
+	// ClearBlocks deletes all the blocks corresponding to the given
+	// TLF ID from the cache.
+	ClearAllTlfBlocks(ctx context.Context, tlfID tlf.ID) error
 	// GetLastUnrefRev returns the last revision that has been marked
 	// unref'd for the given TLF.
 	GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error)

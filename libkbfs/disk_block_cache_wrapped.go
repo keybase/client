@@ -216,6 +216,19 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 	return cache.workingSetCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 }
 
+// ClearAllTlfBlocks implements the DiskBlockCache interface for
+// diskBlockCacheWrapper.
+func (cache *diskBlockCacheWrapped) ClearAllTlfBlocks(
+	ctx context.Context, tlfID tlf.ID) error {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+	// We only clear blocks from the sync cache.
+	if cache.syncCache == nil {
+		return nil
+	}
+	return cache.syncCache.ClearAllTlfBlocks(ctx, tlfID)
+}
+
 // GetLastUnrefRev implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) GetLastUnrefRev(

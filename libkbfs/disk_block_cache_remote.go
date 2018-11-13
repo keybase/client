@@ -125,6 +125,13 @@ func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 		})
 }
 
+// ClearAllTlfBlocks implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) ClearAllTlfBlocks(
+	_ context.Context, _ tlf.ID) error {
+	panic("ClearAllTlfBlocks() not implemented in DiskBlockCacheRemote")
+}
+
 // GetLastUnrefRev implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) GetLastUnrefRev(

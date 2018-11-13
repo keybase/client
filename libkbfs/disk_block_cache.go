@@ -32,6 +32,8 @@ const (
 	defaultBlockCacheTableSize    int    = 50 * opt.MiB
 	evictionConsiderationFactor   int    = 3
 	defaultNumBlocksToEvict       int    = 10
+	numBlocksToEvictOnClear       int    = 100
+	clearTickerDuration                  = 1 * time.Second
 	maxEvictionsPerPut            int    = 4
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	metaDbFilename                string = "diskCacheMetadata.leveldb"
@@ -920,6 +922,50 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 	}
 
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
+}
+
+func (cache *DiskBlockCacheLocal) deleteNextBatchFromClearedTlf(
+	ctx context.Context, tlfID tlf.ID) (numLeft int, err error) {
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
+	err = cache.checkCacheLocked("Block(deleteNextBatchFromClearedTlf)")
+	if err != nil {
+		return 0, err
+	}
+
+	_, _, err = cache.evictFromTLFLocked(ctx, tlfID, numBlocksToEvictOnClear)
+	if err != nil {
+		return 0, err
+	}
+	return cache.tlfCounts[tlfID], nil
+}
+
+// ClearAllTlfBlocks implements the DiskBlockCache interface for
+// DiskBlockCacheLocal.
+func (cache *DiskBlockCacheLocal) ClearAllTlfBlocks(
+	ctx context.Context, tlfID tlf.ID) error {
+	// Delete the blocks in batches, so we don't keep the lock for too
+	// long.
+	for {
+		cache.log.CDebugf(ctx, "Deleting a batch of blocks from %s", tlfID)
+		numLeft, err := cache.deleteNextBatchFromClearedTlf(ctx, tlfID)
+		if err != nil {
+			return err
+		}
+		if numLeft == 0 {
+			cache.log.CDebugf(ctx, "Deleted all blocks from %s", tlfID)
+			return nil
+		}
+		cache.log.CDebugf(
+			ctx, "%d blocks left to delete from %s", numLeft, tlfID)
+
+		c := time.After(clearTickerDuration)
+		select {
+		case <-c:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 // GetLastUnrefRev implements the DiskBlockCache interface for

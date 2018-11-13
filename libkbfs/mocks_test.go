@@ -4408,6 +4408,18 @@ func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchS
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, blockID, prefetchStatus)
 }
 
+// ClearAllTlfBlocks mocks base method
+func (m *MockDiskBlockCache) ClearAllTlfBlocks(ctx context.Context, tlfID tlf.ID) error {
+	ret := m.ctrl.Call(m, "ClearAllTlfBlocks", ctx, tlfID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearAllTlfBlocks indicates an expected call of ClearAllTlfBlocks
+func (mr *MockDiskBlockCacheMockRecorder) ClearAllTlfBlocks(ctx, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearAllTlfBlocks", reflect.TypeOf((*MockDiskBlockCache)(nil).ClearAllTlfBlocks), ctx, tlfID)
+}
+
 // GetLastUnrefRev mocks base method
 func (m *MockDiskBlockCache) GetLastUnrefRev(ctx context.Context, tlfID tlf.ID) (kbfsmd.Revision, error) {
 	ret := m.ctrl.Call(m, "GetLastUnrefRev", ctx, tlfID)
