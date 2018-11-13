@@ -153,12 +153,8 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 		} else if newMsg == nil {
 			return nil
 		}
-		body := superMsg.Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil {
-			continue
-		}
-		switch typ {
+
+		switch superMsg.GetMessageType() {
 		case chat1.MessageType_DELETE:
 			newMsg = t.transformDelete(*newMsg, superMsg)
 		case chat1.MessageType_DELETEHISTORY:
