@@ -98,7 +98,6 @@ func TestChatSrvUnfurl(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
-		uid := users[0].User.GetUID().ToBytes()
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
@@ -234,13 +233,13 @@ func TestChatSrvUnfurl(t *testing.T) {
 		recvAndCheckUnfurlMsg()
 
 		t.Logf("make sure we don't unfurl twice")
-		getConv, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
-		require.NoError(t, err)
-		getRes, err := tc.Context().ConvSource.GetMessages(ctx, getConv, uid, []chat1.MessageID{origID}, nil)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(getRes))
-		unboxed := getRes[0]
-		tc.Context().Unfurler.UnfurlAndSend(ctx, uid, conv.Id, unboxed)
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            origID,
+				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
 		time.Sleep(200 * time.Millisecond)
 		select {
 		case <-listener0.newMessageRemote:
