@@ -6,6 +6,7 @@ import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouteTree from '../../../route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
@@ -54,13 +55,28 @@ const ConnectedParticipantsKeybaseUser = namedConnect(
   'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
+// This thing has internal state to handle typing, but under some circumstances we want it to blow away all that data
+// and just take in the props again (aka remount) so, in order to achieve this in the least invasive way we'll watch the
+// route and we'll increment out key if we become topmost again
+let keyCounter = 1
+let lastPath = ''
+
 const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
+  const curPath = RouteTree.getPath(state.routeTree.routeState, Constants.rootWalletTab).last()
+  // looking at the form now, but wasn't before
+  if (curPath === 'sendReceiveForm' && curPath !== lastPath) {
+    keyCounter++
+  }
+
+  lastPath = curPath
+
   return {
-    recipientPublicKey: build.to,
     errorMessage: built.toErrMsg,
+    keyCounter,
+    recipientPublicKey: build.to,
   }
 }
 

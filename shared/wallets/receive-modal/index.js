@@ -95,14 +95,12 @@ const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
       <Kb.Text type="BodySmallSemibold">Your public Stellar address:</Kb.Text>
       <Kb.CopyText buttonType="Wallet" text={stellarAddress} />
     </Kb.Box2>
-    {!!federatedAddress && (
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-        <Kb.Text type="BodySmallSemibold">Your Stellar QR code:</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.qrContainer} centerChildren={true}>
-          <QrImage address={federatedAddress} />
-        </Kb.Box2>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+      <Kb.Text type="BodySmallSemibold">Your Stellar QR code:</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.qrContainer} centerChildren={true}>
+        <QrImage address={federatedAddress || stellarAddress} />
       </Kb.Box2>
-    )}
+    </Kb.Box2>
   </Kb.Box2>
 )
 
