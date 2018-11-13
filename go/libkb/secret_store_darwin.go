@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"os"
 
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	keychain "github.com/keybase/go-keychain"
 )
 
@@ -59,14 +58,16 @@ func (k KeychainSecretStore) updateAccessibility(m MetaContext, accountName stri
 }
 
 func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(m MetaContext, err error) {
-	if !isIOS || m.G().GetAppType() != MobileAppType ||
-		m.G().AppState.State() == keybase1.AppState_FOREGROUND {
+	m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
+	if !isIOS || m.G().GetAppType() != MobileAppType {
+		m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: not an iOS app")
 		return
 	}
 	if err != keychain.ErrorInteractionNotAllowed {
+		m.G().Log.Debug("mobileKeychainPermissionDeniedCheck: wrong kind of error: %s", err)
 		return
 	}
-	m.G().Log.Warning("keychain permission denied on mobile: %s", err)
+	m.G().Log.Warning("mobileKeychainPermissionDeniedCheck: keychain permission denied: %s", err)
 	os.Exit(4)
 }
 
