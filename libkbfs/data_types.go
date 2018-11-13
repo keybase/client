@@ -751,7 +751,7 @@ type NodeMetadata struct {
 	// A more thorough check is possible in the future.
 	LastWriterUnverified kbname.NormalizedUsername
 	BlockInfo            BlockInfo
-	PrefetchStatus       string
+	PrefetchStatus       PrefetchStatus
 }
 
 // FavoritesOp defines an operation related to favorites.

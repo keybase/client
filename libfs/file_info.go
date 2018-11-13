@@ -72,6 +72,13 @@ func (fi *FileInfo) IsDir() bool {
 	return fi.ei.Type == libkbfs.Dir
 }
 
+// KBFSMetaDataForSimpleFS contains the KBFS metadata needed to answer a
+// simpleFSStat call.
+type KBFSMetadataForSimpleFS struct {
+	LastWriter     keybase1.User
+	PrefetchStatus keybase1.PrefetchStatus
+}
+
 // KBFSMetadataForSimpleFSGetter is an interface for something that can return
 // the last KBFS writer and prefetch status of a directory entry.
 type KBFSMetadataForSimpleFSGetter interface {
@@ -88,15 +95,10 @@ type fileInfoSys struct {
 	fi *FileInfo
 }
 
-type KBFSMetadataForSimpleFS struct {
-	LastWriter     keybase1.User
-	PrefetchStatus keybase1.PrefetchStatus
-}
-
 var _ KBFSMetadataForSimpleFSGetter = fileInfoSys{}
 
-func (fis fileInfoSys) KBFSMetadataForSimpleFS() (KBFSMetadataForSimpleFS,
-	error) {
+func (fis fileInfoSys) KBFSMetadataForSimpleFS() (
+	KBFSMetadataForSimpleFS, error) {
 	if fis.fi.node == nil {
 		// This won't return any last writer for symlinks themselves.
 		// TODO: if we want symlink last writers, we'll need to add a
@@ -110,33 +112,33 @@ func (fis fileInfoSys) KBFSMetadataForSimpleFS() (KBFSMetadataForSimpleFS,
 	}
 	var prefetchStatus keybase1.PrefetchStatus
 	switch md.PrefetchStatus {
-	case "NoPrefetch":
+	case libkbfs.NoPrefetch:
 		prefetchStatus = keybase1.PrefetchStatus_NOT_STARTED
-	case "TriggeredPrefetch":
+	case libkbfs.TriggeredPrefetch:
 		prefetchStatus = keybase1.PrefetchStatus_IN_PROGRESS
-	case "FinishedPrefetch":
+	case libkbfs.FinishedPrefetch:
 		prefetchStatus = keybase1.PrefetchStatus_COMPLETE
-	case "Unknown":
-		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
 	default:
 		return KBFSMetadataForSimpleFS{}, ErrUnknownPrefetchStatus
 	}
+
+	status := KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}
 
 	lastWriterName := md.LastWriterUnverified
 	if lastWriterName == "" {
 		// This can happen in old, buggy team folders where the writer
 		// isn't properly set.  See KBFS-2939.
-		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
+		return status, nil
 	}
 
 	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
 		fis.fi.fs.ctx, lastWriterName.String())
 	if err != nil {
-		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
+		return KBFSMetadataForSimpleFS{}, err
 	}
 	uid, err := id.AsUser()
 	if err != nil {
-		return KBFSMetadataForSimpleFS{PrefetchStatus: prefetchStatus}, nil
+		return KBFSMetadataForSimpleFS{}, err
 	}
 	return KBFSMetadataForSimpleFS{
 		LastWriter: keybase1.User{
