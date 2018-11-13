@@ -32,6 +32,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
             <Kb.ConnectedNameWithIcon
+              colorBroken={true}
               colorFollowing={true}
               horizontal={true}
               containerStyle={styles.toKeybaseUserNameWithIcon}

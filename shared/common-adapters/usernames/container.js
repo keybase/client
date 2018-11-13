@@ -33,7 +33,7 @@ export const connectedPropsToProps = (
 ): Props => {
   const userData = connectedProps.usernames
     .map(username => ({
-      broken: stateProps._broken.trackerState === 'error',
+      broken: ['warning', 'error', 'revoked'].includes(stateProps._broken[username]?.trackerState),
       following: stateProps._following.has(username),
       username,
       you: stateProps._you === username,
