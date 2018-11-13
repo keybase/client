@@ -1233,6 +1233,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if dmc != nil {
 		dmc.Shutdown(ctx)
 	}
+	dqc := c.DiskQuotaCache()
+	if dqc != nil {
+		dqc.Shutdown(ctx)
+	}
 	kbfsServ := c.kbfsService
 	if kbfsServ != nil {
 		kbfsServ.Shutdown()
