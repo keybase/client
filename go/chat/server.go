@@ -2299,10 +2299,6 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 	if err != nil {
 		return err
 	}
-	atyp, err := arg.Result.ActionType()
-	if err != nil {
-		return err
-	}
 	fetchAndUnfurl := func() error {
 		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, true)
 		if err != nil {
@@ -2317,6 +2313,10 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		}
 		h.G().Unfurler.UnfurlAndSend(ctx, uid, arg.ConvID, msgs[0])
 		return nil
+	}
+	atyp, err := arg.Result.ActionType()
+	if err != nil {
+		return err
 	}
 	switch atyp {
 	case chat1.UnfurlPromptAction_NOTNOW:
