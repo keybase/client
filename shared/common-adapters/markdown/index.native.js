@@ -188,7 +188,11 @@ class OriginalMarkdown extends React.PureComponent<Props> {
         return createComponent('', '', content, {}) || null
       } else {
         return (
-          <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+          <Text
+            type="Body"
+            style={collapseStyles([styles.neutral, this.props.style])}
+            allowFontScaling={this.props.allowFontScaling}
+          >
             {content}
           </Text>
         )
@@ -244,7 +248,10 @@ const styles = styleSheetCreate({
   // to unset the default color applied by <Text type="body"> so that
   // <Markdown style={{color: ...}}> works.
   link: {fontWeight: undefined},
-  neutral: {color: undefined, fontWeight: undefined},
+  neutral: {
+    // removed to fix issue w/ color being different if isPlainText is true or not
+    /* color: undefined, fontWeight: undefined */
+  },
   quoteBlock: {
     borderLeftColor: globalColors.lightGrey2,
     borderLeftWidth: 3,

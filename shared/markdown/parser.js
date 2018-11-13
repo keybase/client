@@ -3390,7 +3390,7 @@ module.exports = {
     // quick check to avoid markdown parsing overhead
     // only chars, numbers, whitespace, some common punctuation and periods
     // that end sentences (not domains)
-    const plaintextExp = /^([A-Za-z0-9!?=+$%^&[\],'"\s]|\.\B)*$/
+    const plaintextExp = /^([A-Za-z0-9!?=+$%^&[\],'"\s’“”-]|\.\B)*$/
 
     // phone numbers in 123 456 7890 format are plaintext, so test
     // for those explicitly and send to peg
