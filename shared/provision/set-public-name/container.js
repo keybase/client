@@ -36,7 +36,7 @@ export default compose(
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

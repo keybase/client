@@ -3,6 +3,14 @@ import * as ProfileGen from '../../actions/profile-gen'
 import {Usernames} from '.'
 import {remoteConnect, compose} from '../../util/container'
 import * as Container from './container'
+import * as TrackerTypes from '../../constants/types/tracker'
+
+type OwnProps = Container.ConnectedProps
+type State = {|
+  broken: {[key: string]: TrackerTypes.TrackerState},
+  following: Set<string>,
+  username: string,
+|}
 
 // Connected username component
 const mapStateToProps = props => ({
@@ -22,4 +30,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) =>
     {...ownProps, onUsernameClicked: dispatchProps._onUsernameClicked}
   )
 
-export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps))(Usernames)
+export default compose(
+  remoteConnect<OwnProps, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)
+)(Usernames)

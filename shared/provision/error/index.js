@@ -8,7 +8,7 @@ import {Box2, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
 
 type Props = {
-  error: RPCError,
+  error: ?RPCError,
   onAccountReset: () => void,
   onBack: () => void,
   onBack: () => void,

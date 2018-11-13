@@ -23,7 +23,7 @@ import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
 import {reduxSagaLogger} from '../local-debug'
-import {sagaTimer} from '../dev/user-timings'
+import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga(): Saga.SagaGenerator<any, any> {

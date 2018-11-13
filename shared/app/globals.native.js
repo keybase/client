@@ -17,4 +17,4 @@ if (typeof __STORYBOOK__ === 'undefined') {
 // We don't storyshot RN
 __STORYSHOT__ = false
 
-require('../dev/user-timings')
+require('../util/user-timings')

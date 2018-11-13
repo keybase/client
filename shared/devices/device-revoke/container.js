@@ -7,6 +7,8 @@ import DeviceRevoke from '.'
 import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
   device: Constants.getDevice(state, state.devices.selectedDeviceID),
@@ -18,7 +20,7 @@ const mapDispatchToProps = (dispatch, {routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   device: stateProps.device,
   endangeredTLFs: stateProps._endangeredTLFs.toArray(),
   onCancel: dispatchProps.onCancel,
@@ -26,7 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

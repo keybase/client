@@ -5,6 +5,10 @@ import flags from '../../util/feature-flags'
 import {namedConnect} from '../../util/container'
 import Folders from '.'
 
+type OwnProps = {|
+  profileUsername: string,
+|}
+
 const mapStateToProps = state => ({
   _tlfs: state.fs.tlfs,
   _ownUsername: state.config.username,
@@ -101,5 +105,12 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
 })
 
 export default (flags.foldersInProfileTab
-  ? namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(Folders)
-  : namedConnect(() => ({}), () => ({}), () => ({tlfs: [], loadTlfs: () => {}}), 'ConnectedFolders')(Folders))
+  ? namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(
+      Folders
+    )
+  : namedConnect<OwnProps, _, _, _, _>(
+      () => ({}),
+      () => ({}),
+      () => ({tlfs: [], loadTlfs: () => {}}),
+      'ConnectedFolders'
+    )(Folders))

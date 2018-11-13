@@ -200,7 +200,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
