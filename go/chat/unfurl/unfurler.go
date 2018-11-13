@@ -229,6 +229,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			u.Debug(ctx, "UnfurlAndSend: skipping prev unfurled")
 			continue
 		}
+		prevUnfurled[hit.URL] = true // only one action per unique URL
 		switch hit.Typ {
 		case ExtractorHitPrompt:
 			domain, err := GetDomain(hit.URL)
