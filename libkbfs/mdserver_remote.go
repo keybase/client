@@ -34,6 +34,10 @@ const (
 	// MdServerPingTimeout is how long to wait for a ping response
 	// before breaking the connection and trying to reconnect.
 	MdServerPingTimeout = 30 * time.Second
+	// mdServerLatestHandleTimeout is the timeout for checking the
+	// server for the latest handle before we use the cached value
+	// instead.
+	mdServerLatestHandleTimeout = 500 * time.Millisecond
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
@@ -995,6 +999,24 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	return md.getClient().TruncateUnlock(ctx, id.String())
 }
 
+func (md *MDServerRemote) getLatestHandleFromCache(
+	ctx context.Context, id tlf.ID) (handle tlf.Handle, err error) {
+	rmds, err := md.getLatestFromCache(ctx, id)
+	if err != nil {
+		return tlf.Handle{}, err
+	}
+	if rmds == nil {
+		return tlf.Handle{}, errors.Errorf("No cache MD for %s", id)
+	}
+	if rmds.MD.TypeForKeying() != tlf.TeamKeying {
+		return tlf.Handle{}, errors.Errorf(
+			"Cached MD for %s is not team-keyed", id)
+	}
+
+	// We can only get the latest handle for team-keyed TLFs.
+	return rmds.MD.MakeBareTlfHandle(nil)
+}
+
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	handle tlf.Handle, err error) {
@@ -1003,8 +1025,30 @@ func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) 
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: GetLatestHandle %s (err=%v)", id, err)
 	}()
+
+	handle, handleErr := md.getLatestHandleFromCache(ctx, id)
+	if !md.IsConnected() && handleErr == nil {
+		md.log.CDebugf(ctx,
+			"Got latest handle for %s from cache when mdserver is "+
+				"disconnected", id)
+		return handle, nil
+	} else if handleErr == nil {
+		md.log.CDebugf(ctx,
+			"Setting a quick timeout when a cached handle is available for "+
+				"TLF %s", id)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, mdServerLatestHandleTimeout)
+		defer cancel()
+	}
+
 	buf, err := md.getClient().GetLatestFolderHandle(ctx, id.String())
 	if err != nil {
+		if err == context.DeadlineExceeded && handleErr == nil {
+			md.log.CDebugf(ctx,
+				"Got latest handle for %s from cache when mdserver can't "+
+					"be reached quickly", id)
+			return handle, nil
+		}
 		return tlf.Handle{}, err
 	}
 	if err := md.config.Codec().Decode(buf, &handle); err != nil {
