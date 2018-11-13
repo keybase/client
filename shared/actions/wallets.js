@@ -669,14 +669,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
-    [
-      WalletsGen.buildPayment,
-      WalletsGen.setBuildingAmount,
-      WalletsGen.setBuildingCurrency,
-      WalletsGen.setBuildingFrom,
-      WalletsGen.setBuildingIsRequest,
-      WalletsGen.setBuildingTo,
-    ],
+    a =>
+      [
+        WalletsGen.buildPayment,
+        WalletsGen.setBuildingAmount,
+        WalletsGen.setBuildingCurrency,
+        WalletsGen.setBuildingFrom,
+        WalletsGen.setBuildingIsRequest,
+        WalletsGen.setBuildingTo,
+      ].includes(a.type) ||
+      (a.type === WalletsGen.displayCurrencyReceived && a.payload.setBuildingCurrency),
     buildPayment
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
