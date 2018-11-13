@@ -192,7 +192,7 @@ func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.
 		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
 		return ""
 	}
-	r.urlMap.Add(key, unfurlAsset{
+	r.unfurlMap.Add(key, unfurlAsset{
 		asset:  asset,
 		convID: convID,
 	})

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -116,6 +117,10 @@ func TestChatSrvUnfurl(t *testing.T) {
 		unfurler.SetTestingRetryCh(retryCh)
 		unfurler.SetTestingUnfurlCh(unfurlCh)
 		tc.ChatG.Unfurler = unfurler
+		fetcher := NewRemoteAttachmentFetcher(tc.Context(), store)
+		tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), fetcher,
+			func() chat1.RemoteInterface { return mockSigningRemote{} })
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		recvSingleRetry := func() {
 			select {
@@ -199,6 +204,16 @@ func TestChatSrvUnfurl(t *testing.T) {
 				generic := mu.Updates[0].Msg.Valid().Unfurls[0].Generic()
 				require.Nil(t, generic.Image)
 				require.NotNil(t, generic.Favicon)
+				require.NotZero(t, len(generic.Favicon.Url))
+				resp, err := http.Get(generic.Favicon.Url)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				var buf bytes.Buffer
+				_, err = io.Copy(&buf, resp.Body)
+				require.NoError(t, err)
+				refBytes, err := ioutil.ReadFile(filepath.Join("unfurl", "testcases", "nytimes_sol.ico"))
+				require.NoError(t, err)
+				require.True(t, bytes.Equal(refBytes, buf.Bytes()))
 				require.Equal(t, "MIKE", generic.Title)
 			case <-time.After(timeout):
 				require.Fail(t, "no message unfurl")
