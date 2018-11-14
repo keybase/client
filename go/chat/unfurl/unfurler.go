@@ -245,7 +245,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
 			outboxID := u.getOutboxIDFromURL(hit.URL, convID, msg)
-			if _, err := u.getTask(ctx, outboxID); err != nil {
+			if _, err := u.getTask(ctx, outboxID); err == nil {
 				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue
 			}
