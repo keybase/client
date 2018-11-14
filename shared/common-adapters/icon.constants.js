@@ -181,6 +181,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-chat-72-x-52.png'),
   },
+  'icon-fancy-email-sent-144-x-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-email-sent-144-x-48.png'),
+  },
   'icon-fancy-email-sent-192-x-64': {
     isFont: false,
     extension: 'png',
