@@ -490,15 +490,15 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.Equal(t, "hey", relaySecrets.Note)
 }
 
-func TestRelayClaim(t *testing.T) {
-	testRelay(t, false)
+func TestRelaySBSClaim(t *testing.T) {
+	testRelaySBS(t, false)
 }
 
-func TestRelayYank(t *testing.T) {
-	testRelay(t, true)
+func TestRelaySBSYank(t *testing.T) {
+	testRelaySBS(t, true)
 }
 
-func testRelay(t *testing.T, yank bool) {
+func testRelaySBS(t *testing.T, yank bool) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingPukless})
 	defer cleanup()
 
@@ -509,7 +509,7 @@ func testRelay(t *testing.T, yank bool) {
 	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Amount:    "3",
-		Asset:     stellar1.Asset{Type: "native"},
+		Asset:     stellar1.AssetNative(),
 	})
 	require.NoError(t, err)
 
@@ -634,6 +634,91 @@ func testRelay(t *testing.T, yank bool) {
 	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.Error(t, err)
 	require.Equal(t, "Payment already claimed by "+tcs[claimant].Fu.Username, err.Error())
+}
+
+func TestRelayResetClaim(t *testing.T) {
+	testRelayReset(t, false)
+}
+
+func TestRelayResetYank(t *testing.T) {
+	testRelayReset(t, true)
+}
+
+func testRelayReset(t *testing.T, yank bool) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingFull})
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "10")
+
+	sendRes, err := tcs[0].Srv.SendCLILocal(context.Background(), stellar1.SendCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Amount:    "4",
+		Asset:     stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+
+	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	require.NoError(t, err)
+
+	typ, err := details.Summary.Typ()
+	require.NoError(t, err)
+	require.Equal(t, stellar1.PaymentSummaryType_RELAY, typ)
+
+	// Reset and reprovision
+	kbtest.ResetAccount(tcs[1].TestContext, tcs[1].Fu)
+	require.NoError(t, tcs[1].Fu.Login(tcs[1].G))
+
+	teamID := details.Summary.Relay().TeamID
+	t.Logf("Team ID is: %s", teamID)
+
+	var claimant int
+	if !yank {
+		// Admit back to the team.
+		err = teams.ReAddMemberAfterReset(context.Background(), tcs[0].G, teamID, tcs[1].Fu.Username)
+		require.NoError(t, err)
+
+		acceptDisclaimer(tcs[1])
+		tcs[1].Backend.ImportAccountsForUser(tcs[1])
+
+		claimant = 1
+	} else {
+		// User0 will try to claim the funds back without readding user1 to the
+		// impteam. Also do not accept disclaimer as user1.
+		claimant = 0
+	}
+
+	history, err := tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	require.Nil(t, history[0].Err)
+	require.NotNil(t, history[0].Payment)
+	require.Equal(t, "Claimable", history[0].Payment.Status)
+	txID := history[0].Payment.TxID
+
+	fhistory, err := tcs[claimant].Srv.GetPendingPaymentsLocal(context.Background(),
+		stellar1.GetPendingPaymentsLocalArg{AccountID: getPrimaryAccountID(tcs[claimant])})
+	require.NoError(t, err)
+	require.Len(t, fhistory, 1)
+	require.Nil(t, fhistory[0].Err)
+	require.NotNil(t, fhistory[0].Payment)
+	require.NotEmpty(t, fhistory[0].Payment.Id)
+	require.NotZero(t, fhistory[0].Payment.Time)
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+
+	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
+	require.NoError(t, err)
+	require.NotEqual(t, "", res.ClaimStellarID)
+
+	if !yank {
+		tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "5.9999900")
+		tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "3.9999800")
+	} else {
+		tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "9.9999800")
+	}
 }
 
 func TestGetAvailableCurrencies(t *testing.T) {
