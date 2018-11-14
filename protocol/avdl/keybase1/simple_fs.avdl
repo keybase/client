@@ -438,7 +438,10 @@ protocol SimpleFS {
   }
 
   record FolderSyncStatus {
-    // TODO: fill in prefetch status, disk usage, percentage synced, etc.
+    // Bytes available and total on the partition hosting the sync cache.
+    int64 localDiskBytesAvailable;
+    int64 localDiskBytesTotal;
+    // TODO: fill in prefetch status, percentage synced, etc.
   }
 
   record FolderSyncConfigAndStatus {
