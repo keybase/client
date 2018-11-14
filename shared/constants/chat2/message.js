@@ -424,7 +424,7 @@ export const uiMessageEditToMessage = (
   }
 }
 
-const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
+const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
   switch (body.systemType) {
     case RPCChatTypes.localMessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
@@ -435,6 +435,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         addee,
         adder,
         isAdmin,
+        reactions,
         team,
       })
     }
@@ -684,7 +685,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.leave:
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
-      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
+      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions) : null
     case RPCChatTypes.commonMessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({
@@ -1104,6 +1105,7 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
   'text',
   'requestPayment',
   'sendPayment',
+  'systemAddedToTeam',
   'systemLeft',
 ]
 
