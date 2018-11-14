@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as React from 'react'
 import {compose, namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -18,7 +17,6 @@ type OwnProps = {
   path: Types.Path, // path to the parent folder containering the rows
   sortSetting: Types.SortSetting,
   routePath: I.List<string>,
-  ifEmpty?: ?React.Node,
   inDestinationPicker?: boolean,
 }
 
@@ -179,17 +177,11 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (s, d, o: OwnProps) => ({
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
   routePath: o.routePath,
-  ifEmpty: o.ifEmpty,
   inDestinationPicker: o.inDestinationPicker,
 })
 
 export default compose(
   FilesLoadingHoc,
   // $FlowIssue @jzila/@songgao lots of exposed flow issues here
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-  'ConnectedRows'
-  )
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedRows')
 )(Rows)

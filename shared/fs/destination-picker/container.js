@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {navigateUp} from '../../actions/route-tree'
+import {isMobile} from '../../constants/platform'
 
 const mapStateToProps = state => ({
   _moveOrCopy: state.fs.moveOrCopy,
@@ -23,6 +24,9 @@ const mapDispatchToProps = dispatch => ({
     dispatch(navigateUp())
   },
   _onNewFolder: (parentPath: Types.Path) => dispatch(FsGen.createNewFolderRow({parentPath})),
+  // TODO KBFS-3557 use routeTree
+  _onBackUp: (toParentOf: Types.Path) =>
+    dispatch(FsGen.createSetMoveOrCopyDestinationParent({path: Types.getPathParent(toParentOf)})),
 })
 
 const destinationParentPathIsWritable = memoize(
@@ -46,6 +50,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onNewFolder: destinationParentPathIsWritable(stateProps)
     ? () => dispatchProps._onNewFolder(stateProps._moveOrCopy.destinationParentPath)
     : null,
+  onBackUp:
+    isMobile && Types.getPathLevel(stateProps._moveOrCopy.destinationParentPath) > 1
+      ? () => dispatchProps._onBackUp(stateProps._moveOrCopy.destinationParentPath)
+      : null,
   path: stateProps._moveOrCopy.destinationParentPath,
   targetName: Types.getPathName(stateProps._moveOrCopy.sourceItemPath),
   targetIconSpec: Constants.getItemStyles(
@@ -54,9 +62,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ).iconSpec,
 })
 
-export default namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedDestinationPicker'
-)(DestinationPicker)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
+  DestinationPicker
+)

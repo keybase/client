@@ -10,7 +10,7 @@ import * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const clearMoveOrCopySource = 'fs:clearMoveOrCopySource'
+export const clearMoveOrCopy = 'fs:clearMoveOrCopy'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -72,7 +72,7 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
-type _ClearMoveOrCopySourcePayload = void
+type _ClearMoveOrCopyPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _CopyPayload = void
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
@@ -233,7 +233,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
-export const createClearMoveOrCopySource = (payload: _ClearMoveOrCopySourcePayload) => ({payload, type: clearMoveOrCopySource})
+export const createClearMoveOrCopy = (payload: _ClearMoveOrCopyPayload) => ({payload, type: clearMoveOrCopy})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -295,7 +295,7 @@ export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) 
 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
-export type ClearMoveOrCopySourcePayload = $Call<typeof createClearMoveOrCopySource, _ClearMoveOrCopySourcePayload>
+export type ClearMoveOrCopyPayload = $Call<typeof createClearMoveOrCopy, _ClearMoveOrCopyPayload>
 export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
 export type CopyPayload = $Call<typeof createCopy, _CopyPayload>
 export type DeleteFilePayload = $Call<typeof createDeleteFile, _DeleteFilePayload>
@@ -359,7 +359,7 @@ export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded,
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | ClearMoveOrCopySourcePayload
+  | ClearMoveOrCopyPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload

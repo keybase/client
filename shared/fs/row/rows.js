@@ -11,18 +11,18 @@ import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
 import {rowHeight} from './common'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   items: Array<Types.RowItem>,
   routePath: I.List<string>,
   inDestinationPicker?: boolean,
-  ifEmpty?: ?React.Node,
 }
 
-export const WrapRow = ({children, noDivider}: {children: React.Node, noDivider?: boolean}) => (
+export const WrapRow = ({children}: {children: React.Node}) => (
   <Kb.Box style={styles.rowContainer}>
     {children}
-    {!noDivider && <Kb.Divider key="divider" style={styles.divider} />}
+    <Kb.Divider key="divider" style={styles.divider} />
   </Kb.Box>
 )
 
@@ -30,17 +30,16 @@ export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
 class Rows extends React.PureComponent<Props> {
   _rowRenderer = (index: number, item: Types.RowItem) => {
-    const noDivider = this.props.inDestinationPicker && index === this.props.items.length - 1
     switch (item.rowType) {
       case 'placeholder':
         return (
-          <WrapRow key={`placeholder:${item.name}`} noDivider={noDivider}>
+          <WrapRow key={`placeholder:${item.name}`}>
             <Placeholder type={item.type} />
           </WrapRow>
         )
       case 'tlf-type':
         return (
-          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+          <WrapRow key={`still:${item.name}`}>
             <TlfType
               name={item.name}
               inDestinationPicker={this.props.inDestinationPicker}
@@ -50,7 +49,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'tlf':
         return (
-          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+          <WrapRow key={`still:${item.name}`}>
             <Tlf
               name={item.name}
               tlfType={item.tlfType}
@@ -61,7 +60,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'still':
         return (
-          <WrapRow key={`still:${item.name}`} noDivider={noDivider}>
+          <WrapRow key={`still:${item.name}`}>
             <Still
               name={item.name}
               path={item.path}
@@ -72,13 +71,13 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'uploading':
         return (
-          <WrapRow key={`uploading:${item.name}`} noDivider={noDivider}>
+          <WrapRow key={`uploading:${item.name}`}>
             <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
         return (
-          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`} noDivider={noDivider}>
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
@@ -105,14 +104,16 @@ class Rows extends React.PureComponent<Props> {
           // If we are in the destination picker, inject two empty rows so when
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
-          this.props.inDestinationPicker
+          !isMobile && this.props.inDestinationPicker
             ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
             : this.props.items
         }
         renderItem={this._rowRenderer}
       />
     ) : (
-      !!this.props.ifEmpty && this.props.ifEmpty
+      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+        <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
+      </Kb.Box2>
     )
   }
 }

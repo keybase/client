@@ -275,9 +275,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['moveOrCopy', 'sourceItemPath'], action.payload.path)
     case FsGen.setMoveOrCopyDestinationParent:
       return state.setIn(['moveOrCopy', 'destinationParentPath'], action.payload.path)
-    case FsGen.clearMoveOrCopySource:
-      // $FlowFixMe
-      return state.setIn(['moveOrCopy', 'sourceItemPath'], null)
+    case FsGen.clearMoveOrCopy:
+      return state.set('moveOrCopy', Constants.makeMoveOrCopy())
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:

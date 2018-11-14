@@ -33,6 +33,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
   moveOrCopy: () => {
     dispatch(FsGen.createSetMoveOrCopySource({path}))
+    dispatch(FsGen.createSetMoveOrCopyDestinationParent({path: Types.getPathParent(path)}))
     dispatch(navigateAppend(['destinationPicker']))
   },
   ...(isMobile
