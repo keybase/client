@@ -595,7 +595,6 @@ export {
   buildPaymentWaitingKey,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
-  loadDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   changeAccountNameWaitingKey,
   balanceDeltaToString,
