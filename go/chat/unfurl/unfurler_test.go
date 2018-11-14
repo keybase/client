@@ -115,8 +115,9 @@ func TestUnfurler(t *testing.T) {
 	}
 	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "0.1"))
 
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	for i := 0; i < 5; i++ {
+		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	}
 	var outboxID chat1.OutboxID
 	select {
 	case msg := <-sender.ch:
