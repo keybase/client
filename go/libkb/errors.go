@@ -1643,6 +1643,7 @@ const (
 	ResolutionErrorAmbiguous
 	ResolutionErrorRateLimited
 	ResolutionErrorInvalidInput
+	ResolutionErrorRequestFailed
 )
 
 type ResolutionError struct {

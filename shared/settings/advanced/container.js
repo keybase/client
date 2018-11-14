@@ -13,6 +13,7 @@ import {compose} from 'recompose'
 import Advanced from './index'
 import {connect, lifecycle} from '../../util/container'
 
+type OwnProps = {||}
 const mapStateToProps = state => ({
   openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
@@ -31,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

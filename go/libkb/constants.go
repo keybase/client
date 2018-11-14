@@ -204,6 +204,7 @@ const (
 	SCReloginRequired                  = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed                 = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
+	SCRateLimit                        = int(keybase1.StatusCode_SCRateLimit)
 	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)

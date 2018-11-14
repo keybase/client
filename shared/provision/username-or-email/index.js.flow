@@ -5,7 +5,6 @@ export type Props = {
   error: string,
   onSubmit: (usernameOrEmail: string) => void,
   onBack: () => void,
-  waitingForResponse: boolean,
   submittedUsernameOrEmail: string,
 }
 

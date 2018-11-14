@@ -1,12 +1,9 @@
 // @flow
-import * as React from 'react'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import TestPopup from '../dev/test-popup.native'
 import Settings from './'
 import InvitationsContainer from './invites/container'
 import InviteGenerated from './invite-generated/container'
 import Feedback from './feedback-container'
-import PushPrompt from '../app/push-prompt.native'
 import DevicesRoute from '../devices/routes'
 import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
@@ -21,7 +18,6 @@ import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
 import AdvancedContainer from './advanced/container'
-import DevMenu from '../dev/dev-menu'
 import Screenprotector from './screenprotector-container.native'
 
 import * as Constants from '../constants/settings'
@@ -67,18 +63,6 @@ const routeTree = makeRouteDefNode({
       children: {
         deleteConfirm: {component: DeleteConfirm},
         removeDevice: {component: RemoveDevice},
-      },
-    },
-    [Constants.devMenuTab]: {
-      component: DevMenu,
-      children: {
-        push: {
-          component: () => <PushPrompt />,
-        },
-        testPopup: {
-          component: TestPopup,
-          tags: makeLeafTags({layerOnTop: true}),
-        },
       },
     },
   },

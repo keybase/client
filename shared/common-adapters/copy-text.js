@@ -38,6 +38,13 @@ class _ToastContainer extends React.Component<TProps, TState> {
 }
 const ToastContainer = HOCTimers(_ToastContainer)
 
+type OwnProps = {|
+  buttonType?: $PropertyType<ButtonProps, 'type'>,
+  containerStyle?: Styles.StylesCrossPlatform,
+  withReveal?: boolean,
+  text: string,
+|}
+
 export type Props = PropsWithTimer<{
   buttonType?: $PropertyType<ButtonProps, 'type'>,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -110,7 +117,12 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'CopyText'),
+  namedConnect<OwnProps, _, _, _, _>(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d}),
+    'CopyText'
+  ),
   HOCTimers
 )(_CopyText)
 

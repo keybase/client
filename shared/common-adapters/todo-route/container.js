@@ -9,7 +9,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
 })
 
-const ConnectedTODORoute = Container.connect(
+const ConnectedTODORoute = Container.connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({

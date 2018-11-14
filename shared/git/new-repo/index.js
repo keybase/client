@@ -21,6 +21,7 @@ type Props = {
   onNewTeam: () => void,
   teams?: Array<string>,
   waitingKey: string,
+  loadTeams: () => void,
 }
 
 type State = {
@@ -111,6 +112,10 @@ class NewRepo extends React.Component<Props, State> {
 
   _canSubmit = () => {
     return this.state.name && !(this.props.isTeam && !this.state.selectedTeam)
+  }
+
+  componentDidMount() {
+    this.props.loadTeams()
   }
 
   render() {

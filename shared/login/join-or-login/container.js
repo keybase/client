@@ -33,7 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSignup: dispatchProps.onSignup,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

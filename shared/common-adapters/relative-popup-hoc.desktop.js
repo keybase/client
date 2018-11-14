@@ -294,12 +294,15 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
+// TODO maybe a better type?
+type OwnProps = any
+
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
     PopupComponent
   )
 
-  const C: React.ComponentType<Props<any>> = connect(
+  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
     () => ({}),
     (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {

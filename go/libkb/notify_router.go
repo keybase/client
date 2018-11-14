@@ -412,8 +412,8 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfsdesktop` notification type
+		if n.getNotificationChannels(id).Kbfsdesktop {
 			// In the background do...
 			go func() {
 				// A send of a `FSActivity` RPC with the notification
@@ -467,8 +467,8 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			// In the background do...
 			wg.Add(1)
 			go func() {
@@ -501,8 +501,8 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfsrequest` notification type
-		if n.getNotificationChannels(id).Kbfsrequest {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			wg.Add(1)
 			// In the background do...
 			go func() {
@@ -530,8 +530,8 @@ func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSy
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		// If the connection wants the `Kbfslegacy` notification type
+		if n.getNotificationChannels(id).Kbfslegacy {
 			// In the background do...
 			go func() {
 				// A send of a `FSSyncStatusResponse` RPC with the notification

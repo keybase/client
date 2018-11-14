@@ -1,10 +1,13 @@
 // @flow
 import Git from '.'
+import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect} from '../util/container'
+import {compose, lifecycle, connect, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
+
+type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
@@ -55,7 +58,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
