@@ -2011,7 +2011,19 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
 	}
-	return keybase1.FolderSyncConfigAndStatus{Config: config}, err
+	res := keybase1.FolderSyncConfigAndStatus{Config: config}
+
+	dbc := k.config.DiskBlockCache()
+	if dbc != nil {
+		dbcStatus := dbc.Status(ctx)
+		if status, ok := dbcStatus["SyncBlockCache"]; ok {
+			res.Status.LocalDiskBytesAvailable = int64(
+				status.LocalDiskBytesAvailable)
+			res.Status.LocalDiskBytesTotal = int64(status.LocalDiskBytesTotal)
+		}
+	}
+
+	return res, err
 }
 
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
