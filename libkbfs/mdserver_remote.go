@@ -1027,28 +1027,33 @@ func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) 
 	}()
 
 	handle, handleErr := md.getLatestHandleFromCache(ctx, id)
-	if !md.IsConnected() && handleErr == nil {
+	if handleErr == nil {
+		if !md.IsConnected() {
+			md.log.CDebugf(ctx,
+				"Got latest handle for %s from cache when mdserver is "+
+					"disconnected", id)
+			return handle, nil
+		}
 		md.log.CDebugf(ctx,
-			"Got latest handle for %s from cache when mdserver is "+
-				"disconnected", id)
-		return handle, nil
-	} else if handleErr == nil {
-		md.log.CDebugf(ctx,
-			"Setting a quick timeout when a cached handle is available for "+
-				"TLF %s", id)
+			"Setting a quick timeout when a cached handle is available "+
+				"for TLF %s", id)
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, mdServerLatestHandleTimeout)
 		defer cancel()
 	}
 
 	buf, err := md.getClient().GetLatestFolderHandle(ctx, id.String())
-	if err != nil {
-		if err == context.DeadlineExceeded && handleErr == nil {
+	switch errors.Cause(err) {
+	case nil:
+	case context.DeadlineExceeded:
+		if handleErr == nil {
 			md.log.CDebugf(ctx,
 				"Got latest handle for %s from cache when mdserver can't "+
 					"be reached quickly", id)
 			return handle, nil
 		}
+		return tlf.Handle{}, err
+	default:
 		return tlf.Handle{}, err
 	}
 	if err := md.config.Codec().Decode(buf, &handle); err != nil {
