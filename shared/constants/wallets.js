@@ -4,35 +4,24 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
-import {
-  isMobile
-} from './platform'
-import {
-  invert
-} from 'lodash-es'
-import {
-  type TypedState
-} from './reducer'
+import {isMobile} from './platform'
+import {invert} from 'lodash-es'
+import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
-import {
-  getPath,
-  type RouteStateNode
-} from '../route-tree'
+import {getPath, type RouteStateNode} from '../route-tree'
 import logger from '../logger'
 
-const balanceDeltaToString: {
-  [key: RPCTypes.BalanceDelta]: $Keys < typeof RPCTypes.localBalanceDelta >
-} = invert(
+const balanceDeltaToString: {[key: RPCTypes.BalanceDelta]: $Keys<typeof RPCTypes.localBalanceDelta>} = invert(
   RPCTypes.localBalanceDelta
 )
 const statusSimplifiedToString: {
-  [key: RPCTypes.PaymentStatus]: $Keys < typeof RPCTypes.localPaymentStatus > ,
+  [key: RPCTypes.PaymentStatus]: $Keys<typeof RPCTypes.localPaymentStatus>,
 } = invert(RPCTypes.localPaymentStatus)
 const partyTypeToString: {
-  [key: RPCTypes.ParticipantType]: $Keys < typeof RPCTypes.localParticipantType > ,
+  [key: RPCTypes.ParticipantType]: $Keys<typeof RPCTypes.localParticipantType>,
 } = invert(RPCTypes.localParticipantType)
 const requestStatusToString: {
-  [key: RPCTypes.RequestStatus]: $Keys < typeof RPCTypes.commonRequestStatus > ,
+  [key: RPCTypes.RequestStatus]: $Keys<typeof RPCTypes.commonRequestStatus>,
 } = invert(RPCTypes.commonRequestStatus)
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
@@ -40,12 +29,12 @@ const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
 const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
 
-const makeReserve: I.RecordFactory < Types._Reserve > = I.Record({
+const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
   description: '',
 })
 
-const makeBuilding: I.RecordFactory < Types._Building > = I.Record({
+const makeBuilding: I.RecordFactory<Types._Building> = I.Record({
   amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
@@ -57,7 +46,7 @@ const makeBuilding: I.RecordFactory < Types._Building > = I.Record({
   sendAssetChoices: null,
 })
 
-const makeBuiltPayment: I.RecordFactory < Types._BuiltPayment > = I.Record({
+const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
   banners: null,
   from: Types.noAccountID,
@@ -74,7 +63,7 @@ const makeBuiltPayment: I.RecordFactory < Types._BuiltPayment > = I.Record({
   sendingIntentionXLM: false,
 })
 
-const makeBuiltRequest: I.RecordFactory < Types._BuiltRequest > = I.Record({
+const makeBuiltRequest: I.RecordFactory<Types._BuiltRequest> = I.Record({
   amountErrMsg: '',
   banners: null,
   readyToRequest: false,
@@ -87,7 +76,7 @@ const makeBuiltRequest: I.RecordFactory < Types._BuiltRequest > = I.Record({
   sendingIntentionXLM: false,
 })
 
-const makeState: I.RecordFactory < Types._State > = I.Record({
+const makeState: I.RecordFactory<Types._State> = I.Record({
   acceptedDisclaimer: false,
   accountMap: I.OrderedMap(),
   accountName: '',
@@ -151,7 +140,7 @@ const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
     sendingIntentionXLM: b.sendingIntentionXLM,
   })
 
-const makeAccount: I.RecordFactory < Types._Account > = I.Record({
+const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
   balanceDescription: '',
   isDefault: false,
@@ -168,7 +157,7 @@ const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
     name: w.name,
   })
 
-const makeAssets: I.RecordFactory < Types._Assets > = I.Record({
+const makeAssets: I.RecordFactory<Types._Assets> = I.Record({
   assetCode: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
@@ -195,7 +184,7 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
-const makeCurrencies: I.RecordFactory < Types._LocalCurrency > = I.Record({
+const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
   description: '',
   code: '',
   symbol: '',
@@ -248,13 +237,13 @@ const _defaultPayment = {
   ..._defaultPaymentDetail,
 }
 
-const makePaymentResult: I.RecordFactory < Types._PaymentResult > = I.Record(_defaultPaymentResult)
+const makePaymentResult: I.RecordFactory<Types._PaymentResult> = I.Record(_defaultPaymentResult)
 
-const makePaymentDetail: I.RecordFactory < Types._PaymentDetail > = I.Record(_defaultPaymentDetail)
+const makePaymentDetail: I.RecordFactory<Types._PaymentDetail> = I.Record(_defaultPaymentDetail)
 
-const makePayment: I.RecordFactory < Types._Payment > = I.Record(_defaultPayment)
+const makePayment: I.RecordFactory<Types._Payment> = I.Record(_defaultPayment)
 
-const makeCurrency: I.RecordFactory < Types._LocalCurrency > = I.Record({
+const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   description: '',
   code: '',
   symbol: '',
@@ -276,14 +265,10 @@ const partyToDescription = (type, username, assertion, name, id): string => {
 
 const rpcPaymentResultToPaymentResult = (w: RPCTypes.PaymentOrErrorLocal, section: Types.PaymentSection) => {
   if (!w) {
-    return makePaymentResult({
-      error: 'No payments returned'
-    })
+    return makePaymentResult({error: 'No payments returned'})
   }
   if (!w.payment) {
-    return makePaymentResult({
-      error: w.err
-    })
+    return makePaymentResult({error: w.err})
   }
   const unread = w.payment.unread
   return makePaymentResult({
@@ -341,14 +326,14 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
   }
 }
 
-const makeAssetDescription: I.RecordFactory < Types._AssetDescription > = I.Record({
+const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
 })
 
-const makeRequest: I.RecordFactory < Types._Request > = I.Record({
+const makeRequest: I.RecordFactory<Types._Request> = I.Record({
   amount: '',
   amountDescription: '',
   asset: 'native',
@@ -473,15 +458,15 @@ const paymentToYourInfoAndCounterparty = (
 }
 
 const updatePaymentDetail = (
-  map: I.Map < Types.PaymentID, Types.Payment > ,
+  map: I.Map<Types.PaymentID, Types.Payment>,
   paymentDetail: Types.PaymentDetail
 ) => {
   return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 
 const updatePaymentsReceived = (
-  map: I.Map < Types.PaymentID, Types.Payment > ,
-  paymentResults: Array < Types.PaymentResult >
+  map: I.Map<Types.PaymentID, Types.Payment>,
+  paymentResults: Array<Types.PaymentResult>
 ) => {
   return map.withMutations(mapMutable =>
     paymentResults.forEach(paymentResult =>
@@ -545,23 +530,21 @@ const getAssets = (state: TypedState, accountID: Types.AccountID) =>
 
 const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID, unknownAccount)
-  const {
-    username
-  } = state.config
+  const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
 const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
-  accountID === state.wallets.exportedSecretKeyAccountID ?
-  state.wallets.exportedSecretKey :
-  new HiddenString('')
+  accountID === state.wallets.exportedSecretKeyAccountID
+    ? state.wallets.exportedSecretKey
+    : new HiddenString('')
 
 const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
 
 const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
-const isFederatedAddress = (address: ? string) => (address ? address.includes('*') : false)
+const isFederatedAddress = (address: ?string) => (address ? address.includes('*') : false)
 
 const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) => {
   const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
@@ -599,7 +582,7 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
 
 const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab]
 
-const isLookingAtWallet = (routeState: ? RouteStateNode) =>
+const isLookingAtWallet = (routeState: ?RouteStateNode) =>
   getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
 
 export {
@@ -612,6 +595,7 @@ export {
   buildPaymentWaitingKey,
   cancelPaymentWaitingKey,
   changeDisplayCurrencyWaitingKey,
+  loadDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   changeAccountNameWaitingKey,
   balanceDeltaToString,
@@ -676,5 +660,4 @@ export {
   updatePaymentsReceived,
   validateAccountNameWaitingKey,
   validateSecretKeyWaitingKey,
-  F
 }
