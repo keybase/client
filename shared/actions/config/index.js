@@ -409,7 +409,12 @@ const readLastSentXLM = () => {
       logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
       return createSetLastSentXLM({lastSentXLM: value, writeFile: false})
     })
-    .catch(err => logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`))
+    .catch(
+      err =>
+        err.message.includes('no such key')
+          ? null
+          : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
+    )
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
