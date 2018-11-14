@@ -551,7 +551,7 @@ const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentI
 
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
-    return 'XLM'
+    return ''
   }
   const currency = state.wallets.currencies.find(c => c.code === code)
   return currency ? currency.description : code
