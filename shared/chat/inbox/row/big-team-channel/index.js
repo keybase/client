@@ -96,16 +96,24 @@ const UnreadIcon = () => (
 )
 
 const styles = Styles.styleSheetCreate({
-  channelBackground: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...(Styles.isMobile ? Styles.globalStyles.fillAbsolute : {width: '100%'}),
-    alignItems: 'center',
-    borderBottomLeftRadius: 3,
-    borderTopLeftRadius: 3,
-    marginLeft: Styles.globalMargins.large,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
+  channelBackground: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      marginLeft: Styles.globalMargins.large,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+      maxWidth: '220px',
+      width: '100%',
+    },
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+    },
+  }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
   rowContainer: Styles.platformStyles({
     common: {
