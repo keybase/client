@@ -1140,6 +1140,25 @@ func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
 	}
 }
 
+type FolderSyncStatus struct {
+}
+
+func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
+	return FolderSyncStatus{}
+}
+
+type FolderSyncConfigAndStatus struct {
+	Config FolderSyncConfig `codec:"config" json:"config"`
+	Status FolderSyncStatus `codec:"status" json:"status"`
+}
+
+func (o FolderSyncConfigAndStatus) DeepCopy() FolderSyncConfigAndStatus {
+	return FolderSyncConfigAndStatus{
+		Config: o.Config.DeepCopy(),
+		Status: o.Status.DeepCopy(),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1283,7 +1302,7 @@ type SimpleFSResetArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSFolderSyncConfigArg struct {
+type SimpleFSFolderSyncConfigAndStatusArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
@@ -1390,7 +1409,7 @@ type SimpleFSInterface interface {
 	// simpleFSReset completely resets the KBFS folder referenced in `path`.
 	// It should only be called after explicit user confirmation.
 	SimpleFSReset(context.Context, Path) error
-	SimpleFSFolderSyncConfig(context.Context, Path) (FolderSyncConfig, error)
+	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 }
 
@@ -1848,18 +1867,18 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"simpleFSFolderSyncConfig": {
+			"simpleFSFolderSyncConfigAndStatus": {
 				MakeArg: func() interface{} {
-					var ret [1]SimpleFSFolderSyncConfigArg
+					var ret [1]SimpleFSFolderSyncConfigAndStatusArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SimpleFSFolderSyncConfigArg)
+					typedArgs, ok := args.(*[1]SimpleFSFolderSyncConfigAndStatusArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]SimpleFSFolderSyncConfigArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SimpleFSFolderSyncConfigAndStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSFolderSyncConfig(ctx, typedArgs[0].Path)
+					ret, err = i.SimpleFSFolderSyncConfigAndStatus(ctx, typedArgs[0].Path)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2114,9 +2133,9 @@ func (c SimpleFSClient) SimpleFSReset(ctx context.Context, path Path) (err error
 	return
 }
 
-func (c SimpleFSClient) SimpleFSFolderSyncConfig(ctx context.Context, path Path) (res FolderSyncConfig, err error) {
-	__arg := SimpleFSFolderSyncConfigArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfig", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, path Path) (res FolderSyncConfigAndStatus, err error) {
+	__arg := SimpleFSFolderSyncConfigAndStatusArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus", []interface{}{__arg}, &res)
 	return
 }
 

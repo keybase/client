@@ -621,6 +621,25 @@
           "name": "mode"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncStatus",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatus",
+      "fields": [
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1020,14 +1039,14 @@
       "response": null,
       "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
     },
-    "simpleFSFolderSyncConfig": {
+    "simpleFSFolderSyncConfigAndStatus": {
       "request": [
         {
           "name": "path",
           "type": "Path"
         }
       ],
-      "response": "FolderSyncConfig"
+      "response": "FolderSyncConfigAndStatus"
     },
     "simpleFSSetFolderSyncConfig": {
       "request": [

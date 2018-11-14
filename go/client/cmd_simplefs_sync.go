@@ -56,19 +56,19 @@ func (c *CmdSimpleFSSync) Run() error {
 
 	ctx := context.TODO()
 	if c.show {
-		config, err := cli.SimpleFSFolderSyncConfig(ctx, c.path)
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)
 		if err != nil {
 			return err
 		}
 
 		ui := c.G().UI.GetTerminalUI()
-		switch config.Mode {
+		switch res.Config.Mode {
 		case keybase1.FolderSyncMode_DISABLED:
 			ui.Printf("Syncing disabled\n")
 		case keybase1.FolderSyncMode_ENABLED:
 			ui.Printf("Syncing enabled\n")
 		default:
-			return fmt.Errorf("Unknown sync mode: %s", config.Mode)
+			return fmt.Errorf("Unknown sync mode: %s", res.Config.Mode)
 		}
 		return nil
 	}

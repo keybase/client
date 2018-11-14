@@ -437,10 +437,19 @@ protocol SimpleFS {
     // TODO(KBFS-3522): add specific paths to sync in partial mode.
   }
 
-  // simpleFSFolderSyncConfig returns the current sync config for the
+  record FolderSyncStatus {
+    // TODO: fill in prefetch status, disk usage, percentage synced, etc.
+  }
+
+  record FolderSyncConfigAndStatus {
+    FolderSyncConfig config;
+    FolderSyncStatus status;
+  }
+
+  // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
   // folder specified in `path` (e.g., whether syncing is enabled for
   // that folder).
-  FolderSyncConfig simpleFSFolderSyncConfig(Path path);
+  FolderSyncConfigAndStatus simpleFSFolderSyncConfigAndStatus(Path path);
 
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.

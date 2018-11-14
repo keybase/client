@@ -398,17 +398,17 @@ func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	return cli.SimpleFSGetUserQuotaUsage(ctx)
 }
 
-// SimpleFSFolderSyncConfig implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSFolderSyncConfig(
+// SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
-	keybase1.FolderSyncConfig, error) {
+	keybase1.FolderSyncConfigAndStatus, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
-		return keybase1.FolderSyncConfig{}, err
+		return keybase1.FolderSyncConfigAndStatus{}, err
 	}
-	return cli.SimpleFSFolderSyncConfig(ctx, path)
+	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, path)
 }
 
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
