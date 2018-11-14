@@ -7,7 +7,7 @@ import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
 import {Text, Box, Icon} from '../../../common-adapters'
-import {compose, setDisplayName, connect, type TypedState} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
@@ -78,7 +78,7 @@ type OwnProps = {
   measure: ?() => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
   const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
@@ -103,18 +103,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     showTeamOffer,
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure: ownProps.measure,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('TopMessage')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'TopMessage'
 )(TopMessage)

@@ -1,8 +1,10 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
+
+// When accepting the Stellar disclaimer, next path after acceptance
+export type NextScreenAfterAcceptance = 'linkExisting' | 'openWallet'
 
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
@@ -57,6 +59,7 @@ export type _Assets = {
   balanceTotal: string,
   issuerAccountID: string,
   issuerName: string,
+  issuerVerifiedDomain: string,
   name: string,
   worth: string,
   worthCurrency: string,
@@ -72,41 +75,72 @@ export type _LocalCurrency = {
   symbol: string,
   name: string,
 }
-export type _BuildingPayment = {
+
+export type _Building = {
   amount: string,
   currency: string,
-  from: string,
+  from: AccountID,
+  isRequest: boolean,
   publicMemo: HiddenString,
   recipientType: CounterpartyType,
   secretNote: HiddenString,
+  sendAssetChoices: ?Array<StellarRPCTypes.SendAssetChoiceLocal>,
   to: string,
 }
 
 export type _BuiltPayment = {
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
-  from: string,
+  from: AccountID,
   publicMemoErrMsg: HiddenString,
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
-  toUsername: string,
+  worthAmount: string,
+  worthCurrency: string,
   worthDescription: string,
   worthInfo: string,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
+  sendingIntentionXLM: boolean,
 }
 
-export type StatusSimplified = 'none' | 'pending' | 'cancelable' | 'completed' | 'error' | 'unknown'
+export type _BuiltRequest = {
+  amountErrMsg: string,
+  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  readyToRequest: boolean,
+  secretNoteErrMsg: HiddenString,
+  toErrMsg: string,
+  worthDescription: string,
+  worthInfo: string,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
+  sendingIntentionXLM: boolean,
+}
+
+export type StatusSimplified =
+  | 'none'
+  | 'pending'
+  | 'cancelable'
+  | 'canceled'
+  | 'completed'
+  | 'error'
+  | 'unknown'
 
 export type PaymentDelta = 'none' | 'increase' | 'decrease'
-export type _Payment = {
+export type PaymentSection = 'pending' | 'history' | 'none' // where does the payment go on the wallet screen
+
+// The various payment types below are awkward, but they reflect the
+// protocol. We can clean this up once
+// https://keybase.atlassian.net/browse/CORE-9234 is fixed.
+
+export type _PaymentCommon = {|
   amountDescription: string,
   delta: PaymentDelta,
   error: ?string,
   id: PaymentID,
   note: HiddenString,
   noteErr: HiddenString,
-  publicMemo: HiddenString,
-  publicMemoType: string,
   source: string,
   sourceAccountID: string,
   sourceType: string,
@@ -117,15 +151,35 @@ export type _Payment = {
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
-  txID: string,
   worth: string,
   worthCurrency: string,
-}
+|}
+
+export type _PaymentResult = {|
+  ..._PaymentCommon,
+  // Ideally the section field would be in _PaymentCommon. We can
+  // derive it from statusDescription, which is either "pending",
+  // "completed", or "error", or once
+  // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
+  // might be a better way.
+  section: PaymentSection,
+  unread: boolean,
+|}
+
+export type _PaymentDetail = {|
+  ..._PaymentCommon,
+  publicMemo: HiddenString,
+  publicMemoType: string,
+  txID: string,
+|}
+
+export type _Payment = {|..._PaymentResult, ..._PaymentDetail|}
 
 export type _AssetDescription = {
   code: string,
   issuerAccountID: AccountID,
-  issuerName: ?string,
+  issuerName: string,
+  issuerVerifiedDomain: string,
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
@@ -157,10 +211,14 @@ export type Banner = {|
   bannerText: string,
 |}
 
-export type BuildingPayment = I.RecordOf<_BuildingPayment>
+export type Building = I.RecordOf<_Building>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
+export type BuiltRequest = I.RecordOf<_BuiltRequest>
+
+export type PaymentResult = I.RecordOf<_PaymentResult>
+export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
@@ -169,30 +227,35 @@ export type Request = I.RecordOf<_Request>
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
+  acceptedDisclaimer: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
-  buildingPayment: BuildingPayment,
+  assetsMap: I.Map<AccountID, I.List<Assets>>,
+  building: Building,
   builtPayment: BuiltPayment,
+  builtRequest: BuiltRequest,
   createNewAccountError: string,
+  currencies: I.List<Currency>,
+  currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
+  lastSentXLM: boolean,
   linkExistingAccountError: string,
-  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
-  secretKey: HiddenString,
-  secretKeyError: string,
-  secretKeyValidationState: ValidationState,
-  selectedAccount: AccountID,
-  sentPaymentError: string,
-  assetsMap: I.Map<AccountID, I.List<Assets>>,
+  newPayments: I.Map<AccountID, I.Set<PaymentID>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
+  paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
+  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
+  secretKey: HiddenString,
+  secretKeyError: string,
   secretKeyMap: I.Map<AccountID, HiddenString>,
+  secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
-  currencies: I.List<Currency>,
-  currencyMap: I.Map<AccountID, Currency>,
+  sentPaymentError: string,
+  unreadPaymentsMap: I.Map<string, number>,
 }
 
 export type State = I.RecordOf<_State>

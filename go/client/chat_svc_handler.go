@@ -31,6 +31,7 @@ type ChatServiceHandler interface {
 	DownloadV1(context.Context, downloadOptionsV1) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 	MarkV1(context.Context, markOptionsV1) Reply
+	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
 }
 
@@ -674,6 +675,65 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 	return Reply{Result: cres}
 }
 
+// SearchInbox implements ChatServiceHandler.SearchInboxV1.
+func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInboxOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.MaxHits <= 0 {
+		opts.MaxHits = 10
+	}
+
+	searchOpts := chat1.SearchOpts{
+		ForceReindex:  opts.ForceReindex,
+		SentBy:        opts.SentBy,
+		MaxHits:       opts.MaxHits,
+		BeforeContext: opts.BeforeContext,
+		AfterContext:  opts.AfterContext,
+	}
+
+	if opts.SentBefore != "" && opts.SentAfter != "" {
+		err := fmt.Errorf("Only one of `sent_before` and `sent_after` can be specified")
+		return c.errReply(err)
+	}
+	if opts.SentBefore != "" {
+		sentBefore, err := dateparse.ParseAny(opts.SentBefore)
+		if err != nil {
+			return c.errReply(err)
+		}
+		searchOpts.SentBefore = gregor1.ToTime(sentBefore)
+	}
+	if opts.SentAfter != "" {
+		sentAfter, err := dateparse.ParseAny(opts.SentAfter)
+		if err != nil {
+			return c.errReply(err)
+		}
+		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
+	}
+
+	arg := chat1.SearchInboxArg{
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Query:            opts.Query,
+		Opts:             searchOpts,
+	}
+
+	res, err := client.SearchInbox(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	searchRes := SearchInboxRes{
+		Results: res.Res,
+		RateLimits: RateLimits{
+			c.aggRateLimits(res.RateLimits),
+		},
+		IdentifyFailures: res.IdentifyFailures,
+	}
+	return Reply{Result: searchRes}
+}
+
 // SearchRegexpV1 implements ChatServiceHandler.SearchRegexpV1.
 func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRegexpOptionsV1) Reply {
 	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
@@ -721,7 +781,7 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		searchOpts.SentAfter = gregor1.ToTime(sentAfter)
 	}
 
-	arg := chat1.GetSearchRegexpArg{
+	arg := chat1.SearchRegexpArg{
 		ConvID:           convID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
@@ -729,13 +789,13 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		Opts:             searchOpts,
 	}
 
-	res, err := client.GetSearchRegexp(ctx, arg)
+	res, err := client.SearchRegexp(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
 
 	allLimits := append(rlimits, res.RateLimits...)
-	searchRes := SearchRes{
+	searchRes := SearchRegexpRes{
 		Hits: res.Hits,
 		RateLimits: RateLimits{
 			c.aggRateLimits(allLimits),
@@ -947,9 +1007,12 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Reaction:           mb.Reaction__,
 		Delete:             mb.Delete__,
 		Metadata:           mb.Metadata__,
+		Headline:           mb.Headline__,
 		AttachmentUploaded: mb.Attachmentuploaded__,
+		System:             mb.System__,
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
+		Unfurl:             mb.Unfurl__,
 	}
 }
 
@@ -1070,9 +1133,12 @@ type MsgContent struct {
 	Reaction           *chat1.MessageReaction             `json:"reaction,omitempty"`
 	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
 	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
+	Headline           *chat1.MessageHeadline             `json:"headline,omitempty"`
 	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
+	System             *chat1.MessageSystem               `json:"system,omitempty"`
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
+	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
@@ -1143,7 +1209,13 @@ type SendRes struct {
 	RateLimits
 }
 
-type SearchRes struct {
+type SearchInboxRes struct {
+	Results          *chat1.ChatSearchInboxResults `json:"results"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
+	RateLimits
+}
+
+type SearchRegexpRes struct {
 	Hits             []chat1.ChatSearchHit         `json:"hits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits

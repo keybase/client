@@ -8,8 +8,8 @@ import {
   Icon,
   iconCastPlatformStyles,
   Text,
+  EmojiIfExists,
 } from '../../../../common-adapters'
-import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
@@ -286,7 +286,7 @@ const styles = Styles.styleSheetCreate({
       width: 37,
     },
     isElectron: {
-      minHeight: 16,
+      minHeight: 18,
       overflow: 'hidden',
     },
   }),

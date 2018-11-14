@@ -31,6 +31,7 @@ const defaultProps = {
   updateMobile: Sb.action('updateMobile'),
   visible: true,
   yourMessage: true,
+  isDeleteable: true,
 }
 
 const explodingSoonText = makeMessageText({

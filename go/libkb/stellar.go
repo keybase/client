@@ -64,23 +64,23 @@ func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountI
 func ParseStellarAccountID(idStr string) (stellar1.AccountID, error) {
 	idStr = strings.ToUpper(idStr)
 	if len(idStr) != 56 {
-		return "", fmt.Errorf("Stellar account ID must be 56 chars long: was %v", len(idStr))
+		return "", NewInvalidStellarAccountIDError(fmt.Sprintf("Stellar account ID must be 56 chars long: was %v", len(idStr)))
 	}
 	_, err := base32.StdEncoding.DecodeString(idStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid characters in Stellar account ID")
+		return "", NewInvalidStellarAccountIDError("invalid characters in Stellar account ID")
 	}
 	kp, err := keypair.Parse(idStr)
 	if err != nil {
-		return "", fmt.Errorf("invalid Stellar account ID key: %v", err)
+		return "", NewInvalidStellarAccountIDError(fmt.Sprintf("invalid Stellar account ID key: %s", err))
 	}
 	switch kp := kp.(type) {
 	case *keypair.FromAddress:
 		return stellar1.AccountID(kp.Address()), nil
 	case *keypair.Full:
-		return "", errors.New("unexpected Stellar secret key, expected account ID")
+		return "", NewInvalidStellarAccountIDError("unexpected Stellar secret key, expected account ID")
 	default:
-		return "", fmt.Errorf("invalid Stellar account ID")
+		return "", NewInvalidStellarAccountIDError("invalid keypair type")
 	}
 }
 

@@ -21,7 +21,11 @@ export default function makeMenu(window: any) {
   const windowMenu = {
     label: 'Window',
     submenu: [
-      {label: 'Minimize', accelerator: 'CmdOrCtrl+M', role: 'minimize'},
+      {label: 'Zoom In', accelerator: 'CmdOrCtrl+=', role: 'zoomIn'},
+      {label: 'Zoom Out', role: 'zoomOut'},
+      {label: 'Reset zoom ', role: 'resetZoom'},
+      {label: 'Minimize', role: 'minimize'},
+      {label: 'Minimize', role: 'minimize'},
       {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
       {type: 'separator'},
       {label: 'Bring All to Front', role: 'front'},

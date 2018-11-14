@@ -52,6 +52,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.SetStatusV1(ctx, c, w)
 	case methodMark:
 		return d.handler.MarkV1(ctx, c, w)
+	case methodSearchInbox:
+		return d.handler.SearchInboxV1(ctx, c, w)
 	case methodSearchRegexp:
 		return d.handler.SearchRegexpV1(ctx, c, w)
 	default:

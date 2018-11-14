@@ -1,6 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName} from '../../util/container'
-import {type TypedState} from '../../constants/reducer'
+import {namedConnect} from '../../util/container'
 import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
@@ -19,6 +18,8 @@ export type ConnectedProps = {|
   skipSelf?: boolean,
   usernames: Array<string>,
 |}
+
+type OwnProps = ConnectedProps
 
 export type DispatchProps = {|
   onOpenProfile?: (username: string) => void,
@@ -60,7 +61,7 @@ export const connectedPropsToProps = (
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const _following = state.config.following
   const _broken = state.tracker.userTrackers
   const _you = state.config.username
@@ -80,13 +81,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
   connectedPropsToProps(stateProps, dispatchProps, ownProps)
 
-const ConnectedUsernames = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('Usernames')
+const ConnectedUsernames = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Usernames'
 )(Usernames)
 
 export default ConnectedUsernames

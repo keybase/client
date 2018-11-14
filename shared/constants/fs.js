@@ -89,6 +89,11 @@ export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
   sortOrder: 'asc',
 })
 
+export const sortByNameAsc = makeSortSetting({
+  sortBy: 'name',
+  sortOrder: 'asc',
+})
+
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
   sort: makeSortSetting(),
 })
@@ -170,6 +175,11 @@ export const makeError = (record?: {
   })
 }
 
+export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
+  destinationParentPath: Types.stringToPath('/keybase'),
+  sourceItemPath: Types.stringToPath(''),
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -183,6 +193,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   localHTTPServerInfo: null,
   errors: I.Map(),
   tlfUpdates: I.List(),
+  moveOrCopy: makeMoveOrCopy(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -602,7 +613,10 @@ export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
+export const generateFileURL = (
+  path: Types.Path,
+  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
+): string => {
   if (localHTTPServerInfo === null) {
     return 'about:blank'
   }
@@ -695,6 +709,14 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => 
   }
 }
 
+export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
+  tlfList.reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
+
+export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
+  ['private', 'public', 'team']
+    .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
+    .reduce((sum, count) => sum + count, 0)
+
 export const getTlfListAndTypeFromPath = (
   tlfs: Types.Tlfs,
   path: Types.Path
@@ -772,6 +794,27 @@ export const isPendingDownload = (download: Types.Download, path: Types.Path, in
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
   Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
 
+export const usernameInPath = (username: string, path: Types.Path) => {
+  const elems = Types.getPathElements(path)
+  return elems.length >= 3 && elems[2].split(',').includes(username)
+}
+
+// To make sure we have consistent badging, all badging related stuff should go
+// through this function. That is:
+// * When calculating number of TLFs being badged, a TLF should be counted if
+//   and only if this function returns true.
+// * When an individual TLF is shown (e.g. as a row), it should be badged if
+//   and only if this funciton returns true.
+//
+// If we add more badges, this function should be updated.
+export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
+
+export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
+  const elemsA = Types.getPathElements(a)
+  const elemsB = Types.getPathElements(b)
+  return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:
@@ -798,6 +841,12 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     case FsGen.openLocalPathInSystemFileManager:
       return `Failed to open path: ${action.payload.path}.`
+    case FsGen.deleteFile:
+      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.move:
+      return `Failed to move file(s).`
+    case FsGen.copy:
+      return `Failed to copy file(s).`
     default:
       return 'An unexplainable error has occurred.'
   }

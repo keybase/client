@@ -13,6 +13,17 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const commonAssetMetadataType = {
+  none: 0,
+  image: 1,
+  video: 2,
+  audio: 3,
+}
+
+export const commonAssetTag = {
+  primary: 0,
+}
+
 export const commonConversationExistence = {
   active: 0,
   archived: 1,
@@ -85,6 +96,7 @@ export const commonMessageType = {
   reaction: 13,
   sendpayment: 14,
   requestpayment: 15,
+  unfurl: 16,
 }
 
 export const commonNotificationKind = {
@@ -117,17 +129,6 @@ export const commonTopicType = {
   chat: 1,
   dev: 2,
   kbfsfileedit: 3,
-}
-
-export const localAssetMetadataType = {
-  none: 0,
-  image: 1,
-  video: 2,
-  audio: 3,
-}
-
-export const localAssetTag = {
-  primary: 0,
 }
 
 export const localBodyPlaintextVersion = {
@@ -235,6 +236,7 @@ export const notifyChatChatActivityType = {
   expunge: 9,
   ephemeralPurge: 10,
   reactionUpdate: 11,
+  messageUnfurled: 12,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -265,6 +267,17 @@ export const remoteSyncAllProtVers = {
   v0: 0,
   v1: 1,
 }
+
+export const unfurlUnfurlMode = {
+  always: 0,
+  never: 1,
+  whitelisted: 2,
+}
+
+export const unfurlUnfurlType = {
+  generic: 0,
+  youtube: 1,
+}
 export const localAddTeamMemberAfterResetRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -273,13 +286,17 @@ export const localFindConversationsLocalRpcPromise = (params, waitingKey) => new
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxNonblockLocalRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
+export const localGetNextAttachmentMessageLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getNextAttachmentMessageLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetStaticConfigRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTLFConversationsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTLFConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRetentionLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetThreadLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getThreadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadNonblockRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
+export const localGetUploadTempFileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localJoinConversationByIDLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.joinConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localLeaveConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.leaveConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMakePreviewRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makePreview', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localMakeUploadTempFileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.makeUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMarkAsReadLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.markAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localNewConversationLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.newConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostDeleteHistoryByAgeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postDeleteHistoryByAge', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -293,6 +310,7 @@ export const localPostMetadataRpcPromise = (params, waitingKey) => new Promise((
 export const localPostReactionNonblockRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postReactionNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPostTextNonblockRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.postTextNonblock', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localPreviewConversationByIDLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localProfileChatSearchRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRetryPostRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.RetryPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetAppNotificationSettingsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetConvMinWriterRoleLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setConvMinWriterRoleLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

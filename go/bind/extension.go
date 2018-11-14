@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,6 +21,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -34,6 +36,82 @@ import (
 var extensionRi chat1.RemoteClient
 var extensionInited bool
 var extensionInitMu sync.Mutex
+var extensionPusher PushNotifier
+var extensionListener *extensionNotifyListener
+
+type extensionNotifyListener struct {
+	sync.Mutex
+	globals.Contextified
+	libkb.NoopNotifyListener
+	waiters map[string][]chan struct{}
+	sent    map[string]bool
+}
+
+func newExtensionNotifyListener(g *globals.Context) *extensionNotifyListener {
+	return &extensionNotifyListener{
+		Contextified: globals.NewContextified(g),
+		waiters:      make(map[string][]chan struct{}),
+		sent:         make(map[string]bool),
+	}
+}
+
+func (n *extensionNotifyListener) listenFor(outboxID chat1.OutboxID) chan struct{} {
+	n.Lock()
+	defer n.Unlock()
+	cb := make(chan struct{})
+	if n.sent[outboxID.String()] {
+		close(cb)
+	} else {
+		n.waiters[outboxID.String()] = append(n.waiters[outboxID.String()], cb)
+	}
+	return cb
+}
+
+func (n *extensionNotifyListener) trigger(outboxID chat1.OutboxID) {
+	n.Lock()
+	defer n.Unlock()
+	n.sent[outboxID.String()] = true
+	for _, cb := range n.waiters[outboxID.String()] {
+		close(cb)
+	}
+	n.waiters[outboxID.String()] = nil
+}
+
+func (n *extensionNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+	// Only care about local notifications
+	if source != chat1.ChatActivitySource_LOCAL {
+		return
+	}
+	ctx := context.Background()
+	st, err := activity.ActivityType()
+	if err != nil {
+		kbCtx.Log.Debug("NewChatActivity: failed to get type: %s", err)
+		return
+	}
+	switch st {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		strConvID := activity.IncomingMessage().ConvID.String()
+		outboxID := activity.IncomingMessage().Message.GetOutboxID()
+		if outboxID != nil {
+			n.trigger(*outboxID)
+		}
+		extensionPushResult(nil, strConvID, "message")
+	case chat1.ChatActivityType_FAILED_MESSAGE:
+		err := errors.New("message failed")
+		recs := activity.FailedMessage().OutboxRecords
+		for _, r := range recs {
+			strConvID := r.ConvID.String()
+			n.trigger(r.OutboxID)
+			extensionPushResult(err, strConvID, "message")
+		}
+		for _, r := range recs {
+			strConvID := r.ConvID.String()
+			strOutboxID := r.OutboxID.String()
+			extensionRegisterFailure(ctx, n.G(), err, strConvID, strOutboxID)
+		}
+	}
+}
 
 func ExtensionIsInited() bool {
 	extensionInitMu.Lock()
@@ -42,7 +120,7 @@ func ExtensionIsInited() bool {
 }
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool) (err error) {
+	accessGroupOverride bool, pusher PushNotifier) (err error) {
 	extensionInitMu.Lock()
 	defer extensionInitMu.Unlock()
 	defer func() { err = flattenError(err) }()
@@ -60,6 +138,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
+	extensionPusher = pusher
 	dnsNSFetcher := newDNSNSFetcher(nil)
 	dnsServers := dnsNSFetcher.GetServers()
 	for _, srv := range dnsServers {
@@ -98,6 +177,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		UPAKCacheSize:                  50,
 		PayloadCacheSize:               50,
 		ProofCacheSize:                 50,
+		OutboxStorageEngine:            "files",
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -132,8 +212,12 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	if extensionRi, err = getGregorClient(context.Background(), gc); err != nil {
 		return err
 	}
+	extensionListener = newExtensionNotifyListener(gc)
+	kbCtx.NotifyRouter.SetListener(extensionListener)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
+	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
+	kbChatCtx.MessageDeliverer.Connected(context.Background())
 	return nil
 }
 
@@ -199,40 +283,24 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	return gregor1.DeviceID(hdid), nil
 }
 
-func ExtensionRegisterSend(strConvID string, pusher PushNotifier) (res string, err error) {
-	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
-	defer func() { err = flattenError(err) }()
-	defer func() {
-		// We are going to abort if this doesn't work, so let the user know about it now
+func extensionRegisterSendNonblock(ctx context.Context, gc *globals.Context, convID chat1.ConversationID,
+	outboxID chat1.OutboxID) {
+	bctx := chat.BackgroundContext(ctx, gc)
+	go func(ctx context.Context) {
+		deviceID, err := extensionGetDeviceID(ctx, gc)
 		if err != nil {
-			extensionPushResult(pusher, err, strConvID, "message")
+			kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to get deviceID: %s", err)
+			return
 		}
-	}()
-	outboxID, err := storage.NewOutboxID()
-	if err != nil {
-		return res, err
-	}
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := chat.Context(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-	deviceID, err := extensionGetDeviceID(ctx, gc)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: failed to get deviceID: %s", err)
-		return res, err
-	}
-	convID, err := chat1.MakeConvID(strConvID)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: invalid convID: %s", err)
-		return res, err
-	}
-	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
-		ConvID:   convID,
-		OutboxID: outboxID,
-		DeviceID: deviceID,
-	}); err != nil {
-		return res, err
-	}
-	return outboxID.String(), nil
+		if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
+			ConvID:   convID,
+			OutboxID: outboxID,
+			DeviceID: deviceID,
+		}); err != nil {
+			kbCtx.Log.CDebugf(ctx, "extensionRegisterSend: failed to make RPC: %s", err)
+			return
+		}
+	}(bctx)
 }
 
 func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err error, strConvID,
@@ -266,12 +334,12 @@ func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err erro
 
 func ExtensionDetectMIMEType(filename string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionDetectMIMEType", func() error { return err })()
-	src, err := os.Open(filename)
+	src, err := attachments.NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}
 	defer src.Close()
-	return attachments.DetectMIMEType(context.TODO(), src)
+	return attachments.DetectMIMEType(context.TODO(), src, filename)
 }
 
 type extensionGregorHandler struct {
@@ -345,71 +413,102 @@ func getOutboxID(strOutboxID string) *chat1.OutboxID {
 	return &obid
 }
 
-func ExtensionPostText(strConvID, strOutboxID, name string, public bool, membersType int,
-	body string, pusher PushNotifier) (err error) {
+func extensionNewSender(g *globals.Context) types.Sender {
+	baseSender := chat.NewBlockingSender(g, chat.NewBoxer(g),
+		func() chat1.RemoteInterface { return extensionRi })
+	return chat.NewNonblockingSender(g, baseSender)
+}
+
+func ExtensionPostText(strConvID, name string, public bool, membersType int, body string) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(pusher, err, strConvID, "message") }()
-
 	defer func() {
 		if err == nil {
 			putSavedConv(ctx, strConvID, name, public, membersType)
 		}
 	}()
 
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
 	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_TEXT,
 			TlfName:     restoreName(gc, name, chat1.ConversationMembersType(membersType)),
 			TlfPublic:   public,
-			OutboxID:    getOutboxID(strOutboxID),
+			OutboxID:    &outboxID,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: body,
 		}),
 	}
-	if _, _, err = sender.Send(ctx, convID, msg, 0, nil); err != nil {
+	if _, _, err = extensionNewSender(gc).Send(ctx, convID, msg, 0, &outboxID); err != nil {
 		return err
 	}
+	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)
+	extensionWaitForResult(ctx, strConvID, extensionListener.listenFor(outboxID))
 	return nil
 }
 
-func extensionPushResult(pusher PushNotifier, err error, strConvID, typ string) {
+func extensionPushResult(err error, strConvID, typ string) {
 	var msg string
 	if err != nil {
 		msg = fmt.Sprintf("We could not send your %s. Please try from the Keybase app.", typ)
 	} else {
 		msg = fmt.Sprintf("Your %s was shared successfully.", typ)
 	}
-	pusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
+	extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
-func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, membersType int,
-	caption string, filename string, mimeType string,
-	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
+func extensionCreateUploadTemp(ctx context.Context, gc *globals.Context, outboxID chat1.OutboxID,
+	inFilename string) (string, error) {
+	// move the file into out own storage, otherwise iOS is going to blow it away
+	filename, err := gc.AttachmentUploader.GetUploadTempFile(ctx, outboxID, inFilename)
+	if err != nil {
+		return "", err
+	}
+	inFile, err := os.Open(inFilename)
+	if err != nil {
+		return "", err
+	}
+	outFile, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return "", err
+	}
+	if _, err := io.Copy(outFile, inFile); err != nil {
+		return "", err
+	}
+	return filename, nil
+}
+
+func ExtensionPostImage(strConvID, name string, public bool, membersType int,
+	caption string, inFilename string, mimeType string,
+	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostImage", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
 	}
-
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	filename, err := extensionCreateUploadTemp(ctx, gc, outboxID, inFilename)
+	if err != nil {
+		return err
+	}
 	var callerPreview *chat1.MakePreviewRes
 	if previewData != nil {
 		// Compute preview result from the native params
@@ -444,22 +543,27 @@ func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, member
 			})
 		}
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, callerPreview)
 }
 
-func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, membersType int,
-	caption string, filename string, mimeType string,
-	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
+func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
+	caption string, inFilename string, mimeType string,
+	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	filename, err := extensionCreateUploadTemp(ctx, gc, outboxID, inFilename)
 	if err != nil {
 		return err
 	}
@@ -488,31 +592,44 @@ func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, member
 		Metadata:        &previewMD,
 		BaseMetadata:    &baseMD,
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, callerPreview)
 }
 
-func ExtensionPostFile(strConvID, strOutboxID, name string, public bool, membersType int,
-	caption string, filename string, pusher PushNotifier) (err error) {
+func ExtensionPostFile(strConvID, name string, public bool, membersType int,
+	caption string, filename string) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
-	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
-
 	uid, err := assertLoggedInUID(ctx, gc)
 	if err != nil {
 		return err
 	}
-	return postFileAttachment(ctx, gc, uid, strConvID, strOutboxID, name, public, membersType, filename,
+	outboxID, err := storage.NewOutboxID()
+	if err != nil {
+		return err
+	}
+	return postFileAttachment(ctx, gc, uid, strConvID, outboxID, name, public, membersType, filename,
 		caption, nil)
 }
 
+func extensionWaitForResult(ctx context.Context, strConvID string, cb chan struct{}) {
+	// Wait for some time for success/failure before bailing out
+	kbCtx.Log.CDebugf(ctx, "extensionWaitForResult: waiting for result")
+	select {
+	case <-cb:
+	case <-time.After(30 * time.Second):
+		kbCtx.Log.CDebugf(ctx, "extensionWaitForResult: timed out waiting for result, bailing out!")
+		msg := "Your message is taking a long time to send, Keybase will be trying in the background."
+		extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
+	}
+}
+
 func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UID,
-	strConvID, strOutboxID, name string, public bool, membersType int, filename, caption string,
-	callerPreview *chat1.MakePreviewRes) (err error) {
+	strConvID string, outboxID chat1.OutboxID, name string, public bool, membersType int, filename,
+	caption string, callerPreview *chat1.MakePreviewRes) (err error) {
 
 	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 	defer func() {
@@ -529,12 +646,18 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 	if public {
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
-	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis,
-		getOutboxID(strOutboxID), filename, caption, nil, 0, nil, callerPreview); err != nil {
+	sender := extensionNewSender(gc)
+	if _, _, err = attachments.NewSender(gc).PostFileAttachmentMessage(ctx, sender, convID, name, vis,
+		&outboxID, filename, caption, nil, 0, nil); err != nil {
 		return err
 	}
+	cb := extensionListener.listenFor(outboxID)
+	if _, err := gc.AttachmentUploader.Register(ctx, uid, convID, outboxID, caption,
+		filename, nil, callerPreview); err != nil {
+		return err
+	}
+	extensionRegisterSendNonblock(ctx, gc, convID, outboxID)
+	extensionWaitForResult(ctx, strConvID, cb)
 	return nil
 }
 

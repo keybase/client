@@ -126,7 +126,7 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
   const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
-  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
+  const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
   logger.info(`Adding ${ids.length} people to ${teamname}`)
   logger.info(`Adding ${ids.join(',')}`)
   try {
@@ -904,6 +904,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
 function* _createChannel(action: TeamsGen.CreateChannelPayload) {
   const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.createChannelWaitingKey(teamname)}))
   try {
     const result = yield Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -953,6 +954,8 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     )
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
+  } finally {
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.createChannelWaitingKey(teamname)}))
   }
 }
 
@@ -1131,12 +1134,21 @@ const setupEngineListeners = () => {
         }
         yield arrayOfActionsToSequentially(getLoadCalls())
       }),
-    'keybase.1.NotifyTeam.avatarUpdated': ({name}) =>
+    'keybase.1.NotifyTeam.avatarUpdated': ({name, formats, typ}) =>
       Saga.call(function*() {
-        const state = yield Saga.select()
-        yield state.teams.teamnames.includes(name)
-          ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
-          : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+        switch (typ) {
+          case RPCTypes.notifyTeamAvatarUpdateType.none:
+            // don't know what it is, so try both
+            yield Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+            yield Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+            break
+          case RPCTypes.notifyTeamAvatarUpdateType.user:
+            yield Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+            break
+          case RPCTypes.notifyTeamAvatarUpdateType.team:
+            yield Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+            break
+        }
       }),
   })
 }

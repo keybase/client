@@ -5,30 +5,32 @@ import * as I from 'immutable'
 // I put a lot of FlowIssues here so I could get this checked in. The typing of this isn't perfect, but it's getting closer
 
 type _LeafTags = {
-  persistChildren: boolean, // Whether to persist children state when navigating to this route.
-  modal: boolean,
-  layerOnTop: boolean,
-  underStatusBar: boolean, // mobile only
-  showStatusBarDarkContent: boolean, // mobile only
-  hideStatusBar: boolean, // mobile only
   fullscreen: boolean,
+  hideStatusBar: boolean, // mobile only
   keepKeyboardOnLeave: boolean,
-  root: boolean,
+  layerOnTop: boolean,
+  modal: boolean,
+  persistChildren: boolean, // Whether to persist children state when navigating to this route.
+  renderTopmostOnly: boolean, // desktop only. doesn't render if not the current leaf. valid only with `layerOnTop: true`
+  root: boolean, // only used by the root shim to allow special padding logic as its the root container
+  showStatusBarDarkContent: boolean, // mobile only
   title: ?string,
+  underNotch: boolean, // allow access to the entire top area no matter what
 }
 
 export type LeafTags = I.RecordOf<_LeafTags>
 export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
-  persistChildren: false,
-  modal: false,
-  layerOnTop: false,
-  underStatusBar: false,
-  hideStatusBar: false,
-  showStatusBarDarkContent: false,
   fullscreen: false,
+  hideStatusBar: false,
   keepKeyboardOnLeave: false,
-  root: false, // only used by the root shim to allow special padding logic as its the root container
+  layerOnTop: false,
+  modal: false,
+  persistChildren: false,
+  renderTopmostOnly: false,
+  root: false,
+  showStatusBarDarkContent: false,
   title: null,
+  underNotch: false,
 })
 
 // TODO type this properly. component and container component are mutually exclusive
@@ -132,7 +134,6 @@ const _makeRouteStateNode: I.RecordFactory<
       op: (node: ?I.RecordOf<RouteStateNode>) => ?I.RecordOf<RouteStateNode>
     ) => ?I.RecordOf<RouteStateNode>,
   }
-  // $FlowIssue
 > = I.Record({
   selected: null,
   props: I.Map(),
@@ -299,6 +300,7 @@ export function checkRouteState(
     path.push(selected)
     // $FlowIssue
     curDef = curDef.getChild(selected)
+    // $FlowIssue
     curState = curState.getChild(selected)
   }
   if (!curDef) {
@@ -318,6 +320,7 @@ export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<
 
   if (parentPath) {
     for (const next of parentPath) {
+      // $FlowIssue
       curState = curState && next && curState.getChild(next)
       if (!curState) {
         return I.List(path)
@@ -342,6 +345,7 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
 
   if (parentPath) {
     for (const next of parentPath) {
+      // $FlowIssue
       curState = curState && next && curState.getChild(next)
       if (!curState) {
         return null
@@ -351,6 +355,7 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
   }
 
   while (curState && curState.selected) {
+    // $FlowIssue
     curState = curState.getChild(curState.selected)
   }
   return curState ? curState.state : null
@@ -366,8 +371,10 @@ export function getPathProps(
   let curState = routeState
 
   for (const next of parentPath) {
+    // $FlowIssue
     curState = curState && curState.getChild(next)
     if (!curState) {
+      // $FlowIssue
       return I.List(path)
     }
     path.push({

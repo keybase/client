@@ -2,9 +2,9 @@
 // @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
+import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
 import * as WalletTypes from '../wallets'
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
@@ -46,6 +46,11 @@ export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
 export type MessageExplodeDescription = {text: string, seconds: number}
+
+export type PathAndOutboxID = {
+  path: string,
+  outboxID: ?RPCChatTypes.OutboxID,
+}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand

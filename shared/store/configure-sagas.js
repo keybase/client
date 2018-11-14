@@ -23,7 +23,7 @@ import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
 import {reduxSagaLogger} from '../local-debug'
-import {sagaTimer} from '../dev/user-timings'
+import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga(): Saga.SagaGenerator<any, any> {
@@ -52,7 +52,7 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
 
 let middleWare
 function create(crashHandler: (err: any) => void) {
-  if (middleWare) {
+  if (!__DEV__ && middleWare) {
     throw new Error('Only create one saga middleware!')
   }
   middleWare = createSagaMiddleware({
@@ -63,7 +63,7 @@ function create(crashHandler: (err: any) => void) {
 }
 
 function run() {
-  middleWare.run(mainSaga)
+  middleWare && middleWare.run(mainSaga)
 }
 
 export {create, run}

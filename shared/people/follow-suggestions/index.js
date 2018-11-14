@@ -5,7 +5,7 @@ import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapter
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-export type FollowSuggestion = Types._FollowSuggestion
+export type FollowSuggestion = Types.FollowSuggestion
 
 export type Props = {|
   suggestions: Array<FollowSuggestion>,

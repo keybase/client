@@ -40,6 +40,7 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Contextified: libkb.NewContextified(g),
 			}, "api-listen", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -264,5 +265,8 @@ func (d *chatNotificationDisplay) ChatPaymentInfo(context.Context, chat1.ChatPay
 	return nil
 }
 func (d *chatNotificationDisplay) ChatRequestInfo(context.Context, chat1.ChatRequestInfoArg) error {
+	return nil
+}
+func (d *chatNotificationDisplay) ChatPromptUnfurl(context.Context, chat1.ChatPromptUnfurlArg) error {
 	return nil
 }

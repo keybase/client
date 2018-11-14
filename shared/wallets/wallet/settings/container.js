@@ -1,28 +1,27 @@
 // @flow
 import Settings, {type SettingsProps} from '.'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  safeSubmit,
-  type TypedState,
-  type Dispatch,
-} from '../../../util/container'
+import {compose, namedConnect, lifecycle, safeSubmit, type RouteProps} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
-  const name = account.name || Constants.getAccountName(account) || accountID || account.accountID
+  const name = account.name
   const me = state.config.username || ''
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
-  const currencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+  const currencyWaiting = anyWaiting(
+    state,
+    Constants.changeDisplayCurrencyWaitingKey,
+    Constants.getDisplayCurrencyWaitingKey(accountID)
+  )
+  const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
 
   return {
     accountID,
@@ -31,14 +30,15 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     currencyWaiting,
     isDefault: account.isDefault,
     name,
+    saveCurrencyWaiting,
     user,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {routeProps, navigateUp, navigateAppend}) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(navigateUp())
-    dispatch(WalletsGen.createRefreshPayments({accountID}))
+    dispatch(WalletsGen.createLoadPayments({accountID}))
   },
   _refresh: () => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
@@ -80,16 +80,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
   lifecycle({
     componentDidMount() {
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings'),
   safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

@@ -44,6 +44,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
+  attachmentFullscreenMessage: null,
 
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
@@ -65,7 +66,7 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.SortedSet())
+  state.chat2.messageOrdinals.get(id, I.OrderedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
 export const getMessageKey = (message: Types.Message) =>
@@ -231,6 +232,7 @@ export {
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,
+  isDecryptingSnippet,
   makeConversationMeta,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
@@ -265,6 +267,8 @@ export {
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
   showAuthorMessageTypes,
+  shouldShowPopup,
+  specialMentions,
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import NoteAndMemo from '.'
+import {SecretNote, PublicMemo} from '.'
 
 const commonProps = {
   publicMemo: '',
@@ -11,24 +11,29 @@ const commonProps = {
 }
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Note and Memo', module)
-    .add('Normal input', () => <NoteAndMemo {...commonProps} />)
+    .add('Normal input', () => <SecretNote {...commonProps} />)
     .add('Input with a note error', () => (
-      <NoteAndMemo {...commonProps} secretNoteError="There's something wrong with your note." />
+      <SecretNote {...commonProps} secretNoteError="There's something wrong with your note." />
     ))
     .add('Input with a memo error', () => (
-      <NoteAndMemo {...commonProps} publicMemoError="There's something wrong with your memo." />
+      <PublicMemo {...commonProps} publicMemoError="There's something wrong with your memo." />
     ))
-    .add('Prefilled', () => (
-      <NoteAndMemo
+    .add('Prefilled SecretNote', () => (
+      <SecretNote {...commonProps} secretNote="This is a prefilled secret note" />
+    ))
+    .add('Prefilled PublicMemo', () => (
+      <PublicMemo {...commonProps} publicMemo="This is a prefilld pblc memo" />
+    ))
+    .add('Prefilled SecretNote w/ errors', () => (
+      <SecretNote
         {...commonProps}
         secretNote="This is a prefilled secret note"
-        publicMemo="This is a prefilld pblc memo"
+        secretNoteError="Note is too long"
       />
     ))
-    .add('Prefilled w/ errors', () => (
-      <NoteAndMemo
+    .add('Prefilled PublicMemo w/ errors', () => (
+      <PublicMemo
         {...commonProps}
-        secretNote="This is a prefilled secret note"
         publicMemo="This is a prefilled public memo"
         publicMemoError="Memo is too long"
       />

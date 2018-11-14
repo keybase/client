@@ -16,7 +16,7 @@ type Props = {|
   _loaded: boolean,
 |}
 
-const mapStateToProps = (state: Container.TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const name = routeProps.get('teamname')
   const canPerform = getCanPerform(state, name)
   const _canLeaveTeam = canPerform.leaveTeam

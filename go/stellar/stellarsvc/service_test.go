@@ -44,7 +44,7 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingFull})
 	defer cleanup()
 
 	t.Logf("Lookup for a bogus address")
@@ -53,11 +53,9 @@ func TestCreateWallet(t *testing.T) {
 	require.IsType(t, libkb.NotFoundError{}, err)
 
 	t.Logf("Create an initial wallet")
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
-	require.True(t, created)
+	acceptDisclaimer(tcs[0])
 
-	created, err = stellar.CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -119,8 +117,7 @@ func TestUpkeep(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -159,8 +156,7 @@ func TestImportExport(t *testing.T) {
 
 	srv := tcs[0].Srv
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 
 	mustAskForPassphrase := func(f func()) {
 		ui := tcs[0].Fu.NewSecretUI()
@@ -171,7 +167,7 @@ func TestImportExport(t *testing.T) {
 	}
 
 	mustAskForPassphrase(func() {
-		_, err = srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(""))
+		_, err := srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(""))
 		require.Error(t, err, "export empty specifier")
 	})
 
@@ -283,8 +279,7 @@ func TestGetWalletAccountsCLILocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
@@ -305,15 +300,14 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 
 	srv := tcs[0].Srv
 	rm := tcs[0].Backend
 	accountIDSender := rm.AddAccount()
 	accountIDRecip := rm.AddAccount()
 
-	err = srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+	err := srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
 		Name:        "uu",
@@ -348,10 +342,8 @@ func TestSendLocalKeybase(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
-	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 
 	srvSender := tcs[0].Srv
 	rm := tcs[0].Backend
@@ -365,7 +357,7 @@ func TestSendLocalKeybase(t *testing.T) {
 		MakePrimary: true,
 		Name:        "uu",
 	}
-	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	err := srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
 	argImport.SecretKey = rm.SecretKey(accountIDRecip)
@@ -401,10 +393,8 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
-	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 
 	srvSender := tcs[0].Srv
 	rm := tcs[0].Backend
@@ -418,7 +408,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 		MakePrimary: true,
 		Name:        "uu",
 	}
-	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	err := srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
 	argImport.SecretKey = rm.SecretKey(accountIDRecip)
@@ -461,12 +451,10 @@ func TestRecentPaymentsLocal(t *testing.T) {
 }
 
 func TestRelayTransferInnards(t *testing.T) {
-	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingWalletless})
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
-
+	acceptDisclaimer(tcs[0])
 	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
 
@@ -513,8 +501,7 @@ func testRelay(t *testing.T, yank bool) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingPukless})
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(getPrimaryAccountID(tcs[0]), "5")
@@ -532,15 +519,8 @@ func testRelay(t *testing.T, yank bool) {
 	if !yank {
 		claimant = 1
 
-		getapuk := func(tc *TestContext) {
-			tc.Tp.DisableUpgradePerUserKey = false
-			err = engine.RunEngine2(libkb.NewMetaContext(context.Background(), tc.G).WithUIs(libkb.UIs{
-				LogUI: tc.G.Log,
-			}), engine.NewPerUserKeyUpgrade(tc.G, &engine.PerUserKeyUpgradeArgs{}))
-			require.NoError(t, err)
-
-		}
-		getapuk(tcs[1])
+		tcs[1].Tp.DisableUpgradePerUserKey = false
+		acceptDisclaimer(tcs[1])
 
 		tcs[0].Backend.ImportAccountsForUser(tcs[claimant])
 
@@ -585,7 +565,7 @@ func testRelay(t *testing.T, yank bool) {
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
 	} else {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
-		require.Equal(t, stellar1.BalanceDelta_NONE, fhistory[0].Payment.Delta)
+		require.Equal(t, stellar1.BalanceDelta_INCREASE, fhistory[0].Payment.Delta) // assertion related to CORE-9322
 	}
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "1.9999900")
@@ -604,6 +584,21 @@ func testRelay(t *testing.T, yank bool) {
 		tcs[claimant].Backend.AssertBalance(getPrimaryAccountID(tcs[claimant]), "4.9999800")
 	}
 
+	frontendExpStatusSimp := stellar1.PaymentStatus_COMPLETED
+	frontendExpToAssertion := tcs[1].Fu.Username
+	frontendExpOrigToAssertion := ""
+	if yank {
+		frontendExpStatusSimp = stellar1.PaymentStatus_CANCELED
+		frontendExpToAssertion, frontendExpOrigToAssertion = frontendExpOrigToAssertion, frontendExpToAssertion
+	}
+	frontendExpStatusDesc := strings.ToLower(frontendExpStatusSimp.String())
+	checkStatusesAndAssertions := func(p *stellar1.PaymentLocal) {
+		require.Equal(t, frontendExpStatusSimp, p.StatusSimplified)
+		require.Equal(t, frontendExpStatusDesc, p.StatusDescription)
+		require.Equal(t, frontendExpToAssertion, p.ToAssertion)
+		require.Equal(t, frontendExpOrigToAssertion, p.OriginalToAssertion)
+	}
+
 	history, err = tcs[claimant].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, history, 1)
@@ -617,8 +612,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
+	checkStatusesAndAssertions(fhistory[0].Payment)
 
 	history, err = tcs[0].Srv.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
@@ -633,8 +627,7 @@ func testRelay(t *testing.T, yank bool) {
 	require.Len(t, fhistory, 1)
 	require.Nil(t, fhistory[0].Err)
 	require.NotNil(t, fhistory[0].Payment)
-	require.Equal(t, stellar1.PaymentStatus_COMPLETED, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "completed", fhistory[0].Payment.StatusDescription)
+	checkStatusesAndAssertions(fhistory[0].Payment)
 
 	t.Logf("try to claim again")
 	res, err = tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
@@ -661,8 +654,7 @@ func TestDefaultCurrency(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
-	require.NoError(t, err)
+	acceptDisclaimer(tcs[0])
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
 	primary := getPrimaryAccountID(tcs[0])
@@ -697,7 +689,7 @@ func TestDefaultCurrency(t *testing.T) {
 	// Should be "EUR" as well, inherited from primary account. Try to
 	// use RPC instead of remote endpoint directly this time.
 	currencyObj, err := tcs[0].Srv.GetDisplayCurrencyLocal(context.Background(), stellar1.GetDisplayCurrencyLocalArg{
-		AccountID: a1,
+		AccountID: &a1,
 	})
 	require.NoError(t, err)
 	require.IsType(t, stellar1.CurrencyLocal{}, currencyObj)
@@ -708,6 +700,8 @@ func TestRequestPayment(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 	xlm := stellar1.AssetNative()
 	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -741,6 +735,9 @@ func TestRequestPayment(t *testing.T) {
 func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Currency:  &usd,
@@ -784,9 +781,8 @@ func setupNTests(t *testing.T, n int) ([]*TestContext, func()) {
 type usetting string
 
 const (
-	usettingFull       usetting = "full"
-	usettingWalletless usetting = "walletless"
-	usettingPukless    usetting = "pukless"
+	usettingFull    usetting = "full"
+	usettingPukless usetting = "pukless"
 )
 
 func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, func()) {
@@ -797,8 +793,6 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
 		case usettingFull:
-		case usettingWalletless:
-			tc.Tp.DisableAutoWallet = true
 		case usettingPukless:
 			tc.Tp.DisableUpgradePerUserKey = true
 		}

@@ -51,7 +51,13 @@ export type _Tlf = {
   needsRekey: boolean,
   resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
+  // Following two fields are calculated but not in-use today yet.
+  //
+  // waitingForParticipantUnlock is the list of participants that can unlock
+  // this folder, when this folder needs a rekey.
   waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+  // youCanUnlock has a list of devices that can unlock this folder, when this
+  // folder needs a rekey.
   youCanUnlock?: I.List<Device>,
 }
 export type Tlf = I.RecordOf<_Tlf>
@@ -219,6 +225,12 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
+export type _MoveOrCopy = {
+  destinationParentPath: Path,
+  sourceItemPath: Path,
+}
+export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -232,6 +244,7 @@ export type _State = {
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
+  moveOrCopy: MoveOrCopy,
 }
 export type State = I.RecordOf<_State>
 
@@ -357,7 +370,7 @@ type sortSettingDisplayParams = {
   sortSettingIconType: IconType,
 }
 
-export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDisplayParams => {
+export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
   switch (s.sortBy) {
     case 'name':
       return s.sortOrder === 'asc'
@@ -487,6 +500,11 @@ export type PlaceholderRowItem = {
   type: 'folder' | 'file',
 }
 
+export type EmptyRowItem = {
+  rowType: 'empty',
+  name: string,
+}
+
 export type RowItem =
   | TlfTypeRowItem
   | TlfRowItem
@@ -494,6 +512,7 @@ export type RowItem =
   | EditingRowItem
   | UploadingRowItem
   | PlaceholderRowItem
+  | EmptyRowItem
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing

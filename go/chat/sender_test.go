@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -215,7 +216,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
-		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
+		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 10),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
@@ -226,6 +227,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	chatStorage.SetAssetDeleter(g.ConvSource)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
+	g.InboxSource.Start(context.TODO(), uid)
+	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
 
@@ -265,12 +268,17 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
-	searcher := NewSearcher(g)
+	searcher := search.NewRegexpSearcher(g)
 	// Force small pages during tests to ensure we fetch context from new pages
-	searcher.pageSize = 2
-	g.Searcher = searcher
+	searcher.SetPageSize(2)
+	g.RegexpSearcher = searcher
+	indexer := search.NewIndexer(g)
+	ictx := IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
+	indexer.Start(ictx, uid)
+	indexer.SetPageSize(2)
+	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
-
+	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 
 	return ctx, world, ri, sender, baseSender, &listener
@@ -740,6 +748,9 @@ func TestDisconnectedFailure(t *testing.T) {
 		break
 	}
 	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	sort.Slice(obids, func(i, j int) bool {
+		return j < i
+	})
 	require.Equal(t, listener.obidsRemote, obids)
 }
 

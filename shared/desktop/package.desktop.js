@@ -1,5 +1,6 @@
 // @flow
 import del from 'del'
+// $FlowIssue flow-typed assumes there's no default export, but there is
 import fs from 'fs-extra'
 import klawSync from 'klaw-sync'
 import minimist from 'minimist'
@@ -41,7 +42,7 @@ const platform = argv.platform ? argv.platform.toString() : os.platform()
 const appVersion: string = (argv.appVersion: any) || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
-const appCopyright = 'Copyright (c) 2015, Keybase'
+const appCopyright = 'Copyright (c) 2018, Keybase'
 const companyName = 'Keybase, Inc.'
 
 const packagerOpts: any = {
@@ -68,13 +69,10 @@ function main() {
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
   fs.removeSync(desktopPath('build/images/mock'))
-  copySyncFolder('renderer', 'build/desktop/renderer', ['.html'])
-  fs.removeSync(desktopPath('build/desktop/renderer/renderer.dev.html'))
-  copySync('renderer/renderer-load.desktop.js', 'build/desktop/renderer/renderer-load.desktop.js')
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
   fs.writeJsonSync(desktopPath('build/package.json'), {
-    main: 'desktop/dist/main.bundle.js',
+    main: 'desktop/dist/node.bundle.js',
     name: appName,
     version: appVersion,
   })
@@ -119,7 +117,7 @@ function startPack() {
     }
 
     copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
-    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png'])
+    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     del(desktopPath('release'))
@@ -193,7 +191,11 @@ function postPack(plat, arch) {
     }
     const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
     const dir = path.join(appPaths[0], subdir, 'app/desktop/dist')
-    const files = ['index', 'main', 'component-loader'].map(p => p + '.bundle.js')
+    const modules = ['node', 'main', 'tracker', 'menubar', 'unlock-folders', 'pinentry']
+    const files = [
+      ...modules.map(p => p + '.bundle.js'),
+      ...modules.filter(p => p !== 'node').map(p => p + '.html'),
+    ]
     files.forEach(file => {
       try {
         const stats = fs.statSync(path.join(dir, file))

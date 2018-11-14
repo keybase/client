@@ -27,6 +27,7 @@
     },
     "rules": {
         "babel/func-params-comma-dangle": "off",
+        "babel/no-unused-expressions": "off",
         "camelcase": "off",
         "comma-dangle": ["error", "always-multiline"],
         "curly": "off",
@@ -56,6 +57,7 @@
         "jsx-quotes": "off",
         "no-duplicate-imports": "off",
         "no-mixed-operators": "off",
+        "no-unused-expressions": "off",
         "react/jsx-boolean-value": ["error", "always"],
         "react/jsx-curly-spacing": "off",
         "react/jsx-equals-spacing": "error",

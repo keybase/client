@@ -1,20 +1,27 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
+import * as Types from '../../../../constants/types/chat2'
 import Joined from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
 
-const mapStateToProps = (state: TypedState, {message}) => ({
+type OwnProps = {|
+  message: Types.MessageSystemLeft,
+|}
+
+const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
   you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onUsernameClicked: (username: string) => {
-    isMobile
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+    if (isMobile) {
+      dispatch(createShowUserProfile({username}))
+    } else {
+      dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+    }
   },
 })
 
@@ -30,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

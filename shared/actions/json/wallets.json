@@ -7,31 +7,55 @@
   ],
   "actions": {
     "abandonPayment": {
-      "_description":
-        "Signal that a payment being built is abandoned and reset the form fields to their initial states."
+      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states."
+    },
+    "acceptDisclaimer": {
+      "_description": "Accept the Stellar account disclaimer",
+      "nextScreen": "Types.NextScreenAfterAcceptance"
     },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
+    },
+    "addNewPayment": {
+      "_description": "Mark a payment we were just notified about as being unseen",
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID"
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>"
     },
-    "buildPayment": {
-      "_description": "Prepare a payment for sending"
+    "badgesUpdated": {
+      "_description": "Update badges in the nav",
+      "accounts": "Array<RPCTypes.WalletAccountInfo>"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
       "build": "Types.BuiltPayment",
-      "forBuildingPayment": "Types.BuildingPayment"
+      "forBuilding": "Types.Building"
     },
-    "clearBuildingPayment": {
-      "_description": "Clear a payment that was being prepared"
+    "builtRequestReceived": {
+      "_description": "Update our store with a prepared payment",
+      "build": "Types.BuiltRequest",
+      "forBuilding": "Types.Building"
+    },
+    "clearBuilding": {
+      "_description": "Clear a payment or request that was being prepared"
     },
     "clearBuiltPayment": {
       "_description": "Clear a prepared payment once it has been sent or canceled"
+    },
+    "clearBuiltRequest": {
+      "_description": "Clear a prepared request once it has been sent or canceled"
+    },
+    "clearErrors": {
+      "_description": "Clear errors from the store at times like opening or closing a form dialog."
+    },
+    "clearNewPayments": {
+      "_description": "Clear our idea of which payments have not been seen by the user yet",
+      "accountID": "Types.AccountID"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
@@ -40,7 +64,8 @@
       "requestID": "StellarRPCTypes.KeybaseRequestID"
     },
     "cancelPayment": {
-      "_description": "Cancel a payment. Valid for payments of status 'cancelable'.",
+      "_description": "Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.",
+      "showAccount?": "boolean",
       "paymentID": "Types.PaymentID"
     },
     "createNewAccount": {
@@ -50,8 +75,7 @@
       "setBuildingTo?": "boolean"
     },
     "createdNewAccount": {
-      "_description":
-        "The service responded with an error or that the create new account operation succeeded",
+      "_description": "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
@@ -84,12 +108,33 @@
       "accountID": "Types.AccountID",
       "paymentID": "Types.PaymentID"
     },
+    "loadWalletDisclaimer": {
+      "_description": "Load wallet disclaimer"
+    },
+    "walletDisclaimerReceived": {
+      "_description": "Received wallet disclaimer",
+      "accepted": "boolean"
+    },
     "loadDisplayCurrencies": {
       "_description": "Load valid display currencies to choose from"
+    },
+    "markAsRead": {
+      "_description": "Mark the given payment ID and anything older as read.",
+      "accountID": "Types.AccountID",
+      "mostRecentID": "Types.PaymentID"
     },
     "displayCurrenciesReceived": {
       "_description": "Update valid display currencies to choose from",
       "currencies": "Array<Types.Currency>"
+    },
+    "loadSendAssetChoices": {
+      "_description": "Load valid assets for sending to user",
+      "from": "Types.AccountID",
+      "to": "string"
+    },
+    "sendAssetChoicesReceived": {
+      "_description": "Update valid send assets to choose from",
+      "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>"
     },
     "changeAccountName": {
       "_description": "Change the name of an account",
@@ -121,12 +166,14 @@
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
-      "accountID": "Types.AccountID"
+      "accountID": "?Types.AccountID",
+      "setBuildingCurrency?": "boolean"
     },
     "displayCurrencyReceived": {
       "_description": "Update display currency for a certain account",
-      "accountID": "Types.AccountID",
-      "currency": "Types.Currency"
+      "accountID": "?Types.AccountID",
+      "currency": "Types.Currency",
+      "setBuildingCurrency?": "boolean"
     },
     "changeDisplayCurrency": {
       "_description": "Change display currency for an account",
@@ -142,19 +189,22 @@
     },
     "requestedPayment": {
       "_description": "Successfully request payment",
-      "kbRqID": "HiddenString"
+      "kbRqID": "HiddenString",
+      "lastSentXLM": "boolean",
+      "requestee": "string"
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "payment": "Types.Payment"
+      "payment": "Types.PaymentDetail"
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
       "paymentCursor": "?StellarRPCTypes.PageCursor",
-      "payments": "Array<Types.Payment>",
-      "pending": "Array<Types.Payment>"
+      "oldestUnread": "Types.PaymentID",
+      "payments": "Array<Types.PaymentResult>",
+      "pending": "Array<Types.PaymentResult>"
     },
     "requestDetailReceived": {
       "_description": "Store a request's details",
@@ -176,14 +226,19 @@
     },
     "refreshPayments": {
       "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
+      "paymentID": "Types.PaymentID"
+    },
+    "buildPayment": {
+      "_description": "Send a potential payment to the service for validation"
     },
     "sendPayment": {
       "_description": "Perform sending a payment"
     },
     "sentPayment": {
       "_description": "Successfully sent a payment",
-      "kbTxID": "HiddenString"
+      "kbTxID": "HiddenString",
+      "lastSentXLM": "boolean"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
@@ -199,7 +254,11 @@
     },
     "setBuildingFrom": {
       "_description": "Set building from",
-      "from": "string"
+      "from": "Types.AccountID"
+    },
+    "setBuildingIsRequest": {
+      "_description": "Set building isRequest",
+      "isRequest": "boolean"
     },
     "setBuildingPublicMemo": {
       "_description": "Set building public memo",
@@ -217,6 +276,26 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "setLastSentXLM": {
+      "_description": "Set whether last currency used to send was XLM",
+      "lastSentXLM": "boolean",
+      "writeFile": "boolean"
+    },
+    "setReadyToSend": {
+      "_description": "Set whether the payment is ready to send",
+      "readyToSend": "boolean"
+    },
+    "openSendRequestForm": {
+      "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",
+      "amount?": "string",
+      "currency?": "string",
+      "from?": "Types.AccountID",
+      "isRequest?": "boolean",
+      "publicMemo?": "HiddenString",
+      "recipientType?": "Types.CounterpartyType",
+      "secretNote?": "HiddenString",
+      "to?": "string"
+    },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
@@ -225,8 +304,7 @@
       "setBuildingTo?": "boolean"
     },
     "linkedExistingAccount": {
-      "_description":
-        "The service responded with an error or that the link existing operation succeeded",
+      "_description": "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
@@ -235,6 +313,9 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
+    },
+    "rejectDisclaimer": {
+      "_description": "Reject (temporarily) the Stellar account disclaimer"
     },
     "validateAccountName": {
       "_description": "Ask the service to validate an account name.",
@@ -259,9 +340,6 @@
         "secretKey": "HiddenString",
         "error": "string"
       }
-    },
-    "clearErrors": {
-      "_description": "Clear errors from the store at times like opening or closing a form dialog."
     }
   }
 }

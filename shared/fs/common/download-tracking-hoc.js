@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 
 type OwnProps = {
   trackingPath: Types.Path,
@@ -12,11 +12,11 @@ type OwnProps = {
   cancelOnUnmount?: boolean,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })
 
@@ -61,11 +61,6 @@ const DownloadTrackingHoc = (ComposedComponent: React.ComponentType<any>) =>
   }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedDownloadTrackingHoc'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloadTrackingHoc'),
   DownloadTrackingHoc
 )

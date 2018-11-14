@@ -7,7 +7,7 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
 import {mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -16,7 +16,9 @@ import {getSortedTeamnames} from '../../constants/teams'
 import {navigateAppend} from '../../actions/route-tree'
 import type {TeamRoleType} from '../../constants/types/teams'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{username: string}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   return {
     _teamNameToIsOpen: state.teams.get('teamNameToIsOpen', I.Map()),
     _teamNameToCanPerform: state.teams.get('teamNameToCanPerform', I.Map()),
@@ -88,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

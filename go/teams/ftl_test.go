@@ -289,6 +289,55 @@ func TestLoadSubteamThenParent(t *testing.T) {
 	loadTeam(3)
 }
 
+// See CORE-9207, there was a bug with this order of operations: (1) loading foo.bar;
+// (2) being let into foo; (3) loading foo.
+func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	t.Logf("add B to the team so they can load it")
+	m := make([]libkb.MetaContext, 3)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+
+	rotateKey := func(name keybase1.TeamName) {
+		_, err := AddMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+		err = RemoveMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username)
+		require.NoError(t, err)
+	}
+
+	for i := 0; i < 3; i++ {
+		rotateKey(teamName)
+	}
+
+	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_ADMIN /* addSelfAs */)
+	require.NoError(t, err)
+	expectedSubTeamName, err := teamName.Append("abc")
+	require.NoError(t, err)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, expectedSubTeamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	loadTeam := func(teamID keybase1.TeamID, g keybase1.PerTeamKeyGeneration) {
+		t.Logf("load the team")
+		arg := keybase1.FastTeamLoadArg{
+			ID:                   teamID,
+			Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{g},
+		}
+		_, err := tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+		require.NoError(t, err)
+	}
+
+	loadTeam(*subteamID, 1)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	loadTeam(teamID, 1)
+}
+
 // See CORE-8894 for what happened here. The flow is: (1) user loads parent team at generation=N;
 // (2) there's a key rotation; (3) loads child team and gets the new box and prevs for generation=N+1,
 // but no RKMs; (4) loads the RKMs for the most recent generation. Test a fix for this case.

@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Styles from '../../../../../styles'
-import {Avatar, Text, Box} from '../../../../../common-adapters'
+import {Avatar, Text, Box, Box2} from '../../../../../common-adapters'
+import {formatTimeForChat} from '../../../../../util/timestamp'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
 import PaymentMessage from '../../account-payment/container'
@@ -63,8 +64,6 @@ const UserAvatar = ({author, onAuthorClick}) => (
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = Styles.collapseStyles([
     Styles.desktopStyles.clickable,
-    styles.username,
-    isYou && styles.usernameYou,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
@@ -150,13 +149,16 @@ const RightSide = props => {
         className="message-wrapper"
       >
         {props.includeHeader && (
-          <Username
-            username={props.author}
-            isYou={props.isYou}
-            isFollowing={props.isFollowing}
-            isBroken={props.isBroken}
-            onClick={props.onAuthorClick}
-          />
+          <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
+            <Username
+              username={props.author}
+              isYou={props.isYou}
+              isFollowing={props.isFollowing}
+              isBroken={props.isBroken}
+              onClick={props.onAuthorClick}
+            />
+            <Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Text>
+          </Box2>
         )}
         <Box style={styles.textContainer} className="message">
           {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
@@ -281,9 +283,8 @@ const styles = Styles.styleSheetCreate({
     height: 32,
     width: 32,
   },
-  username: {
-    alignSelf: 'flex-start',
-    marginBottom: 0,
+  usernameTimestamp: {
+    alignItems: 'baseline',
   },
 })
 

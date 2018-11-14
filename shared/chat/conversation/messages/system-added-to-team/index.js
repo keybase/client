@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Box, Text, Icon, ConnectedUsernames} from '../../../../common-adapters'
-import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
+import {Box, Text, Icon, ConnectedUsernames, EmojiIfExists} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
@@ -26,29 +25,30 @@ const connectedUsernamesProps = {
 }
 
 const ManageComponent = (props: Props) => {
-  const textType = props.message.addee === props.you ? 'BodySmallSemiboldSecondaryLink' : 'BodySmall'
+  const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.message.addee === props.you) {
     return (
-      <Text onClick={props.onManageChannels} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onManageChannels} type={textType}>
         Manage your channel subscriptions
       </Text>
     )
   } else if (props.isAdmin) {
     return (
-      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType}>
         Manage members
       </Text>
     )
   } else {
     return (
-      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType}>
         See all members
       </Text>
     )
   }
 }
 
-const YouOrUsername = ({username, you, capitalize}: {username: string, you: string, capitalize: boolean}) => {
+const YouOrUsername = ({username, you, capitalize, adder}: {username: string, you: string, capitalize: boolean, adder?: string}) => {
+  if (adder === you) return 'yourself'
   if (username === you) {
     return capitalize ? 'You' : 'you'
   }
@@ -98,7 +98,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
             style={{color: globalColors.black_40, textAlign: 'center'}}
           >
             <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
-            <YouOrUsername username={addee} you={you} capitalize={false} /> to{' '}
+            <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
             <Text
               onClick={onViewTeam}
               style={{color: globalColors.black_60}}

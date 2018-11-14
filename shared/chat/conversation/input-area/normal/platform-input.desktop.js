@@ -1,17 +1,8 @@
 // @flow
 /* eslint-env browser */
-import React, {Component} from 'react'
+import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {
-  collapseStyles,
-  desktopStyles,
-  glamorous,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -29,7 +20,7 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps, State> {
+class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParentProps, State> {
   _input: ?Kb.Input
   _fileInput: ?HTMLInputElement
 
@@ -237,25 +228,25 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           />
         )}
         <Kb.Box
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             styles.inputWrapper,
             {
-              backgroundColor: this.props.isEditing ? globalColors.yellow3 : globalColors.white,
-              borderColor: this.props.explodingModeSeconds ? globalColors.black_75 : globalColors.black_20,
+              backgroundColor: this.props.isEditing ? Styles.globalColors.yellow3 : Styles.globalColors.white,
+              borderColor: this.props.explodingModeSeconds
+                ? Styles.globalColors.black_75
+                : Styles.globalColors.black_20,
             },
           ])}
         >
           {!this.props.isEditing && (
             <HoverBox
-              className={this.props.showingMenu ? 'expanded' : ''}
+              className={Styles.classNames({expanded: this.props.showingMenu})}
               onClick={this._toggleShowingMenu}
               ref={this.props.setAttachmentRef}
-              style={collapseStyles([
+              style={Styles.collapseStyles([
                 styles.explodingIconContainer,
-                {
-                  backgroundColor: this.props.explodingModeSeconds
-                    ? globalColors.black_75
-                    : globalColors.white,
+                !!this.props.explodingModeSeconds && {
+                  backgroundColor: Styles.globalColors.black_75,
                 },
               ])}
             >
@@ -291,12 +282,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
             autoFocus={false}
             small={true}
-            style={collapseStyles([
-              styles.input,
-              {
-                backgroundColor: this.props.isEditing ? globalColors.yellow3 : globalColors.white,
-              },
-            ])}
+            style={styles.input}
             ref={this._inputSetRef}
             hintText={hintText}
             hideUnderline={true}
@@ -314,9 +300,9 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
             !this.state.hasText && (
               // This is the `boom!` icon in the placeholder: “Write an exploding message boom!”
               <Kb.Icon
-                color={globalColors.black_20}
+                color={Styles.globalColors.black_20}
                 fontSize={34}
-                hoverColor={globalColors.black_20}
+                hoverColor={Styles.globalColors.black_20}
                 onClick={this._inputFocus}
                 style={Kb.iconCastPlatformStyles(styles.boomIcon)}
                 type="iconfont-boom"
@@ -337,7 +323,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           )}
           {flags.walletsEnabled && <WalletsIcon size={16} style={styles.walletsIcon} />}
           <Kb.Icon
-            color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
+            color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
             onClick={this._emojiPickerToggle}
             style={Kb.iconCastPlatformStyles(styles.icon)}
             type="iconfont-emoji"
@@ -393,21 +379,21 @@ const isTyping = typing => {
   }
 }
 
-const InputAccessory = Component => props => (
+const MentionHud = props => (
   <Kb.Box style={styles.accessoryContainer}>
     <Kb.Box style={styles.accessory}>
-      <Component {...props} />
+      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
     </Kb.Box>
   </Kb.Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
+const ChannelMentionHud = props => (
+  <Kb.Box style={styles.accessoryContainer}>
+    <Kb.Box style={styles.accessory}>
+      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
+    </Kb.Box>
+  </Kb.Box>
+)
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   <Kb.Box>
@@ -426,7 +412,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Kb.Box>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -438,7 +424,7 @@ const styles = styleSheetCreate({
     position: 'relative',
     width: '100%',
   },
-  boomIcon: platformStyles({
+  boomIcon: Styles.platformStyles({
     common: {
       left: 231,
       marginTop: -30,
@@ -448,31 +434,31 @@ const styles = styleSheetCreate({
       cursor: 'text',
     },
   }),
-  cancelEditing: platformStyles({
+  cancelEditing: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: globalColors.black_75,
+      backgroundColor: Styles.globalColors.black_75,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
       marginRight: 0,
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
     isElectron: {
-      ...desktopStyles.clickable,
+      ...Styles.desktopStyles.clickable,
     },
   }),
   cancelEditingText: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
   },
   container: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.white,
     width: '100%',
   },
-  emojiPickerContainer: platformStyles({
+  emojiPickerContainer: Styles.platformStyles({
     common: {
       borderRadius: 4,
       bottom: 34,
@@ -480,18 +466,18 @@ const styles = styleSheetCreate({
       right: -22,
     },
     isElectron: {
-      boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
+      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
     },
   }),
   emojiPickerContainerWrapper: {
-    ...globalStyles.fillAbsolute,
+    ...Styles.globalStyles.fillAbsolute,
   },
   emojiPickerRelative: {
     position: 'relative',
   },
-  explodingIconContainer: platformStyles({
+  explodingIconContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
@@ -500,18 +486,18 @@ const styles = styleSheetCreate({
       width: 32,
     },
     isElectron: {
-      ...desktopStyles.clickable,
-      borderRight: `1px solid ${globalColors.black_20}`,
+      ...Styles.desktopStyles.clickable,
+      borderRight: `1px solid ${Styles.globalColors.black_20}`,
     },
   }),
   footer: {
-    color: globalColors.black_20,
-    marginBottom: globalMargins.xtiny,
-    marginRight: globalMargins.medium + 2,
+    color: Styles.globalColors.black_20,
+    marginBottom: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.medium + 2,
     textAlign: 'right',
   },
   footerContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
   },
   hidden: {
@@ -519,56 +505,56 @@ const styles = styleSheetCreate({
   },
   icon: {
     bottom: 6,
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
     position: 'relative',
   },
   input: {
     flex: 1,
-    paddingBottom: globalMargins.xxtiny,
+    paddingBottom: Styles.globalMargins.xxtiny,
     paddingLeft: 6,
     paddingRight: 6,
-    paddingTop: globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
     textAlign: 'left',
   },
   inputWrapper: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
     borderRadius: 4,
     borderStyle: 'solid',
     borderWidth: 1,
-    marginLeft: globalMargins.small,
-    marginRight: globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   isTyping: {
     flexGrow: 1,
-    marginBottom: globalMargins.xtiny,
+    marginBottom: Styles.globalMargins.xtiny,
     marginLeft: 58,
     textAlign: 'left',
   },
   walletsIcon: {
     alignSelf: 'flex-end',
     marginBottom: 6,
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   mentionCatcher: {
-    ...globalStyles.fillAbsolute,
-    backgroundColor: globalColors.transparent,
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.transparent,
   },
-  mentionHud: platformStyles({
+  mentionHud: Styles.platformStyles({
     common: {
       borderRadius: 4,
       height: 224,
-      marginLeft: globalMargins.small,
-      marginRight: globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
       width: '100%',
     },
     isElectron: {
-      boxShadow: `0 0 8px 0 ${globalColors.black_20}`,
+      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
     },
   }),
   time: {
-    bottom: globalMargins.tiny,
-    color: globalColors.white,
+    bottom: Styles.globalMargins.tiny,
+    color: Styles.globalColors.white,
     position: 'relative',
   },
   timerIcon: {
@@ -577,9 +563,9 @@ const styles = styleSheetCreate({
   },
 })
 
-const HoverBox = glamorous(Kb.Box)({
+const HoverBox = Styles.glamorous(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
-    color: globalColors.black_75,
+    color: Styles.globalColors.black_75,
   },
 })
 

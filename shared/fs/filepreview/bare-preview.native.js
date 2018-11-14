@@ -6,12 +6,12 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {Box, ClickableBox, Text, ProgressIndicator} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
-const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
+const mapStateToProps = (state, {routeProps}: BarePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   return {
     path,

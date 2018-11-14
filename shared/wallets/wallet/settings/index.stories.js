@@ -51,6 +51,7 @@ const sharedSettingsProps = {
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onBack: Sb.action('onBack'),
   refresh: () => {},
+  saveCurrencyWaiting: false,
 }
 
 const defaultSettingsProps = {

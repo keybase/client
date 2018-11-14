@@ -15,9 +15,12 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
+export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
+export const attachmentFullscreenSelection = 'chat2:attachmentFullscreenSelection'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
+export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -65,6 +68,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
+export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
@@ -98,15 +102,17 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
-type _AttachmentDownloadPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-|}>
+type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentDownloadedPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
+  message: Types.Message,
   path?: string,
 |}>
+type _AttachmentFullscreenNextPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: Types.MessageID,
+  backInTime: boolean,
+|}>
+type _AttachmentFullscreenSelectionPayload = $ReadOnly<{|message: Types.Message|}>
 type _AttachmentLoadingPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -121,6 +127,10 @@ type _AttachmentMobileSavedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
 |}>
+type _AttachmentPastedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  data: Buffer,
+|}>
 type _AttachmentPreviewSelectPayload = $ReadOnly<{|message: Types.MessageAttachment|}>
 type _AttachmentUploadedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -133,7 +143,7 @@ type _AttachmentUploadingPayload = $ReadOnly<{|
 |}>
 type _AttachmentsUploadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  paths: Array<string>,
+  paths: Array<Types.PathAndOutboxID>,
   titles: Array<string>,
 |}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
@@ -261,7 +271,6 @@ type _MetasReceivedPayload = $ReadOnly<{|
   neverCreate?: boolean,
   clearExistingMetas?: boolean,
   clearExistingMessages?: boolean,
-  fromEphemeralPurge?: boolean,
   fromExpunge?: boolean,
   fromInboxRefresh?: boolean,
 |}>
@@ -282,6 +291,11 @@ type _PaymentInfoReceivedPayload = $ReadOnly<{|
   messageID: RPCChatTypes.MessageID,
   paymentInfo: Types.ChatPaymentInfo,
 |}>
+type _PendingMessageWasEditedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  text: HiddenString,
+|}>
 type _PrepareFulfillRequestFormPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
@@ -291,7 +305,7 @@ type _PreviewConversationPayload = $ReadOnly<{|
   teamname?: string,
   channelname?: string,
   conversationIDKey?: Types.ConversationIDKey,
-  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
+  reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel' | 'transaction' | 'requestedPayment',
 |}>
 type _RequestInfoReceivedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -384,162 +398,169 @@ type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.Conver
 /**
  * Actually start a conversation
  */
-export const createCreateConversation = (payload: _CreateConversationPayload) => ({error: false, payload, type: createConversation})
+export const createCreateConversation = (payload: _CreateConversationPayload) => ({payload, type: createConversation})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
-export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPolicyPayload) => ({error: false, payload, type: updateConvRetentionPolicy})
+export const createUpdateConvRetentionPolicy = (payload: _UpdateConvRetentionPolicyPayload) => ({payload, type: updateConvRetentionPolicy})
 /**
  * Consume a service notification that a team retention policy was updated
  */
-export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({error: false, payload, type: updateTeamRetentionPolicy})
+export const createUpdateTeamRetentionPolicy = (payload: _UpdateTeamRetentionPolicyPayload) => ({payload, type: updateTeamRetentionPolicy})
 /**
  * Exploding messages expired or were manually detonated.
  */
-export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({error: false, payload, type: messagesExploded})
+export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({payload, type: messagesExploded})
 /**
  * Handle an update to our conversation exploding modes.
  */
-export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({payload, type: updateConvExplodingModes})
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
  */
-export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({error: false, payload, type: prepareFulfillRequestForm})
+export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({payload, type: prepareFulfillRequestForm})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
-export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({error: false, payload, type: filePickerError})
+export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
 /**
  * Set a lock on the exploding mode for a conversation.
  */
-export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
+export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({payload, type: setExplodingModeLock})
 /**
  * Set that wallets in chat is not new.
  */
-export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({error: false, payload, type: setWalletsOld})
+export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({payload, type: setWalletsOld})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
-export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({error: false, payload, type: setMinWriterRole})
+export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({payload, type: setMinWriterRole})
 /**
  * Set the remote exploding mode for a conversation.
  */
-export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({error: false, payload, type: setConvExplodingMode})
+export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({payload, type: setConvExplodingMode})
 /**
  * Set whether exploding messages are a new feature or not.
  */
-export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({error: false, payload, type: setExplodingMessagesNew})
+export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({payload, type: setExplodingMessagesNew})
 /**
  * Sets the retention policy for a conversation.
  */
-export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({error: false, payload, type: setConvRetentionPolicy})
+export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({payload, type: setConvRetentionPolicy})
 /**
  * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
  */
-export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({error: false, payload, type: handleSeeingExplodingMessages})
+export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({payload, type: handleSeeingExplodingMessages})
 /**
  * Static configuration info was loaded from the service.
  */
-export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({error: false, payload, type: staticConfigLoaded})
+export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({payload, type: staticConfigLoaded})
 /**
  * Tell the service to toggle a reaction on a message.
  */
-export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({error: false, payload, type: toggleMessageReaction})
+export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({payload, type: toggleMessageReaction})
 /**
  * The service sent us an update for the reaction map of a message.
  */
-export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({error: false, payload, type: updateReactions})
+export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({payload, type: updateReactions})
 /**
  * The user has interacted with wallets in chat.
  */
-export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({error: false, payload, type: handleSeeingWallets})
+export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({payload, type: handleSeeingWallets})
 /**
  * Toggle a reaction in the store.
  */
-export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({error: false, payload, type: toggleLocalReaction})
+export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
-export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({error: false, payload, type: saveMinWriterRole})
+export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({payload, type: saveMinWriterRole})
 /**
  * We received payment info for a sendPayment message
  */
-export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({error: false, payload, type: paymentInfoReceived})
+export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({payload, type: paymentInfoReceived})
 /**
  * We received request info for a requestPayment message
  */
-export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({error: false, payload, type: requestInfoReceived})
+export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({payload, type: requestInfoReceived})
 /**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
-export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
-export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({error: false, payload, type: attachmentDownload})
-export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({error: false, payload, type: attachmentDownloaded})
-export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({error: false, payload, type: attachmentLoading})
-export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({error: false, payload, type: attachmentMobileSave})
-export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({error: false, payload, type: attachmentMobileSaved})
-export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({error: false, payload, type: attachmentPreviewSelect})
-export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({error: false, payload, type: attachmentUploaded})
-export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({error: false, payload, type: attachmentUploading})
-export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({error: false, payload, type: attachmentsUpload})
-export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({error: false, payload, type: badgesUpdated})
-export const createBlockConversation = (payload: _BlockConversationPayload) => ({error: false, payload, type: blockConversation})
-export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({error: false, payload, type: desktopNotification})
-export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({error: false, payload, type: inboxRefresh})
-export const createJoinConversation = (payload: _JoinConversationPayload) => ({error: false, payload, type: joinConversation})
-export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({error: false, payload, type: leaveConversation})
-export const createLoadOlderMessagesDueToScroll = (payload: _LoadOlderMessagesDueToScrollPayload) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
-export const createMarkConversationsStale = (payload: _MarkConversationsStalePayload) => ({error: false, payload, type: markConversationsStale})
-export const createMarkInitiallyLoadedThreadAsRead = (payload: _MarkInitiallyLoadedThreadAsReadPayload) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
-export const createMessageAttachmentNativeSave = (payload: _MessageAttachmentNativeSavePayload) => ({error: false, payload, type: messageAttachmentNativeSave})
-export const createMessageAttachmentNativeShare = (payload: _MessageAttachmentNativeSharePayload) => ({error: false, payload, type: messageAttachmentNativeShare})
-export const createMessageAttachmentUploaded = (payload: _MessageAttachmentUploadedPayload) => ({error: false, payload, type: messageAttachmentUploaded})
-export const createMessageDelete = (payload: _MessageDeletePayload) => ({error: false, payload, type: messageDelete})
-export const createMessageDeleteHistory = (payload: _MessageDeleteHistoryPayload) => ({error: false, payload, type: messageDeleteHistory})
-export const createMessageEdit = (payload: _MessageEditPayload) => ({error: false, payload, type: messageEdit})
-export const createMessageErrored = (payload: _MessageErroredPayload) => ({error: false, payload, type: messageErrored})
-export const createMessageReplyPrivately = (payload: _MessageReplyPrivatelyPayload) => ({error: false, payload, type: messageReplyPrivately})
-export const createMessageRetry = (payload: _MessageRetryPayload) => ({error: false, payload, type: messageRetry})
-export const createMessageSend = (payload: _MessageSendPayload) => ({error: false, payload, type: messageSend})
-export const createMessageSetEditing = (payload: _MessageSetEditingPayload) => ({error: false, payload, type: messageSetEditing})
-export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload) => ({error: false, payload, type: messageSetQuoting})
-export const createMessageWasEdited = (payload: _MessageWasEditedPayload) => ({error: false, payload, type: messageWasEdited})
-export const createMessagesAdd = (payload: _MessagesAddPayload) => ({error: false, payload, type: messagesAdd})
-export const createMessagesWereDeleted = (payload: _MessagesWereDeletedPayload) => ({error: false, payload, type: messagesWereDeleted})
-export const createMetaDelete = (payload: _MetaDeletePayload) => ({error: false, payload, type: metaDelete})
-export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload) => ({error: false, payload, type: metaHandleQueue})
-export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => ({error: false, payload, type: metaNeedsUpdating})
-export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({error: false, payload, type: metaReceivedError})
-export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({error: false, payload, type: metaRequestTrusted})
-export const createMetaRequestingTrusted = (payload: _MetaRequestingTrustedPayload) => ({error: false, payload, type: metaRequestingTrusted})
-export const createMetasReceived = (payload: _MetasReceivedPayload) => ({error: false, payload, type: metasReceived})
-export const createMuteConversation = (payload: _MuteConversationPayload) => ({error: false, payload, type: muteConversation})
-export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({error: false, payload, type: navigateToInbox})
-export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({error: false, payload, type: navigateToThread})
-export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({error: false, payload, type: notificationSettingsUpdated})
-export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload) => ({error: false, payload, type: openChatFromWidget})
-export const createOpenFolder = (payload: _OpenFolderPayload) => ({error: false, payload, type: openFolder})
-export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({error: false, payload, type: previewConversation})
-export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
-export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({error: false, payload, type: resetLetThemIn})
-export const createSelectConversation = (payload: _SelectConversationPayload) => ({error: false, payload, type: selectConversation})
-export const createSendTyping = (payload: _SendTypingPayload) => ({error: false, payload, type: sendTyping})
-export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({error: false, payload, type: setConversationOffline})
-export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
-export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
-export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
-export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({error: false, payload, type: setPendingStatus})
-export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({error: false, payload, type: toggleSmallTeamsExpanded})
-export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
-export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
-export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
+export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({payload, type: setPendingConversationExistingConversationIDKey})
+export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({payload, type: attachmentDownload})
+export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({payload, type: attachmentDownloaded})
+export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({payload, type: attachmentFullscreenNext})
+export const createAttachmentFullscreenSelection = (payload: _AttachmentFullscreenSelectionPayload) => ({payload, type: attachmentFullscreenSelection})
+export const createAttachmentLoading = (payload: _AttachmentLoadingPayload) => ({payload, type: attachmentLoading})
+export const createAttachmentMobileSave = (payload: _AttachmentMobileSavePayload) => ({payload, type: attachmentMobileSave})
+export const createAttachmentMobileSaved = (payload: _AttachmentMobileSavedPayload) => ({payload, type: attachmentMobileSaved})
+export const createAttachmentPasted = (payload: _AttachmentPastedPayload) => ({payload, type: attachmentPasted})
+export const createAttachmentPreviewSelect = (payload: _AttachmentPreviewSelectPayload) => ({payload, type: attachmentPreviewSelect})
+export const createAttachmentUploaded = (payload: _AttachmentUploadedPayload) => ({payload, type: attachmentUploaded})
+export const createAttachmentUploading = (payload: _AttachmentUploadingPayload) => ({payload, type: attachmentUploading})
+export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload) => ({payload, type: attachmentsUpload})
+export const createBadgesUpdated = (payload: _BadgesUpdatedPayload) => ({payload, type: badgesUpdated})
+export const createBlockConversation = (payload: _BlockConversationPayload) => ({payload, type: blockConversation})
+export const createDesktopNotification = (payload: _DesktopNotificationPayload) => ({payload, type: desktopNotification})
+export const createInboxRefresh = (payload: _InboxRefreshPayload) => ({payload, type: inboxRefresh})
+export const createJoinConversation = (payload: _JoinConversationPayload) => ({payload, type: joinConversation})
+export const createLeaveConversation = (payload: _LeaveConversationPayload) => ({payload, type: leaveConversation})
+export const createLoadOlderMessagesDueToScroll = (payload: _LoadOlderMessagesDueToScrollPayload) => ({payload, type: loadOlderMessagesDueToScroll})
+export const createMarkConversationsStale = (payload: _MarkConversationsStalePayload) => ({payload, type: markConversationsStale})
+export const createMarkInitiallyLoadedThreadAsRead = (payload: _MarkInitiallyLoadedThreadAsReadPayload) => ({payload, type: markInitiallyLoadedThreadAsRead})
+export const createMessageAttachmentNativeSave = (payload: _MessageAttachmentNativeSavePayload) => ({payload, type: messageAttachmentNativeSave})
+export const createMessageAttachmentNativeShare = (payload: _MessageAttachmentNativeSharePayload) => ({payload, type: messageAttachmentNativeShare})
+export const createMessageAttachmentUploaded = (payload: _MessageAttachmentUploadedPayload) => ({payload, type: messageAttachmentUploaded})
+export const createMessageDelete = (payload: _MessageDeletePayload) => ({payload, type: messageDelete})
+export const createMessageDeleteHistory = (payload: _MessageDeleteHistoryPayload) => ({payload, type: messageDeleteHistory})
+export const createMessageEdit = (payload: _MessageEditPayload) => ({payload, type: messageEdit})
+export const createMessageErrored = (payload: _MessageErroredPayload) => ({payload, type: messageErrored})
+export const createMessageReplyPrivately = (payload: _MessageReplyPrivatelyPayload) => ({payload, type: messageReplyPrivately})
+export const createMessageRetry = (payload: _MessageRetryPayload) => ({payload, type: messageRetry})
+export const createMessageSend = (payload: _MessageSendPayload) => ({payload, type: messageSend})
+export const createMessageSetEditing = (payload: _MessageSetEditingPayload) => ({payload, type: messageSetEditing})
+export const createMessageSetQuoting = (payload: _MessageSetQuotingPayload) => ({payload, type: messageSetQuoting})
+export const createMessageWasEdited = (payload: _MessageWasEditedPayload) => ({payload, type: messageWasEdited})
+export const createMessagesAdd = (payload: _MessagesAddPayload) => ({payload, type: messagesAdd})
+export const createMessagesWereDeleted = (payload: _MessagesWereDeletedPayload) => ({payload, type: messagesWereDeleted})
+export const createMetaDelete = (payload: _MetaDeletePayload) => ({payload, type: metaDelete})
+export const createMetaHandleQueue = (payload: _MetaHandleQueuePayload) => ({payload, type: metaHandleQueue})
+export const createMetaNeedsUpdating = (payload: _MetaNeedsUpdatingPayload) => ({payload, type: metaNeedsUpdating})
+export const createMetaReceivedError = (payload: _MetaReceivedErrorPayload) => ({payload, type: metaReceivedError})
+export const createMetaRequestTrusted = (payload: _MetaRequestTrustedPayload) => ({payload, type: metaRequestTrusted})
+export const createMetaRequestingTrusted = (payload: _MetaRequestingTrustedPayload) => ({payload, type: metaRequestingTrusted})
+export const createMetasReceived = (payload: _MetasReceivedPayload) => ({payload, type: metasReceived})
+export const createMuteConversation = (payload: _MuteConversationPayload) => ({payload, type: muteConversation})
+export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({payload, type: navigateToInbox})
+export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({payload, type: navigateToThread})
+export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({payload, type: notificationSettingsUpdated})
+export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload) => ({payload, type: openChatFromWidget})
+export const createOpenFolder = (payload: _OpenFolderPayload) => ({payload, type: openFolder})
+export const createPendingMessageWasEdited = (payload: _PendingMessageWasEditedPayload) => ({payload, type: pendingMessageWasEdited})
+export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({payload, type: previewConversation})
+export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({payload, type: resetChatWithoutThem})
+export const createResetLetThemIn = (payload: _ResetLetThemInPayload) => ({payload, type: resetLetThemIn})
+export const createSelectConversation = (payload: _SelectConversationPayload) => ({payload, type: selectConversation})
+export const createSendTyping = (payload: _SendTypingPayload) => ({payload, type: sendTyping})
+export const createSetConversationOffline = (payload: _SetConversationOfflinePayload) => ({payload, type: setConversationOffline})
+export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({payload, type: setInboxFilter})
+export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({payload, type: setPendingConversationUsers})
+export const createSetPendingMode = (payload: _SetPendingModePayload) => ({payload, type: setPendingMode})
+export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({payload, type: setPendingStatus})
+export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
+export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
+export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
+export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({payload, type: updateTypers})
 
 // Action Payloads
 export type AttachmentDownloadPayload = $Call<typeof createAttachmentDownload, _AttachmentDownloadPayload>
 export type AttachmentDownloadedPayload = $Call<typeof createAttachmentDownloaded, _AttachmentDownloadedPayload>
+export type AttachmentFullscreenNextPayload = $Call<typeof createAttachmentFullscreenNext, _AttachmentFullscreenNextPayload>
+export type AttachmentFullscreenSelectionPayload = $Call<typeof createAttachmentFullscreenSelection, _AttachmentFullscreenSelectionPayload>
 export type AttachmentLoadingPayload = $Call<typeof createAttachmentLoading, _AttachmentLoadingPayload>
 export type AttachmentMobileSavePayload = $Call<typeof createAttachmentMobileSave, _AttachmentMobileSavePayload>
 export type AttachmentMobileSavedPayload = $Call<typeof createAttachmentMobileSaved, _AttachmentMobileSavedPayload>
+export type AttachmentPastedPayload = $Call<typeof createAttachmentPasted, _AttachmentPastedPayload>
 export type AttachmentPreviewSelectPayload = $Call<typeof createAttachmentPreviewSelect, _AttachmentPreviewSelectPayload>
 export type AttachmentUploadedPayload = $Call<typeof createAttachmentUploaded, _AttachmentUploadedPayload>
 export type AttachmentUploadingPayload = $Call<typeof createAttachmentUploading, _AttachmentUploadingPayload>
@@ -587,6 +608,7 @@ export type NotificationSettingsUpdatedPayload = $Call<typeof createNotification
 export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
+export type PendingMessageWasEditedPayload = $Call<typeof createPendingMessageWasEdited, _PendingMessageWasEditedPayload>
 export type PrepareFulfillRequestFormPayload = $Call<typeof createPrepareFulfillRequestForm, _PrepareFulfillRequestFormPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
@@ -624,9 +646,12 @@ export type UpdateTypersPayload = $Call<typeof createUpdateTypers, _UpdateTypers
 export type Actions =
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
+  | AttachmentFullscreenNextPayload
+  | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload
+  | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
@@ -674,6 +699,7 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
+  | PendingMessageWasEditedPayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RequestInfoReceivedPayload

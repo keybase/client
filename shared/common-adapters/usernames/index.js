@@ -54,7 +54,6 @@ function UsernameText(props: Props) {
   ])
   return props.users.map((u, i) => {
     let userStyle = {
-      ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
       ...(props.colorFollowing && !u.you
         ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
         : null),
@@ -62,7 +61,6 @@ function UsernameText(props: Props) {
         ? {color: props.redColor || Styles.globalColors.red}
         : null),
       ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
-      ...(u.you ? Styles.globalStyles.italic : null),
       ...(props.colorYou && u.you
         ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
         : null),
@@ -85,7 +83,7 @@ function UsernameText(props: Props) {
         <Text
           type={props.type}
           backgroundMode={props.backgroundMode}
-          className={props.underline ? 'hover-underline' : undefined}
+          className={Styles.classNames({'hover-underline': props.underline})}
           onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
           style={userStyle}
         >
@@ -107,7 +105,7 @@ UsernameText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
   showAnd: false,
-  underline: false,
+  underline: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}

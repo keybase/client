@@ -1,16 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox} from '../../../../common-adapters'
-import {
-  glamorous,
-  globalStyles,
-  globalColors,
-  collapseStyles,
-  isMobile,
-  desktopStyles,
-  styleSheetCreate,
-  platformStyles,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
@@ -23,6 +14,7 @@ export type Props = {
   hasResetUsers: boolean,
   hasUnread: boolean,
   iconHoverColor: string,
+  isDecryptingSnippet: boolean,
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -45,9 +37,9 @@ type State = {
   isHovered: boolean,
 }
 
-const SmallTeamBox = isMobile
-  ? ClickableBox
-  : glamorous(Box)({
+const SmallTeamBox = Styles.isMobile
+  ? Kb.ClickableBox
+  : Styles.glamorous(Kb.Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
@@ -68,7 +60,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     this.props.isSelected
       ? this.props.backgroundColor
       : this.state.isHovered
-        ? globalColors.blueGrey2
+        ? Styles.globalColors.blueGrey2
         : this.props.backgroundColor
 
   render() {
@@ -78,14 +70,14 @@ class SmallTeam extends React.PureComponent<Props, State> {
         onClick={props.onSelectConversation}
         onMouseLeave={this._onMouseLeave}
         onMouseOver={this._onMouseOver}
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           {
             backgroundColor: this._backgroundColor(),
           },
           styles.container,
         ])}
       >
-        <Box style={collapseStyles([styles.rowContainer, styles.fastBlank])}>
+        <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -103,10 +95,10 @@ class SmallTeam extends React.PureComponent<Props, State> {
               participants={props.participants}
             />
           )}
-          <Box style={collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <Box
-              style={collapseStyles([
-                globalStyles.flexBoxColumn,
+          <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+            <Kb.Box
+              style={Styles.collapseStyles([
+                Styles.globalStyles.flexBoxColumn,
                 styles.flexOne,
                 {justifyContent: 'flex-end'},
               ])}
@@ -118,17 +110,17 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 iconHoverColor={props.iconHoverColor}
                 participants={props.teamname ? [props.teamname] : props.participants}
                 showBold={props.showBold}
-                showGear={!!props.teamname && !isMobile && !props.isInWidget}
+                showGear={!!props.teamname && !Styles.isMobile && !props.isInWidget}
                 subColor={props.subColor}
                 timestamp={props.timestamp}
                 usernameColor={props.usernameColor}
                 teamname={props.teamname}
                 {...(props.channelname ? {channelname: props.channelname} : {})}
               />
-            </Box>
-            <Box
-              style={collapseStyles([
-                globalStyles.flexBoxColumn,
+            </Kb.Box>
+            <Kb.Box
+              style={Styles.collapseStyles([
+                Styles.globalStyles.flexBoxColumn,
                 styles.flexOne,
                 {justifyContent: 'flex-start'},
               ])}
@@ -144,40 +136,41 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 hasResetUsers={props.hasResetUsers}
                 youNeedToRekey={props.youNeedToRekey}
                 isSelected={props.isSelected}
+                isDecryptingSnippet={props.isDecryptingSnippet}
               />
-            </Box>
-          </Box>
-        </Box>
+            </Kb.Box>
+          </Kb.Box>
+        </Kb.Box>
       </SmallTeamBox>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {flexShrink: 0, height: InboxSizes.smallRowHeight},
   conversationRow: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
     paddingLeft: 8,
     paddingRight: 8,
   },
-  fastBlank: platformStyles({
+  fastBlank: Styles.platformStyles({
     isMobile: {
-      backgroundColor: globalColors.fastBlank,
+      backgroundColor: Styles.globalColors.fastBlank,
     },
   }),
   flexOne: {
     flex: 1,
   },
-  rowContainer: platformStyles({
+  rowContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: '100%',
     },
-    isElectron: desktopStyles.clickable,
+    isElectron: Styles.desktopStyles.clickable,
   }),
 })
 

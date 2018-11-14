@@ -8,8 +8,11 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/encrypteddb"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -67,6 +70,88 @@ func (r *uploaderResult) trigger(res types.AttachmentUploadResult) {
 	}
 }
 
+type uploaderTaskStorage struct {
+	globals.Contextified
+	utils.DebugLabeler
+}
+
+func newUploaderTaskStorage(g *globals.Context) *uploaderTaskStorage {
+	return &uploaderTaskStorage{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "uploaderTaskStorage", false),
+	}
+}
+
+func (u *uploaderTaskStorage) getDir() string {
+	return filepath.Join(u.G().GetEnv().GetSharedDataDir(), "uploadertasks")
+}
+
+func (u *uploaderTaskStorage) taskOutboxIDPath(outboxID chat1.OutboxID) string {
+	return filepath.Join(u.getDir(), fmt.Sprintf("task_%s", outboxID.String()))
+}
+
+func (u *uploaderTaskStorage) statusOutboxIDPath(outboxID chat1.OutboxID) string {
+	return filepath.Join(u.getDir(), fmt.Sprintf("status_%s", outboxID.String()))
+}
+
+func (u *uploaderTaskStorage) file(outboxID chat1.OutboxID, getPath func(chat1.OutboxID) string) (*encrypteddb.EncryptedFile, error) {
+	dir := u.getDir()
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	return encrypteddb.NewFile(u.G().ExternalG(), getPath(outboxID),
+		func(ctx context.Context) ([32]byte, error) {
+			return storage.GetSecretBoxKey(ctx, u.G().ExternalG(), storage.DefaultSecretUI)
+		}), nil
+}
+
+func (u *uploaderTaskStorage) saveTask(ctx context.Context, task uploaderTask) error {
+	tf, err := u.file(task.OutboxID, u.taskOutboxIDPath)
+	if err != nil {
+		return err
+	}
+	return tf.Put(ctx, task)
+}
+
+func (u *uploaderTaskStorage) getTask(ctx context.Context, outboxID chat1.OutboxID) (res uploaderTask, err error) {
+	tf, err := u.file(outboxID, u.taskOutboxIDPath)
+	if err != nil {
+		return res, err
+	}
+	if err := tf.Get(ctx, &res); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (u *uploaderTaskStorage) completeTask(ctx context.Context, outboxID chat1.OutboxID) {
+	if err := os.Remove(u.taskOutboxIDPath(outboxID)); err != nil {
+		u.Debug(ctx, "completeTask: failed to remove task file: outboxID: %s err: %s", outboxID, err)
+	}
+	if err := os.Remove(u.statusOutboxIDPath(outboxID)); err != nil {
+		u.Debug(ctx, "completeTask: failed to remove status file: outboxID: %s err: %s", outboxID, err)
+	}
+}
+
+func (u *uploaderTaskStorage) setStatus(ctx context.Context, outboxID chat1.OutboxID, status uploaderStatus) error {
+	sf, err := u.file(outboxID, u.statusOutboxIDPath)
+	if err != nil {
+		return err
+	}
+	return sf.Put(ctx, status)
+}
+
+func (u *uploaderTaskStorage) getStatus(ctx context.Context, outboxID chat1.OutboxID) (res uploaderStatus, err error) {
+	sf, err := u.file(outboxID, u.statusOutboxIDPath)
+	if err != nil {
+		return res, err
+	}
+	if err := sf.Get(ctx, &res); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
 type activeUpload struct {
 	uploadCtx      context.Context
 	uploadCancelFn context.CancelFunc
@@ -78,10 +163,11 @@ type Uploader struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	store    Store
-	ri       func() chat1.RemoteInterface
-	s3signer s3.Signer
-	uploads  map[string]*activeUpload
+	store       Store
+	taskStorage *uploaderTaskStorage
+	ri          func() chat1.RemoteInterface
+	s3signer    s3.Signer
+	uploads     map[string]*activeUpload
 
 	// testing
 	tempDir string
@@ -97,25 +183,12 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 		ri:           ri,
 		s3signer:     s3signer,
 		uploads:      make(map[string]*activeUpload),
+		taskStorage:  newUploaderTaskStorage(g),
 	}
 }
 
 func (u *Uploader) SetPreviewTempDir(dir string) {
 	u.tempDir = dir
-}
-
-func (u *Uploader) dbStatusKey(outboxID chat1.OutboxID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBAttachmentUploader,
-		Key: "status:" + outboxID.String(),
-	}
-}
-
-func (u *Uploader) dbTaskKey(outboxID chat1.OutboxID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBAttachmentUploader,
-		Key: "task:" + outboxID.String(),
-	}
 }
 
 func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
@@ -129,13 +202,10 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 		u.Debug(ctx, "Complete: called on uploading attachment, ignoring: outboxID: %s", outboxID)
 		return
 	}
-	if err := u.G().GetKVStore().Delete(u.dbStatusKey(outboxID)); err != nil {
-		u.Debug(ctx, "Complete: failed to remove status: %s", err)
-	}
-	if err := u.G().GetKVStore().Delete(u.dbTaskKey(outboxID)); err != nil {
-		u.Debug(ctx, "Complete: failed to remove task: %s", err)
-	}
+	u.taskStorage.completeTask(ctx, outboxID)
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
+	// just always attempt to remove the upload temp dir for this outbox ID, even if it might not be there
+	os.RemoveAll(u.getUploadTempDir(outboxID))
 }
 
 func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
@@ -192,32 +262,15 @@ func (u *Uploader) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 }
 
 func (u *Uploader) getStatus(ctx context.Context, outboxID chat1.OutboxID) (res uploaderStatus, err error) {
-	tkey := u.dbStatusKey(outboxID)
-	found, err := u.G().GetKVStore().GetInto(&res, tkey)
-	if err != nil {
-		return res, err
-	}
-	if !found {
-		return res, libkb.NotFoundError{Msg: "no task found for outboxID"}
-	}
-	return res, nil
+	return u.taskStorage.getStatus(ctx, outboxID)
 }
 
 func (u *Uploader) setStatus(ctx context.Context, outboxID chat1.OutboxID, status uploaderStatus) error {
-	key := u.dbStatusKey(outboxID)
-	return u.G().GetKVStore().PutObj(key, nil, status)
+	return u.taskStorage.setStatus(ctx, outboxID, status)
 }
 
-func (u *Uploader) getTask(ctx context.Context, outboxID chat1.OutboxID) (res uploaderTask, err error) {
-	tkey := u.dbTaskKey(outboxID)
-	found, err := u.G().GetKVStore().GetInto(&res, tkey)
-	if err != nil {
-		return res, err
-	}
-	if !found {
-		return res, libkb.NotFoundError{Msg: "no task found for outboxID"}
-	}
-	return res, nil
+func (u *Uploader) getTask(ctx context.Context, outboxID chat1.OutboxID) (uploaderTask, error) {
+	return u.taskStorage.getTask(ctx, outboxID)
 }
 
 func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -231,8 +284,7 @@ func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.C
 		Metadata:      metadata,
 		CallerPreview: callerPreview,
 	}
-	tkey := u.dbTaskKey(outboxID)
-	if err := u.G().GetKVStore().PutObj(tkey, nil, task); err != nil {
+	if err := u.taskStorage.saveTask(ctx, task); err != nil {
 		return err
 	}
 	return nil
@@ -341,7 +393,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	src, err := newFileReadResetter(filename)
+	src, err := NewFileReadResetter(filename)
 	if err != nil {
 		return res, err
 	}
@@ -353,7 +405,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
+	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper, callerPreview)
 	if err != nil {
 		return res, err
 	}
@@ -455,7 +507,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				S3Params:       previewParams,
 				Filename:       filename,
 				FileSize:       int64(len(pre.Preview)),
-				Plaintext:      newBufReadResetter(pre.Preview),
+				Plaintext:      NewBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
 				UserID:         uid,
@@ -503,4 +555,16 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.doneUploading(outboxID)
 	}()
 	return upload.uploadResult, nil
+}
+
+func (u *Uploader) getUploadTempDir(outboxID chat1.OutboxID) string {
+	return filepath.Join(u.G().GetSharedCacheDir(), "uploadtemps", outboxID.String())
+}
+
+func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error) {
+	dir := u.getUploadTempDir(outboxID)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, filepath.Base(filename)), nil
 }

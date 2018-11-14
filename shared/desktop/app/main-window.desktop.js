@@ -2,15 +2,14 @@
 import URL from 'url-parse'
 import AppState from './app-state.desktop'
 import Window from './window.desktop'
-import getenv from 'getenv'
-import hotPath from './hot-path.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon.desktop'
-import {getRendererHTML} from './dev.desktop'
-import {windowStyle} from '../../styles'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
+import {resolveRootAsURL} from './resolve-root.desktop'
+
+const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
 export default function() {
   // We are not using partitions on webviews, so this essentially disables
@@ -20,7 +19,7 @@ export default function() {
   // Disallow any permissions requests except for notifications
   SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      const ourURL = new URL(getRendererHTML('mainWindow'))
+      const ourURL = new URL(htmlFile)
       const requestURL = new URL(webContents.getURL())
       if (
         permission === 'notifications' &&
@@ -36,11 +35,11 @@ export default function() {
   let appState = new AppState()
   appState.checkOpenAtLogin()
 
-  const mainWindow = new Window(getRendererHTML('mainWindow'), {
+  const mainWindow = new Window(htmlFile, {
     backgroundThrottling: false,
     height: appState.state.height,
-    minHeight: windowStyle.minHeight,
-    minWidth: windowStyle.minWidth,
+    minHeight: 600,
+    minWidth: 400,
     show: false,
     webPreferences: {
       devTools: showDevTools,
@@ -53,16 +52,6 @@ export default function() {
   })
 
   const webContents = mainWindow.window.webContents
-  webContents.on('did-finish-load', () => {
-    webContents.send('load', {
-      scripts: [
-        {
-          async: false,
-          src: hotPath('index.bundle.js'),
-        },
-      ],
-    })
-  })
 
   if (showDevTools) {
     webContents.openDevTools({mode: 'detach'})
@@ -75,8 +64,8 @@ export default function() {
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
+    !!process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = process.env['KEYBASE_START_UI'] === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)

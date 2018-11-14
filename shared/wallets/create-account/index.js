@@ -1,50 +1,86 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
 import type {ValidationState} from '../../constants/types/wallets'
-import {EnterNamePopup} from '../common'
+import {EnterName, WalletPopup} from '../common'
+import * as Styles from '../../styles'
 
 type Props = {|
   createNewAccountError: string,
   error: string,
-  name: string,
   nameValidationState: ValidationState,
   onBack?: () => void,
   onCancel: () => void,
   onClearErrors: () => void,
-  onCreateAccount: () => void,
-  onDone: () => void,
-  onNameChange: string => void,
+  onCreateAccount: (name: string) => void,
+  onDone: (name: string) => void,
   waiting: boolean,
 |}
 
-class CreateAccount extends React.Component<Props> {
-  render() {
-    return (
-      <EnterNamePopup
-        error={this.props.error || this.props.createNewAccountError}
-        name={this.props.name}
-        onBack={this.props.onBack}
-        onCancel={this.props.onCancel}
-        onNameChange={this.props.onNameChange}
-        onPrimaryClick={this.props.onDone}
-        waiting={this.props.waiting}
-      />
-    )
-  }
+type State = {|
+  name: string,
+|}
+class CreateAccount extends React.Component<Props, State> {
+  state = {name: ''}
+  _onNameChange = name => this.setState({name})
+  _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))
+  _disabled = () => !this.state.name
+  _getBottomButtons = () => [
+    ...(Styles.isMobile
+      ? []
+      : [
+          <Kb.Button
+            key={0}
+            type="Secondary"
+            onClick={this.props.onCancel}
+            label="Cancel"
+            disabled={this.props.waiting}
+          />,
+        ]),
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={this._onDone}
+      label="Done"
+      waiting={this.props.waiting}
+      fullWidth={Styles.isMobile}
+      disabled={this._disabled()}
+    />,
+  ]
 
   componentDidMount() {
     this.props.onClearErrors()
   }
+
   componentWillUnmount() {
     this.props.onClearErrors()
   }
+
   componentDidUpdate(prevProps: Props) {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
-      this.props.onCreateAccount()
+      this.props.onCreateAccount(this.state.name)
       // This is for when we are showing this from a SendForm.
       this.props.onBack && this.props.onBack()
     }
+  }
+
+  render() {
+    return (
+      <WalletPopup
+        bottomButtons={this._getBottomButtons()}
+        onExit={this.props.onCancel}
+        backButtonType="cancel"
+        headerTitle="Name account"
+      >
+        <EnterName
+          error={this.props.error || this.props.createNewAccountError}
+          name={this.state.name}
+          onEnterKeyDown={this._onDone}
+          onNameChange={this._onNameChange}
+        />
+      </WalletPopup>
+    )
   }
 }
 

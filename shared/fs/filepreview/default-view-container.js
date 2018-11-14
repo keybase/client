@@ -1,11 +1,11 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
-const mapStateToProps = (state: TypedState, {path}) => {
+const mapStateToProps = (state, {path}) => {
   const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
@@ -38,11 +38,9 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default compose(
-  connect(
+export default namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('FilePreviewDefaultView')
+    mergeProps,
+  'FilePreviewDefaultView'
 )(DefaultView)

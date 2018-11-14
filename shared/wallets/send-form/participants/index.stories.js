@@ -70,7 +70,7 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-export const participantProviderProperties = {
+const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 }
@@ -101,16 +101,21 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
+  isRequest: false,
   recipientUsername: '',
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: null,
 }
 
 const stellarPublicKeyProps = {
+  keyCounter: 0,
   recipientPublicKey: '',
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: Sb.action('onScanQRCode'),
+  setReadyToSend: Sb.action('setReadyToSend'),
 }
 
 const otherAccountProps = {
@@ -128,7 +133,17 @@ const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To Keybase user with QR', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} onScanQRCode={Sb.action('onScanQRCode')} />
+    ))
+    .add('To Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
+    ))
+    .add('Request from Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} isRequest={true} recipientUsername="chris" />
+    ))
     .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
+    .add('To stellar address with QR', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
       <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
     ))

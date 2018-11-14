@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import Download, {type DownloadProps} from './download'
 import * as FsGen from '../../actions/fs-gen'
 import {formatDurationFromNowTo} from '../../util/timestamp'
@@ -10,11 +10,11 @@ type OwnProps = {
   downloadKey: string,
 }
 
-const mapStateToProps = (state: TypedState, {downloadKey}: OwnProps) => ({
+const mapStateToProps = (state, {downloadKey}: OwnProps) => ({
   _download: state.fs.downloads.get(downloadKey, Constants.makeDownload()),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
   _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
   _canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),
@@ -32,11 +32,10 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
     cancel: () => _canceler(downloadKey),
   }: DownloadProps)
 
-export default compose(
-  connect(
+export default
+  namedConnect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  ),
-  setDisplayName('ConnectedDownload')
+    mergeProps,
+'ConnectedDownload'
 )(Download)

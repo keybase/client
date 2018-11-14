@@ -56,10 +56,6 @@ func (f *JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
 	return false, false
 }
 
-func (f *JSONConfigFile) GetAutoWallet() (bool, bool) {
-	return false, false
-}
-
 func (f *JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)
@@ -843,4 +839,9 @@ func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
 
 func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
 	return f.GetBoolAtPath("attachment_disable_multi")
+}
+
+func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
+	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
+	return s
 }

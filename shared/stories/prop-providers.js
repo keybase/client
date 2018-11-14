@@ -10,6 +10,7 @@ import type {NameWithIconProps} from '../common-adapters/name-with-icon'
 import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
 import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
+import {isSpecialMention} from '../constants/chat2'
 
 /*
  * Some common prop factory creators.
@@ -48,10 +49,11 @@ export const Usernames = (following: string[] = defaultFollowing, you: string = 
   },
 })
 
+// Pass "waitingKey: true" to this to render the waiting state
 export const WaitingButton = () => ({
   WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
     ...ownProps,
-    storeWaiting: false,
+    storeWaiting: ownProps.waitingKey === 'true',
   }),
 })
 
@@ -85,6 +87,31 @@ const CopyText = () => ({
   CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
 })
 
+// $ForceType
+const Channel = ({name, convID, key, style}) => ({
+  name,
+  convID,
+  key,
+  style,
+  onClick: action('onClickChannel'),
+})
+
+const usernameToTheme = {
+  following: 'follow',
+  notFollowing: 'nonFollow',
+  myUsername: 'highlight',
+  noTheme: 'none',
+}
+
+// $ForceType
+const Mention = ({username, key, style}) => ({
+  username,
+  key,
+  style,
+  theme: usernameToTheme[username] || (isSpecialMention(username) ? 'highlight' : 'none'),
+  onClick: action('onClick Mention'),
+})
+
 export const NameWithIcon = () => ({
   NameWithIcon: (ownProps: ConnectedNameWithIconProps): NameWithIconProps => {
     const {onClick, ...props} = ownProps
@@ -112,6 +139,8 @@ export const Common = () => ({
   ...WaitingButton(),
   ...CopyText(),
   ...NameWithIcon(),
+  Mention,
+  Channel,
 })
 
 export const createPropProviderWithCommon = (custom: ?Object) =>

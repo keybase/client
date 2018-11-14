@@ -1,36 +1,38 @@
 // @flow
-import {connect, compose, type TypedState} from '../../util/container'
+import {connect, compose} from '../../util/container'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
 import TransactionDetails from '.'
 
-const mapStateToProps = (state: TypedState, ownProps) => {
+const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''
   const accountID = ownProps.routeProps.get('accountID')
   const paymentID = ownProps.routeProps.get('paymentID')
   const _transaction = Constants.getPayment(state, accountID, paymentID)
-  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(_transaction)
+  const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   return {
     _transaction,
     counterpartyMeta:
-      yourRoleAndCounterparty.counterpartyType === 'keybaseUser'
+      yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
         ? getFullname(
             state,
-            yourRoleAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
+            yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
     you,
-    yourRoleAndCounterparty,
+    yourInfoAndCounterparty,
   }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   navigateUp: () => dispatch(navigateUp()),
-  onCancelPayment: () => dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID')})),
+  onCancelPayment: () =>
+    dispatch(WalletsGen.createCancelPayment({paymentID: routeProps.get('paymentID'), showAccount: true})),
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
@@ -38,6 +40,8 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
         paymentID: routeProps.get('paymentID'),
       })
     ),
+  onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
@@ -52,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }
   }
   return {
-    ...stateProps.yourRoleAndCounterparty,
+    ...stateProps.yourInfoAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
@@ -61,6 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onBack: dispatchProps.navigateUp,
     onCancelPayment: tx.statusSimplified === 'cancelable' ? dispatchProps.onCancelPayment : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),

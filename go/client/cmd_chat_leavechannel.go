@@ -31,6 +31,7 @@ func newCmdChatLeaveChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatLeaveChannelRunner(g), "leave-channel", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}

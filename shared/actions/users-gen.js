@@ -19,8 +19,8 @@ type _UpdateBrokenStatePayload = $ReadOnly<{|
 type _UpdateFullnamesPayload = $ReadOnly<{|usernameToFullname: {[username: string]: string}|}>
 
 // Action Creators
-export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload) => ({error: false, payload, type: updateBrokenState})
-export const createUpdateFullnames = (payload: _UpdateFullnamesPayload) => ({error: false, payload, type: updateFullnames})
+export const createUpdateBrokenState = (payload: _UpdateBrokenStatePayload) => ({payload, type: updateBrokenState})
+export const createUpdateFullnames = (payload: _UpdateFullnamesPayload) => ({payload, type: updateFullnames})
 
 // Action Payloads
 export type UpdateBrokenStatePayload = $Call<typeof createUpdateBrokenState, _UpdateBrokenStatePayload>

@@ -18,7 +18,7 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
-import * as WalletConstants from '../../constants/wallets'
+import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
@@ -26,7 +26,6 @@ import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} 
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState} from '../../util/container'
-import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {switchTo} from '../route-tree'
@@ -279,15 +278,6 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       } else {
         // A normal message
         actions.push(Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, messages: [message]}))
-        if (!isMobile && displayDesktopNotification && desktopNotificationSnippet) {
-          actions.push(
-            Chat2Gen.createDesktopNotification({
-              author: message.author,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
-        }
       }
     } else if (cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid && cMsg.valid) {
       const valid = cMsg.valid
@@ -337,6 +327,21 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
           }
           break
       }
+    }
+    if (
+      !isMobile &&
+      displayDesktopNotification &&
+      desktopNotificationSnippet &&
+      cMsg.state === RPCChatTypes.chatUiMessageUnboxedState.valid &&
+      cMsg.valid
+    ) {
+      actions.push(
+        Chat2Gen.createDesktopNotification({
+          author: cMsg.valid.senderUsername,
+          body: desktopNotificationSnippet,
+          conversationIDKey,
+        })
+      )
     }
   }
 
@@ -426,7 +431,7 @@ const onChatInboxSynced = (syncRes, state) => {
       const username = state.config.username || ''
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
@@ -448,7 +453,9 @@ const onChatInboxSynced = (syncRes, state) => {
       // Unbox items
       actions.push(
         Chat2Gen.createMetaRequestTrusted({
-          conversationIDKeys: items.map(i => Types.stringToConversationIDKey(i.convID)),
+          conversationIDKeys: items
+            .filter(i => i.shouldUnbox)
+            .map(i => Types.stringToConversationIDKey(i.conv.convID)),
           force: true,
         })
       )
@@ -554,10 +561,6 @@ const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo, state: TypedState) 
 // Get actions to update messagemap / metamap when ephemeral messages expire
 const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
   const actions = []
-  const meta = !!info.conv && Constants.inboxUIItemToConversationMeta(info.conv)
-  if (meta) {
-    actions.push(Chat2Gen.createMetasReceived({fromEphemeralPurge: true, metas: [meta]}))
-  }
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   const messageIDs =
     !!info.msgs &&
@@ -982,6 +985,7 @@ const loadMoreMessages = (
           query: {
             enableDeletePlaceholders: true,
             disableResolveSupersedes: false,
+            disablePostProcessThread: false,
             markAsRead: false,
             messageTypes: loadThreadMessageTypes,
           },
@@ -1025,10 +1029,11 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
     Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
     meta.isMuted // ignore muted convos
   ) {
+    logger.info('desktopNotify: not sending notification')
     return
   }
 
-  logger.info('Sending Chat notification')
+  logger.info('desktopNotify: sending chat notification')
   let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
   if (meta.teamType === 'big') {
     title += `#${meta.channelname}`
@@ -1047,7 +1052,7 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
                     reason: 'desktopNotification',
                   })
                 ),
-                Saga.put(RouteTreeGen.createSwitchTo({path: [chatTab]})),
+                Saga.put(RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]})),
                 Saga.put(ConfigGen.createShowMain()),
               ])
             )
@@ -1055,6 +1060,7 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
           const onClose = () => {
             resolve()
           }
+          logger.info('desktopNotify: invoking NotifyPopup for chat notification')
           NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
         })
     )
@@ -1179,12 +1185,13 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
     const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-    // Editing a normal message
-    if (message.id) {
-      const supersedes = message.id
-      const outboxID = Constants.generateOutboxID()
-
-      return Saga.call(
+    const outboxID = Constants.generateOutboxID()
+    const target = {
+      messageID: message.id,
+      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+    }
+    let actions = [
+      Saga.call(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
           body: text.stringValue(),
@@ -1192,30 +1199,19 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
           conversationID: Types.keyToConversationID(conversationIDKey),
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
           outboxID,
-          supersedes,
+          target,
           tlfName,
           tlfPublic: false,
         },
         Constants.waitingKeyEditPost
+      ),
+    ]
+    if (!message.id) {
+      actions = actions.concat(
+        Saga.put(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
       )
-    } else {
-      // Pending messages need to be cancelled and resent
-      if (message.outboxID) {
-        return Saga.sequentially([
-          Saga.call(
-            RPCChatTypes.localCancelPostRpcPromise,
-            {
-              outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
-            },
-            Constants.waitingKeyCancelPost
-          ),
-          Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-          Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text})),
-        ])
-      } else {
-        logger.warn('Editing no id and no outboxid')
-      }
     }
+    return Saga.sequentially(actions)
   } else {
     logger.warn('Editing non-text message')
   }
@@ -1246,19 +1242,17 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
 
   // Inject pending message and make the call
-
+  const newMsg = Constants.makePendingTextMessage(
+    state,
+    conversationIDKey,
+    text,
+    Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
+    ephemeralLifetime
+  )
   const addMessage = Saga.put(
     Chat2Gen.createMessagesAdd({
       context: {type: 'sent'},
-      messages: [
-        Constants.makePendingTextMessage(
-          state,
-          conversationIDKey,
-          text,
-          Types.stringToOutboxID(outboxID.toString('hex') || ''), // never null but makes flow happy
-          ephemeralLifetime
-        ),
-      ],
+      messages: [newMsg],
     })
   )
 
@@ -1283,7 +1277,14 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
   logger.info('[MessageSend]', 'non-empty text?', text.stringValue().length > 0)
 
-  return Saga.sequentially([addMessage, postText])
+  // We need to put an addMessage ahead of postText in case we get new activity on that outboxID before the
+  // the action to add the pending message fires. This would cause a pending message to be stuck
+  // (with a duplicate sent message in there too).
+  //
+  // We put the addMessage on the back in case the service provides chat thread data in between the
+  // addMessage and postText action. upgradeMessage should be a no-op in the case that the message
+  // that is in the store on the outboxID has been sent.
+  return Saga.sequentially([addMessage, postText, addMessage])
 }
 
 const messageSendWithResult = (result, action) => {
@@ -1658,8 +1659,10 @@ const updatePendingParticipants = (
   ])
 }
 
-function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
+function* downloadAttachment(fileName: string, message: Types.Message) {
   try {
+    const conversationIDKey = message.conversationIDKey
+    const ordinal = message.ordinal
     let lastRatioSent = -1 // force the first update to show no matter what
     const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
       const ratio = bytesComplete / bytesTotal
@@ -1688,7 +1691,7 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
     return rpcRes.filename
   } catch (e) {}
   return fileName
@@ -1696,12 +1699,9 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
 
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
-  const {conversationIDKey, ordinal} = action.payload
+  const {message} = action.payload
 
-  const state: TypedState = yield Saga.select()
-  let message = Constants.getMessage(state, conversationIDKey, ordinal)
-
-  if (!message || message.type !== 'attachment') {
+  if (message.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
   }
 
@@ -1713,8 +1713,35 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 
   // Download it
   const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
+  yield Saga.call(downloadAttachment, destPath, message)
 }
+
+const attachmentFullscreenNext = (state: TypedState, action: Chat2Gen.AttachmentFullscreenNextPayload) =>
+  Saga.call(function*() {
+    const {conversationIDKey, messageID, backInTime} = action.payload
+    const blankMessage = Constants.makeMessageAttachment({})
+    if (conversationIDKey === blankMessage.conversationIDKey) {
+      return
+    }
+    const currentFullscreen = state.chat2.attachmentFullscreenMessage || blankMessage
+    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: blankMessage}))
+    const nextAttachmentRes = yield Saga.call(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise, {
+      convID: Types.keyToConversationID(conversationIDKey),
+      messageID,
+      backInTime,
+      assetTypes: [RPCChatTypes.commonAssetMetadataType.image, RPCChatTypes.commonAssetMetadataType.video],
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    })
+
+    let nextMsg = currentFullscreen
+    if (nextAttachmentRes.message) {
+      const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
+      if (uiMsg) {
+        nextMsg = uiMsg
+      }
+    }
+    yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({message: nextMsg}))
+  })
 
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
@@ -1732,16 +1759,43 @@ function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayloa
     )
   } else {
     yield Saga.put(
+      Chat2Gen.createAttachmentFullscreenSelection({
+        message,
+      })
+    )
+    yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            props: {},
             selected: 'attachmentFullscreen',
           },
         ],
       })
     )
   }
+}
+
+// Handle an image pasted into a conversation
+function* attachmentPasted(action: Chat2Gen.AttachmentPastedPayload) {
+  const {conversationIDKey, data} = action.payload
+  const outboxID = Constants.generateOutboxID()
+  const path = yield Saga.call(RPCChatTypes.localMakeUploadTempFileRpcPromise, {
+    outboxID,
+    filename: 'paste.png',
+    data,
+  })
+  const pathAndOutboxIDs = [
+    {
+      path,
+      outboxID,
+    },
+  ]
+  yield Saga.put(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+    })
+  )
 }
 
 // Upload an attachment
@@ -1769,10 +1823,11 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
         ...ephemeralData,
         convID: Types.keyToConversationID(conversationIDKey),
         tlfName: meta.tlfname,
-        filename: p,
+        filename: p.path,
         title: titles[i],
         metadata: Buffer.from([]),
         visibility: RPCTypes.commonTLFVisibility.private,
+        outboxID: p.outboxID,
         clientPrev,
         identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
       })
@@ -1791,9 +1846,9 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
 
   // Make the previews
   const previews: Array<?RPCChatTypes.MakePreviewRes> = yield Saga.sequentially(
-    paths.map((filename, i) =>
+    paths.map((p, i) =>
       Saga.call(RPCChatTypes.localMakePreviewRpcPromise, {
-        filename,
+        filename: p.path,
         outboxID: outboxIDs[i],
       })
     )
@@ -1819,7 +1874,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       state,
       conversationIDKey,
       titles[i],
-      FsTypes.getLocalPathName(paths[i]),
+      FsTypes.getLocalPathName(paths[i].path),
       previewURLs[i],
       previewSpecs[i],
       Types.rpcOutboxIDToOutboxID(outboxIDs[i]),
@@ -1841,7 +1896,7 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
       Saga.call(RPCChatTypes.localPostFileAttachmentUploadLocalNonblockRpcPromise, {
         convID: Types.keyToConversationID(conversationIDKey),
         outboxID: outboxIDs[i],
-        filename: path,
+        filename: path.path,
         title: titles[i],
         metadata: Buffer.from([]),
         callerPreview: previews[i],
@@ -1886,6 +1941,7 @@ const markThreadAsRead = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
+    | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
     | RouteTreeGen.Actions,
   state: TypedState
@@ -1983,7 +2039,7 @@ const navigateToInbox = (
     return
   }
   const resetRouteAction = Saga.put(
-    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
+    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: Tabs.chatTab}, {props: {}, selected: null}]})
   )
   if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
     const {context, teamname} = action.payload
@@ -1993,7 +2049,7 @@ const navigateToInbox = (
           // If we're leaving a team from somewhere else and we have a team convo
           // selected, reset the chat tab to the root
           logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
-          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [chatTab]}))
+          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [Tabs.chatTab]}))
         }
         break
       case TeamsGen.leftTeam:
@@ -2034,7 +2090,7 @@ const mobileNavigateOnSelect = (action: Chat2Gen.SelectConversationPayload, stat
 
 const mobileChangeSelection = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
-  const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
+  const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
@@ -2053,7 +2109,7 @@ function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   try {
     yield Saga.call(showShareActionSheetFromFile, fileName, message.fileType)
   } catch (e) {
@@ -2069,7 +2125,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
+  const fileName = yield Saga.call(downloadAttachment, '', message)
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,
@@ -2490,7 +2546,7 @@ const openChatFromWidget = (
 ) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    Saga.put(switchTo([chatTab])),
+    Saga.put(switchTo([Tabs.chatTab])),
     ...(conversationIDKey
       ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
       : []),
@@ -2570,18 +2626,15 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  return Saga.sequentially(
-    [
-      ...(requestInfo.currencyCode
-        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
-        : []),
-      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
-      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
-      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
-      WalletsGen.createSetBuildingTo({to: message.author}),
-      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
-      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
-    ].map(action => Saga.put(action))
+  return Saga.put(
+    WalletsGen.createOpenSendRequestForm({
+      amount: requestInfo.amount,
+      currency: requestInfo.currencyCode || 'XLM',
+      from: WalletTypes.noAccountID,
+      recipientType: 'keybaseUser',
+      to: message.author,
+      secretNote: message.note,
+    })
   )
 }
 
@@ -2658,8 +2711,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
-  // On bootstrap lets load the untrusted inbox. This helps make some flows easier
-  yield Saga.safeTakeEveryPure(ConfigGen.daemonHandshakeDone, startupInboxLoad)
+  // On login lets load the untrusted inbox. This helps make some flows easier
+  yield Saga.safeTakeEveryPure(ConfigGen.loggedIn, startupInboxLoad)
 
   // Search handling
   yield Saga.safeTakeEveryPure(
@@ -2675,6 +2728,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield Saga.safeTakeEvery(Chat2Gen.attachmentPasted, attachmentPasted)
+  yield Saga.actionToAction(Chat2Gen.attachmentFullscreenNext, attachmentFullscreenNext)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.sendTyping, sendTyping)
   yield Saga.safeTakeEveryPure(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
@@ -2685,6 +2740,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),
     ],

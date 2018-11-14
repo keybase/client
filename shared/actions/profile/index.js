@@ -5,7 +5,6 @@ import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
-import * as Selectors from '../../constants/selectors'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
@@ -51,8 +50,10 @@ function _finishRevoking() {
 
 function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: TypedState) {
   const {username: userId} = action.payload
-  const searchResultMap = Selectors.searchResultMapSelector(state)
-  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
+    state.entities.search.searchResults,
+    userId
+  )
   const me = state.config.username || ''
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])

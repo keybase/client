@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 import Input, {type Props} from '.'
 
 type OwnProps = {
@@ -24,7 +24,7 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 
@@ -49,11 +49,18 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
+const mapDispatchToProps = dispatch => ({
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({
+      path: p,
+      outboxID: null,
+    }))
     dispatch(
-      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
-    ),
+      RouteTree.navigateAppend([
+        {props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'},
+      ])
+    )
+  },
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
@@ -124,7 +131,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   typing: stateProps.typing,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

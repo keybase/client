@@ -1,23 +1,33 @@
 // @flow
-import {connect, type TypedState, isMobile} from '../../util/container'
+import * as I from 'immutable'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
-import {chatTab, peopleTab, profileTab, type Tab} from '../../constants/tabs'
+import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
 import {navigateTo, switchTo} from '../../actions/route-tree'
 import {createShowUserProfile} from '../../actions/profile-gen'
+
+type OwnProps = {|
+  hotkeys?: Array<string>,
+  onHotkey?: (cmd: string) => void,
+  routeSelected: Tab,
+  routePath: I.List<string>,
+|}
 
 let KeyHandler = c => c
 if (!isMobile) {
   KeyHandler = require('../../util/key-handler.desktop').default
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _badgeNumbers: state.notifications.get('navBadges'),
+  isWalletsNew: state.chat2.isWalletsNew,
   username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
   _onTabClick: isMobile
-    ? (tab: Tab, me: ?string) => {
+    ? (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
           dispatch(navigateTo(routePath.push(tab)))
           return
@@ -37,7 +47,7 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
         const action = routeSelected === tab ? navigateTo : switchTo
         dispatch(action(routePath.push(tab)))
       }
-    : (tab: Tab, me: ?string) => {
+    : (tab: Tab, me: ?string, isWalletsNew: boolean) => {
         if (tab === chatTab && routeSelected === tab) {
           // clicking the chat tab when already selected should do nothing.
           return
@@ -61,6 +71,11 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
           return
         }
 
+        // If we're going to the Wallets tab and it's badged new, unbadge it.
+        if (tab === walletsTab && isWalletsNew) {
+          dispatch(Chat2Gen.createHandleSeeingWallets())
+        }
+
         // otherwise, back out to the default route of the tab.
         const action = routeSelected === tab ? navigateTo : switchTo
         dispatch(action(routePath.push(tab)))
@@ -69,12 +84,15 @@ const mapDispatchToProps = (dispatch, {routeSelected, routePath}) => ({
 
 const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
   badgeNumbers: stateProps._badgeNumbers.toObject(),
-  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username),
+  isNew: {
+    [walletsTab]: stateProps.isWalletsNew,
+  },
+  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username, stateProps.isWalletsNew),
   selectedTab: routeSelected,
   username: stateProps.username || '',
 })
 
-const ConnectedTabBar = connect(
+const ConnectedTabBar = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

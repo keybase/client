@@ -164,8 +164,6 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 // of posting a new key, causing the post to fail. Detect these conditions
 // and retry.
 func teamEKRetryWrapper(ctx context.Context, g *libkb.GlobalContext, retryFn func() error) (err error) {
-	tries := 0
-	maxTries := 3
 	knownRaceConditions := []keybase1.StatusCode{
 		keybase1.StatusCode_SCSigWrongKey,
 		keybase1.StatusCode_SCSigOldSeqno,
@@ -174,25 +172,23 @@ func teamEKRetryWrapper(ctx context.Context, g *libkb.GlobalContext, retryFn fun
 		keybase1.StatusCode_SCEphemeralKeyMissingBox,
 		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
 	}
-	for {
-		tries++
-		err = retryFn()
-		if err != nil {
-			retryableError := false
-			for _, code := range knownRaceConditions {
-				if libkb.IsAppStatusCode(err, code) {
-					g.Log.CDebugf(ctx, "teamEKRetryWrapper found a retryable error on try %d: %s", tries, err)
-					retryableError = true
-					break
-				}
-			}
-			if !retryableError || tries >= maxTries {
-				return err
-			}
-		} else {
+	for tries := 0; tries < maxRetries; tries++ {
+		if err = retryFn(); err == nil {
 			return nil
 		}
+		retryableError := false
+		for _, code := range knownRaceConditions {
+			if libkb.IsAppStatusCode(err, code) {
+				g.Log.CDebugf(ctx, "teamEKRetryWrapper found a retryable error on try %d: %s", tries, err)
+				retryableError = true
+				break
+			}
+		}
+		if !retryableError {
+			return err
+		}
 	}
+	return nil
 }
 
 func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {

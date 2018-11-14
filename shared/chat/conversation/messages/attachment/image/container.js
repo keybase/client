@@ -2,7 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, isMobile} from '../../../../../util/container'
+import {connect, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
@@ -12,9 +12,9 @@ type OwnProps = {
   toggleMessageMenu: () => void,
 }
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
@@ -90,7 +90,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

@@ -1,39 +1,49 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/fs'
 import {Box, Icon, Text, WithTooltip} from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
+import {PathItemAction, OpenInSystemFileManager} from '../common'
 
 const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
-  <Box style={styleHeaderContainer}>
-    <Box style={styleFolderHeader}>
-      {path === '/keybase' ? (
-        <Box style={folderHeaderStyleRoot}>
-          <Text type="BodyBig">Keybase Files</Text>
+  <Box style={styles.headerContainer}>
+    <Box style={styles.folderHeader}>
+      {Types.pathToString(path) === '/keybase' ? (
+        <Box style={styles.folderHeaderContainer}>
+          <Box style={styles.folderHeaderRoot}>
+            <Text type="BodyBig">Keybase Files</Text>
+          </Box>
+          <Box style={styles.folderHeaderEnd}>
+            <WithTooltip text="Show in Finder">
+              <OpenInSystemFileManager path={path} />
+            </WithTooltip>
+          </Box>
         </Box>
       ) : (
-        <Box style={styleFolderHeaderContainer}>
+        <Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} />
-          <Box style={styleFolderHeaderEnd}>
-            <AddNew path={path} style={styleAddNew} />
+          <Box style={styles.folderHeaderEnd}>
+            <AddNew path={path} style={styles.addNew} />
             <WithTooltip text="Show in Finder">
               <OpenInSystemFileManager path={path} />
             </WithTooltip>
             {onChat && (
-              <Icon
-                type="iconfont-chat"
-                style={{
-                  marginLeft: globalMargins.small,
-                }}
-                color={globalColors.black_40}
-                fontSize={16}
-                onClick={onChat}
-              />
+              <Box style={styles.headerIcon}>
+                <Icon
+                  type="iconfont-chat"
+                  color={Styles.globalColors.black_40}
+                  fontSize={16}
+                  onClick={onChat}
+                />
+              </Box>
             )}
+            <Box style={styles.headerIcon}>
+              <PathItemAction path={path} actionIconClassName="fs-path-item-hover-icon" />
+            </Box>
           </Box>
         </Box>
       )}
@@ -42,50 +52,50 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   </Box>
 )
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
+const styleCommonRow = {
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
 }
 
-const styleHeaderContainer = {
-  ...globalStyles.flexBoxColumn,
-  width: '100%',
-}
-
-const styleFolderHeader = {
-  minHeight: 48,
-}
-
-const folderHeaderStyleRoot = {
-  ...stylesCommonRow,
-  justifyContent: 'center',
-  width: '100%',
-  height: 48,
-}
-
-const styleFolderHeaderEnd = {
-  ...stylesCommonRow,
-  alignItems: 'center',
-  paddingLeft: 16,
-  paddingRight: 16,
-  flexShrink: 0,
-}
-
-const styleFolderHeaderContainer = {
-  ...stylesCommonRow,
-  width: '100%',
-  height: 48,
-  alignItems: 'center',
-  position: 'relative',
-}
-
-const styleAddNew = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  paddingRight: globalMargins.small - 4,
-  paddingLeft: globalMargins.small,
-}
+const styles = Styles.styleSheetCreate({
+  headerContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    width: '100%',
+  },
+  folderHeader: {
+    minHeight: 48,
+  },
+  folderHeaderRoot: {
+    ...styleCommonRow,
+    justifyContent: 'center',
+    width: '100%',
+    height: 48,
+  },
+  folderHeaderEnd: {
+    ...styleCommonRow,
+    alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 16,
+    flexShrink: 0,
+  },
+  folderHeaderContainer: {
+    ...styleCommonRow,
+    width: '100%',
+    height: 48,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  headerIcon: {
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  addNew: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.small - 4,
+    paddingLeft: Styles.globalMargins.small,
+  },
+})
 
 export default FolderHeader

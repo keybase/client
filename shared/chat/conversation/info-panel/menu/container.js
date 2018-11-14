@@ -2,13 +2,7 @@
 import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
 import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
-import {
-  compose,
-  connect,
-  setDisplayName,
-  type TypedState,
-  createCachedSelector,
-} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
@@ -21,23 +15,35 @@ export type OwnProps = {
   visible: boolean,
 }
 
-const moreThanOneSubscribedChannel = createCachedSelector(
-  (state, _) => state.chat2.metaMap,
-  (_, teamname) => teamname,
-  (metaMap, teamname) => {
-    let found = 0
-    return metaMap.some(c => {
-      found += c.teamname === teamname ? 1 : 0
-      // got enough
-      if (found === 2) {
-        return true
-      }
-      return false
-    })
-  }
-)((_, teamname) => teamname)
+// can be expensive, don't run if not visible
+const moreThanOneSubscribedChannel = (metaMap, teamname) => {
+  let found = 0
+  return metaMap.some(c => {
+    if (c.teamname === teamname) {
+      found++
+    }
+    // got enough
+    if (found === 2) {
+      return true
+    }
+    return false
+  })
+}
 
-const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
+const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
+  // skip a bunch of stuff for menus that aren't visible
+  if (!visible) {
+    return {
+      hasCanPerform: false,
+      badgeSubscribe: false,
+      canAddPeople: false,
+      isSmallTeam: false,
+      manageChannelsSubtitle: '',
+      manageChannelsTitle: '',
+      memberCount: 0,
+      teamname,
+    }
+  }
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const hasCanPerform = Constants.hasCanPerform(state, teamname)
@@ -45,7 +51,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
 
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
-    : moreThanOneSubscribedChannel(state, teamname) // this is kinda expensive so don't run it all the time
+    : moreThanOneSubscribedChannel(state.chat2.metaMap, teamname)
       ? 'Manage chat channels'
       : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -94,11 +100,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   },
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('TeamDropdownMenu')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'TeamDropdownMenu'
 )(InfoPanelMenu)

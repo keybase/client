@@ -472,6 +472,10 @@ func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.Ms
 	return nil
 }
 
+func (f *FakeGregorDismisser) PeekDismissedIDs() []gregor.MsgID {
+	return f.dismissedIDs
+}
+
 type TestUIDMapper struct {
 	ul UPAKLoader
 }

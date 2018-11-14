@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -91,7 +92,7 @@ func TestStorageLogout(t *testing.T) {
 		require.True(t, res == &obj, "should be the same obj from mem")
 
 		t.Logf("logout")
-		tc.G.Logout()
+		tc.G.Logout(context.TODO())
 
 		require.Equal(t, 0, st.mem.lru.Len(), "mem cache still populated")
 

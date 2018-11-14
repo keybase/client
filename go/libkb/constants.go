@@ -127,8 +127,8 @@ const (
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
 	EphemeralKeyMerkleFreshness = 30 * time.Second
 
-	// By default, only 64 files can be opened.
-	LevelDBNumFiles = 64
+	// By default, only 48 files can be opened.
+	LevelDBNumFiles = 48
 
 	HomeCacheTimeout       = (time.Hour - time.Minute)
 	HomePeopleCacheTimeout = 10 * time.Minute
@@ -204,6 +204,7 @@ const (
 	SCReloginRequired                  = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed                 = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
+	SCRateLimit                        = int(keybase1.StatusCode_SCRateLimit)
 	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)
@@ -307,6 +308,7 @@ const (
 	SCTeamProvisionalCannotKey         = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
 	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
+	SCStellarNeedDisclaimer            = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
 )
 
 const (
@@ -415,6 +417,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
+// TODO Remove with CORE-8969
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
@@ -645,11 +648,14 @@ const MinEphemeralContentLifetime = time.Second * 30
 
 // NOTE: If you change this value you should change it in lib/constants.iced
 // and go/ekreaperd/reaper.go as well.
-// Keys last at most one week
-const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 // one month
+// Devices are considered stale and not included in new keys after this interval
+const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 * 3 // three months
 // Everyday we want to generate a new key if possible
 const EphemeralKeyGenInterval = time.Hour * 24 // one day
 // Our keys must last at least this long.
 const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100
+
+const MaxStellarPaymentNoteLength = 500
+const MaxStellarPaymentBoxedNoteLength = 1000

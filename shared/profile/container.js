@@ -10,8 +10,6 @@ import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
-import * as Route from '../actions/route-tree-gen'
-import * as WalletConstants from '../constants/wallets'
 import {noAccountID} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
@@ -21,7 +19,7 @@ import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {peopleTab} from '../constants/tabs'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
@@ -54,7 +52,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
+const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
@@ -116,21 +114,13 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         [peopleTab]
       )
     ),
-  _onSendOrRequestLumens: (to: string) => {
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
-    dispatch(WalletsGen.createClearErrors())
-    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-    dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
-    dispatch(WalletsGen.createSetBuildingTo({to}))
+  _onSendOrRequestLumens: (to: string, isRequest) => {
     dispatch(
-      Route.createNavigateAppend({
-        path: [
-          {
-            props: {isRequest: true},
-            selected: WalletConstants.sendReceiveFormRouteKey,
-          },
-        ],
+      WalletsGen.createOpenSendRequestForm({
+        from: noAccountID,
+        isRequest,
+        recipientType: 'keybaseUser',
+        to,
       })
     )
   },
@@ -198,7 +188,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username),
+    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false),
+    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,
@@ -209,7 +200,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

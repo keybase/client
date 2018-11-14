@@ -4,7 +4,7 @@ import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper, getUserInputItemIds, makeSearchResult} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
 import {parseUserId} from '../../util/platforms'
-import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import {some} from 'lodash-es'
 
 export type OwnProps = {|
@@ -19,13 +19,13 @@ export type OwnProps = {|
 
 const emptySearch = makeSearchResult()
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)
   const {searchKey} = ownProps
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
 
-  const selectedIds = getUserInputItemIds(state, {searchKey})
+  const selectedIds = getUserInputItemIds(state, searchKey)
   const leftIsInTeam = userIsActiveInTeamHelper(
     state,
     result.leftUsername,
@@ -81,11 +81,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  setDisplayName('SearchResultRow')
-)(SearchResultRow)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'SearchResultRow')(
+  SearchResultRow
+)

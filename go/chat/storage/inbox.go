@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -146,15 +147,18 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID) (inboxDiskDa
 	return ibox, nil
 }
 
-func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
-	path := filepath.Join(i.G().GetEnv().GetConfigDir(), "inbox.mpack")
-	return encrypteddb.NewFile(i.G().ExternalG(), path,
+func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypteddb.EncryptedFile, error) {
+	dir := filepath.Join(i.G().GetEnv().GetSharedDataDir(), "sharedinbox", uid.String())
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, err
+	}
+	return encrypteddb.NewFile(i.G().ExternalG(), filepath.Join(dir, "flatinbox.mpack"),
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
-		})
+		}), nil
 }
 
-func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
+func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, uid gregor1.UID) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
 		i.G().GetAppType() != libkb.MobileAppType {
@@ -183,7 +187,12 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 			MembersType: rc.Conv.GetMembersType(),
 		})
 	}
-	if err := i.sharedInboxFile(ctx).Put(ctx, writable); err != nil {
+	sif, err := i.sharedInboxFile(ctx, uid)
+	if err != nil {
+		i.Debug(ctx, "writeMobileSharedInbox: failed to get shared inbox file: %s", err)
+		return
+	}
+	if err := sif.Put(ctx, writable); err != nil {
 		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
 	}
 }
@@ -205,7 +214,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
 	}
-	i.writeMobileSharedInbox(ctx, ibox)
+	i.writeMobileSharedInbox(ctx, ibox, uid)
 	return nil
 }
 
@@ -423,6 +432,16 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	}
 	var res []types.RemoteConversation
 	filtered := 0
+	var queryConvIDMap map[string]bool
+	if query.ConvID != nil {
+		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
+	}
+	if len(query.ConvIDs) > 0 {
+		queryConvIDMap = make(map[string]bool)
+		for _, c := range query.ConvIDs {
+			queryConvIDMap[c.String()] = true
+		}
+	}
 	for _, rc := range rcs {
 		ok := true
 		conv := rc.Conv
@@ -442,20 +461,9 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		}
 
 		// Basic checks
-		if query.ConvID != nil {
-			query.ConvIDs = append(query.ConvIDs, *query.ConvID)
-		}
-		if len(query.ConvIDs) > 0 {
-			found := false
-			for _, cid := range query.ConvIDs {
-				if cid.Eq(conv.GetConvID()) {
-					found = true
-					break
-				}
-			}
-			if !found {
-				ok = false
-			}
+		if queryConvIDMap != nil && !queryConvIDMap[conv.GetConvID().String()] {
+			filtered++
+			continue
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
 			ok = false
@@ -693,7 +701,11 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 func (i *Inbox) ReadShared(ctx context.Context, uid gregor1.UID) (res []SharedInboxItem, err Error) {
 	// no lock required here since we are just reading from a separate file
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("ReadShared(%s)", uid))()
-	if ierr := i.sharedInboxFile(ctx).Get(ctx, &res); ierr != nil {
+	sif, ierr := i.sharedInboxFile(ctx, uid)
+	if ierr != nil {
+		return res, NewInternalError(ctx, i.DebugLabeler, "error getting shared inbox: %s", ierr)
+	}
+	if ierr := sif.Get(ctx, &res); ierr != nil {
 		return res, NewInternalError(ctx, i.DebugLabeler, "error reading shared inbox: %s", ierr)
 	}
 	return res, nil

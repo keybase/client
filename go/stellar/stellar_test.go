@@ -1,6 +1,7 @@
 package stellar
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,8 +10,14 @@ import (
 type fmtTest struct {
 	amount  string
 	precTwo bool
-	out     string
-	valid   bool
+
+	// "": both 'round' and 'truncate' are expected to return the same result
+	// "round": round the value
+	// "truncate": truncate the value
+	rounding string
+
+	out   string
+	valid bool
 }
 
 var fmtTests = []fmtTest{
@@ -26,7 +33,8 @@ var fmtTests = []fmtTest{
 	{amount: "123", precTwo: true, out: "123.00", valid: true},
 	{amount: "123.456", precTwo: false, out: "123.4560000", valid: true},
 	{amount: "1234.456", precTwo: false, out: "1,234.4560000", valid: true},
-	{amount: "1234.456", precTwo: true, out: "1,234.46", valid: true},
+	{amount: "1234.456", precTwo: true, rounding: "round", out: "1,234.46", valid: true},
+	{amount: "1234.456", precTwo: true, rounding: "truncate", out: "1,234.45", valid: true},
 	{amount: "1234.1234567", precTwo: false, out: "1,234.1234567", valid: true},
 	{amount: "123123123.1234567", precTwo: false, out: "123,123,123.1234567", valid: true},
 	{amount: "123123123.1234567", precTwo: true, out: "123,123,123.12", valid: true},
@@ -39,7 +47,8 @@ var fmtTests = []fmtTest{
 	{amount: "-123", precTwo: true, out: "-123.00", valid: true},
 	{amount: "-123.456", precTwo: false, out: "-123.4560000", valid: true},
 	{amount: "-1234.456", precTwo: false, out: "-1,234.4560000", valid: true},
-	{amount: "-1234.456", precTwo: true, out: "-1,234.46", valid: true},
+	{amount: "-1234.456", precTwo: true, rounding: "round", out: "-1,234.46", valid: true},
+	{amount: "-1234.456", precTwo: true, rounding: "truncate", out: "-1,234.45", valid: true},
 	{amount: "-1234.1234567", precTwo: false, out: "-1,234.1234567", valid: true},
 	{amount: "-123123123.1234567", precTwo: false, out: "-123,123,123.1234567", valid: true},
 	{amount: "-123123123.1234567", precTwo: true, out: "-123,123,123.12", valid: true},
@@ -58,14 +67,28 @@ var fmtTests = []fmtTest{
 }
 
 func TestFormatAmount(t *testing.T) {
-	for _, test := range fmtTests {
-		x, err := FormatAmount(test.amount, test.precTwo)
-		if test.valid {
-			require.NoError(t, err, "%q (2pt prec %v) => error: %s", test.amount, test.precTwo, err)
-			require.Equal(t, test.out, x, "%q (2pt prec %v) => %q, expected: %q", test.amount, test.precTwo, x, test.out)
-		} else {
-			require.Error(t, err, "%s is supposed to be invalid input", test.amount)
-			require.Equal(t, test.out, x)
+	for i, test := range fmtTests {
+		switch test.rounding {
+		case "", "round", "truncate":
+		default:
+			t.Fatalf("%v: invalid rounding '%v'", i, test.rounding)
+		}
+		for _, rounding := range []FmtRounding{FMT_ROUND, FMT_TRUNCATE} {
+			if test.rounding == "round" && rounding == FMT_TRUNCATE {
+				continue
+			}
+			if test.rounding == "truncate" && rounding == FMT_ROUND {
+				continue
+			}
+			desc := fmt.Sprintf("amount: %v (2pt prec %v) (rounding %v)", test.amount, test.precTwo, rounding)
+			x, err := FormatAmount(test.amount, test.precTwo, rounding)
+			if test.valid {
+				require.NoError(t, err, "%v => error: %v", desc, err)
+				require.Equal(t, test.out, x, "%v => %q, expected: %q", desc, x, test.out)
+			} else {
+				require.Error(t, err, "%v is supposed to be invalid input", desc)
+				require.Equal(t, test.out, x)
+			}
 		}
 	}
 }

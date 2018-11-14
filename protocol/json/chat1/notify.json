@@ -31,7 +31,8 @@
         "TEAMTYPE_8",
         "EXPUNGE_9",
         "EPHEMERAL_PURGE_10",
-        "REACTION_UPDATE_11"
+        "REACTION_UPDATE_11",
+        "MESSAGE_UNFURLED_12"
       ]
     },
     {
@@ -247,13 +248,6 @@
             "items": "UIMessage"
           },
           "name": "msgs"
-        },
-        {
-          "type": [
-            null,
-            "InboxUIItem"
-          ],
-          "name": "conv"
         }
       ]
     },
@@ -285,6 +279,33 @@
             "items": "ReactionUpdate"
           },
           "name": "reactionUpdates"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlUpdateNotif",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "UIMessage",
+          "name": "msg"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlUpdateNotifs",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnfurlUpdateNotif"
+          },
+          "name": "updates"
         }
       ]
     },
@@ -372,6 +393,13 @@
             "def": false
           },
           "body": "ReactionUpdateNotif"
+        },
+        {
+          "label": {
+            "name": "MESSAGE_UNFURLED",
+            "def": false
+          },
+          "body": "UnfurlUpdateNotifs"
         }
       ]
     },
@@ -442,12 +470,26 @@
     },
     {
       "type": "record",
+      "name": "ChatSyncIncrementalConv",
+      "fields": [
+        {
+          "type": "UnverifiedInboxUIItem",
+          "name": "conv"
+        },
+        {
+          "type": "boolean",
+          "name": "shouldUnbox"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ChatSyncIncrementalInfo",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "UnverifiedInboxUIItem"
+            "items": "ChatSyncIncrementalConv"
           },
           "name": "items"
         }
@@ -867,6 +909,29 @@
         {
           "name": "info",
           "type": "UIRequestInfo"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatPromptUnfurl": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "domain",
+          "type": "string"
         }
       ],
       "response": null,

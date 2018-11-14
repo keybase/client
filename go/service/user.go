@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/phonenumbers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -158,22 +157,6 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 
 	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
 	return ret, err
-}
-
-func (h *UserHandler) Search(ctx context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
-	eng := engine.NewSearchEngine(h.G(), engine.SearchEngineArgs{
-		Query: arg.Query,
-	})
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err = engine.RunEngine2(m, eng)
-	if err == nil {
-		results = eng.GetResults()
-	}
-	return
 }
 
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
@@ -340,6 +323,19 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	return ret, err
 }
 
+func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UPKLiteV1AllIncarnations, err error) {
+	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional().ForUPAKLite()
+	upakLite, err := h.G().GetUPAKLoader().LoadLite(arg)
+	if err != nil {
+		return ret, err
+	}
+	if upakLite == nil {
+		return ret, libkb.UserNotFoundError{UID: uid, Msg: "upak load failed"}
+	}
+	ret = *upakLite
+	return ret, nil
+}
+
 func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "US")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("UploadUserAvatar(%s)", arg.Filename), func() error { return err })()
@@ -360,22 +356,4 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	m = m.WithLogTag("FNMR")
 	defer m.CTraceTimed("UserHandler#FindNextMerkleRootAfterReset", func() error { return err })()
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
-}
-
-func (h *UserHandler) AddPhoneNumber(ctx context.Context, arg keybase1.AddPhoneNumberArg) (err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("UserHandler#AddPhoneNumber", func() error { return err })()
-	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber)
-}
-
-func (h *UserHandler) VerifyPhoneNumber(ctx context.Context, arg keybase1.VerifyPhoneNumberArg) (err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("UserHandler#VerifyPhoneNumber", func() error { return err })()
-	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
-}
-
-func (h *UserHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.CTraceTimed("UserHandler#GetPhoneNumbers", func() error { return err })()
-	return phonenumbers.GetPhoneNumbers(mctx)
 }

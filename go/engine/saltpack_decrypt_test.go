@@ -39,7 +39,7 @@ func (s fakeSaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.
 }
 
 func initPerUserKeyringInTestContext(t *testing.T, tc libkb.TestContext) {
-	kr, err := tc.G.GetPerUserKeyring()
+	kr, err := tc.G.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	err = kr.Sync(libkb.NewMetaContext(context.Background(), tc.G))
 	require.NoError(t, err)

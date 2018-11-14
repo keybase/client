@@ -19,6 +19,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -629,6 +633,13 @@
             "UIRequestInfo"
           ],
           "name": "requestInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UnfurlDisplay"
+          },
+          "name": "unfurls"
         }
       ]
     },
@@ -742,58 +753,6 @@
             "UIPagination"
           ],
           "name": "pagination"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ChatSearchHit",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "beforeMessages"
-        },
-        {
-          "type": "UIMessage",
-          "name": "hitMessage"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "afterMessages"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "matches"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ChatInboxSearchHit",
-      "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
-        {
-          "type": "string",
-          "name": "convName"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ChatSearchHit"
-          },
-          "name": "hits"
         }
       ]
     }
@@ -935,7 +894,7 @@
       ],
       "response": null
     },
-    "chatInboxSearchHit": {
+    "chatSearchInboxHit": {
       "request": [
         {
           "name": "sessionID",
@@ -943,24 +902,33 @@
         },
         {
           "name": "searchHit",
-          "type": "ChatInboxSearchHit"
+          "type": "ChatSearchInboxHit"
         }
       ],
       "response": null
     },
-    "chatInboxSearchDone": {
+    "chatSearchInboxDone": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "numHits",
+          "name": "res",
+          "type": "ChatSearchInboxDone"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchIndexStatus": {
+      "request": [
+        {
+          "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "numConvs",
-          "type": "int"
+          "name": "status",
+          "type": "ChatSearchIndexStatus"
         }
       ],
       "response": null

@@ -1,14 +1,19 @@
 // @flow
+import * as Types from '../../../../constants/types/chat2'
 import * as Route from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 import SystemSimpleToComplex from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = {|
+  message: Types.MessageSystemSimpleToComplex,
+|}
+
+const mapStateToProps = state => ({
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     dispatch(Route.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onViewTeam: (teamname: string) => {
@@ -24,7 +29,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

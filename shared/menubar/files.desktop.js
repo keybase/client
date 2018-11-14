@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
-import PathItemIcon from '../fs/common/path-item-icon'
+import {PathItemIcon} from '../fs/common'
 import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|

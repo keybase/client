@@ -21,6 +21,7 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
+export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
 export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
@@ -147,6 +148,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   changeTarsDisabled: false,
   deleteChatHistory: false,
+  deleteOtherMessages: false,
 }
 
 const policyInherit = makeRetentionPolicy({type: 'inherit'})

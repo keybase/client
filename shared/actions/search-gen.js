@@ -59,15 +59,15 @@ type _UserInputItemsUpdatedPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createAddResultsToUserInput = (payload: _AddResultsToUserInputPayload) => ({error: false, payload, type: addResultsToUserInput})
-export const createClearSearchResults = (payload: _ClearSearchResultsPayload) => ({error: false, payload, type: clearSearchResults})
-export const createFinishedSearch = (payload: _FinishedSearchPayload) => ({error: false, payload, type: finishedSearch})
-export const createRemoveResultsToUserInput = (payload: _RemoveResultsToUserInputPayload) => ({error: false, payload, type: removeResultsToUserInput})
-export const createSearch = (payload: _SearchPayload) => ({error: false, payload, type: search})
-export const createSearchSuggestions = (payload: _SearchSuggestionsPayload) => ({error: false, payload, type: searchSuggestions})
-export const createSetUserInputItems = (payload: _SetUserInputItemsPayload) => ({error: false, payload, type: setUserInputItems})
-export const createUpdateSelectedSearchResult = (payload: _UpdateSelectedSearchResultPayload) => ({error: false, payload, type: updateSelectedSearchResult})
-export const createUserInputItemsUpdated = (payload: _UserInputItemsUpdatedPayload) => ({error: false, payload, type: userInputItemsUpdated})
+export const createAddResultsToUserInput = (payload: _AddResultsToUserInputPayload) => ({payload, type: addResultsToUserInput})
+export const createClearSearchResults = (payload: _ClearSearchResultsPayload) => ({payload, type: clearSearchResults})
+export const createFinishedSearch = (payload: _FinishedSearchPayload) => ({payload, type: finishedSearch})
+export const createRemoveResultsToUserInput = (payload: _RemoveResultsToUserInputPayload) => ({payload, type: removeResultsToUserInput})
+export const createSearch = (payload: _SearchPayload) => ({payload, type: search})
+export const createSearchSuggestions = (payload: _SearchSuggestionsPayload) => ({payload, type: searchSuggestions})
+export const createSetUserInputItems = (payload: _SetUserInputItemsPayload) => ({payload, type: setUserInputItems})
+export const createUpdateSelectedSearchResult = (payload: _UpdateSelectedSearchResultPayload) => ({payload, type: updateSelectedSearchResult})
+export const createUserInputItemsUpdated = (payload: _UserInputItemsUpdatedPayload) => ({payload, type: userInputItemsUpdated})
 
 // Action Payloads
 export type AddResultsToUserInputPayload = $Call<typeof createAddResultsToUserInput, _AddResultsToUserInputPayload>

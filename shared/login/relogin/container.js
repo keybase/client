@@ -5,13 +5,13 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 
 type OwnProps = {|
   navigateAppend: (...Array<any>) => any,
 |}
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _users: state.config.configuredAccounts,
   error: state.login.error.stringValue(),
   selectedUser: state.config.defaultUsername,
@@ -103,7 +103,7 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

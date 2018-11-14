@@ -3,20 +3,33 @@ import Footer from '.'
 import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
-  disabled: !state.wallets.builtPayment.readyToSend,
-  worthDescription: state.wallets.builtPayment.worthDescription,
-})
+type OwnProps = {
+  onConfirm?: () => void, // if showing confirm form directly (not through routing)
+}
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
-  onClickRequest:
-    ownProps.isRequest &&
-    (() => {
-      dispatch(WalletsGen.createRequestPayment())
-    }),
+const mapStateToProps = state => {
+  const {isRequest} = state.wallets.building
+  return {
+    calculating: !!state.wallets.building.amount,
+    disabled: !(isRequest
+      ? state.wallets.builtRequest.readyToRequest
+      : state.wallets.builtPayment.readyToSend),
+    isRequest,
+    waitingKey: Constants.buildPaymentWaitingKey,
+    worthDescription: isRequest
+      ? state.wallets.builtRequest.worthDescription
+      : state.wallets.builtPayment.worthDescription,
+  }
+}
+
+const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
+  onClickRequest: () => {
+    dispatch(WalletsGen.createRequestPayment())
+  },
   onClickSend: () => {
+    dispatch(WalletsGen.createBuildPayment())
     dispatch(
       Route.navigateAppend([
         {
@@ -28,11 +41,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
   },
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  setDisplayName('Footer')
-)(Footer)
+const mergeProps = (s, d, o) => ({
+  calculating: s.calculating,
+  disabled: s.disabled,
+  onClickRequest: s.isRequest ? d.onClickRequest : undefined,
+  onClickSend: s.isRequest ? undefined : d.onClickSend,
+  waitingKey: s.waitingKey,
+  worthDescription: s.worthDescription,
+})
+
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)

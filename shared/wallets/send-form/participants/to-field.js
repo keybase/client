@@ -9,32 +9,51 @@ import type {Account} from '.'
 import {debounce} from 'lodash-es'
 
 type ToKeybaseUserProps = {|
+  isRequest: boolean,
   recipientUsername: string,
+  errorMessage?: string,
   onShowProfile: string => void,
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
 |}
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
     // A username has been set, so display their name and avatar.
     return (
-      <ParticipantsRow heading="To" headingAlignment="Left">
-        <Kb.ConnectedNameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          username={props.recipientUsername}
-          avatarStyle={styles.avatar}
-          onClick="tracker"
-        />
-        <Kb.Icon
-          type="iconfont-remove"
-          boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-          fontSize={16}
-          color={Styles.globalColors.black_20}
-          onClick={props.onRemoveProfile}
-        />
+      <ParticipantsRow
+        heading={props.isRequest ? 'From' : 'To'}
+        headingAlignment="Left"
+        dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
+        style={styles.toKeybaseUser}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
+            <Kb.ConnectedNameWithIcon
+              colorFollowing={true}
+              horizontal={true}
+              containerStyle={styles.toKeybaseUserNameWithIcon}
+              username={props.recipientUsername}
+              avatarStyle={styles.avatar}
+              avatarSize={32}
+              onClick="tracker"
+            />
+            <Kb.Icon
+              type="iconfont-remove"
+              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+              fontSize={16}
+              color={Styles.globalColors.black_20}
+              onClick={props.onRemoveProfile}
+            />
+          </Kb.Box2>
+          {!!props.errorMessage && (
+            <Kb.Text type="BodySmall" style={styles.errorText}>
+              {props.errorMessage}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
       </ParticipantsRow>
     )
   }
@@ -46,6 +65,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
       onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
+      onScanQRCode={props.onScanQRCode}
     />
   )
 }
@@ -54,10 +74,23 @@ type ToStellarPublicKeyProps = {|
   recipientPublicKey: string,
   errorMessage?: string,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
+  setReadyToSend: boolean => void,
+  keyCounter: number,
 |}
 
-class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
-  _onChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
+type ToStellarPublicKeyState = {|
+  recipientPublicKey: string,
+|}
+
+class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
+  state = {recipientPublicKey: this.props.recipientPublicKey}
+  _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
+  _onChangeRecipient = recipientPublicKey => {
+    this.setState({recipientPublicKey})
+    this.props.setReadyToSend(false)
+    this._propsOnChangeRecipient(recipientPublicKey)
+  }
 
   render = () => (
     <ParticipantsRow
@@ -65,29 +98,42 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps> {
       headingAlignment="Left"
       headingStyle={styles.heading}
       dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
+      style={styles.toStellarPublicKey}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={true} style={styles.inputInner}>
           <Kb.Icon
             type={
-              this.props.recipientPublicKey.length === 0 || this.props.errorMessage
+              this.state.recipientPublicKey.length === 0 || this.props.errorMessage
                 ? 'icon-stellar-logo-grey-16'
                 : 'icon-stellar-logo-16'
             }
-            style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
           />
-          <Kb.NewInput
-            type="text"
-            onChangeText={this._onChangeRecipient}
-            textType="BodySemibold"
-            placeholder={'Stellar address\nEx: G12345... or you*example.com'}
-            placeholderColor={Styles.globalColors.black_20}
-            hideBorder={true}
-            containerStyle={styles.input}
-            multiline={true}
-            rowsMin={2}
-            rowsMax={3}
-          />
+          <Kb.Box2 direction="horizontal" style={{flexShrink: 1, flexGrow: 1}}>
+            <Kb.NewInput
+              type="text"
+              onChangeText={this._onChangeRecipient}
+              textType="BodySemibold"
+              placeholder={'Stellar address\nEx: G12345... or you*example.com'}
+              placeholderColor={Styles.globalColors.black_20}
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              rowsMin={2}
+              rowsMax={3}
+              value={this.state.recipientPublicKey}
+            />
+          </Kb.Box2>
+          {!this.state.recipientPublicKey &&
+            this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_40}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              />
+            )}
         </Kb.Box2>
         {!!this.props.errorMessage && (
           <Kb.Text type="BodySmall" style={styles.errorText}>
@@ -197,18 +243,25 @@ const styles = Styles.styleSheetCreate({
     textAlign: 'right',
     marginRight: Styles.globalMargins.tiny, // consistent with UserInput
   },
+  toKeybaseUser: {
+    height: 48,
+  },
+  toKeybaseUserNameWithIcon: {
+    flexGrow: 1,
+  },
 
   // ToStellarPublicKey
+  toStellarPublicKey: {
+    alignItems: 'flex-start',
+    minHeight: 52,
+  },
   heading: {
     alignSelf: 'flex-start',
   },
   inputBox: {flexGrow: 1},
   inputInner: {
     alignItems: 'flex-start',
-  },
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    marginRight: Styles.globalMargins.xxtiny,
+    flexShrink: 0,
   },
   input: {
     padding: 0,
@@ -242,6 +295,11 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
+
+  qrCode: {
+    marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
 })
 
 export type {ToKeybaseUserProps, ToStellarPublicKeyProps}

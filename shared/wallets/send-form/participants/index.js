@@ -19,7 +19,7 @@ const ParticipantsKeybaseUser = (props: ToKeybaseUserProps) => (
 
 const ParticipantsStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <ToStellarPublicKey {...props} />
+    <ToStellarPublicKey key={props.keyCounter} {...props} />
   </Kb.Box2>
 )
 
@@ -36,7 +36,7 @@ type ParticipantsOtherAccountProps = {|
   fromAccount: Account,
   toAccount?: Account,
   allAccounts: Account[],
-  onChangeFromAccount: string => void,
+  onChangeFromAccount: AccountID => void,
   onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,

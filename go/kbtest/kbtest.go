@@ -139,7 +139,7 @@ func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
-	if err := tc.G.Logout(); err != nil {
+	if err := tc.G.Logout(context.TODO()); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }
@@ -365,4 +365,49 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	err = engine.RunEngine2(m, eng)
 	them = eng.User()
 	return them, err
+}
+
+// GenerateTestPhoneNumber generates a random phone number in US with 555 area
+// code. It passes serverside "strict phone number" checker test, and it's
+// considered `possible`, but not `valid` by libphonenumber.
+func GenerateTestPhoneNumber() string {
+	ret := make([]byte, 7)
+	rand.Read(ret)
+	for i := range ret {
+		ret[i] = "0123456789"[int(ret[i])%10]
+	}
+	return fmt.Sprintf("1555%s", string(ret))
+}
+
+type getCodeResponse struct {
+	libkb.AppStatusEmbed
+	VerificationCode string `json:"verification_code"`
+}
+
+func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "test/phone_number_code",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"phone_number": libkb.S{Val: phoneNumber.String()},
+		},
+	}
+	var resp getCodeResponse
+	err = mctx.G().API.GetDecode(arg, &resp)
+	if err != nil {
+		return "", err
+	}
+	return resp.VerificationCode, nil
+}
+
+func VerifyEmailAuto(mctx libkb.MetaContext, email string) error {
+	arg := libkb.APIArg{
+		Endpoint:    "test/verify_email_auto",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"email": libkb.S{Val: email},
+		},
+	}
+	_, err := mctx.G().API.Post(arg)
+	return err
 }

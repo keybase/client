@@ -295,7 +295,7 @@ function* download(
     yield Saga.put(FsGen.createDownloadProgress({key, completePortion: 1}))
 
     const mimeType = yield Saga.call(_loadMimeType, path)
-    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType}))
+    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType.mimeType}))
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
     if (intent !== 'none') {
@@ -672,6 +672,53 @@ const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInP
 
 const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadResets())
 
+const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
+  Saga.put(
+    NotificationsGen.createSetBadgeCounts({
+      counts: I.Map({
+        [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
+      }),
+    })
+  )
+
+const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
+  const opID = Constants.makeUUID()
+  return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+    opID,
+    path: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
+    },
+  })
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .catch(makeRetriableErrorHandler(action))
+}
+
+const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
+  const params = {
+    opID: Constants.makeUUID(),
+    src: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(state.fs.moveOrCopy.sourceItemPath),
+    },
+    dest: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(
+        Types.pathConcat(
+          state.fs.moveOrCopy.destinationParentPath,
+          Types.getPathName(state.fs.moveOrCopy.sourceItemPath)
+        )
+      ),
+    },
+  }
+  return (action.type === FsGen.move
+    ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
+    : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+  )
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
+    .catch(makeRetriableErrorHandler(action))
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
@@ -681,13 +728,16 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
+  yield Saga.actionToAction(FsGen.favoritesLoaded, updateFsBadge)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
   yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
+  yield Saga.actionToPromise(FsGen.deleteFile, deleteFile)
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToPromise([FsGen.move, FsGen.copy], moveOrCopy)
 
   yield Saga.fork(platformSpecificSaga)
 }

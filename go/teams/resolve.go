@@ -128,6 +128,19 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	return res, err
 }
 
+// preventTeamCreationOnError checks if an error coming from resolver should
+// prevent us from creating a team. We don't want a team where we don't know if
+// SBS user is resolvable but we just were unable to get the answer.
+func shouldPreventTeamCreation(err error) bool {
+	if resErr, ok := err.(libkb.ResolutionError); ok {
+		switch resErr.Kind {
+		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
+			return true
+		}
+	}
+	return false
+}
+
 // Try to resolve implicit team members.
 // Modifies the arguments `resSet` and appends to `resolvedAssertions`.
 // For each assertion in `sourceAssertions`, try to resolve them.
@@ -142,6 +155,10 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
+			if shouldPreventTeamCreation(err) {
+				// but if we are not sure, better to bail out
+				return err
+			}
 			sa, err := expr.ToSocialAssertion()
 			if err != nil {
 				// Could not convert to a social assertion.
@@ -177,6 +194,11 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		return nil
 	}
 
+	if resolvedAssertion.ResolveResult.IsServerTrust() && g.Env.GetRunMode() != libkb.ProductionRunMode {
+		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
+		return nil
+	}
+
 	id2arg := keybase1.Identify2Arg{
 		Uid:           resolvedAssertion.UID,
 		UserAssertion: resolvedAssertion.Assertion.String(),
@@ -194,8 +216,8 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		idRes, _ := eng.Result()
-		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+		idRes, _ := eng.Result(m)
+		m.CDebugf("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
 }
@@ -228,6 +250,7 @@ func deduplicateImplicitTeamDisplayName(name *keybase1.ImplicitTeamDisplayName) 
 			writers.UnresolvedUsers = append(writers.UnresolvedUsers, u)
 		}
 	}
+
 	for _, u := range name.Readers.KeybaseUsers {
 		if unseen(u) {
 			readers.KeybaseUsers = append(readers.KeybaseUsers, u)

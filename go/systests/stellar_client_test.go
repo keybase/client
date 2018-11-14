@@ -188,9 +188,9 @@ func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg st
 	return res, err
 }
 
-func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int) (res stellar1.WalletSettings, err error) {
+func (s *stellarRetryClient) HasAcceptedDisclaimerLocal(ctx context.Context, sid int) (res bool, err error) {
 	for i := 0; i < retryCount; i++ {
-		res, err = s.cli.GetWalletSettingsLocal(ctx, sid)
+		res, err = s.cli.HasAcceptedDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -198,9 +198,9 @@ func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int
 	return res, err
 }
 
-func (s *stellarRetryClient) SetAcceptedDisclaimerLocal(ctx context.Context, sid int) (err error) {
+func (s *stellarRetryClient) AcceptDisclaimerLocal(ctx context.Context, sid int) (err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetAcceptedDisclaimerLocal(ctx, sid)
+		err = s.cli.AcceptDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -236,6 +236,17 @@ func (s *stellarRetryClient) GetSendAssetChoicesLocal(ctx context.Context, arg s
 		}
 	}
 	return res, err
+}
+
+func (s *stellarRetryClient) BuildRequestLocal(ctx context.Context, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.BuildRequestLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+
 }
 
 func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {

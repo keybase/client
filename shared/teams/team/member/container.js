@@ -8,7 +8,6 @@ import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember} from '.'
-import {type TypedState} from '../../../constants/reducer'
 import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -24,7 +23,7 @@ type StateProps = {
   loading: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
+const mapStateToProps = (state, {routeProps}): StateProps => {
   const username = routeProps.get('username')
   const teamname = routeProps.get('teamname')
 

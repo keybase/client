@@ -11,16 +11,17 @@ import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import {compose} from 'recompose'
 import Advanced from './index'
-import {connect, lifecycle, type TypedState} from '../../util/container'
+import {connect, lifecycle} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = {||}
+const mapStateToProps = state => ({
   openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
   processorProfileInProgress: Constants.processorProfileInProgress(state),
   traceInProgress: Constants.traceInProgress(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   onBack: () => dispatch(navigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
@@ -31,7 +32,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

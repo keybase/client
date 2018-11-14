@@ -8,7 +8,7 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
-import {connect, isMobile, type TypedState} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 import {anyWaiting} from '../../../../constants/waiting'
 
 type OwnProps = {
@@ -18,7 +18,7 @@ type OwnProps = {
 
 const blankInfo = Constants.makeMemberInfo()
 
-const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
+const mapStateToProps = (state, {teamname, username}: OwnProps) => {
   const map = Constants.getTeamMembers(state, teamname)
   const info = map.get(username, blankInfo)
 
@@ -58,9 +58,11 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
   },
   _onShowTracker: (username: string) => {
-    isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+    if (isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+    }
   },
   onChat: () => {
     ownProps.username &&

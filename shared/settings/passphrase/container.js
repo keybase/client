@@ -1,10 +1,12 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
 import UpdatePassphrase from '.'
-import {compose, lifecycle, connect, type TypedState} from '../../util/container'
+import {compose, lifecycle, connect, type RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = RouteProps<{}, {}>
+
+const mapStateToProps = state => ({
   error: state.settings.passphrase.error,
   hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
   newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
@@ -30,7 +32,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

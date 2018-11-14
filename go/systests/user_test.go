@@ -102,6 +102,9 @@ func (n *signupTerminalUI) Prompt(pd libkb.PromptDescriptor, s string) (ret stri
 func (n *signupTerminalUI) PromptPassword(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", nil
 }
+func (n *signupTerminalUI) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, _ string) (string, error) {
+	return "", nil
+}
 func (n *signupTerminalUI) Output(s string) error {
 	n.G().Log.Debug("Terminal Output: %s", s)
 	return nil
@@ -385,11 +388,11 @@ func TestLogoutMulti(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	user1 := tt.addUser("one")
-	go user1.tc.G.Logout()
-	go user1.tc.G.Logout()
-	go user1.tc.G.Logout()
-	go user1.tc.G.Logout()
-	go user1.tc.G.Logout()
-	go user1.tc.G.Logout()
-	user1.tc.G.Logout()
+	go user1.tc.G.Logout(context.TODO())
+	go user1.tc.G.Logout(context.TODO())
+	go user1.tc.G.Logout(context.TODO())
+	go user1.tc.G.Logout(context.TODO())
+	go user1.tc.G.Logout(context.TODO())
+	go user1.tc.G.Logout(context.TODO())
+	user1.tc.G.Logout(context.TODO())
 }

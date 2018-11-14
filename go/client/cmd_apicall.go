@@ -21,6 +21,7 @@ type httpMethod int
 const (
 	GET httpMethod = iota
 	POST
+	DELETE
 )
 
 func (m httpMethod) String() string {
@@ -29,6 +30,8 @@ func (m httpMethod) String() string {
 		return "GET"
 	case POST:
 		return "POST"
+	case DELETE:
+		return "DELETE"
 	}
 	return "<unknown>"
 }
@@ -123,6 +126,12 @@ func (c *CmdAPICall) Run() error {
 		if err != nil {
 			return err
 		}
+	case DELETE:
+		arg := c.formDeleteArg()
+		res, err = cli.Delete(context.TODO(), arg)
+		if err != nil {
+			return err
+		}
 	}
 
 	dui.Printf("%s", res.Body)
@@ -130,6 +139,14 @@ func (c *CmdAPICall) Run() error {
 }
 
 func (c *CmdAPICall) formGetArg() (res keybase1.GetWithSessionArg) {
+	res.Endpoint = c.endpoint
+	res.Args = c.args
+	res.HttpStatus = c.httpStatuses
+	res.AppStatusCode = c.appStatuses
+	return
+}
+
+func (c *CmdAPICall) formDeleteArg() (res keybase1.DeleteArg) {
 	res.Endpoint = c.endpoint
 	res.Args = c.args
 	res.HttpStatus = c.httpStatuses
@@ -161,6 +178,8 @@ func (c *CmdAPICall) validateMethod(m string) (httpMethod, error) {
 		return POST, nil
 	} else if strings.ToLower(m) == "get" {
 		return GET, nil
+	} else if strings.ToLower(m) == "delete" {
+		return DELETE, nil
 	}
 	return 0, fmt.Errorf("invalid method specified: %s", m)
 }

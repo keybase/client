@@ -1,11 +1,16 @@
 // @flow
 import * as GitGen from '../../../../actions/git-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Types from '../../../../constants/types/chat2'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import Git from '.'
 import {connect, isMobile} from '../../../../util/container'
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+type OwnProps = {|
+  message: Types.MessageSystemGitPush,
+|}
+
+const mapDispatchToProps = dispatch => ({
   onClickUserAvatar: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
@@ -15,7 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

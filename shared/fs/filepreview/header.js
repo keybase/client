@@ -3,10 +3,8 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {Box, Text, BackButton} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemInfo, PathItemAction, OpenInSystemFileManager} from '../common'
 import {isMobile} from '../../constants/platform'
-import PathItemAction from '../common/path-item-action-container'
-import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
 
 type HeaderProps = {
   path: Types.Path,
