@@ -13,7 +13,6 @@ export const updateFullnames = 'users:updateFullnames'
 
 // Payload Types
 type _UpdateBrokenStatePayload = $ReadOnly<{|
-  fromTracker?: boolean,
   newlyBroken: Array<string>,
   newlyFixed: Array<string>,
 |}>

@@ -2,7 +2,6 @@
   "prelude": [],
   "actions": {
     "updateBrokenState": {
-      "fromTracker?": "boolean",
       "newlyBroken": "Array<string>",
       "newlyFixed": "Array<string>"
     },
