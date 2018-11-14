@@ -107,7 +107,10 @@ class Search extends React.Component<SearchProps, SearchState> {
 const styles = Styles.styleSheetCreate({
   resultsFloatingContainer: Styles.platformStyles({
     isElectron: {
+      borderBottomLeftRadius: 4,
+      borderBottomRightRadius: 4,
       height: 429,
+      overflow: 'hidden',
       width: 360,
     },
     isMobile: {
