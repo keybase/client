@@ -548,7 +548,7 @@ func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	favorites *Favorites, created bool) (err error) {
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(ctx, lState)
+	head := fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
@@ -575,7 +575,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(ctx, lState)
+	head := fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if head == (ImmutableRootMetadata{}) {
 		// This can happen when identifies fail and the head is never set.
 		return OpsCantHandleFavorite{"Can't delete a favorite without a handle"}
@@ -613,9 +613,19 @@ func (fbo *folderBranchOps) updateLastGetHeadTimestamp() {
 	fbo.lastGetHead = fbo.config.Clock().Now()
 }
 
+type mdCommitType int
+
+const (
+	mdCommit mdCommitType = iota
+	mdNoCommit
+)
+
 func (fbo *folderBranchOps) commitHeadLocked(
-	ctx context.Context, lState *lockState) {
+	ctx context.Context, lState *lockState, ct mdCommitType) {
 	fbo.headLock.AssertRLocked(lState)
+	if ct == mdNoCommit {
+		return
+	}
 	diskMDCache := fbo.config.DiskMDCache()
 	if diskMDCache == nil {
 		return
@@ -640,7 +650,8 @@ func (fbo *folderBranchOps) commitHeadLocked(
 // Returns ImmutableRootMetadata{} when the head is not trusted.
 // See the comment on headTrustedStatus for more information.
 func (fbo *folderBranchOps) getTrustedHead(
-	ctx context.Context, lState *lockState) ImmutableRootMetadata {
+	ctx context.Context, lState *lockState,
+	ct mdCommitType) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
 	if fbo.headStatus == headUntrusted {
@@ -654,14 +665,14 @@ func (fbo *folderBranchOps) getTrustedHead(
 	// called this method would get latest MD.
 	fbo.config.MDServer().FastForwardBackoff()
 	fbo.updateLastGetHeadTimestamp()
-	fbo.commitHeadLocked(ctx, lState)
+	fbo.commitHeadLocked(ctx, lState, ct)
 
 	return fbo.head
 }
 
 // getHead should not be called outside of folder_branch_ops.go.
 func (fbo *folderBranchOps) getHead(
-	ctx context.Context, lState *lockState) (
+	ctx context.Context, lState *lockState, ct mdCommitType) (
 	ImmutableRootMetadata, headTrustStatus) {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
@@ -669,7 +680,7 @@ func (fbo *folderBranchOps) getHead(
 	// See getTrustedHead for explanation.
 	fbo.config.MDServer().FastForwardBackoff()
 	fbo.updateLastGetHeadTimestamp()
-	fbo.commitHeadLocked(ctx, lState)
+	fbo.commitHeadLocked(ctx, lState, ct)
 
 	return fbo.head, fbo.headStatus
 }
@@ -1249,7 +1260,7 @@ func (fbo *folderBranchOps) getMDForRead(
 		panic("Invalid rtype in getMDLockedForRead")
 	}
 
-	md = fbo.getTrustedHead(ctx, lState)
+	md = fbo.getTrustedHead(ctx, lState, mdCommit)
 	if md != (ImmutableRootMetadata{}) {
 		if rtype != mdReadNoIdentify {
 			err = fbo.identifyOnce(ctx, md.ReadOnly())
@@ -1264,7 +1275,7 @@ func (fbo *folderBranchOps) getMDForRead(
 func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
 	*TlfHandle, error) {
 	lState := makeFBOLockState()
-	md, _ := fbo.getHead(ctx, lState)
+	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	return md.GetTlfHandle(), nil
 }
 
@@ -1282,7 +1293,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 		err = fbo.identifyOnce(ctx, md.ReadOnly())
 	}()
 
-	md = fbo.getTrustedHead(ctx, lState)
+	md = fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if md != (ImmutableRootMetadata{}) {
 		return md, nil
 	}
@@ -1709,7 +1720,8 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// Some other thread got here first, so give up and let it go
 	// before we push anything to the servers.
-	if h, _ := fbo.getHead(ctx, lState); h != (ImmutableRootMetadata{}) {
+	if h, _ := fbo.getHead(
+		ctx, lState, mdNoCommit); h != (ImmutableRootMetadata{}) {
 		fbo.log.CDebugf(ctx, "Head was already set, aborting")
 		return nil
 	}
@@ -1884,7 +1896,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	// (e.g., calling `identifyOnce` and downloading the merged
 	// head) if head is already set.
 	lState := makeFBOLockState()
-	head, headStatus := fbo.getHead(ctx, lState)
+	head, headStatus := fbo.getHead(ctx, lState, mdNoCommit)
 	if headStatus == headTrusted && head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
 		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
 			"need to set initial head again", md.Revision(), md.MergedStatus())
@@ -4859,7 +4871,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// All originals never made it to the server, so don't unmerged
 	// them.
 	syncChains.doNotUnrefPointers = syncChains.createdOriginals
-	head, _ := fbo.getHead(ctx, lState)
+	head, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	dummyHeadChains := newCRChainsEmpty()
 	dummyHeadChains.mostRecentChainMDInfo = head
 
@@ -5896,7 +5908,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	}
 
 	// untrusted head is ok here.
-	head, _ := fbo.getHead(ctx, lState)
+	head, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	if head != (ImmutableRootMetadata{}) {
 		// If we already have a cached revision, make sure we're
 		// up-to-date with the latest revision before inspecting the
@@ -7239,7 +7251,7 @@ func (fbo *folderBranchOps) GetEditHistory(
 	}
 
 	lState := makeFBOLockState()
-	md, _ := fbo.getHead(ctx, lState)
+	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
 	name := md.GetTlfHandle().GetCanonicalName()
 	return fbo.config.UserHistory().GetTlfHistory(name, fbo.id().Type()), nil
 }

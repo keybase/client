@@ -3168,7 +3168,7 @@ outer:
 		return err
 	}
 
-	head := cr.fbo.getTrustedHead(ctx, lState)
+	head := cr.fbo.getTrustedHead(ctx, lState, mdNoCommit)
 	if head == (ImmutableRootMetadata{}) {
 		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
 	}
@@ -3199,7 +3199,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() {
 		cr.deferLog.CDebugf(ctx, "Finished conflict resolution: %+v", err)
 		if err != nil {
-			head := cr.fbo.getTrustedHead(ctx, lState)
+			head := cr.fbo.getTrustedHead(ctx, lState, mdNoCommit)
 			if head == (ImmutableRootMetadata{}) {
 				panic("doResolve: head is nil (should be impossible)")
 			}
