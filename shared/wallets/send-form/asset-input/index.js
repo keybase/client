@@ -80,7 +80,10 @@ class AssetInput extends React.Component<Props> {
               <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
                 {this.props.displayUnit}
               </Kb.Text>
-              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onChangeDisplayUnit}>
+              <Kb.Text
+                type="BodySmallPrimaryLink"
+                onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+              >
                 Change
               </Kb.Text>
             </Kb.Box2>

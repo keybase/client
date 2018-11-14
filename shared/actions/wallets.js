@@ -83,8 +83,14 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
             ? WalletsGen.createClearBuiltRequest()
             : WalletsGen.createClearBuiltPayment(),
           WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-          WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
+          WalletsGen.createSetBuildingCurrency({
+            currency:
+              action.payload.currency ||
+              (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
+              'XLM',
+          }),
           WalletsGen.createLoadDisplayCurrency({
+            // in case from account differs
             accountID: action.payload.from || Types.noAccountID,
             setBuildingCurrency: !action.payload.currency,
           }),
@@ -229,11 +235,11 @@ const loadAccounts = (
     | ConfigGen.LoggedInPayload
 ) =>
   !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
-    WalletsGen.createAccountsReceived({
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
+    return WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
     })
-  )
+  })
 
 const loadAssets = (
   state: TypedState,
@@ -515,6 +521,12 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
     })
   )
 
+const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
+  // load the display currency of each wallet, now that we have the IDs
+  action.payload.accounts.map(account =>
+    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  )
+
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
   RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
     .then(request => WalletsGen.createRequestDetailReceived({request}))
@@ -704,6 +716,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     createdOrLinkedAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
+
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,

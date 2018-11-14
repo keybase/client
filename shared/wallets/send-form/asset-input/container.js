@@ -4,12 +4,13 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import {namedConnect} from '../../../util/container'
 import * as Route from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
+import {anyWaiting} from '../../../constants/waiting'
 
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const currency = state.wallets.building.currency
-
-  const displayUnit = Constants.getCurrencyAndSymbol(state, currency)
+  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
+  const displayUnit = currencyWaiting ? '' : Constants.getCurrencyAndSymbol(state, currency)
   return {
     accountID,
     bottomLabel: '', // TODO
