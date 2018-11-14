@@ -107,7 +107,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
-      maxWidth: '220px',
+      maxWidth: '212px',
       width: '100%',
     },
     isMobile: {
