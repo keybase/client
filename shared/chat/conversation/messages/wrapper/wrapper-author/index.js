@@ -64,7 +64,6 @@ const UserAvatar = ({author, onAuthorClick}) => (
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = Styles.collapseStyles([
     Styles.desktopStyles.clickable,
-    styles.username,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
@@ -150,7 +149,7 @@ const RightSide = props => {
         className="message-wrapper"
       >
         {props.includeHeader && (
-          <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
             <Username
               username={props.author}
               isYou={props.isYou}
@@ -284,9 +283,8 @@ const styles = Styles.styleSheetCreate({
     height: 32,
     width: 32,
   },
-  username: {
-    alignSelf: 'flex-start',
-    marginBottom: 0,
+  usernameTimestamp: {
+    alignItems: 'baseline',
   },
 })
 
