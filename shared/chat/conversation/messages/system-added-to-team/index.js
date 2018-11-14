@@ -47,7 +47,8 @@ const ManageComponent = (props: Props) => {
   }
 }
 
-const YouOrUsername = ({username, you, capitalize}: {username: string, you: string, capitalize: boolean}) => {
+const YouOrUsername = ({username, you, capitalize, adder}: {username: string, you: string, capitalize: boolean, adder?: string}) => {
+  if (adder === you) return 'yourself'
   if (username === you) {
     return capitalize ? 'You' : 'you'
   }
@@ -97,7 +98,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
             style={{color: globalColors.black_40, textAlign: 'center'}}
           >
             <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
-            <YouOrUsername username={addee} you={you} capitalize={false} /> to{' '}
+            <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
             <Text
               onClick={onViewTeam}
               style={{color: globalColors.black_60}}
