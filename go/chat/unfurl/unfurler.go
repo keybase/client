@@ -206,8 +206,8 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	return msg, nil
 }
 
-func (u *Unfurler) getOutboxIDFromURL(url string, msg chat1.MessageUnboxed) chat1.OutboxID {
-	seed := fmt.Sprintf("%s:%d", url, msg.GetMessageID())
+func (u *Unfurler) getOutboxIDFromURL(url string, convID chat1.ConversationID, msg chat1.MessageUnboxed) chat1.OutboxID {
+	seed := fmt.Sprintf("%s:%s:%d", url, convID, msg.GetMessageID())
 	return storage.DeriveOutboxID([]byte(seed))
 }
 
@@ -244,7 +244,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			}
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
-			outboxID := u.getOutboxIDFromURL(hit.URL, msg)
+			outboxID := u.getOutboxIDFromURL(hit.URL, convID, msg)
 			if _, err := u.getTask(ctx, outboxID); err != nil {
 				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue
