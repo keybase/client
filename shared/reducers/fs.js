@@ -152,6 +152,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
       return (
         state.withMutations(s => s
+          // $FlowIssue no idea why this is broken
           .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
           .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
           .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
@@ -183,17 +184,19 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
     case FsGen.mimeTypeLoaded:
-      return state.updateIn(
-        ['pathItems', action.payload.path],
-        pathItem =>
-          pathItem
-            ? pathItem.type === 'file'
-              ? pathItem.set('mimeType', action.payload.mimeType)
-              : pathItem
-            : Constants.makeFile({
-                mimeType: action.payload.mimeType,
-                name: Types.getPathName(action.payload.path),
-              })
+      return state.withMutations(s => s
+        .updateIn(
+          ['pathItems', action.payload.path],
+          pathItem =>
+            pathItem
+              ? pathItem.type === 'file'
+                ? pathItem.set('mimeType', action.payload.mimeType)
+                : pathItem
+              : Constants.makeFile({
+                  mimeType: action.payload.mimeType,
+                  name: Types.getPathName(action.payload.path),
+                })
+        )
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
