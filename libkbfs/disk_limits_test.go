@@ -16,10 +16,13 @@ import (
 // the root directory actually has free space/files, which may fail in
 // certain weird configs.
 func TestDiskLimits(t *testing.T) {
-	availableBytes, availableFiles, err := getDiskLimits("/")
+	availableBytes, totalBytes, availableFiles, totalFiles, err :=
+		getDiskLimits("/")
 	require.NoError(t, err)
 	require.NotEqual(t, uint64(0), availableBytes)
+	require.NotEqual(t, uint64(0), totalBytes)
 	require.NotEqual(t, uint64(0), availableFiles)
+	require.NotEqual(t, uint64(0), totalFiles)
 }
 
 // TestDiskLimitsNonExistentFile checks that getDiskLimits() returns
@@ -27,7 +30,7 @@ func TestDiskLimits(t *testing.T) {
 // doesn't exist.
 func TestDiskLimitsNonExistentFile(t *testing.T) {
 	// Of course, we're assuming this file doesn't exist.
-	_, _, err := getDiskLimits("/non-existent-file")
+	_, _, _, _, err := getDiskLimits("/non-existent-file")
 	require.True(t, ioutil.IsNotExist(err))
 }
 

@@ -811,7 +811,7 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 	// getDiskLimits returns availableBytes and availableFiles,
 	// but we want to avoid confusing that with availBytes and
 	// availFiles in the sense of the semaphore value.
-	freeBytes, freeFiles, err := getDiskLimits(path)
+	freeBytes, _, freeFiles, _, err := getDiskLimits(path)
 	if err != nil {
 		return 0, 0, err
 	}

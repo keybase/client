@@ -15,20 +15,21 @@ import (
 // getDiskLimits gets the disk limits for the logical disk containing
 // the given path.
 func getDiskLimits(path string) (
-	availableBytes, availableFiles uint64, err error) {
+	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error) {
 	pathPtr, err := windows.UTF16PtrFromString(path)
 	if err != nil {
-		return 0, 0, errors.WithStack(err)
+		return 0, 0, 0, 0, errors.WithStack(err)
 	}
 
 	dll := windows.NewLazySystemDLL("kernel32.dll")
 	proc := dll.NewProc("GetDiskFreeSpaceExW")
 	r1, _, err := proc.Call(uintptr(unsafe.Pointer(pathPtr)),
-		uintptr(unsafe.Pointer(&availableBytes)), 0, 0)
+		uintptr(unsafe.Pointer(&availableBytes)),
+		uintptr(unsafe.Pointer(&totalBytes)), 0)
 	// err is always non-nil, but meaningful only when r1 == 0
 	// (which signifies function failure).
 	if r1 == 0 {
-		return 0, 0, errors.WithStack(err)
+		return 0, 0, 0, 0, errors.WithStack(err)
 	} else {
 		err = nil
 	}
@@ -40,5 +41,5 @@ func getDiskLimits(path string) (
 
 	// For now, assume all FSs on Windows are NTFS, or have
 	// similarly large file limits.
-	return availableBytes, math.MaxInt64, nil
+	return availableBytes, totalBytes, math.MaxInt64, math.MaxInt64, nil
 }
