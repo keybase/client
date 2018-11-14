@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"io"
+	"math"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -50,6 +51,7 @@ type DiskBlockCacheLocal struct {
 	config     diskBlockCacheConfig
 	log        logger.Logger
 	maxBlockID []byte
+	dirPath    string
 
 	// Track the cache hit rate and eviction rate
 	hitMeter         *CountMeter
@@ -130,6 +132,9 @@ type DiskBlockCacheStatus struct {
 	SizeEvicted     MeterStatus
 	NumDeleted      MeterStatus
 	SizeDeleted     MeterStatus
+
+	LocalDiskBytesAvailable uint64
+	LocalDiskBytesTotal     uint64
 }
 
 type lastUnrefEntry struct {
@@ -301,8 +306,13 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 			lastUnrefStorage.Close()
 		}
 	}()
-	return newDiskBlockCacheLocalFromStorage(config, cacheType,
+	cache, err = newDiskBlockCacheLocalFromStorage(config, cacheType,
 		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage)
+	if err != nil {
+		return nil, err
+	}
+	cache.dirPath = dirPath
+	return cache, nil
 }
 
 func newDiskBlockCacheLocalForTest(config diskBlockCacheConfig,
@@ -1050,25 +1060,36 @@ func (cache *DiskBlockCacheLocal) Status(
 	default:
 		return map[string]DiskBlockCacheStatus{name: {StartState: DiskBlockCacheStartStateStarting}}
 	}
+	availableBytes, totalBytes := uint64(math.MaxInt64), uint64(math.MaxInt64)
+	if cache.dirPath != "" {
+		var err error
+		availableBytes, totalBytes, _, _, err = getDiskLimits(cache.dirPath)
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get disk stats: %+v", err)
+		}
+	}
+
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
 	return map[string]DiskBlockCacheStatus{
 		name: {
-			StartState:      DiskBlockCacheStartStateStarted,
-			NumBlocks:       uint64(cache.numBlocks),
-			BlockBytes:      cache.currBytes,
-			CurrByteLimit:   maxLimit,
-			LastUnrefCount:  uint64(len(cache.tlfLastUnrefs)),
-			Hits:            rateMeterToStatus(cache.hitMeter),
-			Misses:          rateMeterToStatus(cache.missMeter),
-			Puts:            rateMeterToStatus(cache.putMeter),
-			MetadataUpdates: rateMeterToStatus(cache.updateMeter),
-			NumEvicted:      rateMeterToStatus(cache.evictCountMeter),
-			SizeEvicted:     rateMeterToStatus(cache.evictSizeMeter),
-			NumDeleted:      rateMeterToStatus(cache.deleteCountMeter),
-			SizeDeleted:     rateMeterToStatus(cache.deleteSizeMeter),
+			StartState:              DiskBlockCacheStartStateStarted,
+			NumBlocks:               uint64(cache.numBlocks),
+			BlockBytes:              cache.currBytes,
+			CurrByteLimit:           maxLimit,
+			LastUnrefCount:          uint64(len(cache.tlfLastUnrefs)),
+			Hits:                    rateMeterToStatus(cache.hitMeter),
+			Misses:                  rateMeterToStatus(cache.missMeter),
+			Puts:                    rateMeterToStatus(cache.putMeter),
+			MetadataUpdates:         rateMeterToStatus(cache.updateMeter),
+			NumEvicted:              rateMeterToStatus(cache.evictCountMeter),
+			SizeEvicted:             rateMeterToStatus(cache.evictSizeMeter),
+			NumDeleted:              rateMeterToStatus(cache.deleteCountMeter),
+			SizeDeleted:             rateMeterToStatus(cache.deleteSizeMeter),
+			LocalDiskBytesAvailable: availableBytes,
+			LocalDiskBytesTotal:     totalBytes,
 		},
 	}
 }
