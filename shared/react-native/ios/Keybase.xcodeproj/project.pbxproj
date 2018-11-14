@@ -1798,8 +1798,6 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
 				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
@@ -1856,8 +1854,6 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/Keybase\"",
 					"\"$(SRCROOT)/Keybase/System/Library/Frameworks\"",
-					"\"$(SRCROOT)/Keybase\"",
-					"\"$(SRCROOT)/Keybase\"",
 				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
