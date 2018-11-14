@@ -204,6 +204,7 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
 	b.Debug(ctx, "Stop")
+	b.cancelActiveLoadsLocked()
 	ch := make(chan struct{})
 	if b.started {
 		close(b.stopCh)
@@ -243,6 +244,20 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJo
 	return b.enqueue(ctx, clTask{job: job})
 }
 
+func (b *BackgroundConvLoader) cancelActiveLoadsLocked() (canceled bool) {
+	for _, activeLoad := range b.activeLoads {
+		select {
+		case <-activeLoad.Ctx.Done():
+			b.Debug(activeLoad.Ctx, "Suspend: active load already canceled")
+		default:
+			b.Debug(activeLoad.Ctx, "Suspend: canceling active load")
+			activeLoad.CancelFn()
+			canceled = true
+		}
+	}
+	return canceled
+}
+
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	defer b.Trace(ctx, func() error { return nil }, "Suspend")()
 	b.Lock()
@@ -260,17 +275,7 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 		}
 	}
 	b.suspendCount++
-	for _, activeLoad := range b.activeLoads {
-		select {
-		case <-activeLoad.Ctx.Done():
-			b.Debug(activeLoad.Ctx, "Suspend: active load already canceled")
-		default:
-			b.Debug(activeLoad.Ctx, "Suspend: canceling active load")
-			activeLoad.CancelFn()
-			canceled = true
-		}
-	}
-	return canceled
+	return b.cancelActiveLoadsLocked()
 }
 
 func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
@@ -436,13 +441,16 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	}()
 
 	job := task.job
-	query := &chat1.GetThreadQuery{MarkAsRead: false}
+	query := job.Query
+	if query == nil {
+		query = &chat1.GetThreadQuery{MarkAsRead: false}
+	}
 	pagination := job.Pagination
 	if pagination == nil {
 		pagination = &chat1.Pagination{Num: 50}
 	}
-	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, chat1.GetThreadReason_BACKGROUNDCONVLOAD, query,
-		pagination)
+	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid,
+		chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
 	if err != nil {
 		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

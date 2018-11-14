@@ -43,6 +43,18 @@ var tests = map[string]string{
 	"aaa\b\bb":       "aaab",
 	"aaa\b\b\033[1K": "aaa^[[1K",
 	"bbb\raaa":       "bbbaaa", //carriage return
+
+	// Colors are acceptable, including multiple in the same string,
+	"foo\x1b[30mbar": "foo\x1b[30mbar",
+
+	// But non-color escapes should be escaped properly
+	"fo\x1b[4Po\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar\x1b312": "fo^[[4Po\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar^[312",
+
+	// Edge-cases with colors
+	"foo\x1b[30mbar\x1b":         "foo\x1b[30mbar^[",
+	"\x1bfoo\x1b[30mbar\x1b":     "^[foo\x1b[30mbar^[",
+	"\x1bfoo\x1b[30mbar\x1b[36":  "^[foo\x1b[30mbar^[[36",
+	"\x1bfoo\x1b[30mbar\x1b[36m": "^[foo\x1b[30mbar\x1b[36m",
 }
 
 func TestMain(t *testing.T) {

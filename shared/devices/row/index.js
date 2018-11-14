@@ -7,6 +7,7 @@ type Props = {|
   isCurrentDevice: boolean,
   name: string,
   isRevoked: boolean,
+  isNew: boolean,
   type: 'desktop' | 'backup' | 'mobile',
   showExistingDevicePage: () => void,
   firstItem: boolean,
@@ -40,10 +41,14 @@ const DeviceRow = (props: Props) => {
       icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
         <Kb.Box2 direction="vertical" style={{justifyContent: 'center', minHeight: 48}}>
-          <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemiboldItalic">
+          <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemibold">
             {props.name}
           </Kb.Text>
           {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
+          {props.isNew &&
+            !props.isCurrentDevice && (
+              <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
+            )}
         </Kb.Box2>
       }
     />
@@ -51,17 +56,17 @@ const DeviceRow = (props: Props) => {
 }
 const styles = Styles.styleSheetCreate({
   icon: {opacity: 0.2},
-  text: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_40,
-      flex: 0,
-      textDecorationLine: 'line-through',
-      textDecorationStyle: 'solid',
-    },
-    isElectron: {
-      fontStyle: 'italic',
-    },
-  }),
+  text: {
+    color: Styles.globalColors.black_40,
+    flex: 0,
+    textDecorationLine: 'line-through',
+    textDecorationStyle: 'solid',
+  },
 })
+
+const _metaStyle = {
+  alignSelf: 'flex-start',
+  marginLeft: 6,
+}
 
 export default DeviceRow

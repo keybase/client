@@ -3,9 +3,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import {Box, Box2, ClickableBox} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemAction from '../common/path-item-action-container'
-import OpenInFileUI from '../common/open-in-fileui-container'
+import {PathItemIcon, PathItemAction, OpenInSystemFileManager} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
@@ -39,6 +37,9 @@ const rowText = Styles.platformStyles({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
+  isMobile: {
+    flexShrink: 1,
+  },
 })
 
 const rowText_30 = Styles.platformStyles({
@@ -70,8 +71,8 @@ const pathItemActionIcon = {
 
 const badgeContainer = {
   position: 'absolute',
-  left: Styles.isMobile ? -24 : 24,
-  top: Styles.isMobile ? -20 : -1,
+  left: Styles.isMobile ? -28 : 24,
+  top: Styles.isMobile ? -4 : -1,
   zIndex: 200,
 }
 
@@ -136,6 +137,7 @@ export type StillCommonProps = {
   itemStyles: Types.ItemStyles,
   name: string,
   path: Types.Path,
+  inDestinationPicker?: boolean,
   onOpen: () => void,
 }
 
@@ -151,9 +153,13 @@ export const StillCommon = (
       </Box2>
       {props.children}
     </ClickableBox>
-    <Box style={rowStyles.rightBox}>
-      <OpenInFileUI path={props.path} />
-      <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
-    </Box>
+    {!props.inDestinationPicker && (
+      <Box style={rowStyles.rightBox}>
+        <OpenInSystemFileManager path={props.path} />
+        <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
+      </Box>
+    )}
   </HoverBox>
 )
+
+export const rowHeight = Styles.isMobile ? 64 : 40

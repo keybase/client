@@ -155,16 +155,6 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  BodyError: {
-    colorForBackgroundMode: {Normal: globalColors.red},
-    fontSize: 16,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySuccess: {
-    colorForBackgroundMode: {Normal: globalColors.green2},
-    fontSize: 16,
-    styleOverride: globalStyles.fontRegular,
-  },
   // Body Small
   BodySmall: {
     colorForBackgroundMode: {
@@ -193,15 +183,6 @@ const metaData: {[key: TextType]: MetaType} = {
       fontStyle: 'italic',
     },
   },
-  BodySmallInlineLink: {
-    colorForBackgroundMode: {
-      ..._blueLink,
-      Terminal: globalColors.white,
-    },
-    fontSize: 14,
-    isLink: true,
-    styleOverride: {...globalStyles.fontRegular, textDecorationLine: undefined},
-  },
   BodySmallSemibold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
@@ -218,7 +199,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 14,
     styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
   },
-  BodySmallSemiboldInlineLink: {
+  BodySmallSemiboldSecondaryLink: {
     colorForBackgroundMode: {
       ..._blueLink,
       Terminal: globalColors.white,
@@ -263,7 +244,7 @@ const metaData: {[key: TextType]: MetaType} = {
     styleOverride: globalStyles.fontRegular,
   },
   BodySmallSuccess: {
-    colorForBackgroundMode: {Normal: globalColors.green2},
+    colorForBackgroundMode: {Normal: globalColors.green},
     fontSize: 14,
     styleOverride: globalStyles.fontRegular,
   },

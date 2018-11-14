@@ -4,9 +4,15 @@ import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import type {Props} from './index.types'
 
-const ShhIcon = () => (
+const ShhIcon = props => (
   <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} />
+    <Icon
+      type="iconfont-shh"
+      style={shhIconStyle}
+      color={shhIconColor}
+      fontSize={shhIconFontSize}
+      onClick={props.onClick}
+    />
   </Box>
 )
 
@@ -32,7 +38,7 @@ const ChannelHeader = (props: Props) => (
           #{props.channelName}
         </Text>
       )}
-      {props.muted && <ShhIcon />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
@@ -59,7 +65,7 @@ const UsernameHeader = (props: Props) => (
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1 /* length ===1 means just you so show yourself */}
       />
-      {props.muted && <ShhIcon />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />

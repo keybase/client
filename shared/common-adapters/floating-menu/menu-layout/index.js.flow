@@ -12,8 +12,10 @@ export type MenuItem = {|
   view?: React.Node, // Required for header
 |}
 
+export type MenuItems = Array<MenuItem | 'Divider' | null>
+
 export type MenuLayoutProps = {
-  items: Array<MenuItem | 'Divider' | null>,
+  items: MenuItems,
   header?: ?MenuItem,
   onHidden: () => void,
   closeOnClick?: boolean,

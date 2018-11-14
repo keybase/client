@@ -29,10 +29,11 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Name:         "fs",
 		Usage:        "Perform filesystem operations",
 		ArgumentHelp: "[arguments...]",
-		Subcommands: []cli.Command{
+		Subcommands: append([]cli.Command{
 			NewCmdSimpleFSList(cl, g),
 			NewCmdSimpleFSCopy(cl, g),
 			NewCmdSimpleFSMove(cl, g),
+			NewCmdSimpleFSSymlink(cl, g),
 			NewCmdSimpleFSRead(cl, g),
 			NewCmdSimpleFSRemove(cl, g),
 			NewCmdSimpleFSMkdir(cl, g),
@@ -45,7 +46,8 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSHistory(cl, g),
 			NewCmdSimpleFSQuota(cl, g),
 			NewCmdSimpleFSRecover(cl, g),
-		},
+			NewCmdSimpleFSReset(cl, g),
+		}, getBuildSpecificFSCommands(cl, g)...),
 	}
 }
 
@@ -166,7 +168,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 			pathString = path.KbfsArchived().Path
 		}
 		// See if the dest is a path or file
-		destEnt, err := cli.SimpleFSStat(ctx, path)
+		destEnt, err := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: path})
 		if err != nil {
 			return false, "", err
 		}
@@ -203,7 +205,7 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 	// Check for overwriting
 	if destType == keybase1.PathType_KBFS {
 		// See if the dest file exists
-		_, err2 := cli.SimpleFSStat(ctx, dest)
+		_, err2 := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: dest})
 		if err2 == nil {
 			err = ErrTargetFileExists
 		}

@@ -1,7 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
+import * as Kb from '../common-adapters'
+import * as ConfigConstants from '../constants/config'
 import Menubar from './index.desktop'
+import OutOfDate from './out-of-date'
+import {FileUpdate} from './files.desktop'
 
 const props = {
   badgeInfo: {
@@ -18,12 +22,13 @@ const props = {
     following: {},
   },
   folderProps: null,
-  isAsyncWriteHappening: false,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
+  updateNow: Storybook.action('updateNow'),
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
   openApp: Storybook.action('openApp'),
+  showInFinder: Storybook.action('showInFinder'),
   quit: Storybook.action('quit'),
   refresh: Storybook.action('refresh'),
   showBug: Storybook.action('showBug'),
@@ -36,12 +41,19 @@ const props = {
   conversations: [
     // TODO: fill in a few.
   ],
+  files: 0,
+  fileName: null,
+  totalSyncingBytes: 0,
 }
 
 const providers = Storybook.createPropProviderWithCommon({
-  ChatRow: () => ({
+  ChatPreview: () => ({
     convRows: [],
     onViewAll: () => {},
+  }),
+  FilesPreview: () => ({
+    loadTlfUpdates: () => Storybook.action('loadTlfUpdates'),
+    userTlfUpdates: [],
   }),
 })
 
@@ -77,7 +89,31 @@ const load = () => {
         }}
       />
     ))
-    .add('Async write happening', () => <Menubar {...props} isAsyncWriteHappening={true} />)
+    .add('Out of date banner', () => (
+      <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: false})}
+          updateNow={Storybook.action('updateNow')}
+        />
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: true})}
+          updateNow={Storybook.action('updateNow')}
+        />
+        <OutOfDate
+          outOfDate={ConfigConstants.makeOutOfDate({critical: true, message: 'This is a critical message.'})}
+          updateNow={Storybook.action('updateNow')}
+        />
+      </Kb.Box2>
+    ))
+    .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
+    .add('FileUpdate', () => (
+      <Kb.Box2 direction="vertical">
+        <FileUpdate name="foo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
+        <FileUpdate name="bar" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
+        <FileUpdate name="cow" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
+        <FileUpdate name="poo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
+      </Kb.Box2>
+    ))
 }
 
 export default load

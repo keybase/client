@@ -25,10 +25,6 @@ function _checkPgpInfoForErrors(info: {...Types.PgpInfo, ...Types.PgpInfoError})
 }
 
 function _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload, state: TypedState) {
-  if (action.error) {
-    return
-  }
-
   const {pgpInfo} = state.profile
 
   return Saga.put(
@@ -38,10 +34,6 @@ function _checkPgpInfo(action: ProfileGen.UpdatePgpInfoPayload, state: TypedStat
   )
 }
 function* _dropPgpSaga(action: ProfileGen.DropPgpPayload): Saga.SagaGenerator<any, any> {
-  if (action.error) {
-    return
-  }
-
   const kid = action.payload.kid
 
   try {

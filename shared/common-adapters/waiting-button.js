@@ -1,14 +1,16 @@
 // @flow
 import * as React from 'react'
 import Button, {type Props as ButtonProps} from './button'
-import {connect, type TypedState, setDisplayName} from '../util/container'
+import {namedConnect} from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
 export type OwnProps = ButtonProps & {
+  onlyDisable?: boolean, // Must supply waiting key if this is true
   waitingKey: ?string,
 }
 
 export type Props = ButtonProps & {
+  onlyDisable?: boolean,
   storeWaiting: boolean,
   waitingKey: ?string,
 }
@@ -35,23 +37,33 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
     this.props.onClick && this.props.onClick(event)
   }
 
-  render = () => (
-    <Button
-      {...this.props}
-      onClick={this._onClick}
-      waiting={this.props.storeWaiting || this.state.localWaiting}
-    />
-  )
+  render = () => {
+    if (this.props.onlyDisable && !this.props.waitingKey) {
+      throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
+    }
+    const waiting = this.props.storeWaiting || this.state.localWaiting
+    return (
+      <Button
+        {...this.props}
+        onClick={this._onClick}
+        disabled={this.props.onlyDisable ? waiting || this.props.disabled : this.props.disabled}
+        waiting={this.props.onlyDisable ? false : waiting}
+      />
+    )
+  }
 }
 
-const mapStateToProps = (state: TypedState, ownProps) => {
+const mapStateToProps = (state, ownProps) => {
   const waitingKey = ownProps.waitingKey || ''
   return {
     storeWaiting: WaitingConstants.anyWaiting(state, waitingKey),
   }
 }
 
-const ConnectedWaitingButton = connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(
-  setDisplayName('WaitingButton')(WaitingButton)
-)
+const ConnectedWaitingButton = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'WaitingButton'
+)(WaitingButton)
 export default ConnectedWaitingButton

@@ -6,7 +6,7 @@ import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   teamname: string,
   visible: boolean,
@@ -35,4 +35,8 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   }
 }
 
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(AddPeopleHow)
+export default connect(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(AddPeopleHow)

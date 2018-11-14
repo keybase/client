@@ -353,3 +353,23 @@ func TestTeamTree(t *testing.T) {
 	checkTeamTree(sub2SubTeam2, tree...)
 	checkTeamTree(sub2SubTeam3, tree...)
 }
+
+func TestTeamProfileAddList(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	t.Logf("Signed up ann (%s)", ann.username)
+
+	_, teamName := ann.createTeam2()
+	t.Logf("Team created (%s)", teamName)
+
+	res, err := ann.teamsClient.TeamProfileAddList(context.TODO(), keybase1.TeamProfileAddListArg{Username: "t_alice"})
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.Equal(t, keybase1.TeamProfileAddEntry{
+		TeamName:       teamName,
+		Open:           false,
+		DisabledReason: "",
+	}, res[0])
+}

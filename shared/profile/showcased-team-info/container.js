@@ -1,22 +1,21 @@
 // @flow
-import {type Component} from 'react'
+import * as React from 'react'
 import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import {parsePublicAdmins} from '../../util/teams'
 import {isInTeam, isAccessRequestPending} from '../../constants/teams'
 import {type UserTeamShowcase} from '../../constants/types/rpc-gen'
-
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle} from '../../util/container'
 
 type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   team: UserTeamShowcase,
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {team}: OwnProps) => {
+const mapStateToProps = (state, {team}: OwnProps) => {
   const username = state.config.username
   const following = state.config.following.toObject()
   if (!username || !following) {
@@ -65,7 +64,11 @@ const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')

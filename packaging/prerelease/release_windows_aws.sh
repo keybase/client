@@ -7,7 +7,7 @@ if [ -z "$version" ]; then
   exit 1
 fi
 
-aws s3 cp s3://prerelease.keybase.io/windows/Keybase_${version}.386.msi s3://prerelease.keybase.io/keybase_setup_386.msi
+aws s3 cp s3://prerelease.keybase.io/windows/Keybase_${version}.amd64.msi s3://prerelease.keybase.io/keybase_setup_amd64.msi
 
 aws s3 cp s3://prerelease.keybase.io/windows-support/update-windows-prod-${version}.json s3://prerelease.keybase.io/update-windows-prod-v2.json
 

@@ -3,10 +3,12 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
-import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../util/container'
+import {compose, namedConnect, lifecycle, type TypedState, type Dispatch} from '../../util/container'
+import {navigateAppend} from '../../actions/route-tree'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {
   path: Types.Path,
@@ -15,11 +17,11 @@ type OwnProps = {
   actionIconWhite?: boolean,
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
-  _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+  _fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
   _downloads: state.fs.downloads,
 })
 
@@ -28,13 +30,18 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
+  deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
+  moveOrCopy: () => {
+    dispatch(FsGen.createSetMoveOrCopySource({path}))
+    dispatch(navigateAppend(['destinationPicker']))
+  },
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
         _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
       }
     : {
-        _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+        _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
       }),
 
   ...(!isIOS
@@ -45,12 +52,14 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 type actions = {
-  showInFileUI?: () => void,
+  showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
   saveMedia?: (() => void) | 'disabled',
   shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
+  deleteFileOrFolder?: () => void,
+  moveOrCopy?: () => void,
 }
 type MenuItemAppender = (
   menuActions: actions,
@@ -61,7 +70,7 @@ type MenuItemAppender = (
 
 const aShowIn: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   if (!isMobile && stateProps._fileUIEnabled) {
-    menuActions.showInFileUI = dispatchProps._showInFileUI
+    menuActions.showInSystemFileManager = dispatchProps._showInSystemFileManager
   }
 }
 
@@ -105,9 +114,25 @@ const aDownload: MenuItemAppender = (menuActions, stateProps, dispatchProps, pat
   }
 }
 
+const aDelete: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
+  menuActions.deleteFileOrFolder = dispatchProps.deleteFileOrFolder
+}
+
+const aMoveOrCopy: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
+  menuActions.moveOrCopy = dispatchProps.moveOrCopy
+}
+
 const tlfListAppenders: Array<MenuItemAppender> = [aShowIn, aCopyPath]
 const tlfAppenders: Array<MenuItemAppender> = [aShowIn, aIgnore, aCopyPath]
-const inTlfAppenders: Array<MenuItemAppender> = [aShowIn, aSave, aShareNative, aDownload, aCopyPath]
+const inTlfAppenders: Array<MenuItemAppender> = [
+  aShowIn,
+  aSave,
+  aShareNative,
+  aDownload,
+  aCopyPath,
+  ...(flags.moveOrCopy ? [aMoveOrCopy] : []),
+  aDelete,
+]
 
 const getRootMenuActionsByAppenders = (
   appenders: Array<MenuItemAppender>,
@@ -168,12 +193,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         )
   const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,
     download,
     copyPath,
+    deleteFileOrFolder,
+    moveOrCopy,
   } = getRootMenuActionsByPathLevel(pathElements.length, stateProps, dispatchProps, path)
   return {
     type,
@@ -197,18 +224,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     actionIconFontSize,
     actionIconWhite,
     // menu actions
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,
     download,
     copyPath,
+    deleteFileOrFolder,
+    moveOrCopy,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedPathItemAction'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedPathItemAction'),
   OverlayParentHOC,
   lifecycle({
     componentDidUpdate(prevProps) {

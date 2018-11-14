@@ -14,7 +14,6 @@ const props = {
   onBioChange: () => Sb.action('onBioChange'),
   onCancel: () => Sb.action('onCancel'),
   onEditAvatarClick: () => Sb.action('onEditAvatarClick'),
-  onEditProfile: () => Sb.action('onEditProfile'),
   onFullnameChange: () => Sb.action('onFullnameChange'),
   onLocationChange: () => Sb.action('onLocationChange'),
   onSubmit: () => Sb.action('onSubmit'),

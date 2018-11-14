@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as Constants from '../../../../../constants/chat2'
 import * as MessageConstants from '../../../../../constants/chat2/message'
 import WrapperAuthor from '.'
-import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
+import {namedConnect} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
 type OwnProps = {|
@@ -17,7 +17,7 @@ type OwnProps = {|
   toggleMessageMenu: () => void,
 |}
 
-const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
+const mapStateToProps = (state, {message, previous, isEditing}: OwnProps) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAuthorClick: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
@@ -83,8 +83,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
   let failureDescription = ''
+  let isErrorFixable = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
-    failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+    failureDescription = message.errorReason
+    if (stateProps.isYou && ['pending', 'failed'].includes(message.submitState)) {
+      // This is a message still in the outbox, we can retry/edit to fix
+      failureDescription = `Failed to send: ${message.errorReason}`
+      isErrorFixable = true
+    }
   }
 
   // Properties that are different between request/payment and text/attachment
@@ -125,11 +131,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
-    onCancel: stateProps.isYou
+    onCancel: isErrorFixable
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
-    onRetry: stateProps.isYou
+    onRetry: isErrorFixable
       ? () => {
           message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
         }
@@ -140,7 +146,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('WrapperAuthor')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'WrapperAuthor'
 )(WrapperAuthor)

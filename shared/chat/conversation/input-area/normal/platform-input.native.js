@@ -13,7 +13,14 @@ import {
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalMargins,
+  globalStyles,
+  globalColors,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -26,6 +33,7 @@ import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
+import WalletsIcon from './wallets-icon/container'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -53,7 +61,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: string, location: string) => {
+  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -162,14 +170,14 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             visible={this.props.showingMenu}
             onHidden={this.props.toggleShowingMenu}
             onSelect={this._launchNativeImagePicker}
           />
         ) : (
           <SetExplodingMessagePicker
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
             visible={this.props.showingMenu}
@@ -222,21 +230,21 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
   }
 }
 
-const InputAccessory = Component => props => (
+const MentionHud = props => (
   <Box style={styles.accessoryContainer}>
     <Box style={styles.accessory}>
-      <Component {...props} />
+      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
     </Box>
   </Box>
 )
 
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
+const ChannelMentionHud = props => (
+  <Box style={styles.accessoryContainer}>
+    <Box style={styles.accessory}>
+      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
+    </Box>
+  </Box>
+)
 
 const Action = ({
   hasText,
@@ -266,14 +274,20 @@ const Action = ({
       </Text>
     </Box2>
   ) : (
-    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
+    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
       {flags.explodingMessagesEnabled && (
-        <ExplodingIcon
-          explodingModeSeconds={explodingModeSeconds}
-          isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
-          openExplodingPicker={openExplodingPicker}
-        />
+        <>
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            isExplodingNew={isExplodingNew}
+            openExplodingPicker={openExplodingPicker}
+          />
+          {smallGap}
+        </>
+      )}
+      {flags.walletsEnabled && (
+        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
       <Icon
         onClick={insertMentionMarker}
@@ -281,6 +295,7 @@ const Action = ({
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
+      {smallGap}
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
@@ -304,7 +319,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
   </NativeTouchableWithoutFeedback>
 )
 
-const containerPadding = 6
+const containerPadding = 8
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -330,7 +345,7 @@ const styles = styleSheetCreate({
   },
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     backgroundColor: globalColors.fastBlank,
     borderTopColor: globalColors.black_10,
     borderTopWidth: 1,
@@ -349,8 +364,7 @@ const styles = styleSheetCreate({
   },
   input: {
     marginLeft: globalMargins.tiny,
-    paddingBottom: 12,
-    paddingTop: 12,
+    marginRight: globalMargins.tiny,
     ...(isIOS
       ? {}
       : {
@@ -358,12 +372,19 @@ const styles = styleSheetCreate({
           marginTop: -4, // android has a bug where the lineheight isn't respected
         }),
   },
+  marginRightSmall: {
+    marginRight: globalMargins.small,
+  },
   mentionHud: {
     borderColor: globalColors.black_20,
     borderTopWidth: 1,
     flex: 1,
     height: 160,
     width: '100%',
+  },
+  smallGap: {
+    height: globalMargins.small,
+    width: globalMargins.small,
   },
   typing: {
     ...globalStyles.flexBoxRow,
@@ -380,6 +401,9 @@ const styles = styleSheetCreate({
     width: 20,
   },
 })
+
+// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Box style={styles.smallGap} />
 
 const explodingIconContainer = platformStyles({
   common: {

@@ -40,11 +40,10 @@ declare export var desktopStyles: {
 declare export var mobileStyles: {}
 declare export var fileUIName: string
 declare export var statusBarHeight: number
+declare export var borderRadius: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
-declare export function styleSheetCreate(map: {[styleName: string]: CSS.StylesCrossPlatform}): {
-  [styleName: string]: CSS.StylesCrossPlatform,
-}
+declare export function styleSheetCreate<T: {[styleName: string]: CSS.StylesCrossPlatform}>(map: T): T
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -80,3 +79,4 @@ export type {
   Color,
   StylesCrossPlatformWithSomeDisallowed,
 } from './css'
+export {default as classNames} from 'classnames'

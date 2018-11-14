@@ -56,10 +56,6 @@ func (f *JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
 	return false, false
 }
 
-func (f *JSONConfigFile) GetAutoWallet() (bool, bool) {
-	return false, false
-}
-
 func (f *JSONConfigFile) GetTopLevelString(s string) (ret string) {
 	var e error
 	f.jw.AtKey(s).GetStringVoid(&ret, &e)
@@ -429,6 +425,9 @@ func (f *JSONConfigFile) GetChatDbFilename() string {
 }
 func (f *JSONConfigFile) GetPvlKitFilename() string {
 	return f.GetTopLevelString("pvl_kit")
+}
+func (f *JSONConfigFile) GetParamProofKitFilename() string {
+	return f.GetTopLevelString("paramproof_kit")
 }
 func (f *JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
@@ -826,6 +825,23 @@ func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 	return f.GetBoolAtPath("slow_gregor_conn")
 }
 
+func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
+	return f.GetBoolAtPath("read_deleted_sigchain")
+}
+
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
+}
+
+func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
+	return f.GetIntAtPath("attachment_httpsrv_port")
+}
+
+func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
+	return f.GetBoolAtPath("attachment_disable_multi")
+}
+
+func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
+	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
+	return s
 }

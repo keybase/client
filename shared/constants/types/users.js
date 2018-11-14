@@ -1,6 +1,5 @@
 // @flow strict
 // Info about users we get from various places. Fullname, broken, etc
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 
 export type _UserInfo = {

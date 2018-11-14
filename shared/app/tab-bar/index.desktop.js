@@ -1,7 +1,6 @@
 // @flow
 import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
-import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -10,45 +9,35 @@ import type {Props} from './index.types'
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
   [Tabs.devicesTab]: 'iconfont-nav-devices',
+  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.gitTab]: 'iconfont-nav-git',
   [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.profileTab]: 'iconfont-nav-people',
   [Tabs.settingsTab]: 'iconfont-nav-settings',
   [Tabs.teamsTab]: 'iconfont-nav-teams',
-  [Tabs.gitTab]: 'iconfont-nav-git',
-  [Tabs.fsTab]: 'iconfont-nav-files',
   [Tabs.walletsTab]: 'iconfont-nav-wallets',
 }
 
 const _labels = {
   [Tabs.chatTab]: 'Chat',
   [Tabs.devicesTab]: 'Devices',
+  [Tabs.fsTab]: 'Files',
+  [Tabs.gitTab]: 'Git',
   [Tabs.peopleTab]: 'People',
   [Tabs.profileTab]: 'People',
   [Tabs.settingsTab]: 'Settings',
   [Tabs.teamsTab]: 'Teams',
-  [Tabs.gitTab]: 'Git',
-  [Tabs.fsTab]: 'Files',
   [Tabs.walletsTab]: 'Wallet',
 }
 
-const _tabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  Tabs.fsTab,
-  Tabs.teamsTab,
-  Tabs.devicesTab,
-  Tabs.gitTab,
-  Tabs.settingsTab,
-  ...(flags.walletsEnabled ? [Tabs.walletsTab] : []),
-].filter(Boolean)
-
-const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
+const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers, isNew}: Props) => (
   <Box style={stylesTabBar}>
-    {_tabs.map(tab => (
+    {Tabs.desktopTabOrder.map(tab => (
       <TabBarButton
         className="keybase-nav"
         badgeNumber={badgeNumbers[tab]}
         isNav={true}
+        isNew={isNew[tab] || false}
         key={tab}
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
@@ -61,6 +50,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
     <TabBarButton
       label={username || ''}
       isNav={true}
+      isNew={false}
       selected={false}
       onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.profileTab]}

@@ -86,9 +86,12 @@
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
-      "teamname": "string",
+      "destSubPath": "I.List<string>",
+      "invitees": "string",
       "role": "Types.TeamRoleType",
-      "invitees": "string"
+      "rootPath": "I.List<string>",
+      "sourceSubPath": "I.List<string>",
+      "teamname": "string"
     },
     "inviteToTeamByPhone": {
       "teamname": "string",
@@ -100,7 +103,13 @@
       "teamname": "string"
     },
     "leaveTeam": {
-      "teamname": "string"
+      "teamname": "string",
+      "context": "'teams' | 'chat'"
+    },
+    "leftTeam": {
+      "_description": "We successfully left a team",
+      "teamname": "string",
+      "context": "'teams' | 'chat'"
     },
     "addToTeam": {
       "teamname": "string",

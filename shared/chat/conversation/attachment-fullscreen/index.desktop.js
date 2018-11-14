@@ -21,11 +21,23 @@ import {
   platformStyles,
 } from '../../../styles'
 import type {Props} from './index.types'
+import KeyHandler from '../../../util/key-handler.desktop'
 
-type State = {loaded: boolean}
+type State = {loaded: string}
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
-  state = {loaded: false}
-  _setLoaded = () => this.setState({loaded: true})
+  _mounted = false
+  state = {loaded: ''}
+  _setLoaded = (path: string) => this.setState({loaded: path})
+  _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
+
+  componentDidMount() {
+    this._mounted = true
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
   render() {
     return (
       <PopupDialog onClose={this.props.onClose} fill={true}>
@@ -45,7 +57,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               onClick={this.props.toggleShowingMenu}
             />
             <MessagePopup
-              attachTo={this.props.attachmentRef}
+              attachTo={this.props.getAttachmentRef}
               message={this.props.message}
               onHidden={this.props.toggleShowingMenu}
               position="bottom left"
@@ -56,18 +68,39 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
             <Box
               style={collapseStyles([
                 this.props.isZoomed ? styleContentsZoom : styleContentsFit,
-                this.state.loaded ? null : {display: 'none'},
+                this._isLoaded() ? null : {display: 'none'},
               ])}
-              onClick={this.props.onToggleZoom}
+              onClick={() => {
+                if (!this.props.isVideo) {
+                  this.props.onToggleZoom()
+                }
+              }}
+              key={this.props.path}
             >
-              <OrientedImage
-                src={this.props.path}
-                style={this.props.isZoomed ? styleImageZoom : styleImageFit}
-                onLoad={this._setLoaded}
-              />
+              {!this.props.isVideo ? (
+                <OrientedImage
+                  src={this.props.path}
+                  style={this.props.isZoomed ? styleImageZoom : styleImageFit}
+                  onLoad={() => {
+                    if (this._mounted) {
+                      this._setLoaded(this.props.path)
+                    }
+                  }}
+                />
+              ) : (
+                <video
+                  style={styleVideoFit}
+                  onLoadedMetadata={() => this._setLoaded(this.props.path)}
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  controls={true}
+                >
+                  <source src={this.props.path} />
+                  <style>{showPlayButton}</style>
+                </video>
+              )}
             </Box>
           )}
-          {!this.state.loaded && <ProgressIndicator style={{margin: 'auto'}} />}
+          {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
           <Box style={headerFooterStyle}>
             {!!this.props.progressLabel && (
               <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
@@ -92,7 +125,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen = OverlayParentHOC(_Fullscreen)
+const Fullscreen = KeyHandler(OverlayParentHOC(_Fullscreen))
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_60, cursor: 'pointer'},
@@ -131,11 +164,24 @@ const styleImageFit = {
   width: '100%',
 }
 
+const styleVideoFit = {
+  cursor: 'normal',
+  display: 'block',
+  objectFit: 'scale-down',
+  width: '100%',
+}
+
 const styleImageZoom = {
   cursor: 'zoom-out',
   display: 'block',
   minHeight: '100%',
   minWidth: '100%',
 }
+
+const showPlayButton = `
+video::-webkit-media-controls-play-button {
+  display: block;
+}
+`
 
 export default Fullscreen

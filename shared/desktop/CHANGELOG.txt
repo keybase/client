@@ -1,12 +1,12 @@
-• You can now upload custom user and team avatars from inside the app
-
-Chat:
-    • React to chat messages with emojis
-    • Better image orientation on attachment
-    • Better 'new messages' line handling
-    • Improve attachment upload experience
-Other stuff:
-    • New hotkeys to switch application tabs. Just hit command (or control) and the numbers 1-7
-    • Simplified some social proof flows
-    • Simplified provisioning process
-    • Better revoke device page
+New features:
+• See recent file activity in the widget
+• Enabled zooming to change app font size
+• Get notified when devices get added or revoked
+• Better pasting images from clipboard
+• Better looking image attachments
+Fixes:
+• Fix launching on startup on OSX
+• Fix pasting attachments on new conversations
+• Fix missing timestamps
+• Better performance in chat
+• Inbox wouldn't load after sign in/out sometimes

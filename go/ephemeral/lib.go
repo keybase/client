@@ -16,6 +16,8 @@ import (
 
 const SkipKeygenNilMerkleRoot = "Skipping key generation, unable to fetch merkle root"
 
+// Maximum number of retries for key generation
+const maxRetries = 5
 const cacheEntryLifetime = time.Minute * 5
 const lruSize = 200
 
@@ -24,10 +26,11 @@ type EKLib struct {
 	teamEKGenCache *lru.Cache
 	sync.Mutex
 
-	// During testing we may want to stall background creation to assert cache
+	// During testing we may want to stall background work to assert cache
 	// state.
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
+	backgroundDeletionTestCh chan bool
 	stopCh                   chan struct{}
 }
 
@@ -59,17 +62,24 @@ func (e *EKLib) backgroundKeygen() {
 	ctx := context.Background()
 	e.G().Log.CDebugf(ctx, "backgroundKeygen: starting up")
 	keygenInterval := time.Hour
-	lastRunAt := time.Now()
-	runIfNeeded := func() {
-		if lastRunAt.Sub(libkb.ForceWallClock(time.Now())) >= keygenInterval {
+	lastRun := time.Now()
+
+	runIfNeeded := func(force bool) {
+		now := libkb.ForceWallClock(time.Now())
+		shouldRun := now.Sub(lastRun) >= keygenInterval
+		e.G().Log.CDebugf(ctx, "backgroundKeygen: runIfNeeded: lastRun: %v, now: %v, shouldRun: %v, force: %v",
+			lastRun, now, shouldRun, force)
+		if force || shouldRun {
 			if err := e.KeygenIfNeeded(ctx); err != nil {
-				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %s", err)
+				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %v", err)
 			}
-			lastRunAt = time.Now()
+			lastRun = time.Now()
 		}
 	}
 
-	runIfNeeded()
+	// Fire off on startup
+	runIfNeeded(true /* force */)
+
 	ticker := libkb.NewBgTicker(keygenInterval)
 	state := keybase1.AppState_FOREGROUND
 	// Run every hour but also check if enough wall clock time has elapsed when
@@ -77,7 +87,7 @@ func (e *EKLib) backgroundKeygen() {
 	for {
 		select {
 		case <-ticker.C:
-			runIfNeeded()
+			runIfNeeded(false /* force */)
 		case state = <-e.G().AppState.NextUpdate(&state):
 			if state == keybase1.AppState_BACKGROUNDACTIVE {
 				// Before running  we pause briefly so we don't stampede for
@@ -85,9 +95,10 @@ func (e *EKLib) backgroundKeygen() {
 				// handles this internally, so we only need to throttle on
 				// AppState change.
 				time.Sleep(time.Second)
-				runIfNeeded()
+				runIfNeeded(false /* force */)
 			}
 		case <-e.stopCh:
+			ticker.Stop()
 			return
 		}
 	}
@@ -105,52 +116,57 @@ func (e *EKLib) setBackgroundCreationTestCh(ch chan bool) {
 	e.backgroundCreationTestCh = ch
 }
 
+func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
+	e.backgroundDeletionTestCh = ch
+}
+
 func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 	return libkb.NewMetaContext(ctx, e.G())
 }
 
-func (e *EKLib) checkLoginAndPUK(ctx context.Context) (loggedIn bool, err error) {
+func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	m := e.NewMetaContext(ctx)
-	if oneshot, err := e.G().IsOneshot(ctx); err != nil || oneshot {
-		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK error: %s, isOneshot: %v", err, oneshot)
-		return false, err
+	if isOneshot, err := e.G().IsOneshot(ctx); err != nil {
+		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK unable to check IsOneshot %v", err)
+		return err
+	} else if isOneshot {
+		return fmt.Errorf("Aborting ephemeral key generation, using oneshot session!")
 	}
 
-	if loggedIn, _, err = libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
-		return loggedIn, err
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
+		return err
 	} else if !loggedIn {
-		return loggedIn, fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
+		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
 	}
 
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring(ctx)
 	if err != nil {
-		return loggedIn, err
+		return err
 	}
 	if err := pukring.Sync(m); err != nil {
-		return loggedIn, err
+		return err
 	}
 	if !pukring.HasAnyKeys() {
-		return loggedIn, fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
+		return fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
 	}
-	return loggedIn, nil
+	return nil
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
-	var loggedIn bool
 	var merkleRoot libkb.MerkleRoot
 	// Always try to delete keys if we are logged in even if we get an error
 	// when checking our PUK or fetching the merkleRoot. `keygenIfNeeded` this
 	// also tries best effort to delete with errors, but try here in case we
 	// error before reaching that call.
 	defer func() {
-		if err != nil && loggedIn {
-			e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot)
+		if err != nil {
+			e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot)
 		}
 	}()
 
-	if loggedIn, err = e.checkLoginAndPUK(ctx); err != nil {
+	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return err
 	}
 
@@ -159,12 +175,23 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
 		merkleRootPtr = &libkb.MerkleRoot{}
 	}
-	return e.keygenIfNeeded(ctx, *merkleRootPtr)
+	for tries := 0; tries < maxRetries; tries++ {
+		if err = e.keygenIfNeeded(ctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
+			return nil
+		}
+		time.Sleep(200 * time.Millisecond)
+		e.G().Log.CDebugf(ctx, "KeygenIfNeeded retrying attempt #%d: %v", tries, err)
+	}
+	return err
 }
 
-func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
+func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot, shouldCleanup bool) (err error) {
 	defer e.G().CTraceTimed(ctx, "keygenIfNeeded", func() error { return err })()
-	defer e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot) // always try to cleanup expired keys
+	defer func() {
+		if shouldCleanup {
+			e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot)
+		}
+	}()
 
 	// Abort. We only care about calling `cleanupStaleUserAndDeviceEKs.
 	if merkleRoot.IsNil() {
@@ -226,6 +253,18 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot lib
 	_, err = userEKBoxStorage.DeleteExpired(ctx, merkleRoot)
 	epick.Push(err)
 	return epick.Error()
+}
+
+func (e *EKLib) cleanupStaleUserAndDeviceEKsInBackground(ctx context.Context, merkleRoot libkb.MerkleRoot) {
+	go func() {
+		if err := e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot); err != nil {
+			e.G().Log.CDebugf(ctx, "Unable to cleanupStaleUserAndDeviceEKsInBackground: %v", err)
+		}
+
+		if e.backgroundDeletionTestCh != nil {
+			e.backgroundDeletionTestCh <- true
+		}
+	}()
 }
 
 func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) {
@@ -425,11 +464,15 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
 	defer e.G().CTraceTimed(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
-
 	e.Lock()
 	defer e.Unlock()
 
-	if _, err = e.checkLoginAndPUK(ctx); err != nil {
+	// This can be done with a nil merkleRoot for deviceEKs, otherwise the root
+	// will be updated when if we fetch it.
+	var merkleRoot libkb.MerkleRoot
+	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
+
+	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return teamEK, err
 	}
 
@@ -452,11 +495,14 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	if err != nil {
 		return teamEK, err
 	}
-	merkleRoot := *merkleRootPtr
-	defer teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot) // always try to deleteExpired
+	merkleRoot = *merkleRootPtr
+	// always try to deleteExpired
+	defer teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
 
-	// First publish new device or userEKs if we need to.
-	if err = e.keygenIfNeeded(ctx, merkleRoot); err != nil {
+	// First publish new device or userEKs if we need to. We pass shouldCleanup
+	// = false so we can run deletion in the background ourselves and not block
+	// this call.
+	if err = e.keygenIfNeeded(ctx, merkleRoot, false /* shouldCleanup */); err != nil {
 		return teamEK, err
 	}
 
@@ -682,7 +728,7 @@ func (e *EKLib) ClearCaches() {
 	}
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) OnLogout(m libkb.MetaContext) error {
 	e.ClearCaches()
 	return nil
 }

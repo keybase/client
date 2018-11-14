@@ -4,35 +4,56 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import {Box, Box2, Icon, Meta, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import {PathItemInfo} from '../common'
 
 type StillProps = StillCommonProps & {
-  isDownloading?: boolean,
+  intentIfDownloading?: ?Types.DownloadIntent,
   isEmpty: boolean,
   lastModifiedTimestamp: number,
   lastWriter: string,
   type: Types.PathType,
 }
 
-const RowMeta = ({isDownloading}) => {
-  if (!isDownloading) {
+const RowMeta = ({intentIfDownloading}) => {
+  if (!intentIfDownloading) {
     return null
   }
 
   return (
     <Box style={{width: 0, display: 'flex'}}>
-      {isDownloading && (
-        <Box style={rowStyles.downloadContainer}>
-          <Icon type="icon-addon-file-downloading" />
-        </Box>
-      )}
+      <Box style={rowStyles.downloadContainer}>
+        <Icon type="icon-addon-file-downloading" />
+      </Box>
     </Box>
   )
 }
 
+const getDownloadingText = (intent: Types.DownloadIntent) => {
+  switch (intent) {
+    case 'none':
+      return 'Downloading ...'
+    case 'camera-roll':
+      return 'Saving ...'
+    case 'share':
+      return 'Preparing to send to other app ...'
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (intent: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(intent);
+      */
+      return ''
+  }
+}
+
 const Still = (props: StillProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
-    <RowMeta isDownloading={props.isDownloading} />
+  <StillCommon
+    itemStyles={props.itemStyles}
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+  >
+    <RowMeta intentIfDownloading={props.intentIfDownloading} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
@@ -50,8 +71,12 @@ const Still = (props: StillProps) => (
           />
         )}
       </Box2>
-      {props.type !== 'folder' && (
-        <PathItemInfo lastModifiedTimestamp={props.lastModifiedTimestamp} lastWriter={props.lastWriter} />
+      {props.intentIfDownloading ? (
+        <Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Text>
+      ) : (
+        props.type !== 'folder' && (
+          <PathItemInfo lastModifiedTimestamp={props.lastModifiedTimestamp} lastWriter={props.lastWriter} />
+        )
       )}
     </Box>
   </StillCommon>

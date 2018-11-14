@@ -1,9 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
+import {Box2, Text} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
-import Participants, {type Account} from '.'
+import {
+  type Account,
+  ParticipantsKeybaseUser,
+  ParticipantsStellarPublicKey,
+  ParticipantsOtherAccount,
+} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
 import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
@@ -65,7 +70,7 @@ const connectPropsMap: RowConnectPropsMap = {
   },
 }
 
-export const participantProviderProperties = {
+const participantProviderProperties = {
   ...makeResultsListSelectorMap(connectPropsMap),
   ...makeUserInputSelectorMap([]),
 }
@@ -76,6 +81,7 @@ const primaryAccount: Account = {
   name: 'Primary Account',
   contents: '2000 XLM',
   id: stringToAccountID('fakeaccountID'),
+  isDefault: true,
 }
 
 const accounts = [
@@ -84,16 +90,35 @@ const accounts = [
     name: 'Secondary Account',
     contents: '6435 XLM',
     id: stringToAccountID('fakeaccountID2'),
+    isDefault: false,
   },
   {
     name: 'third Account',
     contents: '10 XLM',
     id: stringToAccountID('fakeaccountID3'),
+    isDefault: false,
   },
 ]
 
-const defaultProps = {
-  // Account -> Account transactions
+const keybaseUserProps = {
+  isRequest: false,
+  recipientUsername: '',
+  onShowProfile: Sb.action('onShowProfile'),
+  onShowSuggestions: Sb.action('onShowSuggestions'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: null,
+}
+
+const stellarPublicKeyProps = {
+  keyCounter: 0,
+  recipientPublicKey: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+  onScanQRCode: Sb.action('onScanQRCode'),
+  setReadyToSend: Sb.action('setReadyToSend'),
+}
+
+const otherAccountProps = {
   user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
@@ -101,27 +126,39 @@ const defaultProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
-  onShowProfile: Sb.action('onShowProfile'),
+  showSpinner: false,
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
-    .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
+    .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To Keybase user with QR', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} onScanQRCode={Sb.action('onScanQRCode')} />
+    ))
+    .add('To Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} recipientUsername="chris" />
+    ))
+    .add('Request from Keybase user chris', () => (
+      <ParticipantsKeybaseUser {...keybaseUserProps} isRequest={true} recipientUsername="chris" />
+    ))
+    .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
+    .add('To stellar address with QR', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
+    .add('Stellar address Error', () => (
+      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} errorMessage="Stellar address incorrect" />
+    ))
     .add('To other account (multiple accounts)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} />
+      <Box2 direction="vertical" gap="small">
+        <Text type="Header">Initial State:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} />
+        <Text type="Header">Before setting toAccount:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} showSpinner={true} />
+        <Text type="Header">After setting toAccount, but before toAccount is loaded:</Text>
+        <ParticipantsOtherAccount {...otherAccountProps} showSpinner={true} />
+      </Box2>
     ))
     .add('To other account (one account)', () => (
-      <Participants recipientType="otherAccount" {...defaultProps} allAccounts={accounts.slice(0, 1)} />
-    ))
-    .add('To stellar address', () => <Participants {...defaultProps} recipientType="stellarPublicKey" />)
-    .add('Stellar address Error', () => (
-      <Participants
-        {...defaultProps}
-        incorrect="Stellar address incorrect"
-        recipientType="stellarPublicKey"
-      />
+      <ParticipantsOtherAccount {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
     ))
 }
 

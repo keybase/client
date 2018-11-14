@@ -5,19 +5,18 @@ protocol common {
   @typedef("string") record AccountID {}
   @typedef("string") record SecretKey {}
   @typedef("string") record TransactionID {}
+  @typedef("string") record PaymentID {}
   @typedef("string") record KeybaseTransactionID {}
   @typedef("long")   record TimeMs {} // ms since epoch
   @typedef("bytes")  record Hash {}
   @typedef("string") record KeybaseRequestID {}
 
-  record PaymentID {
-    TransactionID txID;
-  }
-
   record Asset {
-    string type; // 'native' | 'alphanum4' | 'alphanum12'
+    string type; // 'native' | 'credit_alphanum4' | 'credit_alphanum12'
     string code;
     string issuer;
+    string verifiedDomain; // 'stronghold.co' or empty if XLM or unverified
+    string issuerName;     // 'Stronghold' or empty if it didn't exist, XLM, or unverified
   }
 
   record Balance {

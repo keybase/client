@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {fsTab} from '../../../constants/tabs'
 import {navigateTo} from '../../../actions/route-tree'
@@ -12,12 +12,12 @@ import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner from '.'
 
-const mapStateToProps = (state: TypedState, {path}) => ({
+const mapStateToProps = (state, {path}) => ({
   _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
     dispatch(FsGen.createLetResetUserBackIn({id, username})),
   _onOpenWithoutResetUsers: (currPath: Types.Path, users: {[string]: boolean}) => {
@@ -53,7 +53,4 @@ const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onVie
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ResetBanner')
-)(Banner)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ResetBanner')(Banner)

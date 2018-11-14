@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
 	<Product Id="*" Name="Keybase" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
@@ -10,9 +11,12 @@
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="EXECUTABLETARGET" Value="bin"/>
     <Property Id="MsiLogging" Value="oicewarmup"/>
-
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_452_OR_LATER_INSTALLED"/>
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
+    <Condition Message="This application requires .NET Framework 4.5.2. Please install the .NET Framework then run this installer again.">
+      <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_452_OR_LATER_INSTALLED]]>
+    </Condition>
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComps" />
@@ -173,7 +177,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.1.0.200\DokanSetup_redist.exe" Checksum="yes"/>
+        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>

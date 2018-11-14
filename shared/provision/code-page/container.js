@@ -1,13 +1,13 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import CodePage2 from '.'
-import {compose, connect, type TypedState, isMobile, safeSubmit} from '../../util/container'
+import {compose, connect, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const currentDeviceAlreadyProvisioned = !!state.config.deviceName
   return {
     currentDeviceAlreadyProvisioned,
@@ -41,6 +41,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])
 )(CodePage2)

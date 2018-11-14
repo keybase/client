@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import Dropdown from './dropdown.native'
 import React, {Component} from 'react'
-import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
+import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
 import type {Props} from '.'
 
 class LoginRender extends Component<Props> {

@@ -57,7 +57,7 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	if err != nil {
 		return res, err
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return res, err
 	}
@@ -135,7 +135,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	if err != nil {
 		return res, err
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return res, err
 	}
@@ -167,7 +167,7 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(arg.Assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
@@ -248,7 +248,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		TeamID:      team.ID,
 		Writers:     writers,
 		TrackBreaks: nil,
-		FolderID:    team.KBFSTLFID(),
+		FolderID:    team.LatestKBFSTLFID(),
 	}
 
 	if arg.DoIdentifies {
@@ -301,7 +301,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
-			idRes, idErr := eng.Result()
+			idRes, idErr := eng.Result(m)
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 				if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {
@@ -333,6 +333,16 @@ func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.
 	ctx = libkb.WithLogTag(ctx, "RIT")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
+}
+
+func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
+	ctx = libkb.WithLogTag(ctx, "NSA")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

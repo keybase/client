@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
+import {allTextTypes} from './text.shared'
 
 type Background =
   | 'Announcements'
@@ -11,47 +12,7 @@ type Background =
   | 'Success'
   | 'Terminal'
 
-type TextType =
-  | 'Body'
-  | 'BodyItalic'
-  | 'BodyBig'
-  | 'BodyBigExtrabold'
-  | 'BodyBigLink'
-  | 'BodyError'
-  | 'BodyExtrabold'
-  | 'BodyPrimaryLink'
-  | 'BodySecondaryLink'
-  | 'BodySemibold'
-  | 'BodySemiboldLink'
-  | 'BodySemiboldItalic'
-  | 'BodySmall'
-  | 'BodySmallExtrabold'
-  | 'BodySmallExtraboldSecondaryLink'
-  | 'BodySmallError'
-  | 'BodySmallInlineLink'
-  | 'BodySmallItalic'
-  | 'BodySmallPrimaryLink'
-  | 'BodySmallSecondaryLink'
-  | 'BodySmallSemibold'
-  | 'BodySmallSemiboldItalic'
-  | 'BodySmallSemiboldInlineLink'
-  | 'BodySmallSemiboldPrimaryLink'
-  | 'BodySmallSuccess'
-  | 'BodySmallWallet'
-  | 'BodySuccess'
-  | 'BodyTiny'
-  | 'BodyTinySemibold'
-  | 'BodyTinyBold'
-  | 'Header'
-  | 'HeaderItalic'
-  | 'HeaderExtrabold'
-  | 'HeaderBig'
-  | 'HeaderBigExtrabold'
-  | 'HeaderLink'
-  | 'Terminal'
-  | 'TerminalComment'
-  | 'TerminalEmpty'
-  | 'TerminalInline'
+type TextType = $Keys<typeof allTextTypes>
 
 type Props = {
   allowFontScaling?: boolean,
@@ -60,10 +21,11 @@ type Props = {
   children?: React.Node,
   className?: string,
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip', // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied
-  lineClamp?: number,
-  onClick?: ?(e: SyntheticEvent<>) => void | ?() => void,
+  lineClamp?: ?number,
+  onClick?: ?(e: SyntheticEvent<>) => void | ?(() => void),
   onClickURL?: ?string,
   onLongPress?: () => void,
+  onLongPressURL?: ?string,
   onPress?: void,
   plainText?: boolean,
   selectable?: boolean,
@@ -91,8 +53,6 @@ declare function getStyle(
   clickable?: ?boolean
 ): Object
 
-export {getStyle}
-
+export {getStyle, allTextTypes}
 export type {Background, MetaType, Props, TextType}
-
 export default Text

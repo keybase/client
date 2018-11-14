@@ -9,6 +9,10 @@ import (
 type Feature string
 type FeatureFlags []Feature
 
+const (
+	EnvironmentFeatureAllowHighSkips = Feature("env_allow_high_skips")
+)
+
 // StringToFeatureFlags returns a set of feature flags
 func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	s = strings.TrimSpace(s)
@@ -26,6 +30,15 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 func (set FeatureFlags) Admin() bool {
 	for _, f := range set {
 		if f == Feature("admin") {
+			return true
+		}
+	}
+	return false
+}
+
+func (set FeatureFlags) HasFeature(feature Feature) bool {
+	for _, f := range set {
+		if f == feature {
 			return true
 		}
 	}
@@ -140,4 +153,73 @@ func (s *FeatureFlagSet) Clear() {
 	s.Lock()
 	defer s.Unlock()
 	s.features = make(map[Feature]*featureSlot)
+}
+
+// FeatureFlagGate allows the server to disable certain features by replying with a
+// FEATURE_FLAG API status code, which is then translated into a FeatureFlagError.
+// We cache these errors for a given amount of time, so we're not spamming the
+// same attempt over and over again.
+type FeatureFlagGate struct {
+	sync.Mutex
+	lastCheck time.Time
+	lastError error
+	feature   Feature
+	cacheFor  time.Duration
+}
+
+// NewFeatureFlagGate makes a gate for the given feature that will cache for the given
+// duration.
+func NewFeatureFlagGate(f Feature, d time.Duration) *FeatureFlagGate {
+	return &FeatureFlagGate{
+		feature:  f,
+		cacheFor: d,
+	}
+}
+
+// DigestError should be called on the result of an API call. It will allow this gate
+// to digest the error and maybe set up its internal caching for when to retry this
+// feature.
+func (f *FeatureFlagGate) DigestError(m MetaContext, err error) {
+	if err == nil {
+		return
+	}
+	ffe, ok := err.(FeatureFlagError)
+	if !ok {
+		return
+	}
+	if ffe.Feature() != f.feature {
+		m.CDebugf("Got feature flag error for wrong feature: %v", err)
+		return
+	}
+
+	m.CDebugf("Server reports feature %q is flagged off", f.feature)
+
+	f.Lock()
+	defer f.Unlock()
+	f.lastCheck = m.G().Clock().Now()
+	f.lastError = err
+}
+
+// ErrorIfFlagged should be called to avoid a feature if it's recently
+// been feature-flagged "off" by the server.  In that case, it will return
+// the error that was originally returned by the server.
+func (f *FeatureFlagGate) ErrorIfFlagged(m MetaContext) (err error) {
+	f.Lock()
+	defer f.Unlock()
+	if f.lastError == nil {
+		return nil
+	}
+	diff := m.G().Clock().Now().Sub(f.lastCheck)
+	if diff > f.cacheFor {
+		m.CDebugf("Feature flag %q expired %d ago, let's give it another try", f.feature, diff)
+		f.lastError = nil
+		f.lastCheck = time.Time{}
+	}
+	return f.lastError
+}
+
+func (f *FeatureFlagGate) Clear() {
+	f.Lock()
+	defer f.Unlock()
+	f.lastError = nil
 }

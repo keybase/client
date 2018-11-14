@@ -2,10 +2,11 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   ClickableBox,
   Icon,
   Markdown,
-  NameWithIcon,
+  ConnectedNameWithIcon,
   Text,
   iconCastPlatformStyles,
   type OverlayParentProps,
@@ -24,7 +25,6 @@ import {
 type SmallProps = {
   teamname: string,
   participantCount: number,
-  onClick: () => void,
   isSmallTeam: boolean,
 } & OverlayParentProps
 
@@ -34,17 +34,17 @@ const _SmallTeamHeader = (props: SmallProps) => {
   return (
     <Box style={styles.smallContainer}>
       <InfoPanelMenu
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         onHidden={props.toggleShowingMenu}
         isSmallTeam={props.isSmallTeam}
         teamname={props.teamname}
         visible={props.showingMenu}
       />
-      <NameWithIcon
+      <ConnectedNameWithIcon
         containerStyle={styles.flexOne}
         horizontal={true}
         teamname={props.teamname}
-        onClick={props.onClick}
+        onClick="profile"
         title={props.teamname}
         metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
       />
@@ -61,14 +61,13 @@ const _SmallTeamHeader = (props: SmallProps) => {
 const SmallTeamHeader = OverlayParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
-type BigProps = {
+type BigProps = {|
   canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
-  onClick: () => void,
   onEditChannel: () => void,
-}
+|}
 
 const EditBox = isMobile
   ? ClickableBox
@@ -81,7 +80,7 @@ const EditBox = isMobile
 
 const BigTeamHeader = (props: BigProps) => {
   return (
-    <Box className="header-row" style={styles.bigContainer}>
+    <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
       <Box style={styles.channelnameContainer}>
         <Text type="BodyBig">#{props.channelname}</Text>
         {props.canEditChannel && (
@@ -94,12 +93,11 @@ const BigTeamHeader = (props: BigProps) => {
         )}
       </Box>
       {!!props.description && <Markdown style={styles.description}>{props.description}</Markdown>}
-    </Box>
+    </Box2>
   )
 }
 
 const styles = styleSheetCreate({
-  bigContainer: {...globalStyles.flexBoxColumn, alignItems: 'stretch'},
   channelnameContainer: {
     alignSelf: 'center',
     marginTop: globalMargins.medium,

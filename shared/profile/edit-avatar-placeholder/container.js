@@ -1,9 +1,11 @@
 // @flow
 import EditAvatar from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 
-const mapStateToProps = (state: TypedState) => {
+type OwnProps = {||}
+
+const mapStateToProps = state => {
   const username = state.config.username
   if (!username) {
     throw new Error('Not logged in')
@@ -18,8 +20,12 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onAck: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(EditAvatar)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(EditAvatar)

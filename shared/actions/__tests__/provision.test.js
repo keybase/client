@@ -13,6 +13,7 @@ import {createStore, applyMiddleware} from 'redux'
 import rootReducer from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
+import appRouteTree from '../../app/routes-app'
 import {getPath as getRoutePath} from '../../route-tree'
 
 jest.mock('../../engine')
@@ -24,7 +25,7 @@ const noError = new HiddenString('')
 const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
   const {dispatch, getState, getRoutePath, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
   const mockIncomingCall = callMap[method]
   if (!mockIncomingCall) {
     throw new Error('No call')
@@ -70,7 +71,7 @@ const startReduxSaga = (initialStore = undefined) => {
 
   return {
     dispatch,
-    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState),
     getState,
     sagaMiddleware,
   }
@@ -78,35 +79,19 @@ const startReduxSaga = (initialStore = undefined) => {
 
 describe('provisioningManagerProvisioning', () => {
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
 
   it('cancels are correct', () => {
     const keys = ['keybase.1.gpgUi.selectKey', 'keybase.1.loginUi.getEmailOrUsername']
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
+      // $FlowIssue flow is correct in complaining here
+      callMap[k]((undefined: any), response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
-        code: RPCTypes.constantsStatusCode.scgeneric,
-        desc: Constants.cancelDesc,
+        code: RPCTypes.constantsStatusCode.scinputcanceled,
+        desc: 'Input canceled',
       })
-    })
-  })
-
-  it('ignores are correct', () => {
-    const keys = [
-      'keybase.1.loginUi.displayPrimaryPaperKey',
-      'keybase.1.provisionUi.ProvisioneeSuccess',
-      'keybase.1.provisionUi.ProvisionerSuccess',
-      'keybase.1.provisionUi.DisplaySecretExchanged',
-    ]
-    keys.forEach(k => {
-      const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
-      expect(response.result).not.toHaveBeenCalled()
-      expect(response.error).not.toHaveBeenCalled()
     })
   })
 })
@@ -140,6 +125,19 @@ describe('text code happy path', () => {
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString('')}))
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalled()
+  })
+
+  it('submit text code with spaces works', () => {
+    const {dispatch, response, getState} = init
+    dispatch(
+      ProvisionGen.createSubmitTextCode({
+        phrase: new HiddenString('   this   is a text   code\n\nthat works'),
+      })
+    )
+    const good = 'this is a text code that works'
+    expect(getState().provision.codePageOutgoingTextCode.stringValue()).toEqual(good)
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: good})
+    expect(response.error).not.toHaveBeenCalled()
   })
 
   it('submit text code', () => {
@@ -625,8 +623,8 @@ describe('canceling provision', () => {
     dispatch(RouteTree.navigateUp())
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
-      code: RPCTypes.constantsStatusCode.scgeneric,
-      desc: Constants.cancelDesc,
+      code: RPCTypes.constantsStatusCode.scinputcanceled,
+      desc: 'Input canceled',
     })
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
@@ -676,17 +674,38 @@ describe('final errors show', () => {
   it('shows the final error page', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
     const error = new RPCError('something bad happened', 1, [])
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toBeTruthy()
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'error']))
   })
 
   it('ignore cancel', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
-    const error = new RPCError(Constants.cancelDesc, RPCTypes.constantsStatusCode.scgeneric)
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toEqual(null)
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
+  })
+
+  it('shows the final error page (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTree.switchRouteDef(appRouteTree))
+    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
+    const error = new RPCError('something bad happened', 1, [])
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toBeTruthy()
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab, 'error']))
+  })
+
+  it('ignore cancel (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTree.switchRouteDef(appRouteTree))
+    dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toEqual(null)
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
   })
 })
 

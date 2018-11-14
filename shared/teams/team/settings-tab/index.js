@@ -124,7 +124,7 @@ const PublicityTeam = (props: SettingProps) =>
 
 const OpenTeam = (props: SettingProps) => {
   if (!props.yourOperations.changeOpenTeam) {
-    return
+    return null
   }
 
   const _onSetOpenTeamRole = props.onSetOpenTeamRole

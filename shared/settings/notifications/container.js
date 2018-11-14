@@ -1,12 +1,13 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
-import {connect, type TypedState, lifecycle, compose} from '../../util/container'
+import {connect, lifecycle, compose} from '../../util/container'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
 import * as ConfigGen from '../../actions/config-gen'
 
-const mapStateToProps = (state: TypedState, ownProps: {}) => ({
+type OwnProps = {||}
+const mapStateToProps = (state, ownProps: {}) => ({
   ...state.settings.notifications,
   mobileHasPermissions: state.push.hasPermissions,
   waitingForResponse: state.settings.waitingForResponse,
@@ -24,7 +25,11 @@ const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
 })
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onRefresh()

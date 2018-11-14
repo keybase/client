@@ -1,32 +1,39 @@
 // @flow
-
-import getenv from 'getenv'
 import {featureFlagsOverride} from '../local-debug.desktop'
 import type {FeatureFlags} from './feature-flags'
 
-// To enable a feature, include it in the environment variable KEYBASE_FEATURES.
-// For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
+if (process.env['KEYBASE_FEATURES']) {
+  console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
+}
 
-let features =
-  (featureFlagsOverride && featureFlagsOverride.split(',')) || getenv.array('KEYBASE_FEATURES', 'string', '')
+let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
 
 const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
+  chatIndexProfilingEnabled: false,
   explodingMessagesEnabled: true,
+  foldersInProfileTab: false,
+  moveOrCopy: false,
+  newTeamBuildingForChat: false,
+  outOfDateBanner: false,
   plansEnabled: false,
+  useSimpleMarkdown: false,
   walletsEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  chatIndexProfilingEnabled: true,
+  moveOrCopy: true,
+  useSimpleMarkdown: true,
   walletsEnabled: true,
 }
 
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && inAdmin[k])
+  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && !!inAdmin[k])
 })
 
 if (__DEV__) {

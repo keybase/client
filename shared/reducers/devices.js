@@ -27,6 +27,8 @@ export default function(
       return state.set('newPaperkey', action.payload.paperKey)
     case DevicesGen.revoked:
       return action.payload.wasCurrentDevice ? state.set('justRevokedSelf', action.payload.deviceName) : state
+    case DevicesGen.badgeAppForDevices:
+      return state.set('isNew', I.Set(action.payload.ids))
     case ProvisionGen.startProvision:
       return state.merge({justRevokedSelf: ''})
     // Saga only actions

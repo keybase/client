@@ -53,6 +53,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.openTeamAccessRequest(ctx, cli, item)
 	case "team.change":
 		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{})
+	case "team.force_repoll":
+		return true, r.gotForceRepoll(ctx, cli, item)
 	case "team.rename":
 		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{Renamed: true})
 	case "team.delete":
@@ -204,6 +206,11 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 	}
 
 	return nil
+}
+
+func (r *teamHandler) gotForceRepoll(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: gotForceRepoll received")
+	return teams.HandleForceRepollNotification(ctx, r.G(), item.DTime())
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, category string,

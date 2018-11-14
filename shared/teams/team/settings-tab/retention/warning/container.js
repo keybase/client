@@ -1,8 +1,8 @@
 // @flow
-import {connect, compose, withStateHandlers, type TypedState} from '../../../../../util/container'
+import {connect, compose, withStateHandlers} from '../../../../../util/container'
 import RetentionWarning from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   return {
     days: routeProps.get('days'),
     entityType: routeProps.get('entityType'),
@@ -25,6 +25,10 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 )(RetentionWarning)

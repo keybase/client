@@ -21,8 +21,8 @@ type _UpdateDebugConfigPayload = $ReadOnly<{|
 |}>
 
 // Action Creators
-export const createDebugCount = (payload: _DebugCountPayload) => ({error: false, payload, type: debugCount})
-export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({error: false, payload, type: updateDebugConfig})
+export const createDebugCount = (payload: _DebugCountPayload) => ({payload, type: debugCount})
+export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload) => ({payload, type: updateDebugConfig})
 
 // Action Payloads
 export type DebugCountPayload = $Call<typeof createDebugCount, _DebugCountPayload>

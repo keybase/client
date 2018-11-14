@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
@@ -56,6 +57,12 @@ const (
 )
 
 type PGPFingerprint [PGPFingerprintLen]byte
+
+func ImportPGPFingerprint(f keybase1.PGPFingerprint) PGPFingerprint {
+	var ret PGPFingerprint
+	copy(ret[:], f[:])
+	return ret
+}
 
 func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
@@ -585,9 +592,9 @@ func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
-		err = BadKeyError{"PGP key material should be unencrypted"}
+		err = kbcrypto.BadKeyError{Msg: "PGP key material should be unencrypted"}
 	} else if !FindPGPPrivateKey(k) && k.GPGFallbackKey == nil {
-		err = BadKeyError{"no private key material or GPGKey"}
+		err = kbcrypto.BadKeyError{Msg: "no private key material or GPGKey"}
 	}
 	return
 }
@@ -599,7 +606,7 @@ func (k *PGPKeyBundle) CanSign() bool {
 func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 
 	prefix := []byte{
-		byte(KeybaseKIDV1),
+		byte(kbcrypto.KeybaseKIDV1),
 		byte(k.PrimaryKey.PubKeyAlgo),
 	}
 
@@ -620,7 +627,7 @@ func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 	sum := sha256.Sum256(buf.Bytes()[hdrBytes:])
 
 	out := append(prefix, sum[:]...)
-	out = append(out, byte(IDSuffixKID))
+	out = append(out, byte(kbcrypto.IDSuffixKID))
 
 	return keybase1.BinaryKID(out)
 }
@@ -629,8 +636,8 @@ func (k *PGPKeyBundle) GetKID() keybase1.KID {
 	return k.GetBinaryKID().ToKID()
 }
 
-func (k PGPKeyBundle) GetAlgoType() AlgoType {
-	return AlgoType(k.PrimaryKey.PubKeyAlgo)
+func (k PGPKeyBundle) GetAlgoType() kbcrypto.AlgoType {
+	return kbcrypto.AlgoType(k.PrimaryKey.PubKeyAlgo)
 }
 
 func (k PGPKeyBundle) KeyDescription() string {
@@ -771,9 +778,9 @@ func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (i
 	return
 }
 
-func IsPGPAlgo(algo AlgoType) bool {
+func IsPGPAlgo(algo kbcrypto.AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase, KIDPGPEddsa:
+	case kbcrypto.KIDPGPRsa, kbcrypto.KIDPGPElgamal, kbcrypto.KIDPGPDsa, kbcrypto.KIDPGPEcdh, kbcrypto.KIDPGPEcdsa, kbcrypto.KIDPGPBase, kbcrypto.KIDPGPEddsa:
 		return true
 	}
 	return false

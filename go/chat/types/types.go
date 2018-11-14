@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -69,6 +70,7 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 }
 
 type RemoteConversationMetadata struct {
+	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
 	SnippetDecoration string   `codec:"d"`
@@ -132,6 +134,7 @@ func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
 
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
+	Query        *chat1.GetThreadQuery
 	Pagination   *chat1.Pagination
 	Priority     ConvLoaderPriority
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
@@ -145,15 +148,30 @@ func (j ConvLoaderJob) String() string {
 	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination, priority ConvLoaderPriority,
 	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
+		Query:        query,
 		Pagination:   pagination,
 		Priority:     priority,
 		PostLoadHook: postLoadHook,
 	}
 }
+
+type AsyncInboxResult struct {
+	Conv      chat1.Conversation
+	ConvLocal chat1.ConversationLocal
+	InboxRes  *Inbox // set if we are returning the whole inbox
+}
+
+type ConversationLocalizerTyp int
+
+const (
+	ConversationLocalizerBlocking ConversationLocalizerTyp = iota
+	ConversationLocalizerNonblocking
+)
 
 type AttachmentUploaderTaskStatus int
 
@@ -207,6 +225,76 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 	return ""
 }
 
+func (d DummyAttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset) string {
+	return ""
+}
+
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
+
+type DummyStellarLoader struct{}
+
+func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+	return nil
+}
+
+func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+	return nil
+}
+
+type DummyEphemeralPurger struct{}
+
+func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+
+type DummyIndexer struct{}
+
+func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
+	return nil, nil
+}
+func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
+	return nil, nil
+}
+
+type DummyNativeVideoHelper struct{}
+
+func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	return nil, 0, nil
+}
+
+type UnfurlerTaskStatus int
+
+const (
+	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
+	UnfurlerTaskStatusSuccess
+	UnfurlerTaskStatusFailed
+)
+
+type DummyUnfurler struct{}
+
+func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) {
+}
+func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error) {
+	return UnfurlerTaskStatusFailed, nil, nil
+}
+func (d DummyUnfurler) Retry(ctx context.Context, outboxID chat1.OutboxID)    {}
+func (d DummyUnfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {}

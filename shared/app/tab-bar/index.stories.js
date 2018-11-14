@@ -6,6 +6,7 @@ import {globalStyles, platformStyles} from '../../styles'
 import TabBarRender from '.'
 
 const defaultProps = {
+  isNew: {},
   onTabClick: Sb.action('onTabClick'),
   selectedTab: 'tabs:chatTab',
   username: 'nathunsmitty',
@@ -35,7 +36,6 @@ const containerStyle = platformStyles({
     ...globalStyles.flexBoxRow,
   },
   isMobile: {
-    marginTop: 40, // Avoid the notch on iPhoneX
     ...globalStyles.flexBoxColumn,
   },
 })
@@ -49,6 +49,7 @@ const load = () => {
     .add('With a badge', () => (
       <TabBarRender {...defaultProps} badgeNumbers={{...defaultProps.badgeNumbers, 'tabs:chatTab': 6}} />
     ))
+    .add('With a NEW tag', () => <TabBarRender {...defaultProps} isNew={{'tabs:chatTab': true}} />)
 }
 
 export default load

@@ -1,11 +1,10 @@
 // @flow
-import React from 'react'
-import {Text} from '../common-adapters'
-import {storiesOf} from '../stories/storybook'
 import asset from './asset/index.stories'
 import banner from './banner/index.stories'
 import common from './common/index.stories'
+import createAccount from './create-account/index.stories'
 import linkExisting from './link-existing/index.stories'
+import onboarding from './onboarding/index.stories'
 import sendForm from './send-form/index.stories'
 import confirmForm from './confirm-form/index.stories'
 import receiveModal from './receive-modal/index.stories'
@@ -19,8 +18,10 @@ const load = () => {
   asset()
   banner()
   common()
+  createAccount()
   exportSecretKey()
   linkExisting()
+  onboarding()
   receiveModal()
   sendForm()
   confirmForm()
@@ -28,11 +29,6 @@ const load = () => {
   wallet()
   transaction()
   transactionDetails()
-
-  /* Still TODO */
-  storiesOf('Wallets', module).add('Wallet Onboarding', () => (
-    <Text type="BodyBig">Wallet Onboarding TBD</Text>
-  ))
 }
 
 export default load

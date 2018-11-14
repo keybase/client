@@ -1,27 +1,27 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
+import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
@@ -61,8 +61,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onDownload: () =>
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onEdit: () =>
@@ -96,7 +95,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
       ownProps.message.downloadPath &&
-      dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: ownProps.message.downloadPath}))
   },
 })
 
@@ -155,7 +154,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ExplodingPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ExplodingPopup'
 )(Exploding)

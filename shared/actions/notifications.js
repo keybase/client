@@ -2,7 +2,7 @@
 import * as Constants from '../constants/notifications'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
-import * as WalletsGen from './wallets-gen'
+import * as FsGen from './fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import {getEngine} from '../engine'
@@ -22,7 +22,9 @@ const setupEngineListeners = () => {
     ephemeral: false,
     favorites: false,
     kbfs: true,
-    kbfsrequest: !isMobile,
+    kbfsdesktop: !isMobile,
+    kbfsrequest: false,
+    kbfslegacy: false,
     keyfamily: false,
     paperkeys: false,
     pgp: true,
@@ -43,19 +45,20 @@ const setupEngineListeners = () => {
     })
   })
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}) =>
-    NotificationsGen.createReceivedBadgeState({badgeState})
-  )
-
-  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', refreshPayments)
-  getEngine().setIncomingActionCreators('stellar.1.notify.paymentStatusNotification', refreshPayments)
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
+      Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
+  })
 }
 
-const refreshPayments = ({accountID}) => WalletsGen.createRefreshPayments({accountID})
-
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const payload = Constants.badgeStateToBadges(action.payload.badgeState, state)
-  return payload ? Saga.put(NotificationsGen.createSetAppBadgeState(payload)) : null
+  const payload = Constants.badgeStateToBadgeCounts(action.payload.badgeState, state)
+  return Saga.all([
+    ...(payload ? [Saga.put(NotificationsGen.createSetBadgeCounts(payload))] : []),
+    ...(Constants.shouldTriggerTlfLoad(action.payload.badgeState)
+      ? [Saga.put(FsGen.createFavoritesLoad())]
+      : []),
+  ])
 }
 
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {

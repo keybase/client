@@ -41,10 +41,13 @@ npm-debug.log
 yarn-error.log
 shared/coverage
 shared/node_modules
+shared/.static-storybook
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
+# Storybook
+shared/.cache
 
 Keybase.app.dSYM.zip
 

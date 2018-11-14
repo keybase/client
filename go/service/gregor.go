@@ -696,8 +696,8 @@ func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token 
 
 func (g *gregorHandler) inboxParams(ctx context.Context, uid gregor1.UID) chat1.InboxVers {
 	// Grab current on disk version
-	ibox := chatstorage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := chatstorage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		g.chatLog.Debug(ctx, "inboxParams: failed to get current inbox version (using 0): %s",
 			err.Error())
@@ -1224,8 +1224,6 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 
 	switch obm.System().String() {
-	case "kbfs.favorites":
-		return g.kbfsFavorites(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1256,37 +1254,6 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
 	return g.resetGregorClient(context.TODO())
-}
-
-func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
-	if m.Body() == nil {
-		return errors.New("gregor handler for kbfs.favorites: nil message body")
-	}
-	body, err := jsonw.Unmarshal(m.Body().Bytes())
-	if err != nil {
-		return err
-	}
-
-	action, err := body.AtPath("action").GetString()
-	if err != nil {
-		return err
-	}
-
-	switch action {
-	case "create", "delete":
-		return g.notifyFavoritesChanged(ctx, m.UID())
-	default:
-		return fmt.Errorf("unhandled kbfs.favorites action %q", action)
-	}
-}
-
-func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.UID) error {
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
-	if err != nil {
-		return err
-	}
-	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
-	return nil
 }
 
 type loggedInRes int
@@ -1412,10 +1379,11 @@ func (g *gregorHandler) pingLoop() {
 		id, duration, timeout, url.Host)
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
 
+	ticker := time.NewTicker(duration)
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.G().Clock().After(duration):
+		case <-ticker.C:
 			var err error
 
 			doneCh := make(chan error)
@@ -1435,6 +1403,7 @@ func (g *gregorHandler) pingLoop() {
 					// library
 					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
 					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
 				}
 				select {
 				case <-ctx.Done():
@@ -1563,7 +1532,8 @@ func (g *gregorHandler) connectTLS() error {
 	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
+		logger.LogOutputWithDepthAdder{Logger: g.G().Log},
+		rpc.DefaultMaxFrameLength, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not

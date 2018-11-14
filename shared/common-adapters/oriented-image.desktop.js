@@ -39,7 +39,7 @@ const transformMap: {[orientation: string]: TransformFn} = {
   },
   '3': (canvas, ctx, width, height) => {
     ctx.translate(width, height)
-    ctx.rotate(180 * Math.PI / 180)
+    ctx.rotate((180 * Math.PI) / 180)
   },
   '4': (canvas, ctx, width, height) => {
     ctx.translate(0, height)
@@ -48,19 +48,19 @@ const transformMap: {[orientation: string]: TransformFn} = {
   '5': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(90 * Math.PI / 180)
+    ctx.rotate((90 * Math.PI) / 180)
     ctx.scale(1, -1)
   },
   '6': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(90 * Math.PI / 180)
+    ctx.rotate((90 * Math.PI) / 180)
     ctx.translate(0, -height)
   },
   '7': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(-90 * Math.PI / 180)
+    ctx.rotate((-90 * Math.PI) / 180)
     ctx.translate(-width, height)
     ctx.scale(1, -1)
   },
@@ -68,7 +68,7 @@ const transformMap: {[orientation: string]: TransformFn} = {
     canvas.width = height
     canvas.height = width
     ctx.translate(0, width)
-    ctx.rotate(-90 * Math.PI / 180)
+    ctx.rotate((-90 * Math.PI) / 180)
   },
 }
 
@@ -171,7 +171,11 @@ class OrientedImage extends React.Component<Props, State> {
       // EXIF.readFromBinaryFile takes an ArrayBuffer
       const data = fs.readFileSync(src)
       const tags = EXIF.readFromBinaryFile(data.buffer)
-      tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
+      if (tags) {
+        resolve(tags['Orientation'])
+      } else {
+        reject(new Error('EXIF failed to read exif data'))
+      }
     })
   }
 

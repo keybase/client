@@ -3,7 +3,9 @@ package stellar
 import (
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
@@ -14,7 +16,8 @@ import (
 // Methods should err on the side of performance rather at the cost of serialization.
 // CORE-8119: But they don't yet.
 type BuildPaymentCache interface {
-	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (bool, error)
+	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (own bool, primary bool, err error)
+	PrimaryAccount(libkb.MetaContext) (stellar1.AccountID, error)
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
 	AccountSeqno(libkb.MetaContext, stellar1.AccountID) (string, error)
@@ -25,12 +28,8 @@ type BuildPaymentCache interface {
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
 }
 
-func GetBuildPaymentCache(mctx libkb.MetaContext, remoter remote.Remoter) BuildPaymentCache {
-	// CORE-8119: attach an instance to G and use that.
-	// CORE-8119: delete it when a logout occurs.
-	return &buildPaymentCache{
-		remoter: remoter,
-	}
+func GetBuildPaymentCache(mctx libkb.MetaContext) BuildPaymentCache {
+	return getGlobal(mctx.G()).getBuildPaymentCache()
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -39,11 +38,29 @@ func GetBuildPaymentCache(mctx libkb.MetaContext, remoter remote.Remoter) BuildP
 type buildPaymentCache struct {
 	sync.Mutex
 	remoter remote.Remoter
+
+	lookupRecipientLocktab libkb.LockTable
+	lookupRecipientCache   *lru.Cache
+}
+
+func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
+	lookupRecipientCache, err := lru.New(50)
+	if err != nil {
+		panic(err)
+	}
+	return &buildPaymentCache{
+		remoter:              remoter,
+		lookupRecipientCache: lookupRecipientCache,
+	}
 }
 
 func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, error) {
+	accountID stellar1.AccountID) (bool, bool, error) {
 	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
+}
+
+func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
+	return GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
 }
 
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
@@ -57,11 +74,36 @@ func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
 	return isAccountFunded(mctx.Ctx(), c.remoter, accountID)
 }
 
+type lookupRecipientCacheEntry struct {
+	Recipient stellarcommon.Recipient
+	Time      time.Time
+}
+
 func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
-	// CORE-8119: Will delegating to stellar.LookupRecipient be too slow?
-	// CORE-8119: Will it do identifies?
-	return LookupRecipient(mctx, to, false /* isCLI */)
+	lock := c.lookupRecipientLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), string(to))
+	defer lock.Release(mctx.Ctx())
+	if val, ok := c.lookupRecipientCache.Get(to); ok {
+		if entry, ok := val.(lookupRecipientCacheEntry); ok {
+			if mctx.G().GetClock().Now().Sub(entry.Time) <= time.Minute {
+				// Cache hit
+				mctx.CDebugf("bpc.LookupRecipient cache hit")
+				return entry.Recipient, nil
+			}
+		} else {
+			mctx.CDebugf("bpc.LookupRecipient bad cached type: %T", val)
+		}
+		c.lookupRecipientCache.Remove(to)
+	}
+	res, err = LookupRecipient(mctx, to, false /* isCLI */)
+	if err != nil {
+		return res, err
+	}
+	c.lookupRecipientCache.Add(to, lookupRecipientCacheEntry{
+		Time:      time.Now().Round(0),
+		Recipient: res,
+	})
+	return res, nil
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,

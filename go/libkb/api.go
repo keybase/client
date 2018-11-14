@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -330,7 +331,14 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	if wantJSONRes {
-		reader := newCountingReader(internalResp.Body)
+		var buf bytes.Buffer
+		bodyTee := io.TeeReader(internalResp.Body, &buf)
+		err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(bodyTee))
+		if err != nil {
+			return nil, finisher, nil, err
+		}
+
+		reader := newCountingReader(&buf)
 		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
@@ -422,6 +430,12 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	// check to see if the current context is canceled
+	select {
+	case <-m.Ctx().Done():
+		return nil, nil, m.Ctx().Err()
+	default:
+	}
 	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
@@ -662,11 +676,24 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	if ast.Code == SCBadSession {
-		return BadSessionError{"server rejected session; is your device revoked?"}
-	}
+	return appStatusToTypedError(ast)
+}
 
-	return NewAppStatusError(ast)
+func appStatusToTypedError(ast *AppStatus) error {
+	switch ast.Code {
+	case SCBadSession:
+		return BadSessionError{"server rejected session; is your device revoked?"}
+	case SCFeatureFlag:
+		var feature Feature
+		if ast.Fields != nil {
+			if tmp, ok := ast.Fields["feature"]; ok {
+				feature = Feature(tmp)
+			}
+		}
+		return NewFeatureFlagError(ast.Desc, feature)
+	default:
+		return NewAppStatusError(ast)
+	}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -936,20 +963,30 @@ func (api *ExternalAPIEngine) DoRequest(
 func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
-	var url1 *url.URL
-	var req *http.Request
-	url1, err = url.Parse(arg.Endpoint)
-
+	url1, err := url.Parse(arg.Endpoint)
 	if err != nil {
-		return
+		return nil, nil, nil, err
 	}
-	req, err = api.PrepareGet(*url1, arg)
-	if err != nil {
-		return
+	// If the specified endpoint has any query parameters attached, add them to
+	// the uArgs.
+	if arg.uArgs == nil {
+		arg.uArgs = url1.Query()
+	} else {
+		for k, v := range url1.Query() {
+			if _, ok := arg.uArgs[k]; ok {
+				arg.uArgs[k] = append(arg.uArgs[k], v...)
+			} else {
+				arg.uArgs[k] = v
+			}
+		}
 	}
 
-	ar, hr, tr, err = api.DoRequest(arg, req, restype)
-	return
+	req, err := api.PrepareGet(*url1, arg)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return api.DoRequest(arg, req, restype)
 }
 
 func (api *ExternalAPIEngine) Get(arg APIArg) (res *ExternalAPIRes, err error) {

@@ -5,11 +5,16 @@ import * as Constants from '../../constants/provision'
 import HiddenString from '../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import * as WaitingConstants from '../../constants/waiting'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|
+  ...$Exact<RouteProps<{}, {}>>,
+  prompt: string,
+  username: ?string,
+  waitingForResponse: boolean,
+|}
 
 type State = {
   showTyping: boolean,
@@ -61,7 +66,7 @@ class _Passphrase extends Component<Props, State> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
@@ -73,4 +78,8 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(_Passphrase)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(_Passphrase)

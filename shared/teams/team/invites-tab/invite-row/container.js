@@ -2,21 +2,21 @@
 import * as TeamsGen from '../../../../actions/teams-gen'
 import {getTeamInvites, getTeamMembers} from '../../../../constants/teams'
 import {TeamInviteRow} from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
 type OwnProps = {
   id: string,
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {teamname, id}: OwnProps) => {
+const mapStateToProps = (state, {teamname, id}: OwnProps) => {
   return {
     _invites: getTeamInvites(state, teamname),
     _members: getTeamMembers(state, teamname),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onCancelInvite: ({email, teamname, username, inviteID}) => {
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, inviteID, teamname, username}))
   },
@@ -59,4 +59,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamInviteRow)

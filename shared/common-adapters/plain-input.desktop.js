@@ -2,9 +2,11 @@
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
+import {pick} from 'lodash-es'
+import logger from '../logger'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {InternalProps, TextInfo} from './plain-input'
+import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -20,6 +22,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
     this._input = ref
   }
+
+  // This is controlled if a value prop is passed
+  _controlled = () => typeof this.props.value === 'string'
 
   _onChange = ({target: {value = ''}}) => {
     this.props.onChangeText && this.props.onChangeText(value)
@@ -57,7 +62,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     } else {
       // see if we went back down in height
       if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-        this._smartAutoresize.pivotLength = -1
+        this._smartAutoresize.pivotLength = value.length
         n.style.height = '1px'
         n.style.height = `${n.scrollHeight}px`
       }
@@ -73,6 +78,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+    if (this._controlled()) {
+      const errMsg =
+        'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -93,6 +104,28 @@ class PlainInput extends React.PureComponent<InternalProps> {
       }
 
       this._autoResize()
+    }
+  }
+
+  getSelection = () => {
+    const n = this._input
+    if (n) {
+      return {start: n.selectionStart, end: n.selectionEnd}
+    }
+    return null
+  }
+
+  setSelection = (s: Selection) => {
+    if (!this._controlled()) {
+      const errMsg =
+        'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
+    const n = this._input
+    if (n) {
+      n.selectionStart = s.start
+      n.selectionEnd = s.end
     }
   }
 
@@ -129,6 +162,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _getCommonProps = () => {
     let commonProps: any = {
+      ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
@@ -144,9 +178,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
     if (this.props.disabled) {
       commonProps.readOnly = 'readonly'
-    }
-    if (this.props.maxLength) {
-      commonProps.maxlength = this.props.maxLength
     }
     return commonProps
   }

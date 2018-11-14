@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/teams'
@@ -12,7 +12,7 @@ export type OwnProps = {
   teamname: Types.Teamname,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _you: state.config.username,
@@ -59,4 +59,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamHeader)

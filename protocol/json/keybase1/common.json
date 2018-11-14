@@ -91,6 +91,12 @@
     },
     {
       "type": "record",
+      "name": "PhoneNumber",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "LinkID",
       "fields": [],
       "typedef": "string"
@@ -226,6 +232,7 @@
       "type": "enum",
       "name": "SeqType",
       "symbols": [
+        "NONE_0",
         "PUBLIC_1",
         "PRIVATE_2",
         "SEMIPRIVATE_3"
@@ -677,22 +684,7 @@
           "name": "service"
         }
       ],
-      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. Resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user."
-    },
-    {
-      "type": "record",
-      "name": "UserResolution",
-      "fields": [
-        {
-          "type": "SocialAssertion",
-          "name": "assertion"
-        },
-        {
-          "type": "UID",
-          "name": "userID"
-        }
-      ],
-      "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. It can either be a social\n    assertion (like \"facebook\" or \"twitter\") or a server trust assertion (like\n    \"phone\" or \"email\").\n\n    If the assertion is for social network, resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user.\n\n    For server trust assertion, we have to trust the server."
     },
     {
       "type": "record",
@@ -754,6 +746,24 @@
         {
           "type": "int",
           "name": "y1"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PhoneLookupResult",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime"
         }
       ]
     }

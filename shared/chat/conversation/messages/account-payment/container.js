@@ -1,27 +1,47 @@
 // @flow
-import * as React from 'react'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as WalletTypes from '../../../../constants/types/wallets'
+import * as Tabs from '../../../../constants/tabs'
+import * as SettingsTabs from '../../../../constants/settings'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as Route from '../../../../actions/route-tree-gen'
-import * as Styles from '../../../../styles'
-import HiddenString from '../../../../util/hidden-string'
-import AccountPayment, {type Props as AccountPaymentProps} from '.'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
-  _defaultAccountID: WalletTypes.noAccountID,
-  _request: WalletConstants.makeRequest(),
+  _paymentID: null,
   action: '',
   amount: '',
   balanceChange: '',
   balanceChangeColor: '',
+  cancelButtonInfo: '',
+  cancelButtonLabel: '',
+  canceled: false,
+  claimButtonLabel: '',
   icon: 'iconfont-stellar-send',
   loading: true,
   memo: '',
   pending: false,
+}
+
+// Info text for cancelable payments
+const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
+
+// Get action phrase for sendPayment msg
+const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
+  switch (status) {
+    case 'pending':
+      return 'sending'
+    case 'canceled': // fallthrough
+    case 'cancelable':
+      return youAreSender ? 'sending' : 'attempting to send'
+    default:
+      return 'sent'
+  }
 }
 
 type OwnProps = {
@@ -29,59 +49,75 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const common = {
-    _defaultAccountID: WalletConstants.getDefaultAccountID(state),
-    _request: WalletConstants.makeRequest(),
-  }
+  const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
+  const you = state.config.username
+  const youAreSender = ownProps.message.author === you
   switch (ownProps.message.type) {
     case 'sendPayment': {
-      const {paymentInfo} = ownProps.message
+      const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
       if (!paymentInfo) {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
+
+      // find the other participant's username
+      const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+      const theirUsername = conv.participants.find(p => p !== you) || ''
+
+      const cancelable = paymentInfo.status === 'cancelable'
+      const pending = cancelable || paymentInfo.status === 'pending'
+      const canceled = paymentInfo.status === 'canceled'
+      const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
       return {
-        ...common,
-        action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
+        _paymentID: paymentInfo.paymentID,
+        action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
-        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
-        balanceChangeColor:
-          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
-        icon: 'iconfont-stellar-send',
+        balanceChange: `${WalletConstants.balanceChangeSign(
+          paymentInfo.delta,
+          paymentInfo.amountDescription
+        )}`,
+        balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
+        cancelButtonInfo: youAreSender && cancelable ? makeCancelButtonInfo(theirUsername) : '',
+        cancelButtonLabel: youAreSender && cancelable ? 'Cancel' : '',
+        canceled,
+        claimButtonLabel:
+          !youAreSender && cancelable && !acceptedDisclaimer
+            ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''} ${paymentInfo.worth ||
+                paymentInfo.amountDescription}`
+            : '',
+        icon: pending ? 'iconfont-clock' : 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note.stringValue(),
-        pending: paymentInfo.status === 'pending',
+        pending: pending || canceled,
         sendButtonLabel: '',
       }
     }
     case 'requestPayment': {
-      const message: Types.MessageRequestPayment = ownProps.message
-      const requestID = ownProps.message.requestID
-      const request = WalletConstants.getRequest(state, requestID)
-      if (!request) {
+      const message = ownProps.message
+      const requestInfo = Constants.getRequestMessageInfo(state, message)
+      if (!requestInfo) {
+        // waiting for service to load it
         return loadingProps
       }
-      common._request = request
-      const sendProps =
-        ownProps.message.author === state.config.username
-          ? {}
-          : {
-              sendButtonLabel: `Send${request.asset === 'currency' ? ' lumens worth ' : ' '}${
-                request.amountDescription
-              }`,
-            }
-
       return {
-        ...common,
-        ...sendProps,
-        action: request.asset === 'currency' ? 'requested lumens worth' : 'requested',
-        amount: request.amountDescription,
+        _paymentID: null,
+        action: requestInfo.asset === 'currency' ? 'requested Lumens worth' : 'requested',
+        amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
+        cancelButtonInfo: '',
+        cancelButtonLabel: '',
+        canceled: false, // TODO
+        claimButtonLabel: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: message.note,
+        memo: message.note.stringValue(),
         pending: false,
+        sendButtonLabel: youAreSender
+          ? ''
+          : `Send${requestInfo.asset === 'currency' ? ' Lumens worth ' : ' '}${
+              requestInfo.amountDescription
+            }`,
       }
     }
     default:
@@ -89,26 +125,19 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onSend: (details: ?WalletTypes.Request, defaultAccountID: ?WalletTypes.AccountID) => {
-    if (details && defaultAccountID && ownProps.message.type === 'requestPayment') {
-      const message = ownProps.message
-      if (details.currencyCode) {
-        dispatch(WalletsGen.createSetBuildingCurrency({currency: details.currencyCode}))
-      }
-      dispatch(WalletsGen.createSetBuildingAmount({amount: details.amount}))
-      dispatch(WalletsGen.createSetBuildingFrom({from: defaultAccountID || ''}))
-      dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-      dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
-      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)}))
-      dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
+const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
+  _onCancel: (paymentID: ?WalletTypes.PaymentID) => {
+    if (paymentID) {
+      dispatch(WalletsGen.createCancelPayment({paymentID}))
     }
   },
-  loadTxData: () => {
-    if (ownProps.message.type === 'requestPayment') {
-      dispatch(WalletsGen.createLoadRequestDetail({requestID: ownProps.message.requestID}))
-    }
-  },
+  onClaim: () =>
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+      })
+    ),
+  onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -116,32 +145,23 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   amount: stateProps.amount,
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
+  cancelButtonInfo: stateProps.cancelButtonInfo,
+  cancelButtonLabel: stateProps.cancelButtonLabel,
+  canceled: stateProps.canceled,
+  claimButtonLabel: stateProps.claimButtonLabel,
   icon: stateProps.icon,
-  loadTxData: dispatchProps.loadTxData,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onSend: () => dispatchProps._onSend(stateProps._request, stateProps._defaultAccountID),
+  onCancel: () => dispatchProps._onCancel(stateProps._paymentID),
+  onClaim: dispatchProps.onClaim,
+  onSend: dispatchProps.onSend,
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
 
-type LoadCalls = {|
-  loadTxData: () => void,
-|}
-
-class LoadWrapper extends React.Component<{...AccountPaymentProps, ...LoadCalls}> {
-  componentDidMount() {
-    if (this.props.loading) {
-      this.props.loadTxData()
-    }
-  }
-  render() {
-    const {loadTxData, ...passThroughProps} = this.props
-    return <AccountPayment {...passThroughProps} />
-  }
-}
-
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  LoadWrapper
-)
+const ConnectedAccountPayment = Container.connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(AccountPayment)
 export default ConnectedAccountPayment

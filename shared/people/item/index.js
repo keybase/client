@@ -2,30 +2,8 @@
 import * as React from 'react'
 import {Box, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
-import moment from 'moment'
 import {isMobile} from '../../constants/platform'
-
-// Update moment locale for relative time strings
-moment.locale('shortTime', {
-  relativeTime: {
-    future: 'in %s',
-    past: '%s ago',
-    s: 'now',
-    ss: '%ds',
-    m: '1m',
-    mm: '%dm',
-    h: '1h',
-    hh: '%dh',
-    d: '1d',
-    dd: '%dd',
-    M: '1mo',
-    MM: '%dmo',
-    y: '1y',
-    yy: '%dy',
-  },
-})
-const formatter = moment()
-moment.locale('en')
+import {formatTimeForPeopleItem} from '../../util/timestamp'
 
 export type Props = {
   badged: boolean,
@@ -53,9 +31,7 @@ export default (props: Props) => (
       {props.children}
     </Box>
     <Box style={timestampContainerStyle}>
-      {!!props.when && (
-        <Text type="BodySmall">{formatter.set(moment(props.when).toObject()).fromNow(true)}</Text>
-      )}
+      {!!props.when && <Text type="BodySmall">{formatTimeForPeopleItem(props.when.getTime())}</Text>}
       {props.badged && <Box style={badgeStyle} />}
     </Box>
   </Box>

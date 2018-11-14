@@ -312,160 +312,6 @@
     },
     {
       "type": "record",
-      "name": "AssetMetadataImage",
-      "fields": [
-        {
-          "type": "int",
-          "name": "width"
-        },
-        {
-          "type": "int",
-          "name": "height"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AssetMetadataVideo",
-      "fields": [
-        {
-          "type": "int",
-          "name": "width"
-        },
-        {
-          "type": "int",
-          "name": "height"
-        },
-        {
-          "type": "int",
-          "name": "durationMs"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AssetMetadataAudio",
-      "fields": [
-        {
-          "type": "int",
-          "name": "durationMs"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "AssetMetadataType",
-      "symbols": [
-        "NONE_0",
-        "IMAGE_1",
-        "VIDEO_2",
-        "AUDIO_3"
-      ],
-      "go": "nostring"
-    },
-    {
-      "type": "variant",
-      "name": "AssetMetadata",
-      "switch": {
-        "type": "AssetMetadataType",
-        "name": "assetType"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "IMAGE",
-            "def": false
-          },
-          "body": "AssetMetadataImage"
-        },
-        {
-          "label": {
-            "name": "VIDEO",
-            "def": false
-          },
-          "body": "AssetMetadataVideo"
-        },
-        {
-          "label": {
-            "name": "AUDIO",
-            "def": false
-          },
-          "body": "AssetMetadataAudio"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "AssetTag",
-      "symbols": [
-        "PRIMARY_0"
-      ],
-      "go": "nostring"
-    },
-    {
-      "type": "record",
-      "name": "Asset",
-      "fields": [
-        {
-          "type": "string",
-          "name": "filename"
-        },
-        {
-          "type": "string",
-          "name": "region"
-        },
-        {
-          "type": "string",
-          "name": "endpoint"
-        },
-        {
-          "type": "string",
-          "name": "bucket"
-        },
-        {
-          "type": "string",
-          "name": "path"
-        },
-        {
-          "type": "long",
-          "name": "size"
-        },
-        {
-          "type": "string",
-          "name": "mimeType"
-        },
-        {
-          "type": "Hash",
-          "name": "encHash"
-        },
-        {
-          "type": "bytes",
-          "name": "key"
-        },
-        {
-          "type": "bytes",
-          "name": "verifyKey"
-        },
-        {
-          "type": "string",
-          "name": "title"
-        },
-        {
-          "type": "bytes",
-          "name": "nonce"
-        },
-        {
-          "type": "AssetMetadata",
-          "name": "metadata"
-        },
-        {
-          "type": "AssetTag",
-          "name": "tag"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "MessageAttachment",
       "fields": [
         {
@@ -574,6 +420,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageUnfurl",
+      "fields": [
+        {
+          "type": "Unfurl",
+          "name": "unfurl"
+        },
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -678,6 +538,13 @@
             "def": false
           },
           "body": "MessageRequestPayment"
+        },
+        {
+          "label": {
+            "name": "UNFURL",
+            "def": false
+          },
+          "body": "MessageUnfurl"
         }
       ]
     },
@@ -1122,6 +989,13 @@
         {
           "type": "MessageBody",
           "name": "messageBody"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "supersedesOutboxID"
         }
       ]
     },
@@ -1210,6 +1084,13 @@
         {
           "type": "ReactionMap",
           "name": "reactions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Unfurl"
+          },
+          "name": "unfurls"
         }
       ]
     },
@@ -1737,6 +1618,10 @@
           "name": "enableDeletePlaceholders"
         },
         {
+          "type": "boolean",
+          "name": "disablePostProcessThread"
+        },
+        {
           "type": [
             null,
             "gregor1.Time"
@@ -2062,6 +1947,26 @@
     },
     {
       "type": "record",
+      "name": "EditTarget",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "messageID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetConversationStatusLocalRes",
       "fields": [
         {
@@ -2320,8 +2225,67 @@
     },
     {
       "type": "record",
+      "name": "GetNextAttachmentMessageLocalRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UIMessage"
+          ],
+          "name": "message"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DownloadAttachmentLocalRes",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadFileAttachmentLocalRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
         {
           "type": "boolean",
           "name": "offline"
@@ -2347,7 +2311,8 @@
       "name": "PreviewLocationTyp",
       "symbols": [
         "URL_0",
-        "FILE_1"
+        "FILE_1",
+        "BYTES_2"
       ]
     },
     {
@@ -2371,6 +2336,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "BYTES",
+            "def": false
+          },
+          "body": "bytes"
         }
       ]
     },
@@ -2555,7 +2527,7 @@
     },
     {
       "type": "record",
-      "name": "GetSearchRegexpRes",
+      "name": "SearchRegexpRes",
       "fields": [
         {
           "type": {
@@ -2577,6 +2549,55 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchInboxRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ChatSearchInboxResults"
+          ],
+          "name": "res"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProfileSearchConvStats",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numMessages"
+        },
+        {
+          "type": "int",
+          "name": "indexSize"
+        },
+        {
+          "type": "gregor1.DurationMsec",
+          "name": "durationMsec"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
         }
       ]
     },
@@ -2923,8 +2944,8 @@
           "type": "boolean"
         },
         {
-          "name": "supersedes",
-          "type": "MessageID"
+          "name": "target",
+          "type": "EditTarget"
         },
         {
           "name": "body",
@@ -3310,6 +3331,13 @@
           "type": "keybase1.TLFVisibility"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "clientPrev",
           "type": "MessageID"
         },
@@ -3379,6 +3407,34 @@
       ],
       "response": null
     },
+    "getNextAttachmentMessageLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageID",
+          "type": "MessageID"
+        },
+        {
+          "name": "backInTime",
+          "type": "boolean"
+        },
+        {
+          "name": "assetTypes",
+          "type": {
+            "type": "array",
+            "items": "AssetMetadataType"
+          }
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetNextAttachmentMessageLocalRes"
+    },
     "DownloadAttachmentLocal": {
       "request": [
         {
@@ -3436,7 +3492,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes",
+      "response": "DownloadFileAttachmentLocalRes",
       "lint": "ignore"
     },
     "makePreview": {
@@ -3455,6 +3511,36 @@
         }
       ],
       "response": "MakePreviewRes"
+    },
+    "getUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "makeUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "response": "string"
     },
     "CancelPost": {
       "request": [
@@ -3773,14 +3859,14 @@
       ],
       "response": null
     },
-    "getSearchRegexp": {
+    "searchRegexp": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "conversationID",
+          "name": "convID",
           "type": "ConversationID"
         },
         {
@@ -3792,31 +3878,49 @@
           "type": "boolean"
         },
         {
-          "name": "sentBy",
-          "type": "string"
-        },
-        {
-          "name": "maxHits",
-          "type": "int"
-        },
-        {
-          "name": "maxMessages",
-          "type": "int"
-        },
-        {
-          "name": "beforeContext",
-          "type": "int"
-        },
-        {
-          "name": "afterContext",
-          "type": "int"
+          "name": "opts",
+          "type": "SearchOpts"
         },
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetSearchRegexpRes"
+      "response": "SearchRegexpRes"
+    },
+    "searchInbox": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "SearchOpts"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "SearchInboxRes"
+    },
+    "profileChatSearch": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "ProfileSearchConvStats",
+        "keys": "string"
+      }
     },
     "getStaticConfig": {
       "request": [],

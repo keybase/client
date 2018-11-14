@@ -81,9 +81,73 @@ protocol proveCommon {
     // Reserved (in line with keybase/proofs) but not yet implemented.
     // BITBUCKET_7,
     FACEBOOK_8,
+    GENERIC_SOCIAL_9,
     GENERIC_WEB_SITE_1000,
     DNS_1001,
     PGP_1002,
     ROOTER_100001
+  }
+
+  record SelectorEntry {
+    // Exactly one of Is* is true
+    boolean isIndex;
+    int index;
+    boolean isKey;
+    string key;
+    boolean isAll;
+    boolean isContents;
+  }
+
+  record ParamProofJSON {
+    @jsonkey("sig_hash")
+    SigID sigHash;
+    @jsonkey("kb_username")
+    string kbUsername;
+  }
+
+  record ParamProofUsernameConfig {
+    string re;
+    int min;
+    int max;
+  }
+
+  record ParamProofLogoConfig {
+    string url;
+    @jsonkey("fa_icon")
+    string faIcon;
+  }
+
+  record ParamProofServiceConfig {
+    int version;
+    string domain;
+    @jsonkey("display_name")
+    string displayName;
+    union { null, ParamProofLogoConfig} logo;
+    string description;
+    @jsonkey("username")
+    ParamProofUsernameConfig usernameConfig;
+    @jsonkey("brand_color")
+    string brandColor;
+    @jsonkey("prefill_url")
+    string prefillUrl;
+    @jsonkey("profile_url")
+    string profileUrl;
+    @jsonkey("check_url")
+    string checkUrl;
+    @jsonkey("check_path")
+    array<SelectorEntry> checkPath;
+  }
+
+  record ServiceDisplayConfig {
+    int priority;
+    string key;
+    union { null, string } group;
+  }
+
+  record ExternalServiceConfig {
+    @jsonkey("schema_version")
+    int schemaVersion;
+    union { null, ServiceDisplayConfig } display;
+    union { null, ParamProofServiceConfig } config;
   }
 }

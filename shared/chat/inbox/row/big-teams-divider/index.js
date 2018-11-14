@@ -23,8 +23,6 @@ const DividerBox = glamorous(Box)({
     ? {backgroundColor: globalColors.fastBlank}
     : {
         ':hover': {
-          borderBottomColor: globalColors.black_10,
-          borderTopColor: globalColors.black_10,
           color: globalColors.black_40,
         },
         color: globalColors.black_20,
@@ -62,9 +60,9 @@ const styles = styleSheetCreate({
   container: platformStyles({
     isElectron: {
       ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.blueGrey,
+      backgroundColor: globalColors.blue5,
       flexShrink: 0,
-      height: 32,
+      height: 40,
       top: undefined,
     },
     isMobile: {
@@ -78,7 +76,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
     justifyContent: 'center',
-    marginTop: isMobile ? globalMargins.tiny : 0,
+    marginTop: isMobile ? globalMargins.tiny : globalMargins.xtiny,
   },
 })
 

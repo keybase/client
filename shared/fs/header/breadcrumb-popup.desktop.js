@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemIcon} from '../common'
 
 type Props = {
   items: Array<Types.PathBreadcrumbItem>,
@@ -29,10 +29,10 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
     </ClickableBox>
     <FloatingMenu
       containerStyle={stylePopup}
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      items={props.items.reverse().map(({onClick, name, iconSpec}) => ({
+      items={props.items.map(({onClick, name, iconSpec}) => ({
         onClick,
         title: name,
         view: (

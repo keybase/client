@@ -1,17 +1,10 @@
 // @flow
-import * as I from 'immutable'
-import {isEqualWith} from 'lodash-es'
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
+import type {RouteProps} from '../route-tree/render-route'
 
-const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
-  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
-)
-
-const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
-
-const NullComponent = () => null
+export const NullComponent = () => null
+export const actionHasError = (a: Object) => !!a.error
 
 type TypedDispatch = (action: TypedActions) => void
 type Dispatch = TypedDispatch
@@ -31,17 +24,8 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
-export {default as createCachedSelector} from 're-reselect'
-export {default as connect} from './typed-connect'
+export {default as connect, namedConnect} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
-export {
-  createShallowEqualSelector,
-  createImmutableEqualSelector,
-  createSelector,
-  createSelectorCreator,
-  defaultMemoize,
-  NullComponent,
-}
 export {isMobile} from '../constants/platform'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export type {TypedActions, TypedState, TypedDispatch, Dispatch}
+export type {RouteProps, TypedActions, TypedState, TypedDispatch, Dispatch}

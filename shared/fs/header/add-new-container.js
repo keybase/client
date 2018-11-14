@@ -2,11 +2,11 @@
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
-import {compose, setDisplayName, connect, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import AddNew from './add-new'
 import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {path}) => ({
+const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
@@ -44,8 +44,5 @@ const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload},
   }
 }
 
-export default compose(
-  // $FlowIssue @jzila
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedAddNew')
-)(AddNew)
+// $FlowIssue @jzila
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedAddNew')(AddNew)

@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
+	"github.com/keybase/client/go/jsonparserw"
+	pkgerrors "github.com/pkg/errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -93,6 +96,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	highSkip                           *HighSkip
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
@@ -108,7 +112,7 @@ type ChainLinkUnpacked struct {
 	typ                                string
 	proofText                          string
 	outerLinkV2                        *OuterLinkV2WithMetadata
-	sigVersion                         int
+	sigVersion                         SigVersion // what the server hints is the sig version (must be verified)
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 	payloadHash                        []byte
@@ -122,10 +126,22 @@ type ChainLinkUnpacked struct {
 const badAkalin = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
 const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
 const badDens = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
+const badAjar = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
+
+const akalin = keybase1.UID("ebbe1d99410ab70123262cf8dfc87900")
+const jamGregory = keybase1.UID("e8767e19a3ed9c7350847b7b040de319")
+const dens = keybase1.UID("ca9e948f6f7a4a19e02058ad626f6c19")
+const ajar = keybase1.UID("d1d94b3131e493dfee738802843f7719")
+
+type SpecialChainLink struct {
+	UID    keybase1.UID
+	Seqno  keybase1.Seqno
+	Reason string
+}
 
 // A map from SigIDs of bad chain links that should be ignored to the
 // reasons why they're ignored.
-var badChainLinks = map[keybase1.SigID]string{
+var badChainLinks = map[keybase1.LinkID]SpecialChainLink{
 	// Links 22-25 of akalin's sigchain, which was accidentally
 	// added by an old client in development on 3/23/2015, 9:02am.
 	// Links 17-19 of jamGregory's sigchain, which referred to a corrupted
@@ -133,83 +149,90 @@ var badChainLinks = map[keybase1.SigID]string{
 	// Link 8 of dens's sigchain is to a revoked PGP key, which wasn't
 	// properly checked for on the server side.
 	// See: https://github.com/keybase/client/issues/4754
-	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": fmt.Sprintf(badAkalin, 22),
-	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": fmt.Sprintf(badAkalin, 23),
-	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": fmt.Sprintf(badAkalin, 24),
-	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": fmt.Sprintf(badAkalin, 25),
-	"1171fb8def065ecd8e053b042d7f162520de4b0bef853da7580e0668707770250f": fmt.Sprintf(badJamGregory, 17),
-	"e66998426a3bdba3b75aaec84d1fa75494061114abe9983da4e4495821a7ecf40f": fmt.Sprintf(badJamGregory, 18),
-	"bb92cc0c57bf99764b56ab54dbf489527c2744154706c07acd03007dcd7001480f": fmt.Sprintf(badJamGregory, 19),
-	"355e098e9e686dfa4758e25d56c7da58558fae2b281a2c8bcca9ed895f23767a0f": badDens,
+	// Link 98 of ajar's sigchain is a PGP update with a broken PGP key,
+	// that doesn't have a valid cross-sig on a signing key. It was a server
+	// bug to allow it be uploaded.
+	"694ed7166cee72449964e97bcd4be58243877718425c4dc655d2d80832bd5cdf": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(22), Reason: fmt.Sprintf(badAkalin, 22)},
+	"27bc88059a768a82b1a21dcc1c46f7fc61c2d2b80c445eb2d18fed3a5bb42e49": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(23), Reason: fmt.Sprintf(badAkalin, 23)},
+	"12b594e44d9289349283f8b14a6f83ad144a17a3025a758e17d4eca70fbdc923": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(24), Reason: fmt.Sprintf(badAkalin, 24)},
+	"ce162011e380c954de15f30db28f8b7b358866d2721143d9d0d4424166ce5ed8": SpecialChainLink{UID: akalin, Seqno: keybase1.Seqno(25), Reason: fmt.Sprintf(badAkalin, 25)},
+	"bf914e6d4cf9b4eb7c88c2a8a6f5650e969ade9a97cf1605c1eb8cae97d5d278": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(17), Reason: fmt.Sprintf(badJamGregory, 17)},
+	"e56f492c1b519905d04ce51368e87794963906dd6dacb63fbeab7ad23596af29": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(18), Reason: fmt.Sprintf(badJamGregory, 18)},
+	"51e46dad8b71a1a7204368f9cb4931257a32eed92cf3b97a08190c12912739dd": SpecialChainLink{UID: jamGregory, Seqno: keybase1.Seqno(19), Reason: fmt.Sprintf(badJamGregory, 19)},
+	"6d527d776cb28ea980c6e0474286fe745377e116fd5d07b44928d165ae4b7c97": SpecialChainLink{UID: dens, Seqno: keybase1.Seqno(8), Reason: badDens},
+	"9b3b3a3d973449ca3238bf59b7407186dc80242b917c158cba5e374595257dd0": SpecialChainLink{UID: ajar, Seqno: keybase1.Seqno(98), Reason: badAjar},
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
 // hash in subsequent chainlinks.  Caused by bad code on 15 Sep 2015.
 const whitespaceIssue20150915 = "Bad whitespace stripping on 15 Sep 2015"
 
-var badWhitespaceChainLinks = map[keybase1.SigID]string{
-	"595a73fc649c2c8ccc1aa79384e0b3e7ab3049d8df838f75ef0edbcb5bbc42990f": whitespaceIssue20150915,
-	"e256078702afd7a15a24681259935b48342a49840ab6a90291b300961669790f0f": whitespaceIssue20150915,
-	"30831001edee5e01c3b5f5850043f9ef7749a1ed8624dc703ae0922e1d0f16dd0f": whitespaceIssue20150915,
-	"88e6c581dbccbf390559bcb30ca21548ba0ec4861ec2d666217bd4ed4a4a8c3f0f": whitespaceIssue20150915,
-	"4db0fe3973b3a666c7830fcb39d93282f8bc414eca1d535033a5cc625eabda0c0f": whitespaceIssue20150915,
-	"9ba23a9a1796fb22b3c938f1edf5aba4ca5be7959d9151895eb6aa7a8d8ade420f": whitespaceIssue20150915,
-	"df0005f6c61bd6efd2867b320013800781f7f047e83fd44d484c2cb2616f019f0f": whitespaceIssue20150915,
-	"a32692af33e559e00a40aa3bb4004744d2c1083112468ed1c8040eaacd15c6eb0f": whitespaceIssue20150915,
-	"3e61901f50508aba72f12740fda2be488571afc51d718d845e339e5d1d1b531d0f": whitespaceIssue20150915,
-	"de43758b653b3383aca640a96c7890458eadd35242e8f8531f29b606890a14ea0f": whitespaceIssue20150915,
-	"b9ee3b46c97d48742a73e35494d3a373602460609e3c6c54a553fc4d83b659e40f": whitespaceIssue20150915,
-	"0ff29c1d036c3f4841f3f485e28d77351abb3eeeb52d2f8d802fd15e383d9a5f0f": whitespaceIssue20150915,
-	"eb1a13c6b6e42bb7470e222b51d36144a25ffc4fbc0b32e9a1ec11f059001bc80f": whitespaceIssue20150915,
-	"9c189d6d644bad9596f78519d870a685624f813afc1d0e49155073d3b0521f970f": whitespaceIssue20150915,
-	"aea7c8f7726871714e777ac730e77e1905a38e9587f9504b739ff9b77ef2d5cc0f": whitespaceIssue20150915,
-	"ac6e225b8324c1fcbe814382e198495bea801dfeb56cb22b9e89066cc52ab03b0f": whitespaceIssue20150915,
-	"3034e8b7d75861fc28a478b4992a8592b5478d4cbc7b87150d0b59573d731d870f": whitespaceIssue20150915,
-	"140f1b7b7ba32f34ad6302d0ed78692cf1564760d78c082965dc3b8b5f7e27f10f": whitespaceIssue20150915,
-	"833f27edcf54cc489795df1dc7d9f0cbea8253e1b84f5e82749a7a2a4ffc295c0f": whitespaceIssue20150915,
-	"110a64513b4188eca2af6406a8a6dbf278dfce324b8879b5cb67e8626ff2af180f": whitespaceIssue20150915,
-	"3042dbe45383b0c2eafe13a73da35c4e721be026d7908dfcef6eb121d95b75b10f": whitespaceIssue20150915,
-	"50ba350ddc388f7c6fdba032a7d283e4caa0ca656f92f69257213222dd7deeaf0f": whitespaceIssue20150915,
-	"803854b4074d668e1761ee9c533c0fc576bd0404cf26ff7545e14512f3b9002f0f": whitespaceIssue20150915,
-	"2e08f0b9566e15fa1f9e67b236e5385cdb38d57ff51d7ab3e568532867c9f8890f": whitespaceIssue20150915,
-	"cb97f4b62f2e817e8db8c6193440214ad20f906571e4851db186869f0b4c0e310f": whitespaceIssue20150915,
-	"a5c4a30d1eaaf752df424bf813c5a907a5cf94fd371e280d39e0a3d078310fba0f": whitespaceIssue20150915,
-	"c7d26afbc1957ecca890d8d9001a9cc4863490161720ad76a2aedeb8c2d50df70f": whitespaceIssue20150915,
-	"b385c0c76d790aba156ff68fd571171fc7cb85f75e7fc9d1561d7960d8875acb0f": whitespaceIssue20150915,
-	"47d349b8bb3c8457449390ca2ed5e489a70ad511ab3edb4c7f0af27eed8c65d30f": whitespaceIssue20150915,
-	"2785b24acd6869e1e7d38a91793af549f3c35cd0729127d200b66f8c0ffba59b0f": whitespaceIssue20150915,
-	"503df567f98cf5910ba44cb95e157e656afe95d159a15c7df4e88ac6016c948f0f": whitespaceIssue20150915,
-	"2892863758cdaf9796fb36e2466093762efda94e74eb51e3ab9d6bec54064b8a0f": whitespaceIssue20150915,
-	"e1d60584995e677254f7d913b3f40060b5500241d6de0c5822ba1282acc5e08b0f": whitespaceIssue20150915,
-	"031b506b705926ea962e59046bfe1720dcf72c85310502020e2ae836b294fcde0f": whitespaceIssue20150915,
-	"1454fec21489f17a6d78927af1c9dca4209360c6ef6bfa569d8b62d32e668ea30f": whitespaceIssue20150915,
-	"ba68052597a3782f64079d7d9ec821ea9785c0868e44b597a04c9cd8bf634c1e0f": whitespaceIssue20150915,
-	"db8d59151b2f78c82c095c9545f1e4d39947a0c0bcc01b907e0ace14517d39970f": whitespaceIssue20150915,
-	"e088beccfee26c5df39239023d1e4e0cbcd63fd50d0bdc4bf2c2ba25ef1a8fe40f": whitespaceIssue20150915,
-	"8182f385c347fe57d3c46fe40e8df0e2d6cabdac38f490417b313050249be9dc0f": whitespaceIssue20150915,
-	"2415e1c77b0815661452ea683e366c6d9dfd2008a7dbc907004c3a33e56cf6190f": whitespaceIssue20150915,
-	"44847743878bd56f5cd74980475e8f4e95d0d6ec1dd8722fd7cfc7761698ec780f": whitespaceIssue20150915,
-	"70c4026afec66312456b6820492b7936bff42b58ca7a035729462700677ef4190f": whitespaceIssue20150915,
-	"7591a920a5050de28faad24b5fe3336f658b964e0e64464b70878bfcf04537420f": whitespaceIssue20150915,
-	"10a45e10ff2585b03b9b5bc449cb1a7a44fbb7fcf25565286cb2d969ad9b89ae0f": whitespaceIssue20150915,
-	"062e6799f211177023bc310fd6e4e28a8e2e18f972d9b037d24434a203aca7240f": whitespaceIssue20150915,
-	"db9a0afaab297048be0d44ffd6d89a3eb6a003256426d7fd87a60ab59880f8160f": whitespaceIssue20150915,
-	"58bf751ddd23065a820449701f8a1a0a46019e1c54612ea0867086dbd405589a0f": whitespaceIssue20150915,
+var badWhitespaceChainLinks = map[keybase1.LinkID]string{
+	"ac3ecaa2aa1d638867026f0c54a1d895777f366d02bfef37403275aa0d4f8322": whitespaceIssue20150915,
+	"94fde9d49c29cba59c949b35dd424de3a0daccf8a04ba443833e3328d495b9d8": whitespaceIssue20150915,
+	"b9f188d0c6638e3bef3dfc3476c04078bb2aef2a9249cc77b6f009692967388a": whitespaceIssue20150915,
+	"f5f324e91a94c073fdc936b50d56250133dc19415ae592d2c7cb99db9e980e1b": whitespaceIssue20150915,
+	"03fb1e2c0e61e3715c41515045d89d2f788dbcc7eb671b94ac12ee5f805bbe70": whitespaceIssue20150915,
+	"e449b1cd1d6f2a86a0f800c47e7d1ad26bbb6c76b983bd78154972c51f77e960": whitespaceIssue20150915,
+	"d380d18672da3c18f0804baf6b28f5efda76d64220a152c000f2b3f9af8b6603": whitespaceIssue20150915,
+	"5957f583bec18cc6f381355843c21f903fe47d584a9816e072f3f102f1f488be": whitespaceIssue20150915,
+	"2c11a140d8f231af6d69543474138a503191486ae6b5739892c5e0c6c0c4c348": whitespaceIssue20150915,
+	"6f3d73ddf575f2033a48268a564575e40edbb5111cc057984f51f463d4e8ed58": whitespaceIssue20150915,
+	"b23dfd34e58a814543e1f8368b9d07922abec213afca6d2b76722825794acffa": whitespaceIssue20150915,
+	"2efe839231d6b03f85ab3c542e870e7062329a8c5e384f1289b00be7c7afb8ab": whitespaceIssue20150915,
+	"18688c45cbe05ee2b72567acc696b3856f9876dff0ec3ea927ad7632a3f48fe6": whitespaceIssue20150915,
+	"2cf8b9ffa500089b6db873acbabdba771e8e897c0a899a01f8967a7280cfd0da": whitespaceIssue20150915,
+	"acf150b2d57a3aa65574bc2bb97e224413ce3f5344fd24fc7c3282da48cc2f3d": whitespaceIssue20150915,
+	"371f9ae63d56ec853fa53941e79d29abbb4cd11aa926715d354d18d687b0ca71": whitespaceIssue20150915,
+	"4948115615d7dceb90bcdd818f69b66b5899339a2b747b5e6dc0f6987abbcbd0": whitespaceIssue20150915,
+	"4c3f7855eb307aa5620962e15de84b2cfe3f728a9722c43906b12e0f3082cb87": whitespaceIssue20150915,
+	"9db59496652a1587ed56ec6ae15917b6d0ef4ac9a14dda97bfa4d2427a80e2b8": whitespaceIssue20150915,
+	"43f21601ffaeae70eca2f585949f42c67e85e93cf2a6847d6c20ffd81a9ff890": whitespaceIssue20150915,
+	"7560f896c19457365225f48be0217b8a00519f1daccefee4c097dd1b4594dd66": whitespaceIssue20150915,
+	"09527db7672bf23a9681ac86c70826cdc01ed1e467252a76ca4bf4ad0964efd7": whitespaceIssue20150915,
+	"3803be27ec0c61b3fdcd8b9b7c78de3df73766736ef00727267858d34a039c7d": whitespaceIssue20150915,
+	"740f9140a7901defaaaec10042722b30d2fee457337b7ae8e9de3b9fc05d109f": whitespaceIssue20150915,
+	"32f5dd2643eabf3828f7f03ccded07d8d8a29e352df6130c3a4232104398d819": whitespaceIssue20150915,
+	"7d97355e5917c5bcc14ba3a1994398b3fa36416768b663c1454069de84a4fca2": whitespaceIssue20150915,
+	"720b80b7c15cb9a3d21a2eec228bceb5db6f0ef54df2d0aef08aec5ed1632257": whitespaceIssue20150915,
+	"12c9203c98fe0b1c80a551f8933b2c870fcc3754a8ea05591e43a4d528fadc68": whitespaceIssue20150915,
+	"9644d4db6a4928ad1075a22b4473d1efa47c99a1a2a779450d4cd67d9115b9ba": whitespaceIssue20150915,
+	"605525686fef18180be692df6106c13dae39abb2799dc9e8bed1e2bb64e9b886": whitespaceIssue20150915,
+	"374f1da46fd8238ab9f288183cb78f3c6a59732f4b19705763c9d6ac356015ef": whitespaceIssue20150915,
+	"893567013c77f45755279bf1138fecbb54cd3a55bf5814504cf0406acbe4bfeb": whitespaceIssue20150915,
+	"3ca5ef6a6115a8a86d7d94cb3565f43f05f7975d66015455dd6cc32b73936177": whitespaceIssue20150915,
+	"3cdd165df44ba7f8331b89213f213dab36482ef513d023c5d2b0f6bfd11d5678": whitespaceIssue20150915,
+	"36328ab1cf15cc3dd2ba4c771ca1066b2d44714780ad8e83894611e2a2642003": whitespaceIssue20150915,
+	"61e9f4b437fccac8abd396acfc96b17558c9c355b57f4a5f2f3698e78f19532f": whitespaceIssue20150915,
+	"14ef90159164e19228ff21c909b764e239f27f0fff49f86414a2dde9b719845f": whitespaceIssue20150915,
+	"b74b420f49b771ec04e656101f86c9729cf328b0fd32f5082d04d3c39f8ccea7": whitespaceIssue20150915,
+	"7772c99774570202a2c5ac017eefc8296f613e64c8d4adff4ba7991b553431f5": whitespaceIssue20150915,
+	"d7ae76e4fdae7034b07e515d5684adcd51afea5a22b8520d2c61d31f5028fc6e": whitespaceIssue20150915,
+	"33a61f19c0ca52257214f97524ef10441cf85215ff171868f53561dfd7b14c81": whitespaceIssue20150915,
+	"616d9710b3a594ab00292d3d414e6e141929935a133bfa9a25ec4a155a403e5c": whitespaceIssue20150915,
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": whitespaceIssue20150915,
+	"9f8c0a29a6ba3a521db2cd4d3e2ae15223dbcd5d5d1201e33ebb2dee1b61342f": whitespaceIssue20150915,
+	"a9efa00bc479cb40ac0521749520f5a7a38a4ba4e698ee03355a85a8464b3840": whitespaceIssue20150915,
+	"f1509495f4f1d46e43dcdd341156b975f7ad19aefeb250a80fd2b236c517a891": whitespaceIssue20150915,
+	"da99975f9ae8cdeb9e3a42a1166617dbf6afbcf841919dcf05145a73a7026cc2": whitespaceIssue20150915,
 }
 
 type ChainLink struct {
 	Contextified
-	parent           *SigChain
-	id               LinkID
-	hashVerified     bool
-	sigVerified      bool
-	payloadVerified  bool
-	chainVerified    bool
-	storedLocally    bool
-	revoked          bool
-	unsigned         bool
-	dirty            bool
-	revocationsCache *[]keybase1.SigID
+	parent            *SigChain
+	id                LinkID
+	diskVersion       int
+	hashVerified      bool
+	sigVerified       bool
+	payloadVerified   bool
+	chainVerified     bool
+	highChainVerified bool
+	storedLocally     bool
+	revoked           bool
+	unsigned          bool
+	dirty             bool
+	revocationsCache  *[]keybase1.SigID
+	computedHighSkip  *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -218,11 +241,31 @@ type ChainLink struct {
 	isOwnNewLinkFromServer bool
 }
 
-// Returns whether or not this chain link is bad, and if so, what the
-// reason is.
-func (c *ChainLink) IsBad() (isBad bool, reason string) {
-	reason, isBad = badChainLinks[c.GetSigID()]
-	return isBad, reason
+// See NCC-KB2018-006
+func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
+	var scl SpecialChainLink
+
+	// The combination of hashVerified and chainVerified should ensure that this link
+	// is only considered here after all prevs have been successfully checked.
+	if !c.canTrustID() {
+		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v, diskVersion=%d)", why, c.id, uid, c.hashVerified, c.chainVerified, c.diskVersion)}
+	}
+
+	scl, found = tab[c.LinkID().Export()]
+	if !found {
+		return false, "", nil
+	}
+	if !c.GetSeqno().Eq(scl.Seqno) {
+		return false, "", NewChainLinkWrongSeqnoError(fmt.Sprintf("malicious bad link in from server has wrong seqno in %q check: %d != %d", why, c.GetSeqno(), scl.Seqno))
+	}
+	if !scl.UID.Equal(uid) {
+		return false, "", NewUIDMismatchError(fmt.Sprintf("malicious bad link from server in %q check; UID %s != %s", why, scl.UID, uid))
+	}
+	return true, scl.Reason, nil
+}
+
+func (c *ChainLink) IsBad() (isBad bool, reason string, err error) {
+	return c.checkSpecialLinksTable(badChainLinks, c.parent.uid, "bad chain links")
 }
 
 func (c *ChainLink) Parent() *SigChain {
@@ -250,6 +293,10 @@ func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() SigIgnoreIfUnsupported {
 
 func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
 	return c.getIgnoreIfUnsupportedFromPayload()
+}
+
+func (c *ChainLink) getHighSkipFromPayload() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -317,6 +364,12 @@ func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
 	}
 }
 
+const chainLinkDiskVersion = 1
+
+func (c *ChainLink) canTrustID() bool {
+	return c.hashVerified || (c.storedLocally && c.diskVersion < 2)
+}
+
 func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 	p := jsonw.NewDictionary()
 
@@ -324,7 +377,7 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 		p.SetKey("s2", jsonw.NewString(c.unpacked.outerLinkV2.EncodeStubbed()))
 	} else {
 		// store the payload for v2 links and local tracks
-		if c.unpacked.sigVersion == 2 {
+		if c.unpacked.sigVersion == KeybaseSignatureV2 {
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadV2)))
 		} else if len(c.unpacked.payloadLocal) > 0 {
 			p.SetKey("payload_json", jsonw.NewString(string(c.unpacked.payloadLocal)))
@@ -338,9 +391,12 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 			p.SetKey("fingerprint", jsonw.NewString(c.unpacked.pgpFingerprint.String()))
 		}
 		p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
+		p.SetKey("chain_verified", jsonw.NewBool(c.chainVerified))
+		p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
 		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
-		p.SetKey("sig_version", jsonw.NewInt(c.unpacked.sigVersion))
+		p.SetKey("sig_version", jsonw.NewInt(int(c.unpacked.sigVersion)))
 		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
+		p.SetKey("disk_version", jsonw.NewInt(chainLinkDiskVersion))
 	}
 
 	if c.cki != nil {
@@ -375,16 +431,16 @@ func (c *ChainLink) HasRevocations() bool {
 }
 
 func (tmp *ChainLinkUnpacked) HasRevocations(payload []byte) bool {
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "sig_id"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "sig_id"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "sig_ids", "[0]"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "sig_ids", "[0]"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "kid"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "kid"); err == nil {
 		return true
 	}
-	if _, _, _, err := jsonparser.Get(payload, "body", "revoke", "kids", "[0]"); err == nil {
+	if _, _, _, err := jsonparserw.Get(payload, "body", "revoke", "kids", "[0]"); err == nil {
 		return true
 	}
 	return false
@@ -406,13 +462,13 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		c.revocationsCache = &ret
 		return nil
 	}
-	if s, err := jsonparser.GetString(payload, "body", "revoke", "sig_id"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "revoke", "sig_id"); err == nil {
 		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
 			ret = append(ret, sigID)
 		}
 	}
 
-	jsonparser.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		if s, err := keybase1.SigIDFromString(string(value), true); err == nil {
 			ret = append(ret, s)
 		}
@@ -432,11 +488,11 @@ func (c *ChainLink) GetRevokeKids() []keybase1.KID {
 		return nil
 	}
 	var ret []keybase1.KID
-	if s, err := jsonparser.GetString(payload, "body", "revoke", "kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "revoke", "kid"); err == nil {
 		ret = append(ret, keybase1.KIDFromString(s))
 	}
 
-	jsonparser.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	jsonparserw.ArrayEach(payload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		ret = append(ret, keybase1.KIDFromString(string(value)))
 	}, "body", "revoke", "kids")
 
@@ -458,26 +514,87 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
-func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
-	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
+func getSigVersionFromPayload(payload []byte) (SigVersion, error) {
+	var err error
+	var i int64
+	if i, err = jsonparserw.GetInt(payload, "body", "version"); err != nil {
+		return KeybaseNullSigVersion, ChainLinkError{"link is missing a version field"}
+	}
+	return SigVersion(int(i)), nil
+}
+
+func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSkip, error) {
+	hs, dataType, _, err := jsonparserw.Get(payload, "high_skip")
+	// high_skip is optional, but must be an object if it exists
+	if err != nil {
+		switch pkgerrors.Cause(err) {
+		case jsonparser.KeyPathNotFoundError:
+			return nil, nil
+		default:
+			return nil, err
+		}
+	}
+
+	if dataType != jsonparser.Object {
+		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
+	}
+
+	highSkipSeqnoInt, err := jsonparserw.GetInt(hs, "seqno")
+	if err != nil {
+		return nil, err
+	}
+
+	// highSkipHash can either be null (zero-value of a LinkID) or a hexstring.
+	// We call GetString first instead of Get so we only parse the value
+	// twice for the first link.
+	highSkipHashStr, err := jsonparserw.GetString(hs, "hash")
+	var highSkipHash LinkID
+	if err != nil {
+		// If there was an error parsing as a string, make sure the value is null.
+		_, dataType, _, getErr := jsonparserw.Get(hs, "hash")
+		if getErr != nil {
+			return nil, getErr
+		}
+		if dataType != jsonparser.Null {
+			return nil, ChainLinkError{
+				fmt.Sprintf("high_skip.hash was neither a valid string (%v) nor null.", err.Error()),
+			}
+		}
+	} else {
+		highSkipHash, err = LinkIDFromHex(highSkipHashStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	highSkip := NewHighSkip(keybase1.Seqno(highSkipSeqnoInt), highSkipHash)
+	return &highSkip, nil
+}
+
+func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
+
+	if !IsJSONObject(payload) {
+		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
+	}
+
+	if s, err := jsonparserw.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
 			return err
 		}
 	}
-
-	if s, err := jsonparser.GetString(payload, "body", "key", "kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "key", "kid"); err == nil {
 		tmp.kid = keybase1.KIDFromString(s)
 	}
-	if s, err := jsonparser.GetString(payload, "body", "key", "eldest_kid"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "key", "eldest_kid"); err == nil {
 		tmp.eldestKID = keybase1.KIDFromString(s)
 	}
 
 	var err error
-	tmp.username, err = jsonparser.GetString(payload, "body", "key", "username")
+	tmp.username, err = jsonparserw.GetString(payload, "body", "key", "username")
 	if err != nil {
 		return err
 	}
-	suid, err := jsonparser.GetString(payload, "body", "key", "uid")
+	suid, err := jsonparserw.GetString(payload, "body", "key", "uid")
 	if err != nil {
 		return err
 	}
@@ -485,24 +602,30 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		return err
 	}
 
-	if prev, err := jsonparser.GetString(payload, "prev"); err == nil {
+	if prev, err := jsonparserw.GetString(payload, "prev"); err == nil {
 		tmp.prev, err = LinkIDFromHex(prev)
 		if err != nil {
 			return err
 		}
 	}
 
-	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
+	highSkip, err := tmp.parseHighSkipFromPayload(payload)
+	if err != nil {
+		return err
+	}
+	tmp.highSkip = highSkip
+
+	tmp.typ, err = jsonparserw.GetString(payload, "body", "type")
 	if err != nil {
 		return err
 	}
 
-	tmp.ctime, err = jsonparser.GetInt(payload, "ctime")
+	tmp.ctime, err = jsonparserw.GetInt(payload, "ctime")
 	if err != nil {
 		return err
 	}
 
-	seqno, err := jsonparser.GetInt(payload, "seqno")
+	seqno, err := jsonparserw.GetInt(payload, "seqno")
 	if err != nil {
 		return err
 	}
@@ -514,42 +637,42 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 	// Assume public unless its a number
 	tmp.seqType = keybase1.SeqType_PUBLIC
-	if seqTypeInt, err := jsonparser.GetInt(payload, "seq_type"); err == nil {
+	if seqTypeInt, err := jsonparserw.GetInt(payload, "seq_type"); err == nil {
 		tmp.seqType = keybase1.SeqType(seqTypeInt)
 	}
 
 	// Assume false if unsupported
 	tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(false)
-	if ignore, err := jsonparser.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
+	if ignore, err := jsonparserw.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
 		tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(ignore)
 	}
 
 	// Due to an earlier error, it's possible for the merkle root that we signed over
 	// to be in one of two places, so check both.
-	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
+	if i, err := jsonparserw.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
-	} else if i, err := jsonparser.GetInt(payload, "merkle_root", "seqno"); err == nil {
+	} else if i, err := jsonparserw.GetInt(payload, "merkle_root", "seqno"); err == nil {
 		tmp.merkleSeqno = keybase1.Seqno(i)
 	}
 
 	// Hash meta was only ever in the correct place (within body)
-	if s, err := jsonparser.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
+	if s, err := jsonparserw.GetString(payload, "body", "merkle_root", "hash_meta"); err == nil {
 		tmp.merkleHashMeta, err = keybase1.HashMetaFromString(s)
 		if err != nil {
 			return err
 		}
 	}
 
-	ei, err := jsonparser.GetInt(payload, "expire_in")
+	ei, err := jsonparserw.GetInt(payload, "expire_in")
 	if err != nil {
 		return err
 	}
 
 	tmp.etime = tmp.ctime + ei
 
-	tmp.payloadHash = fixAndHashPayload(g, payload, tmp.sigID)
+	tmp.payloadHash = fixAndHashPayload(g, payload, linkID)
 
-	if tmp.sigVersion == 2 {
+	if tmp.sigVersion == KeybaseSignatureV2 {
 		tmp.payloadV2 = payload
 	}
 
@@ -558,7 +681,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 
 func (c *ChainLink) UnpackLocal(payload []byte) (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(c.G(), payload)
+	err = tmp.unpackPayloadJSON(c.G(), payload, c.id)
 	if err == nil {
 		tmp.payloadLocal = payload
 		c.unpacked = &tmp
@@ -580,15 +703,6 @@ func (c *ChainLink) UnpackComputedKeyInfos(data []byte) error {
 	return nil
 }
 
-type chainLinkPacked struct {
-	SigID         keybase1.SigID `json:"sig_id"`
-	Sig           string         `json:"sig"`
-	SigVersion    int            `json:"sigVersion"`
-	PayloadJSON   string         `json:"payload_json"`
-	ProofTextFull string         `json:"proof_text_full"`
-	SigVerified   bool           `json:"sig_verified"`
-}
-
 func (c *ChainLink) unpackStubbed(raw string) error {
 	ol, err := DecodeStubbedOuterLinkV2(raw)
 	if err != nil {
@@ -604,11 +718,22 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	}
 
 	c.id = ol.LinkID()
+
+	// Because the outer link does not have a highSkip parent object, we check
+	// for the nullity of highSkipSeqno to see if highSkip should be set, since
+	// a null highSkipHash is valid when specifying highSkip=0.
+	var highSkipPtr *HighSkip
+	if ol.HighSkipSeqno != nil {
+		highSkip := NewHighSkip(*ol.HighSkipSeqno, *ol.HighSkipHash)
+		highSkipPtr = &highSkip
+	}
+
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,
 		seqno:               ol.Seqno,
 		seqType:             ol.SeqType,
 		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
+		highSkip:            highSkipPtr,
 		sigVersion:          ol.Version,
 		outerLinkV2:         ol,
 		stubbed:             true,
@@ -616,36 +741,34 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	return nil
 }
 
-func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) error {
-	if s, err := jsonparser.GetString(packed, "s2"); err == nil {
+func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, packed []byte) error {
+	if s, err := jsonparserw.GetString(packed, "s2"); err == nil {
 		return c.unpackStubbed(s)
 	}
 
 	tmp := ChainLinkUnpacked{}
-	s, err := jsonparser.GetString(packed, "sig_id")
-	if err != nil {
-		return err
-	}
-	tmp.sigID, err = keybase1.SigIDFromString(s, true)
-	if err != nil {
-		return err
-	}
-	tmp.sig, err = jsonparser.GetString(packed, "sig")
+	var err error
+	tmp.sig, err = jsonparserw.GetString(packed, "sig")
 	if err != nil {
 		return err
 	}
 
-	tmp.sigVersion = 1
-	if sv, err := jsonparser.GetInt(packed, "sig_version"); err == nil {
-		tmp.sigVersion = int(sv)
+	// Beware that this is server-untrusted data at this point. We'll have to check it
+	// before we can exit without error (see below).
+	tmp.sigVersion = KeybaseSignatureV1
+	if sv, err := jsonparserw.GetInt(packed, "sig_version"); err == nil {
+		tmp.sigVersion = SigVersion(int(sv))
+		if tmp.sigVersion != KeybaseSignatureV1 && tmp.sigVersion != KeybaseSignatureV2 {
+			return ChainLinkError{fmt.Sprintf("Bad sig_version: expected 1 or 2 but got %d", tmp.sigVersion)}
+		}
 	}
 
-	if i, err := jsonparser.GetInt(packed, "merkle_seqno"); err == nil {
+	if i, err := jsonparserw.GetInt(packed, "merkle_seqno"); err == nil {
 		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
 	}
 
 	var payload []byte
-	if trusted && tmp.sigVersion == 1 {
+	if trusted && tmp.sigVersion == KeybaseSignatureV1 {
 		// use payload from sig
 		payload, err = tmp.Payload()
 		if err != nil {
@@ -653,7 +776,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 		}
 	} else {
 		// use the payload in payload_json
-		data, _, _, err := jsonparser.Get(packed, "payload_json")
+		data, _, _, err := jsonparserw.Get(packed, "payload_json")
 		if err != nil {
 			return err
 		}
@@ -665,33 +788,37 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 		}
 		payload = []byte(sdata)
 
-		if tmp.sigVersion == 1 {
+		if tmp.sigVersion == KeybaseSignatureV1 {
 			// check that payload_json matches payload in sig
 			sigPayload, err := tmp.Payload()
 			if err != nil {
 				return err
 			}
 
-			payloadFixed := c.fixPayload(payload, tmp.sigID)
+			payloadFixed := c.fixPayload(payload, c.id)
 
 			if !FastByteArrayEq(payloadFixed, sigPayload) {
 				return ChainLinkError{"sig payload does not match payload_json"}
 			}
-
-			// mark the payload verified so verification can be skipped in the future
-			c.markPayloadVerified(tmp.sigID)
 		}
 	}
 
 	// unpack the payload
-	if err := tmp.unpackPayloadJSON(c.G(), payload); err != nil {
-		c.G().Log.Debug("unpack payload json err: %s", err)
+	if err := tmp.unpackPayloadJSON(c.G(), payload, c.id); err != nil {
+		m.CDebugf("unpack payload json err: %s", err)
+		return err
+	}
+
+	// We previously took the server's word on what version we wanted, but now
+	// we're going to check that it matches what we actually sign over -- what's
+	// in the JSON payload. If it doesn't match, the we error out right here.
+	if err := tmp.assertPayloadSigVersionMatchesHint(payload); err != nil {
 		return err
 	}
 
 	var sigKID, serverKID, payloadKID keybase1.KID
 
-	if tmp.sigVersion == 2 {
+	if tmp.sigVersion == KeybaseSignatureV2 {
 		var ol2 *OuterLinkV2WithMetadata
 		ol2, err = DecodeOuterLinkV2(tmp.sig)
 		if err != nil {
@@ -707,7 +834,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 
 	payloadKID = tmp.kid
 
-	if kid, err := jsonparser.GetString(packed, "kid"); err == nil {
+	if kid, err := jsonparserw.GetString(packed, "kid"); err == nil {
 		serverKID = keybase1.KIDFromString(kid)
 	}
 
@@ -739,12 +866,12 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 		tmp.kid = serverKID
 	}
 
-	// Note, we can still can in a situation in which don't know any kids!
+	// Note, we can still be in a situation in which don't know any kids!
 	// That would be bad *if* we need to verify the signature for this link.
 
 	// only unpack the proof_text_full if owner of this link
 	if tmp.uid.Equal(selfUID) {
-		if pt, err := jsonparser.GetString(packed, "proof_text_full"); err == nil {
+		if pt, err := jsonparserw.GetString(packed, "proof_text_full"); err == nil {
 			tmp.proofText = pt
 		}
 	}
@@ -754,15 +881,45 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	// IF we're loaded from *trusted* storage, like our local
 	// DB, then we can skip verification later
 	if trusted {
-		if b, err := jsonparser.GetBoolean(packed, "sig_verified"); err == nil && b {
+		if b, err := jsonparserw.GetBoolean(packed, "sig_verified"); err == nil && b {
 			c.sigVerified = true
-			c.G().VDL.Log(VLog1, "| Link is marked as 'sig_verified'")
-			if ckidata, _, _, err := jsonparser.Get(packed, "computed_key_infos"); err == nil {
+			m.VLogf(VLog1, "| Link is marked as 'sig_verified'")
+			if ckidata, _, _, err := jsonparserw.Get(packed, "computed_key_infos"); err == nil {
 				if uerr := c.UnpackComputedKeyInfos(ckidata); uerr != nil {
-					c.G().Log.Warning("Problem unpacking computed key infos: %s", uerr)
+					m.CWarningf("Problem unpacking computed key infos: %s", uerr)
 				}
 			}
 		}
+		if b, err := jsonparserw.GetBoolean(packed, "hash_verified"); err == nil && b {
+			c.hashVerified = true
+		}
+		if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
+			c.chainVerified = true
+		}
+		if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
+			c.diskVersion = int(i)
+		}
+
+		// It is not acceptable to digest sig_id from the server, but we do derive it
+		// as we unpack the server reply (see VerifyLink), and it is acceptable to
+		// read it out of a locally-stored chainlink. Note this field is required,
+		// and if we don't have it, there has been a major problem.
+		s, err := jsonparserw.GetString(packed, "sig_id")
+		if err != nil {
+			return err
+		}
+		c.unpacked.sigID, err = keybase1.SigIDFromString(s, true)
+		if err != nil {
+			return err
+		}
+	}
+
+	// sigID is set as a side effect of verifying the link. Make sure we do that
+	// on the way out of this function, before we return success. But it's not
+	// needed in the cased of a stubbed V2 link.
+	err = c.VerifyLink()
+	if err != nil {
+		return err
 	}
 
 	c.G().VDL.Log(VLog1, "| Unpacked Link %s", c.id)
@@ -778,16 +935,27 @@ func (tmp *ChainLinkUnpacked) Payload() ([]byte, error) {
 	}
 
 	switch tmp.sigVersion {
-	case 1:
+	case KeybaseSignatureV1:
 		// v1 links have the payload inside the sig
 		sigPayload, _, _, err := SigExtractPayloadAndKID(tmp.sig)
 		return sigPayload, err
-	case 2:
+	case KeybaseSignatureV2:
 		// v2 links have the payload in ChainLinkUnpacked
 		return tmp.payloadV2, nil
 	default:
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", tmp.sigVersion)}
 	}
+}
+
+func (tmp *ChainLinkUnpacked) assertPayloadSigVersionMatchesHint(payload []byte) error {
+	payloadVersion, err := getSigVersionFromPayload(payload)
+	if err != nil {
+		return err
+	}
+	if tmp.sigVersion != payloadVersion {
+		return ChainLinkError{msg: fmt.Sprintf("Big sigchain version hint from server: %d != %d", tmp.sigVersion, payloadVersion)}
+	}
+	return nil
 }
 
 func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
@@ -853,6 +1021,11 @@ func (c *ChainLink) verifyHashV1() error {
 	return nil
 }
 
+func (c *ChainLink) markChainVerified() {
+	c.chainVerified = true
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.chainVerified = true })
+}
+
 // getFixedPayload usually just returns c.unpacked.Payload(), but sometimes
 // it adds extra whitespace to work around server-side bugs.
 func (c ChainLink) getFixedPayload() []byte {
@@ -860,13 +1033,13 @@ func (c ChainLink) getFixedPayload() []byte {
 	if err != nil {
 		return nil
 	}
-	return c.fixPayload(payload, c.unpacked.sigID)
+	return c.fixPayload(payload, c.id)
 }
 
-func (c *ChainLink) fixPayload(payload []byte, sigID keybase1.SigID) []byte {
-	if s, ok := badWhitespaceChainLinks[sigID]; ok {
+func (c *ChainLink) fixPayload(payload []byte, linkID LinkID) []byte {
+	if s, ok := badWhitespaceChainLinks[linkID.Export()]; ok {
 		if payload[len(payload)-1] != '\n' {
-			c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", sigID, s)
+			c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", linkID.Export(), s)
 
 			// Careful not to mutate the passed in payload via append. So make
 			// a copy first.
@@ -883,12 +1056,12 @@ func (c *ChainLink) fixPayload(payload []byte, sigID keybase1.SigID) []byte {
 // fixAndHashPayload does the inverse of ChainLink#fixPayload. It strips off a trailing
 // newline for buggy signature payloads, and then computes the hash of the result. This is
 // necessary now that we are computing chain link IDs from signature bodies.
-func fixAndHashPayload(g *GlobalContext, payload []byte, sigID keybase1.SigID) []byte {
+func fixAndHashPayload(g *GlobalContext, payload []byte, linkID LinkID) []byte {
 	toHash := payload
-	if s, ok := badWhitespaceChainLinks[sigID]; ok {
+	if s, ok := badWhitespaceChainLinks[linkID.Export()]; ok {
 		last := len(payload) - 1
 		if payload[last] == '\n' {
-			g.Log.Debug("Fixing payload hash by stripping newline on link '%s': %s", sigID, s)
+			g.Log.Debug("Fixing payload hash by stripping newline on link '%s': %s", linkID.Export(), s)
 			toHash = payload[0:last]
 		}
 	}
@@ -896,19 +1069,53 @@ func fixAndHashPayload(g *GlobalContext, payload []byte, sigID keybase1.SigID) [
 	return ret[:]
 }
 
+func inferSigVersion(payload []byte) SigVersion {
+
+	// Version 1 payloads are JSON and must start with an opening '{'
+	if IsJSONObject(payload) {
+		return KeybaseSignatureV1
+	}
+
+	// Version 2 payloads are Msgpack and must arrays, so they must
+	// fit the following requirements. The case where b == 0xdc or
+	// b = 0xdd are far-fetched, since that would mean a large or very
+	// large packing. But still, allow any valid array up front.
+	if IsEncodedMsgpackArray(payload) {
+		return KeybaseSignatureV2
+	}
+
+	// We didn't find anything useful, so mark it a "none"
+	return KeybaseNullSigVersion
+}
+
+func assertCorrectSigVersion(expected SigVersion, payload []byte) error {
+	vInferred := inferSigVersion(payload)
+	if vInferred != expected {
+		return ChainLinkError{msg: fmt.Sprintf("chainlink in wrong format; expected version=%d but payload was %d", expected, vInferred)}
+	}
+	return nil
+}
+
 func (c *ChainLink) getSigPayload() ([]byte, error) {
 	if c.IsStubbed() {
 		return nil, ChainLinkError{"Cannot verify sig with nil outer link v2"}
 	}
 	v := c.unpacked.sigVersion
+	var ret []byte
 	switch v {
-	case 1:
-		return c.getFixedPayload(), nil
-	case 2:
-		return c.unpacked.outerLinkV2.raw, nil
+	case KeybaseSignatureV1:
+		ret = c.getFixedPayload()
+	case KeybaseSignatureV2:
+		ret = c.unpacked.outerLinkV2.raw
 	default:
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", c.unpacked.sigVersion)}
 	}
+
+	err := assertCorrectSigVersion(v, ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (c *ChainLink) verifyPayloadV2() error {
@@ -923,18 +1130,23 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return ChainLinkError{"no outer V2 structure available"}
 	}
 
-	version := 2
+	version := KeybaseSignatureV2
 	seqno := c.getSeqnoFromPayload()
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
+	innerVersion := c.unpacked.sigVersion
+	if innerVersion != version {
+		return ChainLinkError{fmt.Sprintf("In chainlink v2, expected inner link to match; got %d", innerVersion)}
+	}
 	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
-	linkType, err := c.GetSigchainV2Type(SigIgnoreIfUnsupported(ignoreIfUnsupported))
+	linkType, err := c.GetSigchainV2TypeFromInner(SigIgnoreIfUnsupported(ignoreIfUnsupported))
 	if err != nil {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
+	highSkip := c.getHighSkipFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, highSkip); err != nil {
 		return err
 	}
 
@@ -971,6 +1183,10 @@ func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 
 func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
+}
+
+func (c *ChainLink) GetHighSkip() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) GetSigID() keybase1.SigID {
@@ -1034,24 +1250,26 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 	return nil
 }
 
-func ImportLinkFromServer(g *GlobalContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
+func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkID
 
-	if ph, err := jsonparser.GetString(data, "payload_hash"); err == nil {
+	if ph, err := jsonparserw.GetString(data, "payload_hash"); err == nil {
 		id, err = LinkIDFromHex(ph)
 		if err != nil {
 			return nil, err
 		}
 	}
-	ret = NewChainLink(g, parent, id)
-	if err = ret.Unpack(false, selfUID, data); err != nil {
-		g.Log.Debug("Unpack error: %s", err)
+	ret = NewChainLink(m.G(), parent, id)
+	if err = ret.Unpack(m, false, selfUID, data); err != nil {
+		m.CDebugf("Unpack error: %s", err)
 		return nil, err
 	}
 
-	g.LinkCache().Put(id, ret.Copy())
-
 	return ret, nil
+}
+
+func putLinkToCache(m MetaContext, link *ChainLink) {
+	m.G().LinkCache().Put(m, link.id, link.Copy())
 }
 
 func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
@@ -1074,12 +1292,12 @@ func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*Cha
 	if err == nil && data != nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(m.G(), nil, id)
-		if err = ret.Unpack(true, selfUID, data); err != nil {
+		if err = ret.Unpack(m, true, selfUID, data); err != nil {
 			return nil, err
 		}
 		ret.storedLocally = true
 
-		m.G().LinkCache().Put(id, ret.Copy())
+		m.G().LinkCache().Put(m, id, ret.Copy())
 	}
 	return ret, err
 }
@@ -1117,7 +1335,7 @@ func (c *ChainLink) verifyLinkV2() error {
 	return c.verifyPayloadV2()
 }
 
-func (c *ChainLink) GetSigchainV2Type(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
+func (c *ChainLink) GetSigchainV2TypeFromInner(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
@@ -1132,6 +1350,22 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link has no v2 shell")
 	}
 	return c.unpacked.outerLinkV2.LinkType, nil
+}
+
+// GetSigchainV2Type is a helper function for getting a ChainLink's type. If it
+// is a v2 link (that may or may not be stubbed), return the type from the
+// outer link, otherwise from the inner link.
+func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
+	if c.unpacked == nil {
+		return SigchainV2TypeNone, errors.New("chain link is not unpacked")
+	}
+	if c.unpacked.outerLinkV2 == nil && c.unpacked.typ == "" {
+		return SigchainV2TypeNone, errors.New("chain inner link type is not unpacked, and has no v2 shell")
+	}
+	if c.unpacked.outerLinkV2 != nil {
+		return c.GetSigchainV2TypeFromV2Shell()
+	}
+	return c.GetSigchainV2TypeFromInner(c.GetIgnoreIfSupported())
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
@@ -1187,11 +1421,11 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret key
 	return verifyKID, nil
 }
 
-func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
+func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 
-	g.VDL.Log(VLog1, "| Storing Link %s...", c.id)
+	m.VLogf(VLog1, "| Storing Link %s...", c.id)
 	if c.storedLocally && !c.dirty {
-		g.VDL.Log(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
+		m.VLogf(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
 		return didStore, nil
 	}
 
@@ -1199,8 +1433,9 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 		return false, err
 	}
 
-	if !c.IsStubbed() && (!c.hashVerified || !c.payloadVerified) {
-		err = fmt.Errorf("Internal error; should have been verified in Store()")
+	if !c.hashVerified || (!c.IsStubbed() && !c.payloadVerified) || !c.chainVerified {
+		err = fmt.Errorf("Internal error; should have been verified in Store(); hashVerified=%v, isStubbed=%v, payloadVerified=%v, chainVerified=%v",
+			c.hashVerified, c.IsStubbed(), c.payloadVerified, c.chainVerified)
 		return false, err
 	}
 
@@ -1212,10 +1447,10 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = g.LocalDb.Put(key, nil, packed); err != nil {
+	if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
 		return false, err
 	}
-	g.VDL.Log(VLog1, "| Store Link %s", c.id)
+	m.VLogf(VLog1, "| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false
@@ -1302,4 +1537,53 @@ func (c ChainLink) AllowStubbing() bool {
 		return false
 	}
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
+}
+
+// IsHighUserLink determines whether a chainlink counts as "high" in a user's chain,
+// which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
+// PGPUpdate, Revoke, or any link that is revoking.
+func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, error) {
+	v2Type, err := c.GetSigchainV2Type()
+	if err != nil {
+		return false, err
+	}
+
+	hardcodedEldest := false
+	if c.GetSeqno() > 1 {
+		prevLink := c.parent.GetLinkFromSeqno(c.GetSeqno() - 1)
+		if prevLink == nil {
+			return false, ChainLinkWrongSeqnoError{}
+		}
+		hardcodedEldest, err = isSubchainStart(mctx, &c, prevLink, uid)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == 1 || hardcodedEldest
+	isNewHighLink := isFirstLink ||
+		v2Type == SigchainV2TypeRevoke ||
+		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
+		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
+		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypePGPUpdate
+	return isNewHighLink, nil
+}
+
+// ExpectedNextHighSkip returns the expected highSkip of the immediately
+// subsequent link in the chain (which may not exist yet). This function can
+// only be called after VerifyChain has processed the chainLink, and set
+// c.computedHighSkip.
+func (c ChainLink) ExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
+	isHigh, err := c.IsHighUserLink(mctx, uid)
+	if err != nil {
+		return HighSkip{}, err
+	}
+	if isHigh {
+		return NewHighSkip(c.GetSeqno(), c.id), nil
+	}
+	if c.computedHighSkip == nil {
+		return HighSkip{}, NewUserReverifyNeededError("Expected to have already computed this link's HighSkip, but it was not computed.")
+	}
+	return *c.computedHighSkip, nil
 }

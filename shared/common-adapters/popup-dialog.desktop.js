@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
-import EscapeHandler from '../util/escape-handler'
+import EscapeHandler from '../util/escape-handler.desktop'
 import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
@@ -38,6 +38,7 @@ export function PopupDialog({
             type="iconfont-close"
             style={collapseStyles([closeStyle, styleClose])}
             color={globalColors.white}
+            onClick={onClose}
           />
           <Box
             style={collapseStyles([clipContainerStyle, styleClipContainer])}
@@ -65,7 +66,7 @@ const coverStyle = {
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
-  zIndex: 1, // Put the popup on top of any sticky section headers.
+  zIndex: 30, // Put the popup on top of any sticky section headers.
 }
 
 const containerStyle = {

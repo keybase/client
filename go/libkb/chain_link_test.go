@@ -1,41 +1,27 @@
 package libkb
 
 import (
-	"testing"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
-	linkServer, err := ImportLinkFromServer(tc.G, nil, data, uid)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	m := NewMetaContextForTest(tc)
+	linkServer, err := ImportLinkFromServer(m, nil, data, uid)
+	require.NoError(tc.T, err)
 	packed, err := linkServer.Pack()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	packedBytes, err := packed.Marshal()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-
+	require.NoError(tc.T, err)
 	unpacked := NewChainLink(tc.G, nil, linkServer.id)
-	if err := unpacked.Unpack(true, uid, packedBytes); err != nil {
-		tc.T.Fatal(err)
-	}
-
+	err = unpacked.Unpack(m, true, uid, packedBytes)
+	require.NoError(tc.T, err)
 	repacked, err := unpacked.Pack()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	repackedBytes, err := repacked.Marshal()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if !FastByteArrayEq(packedBytes, repackedBytes) {
-		tc.T.Errorf("repacked bytes didn't equal packed bytes")
-	}
+	require.NoError(tc.T, err)
+	require.True(tc.T, FastByteArrayEq(packedBytes, repackedBytes))
 }
 
 func TestChainLinkImport(t *testing.T) {

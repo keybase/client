@@ -21,7 +21,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
       return state.merge({error: initialState.error})
     case ProvisionGen.showFinalErrorPage:
       // Ignore cancels
-      if (action.payload.finalError && action.payload.finalError.desc === Constants.cancelDesc) {
+      if (Constants.errorCausedByUsCanceling(action.payload.finalError)) {
         return state
       }
       return state.merge({finalError: action.payload.finalError})
@@ -53,16 +53,22 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitTextCode:
+      // clean up spaces
+      const good = action.payload.phrase
+        .stringValue()
+        .replace(/\W+/g, ' ')
+        .trim()
       return state.merge({
-        codePageOutgoingTextCode: action.payload.phrase,
+        codePageOutgoingTextCode: new HiddenString(good),
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
-      if (state.existingDevices.indexOf(action.payload.name) !== -1) {
+      const newNameLowerCase = action.payload.name.toLowerCase()
+      if (state.existingDevices.find(ed => ed.toLowerCase() === newNameLowerCase)) {
         return state.merge({
           deviceName: action.payload.name,
           error: new HiddenString(
-            `The device name: '${
+            `The device name '${
               action.payload.name
             }' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
           ),

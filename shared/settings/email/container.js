@@ -2,9 +2,10 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import UpdateEmail from './index'
 import {navigateUp} from '../../actions/route-tree'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => {
+type OwnProps = {||}
+const mapStateToProps = state => {
   const {waitingForResponse} = state.settings
   const {emails, error} = state.settings.email
   let email = ''
@@ -21,7 +22,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(navigateUp()),
   onSave: email => {
     dispatch(SettingsGen.createOnChangeNewEmail({email}))
@@ -29,4 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(UpdateEmail)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(UpdateEmail)

@@ -97,7 +97,11 @@ class UserInput extends Component<Props, State> {
       !trim(this.props.usernameText) &&
       this.props.onEnterEmptyText
     ) {
-      this.props.selectedSearchId ? this.props.onAddSelectedUser() : this.props.onEnterEmptyText()
+      if (this.props.selectedSearchId) {
+        this.props.onAddSelectedUser()
+      } else {
+        this.props.onEnterEmptyText()
+      }
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
       ev.preventDefault()
@@ -145,7 +149,9 @@ class UserInput extends Component<Props, State> {
           onClick={this.focus}
           onMouseDown={this._preventInputDefocus}
         >
-          {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
+          {userItems.map(item => (
+            <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />
+          ))}
           <Box style={_inputLineStyle}>
             <AutosizeInput
               autoFocus={autoFocus}

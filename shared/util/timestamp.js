@@ -2,6 +2,26 @@
 
 import moment from 'moment'
 
+export function formatTimeForChat(time: number): ?string {
+  const m = moment(time)
+  const now = moment()
+  const today = now.clone().startOf('day')
+  const lastWeek = today.clone().subtract(7, 'day')
+  const lastMonth = today.clone().subtract(1, 'month')
+  const lastYear = today.clone().subtract(1, 'year')
+  const hma = m.format('h:mm A')
+
+  if (m.isSame(today, 'd')) {
+    return hma
+  } else if (m.isAfter(lastWeek)) {
+    return `${hma} - ${m.format('ddd')}`
+  } else if (m.isAfter(lastMonth)) {
+    return `${hma} - ${m.format('D MMM')}`
+  } else if (m.isAfter(lastYear)) {
+    return `${hma} - ${m.format('D MMM YY')}`
+  }
+}
+
 export function formatTimeForConversationList(time: number, nowOverride?: ?number): string {
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()
@@ -29,7 +49,7 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
 
   if (m.isSame(now, 'd')) {
     // Covers interval [startOfToday, endOfToday]
-    return m.format('h:mm A') // 4:34 PM
+    return 'Today ' + m.format('h:mm A') // Today 4:34 PM
   } else if (m.isSame(yesterday, 'd')) {
     // Covers interval [startOfYesterday, endOfYesterday]
     return 'Yesterday ' + m.format('h:mm A') // Yesterday 4:34 PM
@@ -83,21 +103,13 @@ export function formatTimeForPopup(time: number): string {
   return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
 }
 
-export function formatTimeForStellarTransaction(timestamp: Date) {
+export function formatTimeForStellarDetail(timestamp: Date) {
   const m = moment(timestamp)
-  return {
-    human: m.calendar(),
-    tooltip: m.format(),
-  }
+  return m.format('ddd, MMM DD YYYY - h:mm A') // Tue, Jan 5 2018 - 4:34 PM
 }
 
-export function formatTimeForStellarTransactionDetails(timestamp: Date) {
-  const m = moment(timestamp)
-  const human = m.format('ddd, MMM D YYYY - h:mm A') // Tue, May 22 2018 - 9:18 AM
-  return {
-    human,
-    tooltip: m.format(),
-  }
+export function formatTimeForStellarTooltip(timestamp: Date) {
+  return moment(timestamp).format()
 }
 
 export function formatTimeForRevoked(time: number): string {
@@ -111,6 +123,35 @@ export function daysToLabel(days: number): string {
     label += 's'
   }
   return label
+}
+
+const defaultLocale = moment.locale()
+moment.defineLocale('people', {
+  parentLocale: 'en',
+  relativeTime: {
+    future: 'in %s',
+    past: '%s ago',
+    s: 'now',
+    ss: '%ds',
+    m: '1m',
+    mm: '%dm',
+    h: '1h',
+    hh: '%dh',
+    d: '1d',
+    dd: '%dd',
+    M: '1mo',
+    MM: '%dmo',
+    y: '1y',
+    yy: '%dy',
+  },
+})
+// When we define a locale, moment uses it. So reset it to use the default
+moment.locale(defaultLocale)
+
+export function formatTimeForPeopleItem(time: number): string {
+  return moment(time)
+    .locale('people')
+    .fromNow(true)
 }
 
 const oneMinuteInMs = 60 * 1000

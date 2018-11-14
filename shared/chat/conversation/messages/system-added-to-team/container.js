@@ -2,14 +2,19 @@
 import * as RouteTree from '../../../../actions/route-tree'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
-import {getMeta} from '../../../../constants/chat2/'
+import * as Constants from '../../../../constants/chat2/'
+import * as Types from '../../../../constants/types/chat2'
 import {getRole, isAdmin} from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
 import {teamsTab} from '../../../../constants/tabs'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, ownProps) => {
-  const teamname = getMeta(state, ownProps.message.conversationIDKey).teamname
+type OwnProps = {|
+  message: Types.MessageSystemAddedToTeam,
+|}
+
+const mapStateToProps = (state, ownProps) => {
+  const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
   return {
     isAdmin: isAdmin(getRole(state, teamname)),
     teamname,
@@ -17,7 +22,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onViewTeam: (teamname: string) => {
@@ -40,4 +45,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemAddedToTeam)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SystemAddedToTeam)

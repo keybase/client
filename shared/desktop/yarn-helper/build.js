@@ -8,12 +8,17 @@ const outputStats = false
 
 const commands = {
   'build-dev': {
-    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
+    env: {BABEL_ENV: 'yarn', BABEL_PLATFORM: 'Electron', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     shell: `${webpackCmd} --mode development --progress --profile --colors`,
   },
   'build-prod': {
-    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', STATS: outputStats ? 'true' : 'false'},
+    env: {
+      BABEL_ENV: 'yarn',
+      BABEL_PLATFORM: 'Electron',
+      NO_SERVER: 'true',
+      STATS: outputStats ? 'true' : 'false',
+    },
     help: 'Make a production build of the js code',
     shell: `${webpackCmd} --mode production --progress ${
       outputStats ? '--profile --json > webpack-stats.json' : ''
@@ -21,11 +26,11 @@ const commands = {
   },
   'hot-server': {
     code: hotServer,
-    env: {BABEL_ENV: 'yarn'},
+    env: {BABEL_ENV: 'yarn', BABEL_PLATFORM: 'Electron'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
   package: {
-    env: {BABEL_ENV: 'yarn'},
+    env: {BABEL_ENV: 'yarn', BABEL_PLATFORM: 'Electron'},
     help: 'Package up the production js code',
     shell: `babel-node ${spaceArg} desktop/package.desktop.js`,
   },

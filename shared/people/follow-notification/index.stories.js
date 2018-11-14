@@ -2,10 +2,10 @@
 import * as React from 'react'
 import * as C from '../../constants/people'
 import * as Sb from '../../stories/storybook'
-import FollowNotification, {type Props} from '.'
+import FollowNotification from '.'
 import moment from 'moment'
 
-const singleFollowProps1: Props = {
+const singleFollowProps1 = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
@@ -13,7 +13,7 @@ const singleFollowProps1: Props = {
   onClickUser: Sb.action('onClickUser'),
 }
 
-const singleFollowProps2: Props = {
+const singleFollowProps2 = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'max'})],
   badged: false,
@@ -23,7 +23,7 @@ const singleFollowProps2: Props = {
   onClickUser: Sb.action('onClickUser'),
 }
 
-const multiFollowProps1: Props = {
+const multiFollowProps1 = {
   type: 'notification',
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),
@@ -38,7 +38,7 @@ const multiFollowProps1: Props = {
   onClickUser: Sb.action('onClickUser'),
 }
 
-const multiFollowProps2: Props = {
+const multiFollowProps2 = {
   type: 'notification',
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),

@@ -1,9 +1,11 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
 import * as LoginGen from './login-gen'
+import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {niceError} from '../util/errors'
@@ -24,7 +26,7 @@ const cancelOnCallback = (params, response) => {
 }
 const ignoreCallback = params => {}
 
-const getPassphraseHandler = passphrase => (params: RPCTypes.SecretUiGetPassphraseRpcParam, response) => {
+const getPassphraseHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
@@ -46,19 +48,21 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
   Saga.call(function*() {
     try {
       yield RPCTypes.loginLoginRpcSaga({
-        // cancel if we get any of these callbacks, we're logging in, not provisioning
-        incomingCallMap: {
+        customResponseIncomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
+        },
+        // cancel if we get any of these callbacks, we're logging in, not provisioning
+        incomingCallMap: {
+          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         },
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
@@ -67,6 +71,8 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         },
         waitingKey: Constants.waitingKey,
       })
+      logger.info('login call succeeded')
+      yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== cancelDesc) {

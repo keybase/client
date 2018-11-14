@@ -23,10 +23,10 @@ type _DecrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 type _IncrementWaitingPayload = $ReadOnly<{|key: string | Array<string>|}>
 
 // Action Creators
-export const createChangeWaiting = (payload: _ChangeWaitingPayload) => ({error: false, payload, type: changeWaiting})
-export const createClearWaiting = (payload: _ClearWaitingPayload) => ({error: false, payload, type: clearWaiting})
-export const createDecrementWaiting = (payload: _DecrementWaitingPayload) => ({error: false, payload, type: decrementWaiting})
-export const createIncrementWaiting = (payload: _IncrementWaitingPayload) => ({error: false, payload, type: incrementWaiting})
+export const createChangeWaiting = (payload: _ChangeWaitingPayload) => ({payload, type: changeWaiting})
+export const createClearWaiting = (payload: _ClearWaitingPayload) => ({payload, type: clearWaiting})
+export const createDecrementWaiting = (payload: _DecrementWaitingPayload) => ({payload, type: decrementWaiting})
+export const createIncrementWaiting = (payload: _IncrementWaitingPayload) => ({payload, type: incrementWaiting})
 
 // Action Payloads
 export type ChangeWaitingPayload = $Call<typeof createChangeWaiting, _ChangeWaitingPayload>

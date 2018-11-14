@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<title>Merkle tree - Wikipedia</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Merkle_tree","wgTitle":"Merkle tree","wgCurRevisionId":866395282,"wgRevisionId":866395282,"wgArticleId":2497388,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["All articles with unsourced statements","Articles with unsourced statements from October 2016","Spoken articles","Articles with hAudio microformats","Error detection and correction","Cryptographic hash functions","Hashing","Trees (data structures)"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"Merkle_tree","wgRelevantArticleId":2497388,"wgRequestId":"W9e84gpAAEAAAE1BZ-8AAAAD","wgCSPNonce":false,"wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgFlaggedRevsParams":{"tags":{}},"wgStableRevisionId":null,"wgCategoryTreePageCategoryOptions":"{\"mode\":0,\"hideprefix\":20,\"showcount\":true,\"namespaces\":false}","wgWikiEditorEnabledModules":[],"wgBetaFeaturesFeatures":[],"wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":true,"wgPopupsShouldSendModuleToUser":true,"wgPopupsConflictsWithNavPopupGadget":false,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en","usePageImages":true,"usePageDescriptions":true},"wgMFExpandAllSectionsUserOption":true,"wgMFEnableFontChanger":true,"wgMFDisplayWikibaseDescriptions":{"search":true,"nearby":true,"watchlist":true,"tagline":false},"wgRelatedArticles":null,"wgRelatedArticlesUseCirrusSearch":true,"wgRelatedArticlesOnlyUseCirrusSearch":false,"wgULSCurrentAutonym":"English","wgNoticeProject":"wikipedia","wgCentralNoticeCookiesToDelete":[],"wgCentralNoticeCategoriesUsingLegacy":["Fundraising","fundraising"],"wgWikibaseItemId":"Q14746","wgScoreNoteLanguages":{"arabic":"العربية","catalan":"català","deutsch":"Deutsch","english":"English","espanol":"español","italiano":"italiano","nederlands":"Nederlands","norsk":"norsk","portugues":"português","suomi":"suomi","svenska":"svenska","vlaams":"West-Vlams"},"wgScoreDefaultNoteLanguage":"nederlands","wgCentralAuthMobileDomain":false,"wgCodeMirrorEnabled":true,"wgVisualEditorToolbarScrollOffset":0,"wgVisualEditorUnsupportedEditParams":["undo","undoafter","veswitched"],"wgEditSubmitButtonLabelPublish":true});mw.loader.state({"ext.gadget.charinsert-styles":"ready","ext.globalCssJs.user.styles":"ready","ext.globalCssJs.site.styles":"ready","site.styles":"ready","noscript":"ready","user.styles":"ready","ext.globalCssJs.user":"ready","ext.globalCssJs.site":"ready","user":"ready","user.options":"ready","user.tokens":"loading","ext.cite.styles":"ready","ext.tmh.thumbnail.styles":"ready","mediawiki.legacy.shared":"ready","mediawiki.legacy.commonPrint":"ready","mediawiki.toc.styles":"ready","wikibase.client.init":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","ext.wikimediaBadges":"ready","ext.3d.styles":"ready","mediawiki.skinning.interface":"ready","skins.vector.styles":"ready"});mw.loader.implement("user.tokens@0tffind",function($,jQuery,require,module){/*@nomin*/mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
+});RLPAGEMODULES=["ext.cite.a11y","mw.MediaWikiPlayer.loader","mw.PopUpMediaTransform","mw.TMHGalleryHook.js","site","mediawiki.page.startup","mediawiki.user","mediawiki.page.ready","mediawiki.toc","mediawiki.searchSuggest","ext.gadget.teahouse","ext.gadget.ReferenceTooltips","ext.gadget.watchlist-notice","ext.gadget.DRN-wizard","ext.gadget.charinsert","ext.gadget.refToolbar","ext.gadget.extra-toolbar-buttons","ext.gadget.switcher","ext.centralauth.centralautologin","mmv.head","mmv.bootstrap.autostart","ext.popups","ext.visualEditor.desktopArticleTarget.init","ext.visualEditor.targetLoader","ext.eventLogging.subscriber","ext.wikimediaEvents","ext.navigationTiming","ext.uls.eventlogger","ext.uls.init","ext.uls.compactlinks","ext.uls.interface","ext.centralNotice.geoIP","ext.centralNotice.startUp","skins.vector.js"];mw.loader.load(RLPAGEMODULES);});</script>
+<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=ext.3d.styles%7Cext.cite.styles%7Cext.tmh.thumbnail.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cmediawiki.legacy.commonPrint%2Cshared%7Cmediawiki.skinning.interface%7Cmediawiki.toc.styles%7Cskins.vector.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector"/>
+<script async="" src="/w/load.php?debug=false&amp;lang=en&amp;modules=startup&amp;only=scripts&amp;skin=vector"></script>
+<meta name="ResourceLoaderDynamicStyles" content=""/>
+<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=ext.gadget.charinsert-styles&amp;only=styles&amp;skin=vector"/>
+<link rel="stylesheet" href="/w/load.php?debug=false&amp;lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector"/>
+<meta name="generator" content="MediaWiki 1.33.0-wmf.1"/>
+<meta name="referrer" content="origin"/>
+<meta name="referrer" content="origin-when-crossorigin"/>
+<meta name="referrer" content="origin-when-cross-origin"/>
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/1200px-Hash_Tree.svg.png"/>
+<link rel="alternate" href="android-app://org.wikipedia/http/en.m.wikipedia.org/wiki/Merkle_tree"/>
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="/w/index.php?title=Merkle_tree&amp;action=edit"/>
+<link rel="edit" title="Edit this page" href="/w/index.php?title=Merkle_tree&amp;action=edit"/>
+<link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png"/>
+<link rel="shortcut icon" href="/static/favicon/wikipedia.ico"/>
+<link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Wikipedia (en)"/>
+<link rel="EditURI" type="application/rsd+xml" href="//en.wikipedia.org/w/api.php?action=rsd"/>
+<link rel="license" href="//creativecommons.org/licenses/by-sa/3.0/"/>
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Merkle_tree"/>
+<link rel="dns-prefetch" href="//login.wikimedia.org"/>
+<link rel="dns-prefetch" href="//meta.wikimedia.org" />
+<!--[if lt IE 9]><script src="/w/load.php?debug=false&amp;lang=en&amp;modules=html5shiv&amp;only=scripts&amp;skin=vector&amp;sync=1"></script><![endif]-->
+</head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Merkle_tree rootpage-Merkle_tree skin-vector action-view">		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+			<div id="siteNotice" class="mw-body-content"><!-- CentralNotice --></div><div class="mw-indicators mw-body-content">
+<div id="mw-indicator-spoken-icon" class="mw-indicator"><a href="/wiki/File:En-Merkle_Tree.ogg" title="Listen to this article"><img alt="Listen to this article" src="//upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/20px-Sound-icon.svg.png" width="20" height="15" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/30px-Sound-icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/40px-Sound-icon.svg.png 2x" data-file-width="128" data-file-height="96" /></a></div>
+</div>
+<h1 id="firstHeading" class="firstHeading" lang="en">Merkle tree</h1>			<div id="bodyContent" class="mw-body-content">
+				<div id="siteSub" class="noprint">From Wikipedia, the free encyclopedia</div>				<div id="contentSub"></div>
+				<div id="jump-to-nav"></div>				<a class="mw-jump-link" href="#mw-head">Jump to navigation</a>
+				<a class="mw-jump-link" href="#p-search">Jump to search</a>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><div class="mw-parser-output"><div class="thumb tright"><div class="thumbinner" style="width:312px;"><a href="/wiki/File:Hash_Tree.svg" class="image"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/310px-Hash_Tree.svg.png" width="310" height="197" class="thumbimage" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/465px-Hash_Tree.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/9/95/Hash_Tree.svg/620px-Hash_Tree.svg.png 2x" data-file-width="2200" data-file-height="1400" /></a>  <div class="thumbcaption"><div class="magnify"><a href="/wiki/File:Hash_Tree.svg" class="internal" title="Enlarge"></a></div>An example of a binary hash tree. Hashes 0-0 and 0-1 are the hash values of data blocks L1 and L2, respectively, and hash 0 is the hash of the concatenation of hashes 0-0 and 0-1.</div></div></div>
+<p>In <a href="/wiki/Cryptography" title="Cryptography">cryptography</a> and <a href="/wiki/Computer_science" title="Computer science">computer science</a>, a <b>hash tree</b> or <b>Merkle tree</b> is a <a href="/wiki/Tree_(data_structure)" title="Tree (data structure)">tree</a> in which every leaf node is labelled with the hash of a data block and every non-leaf node is labelled with the <a href="/wiki/Cryptographic_hash_function" title="Cryptographic hash function">cryptographic hash</a> of the labels of its child nodes. Hash trees allow efficient and secure verification of the contents of large data structures.  Hash trees are a generalization of <a href="/wiki/Hash_list" title="Hash list">hash lists</a> and <a href="/wiki/Hash_chain" title="Hash chain">hash chains</a>.
+</p><p>Demonstrating that a leaf node is a part of a given binary hash tree requires computing a number of hashes proportional to the <a href="/wiki/Logarithm" title="Logarithm">logarithm</a> of the number of leaf nodes of the tree;<sup id="cite_ref-1" class="reference"><a href="#cite_note-1">&#91;1&#93;</a></sup> this contrasts with hash lists, where the number is proportional to the number of leaf nodes itself.
+</p><p>The concept of hash trees is named after <a href="/wiki/Ralph_Merkle" title="Ralph Merkle">Ralph Merkle</a> who patented it in 1979.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2">&#91;2&#93;</a></sup><sup id="cite_ref-3" class="reference"><a href="#cite_note-3">&#91;3&#93;</a></sup>
+</p>
+<div id="toc" class="toc"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" /><div class="toctitle" lang="en" dir="ltr"><h2>Contents</h2><span class="toctogglespan"><label class="toctogglelabel" for="toctogglecheckbox"></label></span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Uses"><span class="tocnumber">1</span> <span class="toctext">Uses</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Overview"><span class="tocnumber">2</span> <span class="toctext">Overview</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Second_preimage_attack"><span class="tocnumber">2.1</span> <span class="toctext">Second preimage attack</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Tiger_tree_hash"><span class="tocnumber">2.2</span> <span class="toctext">Tiger tree hash</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Example"><span class="tocnumber">2.2.1</span> <span class="toctext">Example</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Further_reading"><span class="tocnumber">5</span> <span class="toctext">Further reading</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#External_links"><span class="tocnumber">6</span> <span class="toctext">External links</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Uses">Uses</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=1" title="Edit section: Uses">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Hash trees can be used to verify any kind of data stored, handled and transferred in and between computers. They can help ensure that data blocks received from other peers in a <a href="/wiki/Peer-to-peer" title="Peer-to-peer">peer-to-peer network</a> are received undamaged and unaltered, and even to check that the other peers do not lie and send fake blocks.  
+</p><p>Hash trees are used in <a href="/wiki/Hash-based_cryptography" title="Hash-based cryptography">hash-based cryptography</a>.  Hash trees are also used in the <a href="/wiki/InterPlanetary_File_System" title="InterPlanetary File System">IPFS</a>, <a href="/wiki/Btrfs" title="Btrfs">Btrfs</a> and <a href="/wiki/ZFS" title="ZFS">ZFS</a> file systems<sup id="cite_ref-4" class="reference"><a href="#cite_note-4">&#91;4&#93;</a></sup> (to counter <a href="/wiki/Data_degradation" title="Data degradation">data degradation</a><sup id="cite_ref-5" class="reference"><a href="#cite_note-5">&#91;5&#93;</a></sup>); <a href="/wiki/Dat_(software)" title="Dat (software)">Dat</a> protocol; <a href="/wiki/Apache_Wave" title="Apache Wave">Apache Wave</a> protocol<sup id="cite_ref-6" class="reference"><a href="#cite_note-6">&#91;6&#93;</a></sup>; <a href="/wiki/Git_(software)" class="mw-redirect" title="Git (software)">Git</a> and <a href="/wiki/Mercurial" title="Mercurial">Mercurial</a> distributed revision control systems; the <a href="/wiki/Tahoe-LAFS" title="Tahoe-LAFS">Tahoe-LAFS</a> backup system; <a href="/wiki/Zeronet" class="mw-redirect" title="Zeronet">Zeronet</a>; the <a href="/wiki/Bitcoin" title="Bitcoin">Bitcoin</a> and <a href="/wiki/Ethereum" title="Ethereum">Ethereum</a> peer-to-peer networks<sup id="cite_ref-7" class="reference"><a href="#cite_note-7">&#91;7&#93;</a></sup>; the <a href="/wiki/Certificate_Transparency" title="Certificate Transparency">Certificate Transparency</a> framework; and a number of <a href="/wiki/NoSQL" title="NoSQL">NoSQL</a> systems such as <a href="/wiki/Apache_Cassandra" title="Apache Cassandra">Apache Cassandra</a>, <a href="/wiki/Riak" title="Riak">Riak</a>, and <a href="/wiki/Dynamo_(storage_system)" title="Dynamo (storage system)">Dynamo</a>.<sup id="cite_ref-8" class="reference"><a href="#cite_note-8">&#91;8&#93;</a></sup>
+Suggestions have been made to use hash trees in <a href="/wiki/Trusted_computing" class="mw-redirect" title="Trusted computing">trusted computing</a> systems.<sup id="cite_ref-9" class="reference"><a href="#cite_note-9">&#91;9&#93;</a></sup>
+</p><p>The initial Bitcoin implementation of Merkle trees by <a href="/wiki/Satoshi_Nakamoto" title="Satoshi Nakamoto">Satoshi Nakamoto</a> applies the compression step of the hash function to an excessive degree, which is mitigated by using Fast Merkle Trees.<sup id="cite_ref-10" class="reference"><a href="#cite_note-10">&#91;10&#93;</a></sup>
+</p>
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=2" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A hash tree is a <a href="/wiki/Binary_tree" title="Binary tree">tree</a> of <a href="/wiki/Hash_function" title="Hash function">hashes</a> in which the leaves are hashes of data blocks in, for instance, a file or set of files. Nodes further up in the tree are the hashes of their respective children. For example, in the picture <i>hash 0</i> is the result of hashing the <a href="/wiki/Concatenation" title="Concatenation">concatenation</a> of <i>hash 0-0</i> and <i>hash 0-1</i>. That is, <i>hash 0 = hash( hash 0-0 || hash 0-1 )</i> where <i>||</i> denotes concatenation.
+</p><p>Most hash tree implementations are binary (two child nodes under each node) but they can just as well use many more child nodes under each node.
+</p><p>Usually, a <a href="/wiki/Cryptographic_hash_function" title="Cryptographic hash function">cryptographic hash function</a> such as <a href="/wiki/SHA-2" title="SHA-2">SHA-2</a> is used for the hashing. If the hash tree only needs to protect against unintentional damage, unsecured <a href="/wiki/Checksum" title="Checksum">checksums</a> such as <a href="/wiki/Cyclic_redundancy_check" title="Cyclic redundancy check">CRCs</a> can be used.
+</p><p>In the top of a hash tree there is a <i>top hash</i> (or <i>root hash</i> or <i>master hash</i>). Before downloading a file on a p2p network, in most cases the top hash is acquired from a trusted source, for instance a friend or a web site that is known to have good recommendations of files to download. When the top hash is available, the hash tree can be received from any non-trusted source, like any peer in the p2p network. Then, the received hash tree is checked against the trusted top hash, and if the hash tree is damaged or fake, another hash tree from another source will be tried until the program finds one that matches the top hash.<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">&#91;<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (October 2016)">citation needed</span></a></i>&#93;</sup>
+</p><p>The main difference from a <a href="/wiki/Hash_list" title="Hash list">hash list</a> is that one branch of the hash tree can be downloaded at a time and the integrity of each branch can be checked immediately, even though the whole tree is not available yet. For example, in the picture, the integrity of <i>data block L2</i> can be verified immediately if the tree already contains <i>hash 0-0</i> and <i>hash 1</i> by hashing the data block and iteratively combining the result with <i>hash 0-0</i> and then <i>hash 1</i> and finally comparing the result with the <i>top hash</i>. Similarly, the integrity of <i>data block L3</i> can be verified if the tree already has <i>hash 1-1</i> and <i>hash 0</i>.  This can be an advantage since it is efficient to split files up in very small data blocks so that only small blocks have to be re-downloaded if they get damaged. If the hashed file is very big, such a hash tree or hash list becomes fairly big. But if it is a tree, one small branch can be downloaded quickly, the integrity of the branch can be checked, and then the downloading of data blocks can start.<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">&#91;<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (October 2016)">citation needed</span></a></i>&#93;</sup>
+</p>
+<h3><span class="mw-headline" id="Second_preimage_attack">Second preimage attack</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=3" title="Edit section: Second preimage attack">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The Merkle hash root does not indicate the tree depth, enabling a <a href="/wiki/Second-preimage_attack" class="mw-redirect" title="Second-preimage attack">second-preimage attack</a> in which an attacker creates a document other than the original that has the same Merkle hash root.  For the example above, an attacker can create a new document containing two data blocks, where the first is hash 0-0 || hash 0-1, and the second is hash 1-0 || hash 1-1.<sup id="cite_ref-11" class="reference"><a href="#cite_note-11">&#91;11&#93;</a></sup><sup id="cite_ref-12" class="reference"><a href="#cite_note-12">&#91;12&#93;</a></sup>
+</p><p>One simple fix is defined in <a href="/wiki/Certificate_Transparency" title="Certificate Transparency">Certificate Transparency</a>: when computing leaf node hashes, a 0x00 byte is prepended to the hash data, while 0x01 is prepended when computing internal node hashes.  Limiting the hash tree size is a prerequisite of some <a href="/wiki/Linked_timestamping#Provable_security" title="Linked timestamping">formal security proofs</a>, and helps in making some proofs tighter. Some implementations limit the tree depth using hash tree depth prefixes before hashes, so any extracted hash chain is defined to be valid only if the prefix decreases at each step and is still positive when the leaf is reached.
+</p>
+<h3><span class="mw-headline" id="Tiger_tree_hash">Tiger tree hash</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=4" title="Edit section: Tiger tree hash">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The Tiger tree hash is a widely used form of hash tree. It uses a binary hash tree (two child nodes under each node), usually has a data block size of 1024 <a href="/wiki/Byte" title="Byte">bytes</a> and uses the <a href="/wiki/Tiger_(hash)" class="mw-redirect" title="Tiger (hash)">Tiger hash</a>.<sup id="cite_ref-13" class="reference"><a href="#cite_note-13">&#91;13&#93;</a></sup>
+</p><p>Tiger tree hashes are used in <a href="/wiki/Gnutella" title="Gnutella">Gnutella</a><sup id="cite_ref-14" class="reference"><a href="#cite_note-14">&#91;14&#93;</a></sup>, <a href="/wiki/Gnutella2" title="Gnutella2">Gnutella2</a>, and <a href="/wiki/Direct_Connect_(file_sharing)" class="mw-redirect" title="Direct Connect (file sharing)">Direct Connect</a> <a href="/wiki/Peer-to-peer" title="Peer-to-peer">P2P</a> file sharing protocols<sup id="cite_ref-15" class="reference"><a href="#cite_note-15">&#91;15&#93;</a></sup> and in <a href="/wiki/File_sharing" title="File sharing">file sharing</a> applications such as <a href="/wiki/Phex" title="Phex">Phex</a><sup id="cite_ref-16" class="reference"><a href="#cite_note-16">&#91;16&#93;</a></sup>, <a href="/wiki/BearShare" title="BearShare">BearShare</a>, <a href="/wiki/LimeWire" title="LimeWire">LimeWire</a>, <a href="/wiki/Shareaza" title="Shareaza">Shareaza</a>, <a href="/wiki/DCPlusPlus" class="mw-redirect" title="DCPlusPlus">DC++</a><sup id="cite_ref-17" class="reference"><a href="#cite_note-17">&#91;17&#93;</a></sup> and <a href="/wiki/Valknut_(software)" title="Valknut (software)">Valknut</a>.<sup id="cite_ref-18" class="reference"><a href="#cite_note-18">&#91;18&#93;</a></sup>
+</p>
+<h4><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=5" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p><a href="/wiki/Base32#RFC_4648_Base32_alphabet" title="Base32">Base32</a>: <code>R5T6Y8UYRYO5SUXGER5NMUOEZ5O6E4BHPP2MRFQ</code>
+</p><p><a href="/wiki/Uniform_Resource_Name" title="Uniform Resource Name">URN</a>: <code><a rel="nofollow" class="external free" href="urn:tree:tiger:R5T6Y8UYRYO5SUXGER5NMUOEZ5O6E4BHPP2MRFQ">urn:tree:tiger:R5T6Y8UYRYO5SUXGER5NMUOEZ5O6E4BHPP2MRFQ</a></code>
+</p><p><a href="/wiki/Magnet_URI_scheme" title="Magnet URI scheme">magnet</a>: <code><a rel="nofollow" class="external free" href="magnet:?xt=urn:tree:tiger:R5T6Y8UYRYO5SUXGER5NMUOEZ5O6E4BHPP2MRFQ">magnet:?xt=urn:tree:tiger:R5T6Y8UYRYO5SUXGER5NMUOEZ5O6E4BHPP2MRFQ</a></code>
+</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=6" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div role="navigation" aria-label="Portals" class="noprint portal plainlist tright" style="margin:0.5em 0 0.5em 1em;border:solid #aaa 1px">
+<ul style="display:table;box-sizing:border-box;padding:0.1em;max-width:175px;background:#f9f9f9;font-size:85%;line-height:110%;font-style:italic;font-weight:bold">
+<li style="display:table-row"><span style="display:table-cell;padding:0.2em;vertical-align:middle;text-align:center"><a href="/wiki/File:8bit-dynamiclist_(reversed).gif" class="image"><img alt="icon" src="//upload.wikimedia.org/wikipedia/commons/thumb/c/cc/8bit-dynamiclist_%28reversed%29.gif/28px-8bit-dynamiclist_%28reversed%29.gif" width="28" height="28" class="noviewer" srcset="//upload.wikimedia.org/wikipedia/commons/c/cc/8bit-dynamiclist_%28reversed%29.gif 1.5x" data-file-width="32" data-file-height="32" /></a></span><span style="display:table-cell;padding:0.2em 0.2em 0.2em 0.3em;vertical-align:middle"><a href="/wiki/Portal:Computer_programming" title="Portal:Computer programming">Computer programming portal</a></span></li>
+<li style="display:table-row"><span style="display:table-cell;padding:0.2em;vertical-align:middle;text-align:center"><a href="/wiki/File:Monitor_padlock.svg" class="image"><img alt="icon" src="//upload.wikimedia.org/wikipedia/commons/thumb/7/73/Monitor_padlock.svg/31px-Monitor_padlock.svg.png" width="31" height="28" class="noviewer" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/7/73/Monitor_padlock.svg/46px-Monitor_padlock.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/7/73/Monitor_padlock.svg/61px-Monitor_padlock.svg.png 2x" data-file-width="486" data-file-height="445" /></a></span><span style="display:table-cell;padding:0.2em 0.2em 0.2em 0.3em;vertical-align:middle"><a href="/wiki/Portal:Computer_security" title="Portal:Computer security">Computer security portal</a></span></li></ul></div>
+<ul><li><a href="/wiki/Binary_tree" title="Binary tree">Binary tree</a></li>
+<li><a href="/wiki/Blockchain_(database)" class="mw-redirect" title="Blockchain (database)">Blockchain (database)</a></li>
+<li><a href="/wiki/Distributed_hash_table" title="Distributed hash table">Distributed hash table</a></li>
+<li><a href="/wiki/Hash_table" title="Hash table">Hash table</a></li>
+<li><a href="/wiki/Hash_trie" title="Hash trie">Hash trie</a></li>
+<li><a href="/wiki/Linked_timestamping" title="Linked timestamping">Linked timestamping</a></li>
+<li><a href="/wiki/Radix_tree" title="Radix tree">Radix tree</a></li></ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=7" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div class="reflist columns references-column-width" style="-moz-column-width: 30em; -webkit-column-width: 30em; column-width: 30em; list-style-type: decimal;">
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><cite class="citation web">Becker, Georg (2008-07-18). <a rel="nofollow" class="external text" href="http://www.emsec.rub.de/media/crypto/attachments/files/2011/04/becker_1.pdf">"Merkle Signature Schemes, Merkle Trees and Their Cryptanalysis"</a> <span class="cs1-format">(PDF)</span>. Ruhr-Universität Bochum. p.&#160;16<span class="reference-accessdate">. Retrieved <span class="nowrap">2013-11-20</span></span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=unknown&amp;rft.btitle=Merkle+Signature+Schemes%2C+Merkle+Trees+and+Their+Cryptanalysis&amp;rft.pages=16&amp;rft.pub=Ruhr-Universit%C3%A4t+Bochum&amp;rft.date=2008-07-18&amp;rft.aulast=Becker&amp;rft.aufirst=Georg&amp;rft_id=http%3A%2F%2Fwww.emsec.rub.de%2Fmedia%2Fcrypto%2Fattachments%2Ffiles%2F2011%2F04%2Fbecker_1.pdf&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><style data-mw-deduplicate="TemplateStyles:r861714446">.mw-parser-output cite.citation{font-style:inherit}.mw-parser-output q{quotes:"\"""\"""'""'"}.mw-parser-output code.cs1-code{color:inherit;background:inherit;border:inherit;padding:inherit}.mw-parser-output .cs1-lock-free a{background:url("//upload.wikimedia.org/wikipedia/commons/thumb/6/65/Lock-green.svg/9px-Lock-green.svg.png")no-repeat;background-position:right .1em center}.mw-parser-output .cs1-lock-limited a,.mw-parser-output .cs1-lock-registration a{background:url("//upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Lock-gray-alt-2.svg/9px-Lock-gray-alt-2.svg.png")no-repeat;background-position:right .1em center}.mw-parser-output .cs1-lock-subscription a{background:url("//upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lock-red-alt-2.svg/9px-Lock-red-alt-2.svg.png")no-repeat;background-position:right .1em center}.mw-parser-output .cs1-subscription,.mw-parser-output .cs1-registration{color:#555}.mw-parser-output .cs1-subscription span,.mw-parser-output .cs1-registration span{border-bottom:1px dotted;cursor:help}.mw-parser-output .cs1-hidden-error{display:none;font-size:100%}.mw-parser-output .cs1-visible-error{font-size:100%}.mw-parser-output .cs1-subscription,.mw-parser-output .cs1-registration,.mw-parser-output .cs1-format{font-size:95%}.mw-parser-output .cs1-kern-left,.mw-parser-output .cs1-kern-wl-left{padding-left:0.2em}.mw-parser-output .cs1-kern-right,.mw-parser-output .cs1-kern-wl-right{padding-right:0.2em}</style></span>
+</li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><cite class="citation book">Merkle, R. C. (1988). "A Digital Signature Based on a Conventional Encryption Function". <i>Advances in Cryptology — CRYPTO '87</i>. Lecture Notes in Computer Science. <b>293</b>. p.&#160;369. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="//doi.org/10.1007%2F3-540-48184-2_32">10.1007/3-540-48184-2_32</a>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-3-540-18796-7" title="Special:BookSources/978-3-540-18796-7">978-3-540-18796-7</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=bookitem&amp;rft.atitle=A+Digital+Signature+Based+on+a+Conventional+Encryption+Function&amp;rft.btitle=Advances+in+Cryptology+%E2%80%94+CRYPTO+%2787&amp;rft.series=Lecture+Notes+in+Computer+Science&amp;rft.pages=369&amp;rft.date=1988&amp;rft_id=info%3Adoi%2F10.1007%2F3-540-48184-2_32&amp;rft.isbn=978-3-540-18796-7&amp;rft.aulast=Merkle&amp;rft.aufirst=R.+C.&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span class="citation patent" id="CITEREFRalph_Merkle2018"><a rel="nofollow" class="external text" href="https://worldwide.espacenet.com/textdoc?DB=EPODOC&amp;IDX=US4309569">US&#32;patent 4309569</a>,&#32;Ralph Merkle,&#32;"Method of providing digital signatures",&#32;published Jan 5, 1982,&#32; assigned to The Board Of Trustees Of The Leland Stanford Junior University</span><span class="Z3988" title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Apatent&amp;rft.number=4309569&amp;rft.cc=US&amp;rft.title=Method+of+providing+digital+signatures&amp;rft.inventor=Ralph+Merkle&amp;rft.assignee=The+Board+Of+Trustees+Of+The+Leland+Stanford+Junior+University&amp;rft.appldate=Sep 5, 1979&amp;rft.pubdate=Jan 5, 1982"><span style="display: none;">&#160;</span></span></span>
+</li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><cite class="citation web">Bonwick, Jeff. <a rel="nofollow" class="external text" href="https://blogs.oracle.com/bonwick/entry/zfs_end_to_end_data">"ZFS End-to-End Data Integrity"</a>. <i>Jeff Bonwick's Blog</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Jeff+Bonwick%27s+Blog&amp;rft.atitle=ZFS+End-to-End+Data+Integrity&amp;rft.aulast=Bonwick&amp;rft.aufirst=Jeff&amp;rft_id=https%3A%2F%2Fblogs.oracle.com%2Fbonwick%2Fentry%2Fzfs_end_to_end_data&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text"><cite class="citation web">Likai Liu. <a rel="nofollow" class="external text" href="http://lifecs.likai.org/2014/06/bitrot-resistance-on-single-drive.html">"Bitrot Resistance on a Single Drive"</a>. <i>likai.org</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=likai.org&amp;rft.atitle=Bitrot+Resistance+on+a+Single+Drive&amp;rft.au=Likai+Liu&amp;rft_id=http%3A%2F%2Flifecs.likai.org%2F2014%2F06%2Fbitrot-resistance-on-single-drive.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="http://www.waveprotocol.org/whitepapers/wave-protocol-verification">"General Verifiable Federation"</a>. <i>Google Wave Protocol</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Google+Wave+Protocol&amp;rft.atitle=General+Verifiable+Federation&amp;rft_id=http%3A%2F%2Fwww.waveprotocol.org%2Fwhitepapers%2Fwave-protocol-verification&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><cite class="citation journal">Koblitz, Neal; Menezes, Alfred J. (January 2016). "Cryptocash, cryptocurrencies, and cryptocontracts". <i>Designs, Codes and Cryptography</i>. <b>78</b> (1): 87–102. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="//doi.org/10.1007%2Fs10623-015-0148-5">10.1007/s10623-015-0148-5</a>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=Designs%2C+Codes+and+Cryptography&amp;rft.atitle=Cryptocash%2C+cryptocurrencies%2C+and+cryptocontracts&amp;rft.volume=78&amp;rft.issue=1&amp;rft.pages=87-102&amp;rft.date=2016-01&amp;rft_id=info%3Adoi%2F10.1007%2Fs10623-015-0148-5&amp;rft.aulast=Koblitz&amp;rft.aufirst=Neal&amp;rft.au=Menezes%2C+Alfred+J.&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-8">^</a></b></span> <span class="reference-text"><cite class="citation web">Adam Marcus. <a rel="nofollow" class="external text" href="http://www.aosabook.org/en/nosql.html">"The NoSQL Ecosystem"</a>. <i>aosabook.org</i>. <q>When a replica is down for an extended period of time, or the machine storing hinted handoffs for an unavailable replica goes down as well, replicas must synchronize from one another. In this case, Cassandra and Riak implement a Dynamo-inspired process called anti-entropy. In anti-entropy, replicas exchange Merkle trees to identify parts of their replicated key ranges which are out of sync. A Merkle tree is a hierarchical hash verification: if the hash over the entire keyspace is not the same between two replicas, they will exchange hashes of smaller and smaller portions of the replicated keyspace until the out-of-sync keys are identified. This approach reduces unnecessary data transfer between replicas which contain mostly similar data.</q></cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=aosabook.org&amp;rft.atitle=The+NoSQL+Ecosystem&amp;rft.au=Adam+Marcus&amp;rft_id=http%3A%2F%2Fwww.aosabook.org%2Fen%2Fnosql.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-9">^</a></b></span> <span class="reference-text"><cite class="citation journal">Kilian, J. (1995). "Improved efficient arguments (preliminary version)". <i>CRYPTO</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=article&amp;rft.jtitle=CRYPTO&amp;rft.atitle=Improved+efficient+arguments+%28preliminary+version%29&amp;rft.date=1995&amp;rft.aulast=Kilian&amp;rft.aufirst=J.&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-10"><span class="mw-cite-backlink"><b><a href="#cite_ref-10">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="https://gist.github.com/maaku/41b0054de0731321d23e9da90ba4ee0a">Mark Friedenbach: Fast Merkle Trees</a></span>
+</li>
+<li id="cite_note-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-11">^</a></b></span> <span class="reference-text"><cite class="citation book">Elena Andreeva; Charles Bouillaguet; Orr Dunkelman; John Kelsey (January 2009). "Herding, Second Preimage and Trojan Message Attacks beyond Merkle-Damgård". <a rel="nofollow" class="external text" href="https://link.springer.com/chapter/10.1007/978-3-642-05445-7_25"><i>Selected Areas in Cryptography</i></a>. SAC. pp.&#160;393–414<span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=bookitem&amp;rft.atitle=Herding%2C+Second+Preimage+and+Trojan+Message+Attacks+beyond+Merkle-Damg%C3%A5rd&amp;rft.btitle=Selected+Areas+in+Cryptography&amp;rft.pages=393-414&amp;rft.pub=SAC&amp;rft.date=2009-01&amp;rft.au=Elena+Andreeva&amp;rft.au=Charles+Bouillaguet&amp;rft.au=Orr+Dunkelman&amp;rft.au=John+Kelsey&amp;rft_id=https%3A%2F%2Flink.springer.com%2Fchapter%2F10.1007%2F978-3-642-05445-7_25&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-12">^</a></b></span> <span class="reference-text"><cite class="citation book">Elena Andreeva; Charles Bouillaguet; Pierre-Alain Fouque; Jonathan J. Hoch; John Kelsey; Adi Shamir; Sebastien Zimmer (2008). "Second Preimage Attacks on Dithered Hash Functions".  In Smart, Nigel. <a rel="nofollow" class="external text" href="https://link.springer.com/chapter/10.1007/978-3-540-78967-3_16"><i>Advances in Cryptology – EUROCRYPT 2008</i></a>. Istanbul, Turkey. pp.&#160;270–288<span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=bookitem&amp;rft.atitle=Second+Preimage+Attacks+on+Dithered+Hash+Functions&amp;rft.btitle=Advances+in+Cryptology+%E2%80%93+EUROCRYPT+2008&amp;rft.place=Istanbul%2C+Turkey&amp;rft.pages=270-288&amp;rft.date=2008&amp;rft.au=Elena+Andreeva&amp;rft.au=Charles+Bouillaguet&amp;rft.au=Pierre-Alain+Fouque&amp;rft.au=Jonathan+J.+Hoch&amp;rft.au=John+Kelsey&amp;rft.au=Adi+Shamir&amp;rft.au=Sebastien+Zimmer&amp;rft_id=https%3A%2F%2Flink.springer.com%2Fchapter%2F10.1007%2F978-3-540-78967-3_16&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13">^</a></b></span> <span class="reference-text"><cite class="citation web">Chapweske, J.; Mohr, G. (March 4, 2003). <a rel="nofollow" class="external text" href="https://web.archive.org/web/20090803220648/http://open-content.net/specs/draft-jchapweske-thex-02.html">"Tree Hash EXchange format (THEX)"</a>. Archived from <a rel="nofollow" class="external text" href="http://open-content.net/specs/draft-jchapweske-thex-02.html">the original</a> on 2009-08-03.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.genre=unknown&amp;rft.btitle=Tree+Hash+EXchange+format+%28THEX%29&amp;rft.date=2003-03-04&amp;rft.aulast=Chapweske&amp;rft.aufirst=J.&amp;rft.au=Mohr%2C+G.&amp;rft_id=http%3A%2F%2Fopen-content.net%2Fspecs%2Fdraft-jchapweske-thex-02.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14">^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="http://gtk-gnutella.sourceforge.net/doxygen/tigertree_8c.html">"tigertree.c File Reference"</a>. <i>Gtk-Gnutella</i><span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Gtk-Gnutella&amp;rft.atitle=tigertree.c+File+Reference&amp;rft_id=http%3A%2F%2Fgtk-gnutella.sourceforge.net%2Fdoxygen%2Ftigertree_8c.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15">^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="https://www.symantec.com/security_response/attacksignatures/detail.jsp?asid=21587">"Audit: P2P DirectConnect Application"</a>. <i>Symantec</i><span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Symantec&amp;rft.atitle=Audit%3A+P2P+DirectConnect+Application&amp;rft_id=https%3A%2F%2Fwww.symantec.com%2Fsecurity_response%2Fattacksignatures%2Fdetail.jsp%3Fasid%3D21587&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16">^</a></b></span> <span class="reference-text"><cite class="citation web">Arne Babenhauserheide (7 Jan 2007). <a rel="nofollow" class="external text" href="http://www.phex.org/mambo/content/view/80/2/">"Phex 3.0.0 released"</a>. <i>Phex</i><span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=Phex&amp;rft.atitle=Phex+3.0.0+released&amp;rft.date=2007-01-07&amp;rft.au=Arne+Babenhauserheide&amp;rft_id=http%3A%2F%2Fwww.phex.org%2Fmambo%2Fcontent%2Fview%2F80%2F2%2F&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-17"><span class="mw-cite-backlink"><b><a href="#cite_ref-17">^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="http://dcplusplus.sourceforge.net/features.html">"DC++'s feature list"</a>. <i>dcplusplus.sourceforge.net</i>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=dcplusplus.sourceforge.net&amp;rft.atitle=DC%2B%2B%27s+feature+list&amp;rft_id=http%3A%2F%2Fdcplusplus.sourceforge.net%2Ffeatures.html&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+<li id="cite_note-18"><span class="mw-cite-backlink"><b><a href="#cite_ref-18">^</a></b></span> <span class="reference-text"><cite class="citation web"><a rel="nofollow" class="external text" href="http://gtk-gnutella.sourceforge.net/en/?page=devel">"Development"</a>. <i>GTK-Gnutella</i><span class="reference-accessdate">. Retrieved <span class="nowrap">23 September</span> 2018</span>.</cite><span title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.genre=unknown&amp;rft.jtitle=GTK-Gnutella&amp;rft.atitle=Development&amp;rft_id=http%3A%2F%2Fgtk-gnutella.sourceforge.net%2Fen%2F%3Fpage%3Ddevel&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMerkle+tree" class="Z3988"></span><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r861714446"/></span>
+</li>
+</ol></div>
+<h2><span class="mw-headline" id="Further_reading">Further reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=8" title="Edit section: Further reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul><li><span><a rel="nofollow" class="external text" href="//www.google.com/patents/US4309569">Merkle tree patent 4,309,569</a></span>&#160;&#8211;&#32; explains both the hash tree structure and the use of it to handle many one-time signatures</li>
+<li><a rel="nofollow" class="external text" href="https://web.archive.org/web/20080316033726/http://www.open-content.net/specs/draft-jchapweske-thex-02.html">Tree Hash EXchange format (THEX)</a>&#160;&#8211;&#32; a detailed description of Tiger trees</li></ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Merkle_tree&amp;action=edit&amp;section=9" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<div id="section_SpokenWikipedia" class="infobox sisterproject plainlinks haudio"><div style="text-align: center; white-space:nowrap"><b>Listen to this article</b> (<a href="/wiki/File:En-Merkle_Tree.ogg" title="File:En-Merkle Tree.ogg">info/dl</a>)
+<div class="center"><div class="floatnone"><div class="mediaContainer" style="width:200px"><audio id="mwe_player_0" controls="" preload="none" style="width:200px" class="kskin" data-durationhint="285.27437641723" data-startoffset="0" data-mwtitle="En-Merkle_Tree.ogg" data-mwprovider="wikimediacommons"><source src="//upload.wikimedia.org/wikipedia/commons/5/5b/En-Merkle_Tree.ogg" type="audio/ogg; codecs=&quot;vorbis&quot;" data-title="Original Ogg file (61 kbps)" data-shorttitle="Ogg source" data-width="0" data-height="0" data-bandwidth="60800" /><source src="//upload.wikimedia.org/wikipedia/commons/transcoded/5/5b/En-Merkle_Tree.ogg/En-Merkle_Tree.ogg.mp3" type="audio/mpeg" data-title="MP3" data-shorttitle="MP3" data-transcodekey="mp3" data-width="0" data-height="0" data-bandwidth="127608" /></audio></div></div></div>
+</div>
+<p><br />
+</p>
+<div style="float: left; margin-left: 5px;"><div class="floatnone"><img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/45px-Sound-icon.svg.png" title="Spoken Wikipedia" width="45" height="34" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/68px-Sound-icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/47/Sound-icon.svg/90px-Sound-icon.svg.png 2x" data-file-width="128" data-file-height="96" /></div></div>
+<div style="font-size: xx-small; line-height: 1.6em; margin-left: 60px;">This audio file was created from a revision of the article "<span class="fn">Merkle tree</span>" dated 2013-09-17, and does not reflect subsequent edits to the article. (<a href="/wiki/Wikipedia:Media_help" class="mw-redirect" title="Wikipedia:Media help">Audio help</a>)</div>
+<div style="text-align: center; clear: both"><b><a href="/wiki/Wikipedia:Spoken_articles" title="Wikipedia:Spoken articles">More spoken articles</a></b></div>
+</div>
+<ul><li><a rel="nofollow" class="external text" href="https://github.com/IAIK/merkle-tree">A C implementation of a dynamically re-sizeable binary SHA-256 hash tree (Merkle Tree)</a></li>
+<li><a rel="nofollow" class="external text" href="https://github.com/richpl/merkletree">Merkle Tree implementation in Java</a></li>
+<li><a rel="nofollow" class="external text" href="https://www.codeproject.com/articles/9336/thexcs-tth-tiger-tree-hash-maker-in-c">Tiger Tree Hash (TTH) source code in C#</a>, by Gil Schmidt</li>
+<li><a rel="nofollow" class="external text" href="http://sourceforge.net/projects/tigertree/">Tiger Tree Hash (TTH) implementations in C and Java</a></li>
+<li><a rel="nofollow" class="external text" href="http://rhash.sourceforge.net/">RHash</a>, an open source command-line tool, which can calculate TTH and magnet links with TTH</li></ul>
+<div role="navigation" class="navbox" aria-label="Navbox" style="padding:3px"><table class="nowraplinks hlist navbox-inner" style="border-spacing:0;background:transparent;color:inherit"><tbody><tr><td colspan="2" class="navbox-list navbox-odd" style="width:100%;padding:0px"><div style="padding:0em 0.25em"></div><table class="nowraplinks collapsible collapsed navbox-subgroup" style="border-spacing:0"><tbody><tr><th scope="col" class="navbox-title" colspan="2"><div class="plainlinks hlist navbar mini"><ul><li class="nv-view"><a href="/wiki/Template:Cryptography_navbox" title="Template:Cryptography navbox"><abbr title="View this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">v</abbr></a></li><li class="nv-talk"><a href="/wiki/Template_talk:Cryptography_navbox" title="Template talk:Cryptography navbox"><abbr title="Discuss this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">t</abbr></a></li><li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Cryptography_navbox&amp;action=edit"><abbr title="Edit this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">e</abbr></a></li></ul></div><div id="Cryptography" style="font-size:114%;margin:0 4em"><a href="/wiki/Cryptography" title="Cryptography">Cryptography</a></div></th></tr><tr><td colspan="2" class="navbox-list navbox-odd" style="width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/History_of_cryptography" title="History of cryptography">History of cryptography</a></li>
+<li><a href="/wiki/Cryptanalysis" title="Cryptanalysis">Cryptanalysis</a></li>
+<li><a href="/wiki/Outline_of_cryptography" title="Outline of cryptography">Outline of cryptography</a></li></ul>
+</div></td></tr><tr><td colspan="2" class="navbox-list navbox-even" style="width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/Symmetric-key_algorithm" title="Symmetric-key algorithm">Symmetric-key algorithm</a></li>
+<li><a href="/wiki/Block_cipher" title="Block cipher">Block cipher</a></li>
+<li><a href="/wiki/Stream_cipher" title="Stream cipher">Stream cipher</a></li>
+<li><a href="/wiki/Public-key_cryptography" title="Public-key cryptography">Public-key cryptography</a></li>
+<li><a href="/wiki/Cryptographic_hash_function" title="Cryptographic hash function">Cryptographic hash function</a></li>
+<li><a href="/wiki/Message_authentication_code" title="Message authentication code">Message authentication code</a></li>
+<li><a href="/wiki/Cryptographically_secure_pseudorandom_number_generator" title="Cryptographically secure pseudorandom number generator">Random numbers</a></li>
+<li><a href="/wiki/Steganography" title="Steganography">Steganography</a></li></ul>
+</div></td></tr><tr><td class="navbox-abovebelow" colspan="2"><div>
+<ul><li><img alt="Category" src="//upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/16px-Folder_Hexagonal_Icon.svg.png" title="Category" width="16" height="14" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/24px-Folder_Hexagonal_Icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/32px-Folder_Hexagonal_Icon.svg.png 2x" data-file-width="36" data-file-height="31" /> <a href="/wiki/Category:Cryptography" title="Category:Cryptography">Category</a></li>
+<li><img alt="Portal" src="//upload.wikimedia.org/wikipedia/en/thumb/f/fd/Portal-puzzle.svg/16px-Portal-puzzle.svg.png" title="Portal" width="16" height="14" srcset="//upload.wikimedia.org/wikipedia/en/thumb/f/fd/Portal-puzzle.svg/24px-Portal-puzzle.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/f/fd/Portal-puzzle.svg/32px-Portal-puzzle.svg.png 2x" data-file-width="32" data-file-height="28" /> <a href="/wiki/Portal:Cryptography" title="Portal:Cryptography">Portal</a></li>
+<li><img alt="WikiProject" src="//upload.wikimedia.org/wikipedia/commons/thumb/3/37/People_icon.svg/16px-People_icon.svg.png" title="WikiProject" width="16" height="16" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/3/37/People_icon.svg/24px-People_icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/3/37/People_icon.svg/32px-People_icon.svg.png 2x" data-file-width="100" data-file-height="100" /> <a href="/wiki/Wikipedia:WikiProject_Cryptography" title="Wikipedia:WikiProject Cryptography">WikiProject</a></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr></tbody></table></div>
+<div role="navigation" class="navbox" aria-labelledby="Tree_data_structures" style="padding:3px"><table class="nowraplinks collapsible autocollapse navbox-inner" style="border-spacing:0;background:transparent;color:inherit"><tbody><tr><th scope="col" class="navbox-title" colspan="2"><div class="plainlinks hlist navbar mini"><ul><li class="nv-view"><a href="/wiki/Template:CS_trees" title="Template:CS trees"><abbr title="View this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">v</abbr></a></li><li class="nv-talk"><a href="/wiki/Template_talk:CS_trees" title="Template talk:CS trees"><abbr title="Discuss this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">t</abbr></a></li><li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:CS_trees&amp;action=edit"><abbr title="Edit this template" style=";;background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;">e</abbr></a></li></ul></div><div id="Tree_data_structures" style="font-size:114%;margin:0 4em"><a href="/wiki/Tree_(data_structure)" title="Tree (data structure)">Tree data structures</a></div></th></tr><tr><th scope="row" class="navbox-group" style="width:1%"><a href="/wiki/Search_tree" title="Search tree">Search trees</a><br />(<a href="/wiki/Set_(abstract_data_type)" title="Set (abstract data type)">dynamic sets</a>/<a href="/wiki/Associative_array" title="Associative array">associative arrays</a>)</th><td class="navbox-list navbox-odd hlist" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/2%E2%80%933_tree" title="2–3 tree">2–3</a></li>
+<li><a href="/wiki/2%E2%80%933%E2%80%934_tree" title="2–3–4 tree">2–3–4</a></li>
+<li><a href="/wiki/AA_tree" title="AA tree">AA</a></li>
+<li><a href="/wiki/(a,b)-tree" title="(a,b)-tree">(a,b)</a></li>
+<li><a href="/wiki/AVL_tree" title="AVL tree">AVL</a></li>
+<li><a href="/wiki/B-tree" title="B-tree">B</a></li>
+<li><a href="/wiki/B%2B_tree" title="B+ tree">B+</a></li>
+<li><a href="/wiki/B*-tree" class="mw-redirect" title="B*-tree">B*</a></li>
+<li><a href="/wiki/Bx-tree" title="Bx-tree">B<sup>x</sup></a></li>
+<li>(<a href="/wiki/Optimal_binary_search_tree" title="Optimal binary search tree">Optimal</a>)&#160;<a href="/wiki/Binary_search_tree" title="Binary search tree">Binary search</a></li>
+<li><a href="/wiki/Dancing_tree" title="Dancing tree">Dancing</a></li>
+<li><a href="/wiki/HTree" title="HTree">HTree</a></li>
+<li><a href="/wiki/Interval_tree" title="Interval tree">Interval</a></li>
+<li><a href="/wiki/Order_statistic_tree" title="Order statistic tree">Order statistic</a></li>
+<li>(<a href="/wiki/Left-leaning_red%E2%80%93black_tree" title="Left-leaning red–black tree">Left-leaning</a>)&#160;<a href="/wiki/Red%E2%80%93black_tree" title="Red–black tree">Red-black</a></li>
+<li><a href="/wiki/Scapegoat_tree" title="Scapegoat tree">Scapegoat</a></li>
+<li><a href="/wiki/Splay_tree" title="Splay tree">Splay</a></li>
+<li><a href="/wiki/T-tree" title="T-tree">T</a></li>
+<li><a href="/wiki/Treap" title="Treap">Treap</a></li>
+<li><a href="/wiki/UB-tree" title="UB-tree">UB</a></li>
+<li><a href="/wiki/Weight-balanced_tree" title="Weight-balanced tree">Weight-balanced</a></li></ul>
+</div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%"><a href="/wiki/Heap_(data_structure)" title="Heap (data structure)">Heaps</a></th><td class="navbox-list navbox-even hlist" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/Binary_heap" title="Binary heap">Binary</a></li>
+<li><a href="/wiki/Binomial_heap" title="Binomial heap">Binomial</a></li>
+<li><a href="/wiki/Brodal_queue" title="Brodal queue">Brodal</a></li>
+<li><a href="/wiki/Fibonacci_heap" title="Fibonacci heap">Fibonacci</a></li>
+<li><a href="/wiki/Leftist_tree" title="Leftist tree">Leftist</a></li>
+<li><a href="/wiki/Pairing_heap" title="Pairing heap">Pairing</a></li>
+<li><a href="/wiki/Skew_heap" title="Skew heap">Skew</a></li>
+<li><a href="/wiki/Van_Emde_Boas_tree" title="Van Emde Boas tree">Van Emde Boas</a></li>
+<li><a href="/wiki/Weak_heap" title="Weak heap">Weak</a></li></ul>
+</div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%"><a href="/wiki/Trie" title="Trie">Tries</a></th><td class="navbox-list navbox-odd hlist" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/Ctrie" title="Ctrie">Ctrie</a></li>
+<li><a href="/wiki/C-trie" title="C-trie">C-trie (compressed ADT)</a></li>
+<li><a href="/wiki/Hash_tree_(persistent_data_structure)" title="Hash tree (persistent data structure)">Hash</a></li>
+<li><a href="/wiki/Radix_tree" title="Radix tree">Radix</a></li>
+<li><a href="/wiki/Suffix_tree" title="Suffix tree">Suffix</a></li>
+<li><a href="/wiki/Ternary_search_tree" title="Ternary search tree">Ternary search</a></li>
+<li><a href="/wiki/X-fast_trie" title="X-fast trie">X-fast</a></li>
+<li><a href="/wiki/Y-fast_trie" title="Y-fast trie">Y-fast</a></li></ul>
+</div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%"><a href="/wiki/Spatial_index" class="mw-redirect" title="Spatial index">Spatial</a> data partitioning trees</th><td class="navbox-list navbox-even hlist" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/Ball_tree" title="Ball tree">Ball</a></li>
+<li><a href="/wiki/BK-tree" title="BK-tree">BK</a></li>
+<li><a href="/wiki/BSP_tree" class="mw-redirect" title="BSP tree">BSP</a></li>
+<li><a href="/wiki/Cartesian_tree" title="Cartesian tree">Cartesian</a></li>
+<li><a href="/wiki/Hilbert_R-tree" title="Hilbert R-tree">Hilbert R</a></li>
+<li><a href="/wiki/K-d_tree" title="K-d tree"><i>k</i>-d</a> (<a href="/wiki/Implicit_k-d_tree" title="Implicit k-d tree">implicit <i>k</i>-d</a>)</li>
+<li><a href="/wiki/M-tree" title="M-tree">M</a></li>
+<li><a href="/wiki/Metric_tree" title="Metric tree">Metric</a></li>
+<li><a href="/wiki/MVP_tree" class="mw-redirect" title="MVP tree">MVP</a></li>
+<li><a href="/wiki/Octree" title="Octree">Octree</a></li>
+<li><a href="/wiki/Priority_R-tree" title="Priority R-tree">Priority R</a></li>
+<li><a href="/wiki/Quadtree" title="Quadtree">Quad</a></li>
+<li><a href="/wiki/R-tree" title="R-tree">R</a></li>
+<li><a href="/wiki/R%2B_tree" title="R+ tree">R+</a></li>
+<li><a href="/wiki/R*_tree" title="R* tree">R*</a></li>
+<li><a href="/wiki/Segment_tree" title="Segment tree">Segment</a></li>
+<li><a href="/wiki/Vantage-point_tree" title="Vantage-point tree">VP</a></li>
+<li><a href="/wiki/X-tree" title="X-tree">X</a></li></ul>
+</div></td></tr><tr><th scope="row" class="navbox-group" style="width:1%">Other trees</th><td class="navbox-list navbox-odd hlist" style="text-align:left;border-left-width:2px;border-left-style:solid;width:100%;padding:0px"><div style="padding:0em 0.25em">
+<ul><li><a href="/wiki/Cover_tree" title="Cover tree">Cover</a></li>
+<li><a href="/wiki/Exponential_tree" title="Exponential tree">Exponential</a></li>
+<li><a href="/wiki/Fenwick_tree" title="Fenwick tree">Fenwick</a></li>
+<li><a href="/wiki/Finger_tree" title="Finger tree">Finger</a></li>
+<li><a href="/wiki/Fractal_tree_index" title="Fractal tree index">Fractal tree index</a></li>
+<li><a href="/wiki/Fusion_tree" title="Fusion tree">Fusion</a></li>
+<li><a href="/wiki/Hash_calendar" title="Hash calendar">Hash calendar</a></li>
+<li><a href="/wiki/IDistance" title="IDistance">iDistance</a></li>
+<li><a href="/wiki/K-ary_tree" title="K-ary tree">K-ary</a></li>
+<li><a href="/wiki/Left-child_right-sibling_binary_tree" title="Left-child right-sibling binary tree">Left-child right-sibling</a></li>
+<li><a href="/wiki/Link/cut_tree" title="Link/cut tree">Link/cut</a></li>
+<li><a href="/wiki/Log-structured_merge-tree" title="Log-structured merge-tree">Log-structured merge</a></li>
+<li><a class="mw-selflink selflink">Merkle</a></li>
+<li><a href="/wiki/PQ_tree" title="PQ tree">PQ</a></li>
+<li><a href="/wiki/Range_tree" title="Range tree">Range</a></li>
+<li><a href="/wiki/SPQR_tree" title="SPQR tree">SPQR</a></li>
+<li><a href="/wiki/Top_tree" title="Top tree">Top</a></li></ul>
+</div></td></tr></tbody></table></div>
+
+<!-- 
+NewPP limit report
+Parsed by mw1330
+Cached time: 20181030020646
+Cache expiry: 1900800
+Dynamic content: false
+CPU time usage: 0.384 seconds
+Real time usage: 0.475 seconds
+Preprocessor visited node count: 1553/1000000
+Preprocessor generated node count: 0/1500000
+Post‐expand include size: 59391/2097152 bytes
+Template argument size: 2268/2097152 bytes
+Highest expansion depth: 11/40
+Expensive parser function count: 2/500
+Unstrip recursion depth: 1/20
+Unstrip post‐expand size: 42933/5000000 bytes
+Number of Wikibase entities loaded: 1/400
+Lua time usage: 0.193/10.000 seconds
+Lua memory usage: 4.64 MB/50 MB
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  369.920      1 -total
+ 56.93%  210.609      1 Template:Reflist
+ 31.01%  114.719     11 Template:Cite_web
+ 22.00%   81.375      2 Template:Citation_needed
+ 16.45%   60.836      2 Template:Fix
+ 13.17%   48.708      3 Template:Navbox
+ 11.29%   41.749      3 Template:Cite_book
+ 10.67%   39.476      5 Template:Category_handler
+  8.24%   30.468      1 Template:Cryptography_navbox
+  4.78%   17.696      1 Template:Spoken_Wikipedia
+-->
+
+<!-- Saved in parser cache with key enwiki:pcache:idhash:2497388-0!canonical and timestamp 20181030020645 and revision id 866395282
+ -->
+</div><noscript><img src="//en.wikipedia.org/wiki/Special:CentralAutoLogin/start?type=1x1" alt="" title="" width="1" height="1" style="border: none; position: absolute;" /></noscript></div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Merkle_tree&amp;oldid=866395282">https://en.wikipedia.org/w/index.php?title=Merkle_tree&amp;oldid=866395282</a>"					</div>
+				<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Error_detection_and_correction" title="Category:Error detection and correction">Error detection and correction</a></li><li><a href="/wiki/Category:Cryptographic_hash_functions" title="Category:Cryptographic hash functions">Cryptographic hash functions</a></li><li><a href="/wiki/Category:Hashing" title="Category:Hashing">Hashing</a></li><li><a href="/wiki/Category:Trees_(data_structures)" title="Category:Trees (data structures)">Trees (data structures)</a></li></ul></div><div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: <ul><li><a href="/wiki/Category:All_articles_with_unsourced_statements" title="Category:All articles with unsourced statements">All articles with unsourced statements</a></li><li><a href="/wiki/Category:Articles_with_unsourced_statements_from_October_2016" title="Category:Articles with unsourced statements from October 2016">Articles with unsourced statements from October 2016</a></li><li><a href="/wiki/Category:Spoken_articles" title="Category:Spoken articles">Spoken articles</a></li><li><a href="/wiki/Category:Articles_with_hAudio_microformats" title="Category:Articles with hAudio microformats">Articles with hAudio microformats</a></li></ul></div></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-anonuserpage">Not logged in</li><li id="pt-anontalk"><a href="/wiki/Special:MyTalk" title="Discussion about edits from this IP address [n]" accesskey="n">Talk</a></li><li id="pt-anoncontribs"><a href="/wiki/Special:MyContributions" title="A list of edits made from this IP address [y]" accesskey="y">Contributions</a></li><li id="pt-createaccount"><a href="/w/index.php?title=Special:CreateAccount&amp;returnto=Merkle+tree" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="/w/index.php?title=Special:UserLogin&amp;returnto=Merkle+tree" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+							<li id="ca-nstab-main" class="selected"><span><a href="/wiki/Merkle_tree" title="View the content page [c]" accesskey="c">Article</a></span></li><li id="ca-talk"><span><a href="/wiki/Talk:Merkle_tree" rel="discussion" title="Discussion about the content page [t]" accesskey="t">Talk</a></span></li>						</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<input type="checkbox" class="vectorMenuCheckbox" aria-labelledby="p-variants-label" />
+						<h3 id="p-variants-label">
+							<span>Variants</span>
+						</h3>
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+							<li id="ca-view" class="collapsible selected"><span><a href="/wiki/Merkle_tree">Read</a></span></li><li id="ca-edit" class="collapsible"><span><a href="/w/index.php?title=Merkle_tree&amp;action=edit" title="Edit this page [e]" accesskey="e">Edit</a></span></li><li id="ca-history" class="collapsible"><span><a href="/w/index.php?title=Merkle_tree&amp;action=history" title="Past revisions of this page [h]" accesskey="h">View history</a></span></li>						</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<input type="checkbox" class="vectorMenuCheckbox" aria-labelledby="p-cactions-label" />
+						<h3 id="p-cactions-label"><span>More</span></h3>
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+						<form action="/w/index.php" id="searchform">
+							<div id="simpleSearch">
+								<input type="search" name="search" placeholder="Search Wikipedia" title="Search Wikipedia [f]" accesskey="f" id="searchInput"/><input type="hidden" value="Special:Search" name="title"/><input type="submit" name="fulltext" value="Search" title="Search Wikipedia for this text" id="mw-searchButton" class="searchButton mw-fallbackSearchButton"/><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton"/>							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="/wiki/Main_Page"  title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+			<div class="body">
+								<ul>
+					<li id="n-mainpage-description"><a href="/wiki/Main_Page" title="Visit the main page [z]" accesskey="z">Main page</a></li><li id="n-contents"><a href="/wiki/Portal:Contents" title="Guides to browsing Wikipedia">Contents</a></li><li id="n-featuredcontent"><a href="/wiki/Portal:Featured_content" title="Featured content – the best of Wikipedia">Featured content</a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events" title="Find background information on current events">Current events</a></li><li id="n-randompage"><a href="/wiki/Special:Random" title="Load a random article [x]" accesskey="x">Random article</a></li><li id="n-sitesupport"><a href="https://donate.wikimedia.org/wiki/Special:FundraiserRedirector?utm_source=donate&amp;utm_medium=sidebar&amp;utm_campaign=C13_en.wikipedia.org&amp;uselang=en" title="Support us">Donate to Wikipedia</a></li><li id="n-shoplink"><a href="//shop.wikimedia.org" title="Visit the Wikipedia store">Wikipedia store</a></li>				</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-interaction" aria-labelledby="p-interaction-label">
+			<h3 id="p-interaction-label">Interaction</h3>
+			<div class="body">
+								<ul>
+					<li id="n-help"><a href="/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia">Help</a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About" title="Find out about Wikipedia">About Wikipedia</a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia">Contact page</a></li>				</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+			<div class="body">
+								<ul>
+					<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Merkle_tree" title="List of all English Wikipedia pages containing links to this page [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Merkle_tree" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-upload"><a href="/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [u]" accesskey="u">Upload file</a></li><li id="t-specialpages"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-permalink"><a href="/w/index.php?title=Merkle_tree&amp;oldid=866395282" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="/w/index.php?title=Merkle_tree&amp;action=info" title="More information about this page">Page information</a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q14746" title="Link to connected data repository item [g]" accesskey="g">Wikidata item</a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Merkle_tree&amp;id=866395282" title="Information on how to cite this page">Cite this page</a></li>				</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-coll-print_export" aria-labelledby="p-coll-print_export-label">
+			<h3 id="p-coll-print_export-label">Print/export</h3>
+			<div class="body">
+								<ul>
+					<li id="coll-create_a_book"><a href="/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=Merkle+tree">Create a book</a></li><li id="coll-download-as-rdf2latex"><a href="/w/index.php?title=Special:ElectronPdf&amp;page=Merkle+tree&amp;action=show-download-screen">Download as PDF</a></li><li id="t-print"><a href="/w/index.php?title=Merkle_tree&amp;printable=yes" title="Printable version of this page [p]" accesskey="p">Printable version</a></li>				</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-lang" aria-labelledby="p-lang-label">
+			<h3 id="p-lang-label">Languages</h3>
+			<div class="body">
+								<ul>
+					<li class="interlanguage-link interwiki-cs"><a href="https://cs.wikipedia.org/wiki/Ha%C5%A1ov%C3%BD_strom" title="Hašový strom – Czech" lang="cs" hreflang="cs" class="interlanguage-link-target">Čeština</a></li><li class="interlanguage-link interwiki-de"><a href="https://de.wikipedia.org/wiki/Hash-Baum" title="Hash-Baum – German" lang="de" hreflang="de" class="interlanguage-link-target">Deutsch</a></li><li class="interlanguage-link interwiki-es"><a href="https://es.wikipedia.org/wiki/%C3%81rbol_de_Merkle" title="Árbol de Merkle – Spanish" lang="es" hreflang="es" class="interlanguage-link-target">Español</a></li><li class="interlanguage-link interwiki-fa"><a href="https://fa.wikipedia.org/wiki/%D8%AF%D8%B1%D8%AE%D8%AA_%D8%AF%D8%B1%D9%87%D9%85%E2%80%8C%D8%B3%D8%A7%D8%B2%DB%8C" title="درخت درهم‌سازی – Persian" lang="fa" hreflang="fa" class="interlanguage-link-target">فارسی</a></li><li class="interlanguage-link interwiki-fr"><a href="https://fr.wikipedia.org/wiki/Arbre_de_Merkle" title="Arbre de Merkle – French" lang="fr" hreflang="fr" class="interlanguage-link-target">Français</a></li><li class="interlanguage-link interwiki-ko"><a href="https://ko.wikipedia.org/wiki/%ED%95%B4%EC%8B%9C_%ED%8A%B8%EB%A6%AC" title="해시 트리 – Korean" lang="ko" hreflang="ko" class="interlanguage-link-target">한국어</a></li><li class="interlanguage-link interwiki-he"><a href="https://he.wikipedia.org/wiki/%D7%A2%D7%A5_%D7%9E%D7%A8%D7%A7%D7%9C" title="עץ מרקל – Hebrew" lang="he" hreflang="he" class="interlanguage-link-target">עברית</a></li><li class="interlanguage-link interwiki-lv"><a href="https://lv.wikipedia.org/wiki/Merkles_koks" title="Merkles koks – Latvian" lang="lv" hreflang="lv" class="interlanguage-link-target">Latviešu</a></li><li class="interlanguage-link interwiki-nl"><a href="https://nl.wikipedia.org/wiki/Hash-boom" title="Hash-boom – Dutch" lang="nl" hreflang="nl" class="interlanguage-link-target">Nederlands</a></li><li class="interlanguage-link interwiki-ja"><a href="https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%83%E3%82%B7%E3%83%A5%E6%9C%A8" title="ハッシュ木 – Japanese" lang="ja" hreflang="ja" class="interlanguage-link-target">日本語</a></li><li class="interlanguage-link interwiki-pl"><a href="https://pl.wikipedia.org/wiki/Drzewo_hash" title="Drzewo hash – Polish" lang="pl" hreflang="pl" class="interlanguage-link-target">Polski</a></li><li class="interlanguage-link interwiki-pt"><a href="https://pt.wikipedia.org/wiki/%C3%81rvores_de_Merkle" title="Árvores de Merkle – Portuguese" lang="pt" hreflang="pt" class="interlanguage-link-target">Português</a></li><li class="interlanguage-link interwiki-ru"><a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B5%D1%80%D0%B5%D0%B2%D0%BE_%D1%85%D0%B5%D1%88%D0%B5%D0%B9" title="Дерево хешей – Russian" lang="ru" hreflang="ru" class="interlanguage-link-target">Русский</a></li><li class="interlanguage-link interwiki-th"><a href="https://th.wikipedia.org/wiki/%E0%B8%95%E0%B9%89%E0%B8%99%E0%B9%84%E0%B8%A1%E0%B9%89%E0%B9%81%E0%B8%AE%E0%B8%8A" title="ต้นไม้แฮช – Thai" lang="th" hreflang="th" class="interlanguage-link-target">ไทย</a></li><li class="interlanguage-link interwiki-tr"><a href="https://tr.wikipedia.org/wiki/Merkle_a%C4%9Fac%C4%B1" title="Merkle ağacı – Turkish" lang="tr" hreflang="tr" class="interlanguage-link-target">Türkçe</a></li><li class="interlanguage-link interwiki-uk"><a href="https://uk.wikipedia.org/wiki/%D0%94%D0%B5%D1%80%D0%B5%D0%B2%D0%BE_%D0%9C%D0%B5%D1%80%D0%BA%D0%BB%D0%B0" title="Дерево Меркла – Ukrainian" lang="uk" hreflang="uk" class="interlanguage-link-target">Українська</a></li><li class="interlanguage-link interwiki-zh"><a href="https://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E6%A0%91" title="哈希树 – Chinese" lang="zh" hreflang="zh" class="interlanguage-link-target">中文</a></li>				</ul>
+				<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q14746#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>			</div>
+		</div>
+				</div>
+		</div>
+				<div id="footer" role="contentinfo">
+						<ul id="footer-info">
+								<li id="footer-info-lastmod"> This page was last edited on 30 October 2018, at 02:06<span class="anonymous-show"> (UTC)</span>.</li>
+								<li id="footer-info-copyright">Text is available under the <a rel="license" href="//en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-ShareAlike License</a><a rel="license" href="//creativecommons.org/licenses/by-sa/3.0/" style="display:none;"></a>;
+additional terms may apply.  By using this site, you agree to the <a href="//foundation.wikimedia.org/wiki/Terms_of_Use">Terms of Use</a> and <a href="//foundation.wikimedia.org/wiki/Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a href="//www.wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+							</ul>
+						<ul id="footer-places">
+								<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Privacy_policy" class="extiw" title="wmf:Privacy policy">Privacy policy</a></li>
+								<li id="footer-places-about"><a href="/wiki/Wikipedia:About" title="Wikipedia:About">About Wikipedia</a></li>
+								<li id="footer-places-disclaimer"><a href="/wiki/Wikipedia:General_disclaimer" title="Wikipedia:General disclaimer">Disclaimers</a></li>
+								<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+								<li id="footer-places-developers"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/How_to_contribute">Developers</a></li>
+								<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Cookie_statement">Cookie statement</a></li>
+								<li id="footer-places-mobileview"><a href="//en.m.wikipedia.org/w/index.php?title=Merkle_tree&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+							</ul>
+										<ul id="footer-icons" class="noprint">
+										<li id="footer-copyrightico">
+						<a href="https://wikimediafoundation.org/"><img src="/static/images/wikimedia-button.png" srcset="/static/images/wikimedia-button-1.5x.png 1.5x, /static/images/wikimedia-button-2x.png 2x" width="88" height="31" alt="Wikimedia Foundation"/></a>					</li>
+										<li id="footer-poweredbyico">
+						<a href="//www.mediawiki.org/"><img src="/static/images/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/static/images/poweredby_mediawiki_132x47.png 1.5x, /static/images/poweredby_mediawiki_176x62.png 2x" width="88" height="31"/></a>					</li>
+									</ul>
+						<div style="clear: both;"></div>
+		</div>
+		
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.384","walltime":"0.475","ppvisitednodes":{"value":1553,"limit":1000000},"ppgeneratednodes":{"value":0,"limit":1500000},"postexpandincludesize":{"value":59391,"limit":2097152},"templateargumentsize":{"value":2268,"limit":2097152},"expansiondepth":{"value":11,"limit":40},"expensivefunctioncount":{"value":2,"limit":500},"unstrip-depth":{"value":1,"limit":20},"unstrip-size":{"value":42933,"limit":5000000},"entityaccesscount":{"value":1,"limit":400},"timingprofile":["100.00%  369.920      1 -total"," 56.93%  210.609      1 Template:Reflist"," 31.01%  114.719     11 Template:Cite_web"," 22.00%   81.375      2 Template:Citation_needed"," 16.45%   60.836      2 Template:Fix"," 13.17%   48.708      3 Template:Navbox"," 11.29%   41.749      3 Template:Cite_book"," 10.67%   39.476      5 Template:Category_handler","  8.24%   30.468      1 Template:Cryptography_navbox","  4.78%   17.696      1 Template:Spoken_Wikipedia"]},"scribunto":{"limitreport-timeusage":{"value":"0.193","limit":"10.000"},"limitreport-memusage":{"value":4866466,"limit":52428800}},"cachereport":{"origin":"mw1330","timestamp":"20181030020646","ttl":1900800,"transientcontent":false}}});mw.config.set({"wgBackendResponseTime":98,"wgHostname":"mw1269"});});</script>
+	</body>
+</html>

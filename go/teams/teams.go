@@ -107,8 +107,16 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
-func (t *Team) KBFSTLFID() keybase1.TLFID {
-	return t.chain().inner.TlfID
+func (t *Team) KBFSTLFIDs() []keybase1.TLFID {
+	return t.chain().inner.TlfIDs
+}
+
+func (t *Team) LatestKBFSTLFID() (res keybase1.TLFID) {
+	ids := t.KBFSTLFIDs()
+	if len(ids) > 0 {
+		res = ids[len(ids)-1]
+	}
+	return res
 }
 
 func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
@@ -344,6 +352,26 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role,
 					invite.Id)
 			}
+		case keybase1.TeamInviteCategory_PHONE, keybase1.TeamInviteCategory_EMAIL:
+			typ, err := invite.Type.String()
+			if err != nil {
+				return res, fmt.Errorf("Failed to handle invite type %v: %s", invtyp, err)
+			}
+			sa := keybase1.SocialAssertion{
+				User:    string(invite.Name),
+				Service: keybase1.SocialAssertionService(typ),
+			}
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
+			case keybase1.TeamRole_READER:
+				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
+			isFullyResolved = false
+		case keybase1.TeamInviteCategory_UNKNOWN:
+			return res, fmt.Errorf("unknown invite type in implicit team: %q", invite.Type.Unknown())
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
@@ -376,6 +404,11 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
 }
 
+func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
+	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t.Data, application,
+		t.chain().GetLatestGeneration())
+}
+
 // ApplicationKey returns the most recent key for an application.
 func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamApplication) (keybase1.TeamApplicationKey, error) {
 	latestGen := t.chain().GetLatestGeneration()
@@ -385,6 +418,11 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
+}
+
+func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
 }
 
 func (t *Team) Rotate(ctx context.Context) (err error) {
@@ -1287,6 +1325,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 	v2Sig, _, newLinkID, err := libkb.MakeSigchainV2OuterSig(
+		t.MetaContext(ctx),
 		deviceSigningKey,
 		linkType,
 		nextSeqno,
@@ -1295,6 +1334,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
+		nil,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
@@ -1733,14 +1773,10 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
 	})
 
-	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	latestKey, err := t.ApplicationKey(ctx, appType)
 	if err != nil {
 		return err
 	}
-	if len(teamKeys) == 0 {
-		return errors.New("no team keys for TLF associate")
-	}
-	latestKey := teamKeys[len(teamKeys)-1]
 	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
 	if err != nil {
 		return err
@@ -1823,7 +1859,9 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 // bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
 func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 	changes.KeyRotated = changes.KeyRotated || t.rotated
+	m := libkb.NewMetaContext(ctx, t.G())
 	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().GetFastTeamLoader().HintLatestSeqno(m, t.ID, t.NextSeqno())
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
 
@@ -1857,12 +1895,12 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 	}
 
 	// Associate the imp team with the TLF ID
-	if team.KBFSTLFID().IsNil() {
+	if team.LatestKBFSTLFID().IsNil() {
 		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
 			return err
 		}
 	} else {
-		if team.KBFSTLFID().String() != tlfID.String() {
+		if team.LatestKBFSTLFID().String() != tlfID.String() {
 			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
 				team.ID, tlfID)
 		}
@@ -1871,6 +1909,7 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 	// Reload the team
 	if team, err = Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          team.ID,
+		Public:      public,
 		ForceRepoll: true,
 	}); err != nil {
 		return err

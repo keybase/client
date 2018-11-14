@@ -20,7 +20,7 @@ export type KeyboardType =
   // Android Only
   | 'visible-password'
 
-export type Props = {
+export type Props = {|
   autoFocus?: boolean,
   className?: string,
   disabled?: boolean,
@@ -37,7 +37,8 @@ export type Props = {
   rowsMax?: number,
   style?: StylesCrossPlatform,
   textType?: TextType,
-  type?: 'password' | 'text' | 'number',
+  type?: 'password' | 'text',
+  value?: string, // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API
 
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
@@ -55,7 +56,7 @@ export type Props = {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
-}
+|}
 
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
 export type PropsWithInput<P> = {|
@@ -73,10 +74,10 @@ export type PropsWithInput<P> = {|
  * use `InternalProps`.
  * See more discussion here: https://github.com/facebook/flow/issues/1660
  */
-export type DefaultProps = {
+export type DefaultProps = {|
   keyboardType: KeyboardType,
   textType: TextType,
-}
+|}
 
 export type Selection = {start: number, end: number}
 
@@ -85,11 +86,25 @@ export type TextInfo = {
   selection: Selection,
 }
 
-export type InternalProps = DefaultProps & Props
+export type InternalProps = {...DefaultProps, ...Props}
 declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
-  // Supported only on desktop right now
+  getSelection: () => ?Selection;
+  /**
+   *  This can only be used when the input is controlled. Use `transformText` if
+   *  you want to do this on an uncontrolled input. Make sure the Selection is
+   *  valid against the `value` prop. Avoid changing `value` and calling this at
+   *  the same time if you don't want bad things to happen. Note that a
+   *  selection will only appear when the input is focused. Call `focus()`
+   *  before this if you want to be sure the user will see the selection.
+   **/
+  setSelection: Selection => void;
+  /**
+   *  This can only be used when the input is uncontrolled. Like `setSelection`,
+   *  if you want to be sure the user will see a selection use `focus()` before
+   *  calling this.
+   **/
   transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }

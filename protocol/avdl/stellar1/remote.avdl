@@ -56,9 +56,9 @@ protocol remote {
     AccountID to;
     string amount; // amount of asset
     Asset asset;
-    uint64 operationID;
     TimeMs ctime; // time on the network
     string cursorToken;
+    boolean unread;
   }
 
   record PaymentSummaryDirect {
@@ -76,6 +76,10 @@ protocol remote {
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
     string noteB64; // b64-encoded EncryptedNote or empty string.
+    string fromDisplayAmount;
+    string fromDisplayCurrency;
+    string toDisplayAmount;
+    string toDisplayCurrency;
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
     string cursorToken;
@@ -120,6 +124,8 @@ protocol remote {
     PaymentSummary summary;
     string memo;
     string memoType;
+    @lint("ignore")
+    string externalTxURL;           // link to external web page with tx details
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
@@ -131,19 +137,26 @@ protocol remote {
     int subentryCount;  // number of entries in the ledger (which raise minimum balance)
     string available;   // for native XLM the amount that is available to send (amount - min balance)
     array<AccountReserve> reserves;
+    union { null, TransactionID } readTransactionID;
+    int unreadPayments; // number of STELLAR payments that are "unread"
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
   record PaymentsPage {
     array<PaymentSummary> payments;
     union { null, PageCursor } cursor;
+    union { null, TransactionID } oldestUnread;  
   }
   PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
+  // markAsRead will mark as "read" all the payments in an account created at or before the time 
+  // of the payment referenced by `mostRecentID`.
+  void markAsRead(keybase1.UserVersion caller, AccountID accountID, TransactionID mostRecentID);
+
   // txID can be either a keybase or stellar transaction ID.
-  PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
+  PaymentDetails paymentDetails(keybase1.UserVersion caller, AccountID accountID, string txID);
 
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);

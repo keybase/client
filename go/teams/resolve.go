@@ -16,13 +16,23 @@ import (
 // ResolveIDToName takes a team ID and resolves it to a name.
 // It can use server-assist but always cryptographically checks the result.
 func ResolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (name keybase1.TeamName, err error) {
+	return resolveIDToName(ctx, g, id, false)
+}
+
+// ResolveIDToNameForceRefresh is like ResolveIDToName but forces a refresh of
+// the FTL cache.
+func ResolveIDToNameForceRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (name keybase1.TeamName, err error) {
+	return resolveIDToName(ctx, g, id, true)
+}
+
+func resolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, forceRefresh bool) (name keybase1.TeamName, err error) {
 	m := libkb.NewMetaContext(ctx, g)
 	rres := g.Resolver.ResolveFullExpression(m, fmt.Sprintf("tid:%s", id))
 	if err = rres.GetError(); err != nil {
 		return keybase1.TeamName{}, err
 	}
 	name = rres.GetTeamName()
-	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamName{}, err
 	}
 
@@ -32,16 +42,24 @@ func ResolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 // ResolveNameToID takes a team name and resolves it to a team ID.
 // It can use server-assist but always cryptographically checks the result.
 func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (id keybase1.TeamID, err error) {
+	return resolveNameToID(ctx, g, name, false)
+}
+
+// ResolveNameToIDForceRefresh is just like ResolveNameToID but it forces a refresh.
+func ResolveNameToIDForceRefresh(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (id keybase1.TeamID, err error) {
+	return resolveNameToID(ctx, g, name, true)
+}
+
+func resolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName, forceRefresh bool) (id keybase1.TeamID, err error) {
 	m := libkb.NewMetaContext(ctx, g)
 	rres := g.Resolver.ResolveFullExpression(m, fmt.Sprintf("team:%s", name))
 	if err = rres.GetError(); err != nil {
 		return keybase1.TeamID(""), err
 	}
 	id = rres.GetTeamID()
-	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamID(""), err
 	}
-
 	return id, nil
 }
 
@@ -66,7 +84,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		suffix = split1[1]
 	}
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(g, assertions)
 	if err != nil {
 		return res, err
 	}
@@ -110,6 +128,19 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	return res, err
 }
 
+// preventTeamCreationOnError checks if an error coming from resolver should
+// prevent us from creating a team. We don't want a team where we don't know if
+// SBS user is resolvable but we just were unable to get the answer.
+func shouldPreventTeamCreation(err error) bool {
+	if resErr, ok := err.(libkb.ResolutionError); ok {
+		switch resErr.Kind {
+		case libkb.ResolutionErrorRateLimited, libkb.ResolutionErrorInvalidInput, libkb.ResolutionErrorRequestFailed:
+			return true
+		}
+	}
+	return false
+}
+
 // Try to resolve implicit team members.
 // Modifies the arguments `resSet` and appends to `resolvedAssertions`.
 // For each assertion in `sourceAssertions`, try to resolve them.
@@ -124,6 +155,10 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 		u, resolveRes, err := g.Resolver.ResolveUser(m, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
+			if shouldPreventTeamCreation(err) {
+				// but if we are not sure, better to bail out
+				return err
+			}
 			sa, err := expr.ToSocialAssertion()
 			if err != nil {
 				// Could not convert to a social assertion.
@@ -159,6 +194,11 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		return nil
 	}
 
+	if resolvedAssertion.ResolveResult.IsServerTrust() && g.Env.GetRunMode() != libkb.ProductionRunMode {
+		g.Log.CDebugf(ctx, "Trusting the server on assertion: %q (server trust - no way for clients to verify)", resolvedAssertion.Assertion.String())
+		return nil
+	}
+
 	id2arg := keybase1.Identify2Arg{
 		Uid:           resolvedAssertion.UID,
 		UserAssertion: resolvedAssertion.Assertion.String(),
@@ -176,8 +216,8 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	m := libkb.NewMetaContext(ctx, g).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
 	if err != nil {
-		idRes, _ := eng.Result()
-		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+		idRes, _ := eng.Result(m)
+		m.CDebugf("identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
 }
@@ -210,6 +250,7 @@ func deduplicateImplicitTeamDisplayName(name *keybase1.ImplicitTeamDisplayName) 
 			writers.UnresolvedUsers = append(writers.UnresolvedUsers, u)
 		}
 	}
+
 	for _, u := range name.Readers.KeybaseUsers {
 		if unseen(u) {
 			readers.KeybaseUsers = append(readers.KeybaseUsers, u)

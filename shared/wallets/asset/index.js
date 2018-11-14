@@ -49,10 +49,17 @@ export default class Asset extends React.Component<Props, State> {
               </Box2>
             </Box2>
             <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+              <Text
+                type="BodyExtrabold"
+                lineClamp={1}
+                style={{color: globalColors.purple2}}
+              >
                 {this.props.balance} {this.props.code}
               </Text>
-              <Text type="BodySmall" lineClamp={1}>
+              <Text
+                type="BodySmall"
+                lineClamp={1}
+              >
                 {this.props.equivBalance}
               </Text>
             </Box2>
@@ -113,7 +120,9 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
         <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
           {props.availableToSend}
         </Text>
-        <Text type="BodySmall">{props.equivAvailableToSend}</Text>
+        <Text type="BodySmall" selectable={true}>
+          {props.equivAvailableToSend}
+        </Text>
       </Box2>
     </Box2>
   </Box2>
@@ -127,10 +136,7 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
   <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Text type="Body">Issuer:</Text>
     <Text type="Body" selectable={true}>
-      {/* TODO (DA) make the full address copyable */}
-      {props.issuerAccountID.substr(0, 12) +
-        '..........' +
-        props.issuerAccountID.substr(props.issuerAccountID.length - 12)}
+      {props.issuerAccountID}
     </Text>
   </Box2>
 )

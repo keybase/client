@@ -4,6 +4,7 @@ import * as Sb from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 import {stringToAccountID} from '../../constants/types/wallets'
+import {isMobile} from '../../styles'
 
 const onSelect = Sb.action('onSelect')
 
@@ -55,10 +56,13 @@ const load = () => {
     .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
       <WalletList
+        refresh={Sb.action('refresh')}
         accountIDs={accountIDs}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
-        style={{height: '100%', width: 240}}
+        onWhatIsStellar={Sb.action('onWhatIsStellar')}
+        title="Wallets"
+        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
       />
     ))
 }

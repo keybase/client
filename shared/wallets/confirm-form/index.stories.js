@@ -23,16 +23,17 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const confirmProps = {
-  amount: '1.234 XLM',
-  assetConversion: '$3',
-  assetType: 'lumens',
+  displayAmountFiat: '$3.00 USD',
+  displayAmountXLM: '1.234 XLM',
   onBack: Sb.action('onBack'),
   onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
-  waiting: false,
+  sendFailed: false,
+  sendingIntentionXLM: true,
+  waitingKey: 'false',
 }
 
-const publicMemo = "Here's some lumens!"
+const publicMemo = "Here's some Lumens!"
 const encryptedNote = `Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex, dolorem commodi? Qui ullam accusantium perferendis mollitia fugit quas nobis tenetur expedita enim a molestias eligendi voluptas perspiciatis, earum vero tempore explicabo placeat, repellendus fugiat ducimus sed! Architecto, rem, distinctio similique, velit in sapiente eius nesciunt dolores asperiores dolorem quos vel.
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit.
@@ -47,15 +48,20 @@ const load = () => {
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
     .add('To User', () => <ConfirmSend {...confirmProps} />)
-    .add('Waiting', () => <ConfirmSend {...confirmProps} waiting={true} />)
+    .add('Waiting', () => <ConfirmSend {...confirmProps} waitingKey="true" />)
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)
     .add('With a public memo and encrypted note', () => (
       <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} />
     ))
-    .add('With a banner', () => <ConfirmSend {...confirmProps} {...banner} />)
+    .add('With a banner', () => <ConfirmSend {...confirmProps} banners={[banner]} />)
     .add('With a public memo, encrypted note, and banner', () => (
-      <ConfirmSend {...confirmProps} publicMemo={publicMemo} encryptedNote={encryptedNote} {...banner} />
+      <ConfirmSend
+        {...confirmProps}
+        publicMemo={publicMemo}
+        encryptedNote={encryptedNote}
+        banners={[banner]}
+      />
     ))
 }
 

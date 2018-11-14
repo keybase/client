@@ -5,13 +5,6 @@ import path from 'path'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
 
-export const windowStyle = {
-  height: 600, // Default height
-  minHeight: 400,
-  minWidth: 600,
-  width: 800, // Default width
-}
-
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility',
@@ -110,6 +103,32 @@ export const backgroundURL = (...to: Array<string>) => {
   return ''
 }
 
+export const initDesktopStyles = () => {
+  const head = document.head
+  if (!head) {
+    console.error('initDesktopStyles failed')
+    return
+  }
+  const style = document.createElement('style')
+  style.type = 'text/css'
+  const css = Object.keys(globalColors).reduce((s, name) => {
+    const color = globalColors[name]
+    if (color) {
+      return (
+        s +
+        `.color_${name} {color: ${color};}\n` +
+        `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.background_color_${name} {background-color: ${color};}\n` +
+        `.hover_background_color_${name}:hover {background-color: ${color};}\n`
+      )
+    } else {
+      return s
+    }
+  }, '')
+  style.appendChild(document.createTextNode(css))
+  head.appendChild(style)
+}
+
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
@@ -133,4 +152,6 @@ export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
+export const borderRadius = 4
+export {default as classNames} from 'classnames'
 export type {StylesCrossPlatform} from './index.types'

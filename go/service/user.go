@@ -159,22 +159,6 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	return ret, err
 }
 
-func (h *UserHandler) Search(ctx context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
-	eng := engine.NewSearchEngine(h.G(), engine.SearchEngineArgs{
-		Query: arg.Query,
-	})
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err = engine.RunEngine2(m, eng)
-	if err == nil {
-		results = eng.GetResults()
-	}
-	return
-}
-
 func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
 	emails, err := libkb.LoadUserEmails(h.G())
 	if err != nil {
@@ -337,6 +321,19 @@ func (h *UserHandler) GetUPAK(ctx context.Context, uid keybase1.UID) (ret keybas
 	}
 	ret = keybase1.NewUPAKVersionedWithV2(*upak)
 	return ret, err
+}
+
+func (h *UserHandler) GetUPAKLite(ctx context.Context, uid keybase1.UID) (ret keybase1.UPKLiteV1AllIncarnations, err error) {
+	arg := libkb.NewLoadUserArg(h.G()).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional().ForUPAKLite()
+	upakLite, err := h.G().GetUPAKLoader().LoadLite(arg)
+	if err != nil {
+		return ret, err
+	}
+	if upakLite == nil {
+		return ret, libkb.UserNotFoundError{UID: uid, Msg: "upak load failed"}
+	}
+	ret = *upakLite
+	return ret, nil
 }
 
 func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadUserAvatarArg) (err error) {

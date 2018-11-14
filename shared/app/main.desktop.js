@@ -1,17 +1,17 @@
 // @flow
 import {hot} from 'react-hot-loader'
-// Uncomment to get more info on hot loading
-// import { setConfig } from 'react-hot-loader'
-// setConfig({ logLevel: 'debug' })
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
+// Uncomment to get more info on hot loading
+// import {setConfig} from 'react-hot-loader'
+// setConfig({logLevel: 'debug'})
 
 type Props = {
   widgetBadge: boolean,
@@ -61,7 +61,7 @@ class Main extends Component<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   return {
     desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
     routeDef: state.routeTree.routeDef,
@@ -79,5 +79,9 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default hot(module)(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(Main)
 )

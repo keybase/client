@@ -57,31 +57,40 @@ const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
     .catch(error => GitGen.createSetError({error}))
 
 const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
-  RPCTypes.gitCreateTeamRepoRpcPromise({
-    notifyTeam: action.payload.notifyTeam,
-    repoName: action.payload.name,
-    teamName: {
-      parts: action.payload.teamname.split('.'),
+  RPCTypes.gitCreateTeamRepoRpcPromise(
+    {
+      notifyTeam: action.payload.notifyTeam,
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
+      },
     },
-  })
+    Constants.loadingWaitingKey
+  )
     .then(() => GitGen.createRepoCreated())
     .catch(error => GitGen.createSetError({error}))
 
 const deletePersonalRepo = (_, action: GitGen.DeletePersonalRepoPayload) =>
-  RPCTypes.gitDeletePersonalRepoRpcPromise({
-    repoName: action.payload.name,
-  })
+  RPCTypes.gitDeletePersonalRepoRpcPromise(
+    {
+      repoName: action.payload.name,
+    },
+    Constants.loadingWaitingKey
+  )
     .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
 const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
-  RPCTypes.gitDeleteTeamRepoRpcPromise({
-    notifyTeam: action.payload.notifyTeam,
-    repoName: action.payload.name,
-    teamName: {
-      parts: action.payload.teamname.split('.'),
+  RPCTypes.gitDeleteTeamRepoRpcPromise(
+    {
+      notifyTeam: action.payload.notifyTeam,
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
+      },
     },
-  })
+    Constants.loadingWaitingKey
+  )
     .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
@@ -130,12 +139,9 @@ function handleIncomingGregor(_, action: GregorGen.PushOOBMPayload) {
 }
 
 const navToGit = (_, action: GitGen.NavToGitPayload) => {
-  const {switchTab, routeState} = action.payload
+  const {routeState} = action.payload
   const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
   const parentPath = []
-  if (!switchTab) {
-    parentPath.push(path.pop())
-  }
   const actions = [Saga.put(RouteTreeGen.createNavigateTo({path, parentPath}))]
   if (routeState) {
     actions.push(Saga.put(RouteTreeGen.createSetRouteState({path, partialState: routeState})))

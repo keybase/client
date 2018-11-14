@@ -40,6 +40,10 @@ func (k KeybaseTransactionID) IsNil() bool {
 	return len(k) == 0
 }
 
+func TransactionIDFromPaymentID(p PaymentID) TransactionID {
+	return TransactionID(p)
+}
+
 func (t TransactionID) String() string {
 	return string(t)
 }
@@ -151,6 +155,15 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	return BundleEntry{}, errors.New("primary stellar account not found")
 }
 
+func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
+	for _, entry := range s.Accounts {
+		if entry.AccountID == acctID {
+			return entry, nil
+		}
+	}
+	return BundleEntry{}, errors.New("stellar account not found")
+}
+
 // Eq compares assets strictly.
 // Assets are not Eq if their type is different
 //   even if they have the same code and issuer.
@@ -213,9 +226,17 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 
 func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
 	return &PaymentLocal{
-		Id:   PaymentID{TxID: txid},
+		Id:   NewPaymentID(txid),
 		Time: ctime,
 	}
+}
+
+func NewPaymentID(txid TransactionID) PaymentID {
+	return PaymentID(txid)
+}
+
+func (p PaymentID) String() string {
+	return string(p)
 }
 
 func (p *PaymentSummary) ToDetails() *PaymentDetails {
@@ -243,6 +264,17 @@ func (p *PaymentSummary) TransactionID() (TransactionID, error) {
 	}
 
 	return "", errors.New("unknown payment summary type")
+}
+
+func (c *ClaimSummary) ToPaymentStatus() PaymentStatus {
+	txStatus := c.TxStatus.ToPaymentStatus()
+	switch txStatus {
+	case PaymentStatus_COMPLETED:
+		if c.Dir == RelayDirection_YANK {
+			return PaymentStatus_CANCELED
+		}
+	}
+	return txStatus
 }
 
 func (d *StellarServerDefinitions) GetCurrencyLocal(code OutsideCurrencyCode) (res CurrencyLocal, ok bool) {

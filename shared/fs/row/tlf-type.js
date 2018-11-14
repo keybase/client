@@ -23,7 +23,13 @@ const RowMeta = ({badgeCount}) => {
 }
 
 const TlfType = (props: TlfTypeProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
+  <StillCommon
+    itemStyles={props.itemStyles}
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+  >
     <RowMeta badgeCount={props.badgeCount} />
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>

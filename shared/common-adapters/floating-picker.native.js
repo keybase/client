@@ -1,27 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Picker} from 'react-native'
+import * as Styles from '../styles'
+import {Picker, SafeAreaView} from 'react-native'
 import {Box2} from './box'
 import Overlay from './overlay'
 import Text from './text'
-import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../styles'
+import type {Props} from './floating-picker'
 
-type PickerItem = {|label: string, value: string | number|}
-
-type Props = {
-  items: PickerItem[], // values must be unique
-  selectedValue: string | number,
-  onSelect: (string | number) => void,
-  header?: React.Node,
-  prompt?: React.Node,
-  promptString?: string, // used on android as title of selection popup
-  onHidden: () => void,
-  onCancel: () => void,
-  onDone: () => void,
-  visible: boolean,
-}
-
-const FloatingPicker = (props: Props) => {
+const FloatingPicker = <T: string | number>(props: Props<T>) => {
   if (!props.visible) {
     return null
   }
@@ -44,15 +30,22 @@ const FloatingPicker = (props: Props) => {
           onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
+          itemStyle={Styles.globalStyles.fontRegular}
         >
-          {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
+          {props.items.map(item => (
+            <Picker.Item key={item.label} {...item} />
+          ))}
         </Picker>
+        <SafeAreaView style={styles.safeArea} />
       </Box2>
     </Overlay>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  safeArea: {
+    backgroundColor: Styles.globalColors.white,
+  },
   flexOne: {
     flex: 1,
   },
@@ -64,32 +57,32 @@ const styles = styleSheetCreate({
     right: 0,
   },
   overlay: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    backgroundColor: globalColors.black_40,
+    backgroundColor: Styles.globalColors.black_40,
   },
   menu: {
     justifyContent: 'flex-end',
     alignItems: 'stretch',
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
   link: {
-    color: globalColors.blue,
+    color: Styles.globalColors.blue,
     fontSize: 17,
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
   actionButtons: {
     height: 56,
     justifyContent: 'flex-end',
     alignItems: 'stretch',
   },
-  picker: platformStyles({
+  picker: Styles.platformStyles({
     isAndroid: {
-      marginBottom: globalMargins.large,
-      marginTop: globalMargins.medium,
+      marginBottom: Styles.globalMargins.large,
+      marginTop: Styles.globalMargins.medium,
     },
   }),
 })
 
-export {FloatingPicker}
+export default FloatingPicker

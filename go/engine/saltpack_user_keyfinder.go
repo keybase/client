@@ -144,7 +144,7 @@ func (e *SaltpackUserKeyfinder) IdentifyUser(m libkb.MetaContext, user string) (
 		return nil, err
 	}
 
-	engRes, err := eng.Result()
+	engRes, err := eng.Result(m)
 	if err != nil {
 		return nil, err
 	}

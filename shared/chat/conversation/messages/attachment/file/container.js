@@ -1,27 +1,27 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, isMobile} from '../../../../../util/container'
+import {connect, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 type OwnProps = {
   message: Types.MessageAttachment,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
 })
 
@@ -37,10 +37,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Uploading'
-        : message.transferState === 'remoteUploading'
-          ? 'waiting...'
-          : ''
-  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+        : message.transferState === 'mobileSaving'
+          ? 'Saving...'
+          : message.transferState === 'remoteUploading'
+            ? 'waiting...'
+            : ''
+  const hasProgress =
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
   return {
     arrowColor,
     hasProgress,
@@ -52,4 +57,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(File)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(File)

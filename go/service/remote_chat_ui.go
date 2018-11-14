@@ -63,3 +63,15 @@ func (r *RemoteChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHi
 func (r *RemoteChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
 	return r.cli.ChatSearchDone(ctx, arg)
 }
+
+func (r *RemoteChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
+	return r.cli.ChatSearchInboxHit(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
+	return r.cli.ChatSearchInboxDone(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	return r.cli.ChatSearchIndexStatus(ctx, arg)
+}

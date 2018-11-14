@@ -18,23 +18,18 @@ import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import type {TypedState} from '../../constants/reducer'
 
-function showShareActionSheet(options: {
-  url?: ?any,
-  message?: ?any,
-}): Promise<{completed: boolean, method: string}> {
+export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
+  throw new Error('Show Share Action - unsupported on this platform')
+}
+export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 
-function downloadAndShowShareActionSheet(fileURL: string) {
-  throw new Error('Download and show share action - unsupported on this platform')
-}
-
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<void> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
@@ -44,7 +39,7 @@ const showMainWindow = () => {
   showDockIcon()
 }
 
-function displayNewMessageNotification(
+export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
@@ -54,22 +49,25 @@ function displayNewMessageNotification(
   throw new Error('Display new message notification not available on this platform')
 }
 
-function clearAllNotifications() {
+export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
   const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
   req.on('response', response => {
     let contentType = ''
+    let disposition = ''
     if (response.statusCode === 200) {
       const contentTypeHeader = response.headers['content-type']
       contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+      const dispositionHeader = response.headers['content-disposition']
+      disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType})
+    cb({statusCode: response.statusCode, contentType, disposition})
   })
   req.on('error', error => cb({error}))
   req.end()
@@ -180,45 +178,42 @@ const setupReachabilityWatcher = () =>
   })
 
 const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
-    console.log('App exit requested')
-    SafeElectron.getApp().exit(0)
+  getEngine().setCustomResponseIncomingCallMap({
+    'keybase.1.logsend.prepareLogsend': (_, response) => {
+      dumpLogs().then(() => {
+        response && response.result()
+      })
+    },
   })
-
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyFS.FSActivity',
-    ({notification}, _, __, getState) => {
-      kbfsNotification(notification, NotifyPopup, getState)
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
-    RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-      console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-    })
-  })
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
-    response && response.result()
-    if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
-      console.log('Quitting due to service shutdown')
-      // Quit just the app, not the service
-      SafeElectron.getApp().quit()
-    }
-  })
-
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifySession.clientOutOfDate',
-    ({upgradeTo, upgradeURI, upgradeMsg}) => {
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyApp.exit': () => {
+      console.log('App exit requested')
+      SafeElectron.getApp().exit(0)
+    },
+    'keybase.1.NotifyFS.FSActivity': ({notification}) =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        kbfsNotification(notification, NotifyPopup, state)
+      }),
+    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
+      RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+      })
+    },
+    'keybase.1.NotifyService.shutdown': code => {
+      if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+        console.log('Quitting due to service shutdown')
+        // Quit just the app, not the service
+        SafeElectron.getApp().quit()
+      }
+    },
+    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
-    dumpLogs().then(() => {
-      response && response.result()
-    })
+      // This is from the API server. Consider notifications from API server
+      // always critical.
+      return Saga.put(ConfigGen.createUpdateInfo({isOutOfDate: true, critical: true, message: upgradeMsg}))
+    },
   })
 }
 
@@ -248,14 +243,55 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+const startOutOfDateCheckLoop = () =>
+  Saga.call(function*() {
+    while (1) {
+      try {
+        const toPut = yield Saga.call(checkForUpdate)
+        yield Saga.put(toPut)
+        yield Saga.delay(3600 * 1000) // 1 hr
+      } catch (err) {
+        logger.warn('error getting update info: ', err)
+        yield Saga.delay(3600 * 1000) // 1 hr
+      }
+    }
+  })
+
+const checkForUpdate = () =>
+  RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
+    ConfigGen.createUpdateInfo({
+      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
+      critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+      message,
+    })
+  )
+
+const updateNow = () =>
+  RPCTypes.configStartUpdateIfNeededRpcPromise().then(() =>
+    // * If user choose to update:
+    //   We'd get killed and it doesn't matter what happens here.
+    // * If user hits "Ignore":
+    //   Note that we ignore the snooze here, so the state shouldn't change,
+    //   and we'd back to where we think we still need an update. So we could
+    //   have just unset the "updating" flag.However, in case server has
+    //   decided to pull out the update between last time we asked the updater
+    //   and now, we'd be in a wrong state if we didn't check with the service.
+    //   Since user has interacted with it, we still ask the service to make
+    //   sure.
+    ConfigGen.createCheckForUpdate()
+  )
+
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
   yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, startOutOfDateCheckLoop)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
+  yield Saga.actionToPromise(ConfigGen.checkForUpdate, checkForUpdate)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 
@@ -265,15 +301,4 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 
   // Start this immediately
   yield Saga.fork(loadStartupDetails)
-}
-
-export {
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  showShareActionSheet,
-  downloadAndShowShareActionSheet,
-  displayNewMessageNotification,
-  clearAllNotifications,
-  getContentTypeFromURL,
-  platformConfigSaga,
 }

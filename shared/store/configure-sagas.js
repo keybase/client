@@ -3,11 +3,9 @@ import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
-import favoriteSaga from '../actions/favorite'
 import fsSaga from '../actions/fs'
 import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
-import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import provisionSaga from '../actions/provision'
 import notificationsSaga from '../actions/notifications'
@@ -25,17 +23,15 @@ import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
 import {reduxSagaLogger} from '../local-debug'
-import {sagaTimer} from '../dev/user-timings'
+import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(chat2Saga)
   yield Saga.fork(configSaga)
   yield Saga.fork(deviceSaga)
-  yield Saga.fork(favoriteSaga)
   yield Saga.fork(fsSaga)
   yield Saga.fork(gregorSaga)
-  yield Saga.fork(kbfsSaga)
   yield Saga.fork(loginSaga)
   yield Saga.fork(provisionSaga)
   yield Saga.fork(notificationsSaga)
@@ -56,7 +52,7 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
 
 let middleWare
 function create(crashHandler: (err: any) => void) {
-  if (middleWare) {
+  if (!__DEV__ && middleWare) {
     throw new Error('Only create one saga middleware!')
   }
   middleWare = createSagaMiddleware({
@@ -67,7 +63,7 @@ function create(crashHandler: (err: any) => void) {
 }
 
 function run() {
-  middleWare.run(mainSaga)
+  middleWare && middleWare.run(mainSaga)
 }
 
 export {create, run}

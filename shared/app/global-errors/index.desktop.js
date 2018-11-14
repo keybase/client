@@ -20,7 +20,7 @@ type Props = PropsWithTimer<_Props>
 class GlobalError extends Component<Props, State> {
   state: State
   timerID: ?TimeoutID
-  _mounted: boolean = true
+  _mounted: boolean = false
 
   constructor(props: Props) {
     super(props)
@@ -84,9 +84,6 @@ class GlobalError extends Component<Props, State> {
       }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
-    if (prevProps.debugDump !== this.props.debugDump) {
-      this._resetError(this.props.debugDump.length > 0)
-    }
   }
 
   static maxHeightForSize(size: Size) {
@@ -143,7 +140,7 @@ class GlobalError extends Component<Props, State> {
           )}
         </Box>
         <Text type="BodyBig" selectable={true} style={detailStyle}>
-          {this.props.debugDump.length ? this.props.debugDump.join('\n') : details}
+          {details}
         </Text>
       </Box>
     )

@@ -48,16 +48,29 @@ js_tests() {
 
     echo 'yarn install'
     yarn cache clean
-    yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
+    yarn install --no-emoji --no-progress --network-concurrency 1
     check_rc $? 'yarn install fail' 1
+
+    echo 'checking no mutated yarn.lock file'
+    git diff --exit-code yarn.lock
+    check_rc $? 'unexpected yarn.lock changes, did you forget to commit it? Do you have an inexact semver?' 1
+
+    echo 'yarn build-actions'
+    yarn build-actions
+    check_rc $? 'yarn build-actions failed!' 1
+    git diff --exit-code actions
+    check_rc $? 'unexpected generated actions changes, did you forget to run yarn build-actions?' 1
+
     echo 'yarn run -s flow status'
     flow_status_output=$(yarn run -s flow status)
     echo $flow_status_output
     [[ $flow_status_output == 'No errors!' ]]
     check_rc $? 'yarn run -s flow status' 1
+
     echo 'yarn run lint'
     yarn run lint
     check_rc $? 'yarn run lint fail' 1
+
     echo 'yarn test'
     yarn test
     check_rc $? 'yarn test fail' 1

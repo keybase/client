@@ -1,9 +1,11 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
+import {isMobile} from '../constants/platform'
 import {BarePreview, NormalPreview} from './filepreview'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import SecurityPrefs from './common/security-prefs-container'
+import DestinationPicker from './destination-picker/container'
 
 const _commonChildren = {
   securityPrefs: {
@@ -13,12 +15,7 @@ const _commonChildren = {
     makeRouteDefNode({
       component: BarePreview,
       children: _commonChildren,
-      tags: makeLeafTags({
-        hideStatusBar: true,
-        fullscreen: true,
-        underStatusBar: true,
-        title: 'Preview',
-      }),
+      tags: makeLeafTags({fullscreen: true, title: 'Preview'}),
     }),
   preview: () =>
     makeRouteDefNode({
@@ -26,6 +23,14 @@ const _commonChildren = {
       children: _commonChildren,
       tags: makeLeafTags({
         title: 'Preview',
+      }),
+    }),
+  destinationPicker: () =>
+    makeRouteDefNode({
+      component: DestinationPicker,
+      tags: makeLeafTags({
+        title: 'Move or Copy',
+        layerOnTop: !isMobile,
       }),
     }),
 }

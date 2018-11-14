@@ -127,6 +127,9 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         if (hasGoChanges) {
+                                            dir("go/keybase") {
+                                                sh "go build --tags=production"
+                                            }
                                             testGo("test_linux_go_")
                                         }
                                     }},
@@ -195,6 +198,9 @@ helpers.rootLinuxNode(env, {
                                             // other than Go tests on Windows,
                                             // add a `hasGoChanges` check here.
                                             dir("go/keybase") {
+                                                bat "go build --tags=production"
+                                            }
+                                            dir("go/keybase") {
                                                 bat "go build"
                                             }
                                             testGo("test_windows_go_")
@@ -243,6 +249,9 @@ helpers.rootLinuxNode(env, {
                                         //},
                                         test_macos_go: {
                                             if (hasGoChanges) {
+                                                dir("go/keybase") {
+                                                    sh "go build --tags=production"
+                                                }
                                                 testGo("test_macos_go_")
                                             }
                                         }
@@ -293,7 +302,7 @@ def testGo(prefix) {
 
         println "Running lint and vet"
         retry(5) {
-            sh 'go get -u github.com/golang/lint/golint'
+            sh 'go get -u golang.org/x/lint/golint'
         }
         retry(5) {
             timeout(activity: true, time: 30, unit: 'SECONDS') {

@@ -306,6 +306,9 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 			break
 		}
 	}
+
+	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
+
 	return tc
 }
 
@@ -469,6 +472,10 @@ func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.Ms
 	return nil
 }
 
+func (f *FakeGregorDismisser) PeekDismissedIDs() []gregor.MsgID {
+	return f.dismissedIDs
+}
+
 type TestUIDMapper struct {
 	ul UPAKLoader
 }
@@ -534,4 +541,14 @@ func CreateClonedDevice(tc TestContext, m MetaContext) {
 
 	d := runAndGetDeviceCloneState()
 	require.True(tc.T, d.IsClone())
+}
+
+func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int) {
+	slot := m.G().FeatureFlags.getOrMakeSlot(feature)
+	rawFeature := rawFeatureSlot{on, cacheSec}
+	slot.readFrom(m, rawFeature)
+}
+
+func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
+	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
 }

@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import {rowStyles} from './common'
 import {Icon, ClickableBox, Input, Box, Button, Text} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemIcon} from '../common'
 
 type EditingProps = {
   name: string,
@@ -45,7 +45,7 @@ const Editing = (props: EditingProps) => (
       />
     </Box>
     <Box key="right" style={rowStyles.rightBox}>
-      {props.status === 'failed' && <Text type="BodyError">Failed</Text>}
+      {props.status === 'failed' && <Text type="BodySmallError">Failed</Text>}
       <Button
         key="create"
         style={stylesButton}

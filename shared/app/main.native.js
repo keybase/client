@@ -2,7 +2,7 @@
 import * as React from 'react'
 import PushPrompt from './push-prompt.native'
 import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
+import {connect} from '../util/container'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
@@ -10,6 +10,8 @@ import {View} from 'react-native'
 import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
+
+type OwnProps = {||}
 
 type Props = {
   routeDef: any,
@@ -46,7 +48,7 @@ class Main extends React.Component<Props> {
         />
         <GatewayDest
           name="popup-root"
-          component={View}
+          component={ViewForGatewayDest}
           pointerEvents="box-none"
           style={globalStyles.fillAbsolute}
         />
@@ -54,17 +56,22 @@ class Main extends React.Component<Props> {
     )
   }
 }
+const ViewForGatewayDest = (props: any) => <View {...props} />
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
 
-const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+const Connected = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Main)
 export default Connected

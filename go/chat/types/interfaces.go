@@ -25,6 +25,11 @@ type Resumable interface {
 	Stop(ctx context.Context) chan struct{}
 }
 
+type Suspendable interface {
+	Suspend(ctx context.Context) bool
+	Resume(ctx context.Context) bool
+}
+
 type CryptKey interface {
 	Material() keybase1.Bytes32
 	Generation() int
@@ -56,6 +61,7 @@ type UnboxConversationInfo interface {
 	GetMembersType() chat1.ConversationMembersType
 	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
 	GetExpunge() *chat1.Expunge
+	GetMaxDeletedUpTo() chat1.MessageID
 	IsPublic() bool
 }
 
@@ -74,7 +80,7 @@ type ConversationSource interface {
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
-		threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
+		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
@@ -102,9 +108,22 @@ type MessageDeliverer interface {
 	NextFailure() (chan []chat1.OutboxRecord, func())
 }
 
-type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
-		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+type RegexpSearcher interface {
+	Search(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		re *regexp.Regexp, uiCh chan chat1.ChatSearchHit, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+}
+
+type Indexer interface {
+	Resumable
+
+	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
+	// Add/update the index with the given messages
+	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	// Remove the given messages from the index
+	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	// For devel/testing
+	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
 
 type Sender interface {
@@ -114,23 +133,21 @@ type Sender interface {
 		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error)
 }
 
-type ChatLocalizer interface {
-	Localize(ctx context.Context, uid gregor1.UID, inbox Inbox) ([]chat1.ConversationLocal, error)
-	Name() string
-	SetOffline()
-}
-
 type InboxSource interface {
 	Offlinable
+	Resumable
+	Suspendable
 
-	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, error)
+	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp, useLocalData bool,
+		maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
-	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
+	Localize(ctx context.Context, uid gregor1.UID, convs []RemoteConversation,
+		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
+	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
 	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error)
 	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -146,7 +163,8 @@ type InboxSource interface {
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
-	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
+	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -204,10 +222,9 @@ type FetchRetrier interface {
 
 type ConvLoader interface {
 	Resumable
+	Suspendable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
-	Suspend(ctx context.Context) bool
-	Resume(ctx context.Context) bool
 }
 
 type PushHandler interface {
@@ -269,6 +286,9 @@ type ActivityNotifier interface {
 		outboxID chat1.OutboxID)
 	AttachmentUploadProgress(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, bytesComplete, bytesTotal int64)
+
+	PromptUnfurl(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 }
 
 type IdentifyNotifier interface {
@@ -298,6 +318,7 @@ type AttachmentURLSrv interface {
 	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 		preview bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
+	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
@@ -324,6 +345,7 @@ type AttachmentUploader interface {
 	Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error)
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
 }
 
 type NativeVideoHelper interface {
@@ -333,4 +355,17 @@ type NativeVideoHelper interface {
 type StellarLoader interface {
 	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
+}
+
+type ConversationBackedStorage interface {
+	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
+}
+
+type Unfurler interface {
+	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msg chat1.MessageUnboxed)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID)
+	Complete(ctx context.Context, outboxID chat1.OutboxID)
 }

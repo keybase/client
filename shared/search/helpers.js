@@ -70,10 +70,15 @@ const onChangeSelectedSearchResultHoc = compose(
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
         // -- unless we're showing search suggestions, which don't have a term.
+        // $FlowIssue
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
-          props.selectedSearchId && props.disableListBuilding
-            ? props.onSelectUser(props.selectedSearchId)
-            : props.onAddUser(props.selectedSearchId)
+          // $FlowIssue
+          if (props.selectedSearchId && props.disableListBuilding) {
+            props.onSelectUser(props.selectedSearchId)
+          } else {
+            // $FlowIssue
+            props.onAddUser(props.selectedSearchId)
+          }
           props.onChangeSearchText && props.onChangeSearchText('')
         }
       },

@@ -1,34 +1,29 @@
 // @flow
-import {connect, type TypedState} from '../../../util/container'
+import {connect, isMobile} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
-const mapStateToProps = (state: TypedState) => {
-  const selectedAccount = Constants.getAccount(state)
+const mapStateToProps = state => {
+  const accountID = Constants.getSelectedAccount(state)
+  const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
-    walletName: Constants.getAccountName(selectedAccount),
+    walletName: selectedAccount.name,
   }
 }
 
-const nyi = () => console.log('Not yet implemented')
-
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
-    dispatch(WalletsGen.createClearBuildingPayment())
-    dispatch(WalletsGen.createClearBuiltPayment())
-    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
-    dispatch(WalletsGen.createSetBuildingFrom({from}))
+  _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType, isRequest: boolean) => {
     dispatch(
-      ownProps.navigateAppend([
-        {
-          selected: Constants.sendReceiveFormRouteKey,
-        },
-      ])
+      WalletsGen.createOpenSendRequestForm({
+        from,
+        isRequest,
+        recipientType,
+      })
     )
   },
   _onReceive: (accountID: Types.AccountID) =>
@@ -40,16 +35,15 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         },
       ])
     ),
-  _onShowSecretKey: (accountID: Types.AccountID) =>
+  _onShowSecretKey: (accountID: Types.AccountID, walletName: ?string) =>
     dispatch(
       ownProps.navigateAppend([
         {
-          props: {accountID},
+          props: {accountID, walletName},
           selected: 'exportSecretKey',
         },
       ])
     ),
-  onDeposit: nyi,
   _onSettings: (accountID: Types.AccountID) =>
     dispatch(
       ownProps.navigateAppend([
@@ -59,17 +53,24 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         },
       ])
     ),
+  onBack: isMobile ? () => dispatch(ownProps.navigateUp()) : null,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  ...dispatchProps,
+  onBack: dispatchProps.onBack,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
-  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount'),
-  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser'),
-  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey'),
-  onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
+  onRequest: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', true),
+  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount', false),
+  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', false),
+  onSendToStellarAddress: () =>
+    dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey', false),
+  onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Header)

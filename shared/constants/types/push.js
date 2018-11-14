@@ -1,5 +1,4 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as ChatTypes from './chat2'
 import * as RPCChatTypes from './rpc-chat-gen'
@@ -27,6 +26,10 @@ export type PushNotification =
       type: 'follow',
       userInteraction: boolean,
       username: string,
+    }
+  | {
+      type: 'chat.extension',
+      conversationIDKey: ChatTypes.ConversationIDKey,
     }
 
 export type _State = {

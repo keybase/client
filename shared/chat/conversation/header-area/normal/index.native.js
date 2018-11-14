@@ -48,12 +48,13 @@ const Wrapper = (props: {
   </Box2>
 )
 
-const ShhIcon = () => (
+const ShhIcon = props => (
   <Icon
     type="iconfont-shh"
     style={iconCastPlatformStyles(styles.shhIcon)}
     color={shhIconColor}
     fontSize={shhIconFontSize}
+    onClick={props.onClick}
   />
 )
 
@@ -67,16 +68,17 @@ const ChannelHeader = (props: Props) => (
         ellipsizeMode="middle"
         style={{color: props.smallTeam ? globalColors.black_75 : globalColors.black_40}}
       >
-        &nbsp;{props.teamName}
+        &nbsp;
+        {props.teamName}
       </Text>
-      {props.smallTeam && props.muted && <ShhIcon />}
+      {props.smallTeam && props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Text type="BodyBig" style={styles.channelName}>
           #{props.channelName}
         </Text>
-        {props.muted && <ShhIcon />}
+        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>
     )}
   </Wrapper>
@@ -95,7 +97,7 @@ const UsernameHeader = (props: Props) => (
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1}
       />
-      {props.muted && <ShhIcon />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box2>
   </Wrapper>
 )

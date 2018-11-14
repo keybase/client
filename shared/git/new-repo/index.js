@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Text,
+  Icon,
+  Input,
+  Dropdown,
+  Checkbox,
+  ScrollView,
+  WaitingButton,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 
 type Props = {
@@ -11,6 +21,7 @@ type Props = {
   onNewTeam: () => void,
   teams?: Array<string>,
   waitingKey: string,
+  loadTeams: () => void,
 }
 
 type State = {
@@ -103,6 +114,10 @@ class NewRepo extends React.Component<Props, State> {
     return this.state.name && !(this.props.isTeam && !this.state.selectedTeam)
   }
 
+  componentDidMount() {
+    this.props.loadTeams()
+  }
+
   render() {
     return (
       <ScrollView>
@@ -158,11 +173,13 @@ class NewRepo extends React.Component<Props, State> {
           )}
           <Box style={{flex: 1}} />
           <Box style={globalStyles.flexBoxRow}>
-            <Button
+            <WaitingButton
               type="Secondary"
               onClick={this.props.onClose}
               label="Cancel"
               style={{marginRight: globalMargins.tiny}}
+              waitingKey={this.props.waitingKey}
+              onlyDisable={true}
             />
             <WaitingButton
               type="Primary"

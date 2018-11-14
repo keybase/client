@@ -1,21 +1,12 @@
 // @flow
-import shallowEqual from 'shallowequal'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
+import type {TypedState} from '../../../constants/reducer'
+import memoize from 'memoize-one'
 
-const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
-export const maxShownConversations = 7
-
-const createShallowEqualSelector = Container.createSelectorCreator(Container.defaultMemoize, shallowEqual)
-
-// Get conversations
-const getMetas = Container.createSelector([getMetaMap], ([metaMap, state]) => [
-  metaMap.filter((meta, id) => Constants.isValidConversationIDKey(id)),
-  state,
-])
+export const maxShownConversations = 3
 
 export type RemoteConvMeta = $Diff<
   {|
@@ -25,48 +16,93 @@ export type RemoteConvMeta = $Diff<
   {onSelectConversation: () => void}
 >
 
-// Sort by timestamp
-const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =>
-  map
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, maxShownConversations)
-    .toList()
-    .map((m): RemoteConvMeta => {
-      const hasUnread = Constants.getHasUnread(state, m.conversationIDKey)
-      const styles = Constants.getRowStyles(m, false, hasUnread)
-      const participantNeedToRekey = m.rekeyers.size > 0
-      const _username = state.config.username || ''
-      const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
-      return {
-        backgroundColor: Styles.globalColors.white,
-        channelname: m.channelname,
-        conversationIDKey: m.conversationIDKey,
-        hasBadge: Constants.getHasBadge(state, m.conversationIDKey),
-        hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
-        hasUnread,
-        iconHoverColor: styles.iconHoverColor,
-        isFinalized: !!m.wasFinalizedBy,
-        isInWidget: true,
-        isMuted: m.isMuted,
-        isSelected: false,
-        // excluding onSelectConversation
-        participantNeedToRekey,
-        participants: Constants.getRowParticipants(m, _username).toArray(),
-        showBold: styles.showBold,
-        snippet: m.snippet,
-        snippetDecoration: m.snippetDecoration,
-        subColor: styles.subColor,
-        teamname: m.teamname,
-        timestamp: Constants.timestampToString(m),
-        usernameColor: styles.usernameColor,
-        youAreReset: m.membershipType === 'youAreReset',
-        youNeedToRekey,
-      }
-    })
-    .toJS()
+// To cache the list
+const valuesCached = memoize((badgeMap, unreadMap, metaMap) =>
+  metaMap
+    .filter((_, id) => Constants.isValidConversationIDKey(id))
+    .map(v => ({
+      hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+      hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
+      conversation: v,
+    }))
+    .sort(
+      (a, b) =>
+        a.hasBadge
+          ? b.hasBadge
+            ? b.conversation.timestamp - a.conversation.timestamp
+            : -1
+          : b.hasBadge
+            ? 1
+            : b.conversation.timestamp - a.conversation.timestamp
+    )
+    .take(maxShownConversations)
+    .valueSeq()
+    .toArray()
 )
 
-// Just to cache the sorted values
-const GetNewestConvMetas = createShallowEqualSelector([getSortedConvMetas], map => map)
+// A hack to store the username to avoid plumbing.
+let _username: string
+export const conversationsToSend = (state: TypedState) => {
+  _username = state.config.username
+  return valuesCached(state.chat2.badgeMap, state.chat2.unreadMap, state.chat2.metaMap)
+}
 
-export default GetNewestConvMetas
+export const changeAffectsWidget = (
+  oldConv: ChatTypes.ConversationMeta,
+  newConv: ChatTypes.ConversationMeta
+) =>
+  oldConv !== newConv &&
+  !(
+    oldConv.rekeyers === newConv.rekeyers &&
+    oldConv.channelname === newConv.channelname &&
+    oldConv.conversationIDKey === newConv.conversationIDKey &&
+    oldConv.resetParticipants === newConv.resetParticipants &&
+    oldConv.wasFinalizedBy === newConv.wasFinalizedBy &&
+    oldConv.isMuted === newConv.isMuted &&
+    oldConv.teamname === newConv.teamname &&
+    oldConv.snippet === newConv.snippet &&
+    oldConv.snippetDecoration === newConv.snippetDecoration &&
+    oldConv.membershipType === newConv.membershipType
+  )
+
+export const serialize = ({
+  hasBadge,
+  hasUnread,
+  conversation,
+}: {
+  hasBadge: boolean,
+  hasUnread: boolean,
+  conversation: ChatTypes.ConversationMeta,
+}): RemoteConvMeta => {
+  const styles = Constants.getRowStyles(conversation, false, hasUnread)
+  const participantNeedToRekey = conversation.rekeyers.size > 0
+  const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)
+  return {
+    backgroundColor: Styles.globalColors.white,
+    channelname: conversation.channelname,
+    conversationIDKey: conversation.conversationIDKey,
+    hasBadge,
+    hasResetUsers: !!conversation.resetParticipants && conversation.resetParticipants.size > 0,
+    hasUnread,
+    iconHoverColor: styles.iconHoverColor,
+    isFinalized: !!conversation.wasFinalizedBy,
+    isInWidget: true,
+    isMuted: conversation.isMuted,
+    isSelected: false,
+    // excluding onSelectConversation
+    participantNeedToRekey,
+    participants: conversation.teamname
+      ? []
+      : Constants.getRowParticipants(conversation, _username).toArray(),
+    showBold: styles.showBold,
+    isDecryptingSnippet: false,
+    snippet: conversation.snippet,
+    snippetDecoration: conversation.snippetDecoration,
+    subColor: styles.subColor,
+    teamname: conversation.teamname,
+    timestamp: Constants.timestampToString(conversation),
+    usernameColor: styles.usernameColor,
+    youAreReset: conversation.membershipType === 'youAreReset',
+    youNeedToRekey,
+  }
+}

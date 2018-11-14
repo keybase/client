@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/gregor"
@@ -20,10 +21,6 @@ func newNullStellar(g *GlobalContext) *nullStellar {
 
 func (n *nullStellar) OnLogout() {}
 
-func (n *nullStellar) CreateWalletGated(ctx context.Context) error {
-	return fmt.Errorf("null stellar impl")
-}
-
 func (n *nullStellar) CreateWalletSoft(ctx context.Context) {
 	n.G().Log.CErrorf(ctx, "null stellar impl")
 }
@@ -37,3 +34,7 @@ func (n *nullStellar) GetServerDefinitions(ctx context.Context) (ret stellar1.St
 }
 
 func (n *nullStellar) KickAutoClaimRunner(MetaContext, gregor.MsgID) {}
+
+func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int) error {
+	return errors.New("nullStellar UpdateUnreadCount")
+}

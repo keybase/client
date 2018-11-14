@@ -39,6 +39,7 @@ export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
+export const leftTeam = 'teams:leftTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
 export const saveChannelMembership = 'teams:saveChannelMembership'
@@ -158,9 +159,12 @@ type _IgnoreRequestPayload = $ReadOnly<{|
   username: string,
 |}>
 type _InviteToTeamByEmailPayload = $ReadOnly<{|
-  teamname: string,
-  role: Types.TeamRoleType,
+  destSubPath: I.List<string>,
   invitees: string,
+  role: Types.TeamRoleType,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  teamname: string,
 |}>
 type _InviteToTeamByPhonePayload = $ReadOnly<{|
   teamname: string,
@@ -169,7 +173,14 @@ type _InviteToTeamByPhonePayload = $ReadOnly<{|
   fullName: string,
 |}>
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
-type _LeaveTeamPayload = $ReadOnly<{|teamname: string|}>
+type _LeaveTeamPayload = $ReadOnly<{|
+  teamname: string,
+  context: 'teams' | 'chat',
+|}>
+type _LeftTeamPayload = $ReadOnly<{|
+  teamname: string,
+  context: 'teams' | 'chat',
+|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|
   email: string,
   teamname: string,
@@ -297,76 +308,80 @@ type _UploadTeamAvatarPayload = $ReadOnly<{|
 /**
  * Fetches the channel information for a single channel in a team from the server.
  */
-export const createGetChannelInfo = (payload: _GetChannelInfoPayload) => ({error: false, payload, type: getChannelInfo})
+export const createGetChannelInfo = (payload: _GetChannelInfoPayload) => ({payload, type: getChannelInfo})
 /**
  * Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.
  */
-export const createGetChannels = (payload: _GetChannelsPayload) => ({error: false, payload, type: getChannels})
+export const createGetChannels = (payload: _GetChannelsPayload) => ({payload, type: getChannels})
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
  */
-export const createGetTeamRetentionPolicy = (payload: _GetTeamRetentionPolicyPayload) => ({error: false, payload, type: getTeamRetentionPolicy})
+export const createGetTeamRetentionPolicy = (payload: _GetTeamRetentionPolicyPayload) => ({payload, type: getTeamRetentionPolicy})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
-export const createSaveTeamRetentionPolicy = (payload: _SaveTeamRetentionPolicyPayload) => ({error: false, payload, type: saveTeamRetentionPolicy})
-export const createAddParticipant = (payload: _AddParticipantPayload) => ({error: false, payload, type: addParticipant})
-export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload) => ({error: false, payload, type: addPeopleToTeam})
-export const createAddTeamWithChosenChannels = (payload: _AddTeamWithChosenChannelsPayload) => ({error: false, payload, type: addTeamWithChosenChannels})
-export const createAddToTeam = (payload: _AddToTeamPayload) => ({error: false, payload, type: addToTeam})
-export const createAddUserToTeams = (payload: _AddUserToTeamsPayload) => ({error: false, payload, type: addUserToTeams})
-export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({error: false, payload, type: badgeAppForTeams})
-export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({error: false, payload, type: checkRequestedAccess})
-export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({error: false, payload, type: clearTeamRequests})
-export const createCreateChannel = (payload: _CreateChannelPayload) => ({error: false, payload, type: createChannel})
-export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({error: false, payload, type: createNewTeam})
-export const createCreateNewTeamFromConversation = (payload: _CreateNewTeamFromConversationPayload) => ({error: false, payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (payload: _DeleteChannelConfirmedPayload) => ({error: false, payload, type: deleteChannelConfirmed})
-export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload) => ({error: false, payload, type: deleteChannelInfo})
-export const createEditMembership = (payload: _EditMembershipPayload) => ({error: false, payload, type: editMembership})
-export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({error: false, payload, type: editTeamDescription})
-export const createGetDetails = (payload: _GetDetailsPayload) => ({error: false, payload, type: getDetails})
-export const createGetDetailsForAllTeams = (payload: _GetDetailsForAllTeamsPayload) => ({error: false, payload, type: getDetailsForAllTeams})
-export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({error: false, payload, type: getTeamOperations})
-export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({error: false, payload, type: getTeamPublicity})
-export const createGetTeams = (payload: _GetTeamsPayload) => ({error: false, payload, type: getTeams})
-export const createIgnoreRequest = (payload: _IgnoreRequestPayload) => ({error: false, payload, type: ignoreRequest})
-export const createInviteToTeamByEmail = (payload: _InviteToTeamByEmailPayload) => ({error: false, payload, type: inviteToTeamByEmail})
-export const createInviteToTeamByPhone = (payload: _InviteToTeamByPhonePayload) => ({error: false, payload, type: inviteToTeamByPhone})
-export const createJoinTeam = (payload: _JoinTeamPayload) => ({error: false, payload, type: joinTeam})
-export const createLeaveTeam = (payload: _LeaveTeamPayload) => ({error: false, payload, type: leaveTeam})
-export const createRemoveMemberOrPendingInvite = (payload: _RemoveMemberOrPendingInvitePayload) => ({error: false, payload, type: removeMemberOrPendingInvite})
-export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => ({error: false, payload, type: removeParticipant})
-export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({error: false, payload, type: saveChannelMembership})
-export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResultsPayload) => ({error: false, payload, type: setAddUserToTeamsResults})
-export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({error: false, payload, type: setChannelCreationError})
-export const createSetEmailInviteError = (payload: _SetEmailInviteErrorPayload) => ({error: false, payload, type: setEmailInviteError})
-export const createSetLoaded = (payload: _SetLoadedPayload) => ({error: false, payload, type: setLoaded})
-export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({error: false, payload, type: setMemberPublicity})
-export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({error: false, payload, type: setNewTeamInfo})
-export const createSetPublicity = (payload: _SetPublicityPayload) => ({error: false, payload, type: setPublicity})
-export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({error: false, payload, type: setTeamAccessRequestsPending})
-export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => ({error: false, payload, type: setTeamCanPerform})
-export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({error: false, payload, type: setTeamChannelInfo})
-export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({error: false, payload, type: setTeamChannels})
-export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({error: false, payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({error: false, payload, type: setTeamCreationPending})
-export const createSetTeamDetails = (payload: _SetTeamDetailsPayload) => ({error: false, payload, type: setTeamDetails})
-export const createSetTeamInfo = (payload: _SetTeamInfoPayload) => ({error: false, payload, type: setTeamInfo})
-export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload) => ({error: false, payload, type: setTeamInviteError})
-export const createSetTeamJoinError = (payload: _SetTeamJoinErrorPayload) => ({error: false, payload, type: setTeamJoinError})
-export const createSetTeamJoinSuccess = (payload: _SetTeamJoinSuccessPayload) => ({error: false, payload, type: setTeamJoinSuccess})
-export const createSetTeamLoadingInvites = (payload: _SetTeamLoadingInvitesPayload) => ({error: false, payload, type: setTeamLoadingInvites})
-export const createSetTeamPublicitySettings = (payload: _SetTeamPublicitySettingsPayload) => ({error: false, payload, type: setTeamPublicitySettings})
-export const createSetTeamRetentionPolicy = (payload: _SetTeamRetentionPolicyPayload) => ({error: false, payload, type: setTeamRetentionPolicy})
-export const createSetTeamSawChatBanner = (payload: _SetTeamSawChatBannerPayload) => ({error: false, payload, type: setTeamSawChatBanner})
-export const createSetTeamSawSubteamsBanner = (payload: _SetTeamSawSubteamsBannerPayload) => ({error: false, payload, type: setTeamSawSubteamsBanner})
-export const createSetTeamsWithChosenChannels = (payload: _SetTeamsWithChosenChannelsPayload) => ({error: false, payload, type: setTeamsWithChosenChannels})
-export const createSetUpdatedChannelName = (payload: _SetUpdatedChannelNamePayload) => ({error: false, payload, type: setUpdatedChannelName})
-export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload) => ({error: false, payload, type: setUpdatedTopic})
-export const createUpdateChannelName = (payload: _UpdateChannelNamePayload) => ({error: false, payload, type: updateChannelName})
-export const createUpdateTopic = (payload: _UpdateTopicPayload) => ({error: false, payload, type: updateTopic})
-export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload) => ({error: false, payload, type: uploadTeamAvatar})
+export const createSaveTeamRetentionPolicy = (payload: _SaveTeamRetentionPolicyPayload) => ({payload, type: saveTeamRetentionPolicy})
+/**
+ * We successfully left a team
+ */
+export const createLeftTeam = (payload: _LeftTeamPayload) => ({payload, type: leftTeam})
+export const createAddParticipant = (payload: _AddParticipantPayload) => ({payload, type: addParticipant})
+export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload) => ({payload, type: addPeopleToTeam})
+export const createAddTeamWithChosenChannels = (payload: _AddTeamWithChosenChannelsPayload) => ({payload, type: addTeamWithChosenChannels})
+export const createAddToTeam = (payload: _AddToTeamPayload) => ({payload, type: addToTeam})
+export const createAddUserToTeams = (payload: _AddUserToTeamsPayload) => ({payload, type: addUserToTeams})
+export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload) => ({payload, type: badgeAppForTeams})
+export const createCheckRequestedAccess = (payload: _CheckRequestedAccessPayload) => ({payload, type: checkRequestedAccess})
+export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload) => ({payload, type: clearTeamRequests})
+export const createCreateChannel = (payload: _CreateChannelPayload) => ({payload, type: createChannel})
+export const createCreateNewTeam = (payload: _CreateNewTeamPayload) => ({payload, type: createNewTeam})
+export const createCreateNewTeamFromConversation = (payload: _CreateNewTeamFromConversationPayload) => ({payload, type: createNewTeamFromConversation})
+export const createDeleteChannelConfirmed = (payload: _DeleteChannelConfirmedPayload) => ({payload, type: deleteChannelConfirmed})
+export const createDeleteChannelInfo = (payload: _DeleteChannelInfoPayload) => ({payload, type: deleteChannelInfo})
+export const createEditMembership = (payload: _EditMembershipPayload) => ({payload, type: editMembership})
+export const createEditTeamDescription = (payload: _EditTeamDescriptionPayload) => ({payload, type: editTeamDescription})
+export const createGetDetails = (payload: _GetDetailsPayload) => ({payload, type: getDetails})
+export const createGetDetailsForAllTeams = (payload: _GetDetailsForAllTeamsPayload) => ({payload, type: getDetailsForAllTeams})
+export const createGetTeamOperations = (payload: _GetTeamOperationsPayload) => ({payload, type: getTeamOperations})
+export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload) => ({payload, type: getTeamPublicity})
+export const createGetTeams = (payload: _GetTeamsPayload) => ({payload, type: getTeams})
+export const createIgnoreRequest = (payload: _IgnoreRequestPayload) => ({payload, type: ignoreRequest})
+export const createInviteToTeamByEmail = (payload: _InviteToTeamByEmailPayload) => ({payload, type: inviteToTeamByEmail})
+export const createInviteToTeamByPhone = (payload: _InviteToTeamByPhonePayload) => ({payload, type: inviteToTeamByPhone})
+export const createJoinTeam = (payload: _JoinTeamPayload) => ({payload, type: joinTeam})
+export const createLeaveTeam = (payload: _LeaveTeamPayload) => ({payload, type: leaveTeam})
+export const createRemoveMemberOrPendingInvite = (payload: _RemoveMemberOrPendingInvitePayload) => ({payload, type: removeMemberOrPendingInvite})
+export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => ({payload, type: removeParticipant})
+export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({payload, type: saveChannelMembership})
+export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResultsPayload) => ({payload, type: setAddUserToTeamsResults})
+export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({payload, type: setChannelCreationError})
+export const createSetEmailInviteError = (payload: _SetEmailInviteErrorPayload) => ({payload, type: setEmailInviteError})
+export const createSetLoaded = (payload: _SetLoadedPayload) => ({payload, type: setLoaded})
+export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({payload, type: setMemberPublicity})
+export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({payload, type: setNewTeamInfo})
+export const createSetPublicity = (payload: _SetPublicityPayload) => ({payload, type: setPublicity})
+export const createSetTeamAccessRequestsPending = (payload: _SetTeamAccessRequestsPendingPayload) => ({payload, type: setTeamAccessRequestsPending})
+export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => ({payload, type: setTeamCanPerform})
+export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({payload, type: setTeamChannelInfo})
+export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({payload, type: setTeamChannels})
+export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({payload, type: setTeamCreationError})
+export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({payload, type: setTeamCreationPending})
+export const createSetTeamDetails = (payload: _SetTeamDetailsPayload) => ({payload, type: setTeamDetails})
+export const createSetTeamInfo = (payload: _SetTeamInfoPayload) => ({payload, type: setTeamInfo})
+export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload) => ({payload, type: setTeamInviteError})
+export const createSetTeamJoinError = (payload: _SetTeamJoinErrorPayload) => ({payload, type: setTeamJoinError})
+export const createSetTeamJoinSuccess = (payload: _SetTeamJoinSuccessPayload) => ({payload, type: setTeamJoinSuccess})
+export const createSetTeamLoadingInvites = (payload: _SetTeamLoadingInvitesPayload) => ({payload, type: setTeamLoadingInvites})
+export const createSetTeamPublicitySettings = (payload: _SetTeamPublicitySettingsPayload) => ({payload, type: setTeamPublicitySettings})
+export const createSetTeamRetentionPolicy = (payload: _SetTeamRetentionPolicyPayload) => ({payload, type: setTeamRetentionPolicy})
+export const createSetTeamSawChatBanner = (payload: _SetTeamSawChatBannerPayload) => ({payload, type: setTeamSawChatBanner})
+export const createSetTeamSawSubteamsBanner = (payload: _SetTeamSawSubteamsBannerPayload) => ({payload, type: setTeamSawSubteamsBanner})
+export const createSetTeamsWithChosenChannels = (payload: _SetTeamsWithChosenChannelsPayload) => ({payload, type: setTeamsWithChosenChannels})
+export const createSetUpdatedChannelName = (payload: _SetUpdatedChannelNamePayload) => ({payload, type: setUpdatedChannelName})
+export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload) => ({payload, type: setUpdatedTopic})
+export const createUpdateChannelName = (payload: _UpdateChannelNamePayload) => ({payload, type: updateChannelName})
+export const createUpdateTopic = (payload: _UpdateTopicPayload) => ({payload, type: updateTopic})
+export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload) => ({payload, type: uploadTeamAvatar})
 
 // Action Payloads
 export type AddParticipantPayload = $Call<typeof createAddParticipant, _AddParticipantPayload>
@@ -397,6 +412,7 @@ export type InviteToTeamByEmailPayload = $Call<typeof createInviteToTeamByEmail,
 export type InviteToTeamByPhonePayload = $Call<typeof createInviteToTeamByPhone, _InviteToTeamByPhonePayload>
 export type JoinTeamPayload = $Call<typeof createJoinTeam, _JoinTeamPayload>
 export type LeaveTeamPayload = $Call<typeof createLeaveTeam, _LeaveTeamPayload>
+export type LeftTeamPayload = $Call<typeof createLeftTeam, _LeftTeamPayload>
 export type RemoveMemberOrPendingInvitePayload = $Call<typeof createRemoveMemberOrPendingInvite, _RemoveMemberOrPendingInvitePayload>
 export type RemoveParticipantPayload = $Call<typeof createRemoveParticipant, _RemoveParticipantPayload>
 export type SaveChannelMembershipPayload = $Call<typeof createSaveChannelMembership, _SaveChannelMembershipPayload>
@@ -462,6 +478,7 @@ export type Actions =
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
   | LeaveTeamPayload
+  | LeftTeamPayload
   | RemoveMemberOrPendingInvitePayload
   | RemoveParticipantPayload
   | SaveChannelMembershipPayload

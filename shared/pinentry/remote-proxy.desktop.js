@@ -7,7 +7,8 @@ import * as React from 'react'
 import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, mapProps, type TypedState, compose} from '../util/container'
+import {NullComponent, connect, mapProps, compose} from '../util/container'
+import {serialize} from './remote-serializer.desktop'
 
 const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
   cancelLabel: data.cancelLabel,
@@ -26,7 +27,11 @@ const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
 }))
 
 // Actions are handled by remote-container
-const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps)(NullComponent)
+const RemotePinentry = compose(
+  dataToProps,
+  SyncBrowserWindow,
+  SyncProps(serialize)
+)(NullComponent)
 
 type Props = {
   sessionIDToPinentry: I.Map<number, Types.PinentryState>,
@@ -44,8 +49,13 @@ class RemotePinentrys extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RemotePinentrys)
+type OwnProps = {||}
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(RemotePinentrys)

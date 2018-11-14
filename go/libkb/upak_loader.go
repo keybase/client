@@ -19,6 +19,7 @@ type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
+	LoadLite(arg LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error)
@@ -240,7 +241,6 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 }
 
 func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error {
-
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
 	upak, err := user.ExportToUPKV2AllIncarnations()
@@ -250,6 +250,25 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err = u.putUPAKToCache(ctx, upak)
 	return err
+}
+
+func (u *CachedUPAKLoader) LoadLite(arg LoadUserArg) (*keybase1.UPKLiteV1AllIncarnations, error) {
+	m, tbs := arg.m.WithTimeBuckets()
+	arg.m = m
+	defer tbs.Record("CachedUPAKLoader.LoadLite")()
+	g := m.G()
+	uid := arg.uid
+
+	if uid.IsNil() {
+		return nil, errors.New("need a UID to load a UPAK lite")
+	}
+	lock := u.locktab.AcquireOnName(m.ctx, g, uid.String())
+	defer func() {
+		lock.Release(m.ctx)
+	}()
+
+	upakLite, err := LoadUPAKLite(arg)
+	return upakLite, err
 }
 
 // loadWithInfo loads a user from the CachedUPAKLoader object. The 'info'
@@ -607,7 +626,7 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 // If the user exists but the device doesn't, will force a load in case the device is very new.
 func (u *CachedUPAKLoader) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	var info CachedUserLoadInfo
-	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	larg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithPublicKeyOptional()
 	upakV2, _, err := u.loadWithInfo(larg, &info, nil, false)
 	if err != nil {
 		return nil, err

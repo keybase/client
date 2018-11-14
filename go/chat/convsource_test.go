@@ -689,6 +689,16 @@ func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLF
 	return nil
 }
 
+func (f failingRemote) RegisterSharePost(ctx context.Context, _ chat1.RegisterSharePostArg) error {
+	require.Fail(f.t, "RegisterSharePost")
+	return nil
+}
+
+func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostArg) error {
+	require.Fail(f.t, "FailSharePost")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -785,6 +795,10 @@ func (f failingUpak) Load(arg libkb.LoadUserArg) (ret *keybase1.UserPlusAllKeys,
 func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *libkb.User, err error) {
 	require.Fail(f.t, "LoadV2 call")
 	return nil, nil, nil
+}
+func (f failingUpak) LoadLite(arg libkb.LoadUserArg) (ret *keybase1.UPKLiteV1AllIncarnations, err error) {
+	require.Fail(f.t, "LoadLite call")
+	return nil, nil
 }
 func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error) {
 	require.Fail(f.t, "LoadKeyV2")
@@ -1269,7 +1283,7 @@ func TestClearFromDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
 
-	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+	require.NoError(t, hcs.storage.Nuke(context.TODO(), conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)
 	require.NoError(t, err)
 	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)

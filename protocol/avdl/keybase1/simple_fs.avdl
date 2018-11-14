@@ -132,7 +132,8 @@ protocol SimpleFS {
 
   enum ListFilter {
     NO_FILTER_0,
-    FILTER_ALL_HIDDEN_1
+    FILTER_ALL_HIDDEN_1,
+    FILTER_SYSTEM_HIDDEN_2
   }
 
   record ListArgs {
@@ -249,6 +250,12 @@ protocol SimpleFS {
    */
   void simpleFSCopy(OpID opID, Path src, Path dest);
 
+
+  /**
+   Make a symlink of file or directory
+   */
+  void simpleFSSymlink(string target, Path link);
+
   /**
    Begin recursive copy of directory 
    */
@@ -298,7 +305,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path);
+  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get revision info for a directory entry
@@ -405,4 +412,10 @@ protocol SimpleFS {
    local journal usage as well.
    */
   SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+
+  /**
+   simpleFSReset completely resets the KBFS folder referenced in `path`.
+   It should only be called after explicit user confirmation.
+   */
+  void simpleFSReset(Path path);
 }

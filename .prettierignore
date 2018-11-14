@@ -1,2 +1,6 @@
 shared/common-adapters/icon.constants.js
 shared/markdown/parser.js
+shared/desktop/build/
+shared/coverage/
+shared/flow-typed/
+shared/libs/

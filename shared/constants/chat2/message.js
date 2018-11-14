@@ -8,11 +8,13 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
+import * as WalletTypes from '../types/wallets'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
+import logger from '../../logger'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -25,6 +27,42 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
     default:
       return null
   }
+}
+
+export const getRequestMessageInfo = (
+  state: TypedState,
+  message: Types.MessageRequestPayment
+): ?MessageTypes.ChatRequestInfo => {
+  const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
+}
+
+export const getPaymentMessageInfo = (
+  state: TypedState,
+  message: Types.MessageSendPayment
+): ?MessageTypes.ChatPaymentInfo => {
+  const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybePaymentInfo) {
+    return message.paymentInfo
+  }
+  if (maybePaymentInfo.type === 'paymentInfo') {
+    return maybePaymentInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
 }
 
 // Map service message types to our message types.
@@ -166,20 +204,32 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   videoDuration: null,
 })
 
+export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo> = I.Record({
+  amount: '',
+  amountDescription: '',
+  asset: 'native',
+  currencyCode: '',
+  type: 'requestInfo',
+})
+
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
-  note: '',
+  note: new HiddenString(''),
   reactions: I.Map(),
   requestID: '',
+  requestInfo: null,
   type: 'requestPayment',
 })
 
 export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+  accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
   note: new HiddenString(''),
+  paymentID: WalletTypes.noPaymentID,
   status: 'none',
   statusDescription: '',
+  type: 'paymentInfo',
   worth: '',
 })
 
@@ -271,17 +321,51 @@ export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   username: '',
 })
 
+export const uiRequestInfoToChatRequestInfo = (
+  r: ?RPCChatTypes.UIRequestInfo
+): ?MessageTypes.ChatRequestInfo => {
+  if (!r) {
+    return null
+  }
+  let asset = 'native'
+  let currencyCode = ''
+  if (!(r.asset || r.currency)) {
+    logger.error('Received UIRequestInfo with no asset or currency code')
+    return null
+  } else if (r.asset && r.asset.type !== 'native') {
+    const assetResult = r.asset
+    asset = WalletConstants.makeAssetDescription({
+      code: assetResult.code,
+      issuerAccountID: WalletTypes.stringToAccountID(assetResult.issuer),
+      issuerName: assetResult.issuerName,
+      issuerVerifiedDomain: assetResult.verifiedDomain,
+    })
+  } else if (r.currency) {
+    asset = 'currency'
+    currencyCode = r.currency
+  }
+  return makeChatRequestInfo({
+    amount: r.amount,
+    amountDescription: r.amountDescription,
+    asset,
+    currencyCode,
+  })
+}
+
 export const uiPaymentInfoToChatPaymentInfo = (
   p: ?RPCChatTypes.UIPaymentInfo
 ): ?MessageTypes.ChatPaymentInfo => {
   if (!p) {
     return null
   }
+  const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
+    accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
-    status: WalletConstants.statusSimplifiedToString[p.status],
+    paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
+    status: serviceStatus === 'claimable' ? 'cancelable' : serviceStatus,
     statusDescription: p.statusDescription,
     worth: p.worth,
   })
@@ -340,7 +424,7 @@ export const uiMessageEditToMessage = (
   }
 }
 
-const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
+const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
   switch (body.systemType) {
     case RPCChatTypes.localMessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
@@ -351,6 +435,7 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
         addee,
         adder,
         isAdmin,
+        reactions,
         team,
       })
     }
@@ -448,10 +533,10 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
   height > width
     ? {
         height: clamp(height || 0, 0, maxAttachmentPreviewSize),
-        width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
+        width: (clamp(height || 0, 0, maxAttachmentPreviewSize) * width) / (height || 1),
       }
     : {
-        height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+        height: (clamp(width || 0, 0, maxAttachmentPreviewSize) * height) / (width || 1),
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
@@ -467,16 +552,16 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
   if (!preview) {
     return res
   }
-  if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+  if (preview.assetType === RPCChatTypes.commonAssetMetadataType.image && preview.image) {
     const wh = clampAttachmentPreviewSize(preview.image)
     res.height = wh.height
     res.width = wh.width
     res.attachmentType = 'image'
     // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+    if (full && full.assetType === RPCChatTypes.commonAssetMetadataType.video) {
       res.showPlayButton = true
     }
-  } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+  } else if (preview.assetType === RPCChatTypes.commonAssetMetadataType.video && preview.video) {
     const wh = clampAttachmentPreviewSize(preview.video)
     res.height = wh.height
     res.width = wh.width
@@ -519,7 +604,7 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
-      const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
+      const rawText: string = m.messageBody.text?.body ?? ''
       return makeMessageText({
         ...common,
         ...explodable,
@@ -600,7 +685,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.leave:
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
-      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
+      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions) : null
     case RPCChatTypes.commonMessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({
@@ -623,8 +708,9 @@ const validUIMessagetoMessage = (
       return m.messageBody.requestpayment
         ? makeMessageRequestPayment({
             ...common,
-            note: m.messageBody.requestpayment.note,
+            note: new HiddenString(m.messageBody.requestpayment.note),
             requestID: m.messageBody.requestpayment.requestID,
+            requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
           })
         : null
     case RPCChatTypes.commonMessageType.none:
@@ -752,9 +838,7 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
-    explodingUnreadable:
-      o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral ||
-      o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
+    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -878,7 +962,7 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.SortedSet()).findLast(o =>
+    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.OrderedSet()).findLast(o =>
       // $FlowIssue not going to fix this message resolution stuff now, they all have ids that we care about
       mm.getIn([o, 'id'])
     )
@@ -895,13 +979,53 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
+export const specialMentions = ['here', 'channel', 'everyone']
+
+export const mergeMessage = (old: ?Types.Message, m: Types.Message) => {
+  if (!old) {
+    return m
+  }
+
+  // only merge if its the same id and type
+  if (old.id !== m.id || old.type !== m.type) {
+    return m
+  }
+
+  // $FlowIssue doens't understand mergeWith
+  return old.mergeWith((oldVal, newVal, key) => {
+    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+      return oldVal.equals(newVal) ? oldVal : newVal
+    } else if (key === 'text') {
+      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+    }
+    return newVal === oldVal ? oldVal : newVal
+  }, m)
+}
+
 export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
+  const validUpgrade = (
+    old: Types.MessageText | Types.MessageAttachment,
+    m: Types.MessageText | Types.MessageAttachment
+  ) => {
+    if (old.submitState !== 'pending' && m.submitState === 'pending') {
+      // we may be making sure we got our pending message in the thread view, but if we already
+      // got the message, then don't blow it away with a pending version.
+      return false
+    }
+    return true
+  }
   if (old.type === 'text' && m.type === 'text') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     return m.withMutations((ret: Types.MessageText) => {
       ret.set('ordinal', old.ordinal)
     })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
+    if (!validUpgrade(old, m)) {
+      return old
+    }
     if (old.submitState === 'pending') {
       // we sent an attachment, service replied
       // with the real message. replace our placeholder but
@@ -942,6 +1066,25 @@ export const enoughTimeBetweenMessages = (
       message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
   )
 
+export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
+  switch (message.type) {
+    case 'text':
+    case 'attachment':
+    case 'requestPayment':
+      return true
+    case 'sendPayment': {
+      // Is the payment pending?
+      const paymentInfo = getPaymentMessageInfo(state, message)
+      if (!paymentInfo || ['cancelable', 'pending', 'canceled'].includes(paymentInfo.get('status'))) {
+        return false
+      }
+      return true
+    }
+    default:
+      return false
+  }
+}
+
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '30 seconds', seconds: 30},
   {text: '5 minutes', seconds: 300},
@@ -962,6 +1105,7 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
   'text',
   'requestPayment',
   'sendPayment',
+  'systemAddedToTeam',
   'systemLeft',
 ]
 

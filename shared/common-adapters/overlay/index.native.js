@@ -5,10 +5,15 @@ import {Box, Box2} from '../box'
 import FloatingBox from '../floating-box'
 import type {Props} from '.'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../styles'
+import {dismiss as dismissKeyboard, isOpen as isKeyboardOpen} from '../../util/keyboard'
 
 const Overlay = (props: Props) => {
   if (props.hasOwnProperty('visible') && !props.visible) {
     return null
+  }
+  if (isKeyboardOpen()) {
+    // Keyboard will cover up the overlay; need to hide
+    dismissKeyboard()
   }
   return (
     <FloatingBox onHidden={() => {}}>
@@ -18,7 +23,7 @@ const Overlay = (props: Props) => {
       >
         <TouchableWithoutFeedback onPress={props.onHidden}>
           {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
-          <Box style={styles.flexOne} />
+          <Box style={styles.touchArea} />
         </TouchableWithoutFeedback>
         {props.children}
       </Box2>
@@ -33,8 +38,8 @@ const styles = styleSheetCreate({
     backgroundColor: globalColors.black_40,
     justifyContent: 'flex-end',
   },
-  flexOne: {
-    flex: 1,
+  touchArea: {
+    ...globalStyles.fillAbsolute,
   },
 })
 

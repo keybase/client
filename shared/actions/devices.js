@@ -1,17 +1,21 @@
 // @flow
 import * as Constants from '../constants/devices'
 import * as DevicesGen from './devices-gen'
+import * as I from 'immutable'
+import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteActions from './route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
+import * as Tabs from '../constants/tabs'
 import HiddenString from '../util/hidden-string'
-import {loginTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
+import {logError} from '../util/errors'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
-    .then((results: ?Array<RPCTypes.DeviceDetail>) => {
+    .then(results => {
       const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
       return DevicesGen.createLoaded({devices})
     })
@@ -20,14 +24,14 @@ const load = (state: TypedState) =>
 const requestPaperKey = () =>
   Saga.call(function*() {
     yield RPCTypes.loginPaperKeyRpcSaga({
-      incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({
-          phrase,
-        }: RPCTypes.LoginUiDisplayPaperKeyPhraseRpcParam) =>
-          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response, __) => {
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
           response.result(false)
         },
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
       },
       params: undefined,
       waitingKey: Constants.waitingKey,
@@ -80,7 +84,7 @@ const revoke = (state: TypedState, action: DevicesGen.RevokePayload) => {
 
 const navigateAfterRevoked = (state: TypedState, action: DevicesGen.RevokedPayload) =>
   action.payload.wasCurrentDevice
-    ? Saga.put(RouteActions.navigateTo([loginTab]))
+    ? Saga.put(RouteActions.navigateTo([Tabs.loginTab]))
     : Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation]))
 
 const showRevokePage = () =>
@@ -92,9 +96,30 @@ const showDevicePage = () =>
 const showPaperKeyPage = () =>
   Saga.put(RouteActions.navigateTo([...Constants.devicesTabLocation, 'paperKey']))
 
+let _wasOnDeviceTab = false
+const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  if (root === Tabs.devicesTab) {
+    _wasOnDeviceTab = true
+  } else if (_wasOnDeviceTab) {
+    _wasOnDeviceTab = false
+    // clear badges
+    return RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
+  }
+  return null
+}
+
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+  const changed_devices = (action.payload.badgeState.newDevices || []).concat(
+    action.payload.badgeState.revokedDevices || []
+  )
+  return Saga.put(DevicesGen.createBadgeAppForDevices({ids: changed_devices}))
+}
+
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked], load)
+  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device
   yield Saga.actionToPromise(DevicesGen.revoke, revoke)
 
@@ -103,6 +128,10 @@ function* deviceSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(DevicesGen.showDevicePage, showDevicePage)
   yield Saga.actionToAction(DevicesGen.showPaperKeyPage, showPaperKeyPage)
   yield Saga.actionToAction(DevicesGen.revoked, navigateAfterRevoked)
+
+  // Badges
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield Saga.actionToPromise(RouteTreeGen.switchTo, clearBadgesAfterNav)
 
   // Loading data
   yield Saga.actionToPromise(DevicesGen.showRevokePage, requestEndangeredTLFsLoad)

@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import WalletPopup from '../../../../wallet-popup'
+import {WalletPopup} from '../../../../common'
 
 export type Props = {|
   name: string,
@@ -13,44 +13,47 @@ export type Props = {|
 
 const RemoveAccountPopup = (props: Props) => {
   const buttons = [
-    <Kb.Button
-      fullWidth={Styles.isMobile}
-      key={0}
-      label="Cancel"
-      onClick={props.onClose}
-      type="Secondary"
-      style={styles.button}
-    />,
+    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Secondary" />,
     <Kb.Button
       fullWidth={Styles.isMobile}
       key={1}
       label="Yes, remove"
       onClick={props.onDelete}
       type="Danger"
-      style={styles.button}
     />,
   ]
 
   return (
     <WalletPopup
-      onClose={props.onClose}
+      onExit={props.onClose}
+      backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
-      <Kb.Text style={styles.warningText} type="Header">
-        Are you sure you want to remove <Kb.Text type="HeaderItalic">{props.name}</Kb.Text> from Keybase?
-      </Kb.Text>
-      <Kb.Text type="BodySmall">Balance:</Kb.Text>
-      <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+        <Kb.Text style={styles.warningText} type="Header">
+          Are you sure you want to remove{' '}
+        </Kb.Text>
+        <Kb.Text type="HeaderItalic" style={styles.warningText}>
+          {props.name}
+        </Kb.Text>
+        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])} type="Header">
+          {' '}
+          from Keybase?
+        </Kb.Text>
+        <Kb.Text type="BodySmall">Balance:</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  flexOne: {flex: 1},
   header: {
     borderBottomWidth: 0,
   },
@@ -65,17 +68,19 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
     },
   }),
+  marginBottomTiny: {
+    marginBottom: Styles.globalMargins.tiny,
+  },
   warningText: Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.tiny,
       textAlign: 'center',
     },
     isElectron: {
       wordBreak: 'break-all',
     },
     isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })

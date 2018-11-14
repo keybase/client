@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -54,8 +55,9 @@ func TestRecentConversationParticipants(t *testing.T) {
 		}
 	}
 
-	require.NoError(t, storage.NewInbox(tc.Context(), uid).Clear(ctx))
-	_, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	require.NoError(t, storage.NewInbox(tc.Context()).Clear(ctx, uid))
+	_, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, nil,
+		nil)
 	require.NoError(t, err)
 
 	res, err := RecentConversationParticipants(ctx, tc.Context(), uid)
@@ -84,12 +86,14 @@ func TestSendTextByName(t *testing.T) {
 		helper := NewHelper(tc.Context(), getRi)
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
-		inbox, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+			nil, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
-		inbox, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+			nil, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
@@ -105,7 +109,8 @@ func TestSendTextByName(t *testing.T) {
 		err = helper.SendTextByName(ctx, name, &topicName,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI")
 		require.NoError(t, err)
-		inbox, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+			nil, nil, nil)
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:

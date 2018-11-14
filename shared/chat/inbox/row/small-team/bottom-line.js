@@ -1,5 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
+import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -22,6 +23,7 @@ type Props = {
   youAreReset: boolean,
   hasResetUsers: boolean,
   isSelected: boolean,
+  isDecryptingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -51,6 +53,8 @@ class BottomLine extends PureComponent<Props> {
           Waiting for participants to rekey
         </Text>
       )
+    } else if (this.props.isDecryptingSnippet) {
+      content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
     } else if (this.props.snippet) {
       const style = collapseStyles([
         styles.bottomLine,
@@ -76,7 +80,7 @@ class BottomLine extends PureComponent<Props> {
                   color: this.props.isSelected ? globalColors.white : globalColors.black_20,
                 },
                 isMobile: {
-                  marginTop: -10,
+                  marginTop: -8,
                 },
               })}
             />
@@ -94,7 +98,9 @@ class BottomLine extends PureComponent<Props> {
           )
           break
         default:
-          snippetDecoration = this.props.snippetDecoration
+          snippetDecoration = this.props.snippetDecoration ? (
+            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+          ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
@@ -130,9 +136,7 @@ class BottomLine extends PureComponent<Props> {
         {this.props.youNeedToRekey && (
           <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
-        <Box style={styles.innerBox}>
-          <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
-        </Box>
+        <Box style={styles.innerBox}>{content}</Box>
       </Box>
     )
   }
@@ -141,15 +145,12 @@ class BottomLine extends PureComponent<Props> {
 const styles = styleSheetCreate({
   outerBox: {
     ...globalStyles.flexBoxRow,
-    flexGrow: 1,
-    height: isMobile ? 20 : 17,
-    maxHeight: isMobile ? 20 : 17,
   },
   innerBox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
-    height: '100%',
+    height: isMobile ? 21 : 17,
     position: 'relative',
   },
   rekeyNeededContainer: {
@@ -187,26 +188,28 @@ const styles = styleSheetCreate({
       lineHeight: undefined,
     },
     isElectron: {
+      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
       lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
-      paddingRight: 30,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       width: '100%',
     },
     isMobile: {
+      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_40,
       flex: 1,
       fontSize: 14,
-      paddingRight: 30,
     },
   }),
   contentBox: {
+    ...globalStyles.fillAbsolute,
+    alignItems: 'center',
     width: '100%',
   },
   alertMeta: platformStyles({

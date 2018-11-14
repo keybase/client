@@ -4,7 +4,7 @@ import * as React from 'react'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
-import EscapeHandler from '../util/escape-handler'
+import EscapeHandler from '../util/escape-handler.desktop'
 import {connect} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
@@ -56,6 +56,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
 
 type ComputedStyle = {
   position: string,
+  zIndex: number,
   top?: number | 'auto',
   left?: number | 'auto',
   right?: number | 'auto',
@@ -71,6 +72,7 @@ const positions: Array<Position> = [
   'left center',
   'top center',
   'bottom center',
+  'center center',
 ]
 
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
@@ -80,7 +82,7 @@ function _computePopupStyle(
   popupCoords: ClientRect,
   offset: ?number
 ): ComputedStyle {
-  const style: ComputedStyle = {position: 'absolute'}
+  const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
   const {pageYOffset, pageXOffset} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
@@ -113,7 +115,7 @@ function _computePopupStyle(
     const xOffset = popupCoords.width + 8
     if (includes(position, 'right') && typeof style.right === 'number') {
       style.right -= xOffset
-    } else if (typeof style.left === 'number') {
+    } else if (includes(position, 'left') && typeof style.left === 'number') {
       style.left -= xOffset
     }
   }
@@ -277,9 +279,12 @@ function ModalPositionRelative<PP>(
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
-            <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(this.props: PP)} />
-            </EscapeHandler>
+            {this.props.onClosePopup && (
+              <EscapeHandler onESC={this.props.onClosePopup}>
+                <WrappedComponent {...(this.props: PP)} />
+              </EscapeHandler>
+            )}
+            {!this.props.onClosePopup && <WrappedComponent {...(this.props: PP)} />}
           </Box>
         </Modal>
       )
@@ -289,12 +294,15 @@ function ModalPositionRelative<PP>(
   return ModalPositionRelativeClass
 }
 
+// TODO maybe a better type?
+type OwnProps = any
+
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   const ModalPopupComponent: React.ComponentType<ModalPositionRelativeProps<any>> = ModalPositionRelative(
     PopupComponent
   )
 
-  const C: React.ComponentType<Props<any>> = connect(
+  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
     () => ({}),
     (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {

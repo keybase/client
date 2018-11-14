@@ -1,16 +1,17 @@
 // @flow
 import * as I from 'immutable'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle, type TypedState, connect} from '../util/container'
+import {compose, lifecycle, connect} from '../util/container'
 import {getSortedTeamnames} from '../constants/teams'
 import {type Teamname} from '../constants/types/teams'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
   _newTeams: state.teams.getIn(['newTeams'], I.Set()),
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
@@ -21,7 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
   teamnames: getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
@@ -39,7 +40,10 @@ const mapDispatchToProps = (dispatch) => ({
   },
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  onOpenFolder: (teamname: Teamname) => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+  onOpenFolder: (teamname: Teamname) =>
+    dispatch(
+      FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
+    ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
@@ -61,7 +65,11 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props._loadTeams()

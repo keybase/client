@@ -1,16 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
-import {Avatar, Text, Box} from '../../../../../common-adapters'
-import {
-  desktopStyles,
-  globalStyles,
-  globalMargins,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-  collapseStyles,
-} from '../../../../../styles'
+import * as Styles from '../../../../../styles'
+import {Avatar, Text, Box, Box2} from '../../../../../common-adapters'
+import {formatTimeForChat} from '../../../../../util/timestamp'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
 import PaymentMessage from '../../account-payment/container'
@@ -53,13 +46,13 @@ export type Props = {|
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
-    return globalColors.black_75
+    return Styles.globalColors.black_75
   }
 
   if (isBroken) {
-    return globalColors.red
+    return Styles.globalColors.red
   }
-  return isFollowing ? globalColors.green2 : globalColors.blue
+  return isFollowing ? Styles.globalColors.green : Styles.globalColors.blue
 }
 
 const UserAvatar = ({author, onAuthorClick}) => (
@@ -69,10 +62,8 @@ const UserAvatar = ({author, onAuthorClick}) => (
 )
 
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
-  const style = collapseStyles([
-    desktopStyles.clickable,
-    styles.username,
-    isYou && styles.usernameYou,
+  const style = Styles.collapseStyles([
+    Styles.desktopStyles.clickable,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
@@ -130,70 +121,86 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
 
 const LeftSide = props => (
   <Box style={styles.leftSide}>
-    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+    {props.includeHeader && (
+      <Box style={styles.hasHeader}>
+        <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />
+      </Box>
+    )}
   </Box>
 )
 
-const RightSide = props => (
-  <Box style={styles.rightSideContainer}>
-    <Box
-      style={collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
-      className="message-wrapper"
-    >
-      {props.includeHeader && (
-        <Username
-          username={props.author}
-          isYou={props.isYou}
-          isFollowing={props.isFollowing}
-          isBroken={props.isBroken}
-          onClick={props.onAuthorClick}
-        />
+const RightSide = props => {
+  const content = (
+    <>
+      {props.message.type === 'text' && <TextMessage message={props.message} isEditing={props.isEditing} />}
+      {props.message.type === 'attachment' && (
+        <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
       )}
-      <Box style={styles.textContainer} className="message">
-        {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
+      {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+        <PaymentMessage message={props.message} />
+      )}
+      {props.isEdited && <EditedMark />}
+    </>
+  )
+  return (
+    <Box style={styles.rightSideContainer}>
+      <Box
+        style={Styles.collapseStyles([styles.rightSide, props.includeHeader && styles.hasHeader])}
+        className="message-wrapper"
+      >
+        {props.includeHeader && (
+          <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.usernameTimestamp}>
+            <Username
+              username={props.author}
+              isYou={props.isYou}
+              isFollowing={props.isFollowing}
+              isBroken={props.isBroken}
+              onClick={props.onAuthorClick}
+            />
+            <Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Text>
+          </Box2>
+        )}
+        <Box style={styles.textContainer} className="message">
+          {/* TODO remove the `|| props.isExplodingUnreadable` when a fix for inadvertent error messages is in.
           The problem is that `isExplodingUnreadable` is coming as true without `props.exploded` sometimes.  */}
-        <ExplodingHeightRetainer
-          explodedBy={props.explodedBy}
-          exploding={props.exploding}
-          measure={props.measure}
-          messageKey={props.messageKey}
-          style={styles.flexOneColumn}
-          retainHeight={props.exploded || props.isExplodingUnreadable}
-        >
-          {props.message.type === 'text' && (
-            <TextMessage message={props.message} isEditing={props.isEditing} />
+          {props.exploding ? (
+            <ExplodingHeightRetainer
+              explodedBy={props.explodedBy}
+              exploding={props.exploding}
+              measure={props.measure}
+              messageKey={props.messageKey}
+              style={styles.flexOneColumn}
+              retainHeight={props.exploded || props.isExplodingUnreadable}
+            >
+              {content}
+            </ExplodingHeightRetainer>
+          ) : (
+            <Box style={styles.flexOneColumn}>{content}</Box>
           )}
-          {props.message.type === 'attachment' && (
-            <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
+        </Box>
+        {!!props.failureDescription &&
+          !props.exploded && (
+            <Failure
+              failureDescription={props.failureDescription}
+              isExplodingUnreadable={props.isExplodingUnreadable}
+              onRetry={props.onRetry}
+              onEdit={props.onEdit}
+              onCancel={props.onCancel}
+            />
           )}
-          {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
-            <PaymentMessage message={props.message} />
+        <Box style={styles.sendIndicator}>
+          {props.isYou && (
+            <SendIndicator
+              sent={props.messageSent || props.exploded}
+              failed={props.messageFailed}
+              id={props.timestamp}
+            />
           )}
-          {props.isEdited && <EditedMark />}
-        </ExplodingHeightRetainer>
-      </Box>
-      {!!props.failureDescription &&
-        !props.exploded && (
-          <Failure
-            failureDescription={props.failureDescription}
-            isExplodingUnreadable={props.isExplodingUnreadable}
-            onRetry={props.onRetry}
-            onEdit={props.onEdit}
-            onCancel={props.onCancel}
-          />
-        )}
-      <Box style={styles.sendIndicator}>
-        {props.isYou && (
-          <SendIndicator
-            sent={props.messageSent || props.exploded}
-            failed={props.messageFailed}
-            id={props.timestamp}
-          />
-        )}
+        </Box>
       </Box>
     </Box>
-  </Box>
-)
+  )
+}
 
 class WrapperAuthor extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
@@ -205,52 +212,51 @@ class WrapperAuthor extends React.PureComponent<Props> {
   }
 
   render() {
-    const props = this.props
     return (
-      <Box style={collapseStyles([styles.flexOneRow, props.includeHeader && styles.hasHeader])}>
-        <LeftSide {...props} />
-        <RightSide {...props} />
+      <Box style={Styles.collapseStyles([styles.flexOneRow, this.props.includeHeader && styles.hasHeader])}>
+        {LeftSide(this.props)}
+        {RightSide(this.props)}
       </Box>
     )
   }
 }
 
-const styles = styleSheetCreate({
-  edited: {color: globalColors.black_20},
-  fail: {color: globalColors.red},
-  failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
-  flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
-  flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
-  hasHeader: {paddingTop: 6},
-  leftSide: platformStyles({
+const styles = Styles.styleSheetCreate({
+  edited: {color: Styles.globalColors.black_20},
+  fail: {color: Styles.globalColors.red},
+  failStyleUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  flexOneColumn: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+  flexOneRow: {...Styles.globalStyles.flexBoxRow, flex: 1},
+  hasHeader: {paddingTop: Styles.globalMargins.xtiny},
+  leftSide: Styles.platformStyles({
     common: {
       flexShrink: 0,
-      marginRight: globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
       position: 'relative',
       width: 32,
     },
     isElectron: {
-      marginLeft: globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
     },
     isMobile: {
-      marginLeft: globalMargins.tiny,
+      marginLeft: Styles.globalMargins.tiny,
     },
   }),
   rightSide: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
-    paddingRight: globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
     position: 'relative',
   },
   rightSideContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     flex: 1,
     paddingBottom: 2,
-    paddingRight: globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
-  sendIndicator: platformStyles({
+  sendIndicator: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: 21,
       justifyContent: 'center',
@@ -268,7 +274,7 @@ const styles = styleSheetCreate({
     },
   }),
   textContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     borderRadius: 4,
     flex: 1,
   },
@@ -277,12 +283,8 @@ const styles = styleSheetCreate({
     height: 32,
     width: 32,
   },
-  username: {
-    alignSelf: 'flex-start',
-    marginBottom: 0,
-  },
-  usernameYou: {
-    ...globalStyles.italic,
+  usernameTimestamp: {
+    alignItems: 'baseline',
   },
 })
 

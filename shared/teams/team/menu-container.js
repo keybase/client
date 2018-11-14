@@ -1,20 +1,20 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'
 
 type OwnProps = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   teamname: string,
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
@@ -63,7 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   visible: boolean,
@@ -84,4 +84,8 @@ const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
   )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMenu)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamMenu)

@@ -2,21 +2,21 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import * as ChatConstants from '../constants/chat2'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
-import {compose, connect, type TypedState} from '../util/container'
-import {
-  isAndroid,
-  appVersionName,
-  appVersionCode,
-  mobileOsVersion,
-  version,
-  logFileName,
-  pprofDir,
-} from '../constants/platform'
+import {compose, connect, type RouteProps} from '../util/container'
+import {isAndroid, version, logFileName, pprofDir} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
+import {Platform, NativeModules} from 'react-native'
+
+type OwnProps = RouteProps<{heading: string}, {}>
+
+const nativeBridge = NativeModules.KeybaseEngine
+const appVersionName = nativeBridge.appVersionName || ''
+const appVersionCode = nativeBridge.appVersionCode || ''
+const mobileOsVersion = Platform.Version
 
 type State = {
   sentFeedback: boolean,
@@ -32,7 +32,7 @@ type Props = PropsWithTimer<{
   chat: Object,
 }>
 
-class FeedbackContainer extends Component<Props, State> {
+class FeedbackContainer extends React.Component<Props, State> {
   mounted = false
 
   state = {
@@ -67,10 +67,10 @@ class FeedbackContainer extends Component<Props, State> {
 
       maybeDump
         .then(() => {
-          const logPath = logFileName()
+          const logPath = logFileName
           logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
-          const traceDir = pprofDir()
+          const traceDir = pprofDir
           const cpuProfileDir = traceDir
           return logSend(
             JSON.stringify(extra),
@@ -122,7 +122,7 @@ class FeedbackContainer extends Component<Props, State> {
   }
 }
 
-const extraChatLogs = (state: TypedState) => {
+const extraChatLogs = state => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
@@ -176,7 +176,7 @@ const extraChatLogs = (state: TypedState) => {
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   return {
     chat: extraChatLogs(state),
     heading: routeProps.get('heading') || 'Your feedback is welcomed!',
@@ -199,7 +199,12 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   HeaderHoc,
+  // $FlowIssue
   HOCTimers
 )(FeedbackContainer)

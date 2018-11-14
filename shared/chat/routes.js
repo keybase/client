@@ -14,6 +14,7 @@ import ManageChannels from './manage-channels/container'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
 import InboxAndConversation from './inbox-and-conversation'
+import TeamBuilding from '../team-building/container'
 import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
@@ -22,6 +23,8 @@ import RetentionWarning from '../teams/team/settings-tab/retention/warning/conta
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
 import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
+import ChooseAsset from '../wallets/send-form/choose-asset/container'
+import QRScan from '../wallets/qr-scan/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -67,19 +70,19 @@ const chatChildren = {
   },
   attachmentFullscreen: {
     component: AttachmentFullscreen,
-    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    tags: makeLeafTags(
+      isMobile ? {hideStatusBar: true, fullscreen: true, underNotch: true} : {layerOnTop: true}
+    ),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentVideoFullscreen: {
     component: AttachmentVideoFullscreen,
-    tags: makeLeafTags(
-      isMobile ? {hideStatusBar: true, underStatusBar: true, fullscreen: true} : {layerOnTop: true}
-    ),
+    tags: makeLeafTags(isMobile ? {fullscreen: true} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentGetTitles: {
     component: AttachmentGetTitles,
-    tags: makeLeafTags({layerOnTop: true}),
+    tags: makeLeafTags(isMobile ? {} : {layerOnTop: true}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   infoPanel: {
@@ -95,16 +98,30 @@ const chatChildren = {
   enterPaperkey: {
     component: EnterPaperkey,
   },
+  newChat: {
+    component: TeamBuilding,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
   [WalletConstants.sendReceiveFormRouteKey]: {
     children: {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+      },
+      [WalletConstants.chooseAssetFormRouteKey]: {
+        children: {},
+        component: ChooseAsset,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+      },
+      qrScan: {
+        component: QRScan,
+        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
   },
 }
 

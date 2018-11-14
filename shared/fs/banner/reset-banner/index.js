@@ -45,16 +45,16 @@ const Banner = ({
               inline={true}
               inlineGrammar={true}
               commaColor={globalColors.white}
-              clickable={true}
+              onUsernameClicked="profile"
               underline={true}
               usernames={resetParticipants}
               backgroundMode="Terminal"
             />
             &nbsp;
-            { // This needs to be in the same node as the sister
-              // ConnectedUsernames node, because otherwise it gets re-flowed
-              // awkwardly.
-              'lost all of their devices and ' +
+            {// This needs to be in the same node as the sister
+            // ConnectedUsernames node, because otherwise it gets re-flowed
+            // awkwardly.
+            'lost all of their devices and ' +
               (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
               ' new keys.\n' +
               'If you want to let them into this folder and the matching chat, you should either:'}

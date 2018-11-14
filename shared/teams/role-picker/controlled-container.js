@@ -3,7 +3,6 @@ import React from 'react'
 import {RoleOptions} from '.'
 import {connect, compose, withHandlers, withStateHandlers} from '../../util/container'
 import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
-import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/types/teams'
 
 /*
@@ -26,7 +25,7 @@ export type ControlledRolePickerProps = {
   styleCover?: Object,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const currentType = routeProps.get('selectedRole')
   const _onComplete = routeProps.get('onComplete')
   const addButtonLabel = routeProps.get('addButtonLabel')
@@ -65,7 +64,11 @@ const ControlledRolePicker = props => (
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

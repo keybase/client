@@ -2,7 +2,7 @@
 import * as Types from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
-import {connect, compose, setDisplayName, type TypedState} from '../util/container'
+import {namedConnect} from '../util/container'
 import type {StylesCrossPlatform} from '../styles'
 
 type OwnProps = {|
@@ -12,7 +12,7 @@ type OwnProps = {|
   allowFontScaling?: ?boolean,
 |}
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
   _onClick: (name, convID) =>
@@ -33,6 +33,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   style: ownProps.style,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Channel'))(
-  Channel
-)
+export default
+namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+  'Channel'
+)(Channel)

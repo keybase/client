@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -369,20 +370,16 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 	if err != nil {
 		return nil, err
 	}
-	packet, err := libkb.DecodePacket(body)
+	naclSig, err := kbcrypto.DecodeNaclSigInfoPacket(body)
 	if err != nil {
 		return nil, err
-	}
-	naclSig, ok := packet.Body.(*libkb.NaclSigInfo)
-	if !ok {
-		return nil, libkb.UnmarshalError{T: "Nacl signature"}
 	}
 	jw, err := jsonw.Unmarshal(naclSig.Payload)
 	if err != nil {
 		return nil, err
 	}
 	res := decodedSig{
-		sigID:  libkb.ComputeSigIDFromSigBody(body),
+		sigID:  kbcrypto.ComputeSigIDFromSigBody(body),
 		linkID: libkb.ComputeLinkID(naclSig.Payload),
 	}
 	res.seqno, err = jw.AtKey("seqno").GetInt()

@@ -1,210 +1,101 @@
 // @flow
 import path from 'path'
-import getenv from 'getenv'
 
-const isMobile = false
-const isAndroid = false
-const isIOS = false
-const isLargeScreen = true
-const isSimulator = false
-const isIPhoneX = false
-const isDeviceSecureAndroid: boolean = false
-const isAndroidNewerThanM: boolean = false
-const isAndroidNewerThanN: boolean = false
+const platform = process.platform
+export const isMobile = false
+export const isAndroid = false
+export const isIOS = false
+export const isLargeScreen = true
+export const isIPhoneX = false
+export const isElectron = true
+export const isDarwin = platform === 'darwin'
+export const isWindows = platform === 'win32'
+export const isLinux = platform === 'linux'
+export const isAndroidNewerThanN = false
 
-const isElectron = true
 // For storyshots, we only want to test macOS
-const isDarwin = process.platform === 'darwin'
-const isWindows = process.platform === 'win32'
-const isLinux = process.platform === 'linux'
-const mobileOsVersion = 'Not implemented on desktop'
+export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
-const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
-
-const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
+const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
+const homeEnv = process.env['HOME'] || ''
 
 if (__DEV__ && !__STORYBOOK__) {
   console.log(`Run mode: ${runMode}`)
 }
 
-const envedPathLinux = {
-  staging: 'keybase.staging',
-  devel: 'keybase.devel',
-  prod: 'keybase',
-}
-
-const envedPathOSX = {
-  staging: 'KeybaseStaging',
-  devel: 'KeybaseDevel',
-  prod: 'Keybase',
-}
-
-const envedPathWin32 = {
-  staging: 'KeybaseStaging',
-  devel: 'KeybaseDevel',
-  prod: 'Keybase',
-}
-
 const socketName = 'keybased.sock'
 
-function win32SocketDialPath(): string {
-  let appdata = getenv('LOCALAPPDATA', '')
-  // Remove leading drive letter e.g. C:
-  if (/^[a-zA-Z]:/.test(appdata)) {
-    appdata = appdata.slice(2)
-  }
-  // Handle runModes, prod has no extension.
-  let extension = ''
-  if (runMode !== 'prod') {
-    extension = runMode.charAt(0).toUpperCase() + runMode.substr(1)
-  }
-  let dir = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
-  return path.join(dir, socketName)
-}
-
-function linuxSocketDialPath(): string {
+const getLinuxPaths = () => {
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeDir = getenv('HOME', '')
-  const homeConfigDir = path.join(homeDir, '.config')
-  const runtimeDir = getenv('XDG_RUNTIME_DIR', '')
-
+  const homeConfigDir = path.join(homeEnv, '.config')
+  const runtimeDir = process.env['XDG_RUNTIME_DIR'] || ''
   const cacheDir = runtimeDir || homeConfigDir
-  const suffix = runMode === 'prod' ? '' : `.${runMode}`
+  const appName = `keybase${runMode === 'prod' ? '' : `.${runMode}`}`
 
-  if (!runtimeDir && !homeDir) {
+  if (!runtimeDir && !homeEnv) {
     console.warn(
       "You don't have $HOME or $XDG_RUNTIME_DIR defined, so we can't find the Keybase service path."
     )
   }
 
-  return path.join(cacheDir, `keybase${suffix}`, socketName)
-}
+  const logDir = `${process.env['XDG_CACHE_HOME'] || `${homeEnv}/.cache`}/${appName}/`
 
-const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
-const darwinSandboxCacheRoot = `${getenv('HOME', '')}/Library/Group Containers/keybase/Library/Caches/${
-  envedPathOSX[runMode]
-}/`
-const darwinSandboxSocketPath = path.join(darwinSandboxCacheRoot, socketName)
-
-function findSocketDialPath(): string {
-  switch (process.platform) {
-    case 'darwin':
-      return darwinSandboxSocketPath
-    case 'linux':
-      return linuxSocketDialPath()
-    case 'win32':
-      return win32SocketDialPath()
+  return {
+    cacheRoot: logDir,
+    dataRoot: `${process.env['XDG_DATA_HOME'] || `${homeEnv}/.local/share`}/${appName}/`,
+    jsonDebugFileName: `${logDir}keybase.app.debug`,
+    logDir,
+    logFileName: `${logDir}Keybase.app.log`,
+    serverConfigFileName: `${logDir}keybase.app.serverConfig`,
+    socketPath: path.join(cacheDir, appName, socketName),
   }
-  throw new Error(`Unknown platform ${process.platform}`)
 }
 
-function findDataRoot(): string {
-  switch (process.platform) {
-    case 'darwin':
-      return `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`
-    case 'linux':
-      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`
-    case 'win32':
-      return `${getenv('LOCALAPPDATA', '')}\\Keybase\\`
+const getWindowsPaths = () => {
+  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  let appdata = process.env['LOCALAPPDATA'] || ''
+  // Remove leading drive letter e.g. C:
+  if (/^[a-zA-Z]:/.test(appdata)) {
+    appdata = appdata.slice(2)
   }
-  throw new Error(`Unknown platform ${process.platform}`)
-}
-
-function findCacheRoot(): string {
-  switch (process.platform) {
-    case 'darwin':
-      return darwinCacheRoot
-    case 'linux':
-      const linuxDefaultRoot = `${getenv('HOME', '')}/.cache`
-      return `${getenv('XDG_CACHE_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`
-    case 'win32':
-      return `${getenv('APPDATA', '')}\\Keybase\\`
+  let dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
+  const logDir = `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`
+  return {
+    cacheRoot: `${process.env['APPDATA'] || ''}\\${appName}\\`,
+    dataRoot: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
+    jsonDebugFileName: `${logDir}keybase.app.debug`,
+    logDir,
+    logFileName: `${logDir}keybase.app.log`,
+    serverConfigFileName: `${logDir}keybase.app.serverConfig`,
+    socketPath: path.join(dir, socketName),
   }
-  throw new Error(`Unknown platform ${process.platform}`)
 }
 
-function logDir(): string {
-  // See LogDir() functions in go/libkb/home.go.
-  //
-  // TODO: darwin and win32 cases are inconsistent with their LogDir()
-  // counterparts. Fix this.
-  switch (process.platform) {
-    case 'darwin':
-      return `${getenv('HOME', '')}/Library/Logs`
-    case 'linux':
-      return findCacheRoot()
-    case 'win32':
-      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}`
+const getDarwinPaths = () => {
+  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  const libraryDir = `${homeEnv}/Library/`
+  const logDir = `${libraryDir}Logs/`
+
+  return {
+    cacheRoot: `${libraryDir}Caches/${appName}/`,
+    dataRoot: `${libraryDir}Application Support/${appName}/`,
+    jsonDebugFileName: `${logDir}${appName}.app.debug`,
+    logDir,
+    logFileName: `${logDir}${appName}.app.log`,
+    serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
+    socketPath: path.join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
   }
-  throw new Error(`Unknown platform ${process.platform}`)
 }
 
-function logFileName(): string {
-  // See DesktopLogFileName in go/libkb/constants.go.
-  //
-  // TODO: darwin and win32 cases are inconsistent with
-  // DesktopLogFileName. Fix this.
-  switch (process.platform) {
-    case 'darwin':
-      return `${logDir()}/${envedPathOSX[runMode]}.app.log`
-    case 'linux':
-      return `${logDir()}/Keybase.app.log`
-    case 'win32':
-      return `${logDir()}\\keybase.app.log`
-  }
-  throw new Error(`Unknown platform ${process.platform}`)
+const paths =
+  (isLinux && getLinuxPaths()) || (isWindows && getWindowsPaths()) || (isDarwin && getDarwinPaths())
+if (!paths) {
+  throw new Error('Unknown OS')
 }
 
-const jsonDebugFileName = (function() {
-  switch (process.platform) {
-    case 'darwin':
-      return `${logDir()}/${envedPathOSX[runMode]}.app.debug`
-    case 'linux':
-      return `${logDir()}/keybase.app.debug`
-    case 'win32':
-      return `${logDir()}\\keybase.app.debug`
-  }
-  throw new Error(`Unknown platform ${process.platform}`)
-})()
+export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, logFileName} = paths
 
-function pprofDir(): string {
-  // Empty string means let the service figure out the right directory.
-  return ''
-}
-
-const socketPath = findSocketDialPath()
-const dataRoot = findDataRoot()
-const cacheRoot = findCacheRoot()
-
-const version = 'TODO'
-const appVersionName = 'Not Implemented - Mobile only'
-const appVersionCode = 'Not Implemented - Mobile only'
-
-export {
-  appVersionCode,
-  appVersionName,
-  cacheRoot,
-  dataRoot,
-  fileUIName,
-  isAndroid,
-  isAndroidNewerThanM,
-  isAndroidNewerThanN,
-  isDarwin,
-  isDeviceSecureAndroid,
-  isElectron,
-  isIOS,
-  isIPhoneX,
-  isLargeScreen,
-  isLinux,
-  isMobile,
-  isSimulator,
-  isWindows,
-  jsonDebugFileName,
-  logFileName,
-  mobileOsVersion,
-  runMode,
-  socketPath,
-  pprofDir,
-  version,
-}
+// Empty string means let the service figure out the right directory.
+export const pprofDir = ''
+export const version = 'TODO'
+export {runMode}

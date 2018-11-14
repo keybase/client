@@ -17,6 +17,15 @@ const getPeopleData = (
   state: TypedState,
   action: PeopleGen.GetPeopleDataPayload | ConfigGen.LoggedInPayload
 ) => {
+  // more logging to understand why this fails so much
+  logger.info(
+    'getPeopleData: appFocused:',
+    state.config.appFocused,
+    'loggedIn',
+    state.config.loggedIn,
+    'action',
+    action
+  )
   let markViewed = false
   let numFollowSuggestionsWanted = Constants.defaultNumFollowSuggestions
   if (action.type === PeopleGen.getPeopleData) {
@@ -93,15 +102,17 @@ const setupEngineListeners = () => {
       .catch(error => console.warn('Error in registering home UI:', error))
   })
 
-  engine().setIncomingActionCreators(
-    'keybase.1.homeUI.homeUIRefresh',
-    () =>
-      _wasOnPeopleTab &&
-      PeopleGen.createGetPeopleData({
-        markViewed: false,
-        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-      })
-  )
+  engine().setIncomingCallMap({
+    'keybase.1.homeUI.homeUIRefresh': () =>
+      _wasOnPeopleTab
+        ? Saga.put(
+            PeopleGen.createGetPeopleData({
+              markViewed: false,
+              numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+            })
+          )
+        : null,
+  })
 }
 
 const _onNavigateTo = (action: RouteTreeGen.NavigateAppendPayload, state: TypedState) => {

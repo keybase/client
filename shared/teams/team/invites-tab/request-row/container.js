@@ -4,16 +4,16 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
 type OwnProps = {
   username: string,
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onAccept: (name: string, username: string) =>
     dispatch(
       navigateAppend([
@@ -42,4 +42,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamRequestRow)

@@ -2,9 +2,9 @@
 // @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
+import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
 import * as WalletTypes from '../wallets'
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
@@ -46,6 +46,11 @@ export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
 export type MessageExplodeDescription = {text: string, seconds: number}
+
+export type PathAndOutboxID = {
+  path: string,
+  outboxID: ?RPCChatTypes.OutboxID,
+}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
@@ -148,11 +153,20 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null,
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null,
   type: 'attachment',
   videoDuration: ?string,
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
+
+export type _ChatRequestInfo = {
+  amount: string,
+  amountDescription: string,
+  asset: WalletTypes.Asset,
+  currencyCode: string, // set if asset === 'currency'
+  type: 'requestInfo',
+}
+export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
 export type _MessageRequestPayment = {
   author: string,
@@ -162,22 +176,26 @@ export type _MessageRequestPayment = {
   deviceType: DeviceType,
   errorReason: ?string,
   id: MessageID,
-  note: string,
+  note: HiddenString,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
   requestID: RPCStellarTypes.KeybaseRequestID,
+  requestInfo: ?ChatRequestInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'requestPayment',
 }
 export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
 
 export type _ChatPaymentInfo = {
+  accountID: WalletTypes.AccountID,
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
   note: HiddenString,
+  paymentID: WalletTypes.PaymentID,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  type: 'paymentInfo',
   worth: string,
 }
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>

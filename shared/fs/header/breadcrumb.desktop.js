@@ -52,12 +52,7 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
           </Kb.Box>
         )}
         {!item.isLastItem && (
-          <Kb.Icon
-            type="iconfont-arrow-right"
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-            fontSize={11}
-            boxStyle={styles.iconBox}
-          />
+          <Kb.Icon type="iconfont-arrow-right" style={Kb.iconCastPlatformStyles(styles.icon)} fontSize={11} />
         )}
       </React.Fragment>
     ))}

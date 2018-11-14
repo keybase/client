@@ -6,6 +6,5 @@ export type Props = {|
   error: null | Error | RPCError,
   daemonError: ?Error,
   onDismiss: () => void,
-  debugDump: Array<string>,
-  copyToClipboard: string => void
+  copyToClipboard: string => void,
 |}

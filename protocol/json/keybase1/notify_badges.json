@@ -42,6 +42,20 @@
     },
     {
       "type": "record",
+      "name": "WalletAccountInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "accountID"
+        },
+        {
+          "type": "int",
+          "name": "numUnread"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BadgeState",
       "fields": [
         {
@@ -64,6 +78,20 @@
         {
           "type": "int",
           "name": "homeTodoItems"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "newDevices"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceID"
+          },
+          "name": "revokedDevices"
         },
         {
           "type": {
@@ -99,6 +127,13 @@
             "items": "TeamMemberOutReset"
           },
           "name": "teamsWithResetUsers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WalletAccountInfo"
+          },
+          "name": "unreadWalletAccounts"
         }
       ]
     },

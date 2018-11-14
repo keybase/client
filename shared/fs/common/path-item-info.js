@@ -36,16 +36,15 @@ const PathItemInfo = (props: Props) => (
     {!!props.resetParticipants && props.resetParticipants.length > 0 ? (
       <Box style={resetInfoBoxStyle}>
         {props.isUserReset ? (
-          <Text type="BodyError">Participants have to let you back in.</Text>
+          <Text type="BodySmallError">Participants have to let you back in.</Text>
         ) : (
           <Box style={globalStyles.flexBoxRow}>
             <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
             <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-              {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha{props.resetParticipants &&
-              props.resetParticipants.length === 1
-                ? 's'
-                : 've'}{' '}
-              reset their account{props.resetParticipants && props.resetParticipants.length > 1 && 's'}.
+              {fancyJoin(props.resetParticipants, ', ', ' and ', ', and ')} ha
+              {props.resetParticipants && props.resetParticipants.length === 1 ? 's' : 've'} reset their
+              account
+              {props.resetParticipants && props.resetParticipants.length > 1 && 's'}.
             </Text>
           </Box>
         )}
@@ -65,7 +64,7 @@ const PathItemInfo = (props: Props) => (
           type="BodySmallSecondaryLink"
           usernames={[props.lastWriter]}
           inline={true}
-          clickable={true}
+          onUsernameClicked="profile"
           underline={true}
         />
       </Text>

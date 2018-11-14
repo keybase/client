@@ -19,17 +19,36 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-class FilterBigTeamChannel extends PureComponent<Props> {
+type State = {
+  isHovered: boolean,
+}
+
+class FilterBigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box
+          className="hover_background_color_blueGrey2"
           style={collapseStyles([
             styles.filteredRow,
             this.props.isSelected && {backgroundColor: globalColors.blue},
           ])}
+          onMouseLeave={this._onMouseLeave}
+          onMouseOver={this._onMouseOver}
         >
-          <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
+          <TeamAvatar
+            teamname={this.props.teamname}
+            isMuted={false}
+            isSelected={false}
+            isHovered={this.state.isHovered}
+          />
           <Text
             type="BodySemibold"
             style={collapseStyles([
@@ -48,7 +67,8 @@ class FilterBigTeamChannel extends PureComponent<Props> {
             ])}
             title={`#${this.props.channelname}`}
           >
-            &nbsp;#{this.props.channelname}
+            &nbsp;#
+            {this.props.channelname}
           </Text>
         </Box>
       </ClickableBox>

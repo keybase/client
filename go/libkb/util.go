@@ -6,7 +6,6 @@ package libkb
 import (
 	"bufio"
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
@@ -28,6 +27,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -88,11 +88,11 @@ func MakeParentDirs(log SkinnyLogger, filename string) error {
 }
 
 func FastByteArrayEq(a, b []byte) bool {
-	return bytes.Equal(a, b)
+	return kbcrypto.FastByteArrayEq(a, b)
 }
 
 func SecureByteArrayEq(a, b []byte) bool {
-	return hmac.Equal(a, b)
+	return kbcrypto.SecureByteArrayEq(a, b)
 }
 
 func FormatTime(tm time.Time) string {
@@ -297,6 +297,13 @@ func IsValidHostname(s string) bool {
 		return false
 	}
 	return true
+}
+
+var phoneRE = regexp.MustCompile("^[1-9][0-9]{1,14}$")
+
+// IsPossiblePhoneNumber checks if s is string of digits starting with 1.
+func IsPossiblePhoneNumber(s string) bool {
+	return phoneRE.MatchString(s)
 }
 
 func RandBytes(length int) ([]byte, error) {
@@ -901,4 +908,8 @@ func DecodeHexFixed(dst, src []byte) error {
 			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
 	}
 	return nil
+}
+
+func IsIOS() bool {
+	return isIOS
 }

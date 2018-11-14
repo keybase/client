@@ -2,12 +2,12 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
-import {connect, type TypedState, withStateHandlers, compose, safeSubmit} from '../../util/container'
+import {connect, withStateHandlers, compose, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = {deviceName: string, onChange: (text: string) => void} & RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _existingDevices: state.provision.existingDevices,
   error: state.provision.error.stringValue(),
 })
@@ -18,8 +18,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const nameTaken = stateProps._existingDevices.indexOf(ownProps.deviceName) !== -1
-  const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64 && !nameTaken)
+  const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
   const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
   return {
     deviceName: ownProps.deviceName,
@@ -32,11 +31,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withStateHandlers(
-    {deviceName: '', submitEnabled: false},
+    {deviceName: ''},
     {
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  safeSubmit(['onSubmit', 'onBack'], ['error'])
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
 )(SetPublicName)

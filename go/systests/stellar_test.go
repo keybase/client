@@ -20,7 +20,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const disable = false
+const disableMsg = "friendbot issues"
+
 func TestStellarNoteRoundtripAndResets(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -73,11 +79,17 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	testStellarRelayAutoClaims(t, false, false)
 }
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	if disable {
+		t.Skip(disableMsg)
+	}
 	testStellarRelayAutoClaims(t, true, true)
 }
 
@@ -100,13 +112,15 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 	alice := tt.addUser("alice")
 	var bob *userPlusDevice
 	if startWithPUK {
-		bob = tt.addWalletlessUser("bob")
+		bob = tt.addUser("bob")
 	} else {
 		bob = tt.addPuklessUser("bob")
 	}
 	alice.kickTeamRekeyd()
 
 	t.Logf("alice gets funded")
+	acceptDisclaimer(alice)
+
 	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 	require.NoError(t, err)
 	gift(t, res[0].AccountID)
@@ -147,12 +161,11 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 	if startWithPUK {
 		t.Logf("bob gets a wallet")
-		bob.tc.Tp.DisableAutoWallet = false
-		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+		acceptDisclaimer(bob)
 	} else {
 		t.Logf("bob gets a PUK and wallet")
-		bob.perUserKeyUpgrade()
-		bob.tc.G.GetStellar().CreateWalletSoft(context.Background())
+		bob.device.tctx.Tp.DisableUpgradePerUserKey = false
+		acceptDisclaimer(bob)
 
 		t.Logf("wait for alice to add bob to their impteam")
 		alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
@@ -230,15 +243,30 @@ func sampleNote() stellar1.NoteContents {
 func gift(t testing.TB, accountID stellar1.AccountID) {
 	t.Logf("gift -> %v", accountID)
 	url := "https://friendbot.stellar.org/?addr=" + accountID.String()
-	t.Logf("gift url: %v", url)
-	res, err := http.Get(url)
-	require.NoError(t, err, "friendbot request error")
-	bodyBuf := new(bytes.Buffer)
-	bodyBuf.ReadFrom(res.Body)
-	t.Logf("gift res: %v", bodyBuf.String())
-	require.Equal(t, 200, res.StatusCode, "friendbot response status code")
+	for i := 0; i < retryCount; i++ {
+		t.Logf("gift url: %v", url)
+		res, err := http.Get(url)
+		if err != nil {
+			t.Logf("http get %s error: %s", url, err)
+			continue
+		}
+		bodyBuf := new(bytes.Buffer)
+		bodyBuf.ReadFrom(res.Body)
+		res.Body.Close()
+		t.Logf("gift res: %v", bodyBuf.String())
+		if res.StatusCode == 200 {
+			return
+		}
+		t.Logf("gift status not ok: %d", res.StatusCode)
+	}
+	t.Fatalf("gift to %s failed after multiple attempts", accountID)
 }
 
 func useStellarTestNet(t testing.TB) {
 	stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+}
+
+func acceptDisclaimer(u *userPlusDevice) {
+	err := u.stellarClient.AcceptDisclaimerLocal(context.Background(), 0)
+	require.NoError(u.tc.T, err)
 }

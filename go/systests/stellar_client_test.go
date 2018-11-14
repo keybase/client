@@ -28,6 +28,16 @@ func (s *stellarRetryClient) GetWalletAccountsLocal(ctx context.Context, sid int
 	return res, err
 }
 
+func (s *stellarRetryClient) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (res stellar1.WalletAccountLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetWalletAccountLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (res []stellar1.AccountAssetLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.GetAccountAssetsLocal(ctx, arg)
@@ -178,9 +188,9 @@ func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg st
 	return res, err
 }
 
-func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int) (res stellar1.WalletSettings, err error) {
+func (s *stellarRetryClient) HasAcceptedDisclaimerLocal(ctx context.Context, sid int) (res bool, err error) {
 	for i := 0; i < retryCount; i++ {
-		res, err = s.cli.GetWalletSettingsLocal(ctx, sid)
+		res, err = s.cli.HasAcceptedDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -188,9 +198,9 @@ func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int
 	return res, err
 }
 
-func (s *stellarRetryClient) SetAcceptedDisclaimerLocal(ctx context.Context, sid int) (err error) {
+func (s *stellarRetryClient) AcceptDisclaimerLocal(ctx context.Context, sid int) (err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetAcceptedDisclaimerLocal(ctx, sid)
+		err = s.cli.AcceptDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -226,6 +236,17 @@ func (s *stellarRetryClient) GetSendAssetChoicesLocal(ctx context.Context, arg s
 		}
 	}
 	return res, err
+}
+
+func (s *stellarRetryClient) BuildRequestLocal(ctx context.Context, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.BuildRequestLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+
 }
 
 func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
@@ -267,6 +288,16 @@ func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar
 		}
 	}
 	return err
+}
+
+func (s *stellarRetryClient) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.CancelPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
 }
 
 func (s *stellarRetryClient) BalancesLocal(ctx context.Context, arg stellar1.AccountID) (res []stellar1.Balance, err error) {
@@ -447,4 +478,38 @@ func (s *stellarRetryClient) LookupCLILocal(ctx context.Context, name string) (r
 		}
 	}
 	return res, err
+}
+
+func (s *stellarRetryClient) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.MarkAsReadLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAccountMobileOnlyLocalArg) (bool, error) {
+	var err error
+	var mobileOnly bool
+	for i := 0; i < retryCount; i++ {
+		mobileOnly, err = s.cli.IsAccountMobileOnlyLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return mobileOnly, err
+}
+
+func (s *stellarRetryClient) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetAccountMobileOnlyLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
 }

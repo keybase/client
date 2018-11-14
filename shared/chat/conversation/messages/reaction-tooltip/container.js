@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
@@ -14,7 +14,7 @@ import {ReactionTooltip} from '.'
  */
 
 export type OwnProps = {|
-  attachmentRef?: ?React.Component<any, any>,
+  attachmentRef?: () => ?React.Component<any>,
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
   onHidden: () => void,
@@ -29,7 +29,7 @@ const emptyStateProps = {
   _usersInfo: I.Map(),
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || message.type === 'placeholder' || message.type === 'deleted') {
     return emptyStateProps
@@ -99,7 +99,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ReactionTooltip')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ReactionTooltip'
 )(ReactionTooltip)

@@ -117,11 +117,7 @@ func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatCon
 	return strings.TrimSpace(response) == confirm, nil
 }
 
-func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
-	if c.noOutput {
-		return nil
-	}
-	searchHit := arg.SearchHit
+func (c *ChatUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSearchHit) error {
 	getMsgPrefix := func(msg chat1.UIMessage) string {
 		m := msg.Valid()
 		t := gregor1.FromTime(m.Ctime)
@@ -131,18 +127,18 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	getContext := func(msgs []chat1.UIMessage) string {
 		ctx := []string{}
 		for _, msg := range msgs {
-			if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-				msgBody := msg.Valid().MessageBody.Text().Body
-				ctx = append(ctx, getMsgPrefix(msg)+msgBody+"\n")
+			msgText := msg.SearchableText()
+			if msgText != "" {
+				ctx = append(ctx, getMsgPrefix(msg)+msgText+"\n")
 			}
 		}
 		return strings.Join(ctx, "")
 	}
 
 	highlightEscapeHits := func(msg chat1.UIMessage, hits []string) string {
-		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
-			msgBody := msg.Valid().MessageBody.Text().Body
-			escapedHitText := terminalescaper.Clean(msgBody)
+		msgText := msg.SearchableText()
+		if msgText != "" {
+			escapedHitText := terminalescaper.Clean(msgText)
 			for _, hit := range hits {
 				escapedHit := terminalescaper.Clean(hit)
 				escapedHitText = strings.Replace(escapedHitText, escapedHit, ColorString(c.G(), "red", escapedHit), -1)
@@ -156,13 +152,26 @@ func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) 
 	// to refactor for UIMessage
 	hitTextColoredEscaped := highlightEscapeHits(searchHit.HitMessage, searchHit.Matches)
 	if hitTextColoredEscaped != "" {
-		w := c.terminal.OutputWriter()
-		fmt.Fprintf(w, getContext(searchHit.BeforeMessages))
+		c.terminal.Output(getContext(searchHit.BeforeMessages))
 		fmt.Fprintln(c.terminal.UnescapedOutputWriter(), hitTextColoredEscaped)
-		fmt.Fprintf(w, getContext(searchHit.AfterMessages))
-		fmt.Fprintln(w, "")
+		c.terminal.Output(getContext(searchHit.AfterMessages))
+		c.terminal.Output("\n")
 	}
 	return nil
+}
+
+func (c *ChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	if c.noOutput {
+		return nil
+	}
+	return c.renderSearchHit(ctx, arg.SearchHit)
+}
+
+func (c *ChatUI) simplePlural(count int, prefix string) string {
+	if count == 1 {
+		return prefix
+	}
+	return fmt.Sprintf("%ss", prefix)
 }
 
 func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
@@ -170,7 +179,67 @@ func (c *ChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Search complete. Found %d results.", arg.NumHits)
-	fmt.Fprintln(w, "")
+	numHits := arg.NumHits
+	if numHits == 0 {
+		fmt.Fprintf(w, "Search complete. No results found.\n")
+	} else {
+		fmt.Fprintf(w, "Search complete. Found %d %s.\n", numHits, c.simplePlural(numHits, "result"))
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInboxHitArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.OutputWriter()
+	searchHit := arg.SearchHit
+	numHits := len(searchHit.Hits)
+	if numHits == 0 {
+		return nil
+	}
+	fmt.Fprintf(w, "Conversation: %s, found %d %s.\n", searchHit.ConvName, numHits, c.simplePlural(numHits, "result"))
+	for _, hit := range searchHit.Hits {
+		if err := c.renderSearchHit(ctx, hit); err != nil {
+			return err
+		}
+	}
+	// Separate results in conversations.
+	width, _ := c.terminal.TerminalSize()
+	if width > 80 {
+		width = 80
+	}
+	fmt.Fprintf(w, fmt.Sprintf("%s\n", strings.Repeat("-", width)))
+	return nil
+}
+
+func (c *ChatUI) ChatSearchInboxDone(ctx context.Context, arg chat1.ChatSearchInboxDoneArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	numHits := arg.Res.NumHits
+	if numHits == 0 {
+		fmt.Fprintf(w, "Search complete. No results found.\n")
+	} else {
+		searchText := fmt.Sprintf("Search complete. Found %d %s", numHits, c.simplePlural(numHits, "result"))
+		numConvs := arg.Res.NumConvs
+		searchText = fmt.Sprintf("%s in %d %s.\n", searchText, numConvs, c.simplePlural(numConvs, "conversation"))
+		fmt.Fprintf(w, searchText)
+	}
+	percentIndexed := arg.Res.PercentIndexed
+	helpText := ""
+	if percentIndexed < 70 {
+		helpText = "Rerun with --force-reindex for more complete results."
+	}
+	fmt.Fprintf(w, "Indexing was %d%% complete. %s\n", percentIndexed, helpText)
+	return nil
+}
+
+func (c *ChatUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSearchIndexStatusArg) error {
+	if c.noOutput {
+		return nil
+	}
+	c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", arg.Status.PercentIndexed))
 	return nil
 }

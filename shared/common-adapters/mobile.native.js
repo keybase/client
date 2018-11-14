@@ -5,8 +5,8 @@ module.hot &&
     console.log('accepted update in common-adapters/mobile.native')
   })
 
-export * from './index.js'
-export * from './native-wrappers.native.js'
-export * from './floating-picker.native.js'
-export * from './form-input.native.js'
+export * from '.'
+export * from './native-wrappers.native'
+export * from './form-input.native'
 export * from './zoomable-box'
+export {SafeAreaViewTop} from './safe-area-view.native'

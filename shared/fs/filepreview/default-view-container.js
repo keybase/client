@@ -1,17 +1,17 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
-const mapStateToProps = (state: TypedState, {path}) => {
+const mapStateToProps = (state, {path}) => {
   const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
     _username,
     _path: path,
-    fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+    fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
     pathItem,
   }
 }
@@ -20,12 +20,12 @@ const mapDispatchToProps = (dispatch, {path, routePath}) => ({
   download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
   saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
   shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
-  showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {download, saveMedia, shareNative, showInFileUI} = dispatchProps
+  const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
@@ -34,11 +34,13 @@ const mergeProps = (stateProps, dispatchProps) => {
     download,
     saveMedia,
     shareNative,
-    showInFileUI,
+    showInSystemFileManager,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilePreviewDefaultView')
+export default namedConnect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+  'FilePreviewDefaultView'
 )(DefaultView)

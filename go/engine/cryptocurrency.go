@@ -61,6 +61,11 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		return libkb.InvalidAddressError{Msg: err.Error()}
 	}
 
+	mode := m.G().Env.GetRunMode()
+	if mode == libkb.ProductionRunMode && typ == libkb.CryptocurrencyTypeZCashSapling {
+		return libkb.InvalidAddressError{Msg: "waiting one release cycle before you can post sapling addresses"}
+
+	}
 	family := typ.ToCryptocurrencyFamily()
 	if len(e.arg.WantedFamily) > 0 && e.arg.WantedFamily != string(family) {
 		return libkb.InvalidAddressError{Msg: fmt.Sprintf("wanted coin type %q, but got %q", e.arg.WantedFamily, family)}
@@ -109,6 +114,7 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	sig, _, _, err := libkb.MakeSig(
+		m,
 		sigKey,
 		libkb.LinkTypeCryptocurrency,
 		sigInner,

@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice, {SmallUserNotice} from '../user-notice'
-import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
-import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
+import {Box, Text, ConnectedUsernames, Icon, EmojiIfExists} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {isMobile} from '../../../../constants/platform'
@@ -17,7 +16,7 @@ type Props = {
 }
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
@@ -44,7 +43,8 @@ const InviteAddedToTeamNotice = (props: Props) => {
             'you'
           ) : (
             <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-          )}.
+          )}
+          .
         </Text>
       }
     />

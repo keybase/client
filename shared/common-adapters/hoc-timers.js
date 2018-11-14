@@ -8,6 +8,11 @@ type TimerProps = {
   clearInterval: (id: IntervalID) => void,
 }
 
+// TODO couldn't figure out a quick way to type this correctly
+// type OptionalProps = {
+// innerRef?: ?(?React.Component<any>) => void,
+// }
+
 // Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
 export type PropsWithTimer<P> = {|
   ...$Exact<P>,
@@ -33,7 +38,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearTimeout = id => {
-      if ((id || id === 0) && this._timeoutIds.includes(id)) {
+      if (id && this._timeoutIds.includes(id)) {
         this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
         clearTimeout(id)
       }
@@ -46,7 +51,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearInterval = id => {
-      if ((id || id === 0) && this._intervalIds.includes(id)) {
+      if (id && this._intervalIds.includes(id)) {
         this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
         clearInterval(id)
       }
@@ -58,9 +63,12 @@ function HOCTimers<Props: TimerProps>(
     }
 
     render() {
+      // $FlowIssue TODO type this
+      const innerRef = (this.props.innerRef: any)
       return (
         <WrappedComponent
           {...this.props}
+          ref={innerRef}
           setTimeout={this.setTimeout}
           setInterval={this.setInterval}
           clearInterval={this.clearInterval}
@@ -69,6 +77,10 @@ function HOCTimers<Props: TimerProps>(
       )
     }
   }
+
+  // TODO forward a ref to `WrappedComponent` when react-redux is patched to
+  // work with React.forwardRef.
+  // https://github.com/reduxjs/react-redux/pull/1000
 
   return TimersComponent
 }

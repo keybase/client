@@ -12,7 +12,7 @@ import type {OwnProps} from './container'
 const provider = Sb.createPropProviderWithCommon(ReactButton)
 
 const common = {
-  attachmentRef: null,
+  attachmentRef: () => null,
   conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: Sb.action('onAddReaction'),
   onHidden: Sb.action('onHidden'),
@@ -91,12 +91,14 @@ const vowels = 'AEIOU'.split('')
 const emoji = [':+1:', ':-1:', ':heavy_check_mark:', ':boom:', ':globe_with_meridians:', ':bathtub:']
 const rng = new Sb.Rnd(7324)
 const makeName = () => {
-  const length = rng.next() % 5 + 3
+  const length = (rng.next() % 5) + 3
   let res = ''
   for (let i = 0; i < length; i++) {
-    i % 2 === 0
-      ? (res += consonants[rng.next() % consonants.length])
-      : (res += vowels[rng.next() % vowels.length])
+    if (i % 2 === 0) {
+      res += consonants[rng.next() % consonants.length]
+    } else {
+      res += vowels[rng.next() % vowels.length]
+    }
   }
   return upperFirst(res.toLowerCase())
 }
@@ -119,7 +121,7 @@ examples.push({
   ...common,
   reactions: emoji.map(e => ({
     emoji: e,
-    users: makeUsers(rng.next() % maxUsersInReaction + 1),
+    users: makeUsers((rng.next() % maxUsersInReaction) + 1),
   })),
 })
 

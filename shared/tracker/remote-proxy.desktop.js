@@ -10,12 +10,13 @@ import {parsePublicAdmins} from '../util/teams'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose} from '../util/container'
+import {connect, compose} from '../util/container'
+import {serialize} from './remote-serializer.desktop'
 
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
 
-const trackerMapStateToProps = (state: TypedState, {name}) => {
+const trackerMapStateToProps = (state, {name}) => {
   const _trackerState = state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name]
   const selectedTeam = _trackerState.selectedTeam
   const showTeam =
@@ -101,10 +102,14 @@ const Empty = () => null
 
 // Actions are handled by remote-container
 const RemoteTracker = compose(
-  connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
+  connect(
+    trackerMapStateToProps,
+    () => ({}),
+    trackerMergeProps
+  ),
   SyncBrowserWindow,
   SyncAvatarProps,
-  SyncProps
+  SyncProps(serialize)
 )(Empty)
 
 type Props = {
@@ -116,7 +121,7 @@ class RemoteTrackers extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _nonUserTrackers: state.tracker.nonUserTrackers,
   _trackers: state.tracker.userTrackers,
 })
@@ -132,4 +137,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ].slice(0, MAX_TRACKERS),
 })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(RemoteTrackers)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(RemoteTrackers)

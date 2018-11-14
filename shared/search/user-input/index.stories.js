@@ -16,6 +16,7 @@ const defaultOwnProps: OwnProps = {
   onExitSearch: Sb.action('onExitSearch'),
   onSelectUser: Sb.action('onSelectUser'),
   onFocus: Sb.action('onFocus'),
+  showServiceFilter: true,
 }
 
 const inputCommon = {

@@ -3,8 +3,10 @@ import * as React from 'react'
 import {connect} from '../util/container'
 import type {RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
+// TODO maybe a better type
+type OwnProps = any
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
-  const C: React.ComponentType<Props<any>> = connect(
+  const C: React.ComponentType<Props<any>> = connect<OwnProps, _, _, _, _>(
     () => ({}),
     (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {

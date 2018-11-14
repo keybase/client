@@ -36,8 +36,10 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
+	unfurlEndpoint  string
 	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
+	unfurlMap       *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
 }
@@ -49,16 +51,22 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	if err != nil {
 		panic(err)
 	}
+	um, err := lru.New(200)
+	if err != nil {
+		panic(err)
+	}
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         kbhttp.NewSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
+		unfurlEndpoint:  "uf",
 		ri:              ri,
 		urlMap:          l,
+		unfurlMap:       um,
 		fetcher:         fetcher,
 	}
+	r.initHTTPSrv()
 	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
@@ -84,17 +92,46 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 	}
 }
 
+func (r *AttachmentHTTPSrv) initHTTPSrv() {
+	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
+	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+}
+
 func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	if err := r.httpSrv.Start(); err != nil {
-		r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
+	maxTries := 2
+	success := false
+	for i := 0; i < maxTries; i++ {
+		if err := r.httpSrv.Start(); err != nil {
+			if err == kbhttp.ErrPinnedPortInUse {
+				// If we hit this, just try again and get a different port.
+				// The advantage is that backing in and out of the thread will restore attachments,
+				// whereas if we do nothing you need to bkg/foreground.
+				r.Debug(context.TODO(),
+					"startHTTPSrv: pinned port taken error, re-initializing and trying again")
+				r.initHTTPSrv()
+				continue
+			}
+			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
+			break
+		}
+		success = true
+		break
+	}
+	if !success {
+		r.Debug(context.TODO(), "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
 		return
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
 	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
+	r.httpSrv.HandleFunc("/"+r.unfurlEndpoint, r.serveUnfurlAsset)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 	return r.fetcher
+}
+
+func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
+	return libkb.RandHexString(prefix, 8)
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -111,7 +148,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		r.Debug(ctx, "GetURL: failed to get HTTP server address: %s", err)
 		return ""
 	}
-	key, err := libkb.RandHexString("at", 8)
+	key, err := r.randURLKey("at")
 	if err != nil {
 		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
 		return ""
@@ -137,6 +174,33 @@ func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID c
 	return url
 }
 
+type unfurlAsset struct {
+	asset  chat1.Asset
+	convID chat1.ConversationID
+}
+
+func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetUnfurlAssetURL")()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "GetUnfurlAssetURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	key, err := r.randURLKey("uf")
+	if err != nil {
+		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
+		return ""
+	}
+	r.unfurlMap.Add(key, unfurlAsset{
+		asset:  asset,
+		convID: convID,
+	})
+	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.unfurlEndpoint, key)
+	r.Debug(ctx, "GetUnfurlAssetURL: handler URL: %s", url)
+	return url
+}
+
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -154,6 +218,23 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	}
 	if _, err := io.Copy(w, bytes.NewReader(pre.Preview)); err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "failed to write resposne: %s", err)
+		return
+	}
+}
+
+func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
+	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
+	key := req.URL.Query().Get("key")
+	val, ok := r.unfurlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
+		return
+	}
+	ua := val.(unfurlAsset)
+	if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
 		return
 	}
 }
@@ -195,8 +276,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body style="margin: 0px">
-					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
+					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {

@@ -41,7 +41,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSetNewRole: dispatchProps.onSetNewRole,
 })
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  Container.setDisplayName('MinWriterRole')
+export default Container.namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'MinWriterRole'
 )(MinWriterRole)

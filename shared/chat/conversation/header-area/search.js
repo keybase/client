@@ -2,20 +2,15 @@
 import UserInput from '../../../search/user-input/container'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {
-  connect,
-  compose,
-  withStateHandlers,
-  lifecycle,
-  withProps,
-  type TypedState,
-} from '../../../util/container'
+import {connect, compose, withStateHandlers, lifecycle, withProps} from '../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = {||}
+
+const mapStateToProps = state => ({
   pendingConversationUsers: Constants.getMeta(state, Constants.pendingConversationIDKey).participants,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onExitSearch: (participants: Array<string>) => dispatch(Chat2Gen.createCreateConversation({participants})),
   onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
 })
@@ -29,7 +24,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {focusInputCounter: 0},
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}
@@ -45,5 +44,6 @@ export default compose(
     autoFocus: true,
     searchKey: 'chatSearch',
     placeholder: 'Search someone',
+    showServiceFilter: true,
   })
 )(UserInput)

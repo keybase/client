@@ -8,6 +8,7 @@ import {type UploadProps} from './upload'
 export type UploadCountdownHOCProps = {
   endEstimate?: number,
   files: number,
+  fileName: ?string,
   totalSyncingBytes: number,
   debugToggleShow?: () => void,
 }
@@ -40,12 +41,6 @@ const initialGlueTTL = 2
 
 const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   class extends React.PureComponent<Props, State> {
-    state = {
-      displayDuration: 0,
-      mode: 'hidden',
-      glueTTL: 0,
-    }
-
     _tickerID: ?IntervalID = null
 
     _tick = () =>
@@ -96,62 +91,79 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this._tickerID = null
     }
 
+    _updateState = (prevState, props) => {
+      const isUploading = !!props.files || !!props.totalSyncingBytes
+      const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
+      const {mode, glueTTL} = prevState
+      switch (mode) {
+        case 'hidden':
+          if (isUploading) {
+            this._startTicker()
+            return {
+              mode: 'count-down',
+              glueTTL: initialGlueTTL,
+              displayDuration: newDisplayDuration,
+            }
+          }
+          return prevState
+        case 'count-down':
+          if (isUploading) {
+            return {
+              mode,
+              glueTTL,
+              displayDuration: newDisplayDuration,
+            }
+          }
+          return {
+            mode: glueTTL > 0 ? 'sticky' : 'hidden',
+            glueTTL,
+            displayDuration: newDisplayDuration,
+          }
+        case 'sticky':
+          return isUploading
+            ? {
+                mode: 'count-down',
+                displayDuration: newDisplayDuration,
+                glueTTL: initialGlueTTL,
+              }
+            : {
+                mode,
+                glueTTL,
+                displayDuration: newDisplayDuration,
+              }
+        default:
+          /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (mode: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(mode);
+      */
+          return prevState
+      }
+    }
+
+    state = this._updateState(
+      {
+        displayDuration: 0,
+        mode: 'hidden',
+        glueTTL: 0,
+      },
+      this.props
+    )
+
     componentDidUpdate(prevProps) {
       if (this.props.files === prevProps.files && this.props.endEstimate === prevProps.endEstimate) {
         return
       }
-      this.setState((prevState, props) => {
-        const isUploading = !!props.files || !!props.totalSyncingBytes
-        const displayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
-        const {mode, glueTTL} = prevState
-        switch (mode) {
-          case 'hidden':
-            if (isUploading) {
-              this._startTicker()
-              return {
-                mode: 'count-down',
-                glueTTL: initialGlueTTL,
-                displayDuration,
-              }
-            }
-            return {}
-          case 'count-down':
-            if (isUploading) {
-              return {
-                displayDuration,
-              }
-            }
-            return {
-              mode: glueTTL > 0 ? 'sticky' : 'hidden',
-              displayDuration,
-            }
-          case 'sticky':
-            return isUploading
-              ? {
-                  mode: 'count-down',
-                  displayDuration,
-                  glueTTL: initialGlueTTL,
-                }
-              : {
-                  displayDuration,
-                }
-          default:
-            /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (mode: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(mode);
-      */
-            return {}
-        }
-      })
+      this.setState(this._updateState)
     }
 
     render() {
-      const {files, totalSyncingBytes, debugToggleShow} = this.props
+      const {files, fileName, totalSyncingBytes, debugToggleShow} = this.props
       const {displayDuration, mode} = this.state
       return (
         <Upload
           showing={mode !== 'hidden'}
           files={files}
+          fileName={fileName}
           totalSyncingBytes={totalSyncingBytes}
           timeLeft={formatDuration(displayDuration)}
           debugToggleShow={debugToggleShow}
@@ -160,4 +172,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
   }
 
-export default compose(HOCTimers, UploadCountdownHOC)
+export default compose(
+  HOCTimers,
+  UploadCountdownHOC
+)

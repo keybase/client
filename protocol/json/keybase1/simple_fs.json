@@ -262,7 +262,8 @@
       "name": "ListFilter",
       "symbols": [
         "NO_FILTER_0",
-        "FILTER_ALL_HIDDEN_1"
+        "FILTER_ALL_HIDDEN_1",
+        "FILTER_SYSTEM_HIDDEN_2"
       ]
     },
     {
@@ -690,6 +691,20 @@
       "response": null,
       "doc": "Begin copy of file or directory"
     },
+    "simpleFSSymlink": {
+      "request": [
+        {
+          "name": "target",
+          "type": "string"
+        },
+        {
+          "name": "link",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Make a symlink of file or directory"
+    },
     "simpleFSCopyRecursive": {
       "request": [
         {
@@ -827,6 +842,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "Dirent",
@@ -956,6 +978,16 @@
       "request": [],
       "response": "SimpleFSQuotaUsage",
       "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+    },
+    "simpleFSReset": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
     }
   },
   "namespace": "keybase.1"

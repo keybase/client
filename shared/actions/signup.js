@@ -138,11 +138,13 @@ const reallySignupOnNoErrors = (state: TypedState) => {
   return Saga.call(function*() {
     try {
       yield RPCTypes.signupSignupRpcSaga({
-        incomingCallMap: {
+        customResponseIncomingCallMap: {
           // Do not add a gpg key for now
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
             response.result(false)
           },
+        },
+        incomingCallMap: {
           // We dont show the paperkey anymore
           'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
         },

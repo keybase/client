@@ -35,16 +35,17 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
-	GetAutoWallet() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -91,6 +92,9 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
+	GetAttachmentHTTPStartPort() (int, bool)
+	GetAttachmentDisableMulti() (bool, bool)
+	GetChatOutboxStorageEngine() string
 }
 
 type CommandLine interface {
@@ -384,6 +388,9 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
+	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
+	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 }
 
 type PromptDefault int
@@ -398,7 +405,7 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
-	// The ErrorWriter is not escaped: 	it should not be used to show unescaped user-originated data.
+	// The ErrorWriter is not escaped: it should not be used to show unescaped user-originated data.
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
@@ -410,8 +417,8 @@ type TerminalUI interface {
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptPasswordMaybeScripted(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
-	Tablify(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 
@@ -534,7 +541,10 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	// `h` is the server provided sigHint. If the client can provide validated
+	// information it returns this. The verifiedSigHint is preferred over the
+	// server-trust one when displaying to users.
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 
@@ -568,7 +578,8 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(MetaContext, *PostProofRes) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -577,11 +588,14 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers(mode RunMode) []string
+	ListProofCheckers() []string
+	GetDisplayPriority(n string) int
 }
 
-type PvlSource interface {
-	GetPVL(m MetaContext) (PvlUnparsed, error)
+// Generic store for data that is hashed into the merkle root. Used by pvl and
+// parameterized proofs.
+type MerkleStore interface {
+	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -616,6 +630,7 @@ type TeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
+	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
@@ -623,21 +638,25 @@ type TeamLoader interface {
 
 type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
+	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
 	OnLogout()
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
-	OnLogout()
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	OnLogout(m MetaContext)
 }
 
 type Stellar interface {
 	OnLogout()
-	CreateWalletGated(context.Context) error
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
+	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 }
 
 type DeviceEKStorage interface {
@@ -743,19 +762,25 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
-	// a username and a fullname, and when the mapping was loaded from the server. It blocks
-	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
-	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
-	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
-	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
-	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
-	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
-	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username
+	// packages, which include a username and a fullname, and when the mapping
+	// was loaded from the server. It blocks on the network until all usernames
+	// are known. If the `forceNetworkForFullNames` flag is specified, it will
+	// block on the network too. If the flag is not specified, then stale
+	// values (or unknown values) are OK, we won't go to network if we lack
+	// them. All network calls are limited by the given timeBudget, or if 0 is
+	// specified, there is indefinite budget. In the response, a nil
+	// FullNamePackage means that the lookup failed. A non-nil FullNamePackage
+	// means that some previous lookup worked, but might be arbitrarily out of
+	// date (depending on the cachedAt time). A non-nil FullNamePackage with an
+	// empty fullName field means that the user just hasn't supplied a
+	// fullName.
 	//
-	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
-	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
-	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+	// *NOTE* that this function can return useful data and an error. In this
+	// regard, the error is more like a warning. But if, for instance, the
+	// mapper runs out of time budget, it will return the data
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+		networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*
@@ -797,11 +822,8 @@ type ChatHelper interface {
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
+		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
-	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
@@ -817,6 +839,7 @@ type Resolver interface {
 	ResolveWithBody(m MetaContext, input string) ResolveResult
 	Resolve(m MetaContext, input string) ResolveResult
 	PurgeResolveCache(m MetaContext, input string) error
+	CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName)
 }
 
 type EnginePrereqs struct {

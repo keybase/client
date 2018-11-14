@@ -40,12 +40,10 @@ const testCurrencies = I.List([
   },
 ]).map(c => Constants.currenciesResultToCurrencies(c))
 
-const defaultSettingsProps = {
+const sharedSettingsProps = {
   accountID: Types.noAccountID,
-  name: 'awesome account',
   user: 'testuser',
-  isDefault: true,
-  currency: testCurrencies.get(1),
+  currencyWaiting: false,
   currencies: testCurrencies,
   onDelete: Sb.action('onDelete'),
   onSetDefault: Sb.action('setDefault'),
@@ -53,21 +51,21 @@ const defaultSettingsProps = {
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onBack: Sb.action('onBack'),
   refresh: () => {},
+  saveCurrencyWaiting: false,
+}
+
+const defaultSettingsProps = {
+  ...sharedSettingsProps,
+  name: 'awesome account',
+  isDefault: true,
+  currency: testCurrencies.get(1),
 }
 
 const secondarySettingsProps = {
-  accountID: Types.noAccountID,
+  ...sharedSettingsProps,
   name: 'some other account',
-  user: 'testuser',
   isDefault: false,
   currency: testCurrencies.get(0),
-  currencies: testCurrencies,
-  onDelete: Sb.action('onDelete'),
-  onSetDefault: Sb.action('setDefault'),
-  onEditName: Sb.action('onEditName'),
-  onCurrencyChange: Sb.action('onCurrencyChange'),
-  onBack: Sb.action('onBack'),
-  refresh: () => {},
 }
 
 const load = () => {

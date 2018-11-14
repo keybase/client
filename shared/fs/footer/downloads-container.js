@@ -1,15 +1,18 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import Downloads, {type DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
+import {downloadFolder} from '../../util/file'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  openDownloadFolder: isMobile ? undefined : () => dispatch(FsGen.createOpenInFileUI({})),
+const mapDispatchToProps = (dispatch) => ({
+  openDownloadFolder: isMobile
+    ? undefined
+    : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: downloadFolder})),
 })
 
 const maxNumCards = isMobile ? 1 : 3
@@ -25,7 +28,9 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   }: DownloadsProps)
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedDownloads')
+export default namedConnect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+'ConnectedDownloads'
 )(Downloads)

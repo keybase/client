@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
-import {compose, connect, setDisplayName} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import FolderHeader from './header'
 
@@ -33,7 +33,6 @@ const mergeProps = (_, {onBack, onChat}, {path, routePath}) => {
 }
 
 export default compose(
-  connect(() => ({}), mapDispatchToProps, mergeProps),
-  setDisplayName('FolderHeader'),
+  namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader'),
   OpenHOC
 )(FolderHeader)

@@ -8,6 +8,7 @@ import {
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
 import type {FSNotification} from '../constants/types/rpc-gen'
+import type {TypedState} from '../constants/reducer'
 
 type DecodedKBFSError = {
   title: string,
@@ -83,7 +84,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
-      const usedPercent = Math.round(100 * usageBytes / limitBytes)
+      const usedPercent = Math.round((100 * usageBytes) / limitBytes)
       if (notification.errorType === kbfsCommonFSErrorType.overQuota) {
         return {
           title: 'Keybase: Out of space',
@@ -103,6 +104,16 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
               'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
           }
         }
+      }
+    case kbfsCommonFSErrorType.offlineArchived:
+      return {
+        title: 'Keybase: Archived data not available offline',
+        body: `You cannot browse archived KBFS data while disconnected from the Keybase servers.`,
+      }
+    case kbfsCommonFSErrorType.offlineUnsynced:
+      return {
+        title: 'Keybase: Unsynced data not available offline',
+        body: `You cannot browse an unsynced folder while disconnected from the Keybase servers.`,
       }
 
     default:
@@ -138,7 +149,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   // }
 }
 
-export function kbfsNotification(notification: FSNotification, notify: any, getState: any) {
+export function kbfsNotification(notification: FSNotification, notify: any, state: TypedState) {
   const action = {
     // For now, disable file notifications because they're really annoying and
     // we now have the syncing indicator.
@@ -153,7 +164,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
     [kbfsCommonFSNotificationType.connection]: '',
   }[notification.notificationType]
 
-  if (action === undefined) {
+  if (action === undefined && notification.statusCode !== kbfsCommonFSStatusCode.error) {
     // Ignore notification types we don't care about.
     return
   }
@@ -184,7 +195,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  let user = getState().config.username
+  let user = state.config.username
   let rateLimitKey
 
   const isError = notification.statusCode === kbfsCommonFSStatusCode.error

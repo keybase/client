@@ -5,6 +5,8 @@ type payloadType = {
   response: ?Object,
 }
 
+export type SendArg = [number, number, mixed, mixed]
+
 // Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
 // a list of arguments, but it expects exactly one element with keyed
 // arguments.

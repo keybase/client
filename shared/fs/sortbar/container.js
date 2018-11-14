@@ -1,6 +1,7 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import SortBar from './sortbar'
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
@@ -9,9 +10,9 @@ type OwnProps = {
   path: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
+const mapStateToProps = (state, {path}: OwnProps) => ({
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
-  folderIsPending: state.fs.loadingPaths.has(path),
+  _loadingPaths: state.fs.loadingPaths,
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
@@ -20,7 +21,12 @@ const mapDispatchToProps = (dispatch, {path}) => ({
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  setDisplayName('SortBar')
-)(SortBar)
+const emptySet = I.Set()
+
+const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}: OwnProps) => ({
+  sortSetting,
+  folderIsPending: _loadingPaths.get(path, emptySet).size > 0,
+  sortSettingToAction,
+})
+
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(SortBar)

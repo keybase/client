@@ -1,27 +1,31 @@
 // @flow
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import Joined from '.'
-import {connect, type TypedState, isMobile} from '../../../../util/container'
+import {connect, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
 import {chatTab} from '../../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {message}) => ({
+type OwnProps = {|
+  message: Types.MessageSystemJoined,
+|}
+
+const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     isMobile
       ? dispatch(RouteTree.navigateTo([{props: {teamname}, selected: 'manageChannels'}], [chatTab]))
       : dispatch(RouteTree.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
-  onUsernameClicked: (username: string) => {
+  onUsernameClicked: (username: string) =>
     isMobile
       ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username}))
-  },
+      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -37,4 +41,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Joined)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Joined)

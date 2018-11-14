@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
 import type {AccountID} from '../../../constants/types/wallets'
 import {SelectedEntry, DropdownEntry} from './dropdown'
@@ -37,15 +38,36 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     ))
 
     return (
-      <ParticipantsRow heading="From" headingAlignment="Right" bottomDivider={false}>
+      <ParticipantsRow heading="From" headingAlignment="Right" bottomDivider={false} style={styles.row}>
         <Kb.Dropdown
           onChanged={this.onDropdownChange}
           items={items}
+          style={styles.dropdown}
+          selectedBoxStyle={styles.dropdownSelectedBox}
           selected={<SelectedEntry account={this.state.selectedAccount} user={this.props.user} />}
         />
       </ParticipantsRow>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  dropdownSelectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 32},
+  }),
+  dropdown: Styles.platformStyles({
+    isMobile: {height: 32},
+  }),
+  dropdownContainer: Styles.platformStyles({
+    isMobile: {flexGrow: 1},
+  }),
+  row: Styles.platformStyles({
+    isMobile: {
+      height: 40,
+      paddingBottom: 4,
+      paddingTop: 4,
+    },
+  }),
+})
 
 export default FromField

@@ -32,10 +32,14 @@ export const platformText: {
     hintText: 'yourdomain.com',
   },
   http: {
-    headerText: 'Prove your website',
-    hintText: 'whatever.yoursite.com',
+    headerText: 'Prove your http website',
+    hintText: 'http://whatever.yoursite.com',
   },
   https: {
+    headerText: 'Prove your https website',
+    hintText: 'https://whatever.yoursite.com',
+  },
+  web: {
     headerText: 'Prove your website',
     hintText: 'whatever.yoursite.com',
   },

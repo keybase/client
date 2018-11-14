@@ -3,38 +3,38 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Banner from '../banner'
-import type {Background} from '../../common-adapters/text'
 import Header from './header'
 import Participants from './participants/container'
 import NoteAndMemo from './note-and-memo'
+import {type Banner as BannerType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
   onSendClick: () => void,
   onBack: () => void,
-  amount: string,
-  assetType: string,
-  assetConversion?: string,
-  waiting?: boolean,
   encryptedNote?: string,
   publicMemo?: string,
-  bannerBackground?: Background,
-  bannerText?: string,
-  waitingKey?: string,
+  banners?: Array<BannerType>,
+  sendFailed: boolean,
+  waitingKey: string,
+  sendingIntentionXLM: boolean,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <Header
-        amount={props.amount}
-        assetType={props.assetType}
-        assetConversion={props.assetConversion}
         onBack={props.onBack}
+        sendingIntentionXLM={props.sendingIntentionXLM}
+        displayAmountXLM={props.displayAmountXLM}
+        displayAmountFiat={props.displayAmountFiat}
       />
       <Kb.ScrollView style={styles.scrollView}>
-        {!!props.bannerBackground &&
-          !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
+        {(props.banners || []).map(banner => (
+          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        ))}
         <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
@@ -51,6 +51,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       >
         <Kb.WaitingButton
           type="PrimaryGreen"
+          disabled={props.sendFailed}
           onClick={props.onSendClick}
           waitingKey={props.waitingKey}
           fullWidth={true}
@@ -65,7 +66,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.amount} {props.assetType}
+                  {props.displayAmountXLM}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>

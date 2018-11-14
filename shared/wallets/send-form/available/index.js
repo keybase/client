@@ -1,26 +1,38 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import {Box2, Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 
-type Props = {|
+export type Props = {|
   amountErrMsg: string,
 |}
 
-const Available = (props: Props) => (
-  <Box2 direction="vertical">
-    {!!props.amountErrMsg && (
-      <Text type="Body" style={styles.text}>
-        {props.amountErrMsg}
-      </Text>
-    )}
-  </Box2>
-)
+const Available = (props: Props) => {
+  // This will only work to apply one custom style.
+  const splitText = props.amountErrMsg.split('*')
+  if (splitText.length === 0) {
+    return null
+  }
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodySmall" style={styles.text}>
+        {splitText.map((t, idx) => (
+          <Kb.Text
+            key={idx}
+            type={idx % 2 === 0 ? 'BodySmallError' : 'BodySmallExtrabold'}
+            style={styles.text}
+          >
+            {t}
+          </Kb.Text>
+        ))}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.red,
-    textAlign: 'center',
   },
 })
 

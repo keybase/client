@@ -42,7 +42,6 @@ const props = {
   lastMessageIsOurs: false,
   listScrollDownCounter: 0,
   onFocusInput: Sb.action('onFocusInput'),
-  onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
 }
 
 // prettier-ignore
@@ -68,7 +67,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
       // Move the start day up by the previous number of days to avoid overlap
       start.add(dayRange, 'days')
       // Get a new date range for random timestamps
-      dayRange = r.next() % days + 1
+      dayRange = (r.next() % days) + 1
       end.add(dayRange, 'days')
 
       const diff = end.diff(start)
@@ -78,7 +77,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
       currentTimestamp = newTimestamp.valueOf()
 
       // Reset threashold and count
-      messagesThreshold = r.next() % threshold + 1
+      messagesThreshold = (r.next() % threshold) + 1
       generatedCount = 1
 
       return currentTimestamp
@@ -175,9 +174,9 @@ const provider = Sb.createPropProviderWithCommon({
     visible: false,
     yourMessage: false,
   }),
-  WrapperTimestamp: p => {
+  WrapperMessage: p => {
     const {children, isEditing, measure, message, previous} = p
-    // Want to mimick the timestamp logic in WrapperTimestamp
+    // Want to mimick the timestamp logic in WrapperMessage
     const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
     return {
       children,

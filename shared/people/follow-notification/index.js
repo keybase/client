@@ -16,7 +16,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../s
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   inline: true,
   colorFollowing: true,
   type: 'BodySemibold',
@@ -28,7 +28,7 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
+export type Props = Types.FollowedNotificationItem & {onClickUser: (username: string) => void}
 
 // TODO remove this any type
 export default (props: any) => {

@@ -30,9 +30,12 @@ type HeaderProps = {|
 
 type Props = {|
   ...HeaderProps,
-  attachTo?: ?React.Component<any, any>,
+  attachTo?: () => ?React.Component<any>,
+  cancelButtonLabel: string,
   onCancel: ?() => void, // if falsy tx is not cancelable
+  onClaimLumens: ?() => void, // if falsy disclaimer has already been accepted
   onHidden: () => void,
+  onSeeDetails: ?() => void, // if falsy this doesn't have a details page
   position: Position,
   visible: boolean,
 |}
@@ -65,19 +68,19 @@ const Header = (props: HeaderProps) =>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
-          <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
+          <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
           <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             inline={true}
             usernames={[props.sender]}
-            type="BodyTinySemibold"
+            type="BodySmallSemibold"
           />
         </Kb.Box2>
-        <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
-        <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
+        <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.balanceChange && (
         <Kb.Text
@@ -91,19 +94,41 @@ const Header = (props: HeaderProps) =>
   )
 
 const PaymentPopup = (props: Props) => {
-  const items =
-    !props.loading && props.onCancel
-      ? [
-          {
-            danger: true,
-            onClick: props.onCancel,
-            title: 'Cancel request',
-          },
-        ]
-      : []
+  const items = !props.loading
+    ? [
+        ...(props.onCancel
+          ? [
+              {
+                danger: true,
+                onClick: props.onCancel,
+                title: props.cancelButtonLabel,
+              },
+            ]
+          : []),
+        ...(props.onSeeDetails
+          ? [
+              {
+                onClick: props.onSeeDetails,
+                title: 'See transaction details',
+              },
+            ]
+          : []),
+        ...(props.onClaimLumens ? [{onClick: props.onClaimLumens, title: 'Claim lumens'}] : []),
+      ]
+    : []
 
   // separate out header props
-  const {attachTo, onCancel, onHidden, position, visible, ...headerProps} = props
+  const {
+    attachTo,
+    cancelButtonLabel,
+    onCancel,
+    onClaimLumens,
+    onHidden,
+    onSeeDetails,
+    position,
+    visible,
+    ...headerProps
+  } = props
   const header = {
     title: 'header',
     view: (

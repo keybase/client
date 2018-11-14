@@ -8,10 +8,9 @@ import {
   lifecycle,
   withStateHandlers,
   withHandlers,
-  type TypedState,
 } from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
   pending: state.teams.teamCreationPending,
 })
@@ -41,7 +40,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),

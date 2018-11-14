@@ -10,9 +10,11 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
 import SelectChannel from '.'
+
+type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
 
 export type SelectChannelProps = {
   teamname: string,
@@ -20,7 +22,7 @@ export type SelectChannelProps = {
   selected: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   const selected = routeProps.get('selected')
   const _channelInfos = getTeamChannelInfos(state, teamname)
@@ -58,13 +60,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     channelNames,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onLoad()

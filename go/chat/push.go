@@ -58,8 +58,8 @@ func (g *gregorMessageOrderer) isUIDKey(key string, uid gregor1.UID) bool {
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
-	ibox := storage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
 	}
@@ -285,9 +285,10 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		// Get and localize the conversation to get the new tlfname.
-		inbox, err := g.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{update.ConvID},
-		}, nil)
+		inbox, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{update.ConvID},
+			}, nil)
 		if err != nil {
 			g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
 			return
@@ -331,8 +332,26 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		}
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
-		switch typ {
-		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
+		if utils.IsNotifiableChatMessageType(typ, msg.Valid().AtMentions, msg.Valid().ChannelMention) {
+			// Check to make sure this is an eligible reaction message
+			if msg.GetMessageType() == chat1.MessageType_REACTION {
+				g.Debug(ctx, "shouldDisplayDesktopNotification: checking reaction")
+				supersedes, err := utils.GetSupersedes(msg)
+				if err != nil || len(supersedes) == 0 {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %s", err)
+					return false
+				}
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil)
+				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %s", err)
+					return false
+				}
+				if !supersedesMsg[0].Valid().ClientHeader.Sender.Eq(uid) {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: skipping reaction post, not sender")
+					return false
+				}
+			}
+
 			// Check for generic hit on desktop right off and return true if we hit
 			if conv.Notifications.Settings[apptype][kind] {
 				return true
@@ -349,10 +368,6 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 				notifyFromChanMention = conv.Notifications.ChannelWide
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
-		case chat1.MessageType_ATTACHMENT:
-			return conv.Notifications.Settings[apptype][kind]
-		default:
-			return false
 		}
 	}
 	return false
@@ -452,13 +467,18 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
+				notificationSnippet := ""
+				if desktopNotification {
+					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
+						g.G().Env.GetUsername().String())
+				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
-					DesktopNotificationSnippet: utils.GetDesktopNotificationSnippet(conv, g.G().Env.GetUsername().String()),
+					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),
 				})
 			}
@@ -555,9 +575,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			// We need to get this conversation and then localize it
 			var inbox types.Inbox
-			if inbox, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{nm.ConvID},
-			}, nil); err != nil {
+			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, false,
+				nil, &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{nm.ConvID},
+				}, nil); err != nil {
 				g.Debug(ctx, "chat activity: unable to read conversation: %s", err.Error())
 				return
 			}

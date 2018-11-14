@@ -16,7 +16,7 @@ import type {StylesCrossPlatform} from '../../styles/css'
  */
 
 export type Props = {|
-  attachTo?: ?React.Component<any, any>,
+  attachTo?: () => ?React.ElementRef<any>,
   children: React.Node,
   color?: string,
   onHidden: () => void,

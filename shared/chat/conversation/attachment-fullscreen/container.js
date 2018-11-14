@@ -2,19 +2,17 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
-import {compose, withStateHandlers, connect, type TypedState} from '../../../util/container'
+import {compose, withStateHandlers, connect, withProps} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
-
-type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
-  const ordinal = ownProps.routeProps.get('ordinal')
-  const message = Constants.getMessage(state, conversationIDKey, ordinal) || blankMessage
+type OwnProps = RouteProps<{}, {}>
+
+const mapStateToProps = state => {
+  const message = state.chat2.attachmentFullscreenMessage || blankMessage
   return {
     message: message.type === 'attachment' ? message : blankMessage,
   }
@@ -24,13 +22,27 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
   _onDownloadAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        message,
       })
     )
   },
+  _onHotkey: (conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, cmd: string) => {
+    switch (cmd) {
+      case 'left':
+      case 'right':
+        dispatch(
+          Chat2Gen.createAttachmentFullscreenNext({
+            conversationIDKey,
+            messageID,
+            backInTime: cmd === 'left',
+          })
+        )
+        break
+    }
+  },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
   onClose: () => {
     dispatch(navigateUp())
@@ -45,20 +57,30 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownloadAttachment: message.downloadPath
       ? undefined
       : () => dispatchProps._onDownloadAttachment(message),
+    hotkeys: ['left', 'right'],
+    onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     path: message.fileURL || message.previewURL,
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
+    isVideo: Constants.isVideoAttachment(message),
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {isZoomed: false},
     {
       onToggleZoom: ({isZoomed}) => () => ({isZoomed: !isZoomed}),
     }
-  )
+  ),
+  withProps(props => ({
+    onHotkey: (cmd: string) => props.onHotkey(cmd),
+  }))
 )(Fullscreen)

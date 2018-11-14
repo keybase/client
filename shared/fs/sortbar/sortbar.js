@@ -17,7 +17,7 @@ import * as Types from '../../constants/types/fs'
 
 export type SortBarProps = {
   folderIsPending: boolean,
-  sortSetting: Types._SortSetting,
+  sortSetting: Types.SortSetting,
   sortSettingToAction: Types.SortSetting => () => void,
 }
 
@@ -63,13 +63,13 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
           style={styles.sortSetting}
           ref={props.setAttachmentRef}
         >
-          <Box style={styles.iconBox}>
+          <Box>
             <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           position="bottom left"

@@ -1,103 +1,148 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
-import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import Available from '../available/container'
 
-type Props = {
+const isValidAmount = (amt, numDecimalsAllowed) => {
+  if (!isNaN(Number(amt)) || amt === '.') {
+    // This is a valid number. Now check the number of decimal places
+    const split = amt.split('.')
+    if (split.length === 1) {
+      // no decimal places
+      return true
+    }
+    const decimal = split[split.length - 1]
+    if (decimal.length <= numDecimalsAllowed) {
+      return true
+    }
+  }
+  return false
+}
+
+const truncateAmount = (amt, numDecimalsAllowed) => {
+  const num = Number(amt)
+  return num.toFixed(numDecimalsAllowed)
+}
+
+type Props = {|
   bottomLabel: string,
   displayUnit: string,
   inputPlaceholder: string,
+  numDecimalsAllowed: number,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
-  onClickInfo: () => void,
   topLabel: string,
+  value: string,
   warningAsset?: string,
   warningPayee?: string,
+|}
+
+class AssetInput extends React.Component<Props> {
+  componentDidMount() {
+    if (!isValidAmount(this.props.value, this.props.numDecimalsAllowed)) {
+      this.props.onChangeAmount(truncateAmount(this.props.value, this.props.numDecimalsAllowed))
+    }
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (
+      this.props.numDecimalsAllowed !== prevProps.numDecimalsAllowed &&
+      !isValidAmount(this.props.value, this.props.numDecimalsAllowed)
+    ) {
+      this.props.onChangeAmount(truncateAmount(this.props.value, this.props.numDecimalsAllowed))
+    }
+  }
+
+  _onChangeAmount = t => {
+    if (isValidAmount(t, this.props.numDecimalsAllowed)) {
+      this.props.onChangeAmount(t)
+    }
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
+        {!!this.props.topLabel && (
+          <Kb.Text
+            type="BodySmallSemibold"
+            style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}
+          >
+            {this.props.topLabel}
+          </Kb.Text>
+        )}
+        <Kb.NewInput
+          autoFocus={true}
+          type="text"
+          keyboardType="numeric"
+          decoration={
+            <Kb.Box2 direction="vertical" style={styles.flexEnd}>
+              <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
+                {this.props.displayUnit}
+              </Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onChangeDisplayUnit}>
+                Change
+              </Kb.Text>
+            </Kb.Box2>
+          }
+          containerStyle={styles.inputContainer}
+          style={styles.input}
+          onChangeText={this._onChangeAmount}
+          textType="HeaderBigExtrabold"
+          placeholder={this.props.inputPlaceholder}
+          placeholderColor={Styles.globalColors.purple2_40}
+          error={!!this.props.warningAsset}
+          value={this.props.value}
+        />
+        <Available />
+        {!!this.props.warningPayee && (
+          <Kb.Text type="BodySmallError">
+            {this.props.warningPayee} doesn't accept{' '}
+            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+              {this.props.warningAsset}
+            </Kb.Text>
+            . Please pick another asset.
+          </Kb.Text>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
+            {this.props.bottomLabel}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
 }
 
-const AssetInput = (props: Props) => (
-  <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.flexStart}>
-    {!!props.topLabel && (
-      <Text type="BodySmallSemibold" style={collapseStyles([styles.topLabel, styles.labelMargin])}>
-        {props.topLabel}
-      </Text>
-    )}
-    <NewInput
-      type="number"
-      decoration={
-        <Box2 direction="vertical" style={styles.flexEnd}>
-          <Text type="HeaderBigExtrabold" style={styles.unit}>
-            {props.displayUnit}
-          </Text>
-          <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
-            Change
-          </Text>
-        </Box2>
-      }
-      containerStyle={styles.inputContainer}
-      style={styles.input}
-      onChangeText={props.onChangeAmount}
-      textType="HeaderBigExtrabold"
-      placeholder={props.inputPlaceholder}
-      placeholderColor={globalColors.purple2_40}
-      error={!!props.warningAsset}
-    />
-    {props.warningAsset &&
-      !props.warningPayee && (
-        <Text type="BodySmallError">
-          Your available to send is{' '}
-          <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
-            {props.warningAsset}
-          </Text>
-          .
-        </Text>
-      )}
-    {!!props.warningPayee && (
-      <Text type="BodySmallError">
-        {props.warningPayee} doesn't accept{' '}
-        <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
-          {props.warningAsset}
-        </Text>
-        . Please pick another asset.
-      </Text>
-    )}
-    <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.labelMargin}>
-        {props.bottomLabel}
-      </Text>
-      <Icon
-        type="iconfont-question-mark"
-        color={globalColors.black_40}
-        fontSize={12}
-        onClick={props.onClickInfo}
-      />
-    </Box2>
-  </Box2>
-)
-
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   unit: {
-    color: globalColors.purple2,
+    color: Styles.globalColors.purple2,
   },
   input: {
-    color: globalColors.purple2,
+    color: Styles.globalColors.purple2,
     position: 'relative',
     top: -8,
   },
   inputContainer: {
     borderWidth: 0,
+    paddingLeft: 0,
+    paddingTop: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',
   },
-  flexStart: {
+  container: {
     alignItems: 'flex-start',
+    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
   },
   labelMargin: {marginLeft: 1},
   text: {
     textAlign: 'center',
   },
-  topLabel: {color: globalColors.blue},
+  topLabel: {color: Styles.globalColors.blue},
 })
 
 export default AssetInput

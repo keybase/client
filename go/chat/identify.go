@@ -134,9 +134,9 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	if me.IsNil() {
 		return "", nil, libkb.LoggedInError{}
 	}
-	inbox := storage.NewInbox(h.G(), me.ToBytes())
+	inbox := storage.NewInbox(h.G())
 
-	_, allConvs, err := inbox.ReadAll(ctx)
+	_, allConvs, err := inbox.ReadAll(ctx, me.ToBytes())
 	if err != nil {
 		return "", nil, err
 	}
@@ -378,7 +378,7 @@ func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, pri
 			return keybase1.TLFIdentifyFailure{}, err
 		}
 	}
-	resp, err := eng.Result()
+	resp, err := eng.Result(m)
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}

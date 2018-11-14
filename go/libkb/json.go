@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,6 +30,7 @@ type JSONFile struct {
 	which    string
 	jw       *jsonw.Wrapper
 	exists   bool
+	setMutex sync.RWMutex
 
 	txMutex sync.Mutex
 	tx      *jsonFileTransaction
@@ -72,7 +75,15 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	}
 	f.exists = true
 	defer file.Close()
-	decoder := json.NewDecoder(file)
+
+	var buf bytes.Buffer
+	fileTee := io.TeeReader(bufio.NewReader(file), &buf)
+	err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(fileTee))
+	if err != nil {
+		return err
+	}
+
+	decoder := json.NewDecoder(&buf)
 	obj := make(map[string]interface{})
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {
@@ -369,10 +380,14 @@ func (f *JSONFile) GetFilename() string {
 }
 
 func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	return f.jw.AtPath(p).GetInterface()
 }
 
 func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getString)
 	if isSet {
 		ret = i.(string)
@@ -381,6 +396,8 @@ func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
 }
 
 func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getBool)
 	if isSet {
 		ret = i.(bool)
@@ -389,6 +406,8 @@ func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
 }
 
 func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	i, isSet := f.getValueAtPath(p, getInt)
 	if isSet {
 		ret = i.(int)
@@ -397,6 +416,8 @@ func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 }
 
 func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
 	w := f.jw.AtPath(p)
 	isSet = w.IsNil() && w.Error() == nil
 	return isSet
@@ -415,22 +436,32 @@ func (f *JSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) e
 }
 
 func (f *JSONFile) SetStringAtPath(p string, v string) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getString, v)
 }
 
 func (f *JSONFile) SetBoolAtPath(p string, v bool) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getBool, v)
 }
 
 func (f *JSONFile) SetIntAtPath(p string, v int) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
 }
 
 func (f *JSONFile) SetNullAtPath(p string) (err error) {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
 	existing := f.jw.AtPath(p)
 	if !existing.IsNil() || existing.Error() != nil {
 		err = f.jw.SetValueAtPath(p, jsonw.NewNil())

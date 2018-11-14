@@ -145,7 +145,8 @@
         "DELETEHISTORY_12",
         "REACTION_13",
         "SENDPAYMENT_14",
-        "REQUESTPAYMENT_15"
+        "REQUESTPAYMENT_15",
+        "UNFURL_16"
       ],
       "go": "nostring"
     },
@@ -834,6 +835,15 @@
           "jsonkey": "r"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "unfurlIDs",
+          "mpackkey": "u",
+          "jsonkey": "u"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -1362,7 +1372,350 @@
         "BACKGROUNDCONVLOAD_3",
         "FIXRETRY_4",
         "PREPARE_5",
-        "SEARCHER_6"
+        "SEARCHER_6",
+        "INDEXED_SEARCH_7",
+        "KBFSFILEACTIVITY_8"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchOpts",
+      "fields": [
+        {
+          "type": "string",
+          "name": "sentBy"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentBefore"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "sentAfter"
+        },
+        {
+          "type": "int",
+          "name": "maxHits"
+        },
+        {
+          "type": "int",
+          "name": "maxMessages"
+        },
+        {
+          "type": "int",
+          "name": "beforeContext"
+        },
+        {
+          "type": "int",
+          "name": "afterContext"
+        },
+        {
+          "type": "boolean",
+          "name": "forceReindex"
+        },
+        {
+          "type": "int",
+          "name": "maxConvs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIndexMetadata",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "MessageID"
+          },
+          "name": "seenIDs",
+          "mpackkey": "s",
+          "jsonkey": "s"
+        },
+        {
+          "type": "int",
+          "name": "version",
+          "mpackkey": "v",
+          "jsonkey": "v"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIndex",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "boolean",
+              "keys": "MessageID"
+            },
+            "keys": "string"
+          },
+          "name": "index",
+          "mpackkey": "i",
+          "jsonkey": "i"
+        },
+        {
+          "type": "ConversationIndexMetadata",
+          "name": "metadata",
+          "mpackkey": "m",
+          "jsonkey": "m"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "beforeMessages"
+        },
+        {
+          "type": "UIMessage",
+          "name": "hitMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "afterMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxHit",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "convName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchInboxHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchInboxDone",
+      "fields": [
+        {
+          "type": "int",
+          "name": "numHits"
+        },
+        {
+          "type": "int",
+          "name": "numConvs"
+        },
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchIndexStatus",
+      "fields": [
+        {
+          "type": "int",
+          "name": "percentIndexed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataImage",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataVideo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataAudio",
+      "fields": [
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AssetMetadataType",
+      "symbols": [
+        "NONE_0",
+        "IMAGE_1",
+        "VIDEO_2",
+        "AUDIO_3"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "variant",
+      "name": "AssetMetadata",
+      "switch": {
+        "type": "AssetMetadataType",
+        "name": "assetType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "IMAGE",
+            "def": false
+          },
+          "body": "AssetMetadataImage"
+        },
+        {
+          "label": {
+            "name": "VIDEO",
+            "def": false
+          },
+          "body": "AssetMetadataVideo"
+        },
+        {
+          "label": {
+            "name": "AUDIO",
+            "def": false
+          },
+          "body": "AssetMetadataAudio"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AssetTag",
+      "symbols": [
+        "PRIMARY_0"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "region"
+        },
+        {
+          "type": "string",
+          "name": "endpoint"
+        },
+        {
+          "type": "string",
+          "name": "bucket"
+        },
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
+        },
+        {
+          "type": "bytes",
+          "name": "verifyKey"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "bytes",
+          "name": "nonce"
+        },
+        {
+          "type": "AssetMetadata",
+          "name": "metadata"
+        },
+        {
+          "type": "AssetTag",
+          "name": "tag"
+        }
       ]
     }
   ],

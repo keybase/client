@@ -4,8 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, Button, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemInfo, PathItemIcon} from '../common'
 import {memoize} from 'lodash-es'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
@@ -17,7 +16,7 @@ type DefaultViewProps = {
   download: () => void,
   saveMedia: () => void,
   shareNative: () => void,
-  showInFileUI: () => void,
+  showInSystemFileManager: () => void,
 }
 
 const DefaultView = (props: DefaultViewProps) => (
@@ -61,7 +60,7 @@ const DefaultView = (props: DefaultViewProps) => (
           type="Secondary"
           label={'Show in ' + fileUIName}
           style={{marginTop: globalMargins.small}}
-          onClick={props.showInFileUI}
+          onClick={props.showInSystemFileManager}
         />
       ) : (
         <Button

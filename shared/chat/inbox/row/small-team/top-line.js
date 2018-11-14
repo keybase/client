@@ -1,16 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
-import {
-  Text,
-  PlaintextUsernames,
-  Box,
-  Box2,
-  Icon,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 
 type Props = {
@@ -26,7 +18,7 @@ type Props = {
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
@@ -40,70 +32,59 @@ class _SimpleTopLine extends React.Component<Props> {
   }
 
   render() {
-    const boldOverride = this.props.showBold ? globalStyles.fontBold : null
+    const boldOverride = this.props.showBold ? Styles.globalStyles.fontBold : null
     return (
-      <Box
+      <Kb.Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          flexGrow: 1,
-          height: isMobile ? 21 : 17,
-          maxHeight: isMobile ? 21 : 17,
         }}
       >
         {this.props.showGear && (
           <TeamMenu
             visible={this.props.showingMenu}
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             onHidden={this.props.toggleShowingMenu}
             isSmallTeam={true}
             teamname={(this.props.participants.length && this.props.participants[0]) || ''}
           />
         )}
-        <Box
+        <Kb.Box
           style={{
-            ...globalStyles.flexBoxRow,
+            ...Styles.globalStyles.flexBoxRow,
             flexGrow: 1,
-            height: '100%',
+            height: Styles.isMobile ? 21 : 17,
             position: 'relative',
           }}
         >
-          <Box
+          <Kb.Box
             style={{
-              ...globalStyles.flexBoxColumn,
-              ...globalStyles.fillAbsolute,
-              justifyContent: 'center',
+              ...Styles.globalStyles.flexBoxRow,
+              ...Styles.globalStyles.fillAbsolute,
+              alignItems: 'center',
             }}
           >
             {this.props.teamname && this.props.channelname ? (
-              <Box2 direction="horizontal" fullWidth={true}>
-                <Text
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Text
                   type="BodySemibold"
-                  style={{
-                    ...boldOverride,
-                    color: this.props.usernameColor,
-                  }}
+                  style={Styles.collapseStyles([
+                    styles.teamTextStyle,
+                    boldOverride,
+                    {color: this.props.usernameColor},
+                  ])}
                 >
-                  {this.props.teamname}
-                </Text>
-                <Text
-                  type="BodySemibold"
-                  style={{
-                    ...boldOverride,
-                    paddingRight: 7,
-                  }}
-                >
-                  {'#' + this.props.channelname}
-                </Text>
-              </Box2>
+                  {this.props.teamname + '#' + this.props.channelname}
+                </Kb.Text>
+              </Kb.Box2>
             ) : (
-              <PlaintextUsernames
+              <Kb.PlaintextUsernames
                 type="BodySemibold"
                 containerStyle={{
                   ...boldOverride,
                   color: this.props.usernameColor,
                   paddingRight: 7,
-                  ...(isMobile
+                  ...(Styles.isMobile
                     ? {
                         backgroundColor: this.props.backgroundColor,
                       }
@@ -113,45 +94,56 @@ class _SimpleTopLine extends React.Component<Props> {
                 title={this.props.participants.join(', ')}
               />
             )}
-          </Box>
-        </Box>
-        <Text
+          </Kb.Box>
+        </Kb.Box>
+        <Kb.Text
           key="0"
           type="BodySmall"
-          className={this.props.showGear ? 'small-team-timestamp' : undefined}
-          style={platformStyles({
+          className={Styles.classNames({'small-team-timestamp': this.props.showGear})}
+          style={Styles.platformStyles({
             common: {
               ...boldOverride,
-              color: this.props.hasBadge ? globalColors.blue : this.props.subColor,
+              color: this.props.hasBadge ? Styles.globalColors.blue : this.props.subColor,
             },
           })}
         >
           {this.props.timestamp}
-        </Text>
+        </Kb.Text>
         {this.props.showGear && (
-          <Icon
+          <Kb.Icon
             type="iconfont-gear"
             className="small-team-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
-            style={{position: 'relative', right: globalMargins.xtiny}}
+            fontSize={14}
+            style={{position: 'relative', right: Styles.globalMargins.xtiny}}
           />
         )}
-        {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
-      </Box>
+        {this.props.hasBadge ? <Kb.Box key="1" style={unreadDotStyle} /> : null}
+      </Kb.Box>
     )
   }
 }
-const SimpleTopLine = OverlayParentHOC(_SimpleTopLine)
+const SimpleTopLine = Kb.OverlayParentHOC(_SimpleTopLine)
 
 const unreadDotStyle = {
-  backgroundColor: globalColors.orange,
+  backgroundColor: Styles.globalColors.orange,
   borderRadius: 6,
   height: 8,
   marginLeft: 4,
   width: 8,
 }
+
+const styles = Styles.styleSheetCreate({
+  teamTextStyle: Styles.platformStyles({
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  }),
+})
 
 export {SimpleTopLine}

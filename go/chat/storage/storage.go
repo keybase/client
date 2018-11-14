@@ -49,7 +49,7 @@ type storageEngine interface {
 	WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
-		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
+		convID chat1.ConversationID, uid gregor1.UID, maxID, minID chat1.MessageID) Error
 	ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgIDs []chat1.MessageID) Error
 }
@@ -313,7 +313,13 @@ func (h *HoleyResultCollector) Holes() int {
 	return h.holes
 }
 
-func (s *Storage) MaybeNuke(ctx context.Context, force bool, err Error, convID chat1.ConversationID,
+func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) Error {
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	return s.maybeNukeLocked(ctx, true /* force */, nil /* error */, convID, uid)
+}
+
+func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, convID chat1.ConversationID,
 	uid gregor1.UID) Error {
 	// Clear index
 	if force || err.ShouldClear() {
@@ -341,7 +347,7 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return maxMsgID, s.MaybeNuke(ctx, false, err, convID, uid)
+		return maxMsgID, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 	return maxMsgID, nil
 }
@@ -397,39 +403,42 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 	// Write out new data into blocks
 	if err = s.engine.WriteMessages(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 
 	// Update supersededBy pointers
 	reactionTargets, err := s.updateAllSupersededBy(ctx, convID, uid, msgs)
 	if err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 	res.ReactionTargets = reactionTargets
 
 	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 
 	// Process any DeleteHistory messages
 	expunged, err := s.handleDeleteHistory(ctx, convID, uid, msgs, expunge)
 	if err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 	res.Expunged = expunged
 
 	exploded, err := s.explodeExpiredMessages(ctx, convID, uid, msgs)
 	if err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 	res.Exploded = exploded
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
 		if err := s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgs[0].GetMessageID()); err != nil {
-			return res, s.MaybeNuke(ctx, false, err, convID, uid)
+			return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 		}
 	}
+
+	// queue search index update in the background
+	go s.G().Indexer.Add(ctx, convID, uid, msgs)
 
 	return res, nil
 }
@@ -438,7 +447,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, inMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(inMsgs))
 	// Do a pass over all the messages and update supersededBy pointers
+
 	var allAssets []chat1.Asset
+	var allPurged []chat1.MessageUnboxed
 	// We return a set of reaction targets that have been updated
 	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 
@@ -515,6 +526,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 						}
 					}
 					msgPurged, assets := s.purgeMessage(mvalid)
+					allPurged = append(allPurged, *superMsg)
 					allAssets = append(allAssets, assets...)
 					newMsgs = append(newMsgs, msgPurged)
 				default:
@@ -534,6 +546,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	// queue search index update in the background
+	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+
 	// Send back the ids of messages that were updated with reactions so we can
 	// send to the UI.
 	reactionTargets := []chat1.MessageUnboxed{}
@@ -690,7 +705,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	rc := NewInsatiableResultCollector() // collect all messages
-	err := s.engine.ReadMessages(ctx, rc, convID, uid, expunge.Upto-1)
+	err := s.engine.ReadMessages(ctx, rc, convID, uid, expunge.Upto-1, 0)
 	switch err.(type) {
 	case nil:
 		// ok
@@ -706,7 +721,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var allAssets []chat1.Asset
-	var writeback []chat1.MessageUnboxed
+	var writeback, allPurged []chat1.MessageUnboxed
 	for _, msg := range rc.Result() {
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
 			// Skip message types that cannot be deleted this way
@@ -722,12 +737,15 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		}
 		mvalid.ServerHeader.SupersededBy = expunge.Basis // Can be 0
 		msgPurged, assets := s.purgeMessage(mvalid)
+		allPurged = append(allPurged, msg)
 		allAssets = append(allAssets, assets...)
 		writeback = append(writeback, msgPurged)
 	}
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	// queue search index update in the background
+	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {
@@ -825,11 +843,11 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return res, s.MaybeNuke(ctx, false, err, convID, uid)
+		return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
-	var maxID chat1.MessageID
+	var maxID, minID chat1.MessageID
 	var num int
 	if pagination == nil {
 		maxID = msgID
@@ -842,16 +860,18 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return res, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 			}
 			maxID = pid - 1
+			minID = 0
 			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return res, s.MaybeNuke(ctx, false, err, convID, uid)
+				return res, s.maybeNukeLocked(ctx, false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
+			minID = pid
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
 		}
 	}
@@ -864,7 +884,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
-	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
+	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID, minID); err != nil {
 		return res, err
 	}
 	msgs := rc.Result()
@@ -958,14 +978,14 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return nil, s.MaybeNuke(ctx, false, err, convID, uid)
+		return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 
 	// Run seek looking for each message
 	for _, msgID := range msgIDs {
 		msg, err := s.getMessage(ctx, convID, uid, msgID)
 		if err != nil {
-			return nil, s.MaybeNuke(ctx, false, err, convID, uid)
+			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
 		}
 		// If we have a versioning error but our client now understands the new
 		// version, don't return the error message
@@ -994,7 +1014,7 @@ func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bo
 
 func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) (*chat1.MessageUnboxed, Error) {
 	rc := NewSimpleResultCollector(1)
-	if err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID); err != nil {
+	if err := s.engine.ReadMessages(ctx, rc, convID, uid, msgID, 0); err != nil {
 		// If we don't have the message, just keep going
 		if _, ok := err.(MissError); ok {
 			return nil, nil

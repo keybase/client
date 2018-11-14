@@ -2,8 +2,7 @@
 import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
-import React, {PureComponent} from 'react'
-import {orderBy} from 'lodash-es'
+import * as React from 'react'
 import moment from 'moment'
 import {
   Avatar,
@@ -19,7 +18,6 @@ import {
   Text,
   UserBio,
   UserProofs,
-  Usernames,
   BackButton,
   PopupHeaderText,
 } from '../common-adapters'
@@ -28,6 +26,7 @@ import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
+import Folders from './folders/container'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -38,9 +37,7 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
   searchHovered: boolean,
-  foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
-  selectedProofMenuRowRef: ?React.Component<any, any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -81,7 +78,7 @@ const _ShowcasedTeamRow = (
     style={styleShowcasedTeamContainer}
   >
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
@@ -99,13 +96,12 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
-class ProfileRender extends PureComponent<Props, State> {
+class ProfileRender extends React.PureComponent<Props, State> {
   state: State = {
     searchHovered: false,
-    foldersExpanded: false,
     selectedProofMenuRowIndex: null,
-    selectedProofMenuRowRef: null,
   }
+  _selectedProofMenuRowRef: ?React.Component<any>
   _proofList: ?UserProofs = null
   _scrollContainer: ?React.Component<any, any> = null
 
@@ -180,7 +176,8 @@ class ProfileRender extends PureComponent<Props, State> {
               />
               {!!proof.mTime && (
                 <Text type="BodySmall" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
-                  Posted on<br />
+                  Posted on
+                  <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>
               )}
@@ -206,13 +203,13 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    const selectedProofMenuRowRef = this._proofList.getRow(idx)
-
-    this.setState({selectedProofMenuRowIndex: idx, selectedProofMenuRowRef})
+    this._selectedProofMenuRowRef = this._proofList.getRow(idx)
+    this.setState({selectedProofMenuRowIndex: idx})
   }
 
   handleHideMenu() {
-    this.setState({selectedProofMenuRowIndex: null, selectedProofMenuRowRef: null})
+    this._selectedProofMenuRowRef = null
+    this.setState({selectedProofMenuRowIndex: null})
   }
 
   componentDidMount() {
@@ -247,46 +244,6 @@ class ProfileRender extends PureComponent<Props, State> {
           proofNotice = this.props.reason
         }
       }
-    }
-
-    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
-      <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
-          <Icon
-            style={styleFolderIcon}
-            type={shared.folderIconType(folder)}
-            color={shared.folderIconColor(folder)}
-          />
-        </Box>
-        <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
-          <Usernames
-            inline={false}
-            users={folder.users}
-            type="Body"
-            style={{color: 'inherit'}}
-            containerStyle={{...Styles.globalStyles.flexBoxRow, flexWrap: 'wrap'}}
-            prefix={folder.isPublic ? 'public/' : 'private/'}
-          />
-        </Text>
-      </Box>
-    ))
-
-    if (!this.state.foldersExpanded && folders.length > 4) {
-      folders = folders.slice(0, 4)
-      folders.push(
-        <Box
-          key="more"
-          style={{...styleFolderLine, alignItems: 'center'}}
-          onClick={() => this.setState({foldersExpanded: true})}
-        >
-          <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type="iconfont-ellipsis" style={styleFolderIcon} textAlign="center" />
-          </Box>
-          <Text type="BodySmall" style={{color: Styles.globalColors.black_60, marginBottom: 2}}>
-            + {this.props.tlfs.length - folders.length} more
-          </Text>
-        </Box>
-      )
     }
 
     const missingProofs = !this.props.isYou
@@ -402,7 +359,8 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onRefresh={this.props.refresh}
-                    onSendOrRequestLumens={this.props.onSendOrRequestLumens}
+                    onSendLumens={this.props.onSendLumens}
+                    onRequestLumens={this.props.onRequestLumens}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}
@@ -464,13 +422,13 @@ class ProfileRender extends PureComponent<Props, State> {
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={this.state.selectedProofMenuRowRef}
+                    attachTo={() => this._selectedProofMenuRowRef}
                     position="bottom right"
                     containerStyle={styles.floatingMenu}
                     {...proofMenuContent}
                   />
                 )}
-                {!loading && folders}
+                {!loading && <Folders profileUsername={this.props.username} />}
               </Box>
             </Box>
           </Box>
@@ -566,19 +524,6 @@ const styleProofs = {
   marginTop: userProofsTopPadding,
 }
 
-const styleFolderLine = {
-  ...Styles.globalStyles.flexBoxRow,
-  ...Styles.desktopStyles.clickable,
-  alignItems: 'flex-start',
-  minHeight: 24,
-  color: Styles.globalColors.black_60,
-}
-
-const styleFolderIcon = {
-  width: 16,
-  height: 16,
-}
-
 const styleMeta = {
   alignSelf: 'center',
   marginLeft: Styles.globalMargins.xtiny,
@@ -595,7 +540,7 @@ const styleSearchContainer = {
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.black_10,
-  borderRadius: 100,
+  borderRadius: Styles.borderRadius,
   justifyContent: 'center',
   minHeight: 24,
   minWidth: 240,

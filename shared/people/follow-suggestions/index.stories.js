@@ -1,15 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import FollowSuggestions, {type Props} from '.'
+import * as Constants from '../../constants/people'
+import FollowSuggestions from '.'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
   Sb.PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
 )
 
-const props1: Props = {
-  onClickUser: Sb.action('onClickUser'),
+const props1 = {
   suggestions: [
     {
       username: 'ayoubd',
@@ -17,11 +17,10 @@ const props1: Props = {
       followsMe: true,
       iFollow: false,
     },
-  ],
+  ].map(Constants.makeFollowSuggestion),
 }
 
-const props2: Props = {
-  onClickUser: Sb.action('onClickUser'),
+const props2 = {
   suggestions: [
     {
       username: 'ayoubd',
@@ -65,13 +64,12 @@ const props2: Props = {
       followsMe: true,
       iFollow: false,
     },
-  ],
+  ].map(Constants.makeFollowSuggestion),
 }
 
-const props3: Props = {
-  onClickUser: Sb.action('onClickUser'),
+const props3 = {
   suggestions: props2.suggestions.concat(
-    props2.suggestions.map(suggestion => ({...suggestion, username: suggestion.username + '1'}))
+    props2.suggestions.map(suggestion => suggestion.set('username', suggestion.username + '1'))
   ),
 }
 

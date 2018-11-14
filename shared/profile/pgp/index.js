@@ -8,28 +8,30 @@ import ProvePgpChoice, {type Options as ProvePgpChoiceOptions} from './prove-pgp
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {connect} from '../../util/container'
 
-const ConnectedChoice = connect(
+type OwnProps = {||}
+
+const ConnectedChoice = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onCancel: () => dispatch(navigateUp()),
     onOptionClick: (type: ProvePgpChoiceOptions) => dispatch(navigateAppend([type])),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )(ProvePgpChoice)
 
-const ConnectedImport = connect(
+const ConnectedImport = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onCancel: () => dispatch(navigateUp()),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )(ImportPgp)
 
-const ConnectedPgpInfo = connect(
+const ConnectedPgpInfo = connect<OwnProps, _, _, _, _>(
   ({profile: {pgpInfo}}) => ({
     ...pgpInfo,
   }),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onCancel: () => dispatch(navigateUp()),
     onChangeEmail1: email1 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email1}})),
     onChangeEmail2: email2 => dispatch(ProfileGen.createUpdatePgpInfo({info: {email2}})),
@@ -40,19 +42,19 @@ const ConnectedPgpInfo = connect(
   (s, d, o) => ({...o, ...s, ...d})
 )(PgpInfo)
 
-const ConnectedGeneratePgp = connect(
+const ConnectedGeneratePgp = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onCancel: () => dispatch(ProfileGen.createCancelPgpGen()),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )(GeneratePgp)
 
-const ConnectedFinished = connect(
+const ConnectedFinished = connect<OwnProps, _, _, _, _>(
   ({profile: {pgpPublicKey}}) => ({
     pgpKeyString: pgpPublicKey || 'Error getting public key...',
   }),
-  (dispatch: Dispatch) => ({
+  dispatch => ({
     onDone: shouldStoreKeyOnServer => dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer})),
   }),
   (s, d, o) => ({...o, ...s, ...d})

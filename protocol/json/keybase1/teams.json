@@ -495,6 +495,10 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "loadedLatest"
         }
       ]
     },
@@ -647,15 +651,21 @@
         },
         {
           "type": "Seqno",
-          "name": "maxMerkleSeqno"
+          "name": "maxMerkleSeqno",
+          "mpackkey": "mms",
+          "jsonkey": "mms"
         },
         {
           "type": "Seqno",
-          "name": "maxChainSeqno"
+          "name": "maxChainSeqno",
+          "mpackkey": "mcs",
+          "jsonkey": "mcs"
         },
         {
           "type": "Seqno",
-          "name": "maxMerkleProbe"
+          "name": "maxMerkleProbe",
+          "mpackkey": "mmp",
+          "jsonkey": "mmp"
         }
       ]
     },
@@ -666,13 +676,25 @@
         {
           "type": "int",
           "name": "index",
-          "mpackkey": "i"
+          "mpackkey": "i",
+          "jsonkey": "i"
         },
         {
           "type": "Seqno",
           "name": "teamSeqno",
-          "mpackkey": "s"
+          "mpackkey": "s",
+          "jsonkey": "t"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AuditVersion",
+      "symbols": [
+        "V0_0",
+        "V1_1",
+        "V2_2",
+        "V3_3"
       ]
     },
     {
@@ -691,6 +713,10 @@
         {
           "type": "Seqno",
           "name": "priorMerkleSeqno"
+        },
+        {
+          "type": "AuditVersion",
+          "name": "version"
         },
         {
           "type": {
@@ -714,6 +740,14 @@
             "keys": "Seqno"
           },
           "name": "postProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "tails"
         }
       ]
     },
@@ -726,7 +760,8 @@
         "KEYBASE_2",
         "EMAIL_3",
         "SBS_4",
-        "SEITAN_5"
+        "SEITAN_5",
+        "PHONE_6"
       ]
     },
     {
@@ -1044,8 +1079,11 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          },
+          "name": "tlfIDs"
         },
         {
           "type": {
@@ -1054,6 +1092,13 @@
             "keys": "TeamApplication"
           },
           "name": "tlfLegacyUpgrade"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "headMerkle"
         }
       ]
     },
@@ -1572,6 +1617,17 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerationsWithKBFS"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },
@@ -1649,6 +1705,13 @@
           "name": "public"
         },
         {
+          "type": [
+            null,
+            "TeamName"
+          ],
+          "name": "assertTeamName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "TeamApplication"
@@ -1665,6 +1728,10 @@
         {
           "type": "boolean",
           "name": "needLatestKey"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRefresh"
         }
       ]
     },
@@ -2047,6 +2114,20 @@
     },
     {
       "type": "record",
+      "name": "UserRolePair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertionOrEmail"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -2235,6 +2316,10 @@
         {
           "type": "boolean",
           "name": "deleteChatHistory"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteOtherMessages"
         }
       ]
     },
@@ -2255,6 +2340,24 @@
         {
           "type": "TeamSigChainState",
           "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamProfileAddEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "string",
+          "name": "disabledReason"
         }
       ]
     }
@@ -2460,6 +2563,30 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "teamAddMembersMultiRole": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          }
         },
         {
           "name": "sendChatNotification",
@@ -2808,6 +2935,10 @@
         {
           "name": "refreshers",
           "type": "TeamRefreshers"
+        },
+        {
+          "name": "includeKBFSKeys",
+          "type": "boolean"
         }
       ],
       "response": "TeamPlusApplicationKeys",
@@ -2932,6 +3063,22 @@
       ],
       "response": null
     },
+    "teamProfileAddList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamProfileAddEntry"
+      }
+    },
     "uploadTeamAvatar": {
       "request": [
         {
@@ -3052,6 +3199,15 @@
       ],
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "ftl": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "FastTeamLoadArg"
+        }
+      ],
+      "response": "FastTeamLoadRes"
     }
   },
   "namespace": "keybase.1"

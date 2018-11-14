@@ -4,10 +4,8 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Route from '../../../actions/route-tree'
-import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
-import {teamsTab} from '../../../constants/tabs'
 import {connect, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
@@ -81,8 +79,6 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
       ])
     )
   },
-  _onViewTeam: (teamname: TeamTypes.Teamname) =>
-    dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   _onEditChannel: (teamname: string) =>
     dispatch(Route.navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
@@ -106,7 +102,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
-  onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
   participants: stateProps._participants
     .map(p => ({
       fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
@@ -118,7 +113,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   teamname: stateProps.teamname,
 })
 
-const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
+const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(InfoPanel)
 
 type SelectorOwnProps = {|
   routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
@@ -176,6 +175,8 @@ const panelContainerStyle = {
   flexDirection: 'column',
 }
 
-export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps, mergeSelectorProps)(
-  InfoPanelSelector
-)
+export default connect<SelectorOwnProps, _, _, _, _>(
+  mapStateToSelectorProps,
+  mapDispatchToSelectorProps,
+  mergeSelectorProps
+)(InfoPanelSelector)

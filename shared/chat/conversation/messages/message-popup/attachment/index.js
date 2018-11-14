@@ -7,7 +7,7 @@ import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   author: string,
   deviceName: string,
   deviceType: DeviceType,
@@ -25,11 +25,12 @@ type Props = {
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
+  isDeleteable: boolean,
 }
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
-    ...(props.yourMessage
+    ...(props.isDeleteable
       ? [
           'Divider',
           {

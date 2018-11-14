@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -343,17 +344,79 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 
 	ekLib := NewEKLib(tc.G)
 	defer ekLib.Shutdown()
-	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	ch := make(chan bool, 1)
+	ekLib.setBackgroundDeleteTestCh(ch)
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 
 	// Even though we return an error, we charge through on the deletion
 	// successfully.
-	deviceEK, err := s.Get(context.Background(), 0)
-	require.Error(t, err)
-	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
-
-	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	select {
+	case <-ch:
+		deviceEK, err := s.Get(context.Background(), 0)
+		require.Error(t, err)
+		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
+	}
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
+}
+
+func TestLoginOneshotNoEphemeral(t *testing.T) {
+	tc, user := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{RevokeBackup: false},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	teamID := createTeam(tc)
+
+	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
+	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.NoError(t, err)
+
+	eng := engine.NewPaperKey(tc.G)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+	require.NotZero(t, len(eng.Passphrase()))
+	require.NoError(t, tc.G.Logout(context.TODO()))
+
+	tc2 := libkb.SetupTest(t, "ephemeral", 2)
+	defer tc2.Cleanup()
+	m2 := libkb.NewMetaContextForTest(tc2)
+	NewEphemeralStorageAndInstall(tc2.G)
+
+	eng2 := engine.NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
+		Username: user.NormalizedUsername().String(),
+		PaperKey: eng.Passphrase(),
+	})
+	err = engine.RunEngine2(m2, eng2)
+	require.NoError(t, err)
+
+	ekLib2 := NewEKLib(tc2.G)
+	defer ekLib2.Shutdown()
+
+	// Make sure we can't access or create any ephemeral keys
+	teamEK, err = ekLib2.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	require.Error(t, err)
+	require.Equal(t, keybase1.TeamEk{}, teamEK)
+
+	deks := tc2.G.GetDeviceEKStorage()
+	gen, err := deks.MaxGeneration(context.Background())
+	require.NoError(t, err)
+	require.EqualValues(t, -1, gen)
+
+	ueks := tc2.G.GetUserEKBoxStorage()
+	gen, err = ueks.MaxGeneration(context.Background())
+	require.NoError(t, err)
+	require.EqualValues(t, -1, gen)
+
+	teks := tc2.G.GetUserEKBoxStorage()
+	gen, err = teks.MaxGeneration(context.Background())
+	require.NoError(t, err)
+	require.EqualValues(t, -1, gen)
 }

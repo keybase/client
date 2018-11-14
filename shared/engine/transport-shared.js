@@ -78,8 +78,7 @@ class TransportShared extends RobustTransport {
     opts: Object,
     connectCallback: () => void,
     disconnectCallback: () => void,
-    incomingRPCCallback: (a: any) => void,
-    writeCallback: any
+    incomingRPCCallback: (a: any) => void
   ) {
     super(opts)
 
@@ -93,9 +92,6 @@ class TransportShared extends RobustTransport {
       },
     }
 
-    if (writeCallback) {
-      this.writeCallback = writeCallback
-    }
     if (incomingRPCCallback) {
       // delay the call back to us
       const handler = payload => {
@@ -136,7 +132,7 @@ class TransportShared extends RobustTransport {
       calls.forEach(call => {
         payload.response[call] = _wrap({
           enforceOnlyOnce: true,
-          extra: payload,
+          extra: response => ({response, payload}),
           handler: (...args) => {
             oldResponse[call](...args)
           },
@@ -161,6 +157,7 @@ class TransportShared extends RobustTransport {
     }
   }
 
+  // Override RobustTransport.invoke.
   invoke(arg: InvokeArgs, cb: any) {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,

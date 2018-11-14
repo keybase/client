@@ -16,6 +16,9 @@ protocol KBFSGit {
     // Any unreachable objects older than this time are subject to
     // pruning.
     Time pruneExpireTime;
+    // The most individual packfiles we will tolerate; if there are
+    // more packfiles, we should re-pack them into one.
+    int maxObjectPacks;
 }
 
   /**

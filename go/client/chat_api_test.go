@@ -17,6 +17,7 @@ import (
 type handlerTracker struct {
 	listV1         int
 	readV1         int
+	getV1          int
 	sendV1         int
 	editV1         int
 	reactionV1     int
@@ -25,6 +26,7 @@ type handlerTracker struct {
 	downloadV1     int
 	setstatusV1    int
 	markV1         int
+	searchInboxV1  int
 	searchRegexpV1 int
 }
 
@@ -35,6 +37,11 @@ func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) ReadV1(context.Context, Call, io.Writer) error {
 	h.readV1++
+	return nil
+}
+
+func (h *handlerTracker) GetV1(context.Context, Call, io.Writer) error {
+	h.getV1++
 	return nil
 }
 
@@ -78,6 +85,11 @@ func (h *handlerTracker) MarkV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) SearchInboxV1(context.Context, Call, io.Writer) error {
+	h.searchInboxV1++
+	return nil
+}
+
 func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error {
 	h.searchRegexpV1++
 	return nil
@@ -96,6 +108,10 @@ func (c *chatEcho) ListV1(context.Context, listOptionsV1) Reply {
 }
 
 func (c *chatEcho) ReadV1(context.Context, readOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetV1(context.Context, getOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -131,6 +147,10 @@ func (c *chatEcho) MarkV1(context.Context, markOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) SearchInboxV1(context.Context, searchInboxOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -147,6 +167,7 @@ type topTest struct {
 	attachV1       int
 	downloadV1     int
 	markV1         int
+	searchInboxV1  int
 	searchRegexpV1 int
 }
 
@@ -172,6 +193,7 @@ var topTests = []topTest{
 	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
 	{input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`, downloadV1: 1},
 	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
+	{input: `{"id": 39, "method": "searchinbox", "params":{"version": 1}}`, searchInboxV1: 1},
 	{input: `{"id": 39, "method": "searchregexp", "params":{"version": 1}}`, searchRegexpV1: 1},
 }
 
@@ -219,6 +241,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.markV1 != test.markV1 {
 			t.Errorf("test %d: input %s => markV1 = %d, expected %d", i, test.input, h.markV1, test.markV1)
+		}
+		if h.searchInboxV1 != test.searchInboxV1 {
+			t.Errorf("test %d: input %s => searchInboxV1 = %d, expected %d", i, test.input, h.searchInboxV1, test.searchInboxV1)
 		}
 		if h.searchRegexpV1 != test.searchRegexpV1 {
 			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
@@ -539,6 +564,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "searchinbox", "params":{"version": 1, "options": {"query": "hi"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{

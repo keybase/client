@@ -5,7 +5,8 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from '../actions/config-gen'
-import {isErrorTransient} from '../util/errors'
+import * as Stats from '../engine/stats'
+import {isEOFError, isErrorTransient} from '../util/errors'
 
 const initialState = Constants.makeState()
 
@@ -115,6 +116,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({pushLoaded: action.payload.pushLoaded})
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
+        // keep it if we're logged out
+        defaultUsername: action.payload.username || state.defaultUsername,
         deviceID: action.payload.deviceID,
         deviceName: action.payload.deviceName,
         followers: I.Set(action.payload.followers),
@@ -139,6 +142,9 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       const {globalError} = action.payload
       if (globalError) {
         logger.error('Error (global):', globalError)
+        if (isEOFError(globalError)) {
+          Stats.gotEOF()
+        }
         if (isErrorTransient(globalError)) {
           logger.info('globalError silencing:', globalError)
           return state
@@ -146,8 +152,6 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       }
       return state.merge({globalError})
     }
-    case ConfigGen.debugDump:
-      return state.merge({debugDump: action.payload.items})
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
@@ -162,15 +166,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       })
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.loadedAvatars: {
-      const {nameToUrlMap} = action.payload
-      return state.merge({
-        avatars: {
-          ...state.avatars,
-          ...nameToUrlMap,
-        },
-      })
-    }
+    case ConfigGen.loadedAvatars:
+      return state.merge({avatars: state.avatars.merge(action.payload.avatars)})
     case ConfigGen.setNotifySound:
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
@@ -180,12 +177,24 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.setAccounts:
       return state.merge({
         configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: action.payload.defaultUsername,
+        defaultUsername: state.defaultUsername || action.payload.defaultUsername, // keep it if we have one
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
+    case ConfigGen.updateNow:
+      return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
+    case ConfigGen.updateInfo:
+      return state.set(
+        'outOfDate',
+        action.payload.isOutOfDate
+          ? Constants.makeOutOfDate({
+              critical: action.payload.critical,
+              message: action.payload.message,
+            })
+          : null
+      )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -199,6 +208,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
+    case ConfigGen.checkForUpdate:
       return state
     default:
       /*::

@@ -46,6 +46,13 @@ const provider = Sb.createPropProviderWithCommon({
       users,
     }
   },
+  WalletsIcon: ownProps => ({
+    isNew: true,
+    onClick: Sb.action('onOpenWalletsForm'),
+    shouldRender: true,
+    size: ownProps.size,
+    style: ownProps.style,
+  }),
 })
 
 type Props = {

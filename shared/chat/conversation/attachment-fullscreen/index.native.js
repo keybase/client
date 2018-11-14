@@ -1,23 +1,13 @@
 // @flow
-import React, {Component} from 'react'
-import {
-  Box,
-  Icon,
-  Text,
-  ProgressIndicator,
-  NativeImage,
-  ZoomableBox,
-  NativeDimensions,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../../common-adapters/mobile.native'
+import * as React from 'react'
+import * as Kb from '../../../common-adapters/mobile.native'
+import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup/'
-import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
 import type {Props} from './index.types'
 
-const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
+const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
-class AutoMaxSizeImage extends Component<any, {width: number, height: number, loaded: boolean}> {
+class AutoMaxSizeImage extends React.Component<any, {width: number, height: number, loaded: boolean}> {
   state = {height: 0, width: 0, loaded: false}
   _mounted: boolean = false
 
@@ -26,7 +16,7 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number, lo
   }
   componentDidMount() {
     this._mounted = true
-    NativeImage.getSize(this.props.source.uri, (width, height) => {
+    Kb.NativeImage.getSize(this.props.source.uri, (width, height) => {
       if (this._mounted) {
         this.setState({height, width})
       }
@@ -37,14 +27,14 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number, lo
 
   render() {
     return (
-      <ZoomableBox
+      <Kb.ZoomableBox
         contentContainerStyle={{flex: 1, position: 'relative'}}
         maxZoom={10}
         style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
-        <NativeImage
+        <Kb.NativeImage
           {...this.props}
           resizeMode="contain"
           style={{
@@ -55,32 +45,31 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number, lo
             opacity: this.props.opacity,
           }}
         />
-      </ZoomableBox>
+      </Kb.ZoomableBox>
     )
   }
 }
 
-class _Fullscreen extends React.Component<Props & OverlayParentProps, {loaded: boolean}> {
+class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded: boolean}> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
-      <Box
+      <Kb.SafeAreaViewTop
         style={{
-          ...globalStyles.flexBoxColumn,
-          ...globalStyles.fillAbsolute,
-          backgroundColor: globalColors.black,
-          paddingTop: isIPhoneX ? globalMargins.medium : undefined,
+          backgroundColor: Styles.globalColors.black,
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.fillAbsolute,
         }}
       >
-        <Text
+        <Kb.Text
           type="Body"
           onClick={this.props.onClose}
-          style={{color: globalColors.white, padding: globalMargins.small}}
+          style={{color: Styles.globalColors.white, padding: Styles.globalMargins.small}}
         >
           Close
-        </Text>
-        <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
+        </Kb.Text>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, flex: 1}}>
           {!!this.props.path && (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
@@ -89,34 +78,34 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, {loaded: b
             />
           )}
           {!this.state.loaded && (
-            <ProgressIndicator style={{width: 48, position: 'absolute', margin: 'auto'}} white={true} />
+            <Kb.ProgressIndicator style={{width: 48, position: 'absolute', margin: 'auto'}} white={true} />
           )}
-        </Box>
-        <Icon
+        </Kb.Box>
+        <Kb.Icon
           type="iconfont-ellipsis"
           style={styleHeaderFooter}
-          color={globalColors.white}
+          color={Styles.globalColors.white}
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           message={this.props.message}
           onHidden={this.props.toggleShowingMenu}
           position="bottom left"
           visible={this.props.showingMenu}
         />
-      </Box>
+      </Kb.SafeAreaViewTop>
     )
   }
 }
-const Fullscreen = OverlayParentHOC(_Fullscreen)
+const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 
 const styleHeaderFooter = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
   height: 44,
-  paddingLeft: globalMargins.small,
+  paddingLeft: Styles.globalMargins.small,
 }
 
 export default Fullscreen

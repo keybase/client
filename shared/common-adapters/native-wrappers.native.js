@@ -27,11 +27,12 @@ import {
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
   TouchableOpacity as NativeTouchableOpacity,
-  VirtualizedList as NativeVirtualizedList,
   WebView as NativeWebView,
+  View as NativeView,
 } from 'react-native'
-import ScrollView from './scroll-view.native'
+import NativeScrollView from './scroll-view.native'
 import NativeImage from './native-image.native'
+import NativeVirtualizedList from './virtualized-list.native'
 
 // We set some useful default here
 export {
@@ -54,7 +55,7 @@ export {
   NativeRefreshControl,
   NativeSafeAreaView,
   NativeVirtualizedList,
-  ScrollView as NativeScrollView,
+  NativeScrollView,
   NativeSectionList,
   NativeStyleSheet,
   NativeStatusBar,
@@ -66,4 +67,5 @@ export {
   NativeTouchableHighlight,
   NativeTouchableOpacity,
   NativeWebView,
+  NativeView,
 }

@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -68,6 +69,13 @@ type TeamLoader struct {
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
 	nameLookupBurstCache *libkb.BurstCache
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
@@ -108,16 +116,17 @@ func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err er
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
+	return l.storage.Delete(libkb.NewMetaContext(ctx, l.G()), teamID, teamID.IsPublic())
 }
 
 func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID, seqno keybase1.Seqno) error {
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
+	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	// Load from the cache
-	td := l.storage.Get(ctx, teamID, teamID.IsPublic())
+	td := l.storage.Get(mctx, teamID, teamID.IsPublic())
 	if td == nil {
 		// Nothing to store the hint on.
 		return nil
@@ -129,7 +138,7 @@ func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID
 	}
 
 	td.LatestSeqnoHint = seqno
-	l.storage.Put(ctx, td)
+	l.storage.Put(mctx, td)
 	return nil
 }
 
@@ -246,16 +255,17 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:                     lArg.NeedAdmin,
-		needKeyGeneration:             lArg.Refreshers.NeedKeyGeneration,
-		needApplicationsAtGenerations: lArg.Refreshers.NeedApplicationsAtGenerations,
-		needKBFSKeyGeneration:         lArg.Refreshers.NeedKBFSKeyGeneration,
-		wantMembers:                   mungedWantMembers,
-		wantMembersRole:               lArg.Refreshers.WantMembersRole,
-		forceFullReload:               lArg.ForceFullReload,
-		forceRepoll:                   mungedForceRepoll,
-		staleOK:                       lArg.StaleOK,
-		public:                        lArg.Public,
+		needAdmin:                             lArg.NeedAdmin,
+		needKeyGeneration:                     lArg.Refreshers.NeedKeyGeneration,
+		needApplicationsAtGenerations:         lArg.Refreshers.NeedApplicationsAtGenerations,
+		needApplicationsAtGenerationsWithKBFS: lArg.Refreshers.NeedApplicationsAtGenerationsWithKBFS,
+		needKBFSKeyGeneration:                 lArg.Refreshers.NeedKBFSKeyGeneration,
+		wantMembers:                           mungedWantMembers,
+		wantMembersRole:                       lArg.Refreshers.WantMembersRole,
+		forceFullReload:                       lArg.ForceFullReload,
+		forceRepoll:                           mungedForceRepoll,
+		staleOK:                               lArg.StaleOK,
+		public:                                lArg.Public,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -326,10 +336,11 @@ type load2ArgT struct {
 
 	reason string // optional tag for debugging why this load is happening
 
-	needAdmin                     bool
-	needKeyGeneration             keybase1.PerTeamKeyGeneration
-	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication
-	needKBFSKeyGeneration         keybase1.TeamKBFSKeyRefresher
+	needAdmin                             bool
+	needKeyGeneration                     keybase1.PerTeamKeyGeneration
+	needApplicationsAtGenerations         map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication
+	needApplicationsAtGenerationsWithKBFS map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication
+	needKBFSKeyGeneration                 keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
 	wantMembers     []keybase1.UserVersion
@@ -436,7 +447,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var ret *keybase1.TeamData
 	if !arg.forceFullReload {
 		// Load from cache
-		ret = l.storage.Get(ctx, arg.teamID, arg.public)
+		ret = l.storage.Get(libkb.NewMetaContext(ctx, l.G()), arg.teamID, arg.public)
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -533,6 +544,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			l.G().Log.CDebugf(ctx, "TeamLoader fetching: KBFSNeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
+		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+			arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
+			fetchLinksAndOrSecrets = true
+		}
 		if arg.readSubteamID == nil {
 			// This is not a recursive load. We should have the keys.
 			// This may be an extra round trip for public teams you're not in.
@@ -552,7 +568,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -750,9 +766,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
 
+	tracer.Stage("audit")
+	err = l.audit(ctx, readSubteamID, &ret.Chain)
+	if err != nil {
+		return nil, err
+	}
+
 	// Cache the validated result
 	tracer.Stage("put")
-	l.storage.Put(ctx, ret)
+	l.storage.Put(libkb.NewMetaContext(ctx, l.G()), ret)
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
@@ -837,6 +859,8 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - ForceRepoll
 // - Cache freshness / StaleOK
 // - NeedSeqnos
+// - If this user is in global "force repoll" mode, where it would be too spammy to
+//   push out individual team changed notifications, so all team loads need a repoll.
 func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (bool, bool) {
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
@@ -878,6 +902,13 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 		}
 	}
 
+	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
+		if l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+			arg.needApplicationsAtGenerationsWithKBFS, fromCache) != nil {
+			repoll = true
+		}
+	}
+
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
 		if l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache) != nil {
@@ -905,6 +936,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
+		repoll = true
+	}
+
+	// InForceRepoll needs to a acquire a lock, so avoid it if we can
+	// (i.e., if repoll is already set to true).
+	if !repoll && l.InForceRepollMode(ctx) {
 		repoll = true
 	}
 
@@ -940,6 +977,11 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
 		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res); err != nil {
+			return err
+		}
+	}
+	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
+		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx, arg.needApplicationsAtGenerationsWithKBFS, res); err != nil {
 			return err
 		}
 	}
@@ -1077,7 +1119,7 @@ func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
 		return err
 	}
 	if kbfs.Generation > gen {
-		return fmt.Errorf("KBFS key generation too low: %v < %v", gen, kbfs.Generation)
+		return NewKBFSKeyGenerationError(kbfs.Generation, gen)
 	}
 	return nil
 }
@@ -1117,6 +1159,26 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
 	for ptkGen, apps := range needApplicationsAtGenerations {
 		for _, app := range apps {
 			if _, err := ApplicationKeyAtGeneration(libkb.NewMetaContext(ctx, l.G()), state, app, ptkGen); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx context.Context,
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication,
+	state *keybase1.TeamData) error {
+	if len(needApplicationsAtGenerations) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
+	}
+	for ptkGen, apps := range needApplicationsAtGenerations {
+		for _, app := range apps {
+			if _, err := ApplicationKeyAtGenerationWithKBFS(libkb.NewMetaContext(ctx, l.G()), state, app,
+				ptkGen); err != nil {
 				return err
 			}
 		}
@@ -1401,4 +1463,88 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	}
 
 	return nil
+}
+
+func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (ret keybase1.Seqno, err error) {
+	defer mctx.CTrace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
+
+	if state.HeadMerkle != nil {
+		return state.HeadMerkle.Seqno, nil
+	}
+	headSeqno := keybase1.Seqno(1)
+	expectedLinkRaw, ok := state.LinkIDs[headSeqno]
+	if !ok {
+		return ret, fmt.Errorf("couldn't find head link in team state during audit")
+	}
+	expectedLink, err := libkb.ImportLinkID(expectedLinkRaw)
+	if err != nil {
+		return ret, err
+	}
+	teamUpdate, err := l.world.getLinksFromServer(mctx.Ctx(), state.Id, []keybase1.Seqno{headSeqno}, &readSubteamID)
+	if err != nil {
+		return ret, err
+	}
+	newLinks, err := teamUpdate.unpackLinks(mctx.Ctx())
+	if err != nil {
+		return ret, err
+	}
+	if len(newLinks) != 1 {
+		return ret, fmt.Errorf("expected only one chainlink back; got %d", len(newLinks))
+	}
+	headLink := newLinks[0]
+	err = headLink.AssertInnerOuterMatch()
+	if err != nil {
+		return ret, err
+	}
+	if headLink.Seqno() != headSeqno {
+		return ret, NewInvalidLink(headLink, "wrong head seqno; wanted 1 but got something else")
+	}
+	if !headLink.LinkID().Eq(expectedLink) {
+		return ret, NewInvalidLink(headLink, "wrong head link hash: %s != %s", headLink.LinkID(), expectedLink)
+	}
+	if headLink.isStubbed() {
+		return ret, NewInvalidLink(headLink, "got a stubbed head link, but wasn't expecting that")
+	}
+	headMerkle := headLink.inner.Body.MerkleRoot.ToMerkleRootV2()
+	state.HeadMerkle = &headMerkle
+	return headMerkle.Seqno, nil
+}
+
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
+	if l.G().Env.Test.TeamSkipAudit {
+		mctx.CDebugf("skipping audit in test due to flag")
+		return nil
+	}
+
+	headMerklSeqno, err := l.getHeadMerkleSeqno(mctx, readSubteamID, state)
+	if err != nil {
+		return err
+	}
+
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	return err
+}
+
+func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOffset) error {
+	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v)", dtime)
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	l.forceRepollUntil = dtime
+	return nil
+}
+
+func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	if l.forceRepollUntil == nil {
+		return false
+	}
+	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
+		l.G().Log.CDebugf(ctx, "TeamLoader#InForceRepollMode: returning true")
+		return true
+	}
+	l.forceRepollUntil = nil
+	return false
 }

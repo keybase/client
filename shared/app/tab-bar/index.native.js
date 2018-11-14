@@ -3,7 +3,7 @@ import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors, isIPhoneX} from '../../styles'
+import {globalStyles, globalColors} from '../../styles'
 import type {Props} from './index.types'
 
 const _icons = {
@@ -16,11 +16,12 @@ const _icons = {
 
 const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
 
-const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
+const TabBarRender = ({selectedTab, onTabClick, badgeNumbers, isNew}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton
         badgeNumber={badgeNumbers[tab]}
+        isNew={isNew[tab] || false}
         badgePosition="top-right"
         key={tab}
         isNav={true}
@@ -42,19 +43,13 @@ const _selectedIconStyle = {
   color: globalColors.white,
 }
 
-const tabBarHeight = isIPhoneX ? 80 : 48
+export const tabBarHeight = 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
   backgroundColor: globalColors.darkBlue2,
   height: tabBarHeight,
   justifyContent: 'flex-start',
-  ...(isIPhoneX
-    ? {
-        paddingBottom: 30,
-      }
-    : {}),
 }
 
 export default TabBarRender
-export {tabBarHeight}

@@ -42,6 +42,7 @@ export type DesktopProps = {
   onClose: () => void,
   onInvite: (invitees: string, role: TeamRoleType) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
+  waitingKey: string,
 }
 
 export type MobileProps = {

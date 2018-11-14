@@ -2,7 +2,9 @@
 import * as ProfileGen from '../../actions/profile-gen'
 import React, {Component} from 'react'
 import ProveEnterUsername from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
+
+type OwnProps = {||}
 
 type State = {
   username: ?string,
@@ -24,7 +26,7 @@ class ProveEnterUsernameContainer extends Component<any, State> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   const profile = state.profile
 
   if (!profile.platform) {
@@ -42,7 +44,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onContinue: (username: string, platform: ?string) => {
     dispatch(ProfileGen.createUpdateUsername({username}))
 
@@ -64,4 +66,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProveEnterUsernameContainer)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ProveEnterUsernameContainer)

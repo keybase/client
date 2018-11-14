@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Badge, Box2, ClickableBox, Divider, Text} from '../../../../common-adapters'
+import {Badge, Box2, ClickableBox, Text} from '../../../../common-adapters'
 import {
+  borderRadius,
   styleSheetCreate,
   platformStyles,
   collapseStyles,
@@ -46,7 +47,6 @@ class TeamsDivider extends React.PureComponent<Props> {
             </Box2>
           </ClickableBox>
         )}
-        <Divider />
         {!this.props.showButton && (
           <Text type="BodySmallSemibold" style={styles.dividerText}>
             Big teams
@@ -95,7 +95,7 @@ const styles = styleSheetCreate({
   toggleButton: platformStyles({
     common: {
       backgroundColor: globalColors.black_10,
-      borderRadius: 19,
+      borderRadius,
       marginBottom: globalMargins.xtiny,
       marginTop: globalMargins.xtiny,
       paddingBottom: globalMargins.xtiny,

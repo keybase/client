@@ -19,6 +19,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -450,6 +454,13 @@
       "name": "UIPaymentInfo",
       "fields": [
         {
+          "type": [
+            null,
+            "stellar1.AccountID"
+          ],
+          "name": "accountID"
+        },
+        {
           "type": "string",
           "name": "amountDescription"
         },
@@ -464,6 +475,10 @@
         {
           "type": "string",
           "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
         },
         {
           "type": "stellar1.PaymentStatus",
@@ -500,6 +515,10 @@
             "stellar1.OutsideCurrencyCode"
           ],
           "name": "currency"
+        },
+        {
+          "type": "stellar1.RequestStatus",
+          "name": "status"
         }
       ]
     },
@@ -614,6 +633,13 @@
             "UIRequestInfo"
           ],
           "name": "requestInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UnfurlDisplay"
+          },
+          "name": "unfurls"
         }
       ]
     },
@@ -727,37 +753,6 @@
             "UIPagination"
           ],
           "name": "pagination"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ChatSearchHit",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "beforeMessages"
-        },
-        {
-          "type": "UIMessage",
-          "name": "hitMessage"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "afterMessages"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "matches"
         }
       ]
     }
@@ -895,6 +890,45 @@
         {
           "name": "numHits",
           "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchInboxHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatSearchInboxHit"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchInboxDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "res",
+          "type": "ChatSearchInboxDone"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchIndexStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "ChatSearchIndexStatus"
         }
       ],
       "response": null

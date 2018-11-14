@@ -25,4 +25,5 @@ declare export function convertToRPCError(
   method?: ?string
 ): RPCError
 declare export function convertToError<A>(err: A, method?: string): Error | RPCError
+declare export function isEOFError(error: RPCError | Error): boolean
 declare export function isErrorTransient(error: RPCError | Error): boolean

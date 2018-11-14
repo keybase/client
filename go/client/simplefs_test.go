@@ -64,6 +64,11 @@ func (s SimpleFSMock) SimpleFSCopyRecursive(ctx context.Context, arg keybase1.Si
 	return nil
 }
 
+// SimpleFSSymlink - make a symlink
+func (s SimpleFSMock) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) error {
+	return nil
+}
+
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (s SimpleFSMock) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
 	return nil
@@ -106,14 +111,14 @@ func (s SimpleFSMock) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSR
 }
 
 // SimpleFSStat - Get info about file
-func (s SimpleFSMock) SimpleFSStat(ctx context.Context, path keybase1.Path) (keybase1.Dirent, error) {
-	pathString := path.String()
+func (s SimpleFSMock) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (keybase1.Dirent, error) {
+	pathString := arg.Path.String()
 	entType := keybase1.DirentType_DIR
 	// For a quick test, assume it's a file if there is a dot and 3 chars at the end
 	if len(filepath.Ext(filepath.Base(pathString))) == 4 {
 		entType = keybase1.DirentType_FILE
 	}
-	pathType, _ := path.PathType()
+	pathType, _ := arg.Path.PathType()
 	if (pathType == keybase1.PathType_KBFS && s.remoteExists == true) ||
 		(pathType == keybase1.PathType_LOCAL && s.localExists == true) {
 		return keybase1.Dirent{
@@ -200,6 +205,11 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
 	return keybase1.FSFolderEditHistory{}, nil
+}
+
+// SimpleFSReset implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
+	return nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.

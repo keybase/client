@@ -15,7 +15,9 @@ class QrImage extends React.PureComponent<Props> {
     qr.addData(this.props.code)
     qr.make()
     const size = qr.getModuleCount() * (this.props.cellSize / 2) // retina
-    const url = qr.createDataURL(this.props.cellSize, 0)
+    // Keybase blue
+    const url = qr.createDataURL(this.props.cellSize, 0, [0x4c, 0x8e, 0xff])
+
     return <Image src={url} style={{height: size, width: size}} />
   }
 }

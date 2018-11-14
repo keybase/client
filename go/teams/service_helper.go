@@ -11,12 +11,13 @@ import (
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
-	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers, includeKBFSKeys bool) (res keybase1.TeamPlusApplicationKeys, err error) {
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:         id,
@@ -26,7 +27,7 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	if err != nil {
 		return res, err
 	}
-	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
 func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
@@ -115,7 +116,8 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
 	}
-	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 10*time.Minute, 0, true)
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids,
+		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +274,7 @@ type AddMembersRes struct {
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
 // On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 	teamName, err := keybase1.TeamNameFromString(teamname)
@@ -285,7 +287,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 	}
 
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		res = make([]AddMembersRes, len(assertions))
+		res = make([]AddMembersRes, len(users))
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
@@ -297,13 +299,13 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 			UV        keybase1.UserVersion
 		}
 		var sweep []sweepEntry
-		for i, assertion := range assertions {
-			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
+		for i, user := range users {
+			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(assertion, err)
+				return NewAddMembersError(user.AssertionOrEmail, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -315,7 +317,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, as
 			}
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
-					Assertion: assertion,
+					Assertion: user.AssertionOrEmail,
 					UV:        uv,
 				})
 			}
@@ -1359,7 +1361,6 @@ func CreateSeitanTokenV2(ctx context.Context, g *libkb.GlobalContext, teamname s
 func CreateTLF(ctx context.Context, g *libkb.GlobalContext, arg keybase1.CreateTLFArg) (err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("CreateTLF(%v)", arg), func() error { return err })()
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		// Need admin because only admins can issue this link
 		t, err := GetForTeamManagementByTeamID(ctx, g, arg.TeamID, false)
 		if err != nil {
 			return err
@@ -1384,7 +1385,7 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 	if err != nil {
 		return res, err
 	}
-	res.TlfID = team.KBFSTLFID()
+	res.TlfID = team.LatestKBFSTLFID()
 	g.Log.CDebugf(ctx, "res: %+v", res)
 	return res, err
 }
@@ -1512,6 +1513,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.DeleteChatHistory = admin
 	ret.SetRetentionPolicy = admin
 	ret.SetMinWriterRole = admin
+	ret.DeleteOtherMessages = admin
 	ret.Chat = isRoleOrAbove(keybase1.TeamRole_READER)
 
 	return ret, err
@@ -1623,6 +1625,53 @@ func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	}
 	t.notify(ctx, keybase1.TeamChangeSet{Misc: true})
 	return nil
+}
+
+type listProfileAddServerRes struct {
+	libkb.AppStatusEmbed
+	Teams []listProfileAddResEntry `json:"teams"`
+}
+
+type listProfileAddResEntry struct {
+	FqName     string `json:"fq_name"`
+	IsOpenTeam bool   `json:"is_open_team"`
+	// Whether the caller has admin powers.
+	CallerAdmin bool `json:"caller_admin"`
+	// Whether the 'them' user is an explicit member.
+	ThemMember bool `json:"them_member"`
+}
+
+func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username string) (res []keybase1.TeamProfileAddEntry, err error) {
+	uname := kbun.NewNormalizedUsername(username)
+	uid, err := g.GetUPAKLoader().LookupUID(ctx, uname)
+	if err != nil {
+		return nil, err
+	}
+	arg := apiArg(ctx, "team/list_profile_add")
+	arg.Args.Add("uid", libkb.S{Val: uid.String()})
+	var serverRes listProfileAddServerRes
+	if err = g.API.GetDecode(arg, &serverRes); err != nil {
+		return nil, err
+	}
+	for _, entry := range serverRes.Teams {
+		teamName, err := keybase1.TeamNameFromString(entry.FqName)
+		if err != nil {
+			g.Log.CDebugf(ctx, "TeamProfileAddList server returned bad team name %v: %v", entry.FqName, err)
+			continue
+		}
+		disabledReason := ""
+		if !entry.CallerAdmin {
+			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
+		} else if entry.ThemMember {
+			disabledReason = fmt.Sprintf("Only admins can add people.")
+		}
+		res = append(res, keybase1.TeamProfileAddEntry{
+			TeamName:       teamName,
+			Open:           entry.IsOpenTeam,
+			DisabledReason: disabledReason,
+		})
+	}
+	return res, nil
 }
 
 func ChangeTeamAvatar(mctx libkb.MetaContext, arg keybase1.UploadTeamAvatarArg) error {

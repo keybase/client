@@ -28,6 +28,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/ephemeral"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -138,6 +139,8 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
 		}
 		return NewPermanentUnboxingError(err)
 	case teams.TeamDoesNotExistError,
+		teams.KBFSKeyGenerationError,
+		libkb.KeyMaskNotFoundError,
 		DecryptionKeyNotFoundError,
 		NotAuthenticatedForThisDeviceError,
 		InvalidMACError:
@@ -192,6 +195,10 @@ func (b *basicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
 }
 
+func (b *basicUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
+	return 0
+}
+
 func (b *basicUnboxConversationInfo) IsPublic() bool {
 	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
@@ -227,6 +234,10 @@ func (p *extraInboxUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationF
 
 func (p *extraInboxUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
+}
+
+func (p *extraInboxUnboxConversationInfo) GetMaxDeletedUpTo() chat1.MessageID {
+	return 0
 }
 
 func (p *extraInboxUnboxConversationInfo) IsPublic() bool {
@@ -693,7 +704,15 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	}
 	senderEncryptionKID := senderUPAK.Current.FindEncryptionKIDFromDeviceID(senderDeviceID)
 	if senderEncryptionKID.IsNil() {
-		return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		for _, upk := range senderUPAK.PastIncarnations {
+			senderEncryptionKID = upk.FindEncryptionKIDFromDeviceID(senderDeviceID)
+			if !senderEncryptionKID.IsNil() {
+				break
+			}
+		}
+		if senderEncryptionKID.IsNil() {
+			return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		}
 	}
 	senderDeviceDHKeyNacl, err := libkb.ImportDHKeypairFromKID(senderEncryptionKID)
 	if err != nil {
@@ -788,7 +807,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 
 	// Open header and verify against VerifyKey
 	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), headerEncryptionKey,
-		boxed.VerifyKey, libkb.SignaturePrefixChatMBv2)
+		boxed.VerifyKey, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -1186,7 +1205,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
-	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
+	defer b.Trace(ctx, func() error { return err }, "UnboxMessages: %s, boxed: %d", conv.GetConvID(), len(boxed))()
 
 	// First stamp all of the messages as received
 	now := gregor1.ToTime(b.clock.Now())
@@ -1292,11 +1311,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		msg.ClientHeader.TlfPublic)
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
-	}
-	// Make sure the ID we get back matches what has been put on the message
-	if !nameInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
-		return nil, NewBoxingError(fmt.Sprintf("invalid TLFID for name in header, %s != %s", nameInfo.ID,
-			msg.ClientHeader.Conv.Tlfid), true)
 	}
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
 
@@ -1493,7 +1507,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKe
 	}
 
 	// sign the header and insert the signature
-	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatMBv1)
+	sig, err := b.signMarshal(header, signingKeyPair, kbcrypto.SignaturePrefixChatMBv1)
 	if err != nil {
 		return nil, err
 	}
@@ -1616,7 +1630,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 
 	// signencrypt the header
 	headerSealed, err := b.signEncryptMarshal(headerVersioned, headerEncryptionKey,
-		signingKeyPair, libkb.SignaturePrefixChatMBv2)
+		signingKeyPair, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, err
 	}
@@ -1692,7 +1706,7 @@ func (b *Boxer) open(data chat1.EncryptedData, key libkb.NaclSecretBoxKey) ([]by
 
 // signMarshal signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It marshals data before signing.
-func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignatureInfo, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -1704,7 +1718,7 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 // signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
 // It marshals data before signing.
 func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignEncryptedData{}, err
@@ -1714,7 +1728,7 @@ func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSec
 }
 
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -1735,7 +1749,7 @@ func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.Signa
 
 // signEncrypt signencrypts msg.
 func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	if signingKeyPair.Private == nil {
 		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
 	}
@@ -1766,12 +1780,12 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
 
 // signEncryptOpen opens and verifies chat1.SignEncryptedData.
 func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libkb.NaclSecretBoxKey,
-	verifyKID []byte, prefix libkb.SignaturePrefix) ([]byte, error) {
+	verifyKID []byte, prefix kbcrypto.SignaturePrefix) ([]byte, error) {
 	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 
-	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
+	verifyKey := kbcrypto.KIDToNaclSigningKeyPublic(verifyKID)
 	if verifyKey == nil {
-		return nil, libkb.BadKeyError{}
+		return nil, kbcrypto.BadKeyError{}
 	}
 	var verKey [ed25519.PublicKeySize]byte = *verifyKey
 
@@ -1843,7 +1857,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	if err != nil {
 		return verifyMessageRes{}, NewPermanentUnboxingError(err)
 	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatMBv1) {
+	if !b.verify(hpack, *header.HeaderSignature, kbcrypto.SignaturePrefixChatMBv1) {
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
 	}
 
@@ -1853,8 +1867,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 }
 
 // verify verifies the signature of data using SignatureInfo.
-func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
-	sigInfo := libkb.NaclSigInfo{
+func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix kbcrypto.SignaturePrefix) bool {
+	sigInfo := kbcrypto.NaclSigInfo{
 		Version: si.V,
 		Prefix:  prefix,
 		Kid:     si.K,
