@@ -94,6 +94,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   lastSentXLM: false,
   linkExistingAccountError: '',
   newPayments: I.Map(),
+  newlyCreatedAccounts: I.Set(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
@@ -517,6 +518,8 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
 const getAccount = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.get(accountID, unknownAccount)
 
+const isNewlyCreatedAccount = (state: TypedState, accountID: Types.AccountID) => state.wallets.newlyCreatedAccounts.has(accountID)
+
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
@@ -620,6 +623,7 @@ export {
   isAccountLoaded,
   isFederatedAddress,
   isLookingAtWallet,
+  isNewlyCreatedAccount,
   isPaymentUnread,
   linkExistingWaitingKey,
   loadAccountWaitingKey,

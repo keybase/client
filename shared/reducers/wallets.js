@@ -14,7 +14,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return initialState
     case WalletsGen.accountsReceived:
       const accountMap = I.OrderedMap(action.payload.accounts.map(account => [account.accountID, account]))
-      return state.set('accountMap', accountMap)
+      return state.set('accountMap', accountMap).set('newlyCreatedAccounts', I.Set())
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.builtPaymentReceived:
@@ -213,6 +213,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountNameValidationState: 'none',
             createNewAccountError: '',
             linkExistingAccountError: '',
+            newlyCreatedAccounts: state.newlyCreatedAccounts.add(action.payload.accountID),
             secretKey: new HiddenString(''),
             secretKeyError: '',
             secretKeyValidationState: 'none',
@@ -227,6 +228,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountNameValidationState: 'none',
             createNewAccountError: '',
             linkExistingAccountError: '',
+            newlyCreatedAccounts: state.newlyCreatedAccounts.add(action.payload.accountID),
             secretKey: new HiddenString(''),
             secretKeyError: '',
             secretKeyValidationState: 'none',
