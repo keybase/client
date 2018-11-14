@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
+import QRCodeGen from 'qrcode-generator'
 
 type AddressesProps = {|
   federatedAddress?: string,
@@ -20,12 +21,12 @@ type Props = {|
 const ReceiveModal = (props: Props) => {
   const header = (
     <>
-      <Text type="BodySmallSemibold" style={styles.accountNameText}>
+      <Kb.Text type="BodySmallSemibold" style={styles.accountNameText}>
         {props.accountName}
-      </Text>
-      <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+      </Kb.Text>
+      <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
         Receive
-      </Text>
+      </Kb.Text>
     </>
   )
 
@@ -37,31 +38,31 @@ const ReceiveModal = (props: Props) => {
       onExit={props.onClose}
       containerStyle={styles.container}
     >
-      <Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
-        <Icon
+      <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
+        <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-          style={iconCastPlatformStyles(styles.icon)}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
         />
         {!Styles.isMobile && header}
         {props.isDefaultAccount && (
-          <Button
+          <Kb.Button
             type="Wallet"
             label="Request from a Keybase user"
             onClick={props.onRequest}
             style={styles.requestButton}
             fullWidth={true}
           >
-            <Icon
+            <Kb.Icon
               type="iconfont-stellar-request"
               fontSize={Styles.isMobile ? 22 : 16}
               color={Styles.globalColors.white}
-              style={iconCastPlatformStyles(styles.requestIcon)}
+              style={Kb.iconCastPlatformStyles(styles.requestIcon)}
             />
-          </Button>
+          </Kb.Button>
         )}
-      </Box2>
+      </Kb.Box2>
       {props.isDefaultAccount && (
-        <Divider
+        <Kb.Divider
           style={{
             marginBottom: 14,
             marginTop: 10,
@@ -69,33 +70,49 @@ const ReceiveModal = (props: Props) => {
           }}
         />
       )}
-      <Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
-        <Text type="Body" style={styles.instructionText}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
+        <Kb.Text type="Body" style={styles.instructionText}>
           People outside Keybase can send to:
-        </Text>
-        <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
           <Addresses federatedAddress={props.federatedAddress} stellarAddress={props.stellarAddress} />
-          {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
-        </Box2>
-      </Box2>
+          {!Styles.isMobile && <Kb.Button label="Close" onClick={props.onClose} type="Secondary" />}
+        </Kb.Box2>
+      </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
-  <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
     {!!federatedAddress && (
-      <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-        <Text type="BodySmallSemibold">Your "federated" Stellar address:</Text>
-        <CopyText buttonType="Wallet" text={federatedAddress} />
-      </Box2>
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+        <Kb.Text type="BodySmallSemibold">Your "federated" Stellar address:</Kb.Text>
+        <Kb.CopyText buttonType="Wallet" text={federatedAddress} />
+      </Kb.Box2>
     )}
-    <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
-      <Text type="BodySmallSemibold">Your public Stellar address:</Text>
-      <CopyText buttonType="Wallet" text={stellarAddress} />
-    </Box2>
-  </Box2>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+      <Kb.Text type="BodySmallSemibold">Your public Stellar address:</Kb.Text>
+      <Kb.CopyText buttonType="Wallet" text={stellarAddress} />
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.stellarAddressesContainer}>
+      <Kb.Text type="BodySmallSemibold">Your Stellar QR code:</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.qrContainer} centerChildren={true}>
+        <QrImage address={federatedAddress || stellarAddress} />
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
+
+const QrImage = ({address}) => {
+  const qr = QRCodeGen(4, 'L')
+  qr.addData(address)
+  qr.make()
+  const size = qr.getModuleCount() * (6 / 2) // retina
+  // Purple2
+  const url = qr.createDataURL(8, 0, [0x84, 0x5c, 0xdb])
+  return <Kb.Image src={url} style={{height: size, width: size}} />
+}
 
 const styles = Styles.styleSheetCreate({
   accountNameText: {
@@ -105,6 +122,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       paddingLeft: 0,
       paddingRight: 0,
+    },
+    isElectron: {
+      paddingBottom: 0,
+      paddingTop: 0,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.xlarge,
@@ -143,6 +164,13 @@ const styles = Styles.styleSheetCreate({
   },
   orText: {
     marginBottom: Styles.globalMargins.tiny,
+  },
+  qrContainer: {
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: Styles.globalMargins.tiny,
   },
   requestButton: {
     flex: 0,

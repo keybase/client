@@ -24,6 +24,7 @@ import ChooseEmoji from './conversation/messages/react-button/emoji-picker/conta
 import ConfirmForm from '../wallets/confirm-form/container'
 import SendForm from '../wallets/send-form/container'
 import ChooseAsset from '../wallets/send-form/choose-asset/container'
+import QRScan from '../wallets/qr-scan/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -107,16 +108,20 @@ const chatChildren = {
       [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
       },
       [WalletConstants.chooseAssetFormRouteKey]: {
         children: {},
         component: ChooseAsset,
-        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+      },
+      qrScan: {
+        component: QRScan,
+        tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
       },
     },
     component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+    tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
   },
 }
 

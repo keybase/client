@@ -12,11 +12,13 @@ export type SearchProps = {|
   onClose: () => void,
   onShowSuggestions: () => void,
   onShowTracker: (username: string) => void,
+  onScanQRCode: ?() => void,
 |}
 
 type SearchState = {|
   displayResultsList: boolean,
   hideClearSearch: boolean,
+  searchText: string,
 |}
 
 const placeholder = 'Search Keybase'
@@ -28,6 +30,7 @@ class Search extends React.Component<SearchProps, SearchState> {
   state = {
     displayResultsList: false,
     hideClearSearch: true,
+    searchText: '',
   }
 
   componentDidMount() {
@@ -45,6 +48,7 @@ class Search extends React.Component<SearchProps, SearchState> {
     if (text) {
       this.setState({hideClearSearch: true})
     }
+    this.setState({searchText: text})
   }
 
   closeResultsList = () => this.setState({displayResultsList: false, hideClearSearch: true})
@@ -68,6 +72,16 @@ class Search extends React.Component<SearchProps, SearchState> {
               showServiceFilter={false}
               style={styles.input}
             />
+            {!this.state.searchText &&
+              this.props.onScanQRCode && (
+                <Kb.Icon
+                  color={Styles.globalColors.black_40}
+                  type="iconfont-qr-code"
+                  fontSize={24}
+                  onClick={this.props.onScanQRCode}
+                  style={Kb.iconCastPlatformStyles(styles.qrCode)}
+                />
+              )}
           </Kb.Box2>
         </ParticipantsRow>
         {this.state.displayResultsList && (
@@ -131,6 +145,11 @@ const styles = Styles.styleSheetCreate({
   list: {
     height: '100%',
     width: '100%',
+  },
+
+  qrCode: {
+    alignSelf: 'center',
+    marginRight: Styles.globalMargins.tiny,
   },
 })
 
