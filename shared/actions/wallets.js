@@ -335,9 +335,12 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   if (accountID && !Types.isValidAccountID(accountID)) {
     accountID = null
   }
-  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
-    accountID: accountID,
-  }).then(res =>
+  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise(
+    {
+      accountID: accountID,
+    },
+    Constants.getDisplayCurrencyWaitingKey(accountID || Types.noAccountID)
+  ).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: accountID,
       currency: Constants.makeCurrencies(res),
@@ -423,7 +426,10 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
-  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise({name})
+  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise(
+    {name},
+    Constants.validateAccountNameWaitingKey
+  )
     .then(() => WalletsGen.createValidatedAccountName({name}))
     .catch(err => {
       logger.warn(`Error validating account name: ${err.desc}`)
@@ -433,7 +439,10 @@ const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccou
 
 const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
-  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
+  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise(
+    {secretKey: secretKey.stringValue()},
+    Constants.validateSecretKeyWaitingKey
+  )
     .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
     .catch(err => {
       logger.warn(`Error validating secret key: ${err.desc}`)

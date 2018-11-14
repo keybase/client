@@ -12,7 +12,7 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => ({
   createNewAccountError: state.wallets.createNewAccountError,
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
-  waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
+  waiting: anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps, fromSendForm}) => ({
