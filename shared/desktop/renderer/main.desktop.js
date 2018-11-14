@@ -23,6 +23,7 @@ import InputMonitor from './input-monitor.desktop'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import loadSpellchecker from '../app/spell-checker.desktop'
 
 // Top level HMR accept
 if (module.hot) {
@@ -49,6 +50,7 @@ function setupStore() {
 }
 
 function setupApp(store, runSagas) {
+  loadSpellchecker()
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas?.()
