@@ -65,7 +65,7 @@ const Intro = (props: IntroProps) => {
         <Kb.Icon
           color={Styles.globalColors.black}
           style={Kb.iconCastPlatformStyles(styles.illustration)}
-          type="icon-illustration-stellar-payments-183-188"
+          type="icon-illustration-stellar-payments-200-188"
         />
       </Kb.Box2>
     </WalletPopup>
