@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
 type AnimationType = 'typing'
@@ -12,4 +12,4 @@ export type Props = {|
   width?: number,
 |}
 
-declare export default class Animation extends Component<Props> {}
+declare export default class Animation extends React.Component<Props> {}
