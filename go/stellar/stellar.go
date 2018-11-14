@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
@@ -200,6 +201,36 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
 		return nil
+	}
+
+	return nil
+}
+
+// ImportSecretKeyAccountBundle is a temporary function.
+// This is just to check PostBundleRestricted.
+// It does not attempt to do a full migration from V1 to V2.
+func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {
+	if g.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("this doesn't work in production")
+	}
+
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
+	if err != nil {
+		return err
+	}
+
+	acctBundle, err := acctbundle.NewFromBundle(nextBundle)
+	if err != nil {
+		return err
+	}
+	if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
+		return err
 	}
 
 	return nil

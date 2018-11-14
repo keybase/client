@@ -6,13 +6,36 @@
 import {call} from 'redux-saga/effects'
 import {getEngine as engine, getEngineSaga} from '../../engine/require'
 
+export const bundleAccountBundleVersion = {
+  v1: 1,
+  v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
+}
+
 export const bundleAccountMode = {
   none: 0,
   user: 1,
+  mobile: 2,
 }
 
 export const bundleBundleVersion = {
   v1: 1,
+  v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
 }
 
 export const commonPaymentStrategy = {

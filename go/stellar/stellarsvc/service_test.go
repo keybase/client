@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -757,6 +758,199 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
+// TestImportMakesAccountBundle checks that importing a secret key makes a stellar account
+// bundle (i.e. the new version where there is a bundle per account) and that we
+// can retrieve it from the server.
+func TestImportMakesAccountBundle(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	a1, s1 := randomStellarKeypair()
+	checker := newAcctBundleChecker(a1, s1)
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tcs[0].G, s1, false, "qq")
+	require.NoError(t, err)
+
+	// for now, let's just get it directly from `remote`:
+	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	checker.assertBundle(t, acctBundle, 2, 1, stellar1.AccountMode_USER)
+}
+
+// TestMakeAccountMobileOnlyOnDesktop imports a new secret stellar key, then makes it
+// mobile only from a desktop device.  The subsequent fetch fails because it is
+// a desktop device.
+func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+
+	acceptDisclaimer(tc)
+	_, err := stellar.CreateWallet(context.Background(), tc.G)
+	require.NoError(t, err)
+
+	a1, s1 := randomStellarKeypair()
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
+	require.NoError(t, err)
+
+	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(2), acctBundle.Revision)
+	// NOTE: we're using this acctBundle later...
+
+	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+
+	// this is a desktop device, so this should now fail
+	_, _, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.Error(t, err)
+	aerr, ok := err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+
+	// try to make it accessible on all devices, which shouldn't work
+	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	aerr, ok = err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+
+	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
+
+	// can fetch the bundle, but it won't have secrets
+	bundle, _, err := remote.Fetch(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleRevision(3), bundle.Revision)
+	require.Len(t, bundle.Accounts, 2)
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
+	require.True(t, bundle.Accounts[0].IsPrimary)
+	require.Len(t, bundle.Accounts[0].Signers, 0)
+	require.Equal(t, primaryAcctName, bundle.Accounts[0].Name)
+	require.Equal(t, stellar1.AccountMode_MOBILE, bundle.Accounts[1].Mode)
+	require.False(t, bundle.Accounts[1].IsPrimary)
+	require.Len(t, bundle.Accounts[1].Signers, 0)
+	require.Equal(t, "vault", bundle.Accounts[1].Name)
+
+	// try posting an old bundle we got previously
+	err = remote.PostBundleRestricted(context.Background(), tc.G, acctBundle)
+	require.Error(t, err)
+
+	// tinker with it
+	acctBundle.Revision = 4
+	err = remote.PostBundleRestricted(context.Background(), tc.G, acctBundle)
+	require.Error(t, err)
+}
+
+// TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
+// makes it mobile only.  The subsequent fetch fails because it is
+// a recently provisioned mobile device.  After 7 days, the fetch works.
+func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
+	tc, cleanup := setupMobileTest(t)
+	defer cleanup()
+
+	acceptDisclaimer(tc)
+	_, err := stellar.CreateWallet(context.Background(), tc.G)
+	require.NoError(t, err)
+
+	a1, s1 := randomStellarKeypair()
+	err = stellar.ImportSecretKeyAccountBundle(context.Background(), tc.G, s1, false, "vault")
+	require.NoError(t, err)
+
+	checker := newAcctBundleChecker(a1, s1)
+
+	acctBundle, version, err := remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	t.Logf("acctBundle: %+v", acctBundle)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	checker.assertBundle(t, acctBundle, 2, 1, stellar1.AccountMode_USER)
+
+	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+
+	// this is a recent mobile device, so this should now fail
+	_, _, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.Error(t, err)
+	aerr, ok := err.(libkb.AppStatusError)
+	if !ok {
+		t.Fatalf("invalid error type %T", err)
+	}
+	require.Equal(t, libkb.SCStellarMobileOnlyPurgatory, aerr.Code)
+
+	// this will make the device older on the server
+	makeActiveDeviceOlder(t, tc.G)
+	// so now the fetch will work
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
+
+	// this should not post a new bundle
+	err = remote.MakeAccountMobileOnly(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	checker.assertBundle(t, acctBundle, 3, 2, stellar1.AccountMode_MOBILE)
+
+	// make it accessible on all devices
+	err = remote.MakeAccountAllDevices(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+
+	acctBundle, version, err = remote.FetchAccountBundle(context.Background(), tc.G, a1)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	checker.assertBundle(t, acctBundle, 4, 3, stellar1.AccountMode_USER)
+}
+
+func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
+	deviceID := g.ActiveDevice.DeviceID()
+	apiArg := libkb.APIArg{
+		Endpoint:    "test/agedevice",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  context.Background(),
+		Args: libkb.HTTPArgs{
+			"device_id": libkb.S{Val: deviceID.String()},
+		},
+	}
+	_, err := g.API.Post(apiArg)
+	require.NoError(t, err)
+}
+
+type acctBundleChecker struct {
+	accountID stellar1.AccountID
+	secretKey stellar1.SecretKey
+}
+
+func newAcctBundleChecker(a stellar1.AccountID, s stellar1.SecretKey) *acctBundleChecker {
+	return &acctBundleChecker{
+		accountID: a,
+		secretKey: s,
+	}
+}
+
+func (a *acctBundleChecker) assertBundle(t *testing.T, bundle *stellar1.BundleRestricted, revisionParent, revisionAccount stellar1.BundleRevision, mode stellar1.AccountMode) {
+	require.NotNil(t, bundle)
+	require.Equal(t, revisionParent, bundle.Revision)
+	require.Len(t, bundle.AccountBundles, 1)
+	secret, err := acctbundle.AccountWithSecret(bundle, a.accountID)
+	require.NoError(t, err)
+	require.NotNil(t, secret)
+	require.Equal(t, mode, secret.Mode)
+	require.Equal(t, a.accountID, secret.AccountID)
+	require.Len(t, secret.Signers, 1)
+	require.Equal(t, a.secretKey, secret.Signers[0])
+	require.Equal(t, revisionAccount, secret.Revision)
+	require.NotEmpty(t, bundle.Prev)
+	require.NotEmpty(t, bundle.OwnHash)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser
@@ -778,11 +972,26 @@ func setupNTests(t *testing.T, n int) ([]*TestContext, func()) {
 	return setupTestsWithSettings(t, settings)
 }
 
+// setupDesktopTest signs up the user on a desktop device.
+func setupDesktopTest(t *testing.T) (*TestContext, func()) {
+	settings := []usetting{usettingFull}
+	tcs, f := setupTestsWithSettings(t, settings)
+	return tcs[0], f
+}
+
+// setupMobileTest signs up the user on a mobile device.
+func setupMobileTest(t *testing.T) (*TestContext, func()) {
+	settings := []usetting{usettingMobile}
+	tcs, f := setupTestsWithSettings(t, settings)
+	return tcs[0], f
+}
+
 type usetting string
 
 const (
 	usettingFull    usetting = "full"
 	usettingPukless usetting = "pukless"
+	usettingMobile  usetting = "mobile"
 )
 
 func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, func()) {
@@ -793,10 +1002,17 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		tc := SetupTest(t, "wall", 1)
 		switch setting {
 		case usettingFull:
+		case usettingMobile:
 		case usettingPukless:
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
-		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)
+		var fu *kbtest.FakeUser
+		var err error
+		if setting == usettingMobile {
+			fu, err = kbtest.CreateAndSignupFakeUserMobile("wall", tc.G)
+		} else {
+			fu, err = kbtest.CreateAndSignupFakeUser("wall", tc.G)
+		}
 		require.NoError(t, err)
 		tc2 := &TestContext{
 			TestContext: tc,
