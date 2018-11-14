@@ -632,15 +632,14 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       )
     )
     .then(
-      action.payload.nextScreen === 'linkExisting'
-        ? Saga.put(
-            Route.navigateTo(
+      _ =>
+        action.payload.nextScreen === 'linkExisting'
+          ? Route.navigateTo(
               isMobile
                 ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
                 : [Tabs.walletsTab, 'wallet', 'linkExisting']
             )
-          )
-        : undefined
+          : undefined
     )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
