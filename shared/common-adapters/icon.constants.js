@@ -626,10 +626,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-history-clear-64.png'),
   },
-  'icon-illustration-stellar-payments-183-188': {
+  'icon-illustration-stellar-payments-200-188': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-illustration-stellar-payments-183-188.png'),
+    require: require('../images/icons/icon-illustration-stellar-payments-200-188.png'),
   },
   'icon-illustration-subteams-380': {
     isFont: false,
