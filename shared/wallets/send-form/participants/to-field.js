@@ -118,7 +118,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
                 : 'icon-stellar-logo-16'
             }
           />
-          <Kb.Box2 direction="horizontal" style={{flexShrink: 1, flexGrow: 1}}>
+          <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
             <Kb.NewInput
               type="text"
               onChangeText={this._onChangeRecipient}
@@ -136,25 +136,12 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
               <Kb.ClickableBox
                 activeOpacity={1}
                 onClick={this._onFocus}
-                style={Styles.collapseStyles([
-                  Styles.globalStyles.fillAbsolute,
-                  {
-                    cursor: 'text',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
-                  },
-                ])}
+                style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, styles.placeholderContainer])}
               >
-                <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_20}}>
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
                   Stellar address
                 </Kb.Text>
-                <Kb.Text
-                  type="BodySemibold"
-                  style={{color: Styles.globalColors.black_20}}
-                  lineClamp={1}
-                  ellipsizeMode="middle"
-                >
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20} lineClamp={1} ellipsizeMode="middle">
                   {placeholderExample}
                 </Kb.Text>
               </Kb.ClickableBox>
@@ -313,6 +300,17 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.xtiny,
     },
   }),
+  placeholderContainer: Styles.platformStyles({
+    common: {
+      display: 'flex',
+      flexDirection: 'column',
+      paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
+    },
+    isElectron: {
+      cursor: 'text',
+    },
+  }),
+  publicKeyInputContainer: {flexShrink: 1, flexGrow: 1},
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -343,6 +341,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 
+  colorBlack20: {
+    color: Styles.globalColors.black_20,
+  },
   qrCode: {
     marginRight: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
