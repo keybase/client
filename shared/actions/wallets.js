@@ -24,8 +24,12 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) =>
-  (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: any) => {
+  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
+    // didn't change state.building; no need to call build
+    return
+  }
+  return (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -68,6 +72,7 @@ const buildPayment = (state: TypedState, action: any) =>
       throw error
     }
   })
+}
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
   state.wallets.acceptedDisclaimer
@@ -162,7 +167,10 @@ const sendPayment = (state: TypedState) => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXLM = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
+const setLastSentXLM = (
+  state: TypedState,
+  action: WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload
+) =>
   Saga.put(
     WalletsGen.createSetLastSentXLM({
       lastSentXLM: action.payload.lastSentXLM,
@@ -184,7 +192,13 @@ const requestPayment = (state: TypedState) =>
       note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
+  ).then(kbRqID =>
+    WalletsGen.createRequestedPayment({
+      kbRqID: new HiddenString(kbRqID),
+      lastSentXLM: state.wallets.building.currency === 'XLM',
+      requestee: state.wallets.building.to,
+    })
+  )
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 const clearBuiltRequest = () => Saga.put(WalletsGen.createClearBuiltRequest())
@@ -331,7 +345,7 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
     {
       accountID: accountID,
     },
-    Constants.loadDisplayCurrencyWaitingKey
+    Constants.getDisplayCurrencyWaitingKey(accountID || Types.noAccountID)
   ).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: accountID,
@@ -418,7 +432,10 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
-  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise({name})
+  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise(
+    {name},
+    Constants.validateAccountNameWaitingKey
+  )
     .then(() => WalletsGen.createValidatedAccountName({name}))
     .catch(err => {
       logger.warn(`Error validating account name: ${err.desc}`)
@@ -428,7 +445,10 @@ const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccou
 
 const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
-  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
+  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise(
+    {secretKey: secretKey.stringValue()},
+    Constants.validateSecretKeyWaitingKey
+  )
     .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
     .catch(err => {
       logger.warn(`Error validating secret key: ${err.desc}`)
@@ -541,7 +561,7 @@ const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayloa
     .catch(err => logger.error(`Error cancelling request: ${err.message}`))
 }
 
-const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.AbandonPaymentPayload) => {
+const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
   const path = getPath(routeState)
   const lastNode = path.last()
@@ -555,6 +575,20 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
     const pathAboveForm = path.slice(0, firstFormIndex)
     return Saga.put(Route.navigateTo(pathAboveForm))
   }
+}
+
+const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.RequestedPaymentPayload) => {
+  // nav to previewed conversation if we aren't already on the chat tab
+  const routeState = state.routeTree.routeState
+  const path = getPath(routeState)
+  if (path.first() === Tabs.chatTab) {
+    return maybeNavigateAwayFromSendForm(state, action)
+  }
+  // not on chat tab; preview
+  logger.info('Navigating to conversation because we requested a payment')
+  return Saga.put(
+    Chat2Gen.createPreviewConversation({participants: [action.payload.requestee], reason: 'requestedPayment'})
+  )
 }
 
 const setupEngineListeners = () => {
@@ -610,15 +644,14 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       )
     )
     .then(
-      action.payload.nextScreen === 'linkExisting'
-        ? Saga.put(
-            Route.navigateTo(
+      _ =>
+        action.payload.nextScreen === 'linkExisting'
+          ? Route.navigateTo(
               isMobile
                 ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
                 : [Tabs.walletsTab, 'wallet', 'linkExisting']
             )
-          )
-        : undefined
+          : undefined
     )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
@@ -693,6 +726,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingFrom,
       WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingTo,
+      WalletsGen.displayCurrencyReceived,
     ],
     buildPayment
   )
@@ -701,7 +735,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXLM)
+  yield Saga.actionToAction([WalletsGen.sentPayment, WalletsGen.requestedPayment], setLastSentXLM)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
@@ -711,7 +745,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltRequest)
-  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateAwayFromSendForm)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateToConversation)
 
   // Effects of abandoning payments
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuilding)

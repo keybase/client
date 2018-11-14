@@ -77,6 +77,7 @@ export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
+export const setReadyToSend = 'wallets:setReadyToSend'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -223,7 +224,11 @@ type _RefreshPaymentsPayload = $ReadOnly<{|
 type _RejectDisclaimerPayload = void
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
-type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString|}>
+type _RequestedPaymentPayload = $ReadOnly<{|
+  kbRqID: HiddenString,
+  lastSentXLM: boolean,
+  requestee: string,
+|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   secretKey: HiddenString,
@@ -253,6 +258,7 @@ type _SetLastSentXLMPayload = $ReadOnly<{|
   lastSentXLM: boolean,
   writeFile: boolean,
 |}>
+type _SetReadyToSendPayload = $ReadOnly<{|readyToSend: boolean|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -470,6 +476,14 @@ export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePaylo
  */
 export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({payload, type: setBuildingTo})
 /**
+ * Set whether last currency used to send was XLM
+ */
+export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
+/**
+ * Set whether the payment is ready to send
+ */
+export const createSetReadyToSend = (payload: _SetReadyToSendPayload) => ({payload, type: setReadyToSend})
+/**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
  */
 export const createAbandonPayment = (payload: _AbandonPaymentPayload) => ({payload, type: abandonPayment})
@@ -549,7 +563,6 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
-export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
 
 // Action Payloads
 export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
@@ -620,6 +633,7 @@ export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingReci
 export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
 export type SetBuildingToPayload = $Call<typeof createSetBuildingTo, _SetBuildingToPayload>
 export type SetLastSentXLMPayload = $Call<typeof createSetLastSentXLM, _SetLastSentXLMPayload>
+export type SetReadyToSendPayload = $Call<typeof createSetReadyToSend, _SetReadyToSendPayload>
 export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
 export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
 export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountName, _ValidatedAccountNamePayload>
@@ -699,6 +713,7 @@ export type Actions =
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
   | SetLastSentXLMPayload
+  | SetReadyToSendPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload

@@ -150,7 +150,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		fmtAmount, err := stellar.FormatAmount(d.Amount, false)
+		fmtAmount, err := stellar.FormatAmount(d.Amount, false, stellar.FMT_ROUND)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
@@ -158,7 +158,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 		if d.Asset.IsNativeXLM() {
 			availableAmount := subtractFeeSoft(s.mctx(ctx), details.Available)
-			fmtAvailable, err := stellar.FormatAmount(availableAmount, false)
+			fmtAvailable, err := stellar.FormatAmount(availableAmount, false, stellar.FMT_ROUND)
 			if err != nil {
 				return nil, err
 			}
@@ -179,7 +179,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting amount: %v", err)
 				}
-				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, rate.Currency)
+				fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+					outsideAmount, rate.Currency, stellar.FMT_ROUND)
 				if err != nil {
 					return fmt.Errorf("formatting converted amount: %v", err)
 				}
@@ -188,7 +189,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				if err != nil {
 					return fmt.Errorf("converting available amount: %v", err)
 				}
-				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAvailableAmount, rate.Currency)
+				fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+					outsideAvailableAmount, rate.Currency, stellar.FMT_ROUND)
 				if err != nil {
 					return fmt.Errorf("formatting converted available amount: %v", err)
 				}
@@ -989,7 +991,8 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 					log("Send amount is more than available to send %v > %v", amountX.amountOfAsset, availableToSendXLM)
 					readyChecklist.amount = false // block sending
 					res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLM)
-					availableToSendXLMFmt, err := stellar.FormatAmount(availableToSendXLM, false)
+					availableToSendXLMFmt, err := stellar.FormatAmount(
+						availableToSendXLM, false, stellar.FMT_TRUNCATE)
 					if err == nil {
 						res.AmountErrMsg = fmt.Sprintf("Your available to send is *%s XLM*.", availableToSendXLMFmt)
 					}
@@ -1000,7 +1003,8 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 						if err != nil {
 							log("error converting available-to-send", err)
 						} else {
-							formattedATS, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), availableToSendOutside, amountX.rate.Currency)
+							formattedATS, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+								availableToSendOutside, amountX.rate.Currency, stellar.FMT_TRUNCATE)
 							if err != nil {
 								log("error formatting available-to-send", err)
 							} else {
@@ -1144,7 +1148,8 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		}
 
 		res.displayAmountXLM = xlmAmountFormatted
-		res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), convertAmountOutside, *arg.Currency)
+		res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+			convertAmountOutside, *arg.Currency, stellar.FMT_ROUND)
 		if err != nil {
 			log("error converting for displayAmountFiat: %q / %q : %s", convertAmountOutside, arg.Currency, err)
 			res.displayAmountFiat = ""
@@ -1195,7 +1200,8 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error converting: %v", err)
 			return res
 		}
-		outsideAmountFormatted, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, xrate.Currency)
+		outsideAmountFormatted, err := stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+			outsideAmount, xrate.Currency, stellar.FMT_ROUND)
 		if err != nil {
 			log("error formatting converted outside amount: %v", err)
 			return res
@@ -1214,7 +1220,8 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.displayAmountXLM = ""
 		}
 		if arg.Amount != "" {
-			res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(), outsideAmount, xrate.Currency)
+			res.displayAmountFiat, err = stellar.FormatCurrencyWithCodeSuffix(ctx, s.G(),
+				outsideAmount, xrate.Currency, stellar.FMT_ROUND)
 			if err != nil {
 				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
 				res.displayAmountFiat = ""
@@ -1231,7 +1238,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 }
 
 func (s *Server) buildPaymentWorthInfo(ctx context.Context, rate stellar1.OutsideExchangeRate) (worthInfo string, err error) {
-	oneOutsideFormatted, err := stellar.FormatCurrency(ctx, s.G(), "1", rate.Currency)
+	oneOutsideFormatted, err := stellar.FormatCurrency(ctx, s.G(), "1", rate.Currency, stellar.FMT_ROUND)
 	if err != nil {
 		return "", err
 	}

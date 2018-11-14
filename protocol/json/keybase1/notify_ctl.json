@@ -25,6 +25,14 @@
         },
         {
           "type": "boolean",
+          "name": "kbfsdesktop"
+        },
+        {
+          "type": "boolean",
+          "name": "kbfslegacy"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {

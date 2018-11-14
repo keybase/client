@@ -5,6 +5,8 @@ import * as Constants from '../../constants/devices'
 import PaperKey from '.'
 import {navigateUp} from '../../actions/route-tree'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   paperkey: state.devices.newPaperkey.stringValue(),
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
@@ -20,7 +22,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default Container.connect(
+export default Container.connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

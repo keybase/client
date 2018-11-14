@@ -19,6 +19,8 @@ export type ConnectedProps = {|
   usernames: Array<string>,
 |}
 
+type OwnProps = ConnectedProps
+
 export type DispatchProps = {|
   onOpenProfile?: (username: string) => void,
   onOpenTracker?: (username: string) => void,
@@ -31,7 +33,8 @@ export const connectedPropsToProps = (
 ): Props => {
   const userData = connectedProps.usernames
     .map(username => ({
-      broken: stateProps._broken.trackerState === 'error',
+      // $FlowIssue this optional chain is actually necessary
+      broken: ['warning', 'error', 'revoked'].includes(stateProps._broken[username]?.trackerState),
       following: stateProps._following.has(username),
       username,
       you: stateProps._you === username,
@@ -79,11 +82,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
   connectedPropsToProps(stateProps, dispatchProps, ownProps)
 
-const ConnectedUsernames = namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'Usernames'
+const ConnectedUsernames = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Usernames'
 )(Usernames)
 
 export default ConnectedUsernames

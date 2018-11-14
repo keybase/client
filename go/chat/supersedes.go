@@ -133,6 +133,16 @@ func (t *basicSupersedesTransform) transformReaction(msg chat1.MessageUnboxed, s
 	return &newMsg
 }
 
+func (t *basicSupersedesTransform) transformUnfurl(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	if superMsg.Valid().MessageBody.IsNil() {
+		return &msg
+	}
+	mvalid := msg.Valid()
+	mvalid.Unfurls = append(mvalid.Unfurls, superMsg.Valid().MessageBody.Unfurl().Unfurl)
+	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+	return &newMsg
+}
+
 func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
 	superMsgs []chat1.MessageUnboxed) *chat1.MessageUnboxed {
 
@@ -155,6 +165,8 @@ func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.Mess
 			newMsg = t.transformAttachment(*newMsg, superMsg)
 		case chat1.MessageType_REACTION:
 			newMsg = t.transformReaction(*newMsg, superMsg)
+		case chat1.MessageType_UNFURL:
+			newMsg = t.transformUnfurl(*newMsg, superMsg)
 		}
 
 		t.Debug(ctx, "transformed: original:%v super:%v -> %v",
@@ -186,6 +198,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				superMsgIDs = append(superMsgIDs, supersededBy)
 			}
 			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.ReactionIDs...)
+			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.UnfurlIDs...)
 		}
 	}
 

@@ -344,7 +344,18 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       />
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
-    const layers = layerScreens.map(r => r.leafComponent({shouldRender: true}))
+    const layers = layerScreens.map(
+      (r, idx) =>
+        r.tags.hideStatusBar ? (
+          <React.Fragment key={String(idx)}>
+            <Kb.NativeStatusBar hidden={!isIPhoneX} translucent={true} />
+            {!r.tags.underNotch && <Kb.SafeAreaViewTop />}
+            {r.leafComponent({shouldRender: true})}
+          </React.Fragment>
+        ) : (
+          r.leafComponent({shouldRender: true})
+        )
+    )
 
     return (
       <>

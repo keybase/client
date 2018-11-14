@@ -1,6 +1,6 @@
 // @flow
 // Entry point to the chrome part of the app
-import '../../dev/user-timings'
+import '../../util/user-timings'
 import Main from '../../app/main.desktop'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'

@@ -6,6 +6,7 @@ import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
 import * as ConfigGen from '../../actions/config-gen'
 
+type OwnProps = {||}
 const mapStateToProps = (state, ownProps: {}) => ({
   ...state.settings.notifications,
   mobileHasPermissions: state.push.hasPermissions,
@@ -24,7 +25,7 @@ const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
 })
 export default compose(
-  connect(
+connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

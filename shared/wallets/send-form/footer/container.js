@@ -11,11 +11,12 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => {
+  const accountID = state.wallets.selectedAccount
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
     : state.wallets.builtPayment.readyToSend
-  const currencyWaiting = anyWaiting(state, Constants.loadDisplayCurrencyWaitingKey)
+  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   return {
     calculating: !!state.wallets.building.amount,
     disabled: !isReady || currencyWaiting,

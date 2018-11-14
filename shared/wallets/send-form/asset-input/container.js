@@ -9,7 +9,7 @@ import {anyWaiting} from '../../../constants/waiting'
 const mapStateToProps = state => {
   const accountID = state.wallets.selectedAccount
   const currency = state.wallets.building.currency
-  const currencyWaiting = anyWaiting(state, Constants.loadDisplayCurrencyWaitingKey)
+  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   const displayUnit = currencyWaiting ? '' : Constants.getCurrencyAndSymbol(state, currency)
   return {
     accountID,

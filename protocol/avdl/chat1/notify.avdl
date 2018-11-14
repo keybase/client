@@ -21,7 +21,8 @@ protocol NotifyChat {
     TEAMTYPE_8,
     EXPUNGE_9,
     EPHEMERAL_PURGE_10,
-    REACTION_UPDATE_11
+    REACTION_UPDATE_11,
+    MESSAGE_UNFURLED_12
   }
 
   record IncomingMessage {
@@ -97,6 +98,15 @@ protocol NotifyChat {
     array<ReactionUpdate> reactionUpdates;
   }
 
+  record UnfurlUpdateNotif {
+    ConversationID convID;
+    UIMessage msg;
+  }
+
+  record UnfurlUpdateNotifs {
+    array<UnfurlUpdateNotif> updates;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
     case READ_MESSAGE: ReadMessageInfo;
@@ -109,6 +119,7 @@ protocol NotifyChat {
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
     case REACTION_UPDATE: ReactionUpdateNotif;
+    case MESSAGE_UNFURLED: UnfurlUpdateNotifs;
   }
 
   record TyperInfo {

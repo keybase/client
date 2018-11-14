@@ -5,6 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
+import DisplayCurrencyDropdown from './display-currency-dropdown'
 
 export type SettingsProps = {|
   accountID: Types.AccountID,
@@ -20,32 +21,8 @@ export type SettingsProps = {|
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
   refresh: () => void,
+  saveCurrencyWaiting: boolean,
 |}
-
-const headerKey = '_header'
-
-const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
-  const items = [
-    <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
-      <Kb.Text type="BodySmall" style={styles.dropdownHeader}>
-        Past transactions won't be affected by this change.
-      </Kb.Text>
-    </Kb.Box2>,
-  ]
-  // spread the List into an array with [...]
-  return items.concat([...currencies].map(s => makeDropdownItem(s, s.code === currency.code)))
-}
-
-const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
-  <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
-    <Kb.Text
-      type="BodyBig"
-      style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
-    >
-      {item.description}
-    </Kb.Text>
-  </Kb.Box2>
-)
 
 const HoverText = Styles.isMobile
   ? Kb.Text
@@ -134,36 +111,24 @@ const AccountSettings = (props: SettingsProps) => {
           {Styles.isMobile && <Kb.Divider style={{marginBottom: Styles.globalMargins.tiny}} />}
           <Kb.Box2
             direction="vertical"
+            gap="tiny"
             style={Styles.collapseStyles([styles.sidePaddings, {marginBottom: Styles.globalMargins.small}])}
           >
-            <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
               <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.dropdownContainer} gap="tiny">
-              <Kb.Dropdown
-                disabled={props.currencyWaiting}
-                items={makeDropdownItems(props.currencies, props.currency)}
-                selected={makeDropdownItem(props.currency, false)}
-                onChanged={(node: React.Node) => {
-                  // $ForceType doesn't understand key will be string
-                  const selectedCode: Types.CurrencyCode = node.key
-                  if (selectedCode !== props.currency.code && selectedCode !== headerKey) {
-                    props.onCurrencyChange(selectedCode)
-                  }
-                }}
-                style={styles.dropdown}
-              />
-              {!Styles.isMobile && (
-                <Kb.SaveIndicator
-                  saving={props.currencyWaiting}
-                  minSavingTimeMs={300}
-                  savedTimeoutMs={2500}
-                />
-              )}
+            <DisplayCurrencyDropdown
+              currencies={props.currencies}
+              selected={props.currency}
+              onCurrencyChange={props.onCurrencyChange}
+              saveCurrencyWaiting={props.saveCurrencyWaiting}
+              waiting={props.currencyWaiting}
+            />
+            <Kb.Box2 direction="vertical" style={styles.alignSelfFlexStart}>
+              <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
+              <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
+              <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
             </Kb.Box2>
-            <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
-            <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
-            <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
           </Kb.Box2>
           {Styles.isMobile && <Kb.Divider />}
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
@@ -206,12 +171,11 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     maxWidth: '100%',
   },
+  alignSelfFlexStart: {
+    alignSelf: 'flex-start',
+  },
   deleteOpacity: {
     opacity: 0.3,
-  },
-  dropdownHeader: {
-    textAlign: 'center',
-    padding: Styles.globalMargins.xsmall,
   },
   centerText: {
     textAlign: 'center',
@@ -221,9 +185,6 @@ const styles = Styles.styleSheetCreate({
     borderBottomColor: Styles.globalColors.black_10,
     borderStyle: 'solid',
     marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
-  },
-  itemSelected: {
-    color: Styles.globalColors.blue,
   },
   icon: {
     marginLeft: Styles.globalMargins.xtiny,
@@ -256,15 +217,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-  },
-  dropdownContainer: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  dropdown: {
-    alignItems: 'center',
-    marginBottom: Styles.globalMargins.xtiny,
-    flexShrink: 1,
   },
   remove: {
     ...Styles.globalStyles.flexBoxRow,

@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 })
 
 export default
-  namedConnect(
+namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,

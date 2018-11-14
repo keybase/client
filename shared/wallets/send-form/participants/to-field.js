@@ -16,6 +16,7 @@ type ToKeybaseUserProps = {|
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
 |}
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
@@ -31,6 +32,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
             <Kb.ConnectedNameWithIcon
+              colorBroken={true}
               colorFollowing={true}
               horizontal={true}
               containerStyle={styles.toKeybaseUserNameWithIcon}
@@ -64,6 +66,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
       onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
+      onScanQRCode={props.onScanQRCode}
     />
   )
 }
@@ -72,6 +75,9 @@ type ToStellarPublicKeyProps = {|
   recipientPublicKey: string,
   errorMessage?: string,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
+  setReadyToSend: boolean => void,
+  keyCounter: number,
 |}
 
 type ToStellarPublicKeyState = {|
@@ -83,6 +89,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
   _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
+    this.props.setReadyToSend(false)
     this._propsOnChangeRecipient(recipientPublicKey)
   }
 
@@ -103,19 +110,31 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
                 : 'icon-stellar-logo-16'
             }
           />
-          <Kb.NewInput
-            type="text"
-            onChangeText={this._onChangeRecipient}
-            textType="BodySemibold"
-            placeholder={'Stellar address\nEx: G12345... or you*example.com'}
-            placeholderColor={Styles.globalColors.black_20}
-            hideBorder={true}
-            containerStyle={styles.input}
-            multiline={true}
-            rowsMin={2}
-            rowsMax={3}
-            value={this.state.recipientPublicKey}
-          />
+          <Kb.Box2 direction="horizontal" style={{flexShrink: 1, flexGrow: 1}}>
+            <Kb.NewInput
+              type="text"
+              onChangeText={this._onChangeRecipient}
+              textType="BodySemibold"
+              placeholder={'Stellar address\nEx: G12345... or you*example.com'}
+              placeholderColor={Styles.globalColors.black_20}
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              rowsMin={2}
+              rowsMax={3}
+              value={this.state.recipientPublicKey}
+            />
+          </Kb.Box2>
+          {!this.state.recipientPublicKey &&
+            this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_40}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              />
+            )}
         </Kb.Box2>
         {!!this.props.errorMessage && (
           <Kb.Text type="BodySmall" style={styles.errorText}>
@@ -277,6 +296,11 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
+
+  qrCode: {
+    marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
 })
 
 export type {ToKeybaseUserProps, ToStellarPublicKeyProps}

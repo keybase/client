@@ -17,7 +17,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onPasswordReset: () => openURL('https://keybase.io/#password-reset'),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

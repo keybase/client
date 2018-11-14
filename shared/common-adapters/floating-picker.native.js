@@ -5,23 +5,9 @@ import {Picker, SafeAreaView} from 'react-native'
 import {Box2} from './box'
 import Overlay from './overlay'
 import Text from './text'
+import type {Props} from './floating-picker'
 
-type PickerItem = {|label: string, value: string | number|}
-
-type Props = {
-  items: PickerItem[], // values must be unique
-  selectedValue: string | number,
-  onSelect: (string | number) => void,
-  header?: React.Node,
-  prompt?: React.Node,
-  promptString?: string, // used on android as title of selection popup
-  onHidden: () => void,
-  onCancel: () => void,
-  onDone: () => void,
-  visible: boolean,
-}
-
-const FloatingPicker = (props: Props) => {
+const FloatingPicker = <T: string | number>(props: Props<T>) => {
   if (!props.visible) {
     return null
   }
@@ -44,6 +30,7 @@ const FloatingPicker = (props: Props) => {
           onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
+          itemStyle={Styles.globalStyles.fontRegular}
         >
           {props.items.map(item => (
             <Picker.Item key={item.label} {...item} />
@@ -98,4 +85,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export {FloatingPicker}
+export default FloatingPicker
