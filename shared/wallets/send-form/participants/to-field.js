@@ -86,11 +86,16 @@ type ToStellarPublicKeyState = {|
 
 class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
   state = {recipientPublicKey: this.props.recipientPublicKey}
+  _input: {current: React$ElementRef<typeof Kb.PlainInput> | null} = React.createRef()
   _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
     this.props.setReadyToSend(false)
     this._propsOnChangeRecipient(recipientPublicKey)
+  }
+
+  _onFocus = () => {
+    this._input.current && this._input.current.focus()
   }
 
   render = () => (
@@ -115,15 +120,41 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
               type="text"
               onChangeText={this._onChangeRecipient}
               textType="BodySemibold"
-              placeholder={'Stellar address\nEx: G12345... or you*example.com'}
-              placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
               containerStyle={styles.input}
               multiline={true}
+              // $FlowIssue this is the right type
+              ref={this._input}
               rowsMin={2}
               rowsMax={3}
               value={this.state.recipientPublicKey}
             />
+            {!this.state.recipientPublicKey && (
+              <Kb.ClickableBox
+                onClick={this._onFocus}
+                style={Styles.collapseStyles([
+                  Styles.globalStyles.fillAbsolute,
+                  {
+                    cursor: 'text',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
+                  },
+                ])}
+              >
+                <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_20}}>
+                  Stellar address
+                </Kb.Text>
+                <Kb.Text
+                  type="BodySemibold"
+                  style={{color: Styles.globalColors.black_20}}
+                  lineClamp={1}
+                  ellipsizeMode="middle"
+                >
+                  Ex: G12345... or you*example.com
+                </Kb.Text>
+              </Kb.ClickableBox>
+            )}
           </Kb.Box2>
           {!this.state.recipientPublicKey &&
             this.props.onScanQRCode && (
@@ -263,10 +294,16 @@ const styles = Styles.styleSheetCreate({
   inputInner: {
     alignItems: 'flex-start',
     flexShrink: 0,
+    position: 'relative',
   },
-  input: {
-    padding: 0,
-  },
+  input: Styles.platformStyles({
+    common: {
+      padding: 0,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+  }),
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
