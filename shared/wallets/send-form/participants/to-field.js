@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
+import {isLargeScreen} from '../../../constants/platform'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import type {Account} from '.'
@@ -18,6 +19,8 @@ type ToKeybaseUserProps = {|
   onChangeRecipient: string => void,
   onScanQRCode: ?() => void,
 |}
+
+const placeholderExample = isLargeScreen ? 'Ex: G12345... or you*example.com' : 'G12.. or you*example.com'
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
@@ -106,8 +109,8 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
       dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
       style={styles.toStellarPublicKey}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={true} style={styles.inputInner}>
+      <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
           <Kb.Icon
             type={
               this.state.recipientPublicKey.length === 0 || this.props.errorMessage
@@ -131,6 +134,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
             />
             {!this.state.recipientPublicKey && (
               <Kb.ClickableBox
+                activeOpacity={1}
                 onClick={this._onFocus}
                 style={Styles.collapseStyles([
                   Styles.globalStyles.fillAbsolute,
@@ -151,7 +155,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
                   lineClamp={1}
                   ellipsizeMode="middle"
                 >
-                  Ex: G12345... or you*example.com
+                  {placeholderExample}
                 </Kb.Text>
               </Kb.ClickableBox>
             )}
@@ -290,12 +294,17 @@ const styles = Styles.styleSheetCreate({
   heading: {
     alignSelf: 'flex-start',
   },
-  inputBox: {flexGrow: 1},
-  inputInner: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    position: 'relative',
-  },
+  inputBox: Styles.platformStyles({isElectron: {flexGrow: 1}, isMobile: {flex: 1}}),
+  inputInner: Styles.platformStyles({
+    common: {
+      alignItems: 'flex-start',
+      flex: 1,
+      position: 'relative',
+    },
+    isElectron: {
+      flexShrink: 0,
+    },
+  }),
   input: Styles.platformStyles({
     common: {
       padding: 0,
