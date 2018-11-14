@@ -31,8 +31,10 @@ class BigTeamChannel extends PureComponent<Props, State> {
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Kb.Box style={styles.rowContainer}>
-          <Kb.Box
+          <Kb.Box2
             className="hover_background_color_blueGrey2"
+            direction="horizontal"
+            fullWidth={true}
             style={Styles.collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
@@ -61,7 +63,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
             )}
             {this.props.hasBadge && <UnreadIcon />}
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box>
       </Kb.ClickableBox>
     )
@@ -107,8 +109,8 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
-      maxWidth: '212px',
-      width: '100%',
+      // maxWidth: '212px',
+      // width: '100%',
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
