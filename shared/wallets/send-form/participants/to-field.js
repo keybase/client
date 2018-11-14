@@ -76,6 +76,7 @@ type ToStellarPublicKeyProps = {|
   onChangeRecipient: string => void,
   onScanQRCode: ?() => void,
   setReadyToSend: boolean => void,
+  keyCounter: number,
 |}
 
 type ToStellarPublicKeyState = {|
