@@ -60,7 +60,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
 }
 
 const Connected = compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
   safeSubmitPerMount(['onBack'])
 )(Devices)
 

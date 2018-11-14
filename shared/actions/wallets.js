@@ -156,7 +156,10 @@ const sendPayment = (state: TypedState) => {
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 }
 
-const setLastSentXLM = (state: TypedState, action: WalletsGen.SentPaymentPayload) =>
+const setLastSentXLM = (
+  state: TypedState,
+  action: WalletsGen.SentPaymentPayload | WalletsGen.RequestedPaymentPayload
+) =>
   Saga.put(
     WalletsGen.createSetLastSentXLM({
       lastSentXLM: action.payload.lastSentXLM,
@@ -178,7 +181,13 @@ const requestPayment = (state: TypedState) =>
       note: state.wallets.building.secretNote.stringValue(),
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
+  ).then(kbRqID =>
+    WalletsGen.createRequestedPayment({
+      kbRqID: new HiddenString(kbRqID),
+      lastSentXLM: state.wallets.building.currency === 'XLM',
+      requestee: state.wallets.building.to,
+    })
+  )
 
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 const clearBuiltRequest = () => Saga.put(WalletsGen.createClearBuiltRequest())
@@ -526,7 +535,7 @@ const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayloa
     .catch(err => logger.error(`Error cancelling request: ${err.message}`))
 }
 
-const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.AbandonPaymentPayload) => {
+const maybeNavigateAwayFromSendForm = (state: TypedState, _) => {
   const routeState = state.routeTree.routeState
   const path = getPath(routeState)
   const lastNode = path.last()
@@ -540,6 +549,20 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
     const pathAboveForm = path.slice(0, firstFormIndex)
     return Saga.put(Route.navigateTo(pathAboveForm))
   }
+}
+
+const maybeNavigateToConversation = (state: TypedState, action: WalletsGen.RequestedPaymentPayload) => {
+  // nav to previewed conversation if we aren't already on the chat tab
+  const routeState = state.routeTree.routeState
+  const path = getPath(routeState)
+  if (path.first() === Tabs.chatTab) {
+    return maybeNavigateAwayFromSendForm(state, action)
+  }
+  // not on chat tab; preview
+  logger.info('Navigating to conversation because we requested a payment')
+  return Saga.put(
+    Chat2Gen.createPreviewConversation({participants: [action.payload.requestee], reason: 'requestedPayment'})
+  )
 }
 
 const setupEngineListeners = () => {
@@ -684,7 +707,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
-  yield Saga.actionToAction(WalletsGen.sentPayment, setLastSentXLM)
+  yield Saga.actionToAction([WalletsGen.sentPayment, WalletsGen.requestedPayment], setLastSentXLM)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
@@ -694,7 +717,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuilding)
   yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltRequest)
-  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateAwayFromSendForm)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, maybeNavigateToConversation)
 
   // Effects of abandoning payments
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuilding)

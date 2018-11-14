@@ -4,6 +4,8 @@ import About from './about'
 import {HeaderHoc} from '../common-adapters'
 import {version} from '../constants/platform'
 
+type OwnProps = Container.RouteProps<{}, {}>
+
 const mapStateToProps = () => ({version})
 const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
   onBack: () => dispatch(navigateUp()),
@@ -26,7 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
 })
 
 const connectedHeaderHoc = Container.compose(
-  Container.connect(
+  Container.connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

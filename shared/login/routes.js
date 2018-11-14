@@ -7,8 +7,10 @@ import Loading from './loading/container'
 import Relogin from './relogin/container'
 import provisonRoutes from '../provision/routes'
 import signupRoutes from './signup/routes'
-import {connect} from '../util/container'
+import {connect, type RouteProps} from '../util/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => {
   const showLoading = state.config.daemonHandshakeState !== 'done'
@@ -26,7 +28,7 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
-const RootLogin = connect(
+const RootLogin = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})

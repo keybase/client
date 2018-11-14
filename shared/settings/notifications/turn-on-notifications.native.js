@@ -5,6 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
 const notificationMonster = require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')
 
 export type Props = {
@@ -55,7 +56,7 @@ const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(PushGen.createRequestPermissions()),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

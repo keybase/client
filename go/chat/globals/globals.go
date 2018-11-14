@@ -24,6 +24,7 @@ type ChatContext struct {
 	AttachmentUploader  types.AttachmentUploader  // upload attachments
 	NativeVideoHelper   types.NativeVideoHelper   // connection to native for doing things with video
 	StellarLoader       types.StellarLoader       // stellar payment/request loader
+	Unfurler            types.Unfurler            // unfurl messages with URLs
 }
 
 type Context struct {

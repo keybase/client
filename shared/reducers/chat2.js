@@ -367,7 +367,11 @@ const rootReducer = (
             action.payload.conversationIDKey,
             Constants.makeConversationMeta()
           )
-
+          logger.info(
+            `rootReducer: selectConversation: setting orange line: convID: ${
+              action.payload.conversationIDKey
+            } max: ${maxMsgID} read: ${readMsgID}`
+          )
           if (maxMsgID > readMsgID) {
             // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
             s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
@@ -548,7 +552,17 @@ const rootReducer = (
         return null
       }
 
-      const messageOrdinals = oldMessageOrdinals.withMutations(
+      let messageOrdinals = oldMessageOrdinals.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
+              set.subtract(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageOrdinals = messageOrdinals.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -583,16 +597,23 @@ const rootReducer = (
 
             map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
               // add new ones, remove deleted ones, sort
-              set
-                .concat(ordinals)
-                .subtract(convoToDeletedOrdinals[cid])
-                .sort()
+              set.concat(ordinals).sort()
             )
           })
         }
       )
 
-      const messageMap = oldMessageMap.withMutations(
+      let messageMap = oldMessageMap.withMutations(
+        (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
+          Object.keys(convoToDeletedOrdinals).forEach(cid => {
+            const conversationIDKey = Types.stringToConversationIDKey(cid)
+            map.update(conversationIDKey, (m = I.Map()) =>
+              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
+            )
+          })
+        }
+      )
+      messageMap = messageMap.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
           Object.keys(convoToMessages).forEach(cid => {
             const conversationIDKey = Types.stringToConversationIDKey(cid)
@@ -611,11 +632,6 @@ const rootReducer = (
               }
               map.setIn([conversationIDKey, toSet.ordinal], toSet)
             })
-
-            // remove deleted
-            map.update(conversationIDKey, (m = I.Map()) =>
-              m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
-            )
           })
         }
       )

@@ -12,6 +12,8 @@ export type ConnectedNameWithIconProps = {|
   onClick?: 'tracker' | 'profile',
 |}
 
+type OwnProps = ConnectedNameWithIconProps
+
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
@@ -51,8 +53,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
   }
 }
 
-const ConnectedNameWithIcon = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NameWithIcon')(
-  NameWithIcon
-)
+const ConnectedNameWithIcon = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'NameWithIcon'
+)(NameWithIcon)
 
 export default ConnectedNameWithIcon

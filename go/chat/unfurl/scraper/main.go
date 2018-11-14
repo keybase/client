@@ -25,7 +25,7 @@ func main() {
 	scraper := unfurl.NewScraper(logger)
 	res, err := scraper.Scrape(context.TODO(), url)
 	if err != nil {
-		fmt.Printf("error scraping URL: %s\n", err)
+		fmt.Printf("error scraping URL: %v\n", err)
 		os.Exit(3)
 	}
 	fmt.Printf("%s\n", res)

@@ -56,11 +56,20 @@ func TestGregorHandler(t *testing.T) {
 	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
 
+	h.PushHandler(newKBFSFavoritesHandler(tc.G))
+
 	m := gregor1.Message{
-		Oobm_: &gregor1.OutOfBandMessage{
-			Uid_:    gUID,
-			System_: "kbfs.favorites",
-			Body_:   gregor1.Body(`{"action": "delete", "tlf":"/private/t_alice,t_bob"}`),
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					Uid_:   gUID,
+					MsgID_: newMsgID(),
+				},
+				Creation_: &gregor1.Item{
+					Category_: "kbfs.favorites",
+					Body_:     gregor1.Body(`{"action": "delete", "tlf":"/private/t_alice,t_bob"}`),
+				},
+			},
 		},
 	}
 

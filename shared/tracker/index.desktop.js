@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import Header from './header.desktop'
 import Action, {calcFooterHeight} from './action.desktop'
 import {Avatar, Box, Meta, Text, UserBio, UserProofs} from '../common-adapters'
@@ -12,7 +12,7 @@ import TrackerError from './error.desktop'
 
 import type {Props} from '.'
 
-export default class TrackerRender extends PureComponent<Props> {
+export default class TrackerRender extends React.PureComponent<Props> {
   componentDidMount() {
     autoResize()
   }

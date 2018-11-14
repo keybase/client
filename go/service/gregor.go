@@ -1224,8 +1224,6 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 
 	switch obm.System().String() {
-	case "kbfs.favorites":
-		return g.kbfsFavorites(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1256,37 +1254,6 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
 	return g.resetGregorClient(context.TODO())
-}
-
-func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
-	if m.Body() == nil {
-		return errors.New("gregor handler for kbfs.favorites: nil message body")
-	}
-	body, err := jsonw.Unmarshal(m.Body().Bytes())
-	if err != nil {
-		return err
-	}
-
-	action, err := body.AtPath("action").GetString()
-	if err != nil {
-		return err
-	}
-
-	switch action {
-	case "create", "delete":
-		return g.notifyFavoritesChanged(ctx, m.UID())
-	default:
-		return fmt.Errorf("unhandled kbfs.favorites action %q", action)
-	}
-}
-
-func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.UID) error {
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
-	if err != nil {
-		return err
-	}
-	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
-	return nil
 }
 
 type loggedInRes int

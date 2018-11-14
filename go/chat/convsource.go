@@ -76,12 +76,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
 	pp := attachments.NewPendingPreviews(s.G())
 	for index, m := range thread.Messages {
-		typ, err := m.State()
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to get state: %s", err)
-			continue
-		}
-		if typ != chat1.MessageUnboxedState_OUTBOX {
+		if !m.IsOutbox() {
 			continue
 		}
 		obr := m.Outbox()
@@ -549,6 +544,15 @@ func (s *HybridConversationSource) completeAttachmentUpload(ctx context.Context,
 	}
 }
 
+func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_UNFURL {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			s.G().Unfurler.Complete(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -589,6 +593,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
+	// complete any active unfurl
+	s.completeUnfurl(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -1097,8 +1103,59 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
+func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	updatedMsgs := make(map[chat1.MessageID]bool)
+	// Gather up all the messages affected by these unfurls with the purpose of
+	// computing the new unfurls for each one. Once we have them all, we send that to the UI
+	// so it can replace whatever it has in the store.
+	for _, msg := range msgs {
+		if !msg.IsValid() || msg.Valid().ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
+			continue
+		}
+		body := msg.Valid().MessageBody
+		if typ, err := body.MessageType(); err != nil || typ != chat1.MessageType_UNFURL {
+			continue
+		}
+		updatedMsgs[body.Unfurl().MessageID] = true
+	}
+	if len(updatedMsgs) == 0 {
+		return
+	}
+	s.Debug(ctx, "notifyUnfurls: fetching %d messages", len(updatedMsgs))
+	var msgIDs []chat1.MessageID
+	for msgID := range updatedMsgs {
+		msgIDs = append(msgIDs, msgID)
+	}
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		return
+	}
+	unfurledMsgs, err := s.GetMessages(ctx, conv, uid, msgIDs, nil)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: fails to get messages to notify: %s", err)
+		return
+	}
+	if unfurledMsgs, err = s.TransformSupersedes(ctx, conv, uid, unfurledMsgs); err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
+		return
+	}
+	var notif chat1.UnfurlUpdateNotifs
+	for _, msg := range unfurledMsgs {
+		notif.Updates = append(notif.Updates, chat1.UnfurlUpdateNotif{
+			ConvID: convID,
+			Msg:    utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID),
+		})
+	}
+	act := chat1.NewChatActivityWithMessageUnfurled(notif)
+	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+		&act, chat1.ChatActivitySource_LOCAL)
+}
+
 // notifyReactionUpdates notifies the GUI after reactions are received
-func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
@@ -1125,7 +1182,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})
-			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_LOCAL)
+			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity,
+				chat1.ChatActivitySource_LOCAL)
 		}
 	}
 }
@@ -1188,6 +1246,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
+	s.notifyUnfurls(ctx, uid, convID, msgs)
 	return nil
 }
 
