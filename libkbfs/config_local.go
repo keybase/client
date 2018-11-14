@@ -1519,7 +1519,21 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			deleteBatch.Delete(iter.Key())
 			continue
 		}
-		syncedTlfs[tlfID] = true
+		var config keybase1.FolderSyncConfig
+		val := iter.Value()
+		if val != nil {
+			err = c.codec.Decode(val, &config)
+			if err != nil {
+				return err
+			}
+		} else {
+			// For backwards-compatibility, consider a nil value to
+			// mean "enabled".
+			config.Mode = keybase1.FolderSyncMode_ENABLED
+		}
+		if config.Mode == keybase1.FolderSyncMode_ENABLED {
+			syncedTlfs[tlfID] = true
+		}
 	}
 	c.syncedTlfs = syncedTlfs
 	return ldb.Write(deleteBatch, nil)
@@ -1566,7 +1580,14 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
 			if cancel, ok := c.tlfClearCancels[tlfID]; ok {
 				cancel()
 			}
-			err = ldb.Put(tlfBytes, nil, nil)
+			config := keybase1.FolderSyncConfig{
+				Mode: keybase1.FolderSyncMode_ENABLED,
+			}
+			buf, err := c.codec.Encode(&config)
+			if err != nil {
+				return nil, err
+			}
+			err = ldb.Put(tlfBytes, buf, nil)
 		} else {
 			err = ldb.Delete(tlfBytes, nil)
 		}
