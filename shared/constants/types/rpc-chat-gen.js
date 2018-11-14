@@ -218,6 +218,13 @@ export const localPreviewLocationTyp = {
   bytes: 2,
 }
 
+export const localUnfurlPromptAction = {
+  always: 0,
+  never: 1,
+  accept: 2,
+  notnow: 3,
+}
+
 export const notifyChatChatActivitySource = {
   local: 0,
   remote: 1,

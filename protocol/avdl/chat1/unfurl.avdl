@@ -47,6 +47,11 @@ protocol unfurl {
       case YOUTUBE: UnfurlYoutube;
     }
 
+    record UnfurlResult {
+        Unfurl unfurl;
+        string url;
+    }
+
     record UnfurlImageDisplay {
         string url;
         int height;
@@ -70,7 +75,7 @@ protocol unfurl {
     variant UnfurlDisplay switch (UnfurlType unfurlType) {
         case GENERIC: UnfurlGenericDisplay;
         case YOUTUBE: UnfurlYoutubeDisplay;
-    }   
+    }
 
     enum UnfurlMode {
       ALWAYS_0,

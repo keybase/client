@@ -2286,3 +2286,63 @@ func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, e
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, nil
 }
+
+func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfurlPromptArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	defer func() {
+		// squash all errors coming out of here
+		err = nil
+	}()
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ResolveUnfurlPrompt")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	fetchAndUnfurl := func() error {
+		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, true)
+		if err != nil {
+			return err
+		}
+		msgs, err := h.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{arg.MsgID}, nil)
+		if err != nil {
+			return err
+		}
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		if err != nil {
+			return err
+		}
+		if len(msgs) != 1 {
+			return errors.New("message not found")
+		}
+		h.G().Unfurler.UnfurlAndSend(ctx, uid, arg.ConvID, msgs[0])
+		return nil
+	}
+	atyp, err := arg.Result.ActionType()
+	if err != nil {
+		return err
+	}
+	switch atyp {
+	case chat1.UnfurlPromptAction_NOTNOW:
+		// do nothing
+	case chat1.UnfurlPromptAction_ACCEPT:
+		if err = h.G().Unfurler.WhitelistAdd(ctx, uid, arg.Result.Accept()); err != nil {
+			return fmt.Errorf("failed to add to whitelist, doing nothing: %s", err)
+		}
+		if err = fetchAndUnfurl(); err != nil {
+			return fmt.Errorf("failed to fetch and unfurl: %s", err)
+		}
+	case chat1.UnfurlPromptAction_NEVER:
+		if err = h.G().Unfurler.SetMode(ctx, uid, chat1.UnfurlMode_NEVER); err != nil {
+			return fmt.Errorf("failed to set mode to never: %s", err)
+		}
+	case chat1.UnfurlPromptAction_ALWAYS:
+		if err = h.G().Unfurler.SetMode(ctx, uid, chat1.UnfurlMode_ALWAYS); err != nil {
+			return fmt.Errorf("failed to set mode to always: %s", err)
+		}
+		if err = fetchAndUnfurl(); err != nil {
+			return fmt.Errorf("failed to fetch and unfurl: %s", err)
+		}
+	}
+	return nil
+}

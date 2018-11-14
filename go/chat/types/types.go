@@ -293,8 +293,24 @@ type DummyUnfurler struct{}
 func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 }
-func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error) {
+func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error) {
 	return UnfurlerTaskStatusFailed, nil, nil
 }
 func (d DummyUnfurler) Retry(ctx context.Context, outboxID chat1.OutboxID)    {}
 func (d DummyUnfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {}
+
+func (d DummyUnfurler) GetSettings(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
+	return res, nil
+}
+
+func (d DummyUnfurler) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error {
+	return nil
+}
