@@ -5,8 +5,7 @@ import {
   Box,
   Box2,
   ButtonBar,
-  ClickableBox,
-  Dropdown,
+  DropdownButton,
   Input,
   PopupDialog,
   Text,
@@ -14,7 +13,6 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {capitalize} from 'lodash-es'
-import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {DesktopProps as Props} from '.'
 
@@ -31,8 +29,6 @@ const _makeDropdownItem = (item: string) => (
     <Text type="BodyBig">{capitalize(item)}</Text>
   </Box>
 )
-
-const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
 
 type State = {
   invitees: string,
@@ -92,21 +88,11 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               <Text style={{margin: globalMargins.tiny}} type="Body">
                 Add these team members to {props.name} as:
               </Text>
-              <ClickableBox
-                onClick={() => props.onOpenRolePicker(this.state.role, this._setRole)}
-                underlayColor={globalColors.transparent}
-              >
-                <Dropdown
-                  items={_makeDropdownItems()}
-                  selected={_makeDropdownItem(this.state.role)}
-                  onChanged={(node: React.Node) => {
-                    // $FlowIssue doesn't understand key will be string
-                    const selectedRole: TeamRoleType = (node && node.key) || null
-                    this._setRole(selectedRole)
-                  }}
-                  style={{width: 100}}
-                />
-              </ClickableBox>
+              <DropdownButton
+                toggleOpen={() => props.onOpenRolePicker(this.state.role, this._setRole)}
+                selected={_makeDropdownItem(this.state.role)}
+                style={{width: 100}}
+              />
             </Box>
             <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
               Enter multiple email addresses, separated by commas
