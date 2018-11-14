@@ -30,27 +30,30 @@ const RemoveAccountPopup = (props: Props) => {
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
-      <Kb.Text style={styles.warningText} type="Header">
-        Are you sure you want to remove{' '}
-      </Kb.Text>
-      <Kb.Text type="HeaderItalic" style={styles.warningText}>
-        {props.name}
-      </Kb.Text>
-      <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])} type="Header">
-        {' '}
-        from Keybase?
-      </Kb.Text>
-      <Kb.Text type="BodySmall">Balance:</Kb.Text>
-      <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+        <Kb.Text style={styles.warningText} type="Header">
+          Are you sure you want to remove{' '}
+        </Kb.Text>
+        <Kb.Text type="HeaderItalic" style={styles.warningText}>
+          {props.name}
+        </Kb.Text>
+        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])} type="Header">
+          {' '}
+          from Keybase?
+        </Kb.Text>
+        <Kb.Text type="BodySmall">Balance:</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  flexOne: {flex: 1},
   header: {
     borderBottomWidth: 0,
   },
@@ -76,8 +79,8 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
     isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })

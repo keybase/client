@@ -21,7 +21,7 @@ const load = () => {
         isDefaultAccount={false}
         onClose={Sb.action('onClose')}
         onRequest={Sb.action('onRequest')}
-        stellarAddress="G33T5671ASCZZX09235678ASQ511U12O91AQ"
+        stellarAddress="G23T5671ASCZZX09235678ASQ511U12O91AQ"
       />
     ))
 }

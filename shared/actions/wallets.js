@@ -24,8 +24,12 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) =>
-  (state.wallets.building.isRequest
+const buildPayment = (state: TypedState, action: any) => {
+  if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
+    // didn't change state.building; no need to call build
+    return
+  }
+  return (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
         {
           amount: state.wallets.building.amount,
@@ -68,6 +72,7 @@ const buildPayment = (state: TypedState, action: any) =>
       throw error
     }
   })
+}
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
   state.wallets.acceptedDisclaimer
@@ -330,9 +335,12 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   if (accountID && !Types.isValidAccountID(accountID)) {
     accountID = null
   }
-  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise({
-    accountID: accountID,
-  }).then(res =>
+  return RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise(
+    {
+      accountID: accountID,
+    },
+    Constants.getDisplayCurrencyWaitingKey(accountID || Types.noAccountID)
+  ).then(res =>
     WalletsGen.createDisplayCurrencyReceived({
       accountID: accountID,
       currency: Constants.makeCurrencies(res),
@@ -418,7 +426,10 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
 
 const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccountNamePayload) => {
   const {name} = action.payload
-  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise({name})
+  return RPCStellarTypes.localValidateAccountNameLocalRpcPromise(
+    {name},
+    Constants.validateAccountNameWaitingKey
+  )
     .then(() => WalletsGen.createValidatedAccountName({name}))
     .catch(err => {
       logger.warn(`Error validating account name: ${err.desc}`)
@@ -428,7 +439,10 @@ const validateAccountName = (state: TypedState, action: WalletsGen.ValidateAccou
 
 const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretKeyPayload) => {
   const {secretKey} = action.payload
-  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise({secretKey: secretKey.stringValue()})
+  return RPCStellarTypes.localValidateSecretKeyLocalRpcPromise(
+    {secretKey: secretKey.stringValue()},
+    Constants.validateSecretKeyWaitingKey
+  )
     .then(() => WalletsGen.createValidatedSecretKey({secretKey}))
     .catch(err => {
       logger.warn(`Error validating secret key: ${err.desc}`)
@@ -618,15 +632,14 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
       )
     )
     .then(
-      action.payload.nextScreen === 'linkExisting'
-        ? Saga.put(
-            Route.navigateTo(
+      _ =>
+        action.payload.nextScreen === 'linkExisting'
+          ? Route.navigateTo(
               isMobile
                 ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
                 : [Tabs.walletsTab, 'wallet', 'linkExisting']
             )
-          )
-        : undefined
+          : undefined
     )
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
@@ -699,6 +712,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingFrom,
       WalletsGen.setBuildingIsRequest,
       WalletsGen.setBuildingTo,
+      WalletsGen.displayCurrencyReceived,
     ],
     buildPayment
   )

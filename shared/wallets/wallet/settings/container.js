@@ -16,7 +16,12 @@ const mapStateToProps = (state, {routeProps}) => {
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
-  const currencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+  const currencyWaiting = anyWaiting(
+    state,
+    Constants.changeDisplayCurrencyWaitingKey,
+    Constants.getDisplayCurrencyWaitingKey(accountID)
+  )
+  const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
 
   return {
     accountID,
@@ -25,6 +30,7 @@ const mapStateToProps = (state, {routeProps}) => {
     currencyWaiting,
     isDefault: account.isDefault,
     name,
+    saveCurrencyWaiting,
     user,
   }
 }

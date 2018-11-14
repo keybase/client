@@ -9,6 +9,27 @@ import type {Position} from './relative-popup-hoc'
 import Icon from './icon'
 import * as Styles from '../styles'
 
+type DropdownButtonProps = {
+  disabled?: boolean,
+  selected?: React.Node,
+  selectedBoxStyle?: Styles.StylesCrossPlatform,
+  setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
+  toggleOpen: () => void,
+}
+export const DropdownButton = (props: DropdownButtonProps) => (
+  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null}>
+    <ButtonBox disabled={props.disabled} ref={props.setAttachmentRef}>
+      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
+      <Icon
+        type="iconfont-caret-down"
+        inheritColor={true}
+        fontSize={Styles.isMobile ? 12 : 8}
+        style={{marginTop: Styles.isMobile ? 4 : -8}}
+      />
+    </ButtonBox>
+  </ClickableBox>
+)
+
 type Props = {
   onChanged: (selected: React.Node) => void,
   selected?: React.Node,
@@ -43,19 +64,13 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
   render() {
     return (
       <Box style={Styles.collapseStyles([{width: Styles.isMobile ? '100%' : 270}, this.props.style])}>
-        <ClickableBox onClick={!this.props.disabled ? this._toggleOpen : null}>
-          <ButtonBox disabled={this.props.disabled} ref={this.props.setAttachmentRef}>
-            <Box style={Styles.collapseStyles([styles.selectedBox, this.props.selectedBoxStyle])}>
-              {this.props.selected}
-            </Box>
-            <Icon
-              type="iconfont-caret-down"
-              inheritColor={true}
-              fontSize={Styles.isMobile ? 12 : 8}
-              style={{marginTop: Styles.isMobile ? 4 : -8}}
-            />
-          </ButtonBox>
-        </ClickableBox>
+        <DropdownButton
+          disabled={this.props.disabled}
+          selected={this.props.selected}
+          selectedBoxStyle={this.props.selectedBoxStyle}
+          setAttachmentRef={this.props.setAttachmentRef}
+          toggleOpen={this._toggleOpen}
+        />
         <Overlay
           style={styles.overlay}
           attachTo={this.props.getAttachmentRef}
