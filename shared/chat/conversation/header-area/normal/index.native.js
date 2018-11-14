@@ -88,6 +88,7 @@ const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
       <ConnectedUsernames
+        colorBroken={true}
         colorFollowing={true}
         inline={false}
         commaColor={globalColors.black_40}
