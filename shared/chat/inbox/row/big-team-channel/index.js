@@ -41,6 +41,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
             onMouseOver={this._onMouseOver}
           >
             <Kb.Text
+              lineClamp={1}
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
               style={
                 this.props.isError
