@@ -49,11 +49,6 @@ const startOnWalletsTab = dispatch => {
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
 
-const sendPaymentResult = {
-  kbTxID: 'fake transaction id',
-  pending: false,
-}
-
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
@@ -66,6 +61,10 @@ it('build and send payment', () => {
   })
 
   const sendRPC = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
+  const sendPaymentResult = {
+    kbTxID: 'fake transaction id',
+    pending: false,
+  }
   sendRPC.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
 
   dispatch(WalletsGen.createSendPayment())
