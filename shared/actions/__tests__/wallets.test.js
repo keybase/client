@@ -53,6 +53,12 @@ it('disclaimer', () => {
   // Still haven't accepted disclaimer.
   dispatch(WalletsGen.createOpenSendRequestForm({}))
   expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+
+  dispatch(WalletsGen.createRejectDisclaimer())
+
+  // Still haven't accepted disclaimer.
+  dispatch(WalletsGen.createOpenSendRequestForm({}))
+  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 })
 
 it('build and send payment', () => {
