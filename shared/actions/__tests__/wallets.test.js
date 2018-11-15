@@ -34,7 +34,7 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 
 const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.walletsTab])
 
-const buildPaymentRpc = {
+const buildPaymentRpc: RPCStellarTypes.BuildPaymentResLocal = {
   amountErrMsg: '',
   banners: null,
   displayAmountFiat: '$5.00 USD',
