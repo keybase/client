@@ -150,7 +150,7 @@ const stylesBackgroundBox = platformStyles({
 })
 
 const stylesBackgroundImage = {
-  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here.
+  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
   height: 160,
 }
 

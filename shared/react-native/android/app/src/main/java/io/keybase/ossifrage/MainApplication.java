@@ -14,6 +14,7 @@ import com.facebook.soloader.SoLoader;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
+import com.dylanvann.fastimage.FastImageViewPackage;
 import org.reactnative.camera.RNCameraPackage;
 
 import java.io.File;
@@ -70,7 +71,8 @@ public class MainApplication extends Application implements ReactApplication {
           new RNCameraPackage(),
           new ImagePickerPackage(),
           new RNFetchBlobPackage(),
-          new ReactNativeContacts()
+          new ReactNativeContacts(),
+          new FastImageViewPackage()
         );
       }
 
@@ -81,7 +83,8 @@ public class MainApplication extends Application implements ReactApplication {
               new RNCameraPackage(),
               new ImagePickerPackage(),
               new RNFetchBlobPackage(),
-              new ReactNativeContacts()
+              new ReactNativeContacts(),
+              new FastImageViewPackage()
       );
     }
 

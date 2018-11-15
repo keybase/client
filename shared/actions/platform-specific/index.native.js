@@ -179,27 +179,30 @@ const clearRouteState = () =>
     RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
   )
 
-const persistRouteState = (state: TypedState) => {
-  const routePath = getPath(state.routeTree.routeState)
-  const selectedTab = routePath.first()
-  if (Tabs.isValidInitialTabString(selectedTab)) {
-    const item = {
-      // in a conversation and not on the inbox
-      selectedConversationIDKey:
-        selectedTab === Tabs.chatTab && routePath.size > 1 ? state.chat2.selectedConversation : null,
-      tab: selectedTab,
-    }
+const persistRouteState = (state: TypedState) =>
+  Saga.call(function*() {
+    // Put a delay in case we go to a route and crash immediately
+    yield Saga.call(Saga.delay, 3000)
+    const routePath = getPath(state.routeTree.routeState)
+    const selectedTab = routePath.first()
+    if (Tabs.isValidInitialTabString(selectedTab)) {
+      const item = {
+        // in a conversation and not on the inbox
+        selectedConversationIDKey:
+          selectedTab === Tabs.chatTab && routePath.size > 1 ? state.chat2.selectedConversation : null,
+        tab: selectedTab,
+      }
 
-    return Saga.spawn(() =>
-      RPCTypes.configSetValueRpcPromise({
-        path: 'ui.routeState',
-        value: {isNull: false, s: JSON.stringify(item)},
-      }).catch(() => {})
-    )
-  } else {
-    return clearRouteState()
-  }
-}
+      yield Saga.spawn(() =>
+        RPCTypes.configSetValueRpcPromise({
+          path: 'ui.routeState',
+          value: {isNull: false, s: JSON.stringify(item)},
+        }).catch(() => {})
+      )
+    } else {
+      yield clearRouteState()
+    }
+  })
 
 const setupNetInfoWatcher = () =>
   Saga.call(function*() {
@@ -249,6 +252,9 @@ function* loadStartupDetails() {
         startupConversation = item.selectedConversationIDKey
         startupTab = item.tab
       }
+
+      // immediately clear route state in case this is a bad route
+      yield clearRouteState()
     } catch (_) {
       startupConversation = null
       startupTab = null

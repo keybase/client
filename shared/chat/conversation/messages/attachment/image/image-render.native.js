@@ -1,10 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  NativeImage,
-  NativeDimensions,
-  NativeWebView,
-} from '../../../../../common-adapters/native-wrappers.native'
+import * as Kb from '../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './image-render.types'
 
 export class ImageRender extends React.Component<Props> {
@@ -37,7 +33,7 @@ export class ImageRender extends React.Component<Props> {
         uri: `${this.props.videoSrc}&poster=${encodeURIComponent(this.props.src)}`,
       }
       return (
-        <NativeWebView
+        <Kb.NativeWebView
           allowsInlineMediaPlayback={true}
           useWebKit={true}
           ref={ref => {
@@ -51,7 +47,7 @@ export class ImageRender extends React.Component<Props> {
       )
     }
     return (
-      <NativeImage
+      <Kb.NativeFastImage
         onLoad={this.props.onLoad}
         source={{uri: this.props.src}}
         style={this.props.style}
@@ -62,6 +58,6 @@ export class ImageRender extends React.Component<Props> {
 }
 
 export function imgMaxWidth() {
-  const {width: maxWidth} = NativeDimensions.get('window')
+  const {width: maxWidth} = Kb.NativeDimensions.get('window')
   return Math.min(320, maxWidth - 60)
 }
