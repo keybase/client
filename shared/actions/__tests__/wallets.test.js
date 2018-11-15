@@ -50,19 +50,23 @@ const startOnWalletsTab = dispatch => {
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
 
 describe('build payment', () => {
-  let init
-  beforeEach(() => {
-    init = startReduxSaga()
-  })
-
-  let rpc
-  afterEach(() => {
-    rpc && rpc.mockRestore()
-  })
-
   it('basic', () => {
-    const {dispatch, getState} = init
-    rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+    const {dispatch, getState} = startReduxSaga()
+    const rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
+
+    dispatch(WalletsGen.createBuildPayment())
+    return Testing.flushPromises().then(() => {
+      expect(getState().wallets.builtPayment).toEqual(builtPayment)
+      expect(rpc).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('send payment', () => {
+  it('basic', () => {
+    const {dispatch, getState} = startReduxSaga()
+    const rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
     rpc.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
 
     dispatch(WalletsGen.createBuildPayment())
