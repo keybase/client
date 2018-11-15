@@ -14,7 +14,6 @@ type Size = 'small' | 'default' | 'large'
 export type NameWithIconProps = {|
   avatarSize?: AvatarSize,
   avatarStyle?: Styles.StylesCrossPlatform,
-  colorBroken?: boolean,
   colorFollowing?: boolean,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
@@ -96,7 +95,6 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         inline={!this.props.horizontal}
         underline={this.props.underline}
         usernames={[this.props.username]}
-        colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
       />
     ) : (
