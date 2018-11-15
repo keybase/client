@@ -777,6 +777,13 @@ func (c connectionClient) Call(ctx context.Context, s string, args interface{}, 
 	})
 }
 
+func (c connectionClient) CallCompressed(ctx context.Context, s string,
+	args interface{}, res interface{}, ctype CompressionType) error {
+	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
+		return rawClient.CallCompressed(ctx, s, args, res, ctype)
+	})
+}
+
 func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
 		return rawClient.Notify(ctx, s, args)
