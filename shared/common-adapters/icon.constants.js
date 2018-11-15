@@ -1716,6 +1716,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-zcash-logo-64.png'),
   },
+  'icon-fancy-unfurl-preview-mobile-128-128': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
+  },
+  'icon-fancy-unfurl-preview-desktop-96-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png'),
+  },
   'iconfont-add': {
     isFont: true,
     gridSize: 16,

@@ -1,3 +1,4 @@
+// @flow
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
@@ -10,10 +11,15 @@ export type Props = {
   onNever: () => void,
 }
 
+const promptIcon = Styles.isMobile
+  ? 'icon-fancy-unfurl-preview-mobile-128-128'
+  : 'icon-fancy-unfurl-preview-desktop-96-96'
+
 class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
     return (
-      <Kb.Box2 style={styles.container}>
+      <Kb.Box2 direction="horizontal" style={styles.container}>
+        <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />
         <Kb.Box2 direction="vertical" style={styles.choiceContainer}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
@@ -23,14 +29,14 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           <Kb.Text onClick={this.props.onAccept} type="BodyPrimaryLink">
             Always, for {this.props.domain}.
           </Kb.Text>
-          <Kb.Text onClick={this.props.onNownow} type="BodyPrimaryLink">
+          <Kb.Text onClick={this.props.onNotnow} type="BodyPrimaryLink">
             Not now.
           </Kb.Text>
           <Kb.Text onClick={this.props.onNever} type="BodyPrimaryLink">
             Never, for any site.
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 fullHeight={true} style={styles.closeContainer}>
+        <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
           <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} />
         </Kb.Box2>
       </Kb.Box2>
@@ -45,13 +51,19 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
     paddingTop: 8,
     paddingBottom: 8,
-    width: 400,
   },
   choiceContainer: {
     width: 370,
   },
   closeContainer: {
     width: 30,
+    marginLeft: 'auto',
+    alignSelf: 'flex-start',
+  },
+  icon: {
+    alignSelf: 'center',
+    marginRight: 16,
+    marginLeft: 16,
   },
 })
 
