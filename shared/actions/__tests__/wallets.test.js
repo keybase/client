@@ -54,10 +54,14 @@ const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
 it('disclaimer', () => {
   const {dispatch, getState} = startReduxSaga()
 
+  const assertRedirectToDisclaimer = () => {
+    dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
+    expect(getState().wallets.building.to).toEqual('')
+    expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+  }
+
   // Not yet accepted disclaimer.
-  dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
-  expect(getState().wallets.building.to).toEqual('')
-  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+  assertRedirectToDisclaimer()
 
   const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
   checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
@@ -69,14 +73,12 @@ it('disclaimer', () => {
       expect(checkRPC).toHaveBeenCalled()
 
       // Still haven't accepted disclaimer.
-      dispatch(WalletsGen.createOpenSendRequestForm({}))
-      expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+      assertRedirectToDisclaimer()
 
       dispatch(WalletsGen.createRejectDisclaimer())
 
       // Still haven't accepted disclaimer.
-      dispatch(WalletsGen.createOpenSendRequestForm({}))
-      expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+      assertRedirectToDisclaimer()
 
       const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
       acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
