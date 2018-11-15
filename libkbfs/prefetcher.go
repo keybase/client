@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/eapache/channels"
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
@@ -69,16 +70,26 @@ func (p *prefetch) Close() {
 	p.cancel()
 }
 
+type rescheduledPrefetch struct {
+	off   backoff.BackOff
+	timer *time.Timer
+}
+
 type blockPrefetcher struct {
 	ctx    context.Context
 	config prefetcherConfig
 	log    logger.Logger
+
+	makeNewBackOff func() backoff.BackOff
+
 	// blockRetriever to retrieve blocks from the server
 	retriever BlockRetriever
 	// channel to request prefetches
 	prefetchRequestCh channels.Channel
 	// channel to cancel prefetches
 	prefetchCancelCh channels.Channel
+	// channel to reschedule prefetches
+	prefetchRescheduleCh channels.Channel
 	// channel to allow synchronization on completion
 	inFlightFetches channels.Channel
 	// protects shutdownCh
@@ -93,27 +104,36 @@ type blockPrefetcher struct {
 	doneCh chan struct{}
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
+	// map to store backoffs for rescheduling top blocks
+	rescheduled map[kbfsblock.ID]*rescheduledPrefetch
 	// channel that's always closed, to avoid overhead on certain requests
 	closedCh <-chan struct{}
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
+func defaultBackOffForPrefetcher() backoff.BackOff {
+	return backoff.NewExponentialBackOff()
+}
+
 func newBlockPrefetcher(retriever BlockRetriever,
 	config prefetcherConfig, testSyncCh <-chan struct{}) *blockPrefetcher {
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
-		config:            config,
-		retriever:         retriever,
-		prefetchRequestCh: NewInfiniteChannelWrapper(),
-		prefetchCancelCh:  NewInfiniteChannelWrapper(),
-		inFlightFetches:   NewInfiniteChannelWrapper(),
-		shutdownCh:        make(chan struct{}),
-		almostDoneCh:      make(chan struct{}, 1),
-		doneCh:            make(chan struct{}),
-		prefetches:        make(map[kbfsblock.ID]*prefetch),
-		closedCh:          closedCh,
+		config:               config,
+		makeNewBackOff:       defaultBackOffForPrefetcher,
+		retriever:            retriever,
+		prefetchRequestCh:    NewInfiniteChannelWrapper(),
+		prefetchCancelCh:     NewInfiniteChannelWrapper(),
+		prefetchRescheduleCh: NewInfiniteChannelWrapper(),
+		inFlightFetches:      NewInfiniteChannelWrapper(),
+		shutdownCh:           make(chan struct{}),
+		almostDoneCh:         make(chan struct{}, 1),
+		doneCh:               make(chan struct{}),
+		prefetches:           make(map[kbfsblock.ID]*prefetch),
+		rescheduled:          make(map[kbfsblock.ID]*rescheduledPrefetch),
+		closedCh:             closedCh,
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -196,6 +216,8 @@ func (p *blockPrefetcher) completePrefetch(
 		}
 		if pp.subtreeBlockCount == 0 {
 			delete(p.prefetches, blockID)
+			p.clearRescheduleState(blockID)
+			delete(p.rescheduled, blockID)
 			defer pp.Close()
 			b := pp.req.block.NewEmpty()
 			// TODO: after we split out priority from whether to prefetch, make
@@ -228,18 +250,22 @@ func (p *blockPrefetcher) decrementPrefetch(_ kbfsblock.ID, pp *prefetch) {
 	}
 }
 
+func (p *blockPrefetcher) clearRescheduleState(blockID kbfsblock.ID) {
+	rp, ok := p.rescheduled[blockID]
+	if !ok {
+		return
+	}
+	if rp.timer != nil {
+		rp.timer.Stop()
+		rp.timer = nil
+	}
+}
+
 func (p *blockPrefetcher) cancelPrefetch(blockID kbfsblock.ID, pp *prefetch) {
 	delete(p.prefetches, blockID)
 	pp.Close()
-}
-
-func (p *blockPrefetcher) isShutdown() bool {
-	select {
-	case <-p.shutdownCh:
-		return true
-	default:
-		return false
-	}
+	p.clearRescheduleState(blockID)
+	delete(p.rescheduled, blockID)
 }
 
 // shutdownLoop tracks in-flight requests
@@ -425,6 +451,68 @@ func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
 	return numBlocks, isTail, nil
 }
 
+func (p *blockPrefetcher) rescheduleTopBlock(
+	blockID kbfsblock.ID, pp *prefetch, req *prefetchRequest) {
+	if len(pp.parents) > 0 {
+		p.cancelPrefetch(blockID, pp)
+		return
+	}
+
+	pre := p.prefetches[blockID]
+	delete(p.prefetches, blockID)
+	pp.Close()
+
+	// Only reschedule the top-most block, which has no parents.
+	rp, ok := p.rescheduled[blockID]
+	if !ok {
+		rp = &rescheduledPrefetch{
+			off: p.makeNewBackOff(),
+		}
+		p.rescheduled[blockID] = rp
+	}
+
+	if rp.timer != nil {
+		// Prefetch already scheduled.
+		return
+	}
+	req.ptr = BlockPointer{ID: blockID}
+	req.block = pre.req.block.NewEmpty()
+	d := rp.off.NextBackOff()
+	if d == backoff.Stop {
+		p.log.Debug("Stopping rescheduling of %s due to stopped backoff timer",
+			blockID)
+		return
+	}
+	p.log.Debug("Rescheduling prefetch of %s in %s", blockID, d)
+	rp.timer = time.AfterFunc(d, func() {
+		p.triggerPrefetch(req)
+	})
+}
+
+func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
+	select {
+	case p.prefetchRescheduleCh.In() <- req:
+	case <-p.shutdownCh:
+		p.log.Warning("Skipping prefetch reschedule for block %v since "+
+			"the prefetcher is shutdown", req.ptr.ID)
+	}
+}
+
+func (p *blockPrefetcher) rescheduleIfNeeded(
+	ctx context.Context, req *prefetchRequest) (rescheduled bool) {
+	dbc := p.config.DiskBlockCache()
+	if req.isDeepSync && dbc != nil {
+		if !dbc.DoesSyncCacheHaveSpace(ctx) {
+			// If the sync cache is close to full, cancel prefetches.
+			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
+				"full sync cache.", req.ptr.ID)
+			p.reschedulePrefetch(req)
+			return true
+		}
+	}
+	return false
+}
+
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> {c, d}, e -> {f, g}}:
@@ -466,6 +554,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		close(p.doneCh)
 		p.prefetchRequestCh.Close()
 		p.prefetchCancelCh.Close()
+		p.prefetchRescheduleCh.Close()
 		p.inFlightFetches.Close()
 	}()
 	isShuttingDown := false
@@ -474,7 +563,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		if isShuttingDown {
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
-				p.prefetchCancelCh.Len() == 0 {
+				p.prefetchCancelCh.Len() == 0 &&
+				p.prefetchRescheduleCh.Len() == 0 {
 				return
 			}
 		} else if testSyncCh != nil {
@@ -496,6 +586,19 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			p.log.Debug("canceling prefetch for block %s", blockID)
 			// Walk up the block tree and delete every parent.
 			p.applyToParentsRecursive(p.cancelPrefetch, blockID, pre)
+		case reqInt := <-p.prefetchRescheduleCh.Out():
+			req := reqInt.(*prefetchRequest)
+			blockID := req.ptr.ID
+			pre, ok := p.prefetches[blockID]
+			if !ok {
+				pre = p.newPrefetch(1, false, req)
+				p.prefetches[blockID] = pre
+			}
+			p.log.Debug("rescheduling top-block prefetch for block %s", blockID)
+			p.applyToParentsRecursive(
+				func(blockID kbfsblock.ID, pp *prefetch) {
+					p.rescheduleTopBlock(blockID, pp, req)
+				}, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
@@ -504,6 +607,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// has a req associated with it.
 				pre.req = req
 			}
+
+			p.clearRescheduleState(req.ptr.ID)
 
 			// If this request is just asking for the wait channel,
 			// send it now.  (This is processed in the same queue as
@@ -557,6 +662,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
 				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
 					"%s", req.ptr.ID)
+				continue
+			}
+			if p.rescheduleIfNeeded(ctx, req) {
 				continue
 			}
 			if isPrefetchWaiting {
@@ -683,6 +791,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
 			shuttingDownCh = p.inFlightFetches.Out()
+			for id := range p.rescheduled {
+				p.clearRescheduleState(id)
+			}
 		}
 	}
 }
@@ -734,16 +845,8 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			return
 		}
-		dbc := p.config.DiskBlockCache()
-		if isDeepSync && dbc != nil {
-			wrappedCache := dbc.(*diskBlockCacheWrapped)
-			if !wrappedCache.DoesSyncCacheHaveSpace(ctx) {
-				// If the sync cache is close to full, cancel prefetches.
-				p.log.CDebugf(ctx, "canceling prefetch for block %s due to "+
-					"full sync cache.", ptr.ID)
-				p.CancelPrefetch(ptr.ID)
-				return
-			}
+		if p.rescheduleIfNeeded(ctx, req) {
+			return
 		}
 	}
 	p.triggerPrefetch(req)

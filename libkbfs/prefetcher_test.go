@@ -6,11 +6,14 @@ package libkbfs
 
 import (
 	"context"
+	"math"
 	"runtime"
 	"testing"
 	"time"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1498,4 +1501,181 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	// Then we wait for the pending prefetches to complete.
 	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+}
+
+type cacheWithUpdateCh struct {
+	DiskBlockCache
+	ch chan<- kbfsblock.ID
+}
+
+func (cwuc *cacheWithUpdateCh) UpdateMetadata(
+	ctx context.Context, blockID kbfsblock.ID,
+	prefetchStatus PrefetchStatus) error {
+	err := cwuc.DiskBlockCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	if prefetchStatus == FinishedPrefetch {
+		cwuc.ch <- blockID
+	}
+	return err
+}
+
+func TestPrefetcherReschedules(t *testing.T) {
+	t.Log("Test synced TLF prefetch rescheduling.")
+	cache, dbcConfig := initDiskBlockCacheTest(t)
+	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
+	defer shutdownPrefetcherTest(q)
+	ctx := context.Background()
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	syncCache := cache.syncCache
+	workingCache := cache.workingSetCache
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {b, a -> {ab, aa}}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, Dir, 10, "a"),
+		"b": makeRandomDirEntry(t, File, 20, "b"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := &DirBlock{Children: map[string]DirEntry{
+		"aa": makeRandomDirEntry(t, File, 30, "aa"),
+		"ab": makeRandomDirEntry(t, File, 40, "ab"),
+	}}
+	aaPtr := a.Children["aa"].BlockPointer
+	aa := makeFakeFileBlock(t, true)
+	abPtr := a.Children["ab"].BlockPointer
+	ab := makeFakeFileBlock(t, true)
+	bPtr := root.Children["b"].BlockPointer
+	b := makeFakeFileBlock(t, true)
+
+	encRoot, serverHalfRoot :=
+		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
+	encA, serverHalfA := setupRealBlockForDiskCache(t, aPtr, a, dbcConfig)
+	encB, serverHalfB := setupRealBlockForDiskCache(t, bPtr, b, dbcConfig)
+	encAA, serverHalfAA := setupRealBlockForDiskCache(t, aaPtr, aa, dbcConfig)
+	encAB, serverHalfAB := setupRealBlockForDiskCache(t, abPtr, ab, dbcConfig)
+
+	_, _ = bg.setBlockToReturn(rootPtr, root)
+	_, _ = bg.setBlockToReturn(aPtr, a)
+	_, _ = bg.setBlockToReturn(aaPtr, aa)
+	_, _ = bg.setBlockToReturn(abPtr, ab)
+	_, _ = bg.setBlockToReturn(bPtr, b)
+	err := cache.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	require.NoError(t, err)
+	err = cache.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	require.NoError(t, err)
+	err = cache.Put(ctx, kmd.TlfID(), aaPtr.ID, encAA, serverHalfAA)
+	require.NoError(t, err)
+	err = cache.Put(ctx, kmd.TlfID(), abPtr.ID, encAB, serverHalfAB)
+	require.NoError(t, err)
+	err = cache.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	require.NoError(t, err)
+
+	config.SetTlfSyncState(kmd.TlfID(), true)
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
+		t.Log("ZERO\n")
+		return &backoff.ZeroBackOff{}
+	}
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Set the cache maximum bytes to the current total.")
+	syncBytes := int64(syncCache.currBytes)
+	workingBytes := int64(workingCache.currBytes)
+	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
+	limiter.syncCacheByteTracker.limit = syncBytes
+	limiter.diskCacheByteTracker.limit = workingBytes
+
+	t.Log("Fetch dir root.")
+	block := &DirBlock{}
+	ch := q.Request(
+		context.Background(), lowestTriggerPrefetchPriority, kmd,
+		rootPtr, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	t.Log("Release reschedule request of root.")
+	notifySyncCh(t, prefetchSyncCh)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		TriggeredPrefetch, TransientEntry)
+
+	t.Log("Make room in the cache.")
+	limiter.syncCacheByteTracker.limit = math.MaxInt64
+	limiter.diskCacheByteTracker.limit = math.MaxInt64
+
+	t.Log("Release reschedule request of root.")
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Release reschedule request of two root children.")
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	blockA := &DirBlock{}
+	chA := q.Request(
+		context.Background(), lowestTriggerPrefetchPriority, kmd,
+		aPtr, blockA, TransientEntry)
+	err = <-chA
+	require.NoError(t, err)
+	blockB := &FileBlock{}
+	chB := q.Request(
+		context.Background(), lowestTriggerPrefetchPriority, kmd,
+		bPtr, blockB, TransientEntry)
+	err = <-chB
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), bPtr, b,
+		FinishedPrefetch, TransientEntry)
+
+	t.Log("Set the cache maximum bytes to the current total again.")
+	syncBytes = int64(syncCache.currBytes)
+	workingBytes = int64(workingCache.currBytes)
+	limiter.syncCacheByteTracker.limit = syncBytes
+	limiter.diskCacheByteTracker.limit = workingBytes
+
+	t.Log("Release reschedule requests of two more children.")
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Make room in the cache again.")
+	limiter.syncCacheByteTracker.limit = math.MaxInt64
+	limiter.diskCacheByteTracker.limit = math.MaxInt64
+
+	updateCh := make(chan kbfsblock.ID, 5)
+	config.cache = &cacheWithUpdateCh{cache, updateCh}
+
+	t.Log("Finish all the prefetching.")
+	close(prefetchSyncCh)
+
+outer:
+	for {
+		select {
+		case id := <-updateCh:
+			if id == rootPtr.ID {
+				break outer
+			}
+		case <-time.After(time.Second):
+			t.Fatal("Error notifying continue channel. Stack:\n" + getStack())
+		}
+	}
+
+	waitForPrefetchOrBust(t, q.Prefetcher().Shutdown())
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), aaPtr, aa,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
+		FinishedPrefetch, TransientEntry)
 }

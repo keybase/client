@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -104,9 +103,7 @@ func (cache *diskBlockCacheWrapped) DoesSyncCacheHaveSpace(
 	if !cache.IsSyncCacheEnabled() {
 		return false
 	}
-	limiterStatus := cache.config.DiskLimiter().getStatus(
-		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
-	return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+	return cache.syncCache.DoesSyncCacheHaveSpace(ctx)
 }
 
 // IsSyncCacheEnabled returns true if the sync cache is enabled.

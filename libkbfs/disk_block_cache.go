@@ -1094,6 +1094,18 @@ func (cache *DiskBlockCacheLocal) Status(
 	}
 }
 
+// DoesSyncCacheHaveSpace returns true if we have more than 1% of space left in
+// the sync cache.
+func (cache *DiskBlockCacheLocal) DoesSyncCacheHaveSpace(
+	ctx context.Context) bool {
+	if cache.cacheType != syncCacheLimitTrackerType {
+		return false
+	}
+	limiterStatus := cache.config.DiskLimiter().getStatus(
+		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
+	return limiterStatus.SyncCacheByteStatus.UsedFrac <= .99
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Shutdown(ctx context.Context) {
 	// Wait for the cache to either finish starting or error.

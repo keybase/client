@@ -1264,6 +1264,10 @@ type DiskBlockCache interface {
 		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) error
 	// Status returns the current status of the disk cache.
 	Status(ctx context.Context) map[string]DiskBlockCacheStatus
+	// DoesSyncCacheHaveSpace returns whether the sync cache has
+	// space.  If this cache doesn't contain a sync cache, always returns
+	// true.
+	DoesSyncCacheHaveSpace(ctx context.Context) bool
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }

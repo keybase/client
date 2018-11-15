@@ -4458,6 +4458,18 @@ func (mr *MockDiskBlockCacheMockRecorder) Status(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockDiskBlockCache)(nil).Status), ctx)
 }
 
+// DoesSyncCacheHaveSpace mocks base method
+func (m *MockDiskBlockCache) DoesSyncCacheHaveSpace(ctx context.Context) bool {
+	ret := m.ctrl.Call(m, "DoesSyncCacheHaveSpace", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// DoesSyncCacheHaveSpace indicates an expected call of DoesSyncCacheHaveSpace
+func (mr *MockDiskBlockCacheMockRecorder) DoesSyncCacheHaveSpace(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoesSyncCacheHaveSpace", reflect.TypeOf((*MockDiskBlockCache)(nil).DoesSyncCacheHaveSpace), ctx)
+}
+
 // Shutdown mocks base method
 func (m *MockDiskBlockCache) Shutdown(ctx context.Context) {
 	m.ctrl.Call(m, "Shutdown", ctx)

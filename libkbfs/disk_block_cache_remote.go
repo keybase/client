@@ -153,6 +153,13 @@ func (dbcr *DiskBlockCacheRemote) Status(ctx context.Context) map[string]DiskBlo
 	panic("Status() not implemented in DiskBlockCacheRemote")
 }
 
+// DoesSyncCacheHaveSpace implements the DiskBlockCache interface for
+// DiskBlockCacheRemote.
+func (dbcr *DiskBlockCacheRemote) DoesSyncCacheHaveSpace(
+	_ context.Context) bool {
+	panic("DoesSyncCacheHaveSpace() not implemented in DiskBlockCacheRemote")
+}
+
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Shutdown(ctx context.Context) {
 	dbcr.conn.Close()
