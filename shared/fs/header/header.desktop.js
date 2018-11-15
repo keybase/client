@@ -9,7 +9,7 @@ import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
 import {PathItemAction, OpenInSystemFileManager} from '../common'
 
-const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
+const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
   <Box style={styles.headerContainer}>
     <Box style={styles.folderHeader}>
       {Types.pathToString(path) === '/keybase' ? (
@@ -25,7 +25,7 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
         </Box>
       ) : (
         <Box style={styles.folderHeaderContainer}>
-          <Breadcrumb path={path} />
+          <Breadcrumb path={path} routePath={routePath} />
           <Box style={styles.folderHeaderEnd}>
             <AddNew path={path} style={styles.addNew} />
             <WithTooltip text="Show in Finder">

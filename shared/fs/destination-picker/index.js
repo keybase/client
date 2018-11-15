@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
@@ -12,7 +13,9 @@ import * as RowCommon from '../row/common'
 import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 
 type Props = {
+  index: number,
   path: Types.Path,
+  routePath: I.List<string>,
   targetName: string,
   targetIconSpec: Types.PathItemIconSpec,
   onCancel: () => void,
@@ -46,7 +49,7 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      <Breadcrumb path={props.path} inDestinationPicker={true} />
+      <Breadcrumb path={props.path} inDestinationPicker={true} routePath={props.routePath} />
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>
@@ -92,7 +95,12 @@ const DestinationPicker = (props: Props) => (
       </Kb.ClickableBox>
     )}
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-      <Rows path={props.path} sortSetting={Constants.defaultSortSetting} inDestinationPicker={true} />
+      <Rows
+        path={props.path}
+        sortSetting={Constants.defaultSortSetting}
+        destinationPickerIndex={props.index}
+        routePath={props.routePath}
+      />
     </Kb.Box2>
     {isMobile && <Kb.Divider key="dfooter" />}
     <Kb.Box2 key="footer" direction="horizontal" centerChildren={true} fullWidth={true} style={styles.footer}>

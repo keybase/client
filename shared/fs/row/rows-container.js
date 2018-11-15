@@ -17,7 +17,7 @@ type OwnProps = {
   path: Types.Path, // path to the parent folder containering the rows
   sortSetting: Types.SortSetting,
   routePath: I.List<string>,
-  inDestinationPicker?: boolean,
+  destinationPickerIndex?: number,
 }
 
 const getEditingRows = (
@@ -177,7 +177,7 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (s, d, o: OwnProps) => ({
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
   routePath: o.routePath,
-  inDestinationPicker: o.inDestinationPicker,
+  destinationPickerIndex: o.destinationPickerIndex,
 })
 
 export default compose(

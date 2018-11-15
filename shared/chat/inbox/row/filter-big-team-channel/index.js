@@ -1,14 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Box, Text, ClickableBox} from '../../../../common-adapters'
-import {
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
@@ -33,12 +26,12 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
 
   render() {
     return (
-      <ClickableBox onClick={this.props.onSelectConversation}>
-        <Box
+      <Kb.ClickableBox onClick={this.props.onSelectConversation}>
+        <Kb.Box
           className="hover_background_color_blueGrey2"
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             styles.filteredRow,
-            this.props.isSelected && {backgroundColor: globalColors.blue},
+            this.props.isSelected && {backgroundColor: Styles.globalColors.blue},
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
@@ -49,35 +42,35 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
             isSelected={false}
             isHovered={this.state.isHovered}
           />
-          <Text
+          <Kb.Text
             type="BodySemibold"
-            style={collapseStyles([
+            style={Styles.collapseStyles([
               styles.teamname,
-              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
+              {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
             ])}
             title={this.props.teamname}
           >
             {this.props.teamname}
-          </Text>
-          <Text
+          </Kb.Text>
+          <Kb.Text
             type="Body"
-            style={collapseStyles([
+            style={Styles.collapseStyles([
               styles.channelname,
-              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
+              {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
             ])}
             title={`#${this.props.channelname}`}
           >
             &nbsp;#
             {this.props.channelname}
-          </Text>
-        </Box>
-      </ClickableBox>
+          </Kb.Text>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const styles = styleSheetCreate({
-  channelname: platformStyles({
+const styles = Styles.styleSheetCreate({
+  channelname: Styles.platformStyles({
     common: {flexBasis: '70%'},
     isElectron: {
       overflow: 'hidden',
@@ -86,15 +79,15 @@ const styles = styleSheetCreate({
     },
   }),
   filteredRow: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
     height: RowSizes.smallRowHeight,
-    paddingRight: globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
     width: '100%',
   },
-  teamname: platformStyles({
-    common: {color: globalColors.black_75},
+  teamname: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_75},
     isElectron: {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
