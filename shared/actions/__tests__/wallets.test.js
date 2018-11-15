@@ -49,35 +49,28 @@ const startOnWalletsTab = dispatch => {
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
 
-describe('build payment', () => {
-  it('basic', () => {
-    const {dispatch, getState} = startReduxSaga()
-    const rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
-
-    dispatch(WalletsGen.createBuildPayment())
-    return Testing.flushPromises().then(() => {
-      expect(getState().wallets.builtPayment).toEqual(builtPayment)
-      expect(rpc).toHaveBeenCalled()
-    })
-  })
-})
-
 const sendPaymentResult = {
   kbTxID: 'fake transaction id',
   pending: false,
 }
 
-describe('send payment', () => {
-  it('basic', () => {
-    const {dispatch} = startReduxSaga()
-    const rpc = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
+it('build and send payment', () => {
+  const {dispatch, getState} = startReduxSaga()
+  const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
 
-    dispatch(WalletsGen.createSendPayment())
-    return Testing.flushPromises().then(() => {
-      // TODO: Check building/built/errors are cleared.
-      expect(rpc).toHaveBeenCalled()
-    })
+  dispatch(WalletsGen.createBuildPayment())
+  Testing.flushPromises().then(() => {
+    expect(getState().wallets.builtPayment).toEqual(builtPayment)
+    expect(buildRPC).toHaveBeenCalled()
+  })
+
+  const sendRPC = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
+  sendRPC.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
+
+  dispatch(WalletsGen.createSendPayment())
+  Testing.flushPromises().then(() => {
+    expect(getState().wallets.builtPayment).toEqual(Constants.makeBuiltPayment())
+    expect(sendRPC).toHaveBeenCalled()
   })
 })
