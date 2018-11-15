@@ -1,22 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Badge, Box2, ClickableBox, Text} from '../../../../common-adapters'
-import {
-  borderRadius,
-  styleSheetCreate,
-  platformStyles,
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  type StylesCrossPlatform,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
   badgeCount: number,
   hiddenCount: number,
-  style: ?StylesCrossPlatform,
+  style: ?Styles.StylesCrossPlatform,
   showButton: boolean,
   toggle: () => void,
 }
@@ -24,9 +15,9 @@ type Props = {
 class TeamsDivider extends React.PureComponent<Props> {
   render() {
     return (
-      <Box2
+      <Kb.Box2
         direction="vertical"
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           this.props.showButton ? styles.containerButton : styles.containerNoButton,
           this.props.style,
         ])}
@@ -35,85 +26,87 @@ class TeamsDivider extends React.PureComponent<Props> {
         gapEnd={true}
       >
         {this.props.showButton && (
-          <ClickableBox onClick={this.props.toggle} style={styles.containerToggleButton}>
-            <Box2 direction="horizontal" className="toggleButtonClass" style={styles.toggleButton}>
-              <Text type="BodySmallSemibold" style={styles.buttonText}>
+          <Kb.ClickableBox onClick={this.props.toggle} style={styles.containerToggleButton}>
+            <Kb.Box2 direction="horizontal" className="toggleButtonClass" style={styles.toggleButton}>
+              <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
                 {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
-              </Text>
+              </Kb.Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
+                  <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
                 )}
-            </Box2>
-          </ClickableBox>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         )}
         {!this.props.showButton && (
-          <Text type="BodySmallSemibold" style={styles.dividerText}>
+          <Kb.Text type="BodySmallSemibold" style={styles.dividerText}>
             Big teams
-          </Text>
+          </Kb.Text>
         )}
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   badge: {
-    marginLeft: globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
   },
-  buttonText: {color: globalColors.black_60},
-  containerButton: platformStyles({
+  buttonText: {color: Styles.globalColors.black_60},
+  containerButton: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
+      flexShrink: 0,
       height: RowSizes.dividerHeight(true),
       justifyContent: 'center',
       width: '100%',
     },
     isMobile: {
-      paddingBottom: globalMargins.tiny,
-      paddingTop: globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
   containerNoButton: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
+    flexShrink: 0,
     height: RowSizes.dividerHeight(false),
     justifyContent: 'center',
     width: '100%',
   },
   containerToggleButton: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     alignSelf: 'center',
     flexShrink: 0,
   },
   dividerText: {
     alignSelf: 'flex-start',
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
-  toggleButton: platformStyles({
+  toggleButton: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.black_10,
-      borderRadius,
-      marginBottom: globalMargins.xtiny,
-      marginTop: globalMargins.xtiny,
-      paddingBottom: globalMargins.xtiny,
-      paddingTop: globalMargins.xtiny,
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      marginBottom: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.xtiny,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xtiny,
     },
     isElectron: {
-      marginLeft: globalMargins.tiny,
-      marginRight: globalMargins.tiny,
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
 
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
     isMobile: {
-      marginLeft: globalMargins.small,
-      marginRight: globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
 
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
 })
