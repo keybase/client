@@ -17,30 +17,36 @@ export const getAndroidContacts: () => Promise<ContactsResult> = () =>
       }
       if (permission === 'undefined' || permission === 'denied') {
         // Now we need to show the request dialog
-        Contacts.requestPermission((err, _) => {
-          // second param is supposed to be granted, but is buggy, so we checkPermission again
-          if (err) {
-            reject(err)
-          }
-          Contacts.checkPermission((err, permission) => {
-            // Check to see what the user said
-            if (err) {
-              reject(err)
-            }
-            if (permission === 'authorized') {
-              Contacts.getAll((err, contacts) => {
+        // This is in a timeout to avoid a race between the system
+        // permissions dialog and the route underneath painting
+        setTimeout(
+          () =>
+            Contacts.requestPermission((err, _) => {
+              // second param is supposed to be granted, but is buggy, so we checkPermission again
+              if (err) {
+                reject(err)
+              }
+              Contacts.checkPermission((err, permission) => {
+                // Check to see what the user said
                 if (err) {
                   reject(err)
+                }
+                if (permission === 'authorized') {
+                  Contacts.getAll((err, contacts) => {
+                    if (err) {
+                      reject(err)
+                    } else {
+                      resolve({hasPermission: true, contacts})
+                    }
+                  })
                 } else {
-                  resolve({hasPermission: true, contacts})
+                  // If not authorized, then we tried and they said no.
+                  reject(Error('unauthorized'))
                 }
               })
-            } else {
-              // If not authorized, then we tried and they said no.
-              reject(Error('unauthorized'))
-            }
-          })
-        })
+            }),
+          500
+        )
       } else if (permission === 'authorized') {
         // If we're already authorized, go ahead and fetch contacts
         Contacts.getAll((err, contacts) => {
