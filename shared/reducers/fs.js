@@ -281,8 +281,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
-      return state.setIn(
-        ['moveOrCopy', 'destinationParentPath'],
+      return state.update('moveOrCopy', mc => mc.set('destinationParentPath',
         isMobile
           ? I.List(
               Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
@@ -296,7 +295,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
               )
             )
           : I.List([action.payload.initialDestinationParentPath])
-      )
+      ))
     case FsGen.setMoveOrCopySource:
       return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
     case FsGen.setMoveOrCopyDestinationParentPath:
