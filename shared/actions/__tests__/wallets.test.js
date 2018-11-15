@@ -48,33 +48,33 @@ it('disclaimer', () => {
   Testing.flushPromises().then(() => {
     expect(getState().wallets.acceptedDisclaimer).toEqual(false)
     expect(checkRPC).toHaveBeenCalled()
-  })
 
-  // Still haven't accepted disclaimer.
-  dispatch(WalletsGen.createOpenSendRequestForm({}))
-  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+    // Still haven't accepted disclaimer.
+    dispatch(WalletsGen.createOpenSendRequestForm({}))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 
-  dispatch(WalletsGen.createRejectDisclaimer())
+    dispatch(WalletsGen.createRejectDisclaimer())
 
-  // Still haven't accepted disclaimer.
-  dispatch(WalletsGen.createOpenSendRequestForm({}))
-  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+    // Still haven't accepted disclaimer.
+    dispatch(WalletsGen.createOpenSendRequestForm({}))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 
-  const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
-  acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
+    const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
+    acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
 
-  const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
-  checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
+    const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
+    checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
 
-  dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
-  Testing.flushPromises().then(() => {
-    expect(getState().wallets.acceptedDisclaimer).toEqual(true)
-    expect(acceptRPC).toHaveBeenCalled()
-    expect(checkRPC2).toHaveBeenCalled()
+    dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
+    Testing.flushPromises().then(() => {
+      expect(getState().wallets.acceptedDisclaimer).toEqual(true)
+      expect(acceptRPC).toHaveBeenCalled()
+      expect(checkRPC2).toHaveBeenCalled()
 
-    // Finally accepted disclaimer.
-    dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
-    expect(getState().wallets.building.to).toEqual('fake recipient')
+      // Finally accepted disclaimer.
+      dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
+      expect(getState().wallets.building.to).toEqual('fake recipient')
+    })
   })
 })
 
