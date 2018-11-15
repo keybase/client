@@ -720,6 +720,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
 
+  // We don't call this for publicMemo/secretNote so the button doesn't
+  // spinner as you type
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,
