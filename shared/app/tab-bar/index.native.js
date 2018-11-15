@@ -14,7 +14,7 @@ const _icons = {
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
-const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
+const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
 
 // Files, Git, Devices, and Wallet are under the settings tab on mobile
 // bubble badges up to the tab
