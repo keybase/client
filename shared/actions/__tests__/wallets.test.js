@@ -93,9 +93,15 @@ it('disclaimer', () => {
       expect(checkRPC2).toHaveBeenCalled()
 
       const getCurrencyRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrencyLocalRpcPromise')
-      getCurrencyRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      const currencyLocal: RPCStellarTypes.CurrencyLocal = {
+        description: 'fake description',
+        code: 'fake code',
+        symbol: 'fake symbol',
+        name: 'fake name',
+      }
+      getCurrencyRPC.mockImplementation(() => new Promise(resolve => resolve(currencyLocal)))
       const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
-      getCurrenciesRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      getCurrenciesRPC.mockImplementation(() => new Promise(resolve => resolve(null)))
       const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
       buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRes)))
 
