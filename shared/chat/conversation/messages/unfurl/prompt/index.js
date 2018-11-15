@@ -45,26 +45,36 @@ class UnfurlPrompt extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    backgroundColor: Styles.globalColors.blue5,
-    borderRadius: Styles.borderRadius,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  choiceContainer: {
-    width: 370,
-  },
-  closeContainer: {
-    width: 30,
-    marginLeft: 'auto',
-    alignSelf: 'flex-start',
-  },
-  icon: {
-    alignSelf: 'center',
-    marginRight: 16,
-    marginLeft: 16,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      backgroundColor: Styles.globalColors.blue5,
+      borderRadius: Styles.borderRadius,
+    },
+    isElectron: {
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+  }),
+  choiceContainer: Styles.platformStyles({
+    isElectron: {
+      width: 370,
+    },
+  }),
+  closeContainer: Styles.platformStyles({
+    isElectron: {
+      width: 30,
+      marginLeft: 'auto',
+      alignSelf: 'flex-start',
+    },
+  }),
+  icon: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'center',
+      marginRight: 16,
+      marginLeft: 16,
+    },
+  }),
 })
 
 export default UnfurlPrompt
