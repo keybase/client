@@ -14,11 +14,8 @@ const full = {
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
   onClose: Sb.action('onClose'),
   faviconURL: require('../../../../../images/mock/wsj.jpg'),
-  image: {
-    url: 'https://images.wsj.net/im-33925/social',
-    height: 471,
-    width: 970,
-  },
+  imageURL: require('../../../../../images/mock/wsj_image.jpg'),
+  showImageOnSide: false,
 }
 
 const noClose = {
@@ -38,7 +35,7 @@ const missingPubDesc = {
 
 const missingPubDescImage = {
   ...missingPubDesc,
-  image: undefined,
+  imageURL: undefined,
 }
 
 const missingPubDescImageFav = {
@@ -48,7 +45,27 @@ const missingPubDescImageFav = {
 
 const missingImage = {
   ...full,
-  image: undefined,
+  imageURL: undefined,
+}
+
+const fullGithub = {
+  title: 'keybase/client',
+  url: 'https://github.com/keybase/client"',
+  siteName: 'GitHub',
+  description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',
+  faviconURL: require('../../../../../images/mock/github_fav.jpg'),
+  imageURL: require('../../../../../images/mock/github.jpg'),
+  showImageOnSide: true,
+}
+
+const githubMissingDesc = {
+  ...fullGithub,
+  description: undefined,
+}
+
+const githubMissingImage = {
+  ...fullGithub,
+  imageURL: undefined,
 }
 
 const load = () => {
@@ -61,6 +78,10 @@ const load = () => {
     .add('No Pub/Desc/Image', () => <UnfurlGeneric {...missingPubDescImage} />)
     .add('No Pub/Desc/Image/Fav', () => <UnfurlGeneric {...missingPubDescImageFav} />)
     .add('No Image', () => <UnfurlGeneric {...missingImage} />)
+    .add('GitHub', () => <UnfurlGeneric {...fullGithub} />)
+    .add('Full Side', () => <UnfurlGeneric {...fullGithub} />)
+    .add('Side No Desc', () => <UnfurlGeneric {...githubMissingDesc} />)
+    .add('Side No Image', () => <UnfurlGeneric {...githubMissingImage} />)
 }
 
 export default load

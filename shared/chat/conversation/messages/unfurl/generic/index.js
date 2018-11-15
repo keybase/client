@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/index'
 import * as Styles from '../../../../../styles'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 
 export type Props = {
@@ -11,9 +10,10 @@ export type Props = {
   siteName: string,
   description?: string,
   publishTime?: number,
-  image?: RPCChatTypes.UnfurlImageDisplay,
+  imageURL?: string,
   faviconURL?: string,
   onClose?: () => void,
+  showImageOnSide: boolean,
 }
 
 class UnfurlGeneric extends React.PureComponent<Props> {
@@ -22,12 +22,7 @@ class UnfurlGeneric extends React.PureComponent<Props> {
       <Kb.Box2 style={styles.container} direction="horizontal">
         <Kb.Box2 style={styles.innerContainer} fullWidth={true} direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} fullWidth={true} direction="horizontal">
-            {this.props.faviconURL && (
-              <Kb.Image
-                src={this.props.faviconURL}
-                style={Styles.collapseStyles([{width: 16, height: 16}])}
-              />
-            )}
+            {this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
             <Kb.Text type="BodySmall" style={styles.siteName}>
               {this.props.siteName}
             </Kb.Text>
@@ -46,19 +41,11 @@ class UnfurlGeneric extends React.PureComponent<Props> {
             {this.props.title}
           </Kb.Text>
           {this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
-          {this.props.image && (
-            <Kb.Image
-              src={this.props.image.url}
-              style={Styles.collapseStyles([
-                styles.image,
-                {
-                  maxWidth: 320,
-                  maxHeight: 180,
-                },
-              ])}
-            />
-          )}
+          {this.props.imageURL &&
+            !this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />}
         </Kb.Box2>
+        {this.props.imageURL &&
+          this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
       </Kb.Box2>
     )
   }
@@ -94,9 +81,17 @@ const styles = Styles.styleSheetCreate({
       marginLeft: 8,
     },
   }),
-  image: Styles.platformStyles({
+  bottomImage: Styles.platformStyles({
     isElectron: {
       marginTop: 8,
+      maxWidth: 320,
+      maxHeight: 180,
+    },
+  }),
+  sideImage: Styles.platformStyles({
+    isElectron: {
+      width: 80,
+      height: 80,
     },
   }),
   url: Styles.platformStyles({
@@ -110,6 +105,12 @@ const styles = Styles.styleSheetCreate({
   publishTime: Styles.platformStyles({
     isElectron: {
       marginLeft: 4,
+    },
+  }),
+  favicon: Styles.platformStyles({
+    common: {
+      width: 16,
+      height: 16,
     },
   }),
 })
