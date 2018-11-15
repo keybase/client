@@ -115,13 +115,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.withMutations(s => s
-        .updateIn(
+      return state.withMutations(s =>
+        s.updateIn(
           ['downloads', key, 'state'],
           original =>
-            original && original
-              .set('completePortion', completePortion)
-              .set('endEstimate', endEstimate)
+            original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
         )
       )
     }
@@ -140,23 +138,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.uploadWritingSuccess: {
       const {path} = action.payload
-      return (
-        state.withMutations(s => s
+      return state.withMutations(s =>
+        s
           .removeIn(['uploads', 'errors', path])
           .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
-        )
       )
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-      return (
-        state.withMutations(s => s
-          // $FlowIssue no idea why this is broken
-          .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
-          .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
-          .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
-        )
-      )
+      return state.withMutations(s => {
+        s.setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
+        s.setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
+        if (endEstimate) {
+          s.setIn(['uploads', 'endEstimate'], endEstimate)
+        } else {
+          s.deleteIn(['uploads', 'endEstimate'])
+        }
+      })
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -183,8 +181,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
     case FsGen.mimeTypeLoaded:
-      return state.withMutations(s => s
-        .updateIn(
+      return state.withMutations(s =>
+        s.updateIn(
           ['pathItems', action.payload.path],
           pathItem =>
             pathItem
@@ -282,12 +280,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.setMoveOrCopySource:
-      return state.setIn(['moveOrCopy', 'sourceItemPath'], action.payload.path)
+      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
     case FsGen.setMoveOrCopyDestinationParent:
-      return state.setIn(['moveOrCopy', 'destinationParentPath'], action.payload.path)
+      return state.update('moveOrCopy', mc => mc.set('destinationParentPath', action.payload.path))
     case FsGen.clearMoveOrCopySource:
-      // $FlowFixMe
-      return state.setIn(['moveOrCopy', 'sourceItemPath'], null)
+      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', Types.stringToPath('')))
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
