@@ -39,6 +39,7 @@ export function PopupDialog({
             style={Styles.collapseStyles([styles.close, styleClose])}
             color={Styles.globalColors.white}
             onClick={onClose}
+            hoverColor={Styles.globalColors.white_40}
           />
           <Box
             style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
@@ -67,8 +68,9 @@ const styles = Styles.styleSheetCreate({
   close: Styles.platformStyles({
     isElectron: {
       cursor: 'pointer',
+      padding: Styles.globalMargins.tiny,
       position: 'absolute',
-      right: -16 - Styles.globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
+      right: Styles.globalMargins.tiny * -4,
     },
   }),
   container: {
