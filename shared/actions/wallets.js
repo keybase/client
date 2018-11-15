@@ -637,22 +637,20 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
-    .then(res =>
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
+    res =>
       RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
         WalletsGen.createWalletDisclaimerReceived({accepted})
       )
-    )
-    .then(
-      _ =>
-        action.payload.nextScreen === 'linkExisting'
-          ? Route.navigateTo(
-              isMobile
-                ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
-                : [Tabs.walletsTab, 'wallet', 'linkExisting']
-            )
-          : undefined
-    )
+  )
+
+const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+  action.payload.nextScreen === 'linkExisting' &&
+  Saga.put(Route.navigateTo(
+    isMobile
+      ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
+      : [Tabs.walletsTab, 'wallet', 'linkExisting']
+  ))
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -770,6 +768,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadWalletDisclaimer
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
+  yield Saga.actionToAction(WalletsGen.acceptDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 }
 
