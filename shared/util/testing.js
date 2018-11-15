@@ -5,7 +5,7 @@ import createSagaMiddleware from 'redux-saga'
 import rootReducer from '../reducers'
 
 // See https://github.com/pekala/test-problem-example
-export const flushPromises = (result: any): Promise<any> =>
+export const flushPromises = <T>(result: T): Promise<T> =>
   new Promise(resolve => setImmediate(() => resolve(result)))
 
 export const makeStartReduxSaga = (rootSaga: any, initialStore: ?Object, init: (dispatch: any) => void) => {
