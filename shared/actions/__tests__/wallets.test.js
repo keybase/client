@@ -63,28 +63,31 @@ it('disclaimer', () => {
   checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
 
   dispatch(WalletsGen.createLoadWalletDisclaimer())
-  return Testing.flushPromises().then(() => {
-    expect(getState().wallets.acceptedDisclaimer).toEqual(false)
-    expect(checkRPC).toHaveBeenCalled()
+  return Testing.flushPromises()
+    .then(() => {
+      expect(getState().wallets.acceptedDisclaimer).toEqual(false)
+      expect(checkRPC).toHaveBeenCalled()
 
-    // Still haven't accepted disclaimer.
-    dispatch(WalletsGen.createOpenSendRequestForm({}))
-    expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+      // Still haven't accepted disclaimer.
+      dispatch(WalletsGen.createOpenSendRequestForm({}))
+      expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 
-    dispatch(WalletsGen.createRejectDisclaimer())
+      dispatch(WalletsGen.createRejectDisclaimer())
 
-    // Still haven't accepted disclaimer.
-    dispatch(WalletsGen.createOpenSendRequestForm({}))
-    expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+      // Still haven't accepted disclaimer.
+      dispatch(WalletsGen.createOpenSendRequestForm({}))
+      expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 
-    const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
-    acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
+      acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
 
-    const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
-    checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
+      const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
+      checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
 
-    dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
-    return Testing.flushPromises().then(() => {
+      dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
+      return Testing.flushPromises({acceptRPC, checkRPC2})
+    })
+    .then(({acceptRPC, checkRPC2}) => {
       expect(getState().wallets.acceptedDisclaimer).toEqual(true)
       expect(acceptRPC).toHaveBeenCalled()
       expect(checkRPC2).toHaveBeenCalled()
@@ -102,13 +105,13 @@ it('disclaimer', () => {
       expect(getRoute(getState)).toEqual(
         I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
       )
-      return Testing.flushPromises().then(() => {
-        expect(getCurrencyRPC).toHaveBeenCalled()
-        expect(getCurrenciesRPC).toHaveBeenCalled()
-        expect(buildRPC).toHaveBeenCalled()
-      })
+      return Testing.flushPromises({getCurrencyRPC, getCurrenciesRPC, buildRPC})
     })
-  })
+    .then(({getCurrencyRPC, getCurrenciesRPC, buildRPC}) => {
+      expect(getCurrencyRPC).toHaveBeenCalled()
+      expect(getCurrenciesRPC).toHaveBeenCalled()
+      expect(buildRPC).toHaveBeenCalled()
+    })
 })
 
 it('build and send payment', () => {
