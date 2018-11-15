@@ -63,15 +63,19 @@ describe('build payment', () => {
   })
 })
 
+const sendPaymentResult = {
+  kbTxID: 'fake transaction id',
+  pending: false,
+}
+
 describe('send payment', () => {
   it('basic', () => {
-    const {dispatch, getState} = startReduxSaga()
-    const rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
+    const {dispatch} = startReduxSaga()
+    const rpc = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
+    rpc.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
 
-    dispatch(WalletsGen.createBuildPayment())
+    dispatch(WalletsGen.createSendPayment())
     return Testing.flushPromises().then(() => {
-      expect(getState().wallets.builtPayment).toEqual(builtPayment)
       expect(rpc).toHaveBeenCalled()
     })
   })
