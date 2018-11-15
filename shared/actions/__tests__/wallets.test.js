@@ -40,6 +40,19 @@ it('disclaimer', () => {
   // Not yet accepted disclaimer.
   dispatch(WalletsGen.createOpenSendRequestForm({}))
   expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+
+  const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
+  checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
+
+  dispatch(WalletsGen.createLoadWalletDisclaimer())
+  Testing.flushPromises().then(() => {
+    expect(getState().wallets.acceptedDisclaimer).toEqual(false)
+    expect(checkRPC).toHaveBeenCalled()
+  })
+
+  // Still haven't accepted disclaimer.
+  dispatch(WalletsGen.createOpenSendRequestForm({}))
+  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 })
 
 it('build and send payment', () => {
