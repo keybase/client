@@ -34,18 +34,36 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 
 const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.walletsTab])
 
+const buildPaymentRpc = {
+  amountErrMsg: '',
+  banners: null,
+  displayAmountFiat: '$5.00 USD',
+  displayAmountXLM: '21.4168160 XLM',
+  from: 'fake account ID',
+  publicMemoErrMsg: '',
+  readyToSend: false,
+  secretNoteErrMsg: '',
+  sendingIntentionXLM: false,
+  toErrMsg: '',
+  worthAmount: '21.4168160',
+  worthCurrency: 'USD',
+  worthDescription: '21.4168160 XLM',
+  worthInfo: '$1.00 = 4.2833632 XLM\nSource: coinmarketcap.com',
+}
+
 it('disclaimer', () => {
   const {dispatch, getState} = startReduxSaga()
 
   // Not yet accepted disclaimer.
   dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
   expect(getState().wallets.building.to).toEqual('')
+  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
 
   const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
   checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
 
   dispatch(WalletsGen.createLoadWalletDisclaimer())
-  Testing.flushPromises().then(() => {
+  return Testing.flushPromises().then(() => {
     expect(getState().wallets.acceptedDisclaimer).toEqual(false)
     expect(checkRPC).toHaveBeenCalled()
 
@@ -66,14 +84,25 @@ it('disclaimer', () => {
     checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
 
     dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
-    Testing.flushPromises().then(() => {
+    return Testing.flushPromises().then(() => {
       expect(getState().wallets.acceptedDisclaimer).toEqual(true)
       expect(acceptRPC).toHaveBeenCalled()
       expect(checkRPC2).toHaveBeenCalled()
 
+      const getCurrencyRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrencyLocalRpcPromise')
+      getCurrencyRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
+      getCurrenciesRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+      buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
+
       // Finally accepted disclaimer.
       dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
       expect(getState().wallets.building.to).toEqual('fake recipient')
+      expect(getRoute(getState)).toEqual(
+        I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
+      )
+      // TODO: Flush promises
     })
   })
 })
@@ -81,22 +110,6 @@ it('disclaimer', () => {
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-  const buildPaymentRpc = {
-    amountErrMsg: '',
-    banners: null,
-    displayAmountFiat: '$5.00 USD',
-    displayAmountXLM: '21.4168160 XLM',
-    from: 'fake account ID',
-    publicMemoErrMsg: '',
-    readyToSend: false,
-    secretNoteErrMsg: '',
-    sendingIntentionXLM: false,
-    toErrMsg: '',
-    worthAmount: '21.4168160',
-    worthCurrency: 'USD',
-    worthDescription: '21.4168160 XLM',
-    worthInfo: '$1.00 = 4.2833632 XLM\nSource: coinmarketcap.com',
-  }
   buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
 
   dispatch(WalletsGen.createBuildPayment())
