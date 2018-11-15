@@ -156,6 +156,7 @@
     "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-575",
     "react-native-camera": "1.3.1",
     "react-native-contacts": "2.2.4",
+    "react-native-fast-image": "5.1.1",
     "react-native-image-picker": "0.27.1",
     "react-native-mime-types": "2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311",

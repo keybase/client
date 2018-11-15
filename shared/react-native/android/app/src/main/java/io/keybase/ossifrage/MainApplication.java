@@ -14,6 +14,7 @@ import com.facebook.soloader.SoLoader;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
+import com.dylanvann.fastimage.FastImageViewPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.airbnb.android.react.lottie.LottiePackage;
 
@@ -72,6 +73,8 @@ public class MainApplication extends Application implements ReactApplication {
           new ImagePickerPackage(),
           new RNFetchBlobPackage(),
           new ReactNativeContacts(),
+          new FastImageViewPackage(),
+          new ReactNativeContacts(),
           new LottiePackage()
         );
       }
@@ -84,6 +87,7 @@ public class MainApplication extends Application implements ReactApplication {
               new ImagePickerPackage(),
               new RNFetchBlobPackage(),
               new ReactNativeContacts(),
+              new FastImageViewPackage(),
               new LottiePackage()
       );
     }

@@ -21,6 +21,7 @@ const PushPrompt = (props: Props) => (
         Please turn on notifications!
       </Kb.Text>
       <Kb.RequireImage
+        resizeMode="contain"
         style={styles.image}
         src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
       />
@@ -61,7 +62,6 @@ const styles = Styles.styleSheetCreate({
   image: Styles.platformStyles({
     isMobile: {
       height: 200,
-      resizeMode: 'contain',
       width: '170%',
     },
   }),
