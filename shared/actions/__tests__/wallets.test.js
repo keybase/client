@@ -120,22 +120,24 @@ it('build and send payment', () => {
   buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
 
   dispatch(WalletsGen.createBuildPayment())
-  Testing.flushPromises().then(() => {
-    const expectedBuiltPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRpc)
-    expect(getState().wallets.builtPayment).toEqual(expectedBuiltPayment)
-    expect(buildRPC).toHaveBeenCalled()
-  })
+  return Testing.flushPromises()
+    .then(() => {
+      const expectedBuiltPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRpc)
+      expect(getState().wallets.builtPayment).toEqual(expectedBuiltPayment)
+      expect(buildRPC).toHaveBeenCalled()
 
-  const sendRPC = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
-  const sendPaymentResult = {
-    kbTxID: 'fake transaction id',
-    pending: false,
-  }
-  sendRPC.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
+      const sendRPC = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
+      const sendPaymentResult = {
+        kbTxID: 'fake transaction id',
+        pending: false,
+      }
+      sendRPC.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
 
-  dispatch(WalletsGen.createSendPayment())
-  Testing.flushPromises().then(() => {
-    expect(getState().wallets.builtPayment).toEqual(Constants.makeBuiltPayment())
-    expect(sendRPC).toHaveBeenCalled()
-  })
+      dispatch(WalletsGen.createSendPayment())
+      return Testing.flushPromises({sendRPC})
+    })
+    .then(({sendRPC}) => {
+      expect(getState().wallets.builtPayment).toEqual(Constants.makeBuiltPayment())
+      expect(sendRPC).toHaveBeenCalled()
+    })
 })
