@@ -102,7 +102,11 @@ it('disclaimer', () => {
       expect(getRoute(getState)).toEqual(
         I.List([Tabs.walletsTab, 'wallet', Constants.sendReceiveFormRouteKey])
       )
-      // TODO: Flush promises
+      return Testing.flushPromises().then(() => {
+        expect(getCurrencyRPC).toHaveBeenCalled()
+        expect(getCurrenciesRPC).toHaveBeenCalled()
+        expect(buildRPC).toHaveBeenCalled()
+      })
     })
   })
 })
