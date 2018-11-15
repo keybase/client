@@ -1,11 +1,16 @@
 // @flow
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
+import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
 import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {
+  teamname: string,
+  selectedTab: string,
+  setSelectedTab: (?Types.TabKey) => void,
+}
 
 const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)

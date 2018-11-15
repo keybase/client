@@ -7,7 +7,7 @@ import Title from '.'
 import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {teamname: string}
 
 const mapStateToProps = (state, {teamname}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)

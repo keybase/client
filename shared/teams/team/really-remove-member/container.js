@@ -1,11 +1,11 @@
 // @flow
 import * as TeamsGen from '../../../actions/teams-gen'
-import {connect} from '../../../util/container'
+import {connect, type RouteProps} from '../../../util/container'
 import ReallyLeaveTeam from '.'
 import {navigateTo} from '../../../actions/route-tree'
 import {teamsTab} from '../../../constants/tabs'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{username: string, teamname: string, email: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => ({
   member: routeProps.get('username') || routeProps.get('email'),

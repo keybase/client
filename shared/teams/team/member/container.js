@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect} from '../../../util/container'
+import {connect, type RouteProps} from '../../../util/container'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -12,7 +12,7 @@ import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{username: string, teamname: string}, {}>
 
 type StateProps = {
   teamname: string,

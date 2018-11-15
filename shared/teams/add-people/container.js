@@ -14,9 +14,10 @@ import {
   withHandlers,
   withPropsOnChange,
   withStateHandlers,
+  type RouteProps,
 } from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
@@ -91,7 +92,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
 })
 
 export default compose(
-connect<OwnProps, _, _, _, _>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
@@ -104,7 +105,7 @@ connect<OwnProps, _, _, _, _>(
         onRoleChange: () => role => ({role}),
       }
     ),
-    withPropsOnChange(['onExitSearch', 'numberOfUsersSelected'], props => ({
+    withPropsOnChange(['numberOfUsersSelected'], props => ({
       addButtonLabel: props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add',
       onCancel: () => props.onClose(),
       title: `Add to ${props.name}`,

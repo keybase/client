@@ -7,10 +7,11 @@ import {
   withHandlers,
   withProps,
   withStateHandlers,
+  type RouteProps,
 } from '../../util/container'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
@@ -38,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedEditTeamDescription = compose(
-connect<OwnProps, _, _, _, _>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

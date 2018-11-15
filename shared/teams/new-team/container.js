@@ -8,9 +8,10 @@ import {
   lifecycle,
   withStateHandlers,
   withHandlers,
+  type RouteProps,
 } from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{makeSubteam: boolean, name: string}, {}>
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
@@ -42,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-connect<OwnProps, _, _, _, _>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

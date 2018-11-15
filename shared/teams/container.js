@@ -7,7 +7,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle, connect} from '../util/container'
+import {compose, lifecycle, connect, type RouteProps} from '../util/container'
 import {getSortedTeamnames} from '../constants/teams'
 import {type Teamname} from '../constants/types/teams'
 
@@ -67,7 +67,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-connect<OwnProps, _, _, _, _>(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
