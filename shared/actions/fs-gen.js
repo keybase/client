@@ -10,7 +10,7 @@ import * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const clearMoveOrCopy = 'fs:clearMoveOrCopy'
+export const cancelMoveOrCopy = 'fs:cancelMoveOrCopy'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -43,6 +43,7 @@ export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const move = 'fs:move'
+export const moveOrCopyOpen = 'fs:moveOrCopyOpen'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
@@ -59,9 +60,10 @@ export const placeholderAction = 'fs:placeholderAction'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const setFlags = 'fs:setFlags'
-export const setMoveOrCopyDestinationParent = 'fs:setMoveOrCopyDestinationParent'
+export const setMoveOrCopyDestinationParentPath = 'fs:setMoveOrCopyDestinationParentPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const shareNative = 'fs:shareNative'
+export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const sortSetting = 'fs:sortSetting'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -72,9 +74,9 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
-type _ClearMoveOrCopyPayload = void
+type _CancelMoveOrCopyPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
-type _CopyPayload = void
+type _CopyPayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _DeleteFilePayload = $ReadOnly<{|path: Types.Path|}>
 type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
@@ -166,7 +168,12 @@ type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   mimeType: Types.Mime,
 |}>
-type _MovePayload = void
+type _MoveOrCopyOpenPayload = $ReadOnly<{|
+  routePath: I.List<string>,
+  path: Types.Path,
+  currentIndex: number,
+|}>
+type _MovePayload = $ReadOnly<{|destinationParentPath: Types.Path|}>
 type _NewFolderNamePayload = $ReadOnly<{|
   editID: Types.EditID,
   name: string,
@@ -211,12 +218,16 @@ type _SetFlagsPayload = $ReadOnly<{|
   securityPrefsPropmted?: boolean,
   showBanner?: boolean,
 |}>
-type _SetMoveOrCopyDestinationParentPayload = $ReadOnly<{|path: Types.Path|}>
+type _SetMoveOrCopyDestinationParentPathPayload = $ReadOnly<{|
+  index: number,
+  path: Types.Path,
+|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,
   key: string,
 |}>
+type _ShowMoveOrCopyPayload = $ReadOnly<{|initialDestinationParentPath: Types.Path|}>
 type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
   sortSetting: Types.SortSetting,
@@ -233,7 +244,7 @@ type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
-export const createClearMoveOrCopy = (payload: _ClearMoveOrCopyPayload) => ({payload, type: clearMoveOrCopy})
+export const createCancelMoveOrCopy = (payload: _CancelMoveOrCopyPayload) => ({payload, type: cancelMoveOrCopy})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
 export const createCopy = (payload: _CopyPayload) => ({payload, type: copy})
 export const createDeleteFile = (payload: _DeleteFilePayload) => ({payload, type: deleteFile})
@@ -266,6 +277,7 @@ export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) 
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({payload, type: mimeTypeLoaded})
 export const createMove = (payload: _MovePayload) => ({payload, type: move})
+export const createMoveOrCopyOpen = (payload: _MoveOrCopyOpenPayload) => ({payload, type: moveOrCopyOpen})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({payload, type: newFolderRow})
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({payload, type: notifySyncActivity})
@@ -282,9 +294,10 @@ export const createPlaceholderAction = (payload: _PlaceholderActionPayload) => (
 export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServerInfoPayload) => ({payload, type: refreshLocalHTTPServerInfo})
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
 export const createSetFlags = (payload: _SetFlagsPayload) => ({payload, type: setFlags})
-export const createSetMoveOrCopyDestinationParent = (payload: _SetMoveOrCopyDestinationParentPayload) => ({payload, type: setMoveOrCopyDestinationParent})
+export const createSetMoveOrCopyDestinationParentPath = (payload: _SetMoveOrCopyDestinationParentPathPayload) => ({payload, type: setMoveOrCopyDestinationParentPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createShareNative = (payload: _ShareNativePayload) => ({payload, type: shareNative})
+export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload) => ({payload, type: showMoveOrCopy})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
@@ -295,7 +308,7 @@ export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) 
 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
-export type ClearMoveOrCopyPayload = $Call<typeof createClearMoveOrCopy, _ClearMoveOrCopyPayload>
+export type CancelMoveOrCopyPayload = $Call<typeof createCancelMoveOrCopy, _CancelMoveOrCopyPayload>
 export type CommitEditPayload = $Call<typeof createCommitEdit, _CommitEditPayload>
 export type CopyPayload = $Call<typeof createCopy, _CopyPayload>
 export type DeleteFilePayload = $Call<typeof createDeleteFile, _DeleteFilePayload>
@@ -327,6 +340,7 @@ export type LoadingPathPayload = $Call<typeof createLoadingPath, _LoadingPathPay
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
+export type MoveOrCopyOpenPayload = $Call<typeof createMoveOrCopyOpen, _MoveOrCopyOpenPayload>
 export type MovePayload = $Call<typeof createMove, _MovePayload>
 export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
@@ -344,9 +358,10 @@ export type PlaceholderActionPayload = $Call<typeof createPlaceholderAction, _Pl
 export type RefreshLocalHTTPServerInfoPayload = $Call<typeof createRefreshLocalHTTPServerInfo, _RefreshLocalHTTPServerInfoPayload>
 export type SaveMediaPayload = $Call<typeof createSaveMedia, _SaveMediaPayload>
 export type SetFlagsPayload = $Call<typeof createSetFlags, _SetFlagsPayload>
-export type SetMoveOrCopyDestinationParentPayload = $Call<typeof createSetMoveOrCopyDestinationParent, _SetMoveOrCopyDestinationParentPayload>
+export type SetMoveOrCopyDestinationParentPathPayload = $Call<typeof createSetMoveOrCopyDestinationParentPath, _SetMoveOrCopyDestinationParentPathPayload>
 export type SetMoveOrCopySourcePayload = $Call<typeof createSetMoveOrCopySource, _SetMoveOrCopySourcePayload>
 export type ShareNativePayload = $Call<typeof createShareNative, _ShareNativePayload>
+export type ShowMoveOrCopyPayload = $Call<typeof createShowMoveOrCopy, _ShowMoveOrCopyPayload>
 export type SortSettingPayload = $Call<typeof createSortSetting, _SortSettingPayload>
 export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfirm, _UninstallKBFSConfirmPayload>
 export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
@@ -359,7 +374,7 @@ export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded,
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | ClearMoveOrCopyPayload
+  | CancelMoveOrCopyPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
@@ -391,6 +406,7 @@ export type Actions =
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
+  | MoveOrCopyOpenPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
@@ -408,9 +424,10 @@ export type Actions =
   | RefreshLocalHTTPServerInfoPayload
   | SaveMediaPayload
   | SetFlagsPayload
-  | SetMoveOrCopyDestinationParentPayload
+  | SetMoveOrCopyDestinationParentPathPayload
   | SetMoveOrCopySourcePayload
   | ShareNativePayload
+  | ShowMoveOrCopyPayload
   | SortSettingPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload

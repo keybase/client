@@ -12,6 +12,7 @@ import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import type {IconType} from '../common-adapters'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../actions/route-tree'
 
 export const defaultPath = '/keybase'
 
@@ -173,7 +174,7 @@ export const makeError = (record?: {
 }
 
 export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
-  destinationParentPath: Types.stringToPath('/keybase'),
+  destinationParentPath: I.List(),
   sourceItemPath: Types.stringToPath(''),
 })
 
@@ -810,6 +811,14 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   const elemsA = Types.getPathElements(a)
   const elemsB = Types.getPathElements(b)
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
+}
+
+export const destinationPickerGoToPathAction = (
+  routePath: I.List<string>,
+  destinationParentPath: Types.Path
+) => {
+  const to = {props: {destinationParentPath}, selected: 'destinationPicker'}
+  return putActionIfOnPath(routePath, isMobile ? navigateAppend([to]) : navigateTo([to]))
 }
 
 export const erroredActionToMessage = (action: FsGen.Actions): string => {

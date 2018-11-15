@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
@@ -9,6 +10,7 @@ import Breadcrumb from './breadcrumb.desktop'
 
 type OwnProps = {
   path: Types.Path,
+  routePath: I.List<string>,
   inDestinationPicker?: boolean,
 }
 
@@ -16,9 +18,9 @@ const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch, {inDestinationPicker}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps) => ({
   _navigateToPath: inDestinationPicker
-    ? (path: Types.Path) => dispatch(FsGen.createSetMoveOrCopyDestinationParent({path}))
+    ? (path: Types.Path) => dispatch(FsGen.createMoveOrCopyOpen({routePath, currentIndex: 0, path}))
     : (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
 })
 
