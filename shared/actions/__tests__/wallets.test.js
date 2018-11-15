@@ -1,5 +1,6 @@
 // @flow
 /* eslint-env jest */
+import * as I from 'immutable'
 import * as Constants from '../../constants/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as WalletsGen from '../wallets-gen'
@@ -9,6 +10,7 @@ import * as RouteTree from '../route-tree'
 import walletsSaga from '../wallets'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
+import {getPath as getRoutePath} from '../../route-tree'
 
 jest.mock('../../engine')
 
@@ -29,6 +31,16 @@ const startOnWalletsTab = dispatch => {
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
+
+const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.walletsTab])
+
+it('disclaimer', () => {
+  const {dispatch, getState} = startReduxSaga()
+
+  // Not yet accepted disclaimer.
+  dispatch(WalletsGen.createOpenSendRequestForm({}))
+  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+})
 
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
