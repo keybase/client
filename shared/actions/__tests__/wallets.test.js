@@ -12,7 +12,6 @@ import * as Testing from '../../util/testing'
 
 jest.mock('../../engine')
 
-// We want to be logged in usually
 const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
@@ -50,7 +49,7 @@ const startOnWalletsTab = dispatch => {
 
 const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, startOnWalletsTab)
 
-describe('load', () => {
+describe('build payment', () => {
   let init
   beforeEach(() => {
     init = startReduxSaga()
@@ -61,7 +60,7 @@ describe('load', () => {
     rpc && rpc.mockRestore()
   })
 
-  it('load leads to loaded', () => {
+  it('basic', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
     rpc.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
