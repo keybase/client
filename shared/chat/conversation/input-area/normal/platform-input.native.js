@@ -3,6 +3,7 @@
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {
+  Animation,
   Box,
   Box2,
   Icon,
@@ -211,7 +212,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             rowsMin={1}
           />
 
-          {this.props.typing.size > 0 && <Typing />}
+          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -242,12 +243,6 @@ const ChannelMentionHud = props => (
     <Box style={styles.accessory}>
       <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
     </Box>
-  </Box>
-)
-
-const Typing = () => (
-  <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
   </Box>
 )
 

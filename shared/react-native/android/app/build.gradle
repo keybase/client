@@ -195,5 +195,6 @@ dependencies {
     implementation project(':react-native-image-picker')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-contacts')
+    implementation project(':lottie-react-native')
     implementation 'com.evernote:android-job:1.2.6'
 }
