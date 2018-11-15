@@ -892,7 +892,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 			continue
 		}
 		acc := r.addAccountByID(account.AccountID, false /* funded */)
-		acc.secretKey = stellar1.SecretKey(account.Signers[0])
+		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
 		res = append(res, acc)
 	}
 	return res

@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 )
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestricted, err error) {
 	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return dump, errors.New("WalletDump only supported in devel run mode")
 	}

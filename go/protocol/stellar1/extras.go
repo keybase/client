@@ -192,6 +192,15 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	return BundleEntry{}, errors.New("primary stellar account not found")
 }
 
+func (s BundleRestricted) PrimaryAccount() (BundleEntryRestricted, error) {
+	for _, entry := range s.Accounts {
+		if entry.IsPrimary {
+			return entry, nil
+		}
+	}
+	return BundleEntryRestricted{}, errors.New("primary stellar account not found")
+}
+
 func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 	for _, entry := range s.Accounts {
 		if entry.AccountID == acctID {
@@ -199,6 +208,15 @@ func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
 		}
 	}
 	return BundleEntry{}, errors.New("stellar account not found")
+}
+
+func (s BundleRestricted) Lookup(acctID AccountID) (BundleEntryRestricted, error) {
+	for _, entry := range s.Accounts {
+		if entry.AccountID == acctID {
+			return entry, nil
+		}
+	}
+	return BundleEntryRestricted{}, errors.New("stellar account not found")
 }
 
 // Eq compares assets strictly.

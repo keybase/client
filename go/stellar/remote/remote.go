@@ -38,9 +38,13 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 }
 
 // Post a bundle to the server with a chainlink.
-func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
+func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
 
+	v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
+	if err != nil {
+		return err
+	}
 	m := libkb.NewMetaContext(ctx, g)
 
 	uid := g.ActiveDevice.UID()
@@ -67,15 +71,15 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 		return err
 	}
 
-	err = clearBundle.CheckInvariants()
+	err = v1Bundle.CheckInvariants()
 	if err != nil {
 		return err
 	}
 	// Find the new primary account for the chain link.
-	if len(clearBundle.Accounts) < 1 {
+	if len(v1Bundle.Accounts) < 1 {
 		return errors.New("stellar bundle has no accounts")
 	}
-	stellarAccount, err := clearBundle.PrimaryAccount()
+	stellarAccount, err := v1Bundle.PrimaryAccount()
 	if err != nil {
 		return err
 	}
@@ -85,8 +89,8 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 	if !stellarAccount.IsPrimary {
 		return errors.New("initial stellar account is not primary")
 	}
-	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", clearBundle.Revision, stellarAccount.AccountID, pukGen)
-	boxed, err := bundle.Box(clearBundle, pukGen, pukSeed)
+	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", v1Bundle.Revision, stellarAccount.AccountID, pukGen)
+	boxed, err := bundle.Box(*v1Bundle, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}
@@ -122,18 +126,20 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 }
 
 // Post a bundle to the server.
-func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
+func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Post", func() error { return err })()
+	v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
+
 	pukGen, pukSeed, err := getLatestPuk(ctx, g)
 	if err != nil {
 		return err
 	}
-	err = clearBundle.CheckInvariants()
+	err = v1Bundle.CheckInvariants()
 	if err != nil {
 		return err
 	}
-	g.Log.CDebugf(ctx, "Stellar.Post: revision:%v", clearBundle.Revision)
-	boxed, err := bundle.Box(clearBundle, pukGen, pukSeed)
+	g.Log.CDebugf(ctx, "Stellar.Post: revision:%v", v1Bundle.Revision)
+	boxed, err := bundle.Box(*v1Bundle, pukGen, pukSeed)
 	if err != nil {
 		return err
 	}
@@ -181,10 +187,16 @@ func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *s
 func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
 
+	//if no account_id is passed, then this is a request for a secretless bundle
+	var fetchArgs libkb.HTTPArgs
+	if len(accountID) > 0 {
+		fetchArgs = libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
+	}
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		Args:        fetchArgs,
 		NetContext:  ctx,
 	}
 	var apiRes fetchAcctRes
@@ -229,7 +241,7 @@ type fetchAcctRes struct {
 }
 
 // Fetch and unbox the latest bundle from the server.
-func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, err error) {
+func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
@@ -259,7 +271,15 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	res, _, err = bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
+	basicBundle, _, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
+	if err != nil {
+		return res, 0, err
+	}
+	accountBundle, err := acctbundle.NewFromBundle(basicBundle)
+	if err != nil {
+		return res, 0, err
+	}
+	res = *accountBundle
 	return res, decodeRes.Enc.Gen, err
 }
 

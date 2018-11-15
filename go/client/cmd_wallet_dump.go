@@ -63,7 +63,8 @@ func (c *cmdWalletDump) Run() (err error) {
 			dui.Printf("Name: %v\n", account.Name)
 		}
 		dui.Printf("AccountID: %v\n", account.AccountID)
-		for j, signer := range account.Signers {
+		accountBundle := bundle.AccountBundles[account.AccountID]
+		for j, signer := range accountBundle.Signers {
 			dui.Printf("Signers[%v]: %v\n", j, signer.SecureNoLogString())
 		}
 		dui.Printf("Mode: %v\n", account.Mode)

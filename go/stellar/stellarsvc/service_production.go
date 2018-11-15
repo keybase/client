@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.BundleRestricted, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:        "WalletDumpLocal",
 		Err:            &err,

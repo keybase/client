@@ -1500,7 +1500,7 @@
     },
     "walletDumpLocal": {
       "request": [],
-      "response": "Bundle"
+      "response": "BundleRestricted"
     },
     "walletGetAccountsCLILocal": {
       "request": [],

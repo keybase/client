@@ -70,7 +70,8 @@ func TestCreateWallet(t *testing.T) {
 	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
-	require.Len(t, bundle.Accounts[0].Signers, 1)
+	accountID := bundle.Accounts[0].AccountID
+	require.Len(t, bundle.AccountBundles[accountID].Signers, 1)
 	require.Equal(t, firstAccountName(t, tcs[0]), bundle.Accounts[0].Name)
 
 	t.Logf("Lookup the user by public address as another user")
@@ -123,6 +124,7 @@ func TestUpkeep(t *testing.T) {
 	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	originalID := bundle.OwnHash
+	require.NotNil(t, originalID)
 	originalPukGen := pukGen
 
 	err = stellar.Upkeep(context.Background(), tcs[0].G)
@@ -176,9 +178,10 @@ func TestImportExport(t *testing.T) {
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
-		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		accountID := bundle.Accounts[0].AccountID
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), accountID)
 		require.NoError(t, err)
-		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+		require.Equal(t, bundle.AccountBundles[accountID].Signers[0], exported)
 	})
 
 	a1, s1 := randomStellarKeypair()
@@ -191,9 +194,10 @@ func TestImportExport(t *testing.T) {
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
-		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		accountID := bundle.Accounts[0].AccountID
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), accountID)
 		require.NoError(t, err)
-		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+		require.Equal(t, bundle.AccountBundles[accountID].Signers[0], exported)
 	})
 
 	mustAskForPassphrase(func() {
@@ -456,8 +460,9 @@ func TestRelayTransferInnards(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	stellarSender, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
+	stellarSender, senderAccountBundle, err := stellar.LookupSender(context.Background(), tcs[0].G, "")
 	require.NoError(t, err)
+	require.Equal(t, stellarSender.AccountID, senderAccountBundle.AccountID)
 
 	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
 	require.NoError(t, err)
@@ -469,7 +474,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
 	out, err := relays.Create(relays.Input{
-		From:          stellarSender.Signers[0],
+		From:          senderAccountBundle.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
@@ -907,18 +912,21 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	}
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
-	// TODO: reintroduce this test after the server has been updated
-	// primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
-	// for the desired behavior from the two fetch endpoints
-	// rev3AcctBundle, _, err := remote.Fetch(context.Background(), tc.G)
-	// require.NoError(t, err)
-	// require.Equal(t, stellar1.BundleVersion_V2, version)
-	// require.Equal(t, stellar1.BundleRevision(3), rev3AcctBundle.Revision)
-	// require.Equal(t, primaryAcctName, rev3AcctBundle.Accounts[0].Name)
-	// require.Equal(t, stellar1.AccountMode_MOBILE, rev3AcctBundle.Accounts[1].Mode)
-	// require.False(t, rev3AcctBundle.Accounts[1].IsPrimary)
-	// require.Len(t, rev3AcctBundle.Accounts[1].Signers, 0)
-	// require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
+	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
+	// can pull a secretless bundle though
+	rev3AcctBundle, _, err := remote.FetchAccountBundle(context.Background(), tc.G, stellar1.AccountID(""))
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleVersion_V2, version)
+	require.Equal(t, stellar1.BundleRevision(3), rev3AcctBundle.Revision)
+	accountID_0 := rev3AcctBundle.Accounts[0].AccountID
+	require.Equal(t, primaryAcctName, rev3AcctBundle.Accounts[0].Name)
+	require.True(t, rev3AcctBundle.Accounts[0].IsPrimary)
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID_0].Signers, 0)
+	accountID_1 := rev3AcctBundle.Accounts[1].AccountID
+	require.Equal(t, stellar1.AccountMode_MOBILE, rev3AcctBundle.Accounts[1].Mode)
+	require.False(t, rev3AcctBundle.Accounts[1].IsPrimary)
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID_1].Signers, 0)
+	require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
 
 	// try posting an old bundle we got previously
 	err = remote.PostBundleRestricted(context.Background(), tc.G, rev2AcctBundle)

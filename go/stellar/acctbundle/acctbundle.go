@@ -24,7 +24,7 @@ func New(secret stellar1.SecretKey, name string) (*stellar1.BundleRestricted, er
 	return &stellar1.BundleRestricted{
 		Revision: 1,
 		Accounts: []stellar1.BundleEntryRestricted{
-			newEntry(accountID, name, false),
+			newEntry(accountID, name, false, stellar1.AccountMode_USER),
 		},
 		AccountBundles: map[stellar1.AccountID]stellar1.AccountBundle{
 			accountID: newAccountBundle(accountID, secretKey),
@@ -62,24 +62,56 @@ func NewFromBundle(bundle stellar1.Bundle) (*stellar1.BundleRestricted, error) {
 	}
 	r.Accounts = make([]stellar1.BundleEntryRestricted, len(bundle.Accounts))
 	for i, acct := range bundle.Accounts {
-		r.Accounts[i] = newEntry(acct.AccountID, acct.Name, acct.IsPrimary)
+		r.Accounts[i] = newEntry(acct.AccountID, acct.Name, acct.IsPrimary, acct.Mode)
 		r.AccountBundles[acct.AccountID] = stellar1.AccountBundle{
 			Revision:  1,
 			AccountID: acct.AccountID,
 			Signers:   acct.Signers,
 		}
 	}
+	if err := r.CheckInvariants(); err != nil {
+		return nil, err
+	}
 	return r, nil
 }
 
-func newEntry(accountID stellar1.AccountID, name string, isPrimary bool) stellar1.BundleEntryRestricted {
+func newEntry(accountID stellar1.AccountID, name string, isPrimary bool, mode stellar1.AccountMode) stellar1.BundleEntryRestricted {
 	return stellar1.BundleEntryRestricted{
 		AccountID:          accountID,
 		Name:               name,
-		Mode:               stellar1.AccountMode_USER,
+		Mode:               mode,
 		IsPrimary:          isPrimary,
 		AcctBundleRevision: 1,
 	}
+}
+
+// BundleFromBundleRestricted is part of the migration strategy to move from Bundles to
+// BundleRestricteds. This should only ever be used as close to the interface with the server
+// as possible: i.e. methods that start with `Post` or `Fetch`.
+func BundleFromBundleRestricted(br stellar1.BundleRestricted) (*stellar1.Bundle, error) {
+	bundle := &stellar1.Bundle{
+		Revision: br.Revision,
+		Prev:     br.Prev,
+		OwnHash:  br.OwnHash,
+	}
+	if bundle.Revision > 1 && (bundle.Prev == nil || len(bundle.Prev) == 0) {
+		return nil, fmt.Errorf("BundleFromBundleRestricted missing Prev: %+v", br)
+	}
+	bundle.Accounts = make([]stellar1.BundleEntry, len(br.Accounts))
+	for i, acct := range br.Accounts {
+		signers := br.AccountBundles[acct.AccountID].Signers
+		bundle.Accounts[i] = stellar1.BundleEntry{
+			AccountID: acct.AccountID,
+			Name:      acct.Name,
+			Mode:      acct.Mode,
+			IsPrimary: acct.IsPrimary,
+			Signers:   signers,
+		}
+	}
+	if err := bundle.CheckInvariants(); err != nil {
+		return nil, err
+	}
+	return bundle, nil
 }
 
 func newAccountBundle(accountID stellar1.AccountID, secretKey stellar1.SecretKey) stellar1.AccountBundle {
@@ -674,4 +706,104 @@ func merge(secret stellar1.BundleSecretV2, visible stellar1.BundleVisibleV2) (st
 		Prev:     visible.Prev,
 		Accounts: accounts,
 	}, nil
+}
+
+// AdvanceBundle only advances the revisions and hashes on the BundleRestricted
+// and not on the accounts. This is useful for adding and removing accounts
+// but not for changing them.
+func AdvanceBundle(prevBundle stellar1.BundleRestricted) stellar1.BundleRestricted {
+	nextBundle := prevBundle.DeepCopy()
+	nextBundle.Prev = nextBundle.OwnHash
+	nextBundle.OwnHash = nil
+	nextBundle.Revision++
+	return nextBundle
+}
+
+// advanceOneAccount mutates the passed in bundleRestricted in place
+func advanceOneAccount(b *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
+	for _, account := range b.Accounts {
+		if account.AccountID.Eq(accountID) {
+			account.AcctBundleRevision++
+			return nil
+		}
+	}
+	return fmt.Errorf("account not found: %v", accountID)
+}
+
+// AdvanceAccounts advances the revisions and hashes on the BundleRestricted
+// as well as on the specified Accounts. This is useful for mutating one or more
+// of the accounts in the bundle, e.g. changing which one is Primary.
+func AdvanceAccounts(prevBundle stellar1.BundleRestricted, accountIDs []stellar1.AccountID) (stellar1.BundleRestricted, error) {
+	nextBundle := AdvanceBundle(prevBundle)
+	for _, accountID := range accountIDs {
+		err := advanceOneAccount(&nextBundle, accountID)
+		if err != nil {
+			return stellar1.BundleRestricted{}, err
+		}
+	}
+	return nextBundle, nil
+}
+
+// AdvanceAll advances the revisions and hashes on the BundleRestricted
+// as well as on all of the Accounts. This is useful for reencryption of
+// everything, e.g. Upkeep.
+func AdvanceAll(prevBundle stellar1.BundleRestricted) stellar1.BundleRestricted {
+	nextBundle := AdvanceBundle(prevBundle)
+	for _, account := range nextBundle.Accounts {
+		account.AcctBundleRevision++
+	}
+	return nextBundle
+}
+
+// AddAccount adds an account to the bundle. Mutates `bundle`.
+func AddAccount(bundle *stellar1.BundleRestricted, secretKey stellar1.SecretKey, name string, makePrimary bool) (err error) {
+	if bundle == nil {
+		return fmt.Errorf("nil bundle")
+	}
+	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
+	if err != nil {
+		return err
+	}
+	if name == "" {
+		return fmt.Errorf("Name required for new account")
+	}
+	if makePrimary {
+		for i := range bundle.Accounts {
+			bundle.Accounts[i].IsPrimary = false
+		}
+	}
+	bundle.Accounts = append(bundle.Accounts, stellar1.BundleEntryRestricted{
+		AccountID:          accountID,
+		Mode:               stellar1.AccountMode_USER,
+		IsPrimary:          makePrimary,
+		AcctBundleRevision: 1,
+		Name:               name,
+	})
+	bundle.AccountBundles[accountID] = stellar1.AccountBundle{
+		Revision:  1,
+		AccountID: accountID,
+		Signers:   []stellar1.SecretKey{secretKey},
+	}
+	return bundle.CheckInvariants()
+}
+
+// CreateNewAccount generates a Stellar key pair and adds it to the
+// bundle. Mutates `bundle`.
+func CreateNewAccount(bundle *stellar1.BundleRestricted, name string, makePrimary bool) (pub stellar1.AccountID, err error) {
+	accountID, masterKey, err := randomStellarKeypair()
+	if err != nil {
+		return pub, err
+	}
+	if err := AddAccount(bundle, masterKey, name, makePrimary); err != nil {
+		return pub, err
+	}
+	return accountID, nil
+}
+
+func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey, err error) {
+	full, err := keypair.Random()
+	if err != nil {
+		return pub, sec, err
+	}
+	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed()), nil
 }

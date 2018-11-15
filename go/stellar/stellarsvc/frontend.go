@@ -85,7 +85,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 	return s.accountLocal(ctx, entry)
 }
 
-func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntryRestricted) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
 	details, err := s.accountDetails(ctx, entry.AccountID)
 	if err != nil {

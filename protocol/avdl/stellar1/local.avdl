@@ -11,7 +11,7 @@ protocol local {
     boolean isDefault;          // true if this is the default sending/receiving account
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
-    string seqno;               // the stellar sequence number for this account 
+    string seqno;               // the stellar sequence number for this account
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -118,7 +118,7 @@ protocol local {
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
 
-  // markAsReadLocal will mark as "read" all the payments created at or before the time 
+  // markAsReadLocal will mark as "read" all the payments created at or before the time
   // of the payment referenced by `mostRecentID`.
   void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
@@ -284,7 +284,7 @@ protocol local {
     string publicMemoErrMsg;
 
     // All these worth fields are pretty confusing.
-    // Leaving them in, but adding fields below to simplify, then 
+    // Leaving them in, but adding fields below to simplify, then
     // perhaps we can clean some of these out.
 
     // Optional. Blank if non-native assets are being sent or if there is a global error.
@@ -428,7 +428,7 @@ protocol local {
   }
   RequestDetailsLocal getRequestDetailsLocal(int sessionID, KeybaseRequestID reqID);
   void cancelRequestLocal(int sessionID, KeybaseRequestID reqID);
-  KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset, 
+  KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset,
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 
   void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
@@ -489,7 +489,7 @@ protocol local {
 
   void walletInitLocal();
 
-  Bundle walletDumpLocal();
+  BundleRestricted walletDumpLocal();
 
   // Account balance and its current value in selected currency.
   record OwnAccountCLILocal {
@@ -517,7 +517,7 @@ protocol local {
   map<OutsideCurrencyCode, OutsideCurrencyDefinition> getAvailableLocalCurrencies();
   string formatLocalCurrencyString(string amount, OutsideCurrencyCode code);
 
-  KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset, 
+  KeybaseRequestID makeRequestCLILocal(string recipient, union { null, Asset } asset,
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 
   record LookupResultCLILocal {
