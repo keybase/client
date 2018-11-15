@@ -6,7 +6,6 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {navigateAppend} from '../../actions/route-tree'
 import {
   connect,
   compose,
@@ -40,7 +39,7 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
   openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
