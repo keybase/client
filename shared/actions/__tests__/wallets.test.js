@@ -76,6 +76,7 @@ describe('send payment', () => {
 
     dispatch(WalletsGen.createSendPayment())
     return Testing.flushPromises().then(() => {
+      // TODO: Check building/built/errors are cleared.
       expect(rpc).toHaveBeenCalled()
     })
   })
