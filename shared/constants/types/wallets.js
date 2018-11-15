@@ -243,7 +243,6 @@ export type _State = {
   exportedSecretKeyAccountID: AccountID,
   lastSentXLM: boolean,
   linkExistingAccountError: string,
-  newlyCreatedAccounts: I.Set<AccountID>,
   newPayments: I.Map<AccountID, I.Set<PaymentID>>,
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
