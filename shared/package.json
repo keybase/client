@@ -140,6 +140,8 @@
     "immutable": "4.0.0-rc.12",
     "lodash-es": "4.17.11",
     "memoize-one": "4.0.2",
+    "lottie-react-native": "2.5.10",
+    "lottie-react-web": "2.1.2",
     "menubar": "5.2.3",
     "moment": "2.22.2",
     "mousetrap": "1.6.2",

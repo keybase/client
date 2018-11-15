@@ -1,4 +1,5 @@
 // @flow
+export {default as Animation} from './animation'
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as BackgroundRepeatBox} from './background-repeat-box'
