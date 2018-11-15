@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Icon from './icon'
 import EscapeHandler from '../util/escape-handler.desktop'
-import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
+import * as Styles from '../styles'
 
 import type {Props} from './popup-dialog'
 
@@ -27,21 +27,21 @@ export function PopupDialog({
   return (
     <EscapeHandler onESC={onClose}>
       <Box
-        style={collapseStyles([coverStyle, styleCover])}
+        style={Styles.collapseStyles([styles.cover, styleCover])}
         onClick={onClose}
         onMouseUp={onMouseUp}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
       >
-        <Box style={collapseStyles([containerStyle, fill ? containerFillStyle : null, styleContainer])}>
+        <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
           <Icon
             type="iconfont-close"
-            style={collapseStyles([closeStyle, styleClose])}
-            color={globalColors.white}
+            style={Styles.collapseStyles([styles.close, styleClose])}
+            color={Styles.globalColors.white}
             onClick={onClose}
           />
           <Box
-            style={collapseStyles([clipContainerStyle, styleClipContainer])}
+            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
             onClick={allowClipBubbling ? undefined : stopBubbling}
           >
             {children}
@@ -52,49 +52,47 @@ export function PopupDialog({
   )
 }
 
-const coverStyle = {
-  ...globalStyles.flexBoxColumn,
-  background: globalColors.black_60,
-  justifyContent: 'center',
-  alignItems: 'center',
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-  paddingTop: globalMargins.small,
-  paddingBottom: globalMargins.small,
-  zIndex: 30, // Put the popup on top of any sticky section headers.
-}
-
-const containerStyle = {
-  ...globalStyles.flexBoxRow,
-  position: 'relative',
-  maxWidth: '100%',
-  maxHeight: '100%',
-}
-
-const containerFillStyle = {
-  width: '100%',
-  height: '100%',
-}
-
-const clipContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  position: 'relative',
-  flex: 1,
-  background: globalColors.white,
-  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  borderRadius: 4,
-  maxWidth: '100%',
-}
-
-const closeStyle = {
-  position: 'absolute',
-  right: -16 - globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
-  cursor: 'pointer',
-}
+const styles = Styles.styleSheetCreate({
+  clipContainer: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: Styles.borderRadius,
+      boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
+      flex: 1,
+      maxWidth: '100%',
+      position: 'relative',
+    },
+  }),
+  close: Styles.platformStyles({
+    isElectron: {
+      cursor: 'pointer',
+      position: 'absolute',
+      right: -16 - Styles.globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
+    },
+  }),
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    maxHeight: '100%',
+    maxWidth: '100%',
+    position: 'relative',
+  },
+  containerFill: {
+    height: '100%',
+    width: '100%',
+  },
+  cover: {
+    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.fillAbsolute,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black_60,
+    justifyContent: 'center',
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.large,
+    paddingRight: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.small,
+    zIndex: 30, // Put the popup on top of any sticky section headers.
+  },
+})
 
 export default PopupDialog
