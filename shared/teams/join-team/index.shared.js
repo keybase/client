@@ -54,7 +54,7 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
           width: 240,
         }}
       >
-        <Icon type="icon-fancy-email-sent-192-x-64" />
+        <Icon type={isMobile ? 'icon-fancy-email-sent-192-x-64' : 'icon-fancy-email-sent-144-x-48'} />
       </Box>
       <Box
         style={{
