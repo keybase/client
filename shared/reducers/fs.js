@@ -116,11 +116,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.withMutations(s =>
-        s.updateIn(
-          ['downloads', key, 'state'],
-          original =>
-            original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
+      return state.update('downloads', d =>
+        d.update(key, k =>
+          k.update(
+            'state',
+            original =>
+              original &&
+              original.withMutations(o =>
+                o.set('completePortion', completePortion).set('endEstimate', endEstimate)
+              )
+          )
         )
       )
     }
@@ -182,9 +187,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
     case FsGen.mimeTypeLoaded:
-      return state.withMutations(s =>
-        s.updateIn(
-          ['pathItems', action.payload.path],
+      return state.update('pathItems', pis =>
+        pis.update(
+          action.payload.path,
           pathItem =>
             pathItem
               ? pathItem.type === 'file'
@@ -281,27 +286,30 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
-      return state.update('moveOrCopy', mc => mc.set('destinationParentPath',
-        isMobile
-          ? I.List(
-              Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
-                (list, elem) => [
-                  ...list,
-                  list.length
-                    ? Types.pathConcat(list[list.length - 1], elem)
-                    : Types.stringToPath(`/${elem}`),
-                ],
-                []
+      return state.update('moveOrCopy', mc =>
+        mc.set(
+          'destinationParentPath',
+          isMobile
+            ? I.List(
+                Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
+                  (list, elem) => [
+                    ...list,
+                    list.length
+                      ? Types.pathConcat(list[list.length - 1], elem)
+                      : Types.stringToPath(`/${elem}`),
+                  ],
+                  []
+                )
               )
-            )
-          : I.List([action.payload.initialDestinationParentPath])
-      ))
+            : I.List([action.payload.initialDestinationParentPath])
+        )
+      )
     case FsGen.setMoveOrCopySource:
       return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
     case FsGen.setMoveOrCopyDestinationParentPath:
-      return state.update('moveOrCopy', mc => mc.update('destinationParentPath', list =>
-        list.set(action.payload.index, action.payload.path)
-      ))
+      return state.update('moveOrCopy', mc =>
+        mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
