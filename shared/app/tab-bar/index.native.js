@@ -14,13 +14,19 @@ const _icons = {
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
-const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
+const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+
+// Files, Git, Devices, and Wallet are under the settings tab on mobile
+// bubble badges up to the tab
+const settingsTabChildren = [Tabs.fsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const getSettingsTabBadge = (badgeNumbers: $PropertyType<Props, 'badgeNumbers'>) =>
+  settingsTabChildren.reduce((res, tab) => res + (badgeNumbers[tab] || 0), 0)
 
 const TabBarRender = ({selectedTab, onTabClick, badgeNumbers, isNew}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton
-        badgeNumber={badgeNumbers[tab]}
+        badgeNumber={tab === Tabs.settingsTab ? getSettingsTabBadge(badgeNumbers) : badgeNumbers[tab]}
         isNew={isNew[tab] || false}
         badgePosition="top-right"
         key={tab}
