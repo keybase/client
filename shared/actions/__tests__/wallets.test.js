@@ -23,25 +23,6 @@ const initialStore = {
   }),
 }
 
-const buildPaymentRpc = {
-  amountErrMsg: '',
-  banners: null,
-  displayAmountFiat: '$5.00 USD',
-  displayAmountXLM: '21.4168160 XLM',
-  from: 'fake account ID',
-  publicMemoErrMsg: '',
-  readyToSend: false,
-  secretNoteErrMsg: '',
-  sendingIntentionXLM: false,
-  toErrMsg: '',
-  worthAmount: '21.4168160',
-  worthCurrency: 'USD',
-  worthDescription: '21.4168160 XLM',
-  worthInfo: '$1.00 = 4.2833632 XLM\nSource: coinmarketcap.com',
-}
-
-const builtPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRpc)
-
 const startOnWalletsTab = dispatch => {
   dispatch(RouteTree.switchRouteDef(appRouteTree))
   dispatch(RouteTree.navigateTo([Tabs.walletsTab]))
@@ -52,11 +33,28 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
+  const buildPaymentRpc = {
+    amountErrMsg: '',
+    banners: null,
+    displayAmountFiat: '$5.00 USD',
+    displayAmountXLM: '21.4168160 XLM',
+    from: 'fake account ID',
+    publicMemoErrMsg: '',
+    readyToSend: false,
+    secretNoteErrMsg: '',
+    sendingIntentionXLM: false,
+    toErrMsg: '',
+    worthAmount: '21.4168160',
+    worthCurrency: 'USD',
+    worthDescription: '21.4168160 XLM',
+    worthInfo: '$1.00 = 4.2833632 XLM\nSource: coinmarketcap.com',
+  }
   buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
 
   dispatch(WalletsGen.createBuildPayment())
   Testing.flushPromises().then(() => {
-    expect(getState().wallets.builtPayment).toEqual(builtPayment)
+    const expectedBuiltPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRpc)
+    expect(getState().wallets.builtPayment).toEqual(expectedBuiltPayment)
     expect(buildRPC).toHaveBeenCalled()
   })
 
