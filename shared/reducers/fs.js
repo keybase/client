@@ -121,10 +121,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           k.update(
             'state',
             original =>
-              original &&
-              original.withMutations(o =>
-                o.set('completePortion', completePortion).set('endEstimate', endEstimate)
-              )
+              original && original.merge({completePortion, endEstimate})
           )
         )
       )
