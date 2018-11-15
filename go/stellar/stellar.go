@@ -999,8 +999,8 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 
 type FmtRounding bool
 
-const FMT_ROUND = false
-const FMT_TRUNCATE = true
+const FmtRound = false
+const FmtTruncate = true
 
 func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
 	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
@@ -1096,7 +1096,7 @@ func FormatAmountDescriptionXLM(amount string) (string, error) {
 }
 
 func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(amount, precisionTwo, FMT_ROUND)
+	formatted, err := FormatAmount(amount, precisionTwo, FmtRound)
 	if err != nil {
 		return "", err
 	}
@@ -1119,7 +1119,7 @@ func FormatAmount(amount string, precisionTwo bool, rounding FmtRounding) (strin
 		precision = 2
 	}
 	var s string
-	if rounding == FMT_ROUND {
+	if rounding == FmtRound {
 		s = x.FloatString(precision)
 	} else {
 		s = x.FloatString(precision + 1)
