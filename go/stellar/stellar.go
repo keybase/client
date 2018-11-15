@@ -522,7 +522,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		post.To = &recipient.User.UV
 	}
 
-	sp := NewSeqnoProvider(m.Ctx(), remoter)
+	sp := NewSeqnoProvider(m, remoter)
 	if sendArg.FromSeqno != nil {
 		sp.Override(senderEntry.AccountID.String(), xdr.SequenceNumber(*sendArg.FromSeqno))
 	}
@@ -600,7 +600,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if err != nil {
 		return res, err
 	}
-	sp := NewSeqnoProvider(m.Ctx(), remoter)
+	sp := NewSeqnoProvider(m, remoter)
 	if fromSeqno != nil {
 		fromAccountID, err := accountIDFromSecretKey(from)
 		if err != nil {
@@ -719,7 +719,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		// Direction from caller
 		useDir = *dir
 	}
-	sp := NewSeqnoProvider(ctx, remoter)
+	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g), remoter)
 	// Throw a random ID into the transaction memo so that we get a new txID each time.
 	// This makes it easy to resubmit without hitting a txID collision on the server.
 	memoID, err := randMemoID()
