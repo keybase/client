@@ -727,8 +727,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.setBuildingCurrency,
       WalletsGen.setBuildingFrom,
       WalletsGen.setBuildingIsRequest,
-      WalletsGen.setBuildingPublicMemo,
-      WalletsGen.setBuildingSecretNote,
       WalletsGen.setBuildingTo,
       WalletsGen.displayCurrencyReceived,
     ],
