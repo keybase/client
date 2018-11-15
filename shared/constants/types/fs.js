@@ -226,8 +226,13 @@ export type PathItems = I.Map<Path, PathItem>
 export type Edits = I.Map<EditID, Edit>
 
 export type _MoveOrCopy = {
-  destinationParentPath: Path,
   sourceItemPath: Path,
+  // id -> Path mapping. This is useful for mobile when we have multiple layers
+  // stacked on top of each other, and we need to keep track of them for the
+  // back button. We don't put this in routeProps directly as that'd
+  // complicate stuff for desktop because we don't have something like a
+  // routeToSibling.
+  destinationParentPath: I.List<Path>,
 }
 export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
 

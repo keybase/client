@@ -1,5 +1,6 @@
 // @flow
 import * as TrackerGen from '../actions/tracker-gen'
+import * as UsersGen from '../actions/users-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 
@@ -43,7 +44,7 @@ function updateNonUserState(
 
 export default function(
   state: Types.State = Constants.initialState,
-  action: TrackerGen.Actions
+  action: TrackerGen.Actions | UsersGen.UpdateBrokenStatePayload
 ): Types.State {
   switch (action.type) {
     case TrackerGen.resetStore:
@@ -402,6 +403,29 @@ export default function(
           error: null,
         }))
       }
+    }
+    case UsersGen.updateBrokenState: {
+      const {newlyBroken, newlyFixed} = action.payload
+      let newState = state
+      newlyBroken.forEach(username => {
+        newState = updateUserState(newState, username, s => ({
+          ...s,
+          closed: s?.closed ?? true,
+          trackerState: 'error',
+          type: s?.type || 'tracker',
+          username,
+        }))
+      })
+      newlyFixed.forEach(username => {
+        newState = updateUserState(newState, username, s => ({
+          ...s,
+          closed: s?.closed ?? true,
+          trackerState: 'normal',
+          type: s?.type || 'tracker',
+          username,
+        }))
+      })
+      return newState
     }
     // Saga only actions
     case TrackerGen.follow:

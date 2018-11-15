@@ -1,38 +1,25 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import {
-  Box,
-  Box2,
-  ButtonBar,
-  ClickableBox,
-  Dropdown,
-  Input,
-  PopupDialog,
-  Text,
-  WaitingButton,
-} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
-import {teamRoleTypes} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {DesktopProps as Props} from '.'
 
 const _makeDropdownItem = (item: string) => (
-  <Box
+  <Kb.Box
     key={item}
     style={{
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     }}
   >
-    <Text type="BodyBig">{capitalize(item)}</Text>
-  </Box>
+    <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
+  </Kb.Box>
 )
-
-const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
 
 type State = {
   invitees: string,
@@ -41,7 +28,7 @@ type State = {
 }
 class InviteByEmailDesktop extends React.Component<Props, State> {
   state = {invitees: '', malformedEmails: I.Set(), role: 'reader'}
-  _input: ?Input
+  _input: ?Kb.Input
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // update contents of input box if we get a new list of malformed emails
@@ -70,56 +57,46 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   render() {
     const props = this.props
     return (
-      <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          <Box
+      <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+          <Kb.Box
             style={{
-              ...globalStyles.flexBoxColumn,
+              ...Styles.globalStyles.flexBoxColumn,
               alignItems: 'center',
-              margin: globalMargins.medium,
+              margin: Styles.globalMargins.medium,
             }}
           >
-            <Text style={styleInside} type="Header">
+            <Kb.Text style={styleInside} type="Header">
               Invite by email
-            </Text>
-            <Box
+            </Kb.Text>
+            <Kb.Box
               style={{
-                ...globalStyles.flexBoxRow,
+                ...Styles.globalStyles.flexBoxRow,
                 alignItems: 'center',
-                margin: globalMargins.tiny,
+                margin: Styles.globalMargins.tiny,
               }}
             >
-              <Text style={{margin: globalMargins.tiny}} type="Body">
+              <Kb.Text style={{margin: Styles.globalMargins.tiny}} type="Body">
                 Add these team members to {props.name} as:
-              </Text>
-              <ClickableBox
-                onClick={() => props.onOpenRolePicker(this.state.role, this._setRole)}
-                underlayColor={globalColors.transparent}
-              >
-                <Dropdown
-                  items={_makeDropdownItems()}
-                  selected={_makeDropdownItem(this.state.role)}
-                  onChanged={(node: React.Node) => {
-                    // $FlowIssue doesn't understand key will be string
-                    const selectedRole: TeamRoleType = (node && node.key) || null
-                    this._setRole(selectedRole)
-                  }}
-                  style={{width: 100}}
-                />
-              </ClickableBox>
-            </Box>
-            <Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
+              </Kb.Text>
+              <Kb.DropdownButton
+                toggleOpen={() => props.onOpenRolePicker(this.state.role, this._setRole)}
+                selected={_makeDropdownItem(this.state.role)}
+                style={{width: 100}}
+              />
+            </Kb.Box>
+            <Kb.Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
               Enter multiple email addresses, separated by commas
-            </Text>
-            <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
-              <Box
+            </Kb.Text>
+            <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
+              <Kb.Box
                 style={{
-                  border: `1px solid ${globalColors.black_20}`,
+                  border: `1px solid ${Styles.globalColors.black_20}`,
                   borderRadius: 4,
                   width: '100%',
                 }}
               >
-                <Input
+                <Kb.Input
                   autoFocus={true}
                   multiline={true}
                   hideUnderline={true}
@@ -132,31 +109,31 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                   small={true}
                   inputStyle={styleInput}
                 />
-              </Box>
+              </Kb.Box>
               {props.errorMessage && (
-                <Text type="BodySmall" style={{color: globalColors.red}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.red}}>
                   {props.errorMessage}
-                </Text>
+                </Kb.Text>
               )}
-            </Box2>
+            </Kb.Box2>
 
-            <ButtonBar>
-              <WaitingButton
+            <Kb.ButtonBar>
+              <Kb.WaitingButton
                 label="Invite"
                 onClick={this._onInvite}
                 type="Primary"
                 waitingKey={props.waitingKey}
               />
-            </ButtonBar>
-          </Box>
-        </Box>
-      </PopupDialog>
+            </Kb.ButtonBar>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.PopupDialog>
     )
   }
 }
 
 const styleInside = {
-  padding: globalMargins.tiny,
+  padding: Styles.globalMargins.tiny,
   marginTop: 0,
   marginBottom: 0,
 }
@@ -169,16 +146,16 @@ const styleInput = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: globalColors.black_75,
+  backgroundColor: Styles.globalColors.black_75,
   justifyContent: 'center',
 }
 
 const _styleContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignSelf: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: Styles.globalColors.white,
   borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+  boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
 }
 
 export {InviteByEmailDesktop}

@@ -28,6 +28,7 @@ let config = {
   skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
   skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
   userTimings: false, // Add user timings api to timeline in chrome
+  virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
 
 // Developer settings
@@ -110,6 +111,7 @@ if (PERF) {
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = false
+  config.virtualListMarks = false
 }
 
 export const {
@@ -135,4 +137,5 @@ export const {
   skipAppFocusActions,
   skipSecondaryDevtools,
   userTimings,
+  virtualListMarks,
 } = config

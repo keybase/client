@@ -626,10 +626,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-history-clear-64.png'),
   },
-  'icon-illustration-stellar-payments-183-188': {
+  'icon-illustration-stellar-payments-200-188': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-illustration-stellar-payments-183-188.png'),
+    require: require('../images/icons/icon-illustration-stellar-payments-200-188.png'),
   },
   'icon-illustration-subteams-380': {
     isFont: false,
@@ -1715,6 +1715,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-zcash-logo-64.png'),
+  },
+  'icon-fancy-unfurl-preview-mobile-128-128': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
+  },
+  'icon-fancy-unfurl-preview-desktop-96-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png'),
   },
   'iconfont-add': {
     isFont: true,

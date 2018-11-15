@@ -24,7 +24,9 @@ type State = {|
 class RenameAccountPopup extends React.Component<Props, State> {
   state = {name: this.props.initialName}
 
+  _disabled = () => !this.state.name || this.state.name === this.props.initialName
   _onNameChange = name => this.setState({name})
+  _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))
   _getBottomButtons = () => [
     ...(Styles.isMobile
       ? []
@@ -40,10 +42,11 @@ class RenameAccountPopup extends React.Component<Props, State> {
     <Kb.Button
       key={1}
       type="Wallet"
-      onClick={() => this.props.onDone(this.state.name)}
+      onClick={this._onDone}
       label="Save"
-      disabled={!this.state.name || this.state.name === this.props.initialName}
+      disabled={this._disabled()}
       fullWidth={Styles.isMobile}
+      waiting={this.props.waiting}
     />,
   ]
 
@@ -74,6 +77,7 @@ class RenameAccountPopup extends React.Component<Props, State> {
         <EnterName
           error={this.props.error || this.props.renameAccountError}
           name={this.state.name}
+          onEnterKeyDown={this._onDone}
           onNameChange={this._onNameChange}
         />
       </WalletPopup>

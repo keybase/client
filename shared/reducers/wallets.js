@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
@@ -60,9 +61,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
         }
         if (action.payload.setBuildingCurrency) {
-          stateMutable.update('building', b =>
-            b.merge({currency: state.lastSentXLM ? 'XLM' : action.payload.currency.code})
+          const currency = state.lastSentXLM ? 'XLM' : action.payload.currency.code
+          logger.info(
+            `displayCurrencyReceived: setting currency to ${currency} because lastSentXLM was ${String(
+              state.lastSentXLM
+            )}`
           )
+          stateMutable.update('building', b => b.merge({currency}))
         }
       })
     case WalletsGen.secretKeyReceived:

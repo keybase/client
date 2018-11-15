@@ -479,6 +479,7 @@ const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
+const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `wallets:getDisplayCurrency:${id}`
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const buildPaymentWaitingKey = 'wallets:buildPayment'
@@ -490,6 +491,8 @@ const searchKey = 'walletSearch'
 const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
+const validateAccountNameWaitingKey = 'wallets:validateAccountName'
+const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -550,7 +553,7 @@ const isPaymentUnread = (state: TypedState, accountID: Types.AccountID, paymentI
 
 const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
-    return 'XLM'
+    return ''
   }
   const currency = state.wallets.currencies.find(c => c.code === code)
   return currency ? currency.description : code
@@ -609,6 +612,7 @@ export {
   getCurrencyAndSymbol,
   getDisplayCurrencies,
   getDisplayCurrency,
+  getDisplayCurrencyWaitingKey,
   getDefaultAccountID,
   getFederatedAddress,
   getPayment,
@@ -653,4 +657,6 @@ export {
   unknownAccount,
   updatePaymentDetail,
   updatePaymentsReceived,
+  validateAccountNameWaitingKey,
+  validateSecretKeyWaitingKey,
 }

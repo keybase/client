@@ -10,65 +10,58 @@ type EnterKeyProps = {|
 |}
 
 const EnterKey = (props: EnterKeyProps) => (
-  <>
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-      {!Styles.isMobile && (
-        <>
-          <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
-          <Kb.Text type="Header" style={styles.headerText}>
-            Link an existing account
-          </Kb.Text>
-        </>
-      )}
-      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
-          Paste your secret key
-        </Kb.Text>
-        <Kb.Input
-          hideLabel={true}
-          multiline={true}
-          rowsMin={2}
-          rowsMax={2}
-          hideUnderline={true}
-          inputStyle={styles.inputElement}
-          style={styles.input}
-          onChangeText={props.onKeyChange}
-          value={props.secretKey}
-          autoFocus={true}
-        />
-        {!!props.error && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {props.error}
-          </Kb.Text>
-        )}
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    gap={Styles.isMobile ? 'small' : 'medium'}
+    style={{flex: 1}}
+    gapStart={!Styles.isMobile}
+  >
+    {!Styles.isMobile && (
+      <Kb.Box2 direction="vertical" gap="medium" centerChildren={true}>
+        <Kb.Icon type="icon-wallet-add-48" />
+        <Kb.Text type="Header">Link an existing account</Kb.Text>
       </Kb.Box2>
-      <Kb.InfoNote containerStyle={styles.infoNote}>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
-            Example:
-            <Kb.Text type="BodySmall" lineClamp={1} ellipsizeMode="middle">
-              SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
-            </Kb.Text>
-          </Kb.Text>
-          <Kb.Text type="BodySmall" style={styles.textCenter}>
-            This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
-            Stellar account in other wallet apps.
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.InfoNote>
+    )}
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
+      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
+        Paste your secret key
+      </Kb.Text>
+      <Kb.NewInput
+        style={styles.input}
+        multiline={true}
+        rowsMin={2}
+        rowsMax={2}
+        value={props.secretKey}
+        onChangeText={props.onKeyChange}
+        autoFocus={true}
+        maxLength={56}
+        hideBorder={Styles.isMobile}
+      />
+      {!!props.error && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {props.error}
+        </Kb.Text>
+      )}
     </Kb.Box2>
-  </>
+    <Kb.InfoNote>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Text type="BodySmall" lineClamp={1} style={styles.infoText}>
+          Example:
+        </Kb.Text>
+        <Kb.Text type="BodySmall" lineClamp={1} ellipsizeMode="middle" style={styles.infoText}>
+          SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
+        </Kb.Text>
+        <Kb.Text type="BodySmall" style={styles.infoText}>
+          This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
+          Stellar account in other wallet apps.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.InfoNote>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  icon: {
-    width: 48,
-    height: 48,
-  },
-  headerText: {
-    marginTop: Styles.globalMargins.medium,
-    marginBottom: Styles.globalMargins.medium,
-  },
   error: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -85,30 +78,25 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'flex-start',
     },
     isElectron: {width: '100%'},
-  }),
-  inputElement: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
+    isMobile: {
+      borderBottomWidth: 1,
+      borderColor: Styles.globalColors.black_05,
       borderStyle: 'solid',
-      borderWidth: 1,
-      padding: Styles.globalMargins.xtiny,
-      textAlign: 'left',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
     },
-    isElectron: {
-      minWidth: 0,
-      width: '100%',
+  }),
+  infoText: Styles.platformStyles({
+    common: {
+      textAlign: 'center',
     },
     isMobile: {
-      minWidth: '100%',
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
-  infoNote: {
-    marginTop: Styles.globalMargins.medium,
-  },
-  textCenter: {textAlign: 'center'},
 })
 
 export default EnterKey

@@ -391,19 +391,31 @@ const updateServerConfig = (state: TypedState) =>
     }
   })
 
-const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) =>
-  action.payload.writeFile &&
-  RPCTypes.configSetValueRpcPromise({
-    path: 'stellar.lastSentXLM',
-    value: {isNull: false, b: state.wallets.lastSentXLM},
-  }).catch(() => {})
+const writeLastSentXLM = (state: TypedState, action: SetLastSentXLMPayload) => {
+  if (action.payload.writeFile) {
+    logger.info(`Writing config stellar.lastSentXLM: ${String(state.wallets.lastSentXLM)}`)
+    return RPCTypes.configSetValueRpcPromise({
+      path: 'stellar.lastSentXLM',
+      value: {isNull: false, b: state.wallets.lastSentXLM},
+    }).catch(err => logger.error(`Error writing config stellar.lastSentXLM: ${err.message}`))
+  }
+}
 
-const readLastSentXLM = () =>
-  RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
-    .then(result =>
-      createSetLastSentXLM({lastSentXLM: result && !result.isNull && !!result.b, writeFile: false})
+const readLastSentXLM = () => {
+  logger.info(`Reading config stellar.lastSentXLM`)
+  return RPCTypes.configGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+    .then(result => {
+      const value = !result.isNull && !!result.b
+      logger.info(`Successfully read config stellar.lastSentXLM: ${String(value)}`)
+      return createSetLastSentXLM({lastSentXLM: value, writeFile: false})
+    })
+    .catch(
+      err =>
+        err.message.includes('no such key')
+          ? null
+          : logger.error(`Error reading config stellar.lastSentXLM: ${err.message}`)
     )
-    .catch(() => {})
+}
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls

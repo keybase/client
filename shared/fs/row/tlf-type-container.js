@@ -8,19 +8,19 @@ import TlfType from './tlf-type'
 
 type OwnProps = $Diff<Types.TlfTypeRowItem, {rowType: 'tlf-type'}> & {
   routePath: I.List<string>,
-  inDestinationPicker?: boolean,
+  destinationPickerIndex?: number,
 }
 
 const mapStateToProps = (state, {name}: OwnProps) => ({
   _tlfList: Constants.getTlfListFromType(state.fs.tlfs, name),
 })
 
-const mergeProps = (stateProps, dispatchProps, {name, routePath, inDestinationPicker}: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, {name, routePath, destinationPickerIndex}: OwnProps) => {
   const badgeCount = Constants.computeBadgeNumberForTlfList(stateProps._tlfList)
   const path = Types.stringToPath(`/keybase/${name}`)
   return {
     badgeCount,
-    inDestinationPicker,
+    destinationPickerIndex,
     itemStyles: Constants.getItemStyles(Types.getPathElements(path), 'folder', undefined),
     name,
     path,

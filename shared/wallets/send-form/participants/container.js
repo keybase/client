@@ -1,27 +1,16 @@
 // @flow
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
-import {isMobile} from '../../../constants/platform'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {
-  getAccount,
-  getAccounts,
-  searchKey,
-  unknownAccount,
-  linkExistingWaitingKey,
-  createNewAccountWaitingKey,
-} from '../../../constants/wallets'
-import {
-  stringToAccountID,
-  type Account as StateAccount,
-  type AccountID,
-} from '../../../constants/types/wallets'
+import * as RouteTree from '../../../route-tree'
+import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
-import {namedConnect} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
@@ -39,11 +28,12 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onOpenTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
+  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
 })
 
 const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
@@ -54,6 +44,7 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
     onShowSuggestions: dispatchProps.onShowSuggestions,
     onRemoveProfile: dispatchProps.onRemoveProfile,
     onChangeRecipient: dispatchProps.onChangeRecipient,
+    onScanQRCode: dispatchProps.onScanQRCode,
   }
 }
 
@@ -64,13 +55,28 @@ const ConnectedParticipantsKeybaseUser = namedConnect(
   'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
+// This thing has internal state to handle typing, but under some circumstances we want it to blow away all that data
+// and just take in the props again (aka remount) so, in order to achieve this in the least invasive way we'll watch the
+// route and we'll increment out key if we become topmost again
+let keyCounter = 1
+let lastPath = ''
+
 const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
+  const curPath = RouteTree.getPath(state.routeTree.routeState, Constants.rootWalletTab).last()
+  // looking at the form now, but wasn't before
+  if (curPath === 'sendReceiveForm' && curPath !== lastPath) {
+    keyCounter++
+  }
+
+  lastPath = curPath
+
   return {
-    recipientPublicKey: build.to,
     errorMessage: built.toErrMsg,
+    keyCounter,
+    recipientPublicKey: build.to,
   }
 }
 
@@ -78,6 +84,7 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
+  onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
   setReadyToSend: (readyToSend: boolean) => {
     dispatch(WalletsGen.createSetReadyToSend({readyToSend}))
   },
@@ -90,24 +97,26 @@ const ConnectedParticipantsStellarPublicKey = namedConnect(
   'ParticipantsStellarPublicKey'
 )(ParticipantsStellarPublicKey)
 
-const makeAccount = (stateAccount: StateAccount) => ({
+const makeAccount = (stateAccount: Types.Account) => ({
   contents: stateAccount.balanceDescription,
   id: stateAccount.accountID,
   isDefault: stateAccount.isDefault,
   name: stateAccount.name,
-  unknown: stateAccount === unknownAccount,
+  unknown: stateAccount === Constants.unknownAccount,
 })
 
 const mapStateToPropsOtherAccount = state => {
   const build = state.wallets.building
 
-  const fromAccount = makeAccount(getAccount(state, build.from))
-  const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
+  const fromAccount = makeAccount(Constants.getAccount(state, build.from))
+  const toAccount = build.to
+    ? makeAccount(Constants.getAccount(state, Types.stringToAccountID(build.to)))
+    : undefined
   const showSpinner = toAccount
     ? toAccount.unknown
-    : anyWaiting(state, linkExistingWaitingKey, createNewAccountWaitingKey)
+    : anyWaiting(state, Constants.linkExistingWaitingKey, Constants.createNewAccountWaitingKey)
 
-  const allAccounts = getAccounts(state)
+  const allAccounts = Constants.getAccounts(state)
     .map(makeAccount)
     .toArray()
 
@@ -121,7 +130,7 @@ const mapStateToPropsOtherAccount = state => {
 }
 
 const mapDispatchToPropsOtherAccount = dispatch => ({
-  onChangeFromAccount: (from: AccountID) => {
+  onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
   onChangeRecipient: (to: string) => {

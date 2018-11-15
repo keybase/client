@@ -3,7 +3,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
-import {navigateAppend} from '../../actions/route-tree'
 import {connect, type RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<{teamname: string}, {}>
@@ -18,7 +17,7 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
   onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
   onClose: () => dispatch(navigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {

@@ -1228,9 +1228,9 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 }
 
 func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls []chat1.Unfurl) (res []chat1.UnfurlDisplay) {
+	unfurls []chat1.UnfurlResult) (res []chat1.UnfurlDisplay) {
 	for _, u := range unfurls {
-		ud := PresentUnfurl(ctx, g, convID, u)
+		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
 			res = append(res, *ud)
 		}

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
@@ -200,6 +201,36 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
 		return nil
+	}
+
+	return nil
+}
+
+// ImportSecretKeyAccountBundle is a temporary function.
+// This is just to check PostBundleRestricted.
+// It does not attempt to do a full migration from V1 to V2.
+func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {
+	if g.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("this doesn't work in production")
+	}
+
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
+	if err != nil {
+		return err
+	}
+
+	acctBundle, err := acctbundle.NewFromBundle(nextBundle)
+	if err != nil {
+		return err
+	}
+	if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
+		return err
 	}
 
 	return nil
@@ -966,7 +997,13 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 	return username, nil
 }
 
-func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
+type FmtRounding bool
+
+const FMT_ROUND = false
+const FMT_TRUNCATE = true
+
+func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
+	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
 	conf, err := g.GetStellar().GetServerDefinitions(ctx)
 	if err != nil {
 		return "", err
@@ -976,7 +1013,7 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
 	}
 
-	amountFmt, err := FormatAmount(amount, true)
+	amountFmt, err := FormatAmount(amount, true, rounding)
 	if err != nil {
 		return "", err
 	}
@@ -990,8 +1027,9 @@ func FormatCurrency(ctx context.Context, g *libkb.GlobalContext, amount string, 
 
 // FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
 // its currency code suffix at the end, like "$123.12 CLP"
-func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext, amount string, code stellar1.OutsideCurrencyCode) (string, error) {
-	pre, err := FormatCurrency(ctx, g, amount, code)
+func FormatCurrencyWithCodeSuffix(ctx context.Context, g *libkb.GlobalContext,
+	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
+	pre, err := FormatCurrency(ctx, g, amount, code, rounding)
 	if err != nil {
 		return "", err
 	}
@@ -1058,7 +1096,7 @@ func FormatAmountDescriptionXLM(amount string) (string, error) {
 }
 
 func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(amount, precisionTwo)
+	formatted, err := FormatAmount(amount, precisionTwo, FMT_ROUND)
 	if err != nil {
 		return "", err
 	}
@@ -1068,7 +1106,7 @@ func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suf
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
-func FormatAmount(amount string, precisionTwo bool) (string, error) {
+func FormatAmount(amount string, precisionTwo bool, rounding FmtRounding) (string, error) {
 	if amount == "" {
 		return "", errors.New("empty amount")
 	}
@@ -1080,7 +1118,13 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if precisionTwo {
 		precision = 2
 	}
-	s := x.FloatString(precision)
+	var s string
+	if rounding == FMT_ROUND {
+		s = x.FloatString(precision)
+	} else {
+		s = x.FloatString(precision + 1)
+		s = s[:len(s)-1]
+	}
 	parts := strings.Split(s, ".")
 	if len(parts) != 2 {
 		return "", fmt.Errorf("unable to parse amount %s", amount)

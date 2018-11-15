@@ -54,6 +54,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
       disabled={!this.props.secretKey}
       type="Wallet"
       onClick={this._onCheckKey}
+      fullWidth={Styles.isMobile}
       label="Next"
       waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
     />,
@@ -75,6 +76,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
       key={1}
       type="Wallet"
       onClick={this._onCheckName}
+      fullWidth={Styles.isMobile}
       label="Done"
       waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
       disabled={!this.props.name}

@@ -14,7 +14,12 @@ const mapStateToProps = state => ({
   nameError: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   secretKeyValidationState: state.wallets.secretKeyValidationState,
-  waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
+  waiting: anyWaiting(
+    state,
+    Constants.linkExistingWaitingKey,
+    Constants.validateAccountNameWaitingKey,
+    Constants.validateSecretKeyWaitingKey
+  ),
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({

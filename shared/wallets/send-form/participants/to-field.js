@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
+import {isLargeScreen} from '../../../constants/platform'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import type {Account} from '.'
@@ -16,7 +17,10 @@ type ToKeybaseUserProps = {|
   onShowSuggestions: () => void,
   onRemoveProfile: () => void,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
 |}
+
+const placeholderExample = isLargeScreen ? 'Ex: G12345... or you*example.com' : 'G12.. or you*example.com'
 
 const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
@@ -31,6 +35,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true}>
             <Kb.ConnectedNameWithIcon
+              colorBroken={true}
               colorFollowing={true}
               horizontal={true}
               containerStyle={styles.toKeybaseUserNameWithIcon}
@@ -64,6 +69,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
       onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
+      onScanQRCode={props.onScanQRCode}
     />
   )
 }
@@ -72,7 +78,9 @@ type ToStellarPublicKeyProps = {|
   recipientPublicKey: string,
   errorMessage?: string,
   onChangeRecipient: string => void,
+  onScanQRCode: ?() => void,
   setReadyToSend: boolean => void,
+  keyCounter: number,
 |}
 
 type ToStellarPublicKeyState = {|
@@ -81,11 +89,16 @@ type ToStellarPublicKeyState = {|
 
 class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
   state = {recipientPublicKey: this.props.recipientPublicKey}
+  _input: {current: React$ElementRef<typeof Kb.PlainInput> | null} = React.createRef()
   _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
     this.props.setReadyToSend(false)
     this._propsOnChangeRecipient(recipientPublicKey)
+  }
+
+  _onFocus = () => {
+    this._input.current && this._input.current.focus()
   }
 
   render = () => (
@@ -96,8 +109,8 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
       dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
       style={styles.toStellarPublicKey}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={true} style={styles.inputInner}>
+      <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
           <Kb.Icon
             type={
               this.state.recipientPublicKey.length === 0 || this.props.errorMessage
@@ -105,19 +118,45 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
                 : 'icon-stellar-logo-16'
             }
           />
-          <Kb.NewInput
-            type="text"
-            onChangeText={this._onChangeRecipient}
-            textType="BodySemibold"
-            placeholder={'Stellar address\nEx: G12345... or you*example.com'}
-            placeholderColor={Styles.globalColors.black_20}
-            hideBorder={true}
-            containerStyle={styles.input}
-            multiline={true}
-            rowsMin={2}
-            rowsMax={3}
-            value={this.state.recipientPublicKey}
-          />
+          <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
+            <Kb.NewInput
+              type="text"
+              onChangeText={this._onChangeRecipient}
+              textType="BodySemibold"
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              // $FlowIssue this is the right type
+              ref={this._input}
+              rowsMin={2}
+              rowsMax={3}
+              value={this.state.recipientPublicKey}
+            />
+            {!this.state.recipientPublicKey && (
+              <Kb.ClickableBox
+                activeOpacity={1}
+                onClick={this._onFocus}
+                style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, styles.placeholderContainer])}
+              >
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
+                  Stellar address
+                </Kb.Text>
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20} lineClamp={1} ellipsizeMode="middle">
+                  {placeholderExample}
+                </Kb.Text>
+              </Kb.ClickableBox>
+            )}
+          </Kb.Box2>
+          {!this.state.recipientPublicKey &&
+            this.props.onScanQRCode && (
+              <Kb.Icon
+                color={Styles.globalColors.black_40}
+                type="iconfont-qr-code"
+                fontSize={24}
+                onClick={this.props.onScanQRCode}
+                style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              />
+            )}
         </Kb.Box2>
         {!!this.props.errorMessage && (
           <Kb.Text type="BodySmall" style={styles.errorText}>
@@ -242,14 +281,36 @@ const styles = Styles.styleSheetCreate({
   heading: {
     alignSelf: 'flex-start',
   },
-  inputBox: {flexGrow: 1},
-  inputInner: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-  },
-  input: {
-    padding: 0,
-  },
+  inputBox: Styles.platformStyles({isElectron: {flexGrow: 1}, isMobile: {flex: 1}}),
+  inputInner: Styles.platformStyles({
+    common: {
+      alignItems: 'flex-start',
+      flex: 1,
+      position: 'relative',
+    },
+    isElectron: {
+      flexShrink: 0,
+    },
+  }),
+  input: Styles.platformStyles({
+    common: {
+      padding: 0,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+  }),
+  placeholderContainer: Styles.platformStyles({
+    common: {
+      display: 'flex',
+      flexDirection: 'column',
+      paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
+    },
+    isElectron: {
+      cursor: 'text',
+    },
+  }),
+  publicKeyInputContainer: {flexShrink: 1, flexGrow: 1},
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -279,6 +340,14 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
+
+  colorBlack20: {
+    color: Styles.globalColors.black_20,
+  },
+  qrCode: {
+    marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
 })
 
 export type {ToKeybaseUserProps, ToStellarPublicKeyProps}

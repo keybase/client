@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 )
 
@@ -147,6 +148,54 @@ func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bund
 	return err
 }
 
+// PostBundleRestricted encrypts and uploads a restricted bundle to the server.
+func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.BundleRestricted) (err error) {
+	defer g.CTraceTimed(ctx, "Stellar.PostBundleRestricted", func() error { return err })()
+
+	pukGen, pukSeed, err := getLatestPuk(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	boxed, err := acctbundle.BoxAndEncode(bundle, pukGen, pukSeed)
+	if err != nil {
+		return err
+	}
+
+	payload := make(libkb.JSONPayload)
+	section := make(libkb.JSONPayload)
+	section["encrypted_parent"] = boxed.EncParentB64
+	section["visible_parent"] = boxed.VisParentB64
+	section["version_parent"] = boxed.FormatVersionParent
+	section["account_bundles"] = boxed.AcctBundles
+	payload["stellar"] = section
+	_, err = g.API.PostJSON(libkb.APIArg{
+		Endpoint:    "stellar/acctbundle",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	})
+	return err
+}
+
+// FetchAccountBundle gets an account bundle from the server and decrypts it.
+func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/acctbundle",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:  ctx,
+	}
+	var apiRes fetchAcctRes
+	if err = g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return nil, 0, err
+	}
+	m := libkb.NewMetaContext(ctx, g)
+	finder := &pukFinder{}
+	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncoded)
+}
+
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
 	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
@@ -172,6 +221,11 @@ type fetchRes struct {
 	libkb.AppStatusEmbed
 	EncryptedB64 string `json:"encrypted"`
 	VisibleB64   string `json:"visible"`
+}
+
+type fetchAcctRes struct {
+	libkb.AppStatusEmbed
+	acctbundle.BundleEncoded
 }
 
 // Fetch and unbox the latest bundle from the server.
@@ -205,7 +259,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	res, _, err = bundle.Unbox(decodeRes, apiRes.VisibleB64, puk)
+	res, _, err = bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
 	return res, decodeRes.Enc.Gen, err
 }
 
@@ -656,6 +710,8 @@ func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID 
 	return res.MobileOnly != 0, nil
 }
 
+// TODO: This function will change very soon.  MakeAccountMobileOnly does what it intends to
+// do at the bundle level, so this can use that.
 func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
 	payload := make(libkb.JSONPayload)
 	payload["account_id"] = accountID
@@ -667,6 +723,55 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	}
 	var res libkb.AppStatusEmbed
 	return g.API.PostDecode(apiArg, &res)
+}
+
+// MakeAccountMobileOnly will fetch the account bundle and flip the mobile-only switch,
+// then send the new account bundle revision to the server.
+func MakeAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	bundle, _, err := FetchAccountBundle(ctx, g, accountID)
+	if err != nil {
+		return err
+	}
+
+	err = acctbundle.MakeMobileOnly(bundle, accountID)
+	if err == acctbundle.ErrNoChangeNecessary {
+		g.Log.CDebugf(ctx, "MakeAccountMobileOnly account %s is already mobile-only", accountID)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountMobileOnly PostBundleRestricted error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+// MakeAccountAllDevices will fetch the account bundle and flip the mobile-only switch to off
+// (so that any device can get the account secret keys) then send the new account bundle
+// to the server.
+func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	bundle, _, err := FetchAccountBundle(ctx, g, accountID)
+	if err != nil {
+		return err
+	}
+
+	err = acctbundle.MakeAllDevices(bundle, accountID)
+	if err == acctbundle.ErrNoChangeNecessary {
+		g.Log.CDebugf(ctx, "MakeAccountAllDevices account %s is already in all-device mode", accountID)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountAllDevices PostBundleRestricted error: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 type lookupUnverifiedResult struct {
@@ -694,4 +799,16 @@ func LookupUnverified(ctx context.Context, g *libkb.GlobalContext, accountID ste
 		ret = append(ret, keybase1.NewUserVersion(user.UID, user.EldestSeqno))
 	}
 	return ret, nil
+}
+
+// pukFinder implements the acctbundle.PukFinder interface.
+type pukFinder struct{}
+
+func (p *pukFinder) SeedByGeneration(m libkb.MetaContext, generation keybase1.PerUserKeyGeneration) (libkb.PerUserKeySeed, error) {
+	pukring, err := m.G().GetPerUserKeyring(m.Ctx())
+	if err != nil {
+		return libkb.PerUserKeySeed{}, err
+	}
+
+	return pukring.GetSeedByGenerationOrSync(m, generation)
 }

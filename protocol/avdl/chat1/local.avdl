@@ -6,6 +6,7 @@ protocol local {
   import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
+  import idl "unfurl.avdl";
 
   @typedef("string") record VersionKind {}
 
@@ -131,7 +132,7 @@ protocol local {
   }
 
   record MessageUnfurl {
-    Unfurl unfurl;
+    UnfurlResult unfurl;
     MessageID messageID;
   }
 
@@ -354,7 +355,7 @@ protocol local {
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
-    array<Unfurl> unfurls; 
+    array<UnfurlResult> unfurls;
   }
 
   enum MessageUnboxedErrorType {
@@ -908,4 +909,19 @@ protocol local {
   record StaticConfig {
     array<MessageType> deletableByDeleteHistory;
   }
+
+  // Respond to an unfurl prompt
+  enum UnfurlPromptAction {
+    ALWAYS_0,
+    NEVER_1,
+    ACCEPT_2,
+    NOTNOW_3
+  }
+  variant UnfurlPromptResult switch (UnfurlPromptAction actionType) {
+    case ALWAYS: void;
+    case NEVER: void;
+    case NOTNOW: void;
+    case ACCEPT: string;
+  }
+  void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

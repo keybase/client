@@ -66,27 +66,34 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           />,
         ]}
       >
-        <Kb.Icon
-          type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
-        />
-        <Kb.Box2 direction="vertical">
-          <Kb.Text style={styles.warningText} type="Header">
-            One last thing! Make sure you keep a copy of your secret key before removing{' '}
+        <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+          <Kb.Icon
+            type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
+            style={Kb.iconCastPlatformStyles(styles.icon)}
+          />
+          <Kb.Box2 direction="vertical">
+            <Kb.Text style={styles.warningText} type="Header">
+              One last thing! Make sure you keep a copy of your secret key before removing{' '}
+            </Kb.Text>
+            <Kb.Text type="HeaderItalic" style={Styles.collapseStyles([styles.warningText, styles.mainText])}>
+              {this.props.name}.
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Text type="BodySmall" style={styles.warningText}>
+            Paste it in a 100% safe place.
           </Kb.Text>
-          <Kb.Text type="HeaderItalic" style={Styles.collapseStyles([styles.warningText, styles.mainText])}>
-            {this.props.name}.
-          </Kb.Text>
-        </Kb.Box2>
-        <Kb.Text type="BodySmall" style={styles.warningText}>
-          Paste it in a 100% safe place.
-        </Kb.Text>
 
-        <Kb.Toast visible={this.state.showingToast} attachTo={this._getAttachmentRef} position={'top center'}>
-          <Kb.Text type="BodySmall" style={styles.toastText}>
-            Copied to clipboard
-          </Kb.Text>
-        </Kb.Toast>
+          <Kb.Toast
+            visible={this.state.showingToast}
+            attachTo={this._getAttachmentRef}
+            position={'top center'}
+          >
+            {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+            <Kb.Text type="BodySmall" style={styles.toastText}>
+              Copied to clipboard
+            </Kb.Text>
+          </Kb.Toast>
+        </Kb.Box2>
       </WalletPopup>
     )
   }
@@ -98,6 +105,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.yellow,
     },
   }),
+  flexOne: {flex: 1},
   header: {
     borderBottomWidth: 0,
   },
@@ -120,13 +128,27 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-  warningText: {
-    color: Styles.globalColors.brown_60,
-    textAlign: 'center',
-  },
-  toastText: {
-    color: Styles.globalColors.white,
-  },
+  toastText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: 10,
+      paddingRight: 10,
+      paddingTop: 5,
+    },
+  }),
+  warningText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.brown_60,
+      textAlign: 'center',
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+  }),
 })
 
 export default Kb.HOCTimers(ReallyRemoveAccountPopup)

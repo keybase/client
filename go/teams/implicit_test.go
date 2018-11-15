@@ -560,10 +560,20 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 	// to chat with invalid phone number assertion.
 	badNumbers := []string{"111", "12345678", "48111"}
 	for _, bad := range badNumbers {
-		displayName := fmt.Sprintf("%s@phone,%s", bad, fus[0].Username)
-		lookupName, err := ResolveImplicitTeamDisplayName(context.Background(), tcs[0].G, displayName, false)
-		require.NoError(t, err)
-		_, _, err = CreateImplicitTeam(context.Background(), tcs[0].G, lookupName)
+		displayName := keybase1.ImplicitTeamDisplayName{
+			IsPublic: false,
+			Writers: keybase1.ImplicitTeamUserSet{
+				KeybaseUsers: []string{fus[0].Username},
+				UnresolvedUsers: []keybase1.SocialAssertion{
+					keybase1.SocialAssertion{
+						User:    bad,
+						Service: keybase1.SocialAssertionService("phone"),
+					},
+				},
+			},
+		}
+		t.Logf("Trying name: %q", displayName.String())
+		_, _, err := CreateImplicitTeam(context.Background(), tcs[0].G, displayName)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "bad phone number given")
 	}

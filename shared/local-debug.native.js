@@ -49,12 +49,13 @@ let config = {
   skipAppFocusActions: false,
   skipSecondaryDevtools: false,
   userTimings: false, // Add user timings api to timeline in chrome
+  virtualListMarks: false, // If true add constraints to items in virtual lists so we can tell when measuring is incorrect
 }
 
 // Developer settings
 if (__DEV__) {
   config.enableActionLogging = true
-  config.enableStoreLogging = false
+  config.enableStoreLogging = true
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
@@ -131,4 +132,5 @@ export const {
   showDevTools,
   skipSecondaryDevtools,
   userTimings,
+  virtualListMarks,
 } = config
