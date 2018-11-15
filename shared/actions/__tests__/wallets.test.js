@@ -34,7 +34,7 @@ const startReduxSaga = Testing.makeStartReduxSaga(walletsSaga, initialStore, sta
 
 const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.walletsTab])
 
-const buildPaymentRpc: RPCStellarTypes.BuildPaymentResLocal = {
+const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
   amountErrMsg: '',
   banners: null,
   displayAmountFiat: '$5.00 USD',
@@ -97,7 +97,7 @@ it('disclaimer', () => {
       const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
       getCurrenciesRPC.mockImplementation(() => new Promise(resolve => resolve()))
       const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-      buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
+      buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRes)))
 
       // Finally accepted disclaimer.
       dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
@@ -117,12 +117,12 @@ it('disclaimer', () => {
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRpc)))
+  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRes)))
 
   dispatch(WalletsGen.createBuildPayment())
   return Testing.flushPromises()
     .then(() => {
-      const expectedBuiltPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRpc)
+      const expectedBuiltPayment = Constants.buildPaymentResultToBuiltPayment(buildPaymentRes)
       expect(getState().wallets.builtPayment).toEqual(expectedBuiltPayment)
       expect(buildRPC).toHaveBeenCalled()
 
