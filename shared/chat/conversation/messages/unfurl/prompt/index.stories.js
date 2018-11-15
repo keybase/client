@@ -1,19 +1,20 @@
 // @flow
 import * as React from 'react'
-import {storiesOf} from '../../../../../stories/storybook'
 import {Box} from '../../../../../common-adapters/index'
+import * as Sb from '../../../../../stories/storybook'
+
 import UnfurlPrompt from '.'
 
 const props = {
   domain: 'cnn.com',
-  onAlways: () => {},
-  onAccept: () => {},
-  onNotnow: () => {},
-  onNever: () => {},
+  onAlways: Sb.action('onAlways'),
+  onAccept: Sb.action('onAccept'),
+  onNotnow: Sb.action('onNotnow'),
+  onNever: Sb.action('onNever'),
 }
 
 const load = () => {
-  storiesOf('Chat/Unfurl/Prompt', module)
+  Sb.storiesOf('Chat/Unfurl/Prompt', module)
     .addDecorator(story => <Box style={{maxWidth: 600}}>{story()}</Box>)
     .add('Default', () => <UnfurlPrompt {...props} />)
 }
