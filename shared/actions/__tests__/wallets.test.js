@@ -38,8 +38,8 @@ it('disclaimer', () => {
   const {dispatch, getState} = startReduxSaga()
 
   // Not yet accepted disclaimer.
-  dispatch(WalletsGen.createOpenSendRequestForm({}))
-  expect(getRoute(getState)).toEqual(I.List([Tabs.walletsTab, 'wallet']))
+  dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
+  expect(getState().wallets.building.to).toEqual('')
 
   const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
   checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
@@ -71,6 +71,10 @@ it('disclaimer', () => {
     expect(getState().wallets.acceptedDisclaimer).toEqual(true)
     expect(acceptRPC).toHaveBeenCalled()
     expect(checkRPC2).toHaveBeenCalled()
+
+    // Finally accepted disclaimer.
+    dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
+    expect(getState().wallets.building.to).toEqual('fake recipient')
   })
 })
 
