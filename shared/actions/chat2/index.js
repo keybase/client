@@ -779,6 +779,18 @@ const setupEngineListeners = () => {
         })
       )
     },
+    'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const messageID = notif.msgID
+      const domain = notif.domain
+      return Saga.put(
+        Chat2Gen.createUnfurlAddPrompt({
+          conversationIDKey,
+          messageID,
+          domain,
+        })
+      )
+    },
   })
 }
 

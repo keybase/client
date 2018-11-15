@@ -106,6 +106,7 @@ export type _MessageText = {
   outboxID: ?OutboxID,
   text: HiddenString,
   timestamp: number,
+  unfurlPrompts: I.Set<string>,
   type: 'text',
 }
 export type MessageText = I.RecordOf<_MessageText>
