@@ -29,16 +29,7 @@ class Files extends React.PureComponent<FolderProps> {
         </Kb.Box2>
       </Kb.Box2>
     ) : (
-      <Rows
-        path={this.props.path}
-        routePath={this.props.routePath}
-        sortSetting={this.props.sortSetting}
-        ifEmpty={
-          <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-            <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
-          </Kb.Box2>
-        }
-      />
+      <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
     )
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
