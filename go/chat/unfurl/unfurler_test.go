@@ -115,7 +115,9 @@ func TestUnfurler(t *testing.T) {
 	}
 	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "0.1"))
 
-	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	for i := 0; i < 5; i++ {
+		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
+	}
 	var outboxID chat1.OutboxID
 	select {
 	case msg := <-sender.ch:
@@ -130,6 +132,11 @@ func TestUnfurler(t *testing.T) {
 		require.Fail(t, "no notifications")
 	}
 	select {
+	case <-sender.ch:
+		require.Fail(t, "only one send should happen")
+	default:
+	}
+	select {
 	case unfurl := <-unfurler.unfurlCh:
 		require.NotNil(t, unfurl)
 		typ, err := unfurl.UnfurlType()
@@ -142,6 +149,11 @@ func TestUnfurler(t *testing.T) {
 		require.Equal(t, "WSJ", unfurl.Generic().SiteName)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no unfurl")
+	}
+	select {
+	case <-unfurler.unfurlCh:
+		require.Fail(t, "only one unfurl should happen")
+	default:
 	}
 	status, _, err := unfurler.Status(context.TODO(), outboxID)
 	require.NoError(t, err)

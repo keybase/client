@@ -4,7 +4,7 @@ import * as React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors} from '../../styles'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
@@ -14,7 +14,8 @@ import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
-import {inboxWidth} from './row/sizes'
+import {virtualListMarks} from '../../local-debug'
+import {inboxWidth, getRowHeight} from './row/sizes'
 
 type State = {
   showFloating: boolean,
@@ -39,11 +40,9 @@ class Inbox extends React.PureComponent<Props, State> {
       listRowsResized = true
     }
 
-    // list changed, see if the divider changed
-    if (!listRowsResized && this.props.rows.length !== prevProps.rows.length) {
-      const idx = prevProps.rows.findIndex(r => r.type === 'divider')
-      const row = this.props.rows[idx]
-      listRowsResized = !row || row.type !== 'divider'
+    // list changed
+    if (this.props.rows.length !== prevProps.rows.length) {
+      listRowsResized = true
     }
 
     if (listRowsResized) {
@@ -67,31 +66,21 @@ class Inbox extends React.PureComponent<Props, State> {
     if (!row) {
       return 0
     }
-    switch (row.type) {
-      case 'small':
-        return 56
-      case 'bigHeader':
-        return 32
-      case 'bigTeamsLabel': // fallthrough
-      case 'big': // fallthrough
-        return 24
-      case 'divider':
-        return row.showButton ? 68 : 41
-    }
-    return 0
+
+    return getRowHeight(row.type, !!this.props.filter.length, row.showButton)
   }
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
+    const divStyle = virtualListMarks ? {...style, backgroundColor: 'purple', overflow: 'hidden'} : style
     if (row.type === 'divider') {
       return (
-        <div style={style}>
+        <div style={divStyle}>
           <TeamsDivider
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
             rows={this.props.rows}
-            style={{marginBottom: globalMargins.tiny}}
           />
         </div>
       )
@@ -101,7 +90,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const teamname = row.teamname
 
     return (
-      <div style={style}>
+      <div style={divStyle}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,

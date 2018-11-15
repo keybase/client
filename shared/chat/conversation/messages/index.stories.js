@@ -5,9 +5,12 @@ import reactButton from './react-button/index.stories'
 import reactionTooltip from './reaction-tooltip/index.stories'
 import text from './text/index.stories'
 import accountPayment from './account-payment/index.stories'
+import unfurl from './unfurl/index.stories'
 
 const load = () => {
-  ;[chooseEmoji, placeholder, reactButton, reactionTooltip, text, accountPayment].forEach(load => load())
+  ;[chooseEmoji, placeholder, reactButton, reactionTooltip, text, accountPayment, unfurl].forEach(load =>
+    load()
+  )
 }
 
 export default load

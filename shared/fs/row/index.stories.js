@@ -16,14 +16,20 @@ import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
 
 export const rowsProvider = {
-  ConnectedStillRow: ({path, inDestinationPicker}: {path: Types.Path, inDestinationPicker?: boolean}) => {
+  ConnectedStillRow: ({
+    path,
+    destinationPickerIndex,
+  }: {
+    path: Types.Path,
+    destinationPickerIndex?: number,
+  }) => {
     const pathStr = Types.pathToString(path)
     return {
       name: Types.getPathName(path),
       type: 'folder',
       itemStyles: folderItemStyles,
       isEmpty: pathStr.includes('empty'),
-      inDestinationPicker,
+      destinationPickerIndex,
     }
   },
   ConnectedOpenHOC: (ownProps: any) => ({
@@ -52,7 +58,7 @@ export const rowsProvider = {
     ],
     routePath: I.List(),
     ifEmpty: o.ifEmpty,
-    inDestinationPicker: o.inDestinationPicker,
+    destinationPickerIndex: o.destinationPickerIndex,
   }),
   ConnectedFilesLoadingHoc: (o: any) => ({
     ...o,

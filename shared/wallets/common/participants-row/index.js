@@ -23,7 +23,7 @@ class ParticipantsRow extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
-      <React.Fragment>
+      <>
         <Kb.Box2
           direction="horizontal"
           fullWidth={true}
@@ -46,7 +46,7 @@ class ParticipantsRow extends React.PureComponent<Props> {
         {props.bottomDivider && (
           <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
         )}
-      </React.Fragment>
+      </>
     )
   }
 }
@@ -57,7 +57,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      flexGrow: 1,
+      flex: 1,
       height: '100%',
       position: 'relative',
     },
@@ -71,7 +71,7 @@ const styles = Styles.styleSheetCreate({
       display: 'flex',
     },
     isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
     },
   }),
   headingText: {

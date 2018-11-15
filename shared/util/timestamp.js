@@ -6,6 +6,10 @@ export function formatTimeForChat(time: number): ?string {
   const m = moment(time)
   const now = moment()
   const today = now.clone().startOf('day')
+  const yesterday = today
+    .clone()
+    .subtract(1, 'day')
+    .startOf('day')
   const lastWeek = today.clone().subtract(7, 'day')
   const lastMonth = today.clone().subtract(1, 'month')
   const lastYear = today.clone().subtract(1, 'year')
@@ -13,6 +17,8 @@ export function formatTimeForChat(time: number): ?string {
 
   if (m.isSame(today, 'd')) {
     return hma
+  } else if (m.isSame(yesterday, 'd')) {
+    return `${hma} - Yesterday`
   } else if (m.isAfter(lastWeek)) {
     return `${hma} - ${m.format('ddd')}`
   } else if (m.isAfter(lastMonth)) {

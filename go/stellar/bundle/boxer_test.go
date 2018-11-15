@@ -68,7 +68,7 @@ func TestBundleRoundtrip(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res.Enc, dec2.Enc)
 
-	bundle2, v, err := Unbox(dec2, res.VisB64, puk)
+	bundle2, v, err := Unbox(nil, dec2, res.VisB64, puk)
 	require.NoError(t, err)
 	bundle2ForComparison := bundle2.DeepCopy()
 	bundle2ForComparison.OwnHash = nil
@@ -88,7 +88,7 @@ func TestBundlePrevs(t *testing.T) {
 	dec1, err := Decode(res1.EncB64)
 	require.NoError(t, err)
 	require.Equal(t, pukGen1, dec1.Enc.Gen)
-	bundle1, _, err := Unbox(dec1, res1.VisB64, puk1)
+	bundle1, _, err := Unbox(nil, dec1, res1.VisB64, puk1)
 	require.NoError(t, err)
 	require.Nil(t, bundle1.Prev, "first box should have no prev")
 
@@ -100,7 +100,7 @@ func TestBundlePrevs(t *testing.T) {
 
 	dec2, err := Decode(res2.EncB64)
 	require.NoError(t, err)
-	bundle2, _, err := Unbox(dec2, res2.VisB64, puk2)
+	bundle2, _, err := Unbox(nil, dec2, res2.VisB64, puk2)
 	require.NoError(t, err)
 	require.Equal(t, "squirrel fund", bundle2.Accounts[0].Name, "account should be renamed")
 	require.Equal(t, bundle1.OwnHash, bundle2.Prev, "bundle 2 should prev bundle 1")
@@ -114,7 +114,7 @@ func TestBundlePrevs(t *testing.T) {
 
 	enc3, err := Decode(res3.EncB64)
 	require.NoError(t, err)
-	bundle3, _, err := Unbox(enc3, res3.VisB64, puk2)
+	bundle3, _, err := Unbox(nil, enc3, res3.VisB64, puk2)
 	require.NoError(t, err)
 	require.False(t, bundle3.Accounts[0].IsPrimary, "account should not be primary")
 	require.Equal(t, bundle2.OwnHash, bundle3.Prev, "bundle 3 should prev bundle 2")
@@ -135,7 +135,7 @@ func TestBundleRoundtripCorruptionEnc(t *testing.T) {
 	dec2, err := Decode(res.EncB64)
 	require.NoError(t, err)
 
-	_, _, err = Unbox(dec2, res.VisB64, puk)
+	_, _, err = Unbox(nil, dec2, res.VisB64, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret box open failed")
 }
@@ -155,7 +155,7 @@ func TestBundleRoundtripCorruptionVis(t *testing.T) {
 	dec2, err := Decode(res.EncB64)
 	require.NoError(t, err)
 
-	_, _, err = Unbox(dec2, res.VisB64, puk)
+	_, _, err = Unbox(nil, dec2, res.VisB64, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "hash mismatch")
 }
@@ -210,7 +210,7 @@ func TestCanned(t *testing.T) {
 	require.NoError(t, err)
 	encHash := sha256.Sum256(cipherpack)
 
-	bundle, v, err := Unbox(dec, c.visB64, c.puk(t))
+	bundle, v, err := Unbox(nil, dec, c.visB64, c.puk(t))
 	require.NoError(t, err)
 	require.Equal(t, v1, v)
 	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
@@ -237,7 +237,7 @@ func TestCannedWrongKey(t *testing.T) {
 	_, err = Decrypt(dec.Enc, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret box open failed")
-	_, _, err = Unbox(dec, c.visB64, puk)
+	_, _, err = Unbox(nil, dec, c.visB64, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret box open failed")
 }
@@ -248,7 +248,7 @@ func TestCannedUnboxInvariantViolationMultiplePrimary(t *testing.T) {
 	require.NoError(t, err)
 	_, err = Decrypt(dec.Enc, c.puk(t))
 	require.NoError(t, err)
-	_, _, err = Unbox(dec, c.visB64, c.puk(t))
+	_, _, err = Unbox(nil, dec, c.visB64, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "multiple primary accounts")
 }
@@ -259,7 +259,7 @@ func TestCannedUnboxInvariantViolationOrderMismatch(t *testing.T) {
 	require.NoError(t, err)
 	_, err = Decrypt(dec.Enc, c.puk(t))
 	require.NoError(t, err)
-	_, _, err = Unbox(dec, c.visB64, c.puk(t))
+	_, _, err = Unbox(nil, dec, c.visB64, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "mismatched account ID")
 }
@@ -271,7 +271,7 @@ func TestCannedCryptV1(t *testing.T) {
 	_, err = Decrypt(dec.Enc, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "stellar secret bundle encryption version 1 has been retired")
-	_, _, err = Unbox(dec, c.visB64, c.puk(t))
+	_, _, err = Unbox(nil, dec, c.visB64, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "stellar secret bundle encryption version 1 has been retired")
 }
