@@ -1,5 +1,5 @@
 // @flow
-import {FilterBigTeamChannel, height} from '.'
+import {FilterBigTeamChannel} from '.'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Route from '../../../../actions/route-tree'
@@ -39,5 +39,3 @@ export default connect<OwnProps, _, _, _, _>(
   mapDispatchToProps,
   mergeProps
 )(FilterBigTeamChannel)
-
-export {height}
