@@ -16,14 +16,6 @@ type OwnProps = {|
   windowParam: string,
 |}
 
-type OwnProps = {|
-  usernames: I.Set<string>,
-  setUsernames: (I.Set<string>) => void,
-  remoteWindow: ?SafeElectron.BrowserWindowType,
-  windowComponent: string,
-  windowParam: string,
-|}
-
 type Props = {
   avatars: Object,
   followers: I.Set<string>,
