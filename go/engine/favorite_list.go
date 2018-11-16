@@ -55,7 +55,7 @@ func (f *FavoritesAPIResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func (e *FavoriteList) cacheFolder(m libkb.MetaContext, folder keybase1.Folder) {
-	if folder.TeamID == nil || folder.TeamID.IsNil() {
+	if folder.FolderType != keybase1.FolderType_TEAM || folder.TeamID == nil || folder.TeamID.IsNil() {
 		return
 	}
 	name, err := keybase1.TeamNameFromString(folder.Name)
