@@ -21,7 +21,7 @@ class UnfurlGeneric extends React.PureComponent<Props> {
     return (
       <Kb.Box2 style={styles.container} direction="horizontal">
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 style={styles.innerContainer} gap="xxtiny" fullWidth={true} direction="vertical">
+        <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
             {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
             <Kb.Text type="BodySmall">
@@ -62,7 +62,7 @@ const styles = Styles.styleSheetCreate({
   quoteContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.lightGrey,
-      width: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.xtiny,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -70,7 +70,9 @@ const styles = Styles.styleSheetCreate({
   }),
   innerContainer: Styles.platformStyles({
     isElectron: {
+      alignSelf: 'flex-start',
       paddingLeft: Styles.globalMargins.tiny,
+      minWidth: 150,
     },
   }),
   siteNameContainer: Styles.platformStyles({
@@ -93,8 +95,8 @@ const styles = Styles.styleSheetCreate({
   }),
   sideImage: Styles.platformStyles({
     isElectron: {
-      width: 80,
-      height: 80,
+      maxWidth: 80,
+      maxHeight: 80,
     },
   }),
   url: {
