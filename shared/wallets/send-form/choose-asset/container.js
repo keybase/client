@@ -53,4 +53,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selected: stateProps.selected,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseAsset')(ChooseAsset)
+export default namedConnect<OwnProps, _,_,_,_>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseAsset')(ChooseAsset)
