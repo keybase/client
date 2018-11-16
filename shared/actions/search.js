@@ -424,16 +424,16 @@ function clearSearchTextInput(
 }
 
 function* searchSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest(SearchGen.search, search)
-  yield Saga.safeTakeLatest(SearchGen.searchSuggestions, searchSuggestions)
-  yield Saga.safeTakeLatestPure(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
-  yield Saga.safeTakeLatest(SearchGen.addResultsToUserInput, addResultsToUserInput)
-  yield Saga.safeTakeLatest(SearchGen.removeResultsToUserInput, removeResultsToUserInput)
-  yield Saga.safeTakeLatest(SearchGen.setUserInputItems, setUserInputItems)
-  yield Saga.safeTakeLatestPure(SearchGen.clearSearchResults, clearSearchResults)
-  yield Saga.safeTakeLatestPure(SearchGen.finishedSearch, finishedSearch)
-  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
-  yield Saga.safeTakeLatestPure(SearchGen.userInputItemsUpdated, maybeNewSearch)
+  yield Saga.safeTakeEvery(SearchGen.search, search)
+  yield Saga.safeTakeEvery(SearchGen.searchSuggestions, searchSuggestions)
+  yield Saga.safeTakeEveryPure(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
+  yield Saga.safeTakeEvery(SearchGen.addResultsToUserInput, addResultsToUserInput)
+  yield Saga.safeTakeEvery(SearchGen.removeResultsToUserInput, removeResultsToUserInput)
+  yield Saga.safeTakeEvery(SearchGen.setUserInputItems, setUserInputItems)
+  yield Saga.safeTakeEveryPure(SearchGen.clearSearchResults, clearSearchResults)
+  yield Saga.safeTakeEveryPure(SearchGen.finishedSearch, finishedSearch)
+  yield Saga.safeTakeEveryPure(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield Saga.safeTakeEveryPure(SearchGen.userInputItemsUpdated, maybeNewSearch)
 }
 
 export default searchSaga

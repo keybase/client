@@ -131,90 +131,6 @@ function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
     }
   })
 }
-// Similar to safeTakeEveryPure
-function safeTakeLatestPure<A, R, FinalEffect, FinalErrorEffect>(
-  pattern: RS.Pattern,
-  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalEffect,
-  actionCreatorsWithError?: (result: R, action: A) => FinalErrorEffect
-) {
-  const safeTakeLatestPureWorker = function* safeTakeLatestPureWorker(action: A) {
-    // If the pureWorker fn takes two arguments, let's pass the state
-    try {
-      let result
-      if (pureWorker.length === 2) {
-        const state: TypedState = yield Effects.select(s => s)
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action, state)
-      } else {
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action)
-      }
-
-      if (actionCreatorsWithResult) {
-        // $FlowIssue confused
-        yield actionCreatorsWithResult(result, action)
-      }
-    } catch (e) {
-      if (actionCreatorsWithError) {
-        // $FlowIssue confused
-        yield actionCreatorsWithError(e, action)
-      } else {
-        yield Effects.put(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(e),
-          })
-        )
-      }
-    } finally {
-      if (actionCreatorsWithError) {
-        if (yield Effects.cancelled()) {
-          // $FlowIssue confused
-          yield actionCreatorsWithError(new Error('Canceled'), action)
-        }
-      }
-    }
-  }
-  // $FlowIssue confused
-  return Effects.takeLatest(pattern, safeTakeLatestPureWorker)
-}
-
-function _safeTakeLatestWithCatch(
-  pattern: RS.Pattern,
-  catchHandler: Function,
-  worker: Function | Generator<any, void, any>,
-  ...args: Array<any>
-) {
-  const safeTakeLatestWithCatchWorker = function* safeTakeLatestWithCatchWorker(...args) {
-    try {
-      yield Effects.call(worker, ...args)
-    } catch (error) {
-      // Convert to global error so we don't kill the takeLatest loop
-      yield Effects.put(
-        ConfigGen.createGlobalError({
-          globalError: convertToError(error),
-        })
-      )
-      yield Effects.call(catchHandler, error)
-    } finally {
-      if (yield Effects.cancelled()) {
-        logger.info('safeTakeLatestWithCatch cancelled')
-      }
-    }
-  }
-
-  // $FlowIssue confused
-  return Effects.takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
-}
-
-// Likely avoid using this. Saga canceling is tricky
-function safeTakeLatest(
-  pattern: RS.Pattern,
-  worker: Function | Generator<any, void, any>,
-  ...args: Array<any>
-) {
-  return _safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
-}
 
 export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
@@ -223,7 +139,7 @@ export {
   call,
   cancel,
   cancelled,
-  fork,
+  fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,
   select,
@@ -234,13 +150,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {
-  put,
-  safeTakeEvery,
-  safeTakeEveryPure,
-  actionToPromise,
-  actionToAction,
-  safeTakeLatest,
-  safeTakeLatestPure,
-  sequentially,
-}
+export {put, safeTakeEvery, safeTakeEveryPure, actionToPromise, actionToAction, sequentially}
