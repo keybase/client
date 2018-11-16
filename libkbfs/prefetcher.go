@@ -479,10 +479,8 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 		// Prefetch already scheduled.
 		return
 	}
-	// Copy the req but use a new empty block.
+	// Copy the req, re-using the same Block as before.
 	req := *pp.req
-	req.block = pp.req.block.NewEmpty()
-	pp.req = &req
 	d := rp.off.NextBackOff()
 	if d == backoff.Stop {
 		p.log.Debug("Stopping rescheduling of %s due to stopped backoff timer",
@@ -491,7 +489,7 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 	}
 	p.log.Debug("Rescheduling prefetch of %s in %s", blockID, d)
 	rp.timer = time.AfterFunc(d, func() {
-		p.triggerPrefetch(pp.req)
+		p.triggerPrefetch(&req)
 	})
 }
 
