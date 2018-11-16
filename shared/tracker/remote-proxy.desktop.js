@@ -13,6 +13,8 @@ import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
+type OwnProps = {|name: string|}
+
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
 
@@ -102,7 +104,7 @@ const Empty = () => null
 
 // Actions are handled by remote-container
 const RemoteTracker = compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     trackerMapStateToProps,
     () => ({}),
     trackerMergeProps
@@ -137,7 +139,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ].slice(0, MAX_TRACKERS),
 })
 
-export default connect<any, _, _, _, _>(
+export default connect<{||}, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps
