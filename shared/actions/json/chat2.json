@@ -501,6 +501,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "domain": "string"
+    },
+    "unfurlRemovePrompt": {
+      "_description": "Remove an unfurl prompt to a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "domain": "string"
     }
   }
 }

@@ -2542,6 +2542,25 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, domain} = action.payload
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createUnfurlRemovePrompt({
+        conversationIDKey,
+        messageID,
+        domain,
+      })
+    ),
+    Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+      msgID: action.payload.messageID,
+      result: action.payload.result,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    }),
+  ])
+}
+
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
   if (action.payload.pendingMode === 'newChat') {
     return Saga.put(
@@ -2715,6 +2734,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
+
+  // Unfurl
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

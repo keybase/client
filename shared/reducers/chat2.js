@@ -312,6 +312,22 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('unfurlPrompts', message.unfurlPrompts.add(action.payload.domain))
       })
+    case Chat2Gen.unfurlRemovePrompt:
+      const unfurlOrdinal = messageIDToOrdinal(
+        messageMap,
+        pendingOutboxToOrdinal,
+        action.payload.conversationIDKey,
+        action.payload.messageID
+      )
+      if (!unfurlOrdinal) {
+        return messageMap
+      }
+      return messageMap.updateIn([action.payload.conversationIDKey, unfurlOrdinal], message => {
+        if (!message || message.type !== 'text') {
+          return message
+        }
+        return message.set('unfurlPrompts', message.unfurlPrompts.delete(action.payload.domain))
+      })
     case Chat2Gen.messagesExploded:
       const {conversationIDKey, messageIDs} = action.payload
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
@@ -922,6 +938,7 @@ const rootReducer = (
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
     case Chat2Gen.unfurlAddPrompt:
+    case Chat2Gen.unfurlRemovePrompt:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
