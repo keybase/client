@@ -815,6 +815,9 @@ func (im InitModeType) String() string {
 // PrefetchStatus denotes the prefetch status of a block.
 type PrefetchStatus int
 
+var ErrUnrecognizedPrefetchStatus = errors.New(
+	"Unrecognized PrefetchStatus value")
+
 const (
 	// NoPrefetch represents an entry that hasn't been prefetched.
 	NoPrefetch PrefetchStatus = iota
@@ -839,6 +842,24 @@ func (s PrefetchStatus) String() string {
 
 func (s PrefetchStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
+}
+
+func (s *PrefetchStatus) UnmarshalJSON(b []byte) error {
+	var st string
+	if err := json.Unmarshal(b, &st); err != nil {
+		return err
+	}
+	switch st {
+	default:
+		return ErrUnrecognizedPrefetchStatus
+	case "NoPrefetch":
+		*s = NoPrefetch
+	case "TriggeredPrefetch":
+		*s = TriggeredPrefetch
+	case "FinishedPrefetch":
+		*s = FinishedPrefetch
+	}
+	return nil
 }
 
 // ToProtocol transforms a PrefetchStatus to a kbgitkbfs.PrefetchStatus, while
