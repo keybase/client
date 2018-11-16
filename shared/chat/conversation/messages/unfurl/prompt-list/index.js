@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
-import * as Prompt from '../prompt'
+import Prompt from '../prompt'
+import type {Props as PromptProps} from '../prompt'
 
 export type Props = {
-  prompts: Array<Prompt.Props>,
+  prompts: Array<PromptProps>,
 }
 
 class UnfurlPromptList extends React.PureComponent<Props> {
@@ -11,7 +12,7 @@ class UnfurlPromptList extends React.PureComponent<Props> {
     const prompts = []
     for (let p of this.props.prompts) {
       prompts.push(
-        <Prompt.default
+        <Prompt
           key={p.domain}
           domain={p.domain}
           onAlways={p.onAlways}
