@@ -91,57 +91,64 @@ type BalanceSummaryProps = {
   total: string,
 }
 
-const BalanceSummary = (props: BalanceSummaryProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-    <Divider style={{marginBottom: globalMargins.tiny}} />
-    <Box2 direction="horizontal" fullWidth={true}>
-      <Text type="BodySemibold" style={styles.leftColText}>
-        Total
-      </Text>
-      <Text type="BodyExtrabold" selectable={true}>
-        {props.total}
-      </Text>
-    </Box2>
-    {props.reserves.map(reserve => (
-      <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-        <Box2 direction="horizontal" style={styles.leftColText}>
-          <Text type="Body" lineClamp={1}>
-            Reserve ({reserve.description})
+const BalanceSummary = (props: BalanceSummaryProps) => {
+  const _openStellarURL = () => {
+    if (!isMobile) return
+    openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance')
+  }
+
+  return (
+    <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+      <Divider style={{marginBottom: globalMargins.tiny}} />
+      <Box2 direction="horizontal" fullWidth={true}>
+        <Text type="BodySemibold" style={styles.leftColText}>
+          Total
+        </Text>
+        <Text type="BodyExtrabold" selectable={true}>
+          {props.total}
+        </Text>
+      </Box2>
+      {props.reserves.map(reserve => (
+        <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
+          <Box2 direction="horizontal" style={styles.leftColText}>
+            <Text type="Body" lineClamp={1}>
+              Reserve ({reserve.description})
+            </Text>
+            {reserve.description === 'account' && (
+              <WithTooltip
+                text="Minimum balances help protect the network from the creation of spam accounts."
+                multiline={true}
+              >
+                <Icon
+                  fontSize={isMobile ? 18 : 12}
+                  onClick={_openStellarURL}
+                  style={styles.questionMark}
+                  type="iconfont-question-mark" />
+              </WithTooltip>
+            )}
+          </Box2>
+          <Text type="Body" lineClamp={1} selectable={true}>
+            -{reserve.amount}
           </Text>
-          {reserve.description === 'account' && (
-            <WithTooltip
-              text="Minimum balances help protect the network from the creation of spam accounts."
-              multiline={true}
-            >
-              <Icon
-                fontSize={isMobile ? 18 : 12}
-                onClick={isMobile ? openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance') : null}
-                style={styles.questionMark}
-                type="iconfont-question-mark" />
-            </WithTooltip>
-          )}
         </Box2>
-        <Text type="Body" lineClamp={1} selectable={true}>
-          -{reserve.amount}
+      ))}
+      <Divider style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}} />
+      <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
+        <Text type="BodySemibold" style={styles.leftColText}>
+          Available to send
         </Text>
-      </Box2>
-    ))}
-    <Divider style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}} />
-    <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
-      <Text type="BodySemibold" style={styles.leftColText}>
-        Available to send
-      </Text>
-      <Box2 direction="vertical" style={styles.balanceContainer}>
-        <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
-          {props.availableToSend}
-        </Text>
-        <Text type="BodySmall" selectable={true}>
-          {props.equivAvailableToSend}
-        </Text>
+        <Box2 direction="vertical" style={styles.balanceContainer}>
+          <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
+            {props.availableToSend}
+          </Text>
+          <Text type="BodySmall" selectable={true}>
+            {props.equivAvailableToSend}
+          </Text>
+        </Box2>
       </Box2>
     </Box2>
-  </Box2>
-)
+  )
+}
 
 type IssuerAccountIDProps = {
   issuerAccountID: string,
