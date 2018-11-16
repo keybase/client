@@ -575,35 +575,23 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
-const messageUnfurledToActions = (state: TypedState, info: RPCChatTypes.UnfurlUpdateNotifs) => {
-  const convMap = (info.updates || []).reduce((n, m) => {
-    const conversationIDKey = Types.conversationIDToKey(n.convID)
-    const key = Types.conversationIDKeyToString(conversationIDKey)
-    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, n.msg)
+const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: TypedState) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  const messages = (info.updates || []).reduce((l, msg) => {
+    const messageID = Constants.getMessageID(msg)
+    if (!messageID) {
+      return l
+    }
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, msg)
     if (!uiMsg) {
-      return m
+      return l
     }
-    const id = Constants.getMessageID(n.msg)
-    if (!id) {
-      return m
-    }
-    const msgUpdate: Array<{messageID: RPCChatTypes.MessageID, message: Types.Message}> = [
-      {
-        messageID: id,
-        message: uiMsg,
-      },
-    ]
-    m[key] = (m[key] || []).concat(msgUpdate)
-    return m
-  }, {})
-  const actions = []
-  Object.keys(convMap).forEach(function(key) {
-    const messages = convMap[key] || []
-    actions.push(
-      Chat2Gen.createUpdateMessages({conversationIDKey: Types.stringToConversationIDKey(key), messages})
-    )
-  })
-  return actions
+    return l.concat({
+      messageID,
+      message: uiMsg,
+    })
+  }, [])
+  return [Chat2Gen.createUpdateMessages({conversationIDKey, messages})]
 }
 
 // Get actions to update the messagemap when reactions are updated
@@ -689,9 +677,9 @@ const setupEngineListeners = () => {
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
             : null
-        case RPCChatTypes.notifyChatChatActivityType.messageUnfurled:
-          return activity.messageUnfurled
-            ? arrayOfActionsToSequentially(messageUnfurledToActions(getState(), activity.messageUnfurled))
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
+          return activity.messagesUpdated
+            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
             : null
         default:
           break

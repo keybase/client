@@ -7,6 +7,7 @@ import UnfurlGeneric from '../generic/container'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay,
+  url: string,
   onClose: () => void,
 }
 
@@ -44,7 +45,7 @@ class UnfurlList extends React.PureComponent<ListProps> {
   render() {
     const unfurls = []
     for (let u of this.props.unfurls) {
-      unfurls.push(<Unfurl unfurl={u.unfurl} onClose={u.onClose} />)
+      unfurls.push(<Unfurl key={u.url} unfurl={u.unfurl} onClose={u.onClose} />)
     }
     return (
       <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>

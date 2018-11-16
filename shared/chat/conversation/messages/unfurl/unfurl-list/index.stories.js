@@ -22,6 +22,7 @@ const provider = Sb.createPropProviderWithCommon({
 const unfurls = [
   {
     onClose: Sb.action('onClose'),
+    url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
     unfurl: {
       unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
       generic: {
@@ -47,6 +48,7 @@ const unfurls = [
   },
   {
     onClose: Sb.action('onClose'),
+    url: 'https://github.com/keybase/client"',
     unfurl: {
       unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
       generic: {
