@@ -72,7 +72,7 @@ func (fi *FileInfo) IsDir() bool {
 	return fi.ei.Type == libkbfs.Dir
 }
 
-// KBFSMetaDataForSimpleFS contains the KBFS metadata needed to answer a
+// KBFSMetadataForSimpleFS contains the KBFS metadata needed to answer a
 // simpleFSStat call.
 type KBFSMetadataForSimpleFS struct {
 	LastWriter     keybase1.User

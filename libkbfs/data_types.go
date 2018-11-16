@@ -815,6 +815,8 @@ func (im InitModeType) String() string {
 // PrefetchStatus denotes the prefetch status of a block.
 type PrefetchStatus int
 
+// ErrUnrecognizedPrefetchStatus is returned when trying to unmarshal a
+// prefetch status from JSON if the prefetch status is unrecognized.
 var ErrUnrecognizedPrefetchStatus = errors.New(
 	"Unrecognized PrefetchStatus value")
 
@@ -840,10 +842,12 @@ func (s PrefetchStatus) String() string {
 	return "Unknown"
 }
 
+// MarshalJSON converts a PrefetchStatus to JSON
 func (s PrefetchStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
+// UnmarshalJSON converts a PrefetchStatus from JSON
 func (s *PrefetchStatus) UnmarshalJSON(b []byte) error {
 	var st string
 	if err := json.Unmarshal(b, &st); err != nil {
