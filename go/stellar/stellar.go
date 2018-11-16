@@ -228,6 +228,20 @@ func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, s
 	if err != nil {
 		return err
 	}
+
+	// turn on the feature flag for the v2 stellar account bundles
+	m := libkb.NewMetaContext(ctx, g)
+	_, err = g.API.Post(libkb.APIArg{
+		Endpoint:    "test/feature",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
+			"value":     libkb.I{Val: 1},
+			"cache_sec": libkb.I{Val: 100},
+		},
+		MetaContext: m,
+	})
+
 	if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
 		return err

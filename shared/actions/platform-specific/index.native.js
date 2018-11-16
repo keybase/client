@@ -223,13 +223,13 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = null
 
-  const routeStateTask = yield Saga.fork(() =>
+  const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGetValueRpcPromise({path: 'ui.routeState'})
       .then(v => v.s || '')
       .catch(e => {})
   )
-  const linkTask = yield Saga.fork(Linking.getInitialURL)
-  const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
+  const linkTask = yield Saga._fork(Linking.getInitialURL)
+  const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Top priority, push
@@ -311,9 +311,9 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel
-  yield Saga.fork(loadStartupDetails)
+  yield Saga.spawn(loadStartupDetails)
 
-  yield Saga.fork(pushSaga)
+  yield Saga.spawn(pushSaga)
 }
 
 export {

@@ -462,8 +462,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(ConfigGen.daemonHandshakeDone, readLastSentXLM)
 
   // Kick off platform specific stuff
-  yield Saga.fork(PlatformSpecific.platformConfigSaga)
-  yield Saga.fork(avatarSaga)
+  yield Saga.spawn(PlatformSpecific.platformConfigSaga)
+  yield Saga.spawn(avatarSaga)
 }
 
 export default configSaga
