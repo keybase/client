@@ -27,7 +27,11 @@ class Conversation extends React.PureComponent<SwitchProps> {
     }
     switch (this.props.type) {
       case 'error':
-        return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
+        return (
+          /* sketchy */ this.props.conversationIDKey && (
+            <Error conversationIDKey={this.props.conversationIDKey} />
+          )
+        )
       case 'noConvo':
         // When navigating back to the inbox on mobile, we delelect
         // conversationIDKey by called mobileChangeSelection. This results in

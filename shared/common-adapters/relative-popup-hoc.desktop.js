@@ -284,7 +284,7 @@ function ModalPositionRelative<PP>(
                 <WrappedComponent {...(this.props: PP)} />
               </EscapeHandler>
             )}
-            {!this.props.onClosePopup && <WrappedComponent {...(this.props: PP)} />}
+            {!this.props.onClosePopup /* sketchy */ && <WrappedComponent {...(this.props: PP)} />}
           </Box>
         </Modal>
       )

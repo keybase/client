@@ -62,7 +62,9 @@ class Splash extends React.Component<Props, State> {
             <Kb.Button type="Primary" label="Reload" onClick={this.props.onRetry} />
           </Kb.ButtonBar>
         )}
-        {(this.props.onRetry || this.state.showFeedback) && <Feedback onFeedback={this.props.onFeedback} />}
+        {/* sketchy */ (this.props.onRetry || this.state.showFeedback) && (
+          <Feedback onFeedback={this.props.onFeedback} />
+        )}
       </Kb.Box2>
     )
   }
