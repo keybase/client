@@ -346,10 +346,10 @@
 			"revisionTime": "2018-10-12T20:20:19Z"
 		},
 		{
-			"checksumSHA1": "Igu5bQGzywNeLvYt4TeEPsmYdh8=",
+			"checksumSHA1": "UBW6KDh1z8hqxV9PDLxoLb1vj5A=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "5bfd5fbdc4c5ac0234930576a08dd1d383d0809a",
-			"revisionTime": "2018-11-12T19:26:02Z"
+			"revision": "675bfc30009781abeddc95b9c8b0d5715612201b",
+			"revisionTime": "2018-11-16T22:20:07Z"
 		},
 		{
 			"checksumSHA1": "jlxTK07TEsCuy7DdIbB1bJu8Afw=",
