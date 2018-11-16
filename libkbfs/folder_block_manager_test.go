@@ -12,6 +12,7 @@ import (
 	"time"
 
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -846,7 +847,10 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
-	_, err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	_, err = config.SetTlfSyncState(
+		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
 	require.NoError(t, err)
 	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
@@ -883,7 +887,10 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.Equal(t, kbfsmd.RevisionUninitialized, lastRev)
 
 	t.Log("Set new TLF to syncing, and add a new revision")
-	_, err = config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	_, err = config.SetTlfSyncState(
+		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
 	require.NoError(t, err)
 	_, _, err = kbfsOps.CreateDir(ctx, bNode, "c")
 	require.NoError(t, err)

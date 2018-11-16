@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -17,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -4130,7 +4133,10 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
-	config.SetTlfSyncState(rootNode.GetFolderBranch().Tlf, true)
+	config.SetTlfSyncState(
+		rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -4213,4 +4219,106 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 	staller.UnstallOneBlockOp(StallableBlockGet)
+}
+
+func TestKBFSOpsPartialSyncConfig(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "disk_cache")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+	dbc, err := newDiskBlockCacheWrapped(config, "")
+	require.NoError(t, err)
+	config.diskBlockCache = dbc
+	err = dbc.workingSetCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = dbc.syncCache.WaitUntilStarted()
+	require.NoError(t, err)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.loadSyncedTlfsLocked()
+
+	t.Log("Sync should start off as disabled.")
+	syncConfig, err := kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FolderSyncMode_DISABLED, syncConfig.Mode)
+
+	t.Log("Expect an error before the TLF is initialized")
+	syncConfig.Mode = keybase1.FolderSyncMode_PARTIAL
+	pathsMap := map[string]bool{
+		"a/b/c": true,
+		"d/e/f": true,
+	}
+	syncConfig.Paths = make([]string, 0, 2)
+	for p := range pathsMap {
+		syncConfig.Paths = append(syncConfig.Paths, p)
+	}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.Error(t, err)
+
+	t.Log("Initialize the TLF")
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	require.NoError(t, err)
+
+	t.Log("Set a partial sync config")
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.NoError(t, err)
+
+	t.Log("Make sure the lower-level config is encrypted")
+	lowLevelConfig := config.GetTlfSyncState(h.tlfID)
+	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, lowLevelConfig.Mode)
+	require.NotEqual(t, zeroPtr, lowLevelConfig.Paths.Ptr)
+	var zeroBytes [32]byte
+	require.False(t,
+		bytes.Equal(zeroBytes[:], lowLevelConfig.Paths.ServerHalf.Bytes()))
+
+	t.Log("Read it back out unencrypted")
+	config.ResetCaches()
+	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
+	require.Len(t, syncConfig.Paths, len(pathsMap))
+	for _, p := range syncConfig.Paths {
+		require.True(t, pathsMap[p])
+		delete(pathsMap, p)
+	}
+
+	t.Log("Test some failure scenarios")
+	syncConfig.Paths = []string{"a/b/c", "a/b/c"}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.Error(t, err)
+	syncConfig.Paths = []string{"/a/b/c", "a/b/c"}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.Error(t, err)
+	syncConfig.Paths = []string{"a/../a/b/c", "a/b/c"}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.Error(t, err)
+	syncConfig.Paths = []string{"a/../../a/b/c"}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.Error(t, err)
+
+	t.Log("Make sure the paths are cleaned and ToSlash'd")
+	pathsMap = map[string]bool{
+		"a/b/c": true,
+		"d/e/f": true,
+	}
+	syncConfig.Paths = []string{"a/../a/b/c", filepath.Join("d", "e", "f")}
+	_, err = kbfsOps.SetSyncConfig(ctx, h.tlfID, syncConfig)
+	require.NoError(t, err)
+	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.tlfID)
+	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
+	require.Len(t, syncConfig.Paths, len(pathsMap))
+	for _, p := range syncConfig.Paths {
+		require.True(t, pathsMap[p])
+		delete(pathsMap, p)
+	}
 }

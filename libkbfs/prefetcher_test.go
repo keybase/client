@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/stretchr/testify/require"
@@ -482,7 +483,9 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
-	config.SetTlfSyncState(kmd.TlfID(), true)
+	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
 
 	t.Log("Initialize a direct dir block with entries pointing to 2 files " +
 		"and 1 directory. The directory has an entry pointing to another " +
@@ -955,7 +958,9 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(kmd.TlfID(), true)
+	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1085,7 +1090,9 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(kmd.TlfID(), true)
+	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1581,7 +1588,9 @@ func TestPrefetcherReschedules(t *testing.T) {
 	err = cache.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
 	require.NoError(t, err)
 
-	config.SetTlfSyncState(kmd.TlfID(), true)
+	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		t.Log("ZERO\n")

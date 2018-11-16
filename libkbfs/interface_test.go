@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -55,24 +56,29 @@ func (cg *testClockGetter) TestClock() *TestClock {
 }
 
 type testSyncedTlfGetterSetter struct {
-	syncedTlfs map[tlf.ID]bool
+	syncedTlfs map[tlf.ID]FolderSyncConfig
 }
 
 var _ syncedTlfGetterSetter = (*testSyncedTlfGetterSetter)(nil)
 
 func newTestSyncedTlfGetterSetter() *testSyncedTlfGetterSetter {
 	return &testSyncedTlfGetterSetter{
-		syncedTlfs: make(map[tlf.ID]bool),
+		syncedTlfs: make(map[tlf.ID]FolderSyncConfig),
 	}
 }
 
-func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
+func (t *testSyncedTlfGetterSetter) GetTlfSyncState(
+	tlfID tlf.ID) FolderSyncConfig {
 	return t.syncedTlfs[tlfID]
 }
 
+func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
+	return t.syncedTlfs[tlfID].Mode == keybase1.FolderSyncMode_ENABLED
+}
+
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
-	isSynced bool) (<-chan error, error) {
-	t.syncedTlfs[tlfID] = isSynced
+	config FolderSyncConfig) (<-chan error, error) {
+	t.syncedTlfs[tlfID] = config
 	return nil, nil
 }
 

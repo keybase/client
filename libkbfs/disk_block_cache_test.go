@@ -556,7 +556,9 @@ func seedDiskBlockCacheForTest(
 	clock := config.Clock().(*TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		_, err := config.SetTlfSyncState(currTlf, true)
+		_, err := config.SetTlfSyncState(currTlf, FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
 		require.NoError(t, err)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
@@ -680,7 +682,9 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 
 	tlfToUnsync := tlf.FakeID(1, tlf.Private)
-	ch, err := config.SetTlfSyncState(tlfToUnsync, false)
+	ch, err := config.SetTlfSyncState(tlfToUnsync, FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_DISABLED,
+	})
 	require.NoError(t, err)
 	t.Log("Waiting for unsynced blocks to be cleared.")
 	err = <-ch

@@ -109,7 +109,8 @@ type diskLimiterGetter interface {
 
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
-	SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error)
+	GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig
+	SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error)
 }
 
 type blockRetrieverGetter interface {
@@ -541,6 +542,20 @@ type KBFSOps interface {
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.
 	Reset(ctx context.Context, handle *TlfHandle) error
+
+	// GetSyncConfig returns the sync state configuration for the
+	// given TLF.
+	GetSyncConfig(ctx context.Context, tlfID tlf.ID) (
+		keybase1.FolderSyncConfig, error)
+	// SetSyncConfig set the sync state configuration for the given
+	// TLF to either fully enabled, or fully disabled.  If syncing is
+	// disabled, it returns a channel that is closed when all of the
+	// TLF's blocks have been removed from the sync cache.  The config
+	// must contain no absolute paths, no duplicate paths, and no
+	// relative paths that go out of the TLF.
+	SetSyncConfig(
+		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
+		<-chan error, error)
 }
 
 type merkleRootGetter interface {

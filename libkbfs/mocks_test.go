@@ -789,17 +789,29 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(tlfID interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlf), tlfID)
 }
 
+// GetTlfSyncState mocks base method
+func (m *MocksyncedTlfGetterSetter) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
+	ret := m.ctrl.Call(m, "GetTlfSyncState", tlfID)
+	ret0, _ := ret[0].(FolderSyncConfig)
+	return ret0
+}
+
+// GetTlfSyncState indicates an expected call of GetTlfSyncState
+func (mr *MocksyncedTlfGetterSetterMockRecorder) GetTlfSyncState(tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).GetTlfSyncState), tlfID)
+}
+
 // SetTlfSyncState mocks base method
-func (m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error) {
-	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, isSynced)
+func (m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error) {
+	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, config)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SetTlfSyncState indicates an expected call of SetTlfSyncState
-func (mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(tlfID, isSynced interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), tlfID, isSynced)
+func (mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(tlfID, config interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), tlfID, config)
 }
 
 // MockblockRetrieverGetter is a mock of blockRetrieverGetter interface
@@ -1998,6 +2010,32 @@ func (m *MockKBFSOps) Reset(ctx context.Context, handle *TlfHandle) error {
 // Reset indicates an expected call of Reset
 func (mr *MockKBFSOpsMockRecorder) Reset(ctx, handle interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockKBFSOps)(nil).Reset), ctx, handle)
+}
+
+// GetSyncConfig mocks base method
+func (m *MockKBFSOps) GetSyncConfig(ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
+	ret := m.ctrl.Call(m, "GetSyncConfig", ctx, tlfID)
+	ret0, _ := ret[0].(keybase1.FolderSyncConfig)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSyncConfig indicates an expected call of GetSyncConfig
+func (mr *MockKBFSOpsMockRecorder) GetSyncConfig(ctx, tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSyncConfig", reflect.TypeOf((*MockKBFSOps)(nil).GetSyncConfig), ctx, tlfID)
+}
+
+// SetSyncConfig mocks base method
+func (m *MockKBFSOps) SetSyncConfig(ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (<-chan error, error) {
+	ret := m.ctrl.Call(m, "SetSyncConfig", ctx, tlfID, config)
+	ret0, _ := ret[0].(<-chan error)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetSyncConfig indicates an expected call of SetSyncConfig
+func (mr *MockKBFSOpsMockRecorder) SetSyncConfig(ctx, tlfID, config interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSyncConfig", reflect.TypeOf((*MockKBFSOps)(nil).SetSyncConfig), ctx, tlfID, config)
 }
 
 // MockmerkleRootGetter is a mock of merkleRootGetter interface
@@ -7732,17 +7770,29 @@ func (mr *MockConfigMockRecorder) IsSyncedTlf(tlfID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSyncedTlf", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlf), tlfID)
 }
 
+// GetTlfSyncState mocks base method
+func (m *MockConfig) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
+	ret := m.ctrl.Call(m, "GetTlfSyncState", tlfID)
+	ret0, _ := ret[0].(FolderSyncConfig)
+	return ret0
+}
+
+// GetTlfSyncState indicates an expected call of GetTlfSyncState
+func (mr *MockConfigMockRecorder) GetTlfSyncState(tlfID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).GetTlfSyncState), tlfID)
+}
+
 // SetTlfSyncState mocks base method
-func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (<-chan error, error) {
-	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, isSynced)
+func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (<-chan error, error) {
+	ret := m.ctrl.Call(m, "SetTlfSyncState", tlfID, config)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SetTlfSyncState indicates an expected call of SetTlfSyncState
-func (mr *MockConfigMockRecorder) SetTlfSyncState(tlfID, isSynced interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), tlfID, isSynced)
+func (mr *MockConfigMockRecorder) SetTlfSyncState(tlfID, config interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), tlfID, config)
 }
 
 // Mode mocks base method

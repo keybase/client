@@ -7,6 +7,7 @@ package libfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -43,10 +44,16 @@ func (a SyncAction) Execute(
 
 	switch a {
 	case SyncEnable:
-		_, err = c.SetTlfSyncState(fb.Tlf, true)
+		_, err = c.KBFSOps().SetSyncConfig(
+			ctx, fb.Tlf, keybase1.FolderSyncConfig{
+				Mode: keybase1.FolderSyncMode_ENABLED,
+			})
 
 	case SyncDisable:
-		_, err = c.SetTlfSyncState(fb.Tlf, false)
+		_, err = c.KBFSOps().SetSyncConfig(
+			ctx, fb.Tlf, keybase1.FolderSyncConfig{
+				Mode: keybase1.FolderSyncMode_DISABLED,
+			})
 
 	default:
 		return fmt.Errorf("Unknown action %s", a)

@@ -2029,25 +2029,11 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
-	tlfID, config, err := k.getSyncConfig(ctx, arg.Path)
+	tlfID, _, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return err
 	}
 
-	if arg.Config.Mode == config.Mode {
-		// Already done!
-		return nil
-	}
-
-	switch arg.Config.Mode {
-	case keybase1.FolderSyncMode_DISABLED:
-		_, err = k.config.SetTlfSyncState(tlfID, false)
-		return err
-	case keybase1.FolderSyncMode_ENABLED:
-		_, err = k.config.SetTlfSyncState(tlfID, true)
-		return err
-	default:
-		return simpleFSError{
-			fmt.Sprintf("Unknown config mode: %s", arg.Config.Mode)}
-	}
+	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
+	return err
 }

@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"os"
+	stdpath "path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -105,6 +107,7 @@ const (
 	fboMDWriter fboMutexLevel = 1
 	fboHead     fboMutexLevel = 2
 	fboBlock    fboMutexLevel = 3
+	fboSync     fboMutexLevel = 4
 )
 
 func (o fboMutexLevel) String() string {
@@ -115,6 +118,8 @@ func (o fboMutexLevel) String() string {
 		return "headLock"
 	case fboBlock:
 		return "blockLock"
+	case fboSync:
+		return "syncLock"
 	default:
 		return fmt.Sprintf("Invalid fboMutexLevel %d", int(o))
 	}
@@ -272,6 +277,8 @@ type folderBranchOps struct {
 	// Has this folder ever been cleared?
 	hasBeenCleared bool
 
+	syncLock leveledRWMutex
+
 	blocks  folderBlockOps
 	prepper folderUpdatePrepper
 
@@ -414,6 +421,7 @@ func newFolderBranchOps(
 	mdWriterLock := makeLeveledMutex(mutexLevel(fboMDWriter), &sync.Mutex{})
 	headLock := makeLeveledRWMutex(mutexLevel(fboHead), &sync.RWMutex{})
 	blockLockMu := makeLeveledRWMutex(mutexLevel(fboBlock), &sync.RWMutex{})
+	syncLock := makeLeveledRWMutex(mutexLevel(fboSync), &sync.RWMutex{})
 
 	forceSyncChan := make(chan struct{})
 
@@ -428,6 +436,7 @@ func newFolderBranchOps(
 			config, nodeCache, quotaUsage),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
+		syncLock:     syncLock,
 		blocks: folderBlockOps{
 			config:        config,
 			log:           log,
@@ -7422,6 +7431,173 @@ func (fbo *folderBranchOps) Reset(
 	oldHandle.SetFinalizedInfo(finalizedInfo)
 	go fbo.observers.tlfHandleChange(ctx, oldHandle)
 	return nil
+}
+
+func (fbo *folderBranchOps) getProtocolSyncConfig(
+	ctx context.Context, lState *lockState, kmd KeyMetadata) (
+	ret keybase1.FolderSyncConfig, err error) {
+	fbo.syncLock.AssertAnyLocked(lState)
+
+	config := fbo.config.GetTlfSyncState(fbo.id())
+	ret.Mode = config.Mode
+	if ret.Mode != keybase1.FolderSyncMode_PARTIAL {
+		return ret, nil
+	}
+
+	var block *FileBlock
+	// Skip block assembly if it's already cached.
+	b, err := fbo.config.BlockCache().Get(config.Paths.Ptr)
+	if err == nil {
+		var ok bool
+		block, ok = b.(*FileBlock)
+		if !ok {
+			return keybase1.FolderSyncConfig{}, errors.Errorf(
+				"Partial sync block is not a file block, but %T", b)
+		}
+	} else {
+		block = NewFileBlock().(*FileBlock)
+		err = assembleBlock(
+			ctx, fbo.config.keyGetter(), fbo.config.Codec(),
+			fbo.config.Crypto(), kmd, config.Paths.Ptr, block,
+			config.Paths.Buf, config.Paths.ServerHalf)
+		if err != nil {
+			return keybase1.FolderSyncConfig{}, err
+		}
+	}
+
+	paths, err := syncPathListFromBlock(fbo.config.Codec(), block)
+	if err != nil {
+		return keybase1.FolderSyncConfig{}, err
+	}
+	ret.Paths = paths.Paths
+	return ret, nil
+}
+
+// GetSyncConfig implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) GetSyncConfig(
+	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
+	if tlfID != fbo.id() || fbo.branch() != MasterBranch {
+		return keybase1.FolderSyncConfig{}, WrongOpsError{
+			fbo.folderBranch, FolderBranch{tlfID, MasterBranch}}
+	}
+
+	lState := makeFBOLockState()
+	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+
+	fbo.syncLock.RLock(lState)
+	defer fbo.syncLock.RUnlock(lState)
+	return fbo.getProtocolSyncConfig(ctx, lState, md)
+}
+
+func (fbo *folderBranchOps) makeEncryptedPartialPathsLocked(
+	ctx context.Context, lState *lockState, kmd KeyMetadata, paths []string) (
+	FolderSyncEncryptedPartialPaths, error) {
+	fbo.syncLock.AssertLocked(lState)
+
+	oldConfig, err := fbo.getProtocolSyncConfig(ctx, lState, kmd)
+	if err != nil {
+		return FolderSyncEncryptedPartialPaths{}, err
+	}
+	if oldConfig.Mode == keybase1.FolderSyncMode_ENABLED {
+		return FolderSyncEncryptedPartialPaths{},
+			errors.Errorf("TLF %s is already fully synced", fbo.id())
+	}
+
+	// Make sure the new path list doesn't contain duplicates,
+	// contains no duplicates, and each path is cleaned.
+	seenPaths := make(map[string]bool, len(paths))
+	var pathList syncPathList
+	pathList.Paths = make([]string, len(paths))
+	for i, p := range paths {
+		p = stdpath.Clean(filepath.ToSlash(p))
+		if seenPaths[p] {
+			return FolderSyncEncryptedPartialPaths{}, errors.Errorf(
+				"%s is in the paths list more than once", p)
+		}
+		if stdpath.IsAbs(p) {
+			return FolderSyncEncryptedPartialPaths{}, errors.Errorf(
+				"Absolute paths like %s are not allowed", p)
+		}
+		if strings.HasPrefix(p, "..") {
+			return FolderSyncEncryptedPartialPaths{}, errors.Errorf(
+				"Relative paths out of the TLF like %s are not allowed", p)
+		}
+		seenPaths[p] = true
+		pathList.Paths[i] = p
+	}
+
+	fbo.log.CDebugf(ctx,
+		"Setting partial sync config for %s; paths=%v",
+		fbo.id(), pathList.Paths)
+
+	b, err := pathList.makeBlock(fbo.config.Codec())
+	if err != nil {
+		return FolderSyncEncryptedPartialPaths{}, err
+	}
+
+	chargedTo, err := chargedToForTLF(
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
+	if err != nil {
+		return FolderSyncEncryptedPartialPaths{}, err
+	}
+
+	info, _, readyBlockData, err :=
+		ReadyBlock(ctx, fbo.config.BlockCache(), fbo.config.BlockOps(),
+			fbo.config.Crypto(), kmd, b, chargedTo,
+			fbo.config.DefaultBlockType())
+	if err != nil {
+		return FolderSyncEncryptedPartialPaths{}, err
+	}
+
+	// Put the unencrypted block in the cache.
+	err = fbo.config.BlockCache().Put(
+		info.BlockPointer, fbo.id(), b, TransientEntry)
+	if err != nil {
+		fbo.log.CDebugf(ctx,
+			"Error caching new block %v: %+v", info.BlockPointer, err)
+	}
+
+	return FolderSyncEncryptedPartialPaths{
+		Ptr:        info.BlockPointer,
+		Buf:        readyBlockData.buf,
+		ServerHalf: readyBlockData.serverHalf,
+	}, nil
+}
+
+// SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
+func (fbo *folderBranchOps) SetSyncConfig(
+	ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
+	<-chan error, error) {
+	if tlfID != fbo.id() || fbo.branch() != MasterBranch {
+		return nil, WrongOpsError{
+			fbo.folderBranch, FolderBranch{tlfID, MasterBranch}}
+	}
+
+	lState := makeFBOLockState()
+	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	if md == (ImmutableRootMetadata{}) ||
+		md.Revision() == kbfsmd.RevisionUninitialized {
+		return nil, errors.New(
+			"Cannot set partial sync config on an uninitialized TLF")
+	}
+
+	fbo.syncLock.Lock(lState)
+	defer fbo.syncLock.Unlock(lState)
+
+	fbo.log.CDebugf(ctx, "Setting sync config for %s, mode=%s",
+		tlfID, config.Mode)
+	newConfig := FolderSyncConfig{Mode: config.Mode}
+
+	if config.Mode == keybase1.FolderSyncMode_PARTIAL {
+		paths, err := fbo.makeEncryptedPartialPathsLocked(
+			ctx, lState, md, config.Paths)
+		if err != nil {
+			return nil, err
+		}
+		newConfig.Paths = paths
+	}
+
+	return fbo.config.SetTlfSyncState(tlfID, newConfig)
 }
 
 // InvalidateNodeAndChildren implements the KBFSOps interface for

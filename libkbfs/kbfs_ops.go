@@ -1285,6 +1285,29 @@ func (fs *KBFSOpsStandard) Reset(
 	return fs.resetTlfID(ctx, handle)
 }
 
+// GetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetSyncConfig(
+	ctx context.Context, tlfID tlf.ID) (keybase1.FolderSyncConfig, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx,
+		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+	return ops.GetSyncConfig(ctx, tlfID)
+}
+
+// SetSyncConfig implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) SetSyncConfig(
+	ctx context.Context, tlfID tlf.ID,
+	config keybase1.FolderSyncConfig) (<-chan error, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOps(ctx,
+		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
+	return ops.SetSyncConfig(ctx, tlfID, config)
+}
+
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	oldFav Favorite, newHandle *TlfHandle) {
 	fs.opsLock.Lock()

@@ -103,7 +103,7 @@ type ConfigLocal struct {
 	noBGFlush        bool // logic opposite so the default value is the common setting
 	rwpWaitTime      time.Duration
 	diskLimiter      DiskLimiter
-	syncedTlfs       map[tlf.ID]bool
+	syncedTlfs       map[tlf.ID]FolderSyncConfig
 	defaultBlockType keybase1.BlockType
 	kbfsService      *KBFSService
 	kbCtx            Context
@@ -1492,7 +1492,7 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
-	syncedTlfs := make(map[tlf.ID]bool)
+	syncedTlfs := make(map[tlf.ID]FolderSyncConfig)
 	if c.IsTestMode() {
 		c.syncedTlfs = syncedTlfs
 		return nil
@@ -1519,7 +1519,7 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			deleteBatch.Delete(iter.Key())
 			continue
 		}
-		var config keybase1.FolderSyncConfig
+		var config FolderSyncConfig
 		val := iter.Value()
 		if val != nil {
 			err = c.codec.Decode(val, &config)
@@ -1531,37 +1531,40 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 			// mean "enabled".
 			config.Mode = keybase1.FolderSyncMode_ENABLED
 		}
-		if config.Mode == keybase1.FolderSyncMode_ENABLED {
-			syncedTlfs[tlfID] = true
-		}
+		syncedTlfs[tlfID] = config
 	}
 	c.syncedTlfs = syncedTlfs
 	return ldb.Write(deleteBatch, nil)
 }
 
-// IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
-func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
+// GetTlfSyncState implements the isSyncedTlfGetter interface for
+// ConfigLocal.
+func (c *ConfigLocal) GetTlfSyncState(tlfID tlf.ID) FolderSyncConfig {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.syncedTlfs[tlfID]
 }
 
+// IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
+func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
+	return c.GetTlfSyncState(tlfID).Mode == keybase1.FolderSyncMode_ENABLED
+}
+
 // SetTlfSyncState implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
+func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, config FolderSyncConfig) (
 	<-chan error, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if isSynced {
-		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
-		if !ok {
-			return nil, errors.Errorf(
-				"invalid disk cache type to set TLF sync state: %T",
-				c.diskBlockCache)
-		}
-		if !diskCacheWrapped.IsSyncCacheEnabled() {
-			return nil, errors.New("sync block cache is not enabled")
-		}
+	diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
+	if !ok {
+		return nil, errors.Errorf(
+			"invalid disk cache type to set TLF sync state: %T",
+			c.diskBlockCache)
 	}
+	if !diskCacheWrapped.IsSyncCacheEnabled() {
+		return nil, errors.New("sync block cache is not enabled")
+	}
+
 	if !c.IsTestMode() {
 		if c.storageRoot == "" {
 			return nil, errors.New(
@@ -1576,20 +1579,17 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
 		if err != nil {
 			return nil, err
 		}
-		if isSynced {
+		if config.Mode == keybase1.FolderSyncMode_DISABLED {
+			err = ldb.Delete(tlfBytes, nil)
+		} else {
 			if cancel, ok := c.tlfClearCancels[tlfID]; ok {
 				cancel()
-			}
-			config := keybase1.FolderSyncConfig{
-				Mode: keybase1.FolderSyncMode_ENABLED,
 			}
 			buf, err := c.codec.Encode(&config)
 			if err != nil {
 				return nil, err
 			}
 			err = ldb.Put(tlfBytes, buf, nil)
-		} else {
-			err = ldb.Delete(tlfBytes, nil)
 		}
 		if err != nil {
 			return nil, err
@@ -1597,9 +1597,7 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
 	}
 
 	ch := make(chan error, 1)
-	if isSynced {
-		ch <- nil
-	} else {
+	if config.Mode == keybase1.FolderSyncMode_DISABLED {
 		// Start a background goroutine deleting all the blocks
 		// from this TLF.
 		ctx, cancel := context.WithCancel(context.Background())
@@ -1612,9 +1610,11 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) (
 			defer cancel()
 			ch <- diskBlockCache.ClearAllTlfBlocks(ctx, tlfID)
 		}()
+	} else {
+		ch <- nil
 	}
 
-	c.syncedTlfs[tlfID] = isSynced
+	c.syncedTlfs[tlfID] = config
 	<-c.bops.TogglePrefetcher(true)
 	return ch, nil
 }

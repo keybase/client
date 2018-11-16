@@ -16,7 +16,9 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs1"
@@ -890,4 +892,46 @@ func PrefetchStatusFromProtocol(
 		panic("Invalid prefetch status from protocol")
 	}
 	return s
+}
+
+// FolderSyncEncryptedPartialPaths describes an encrypted block
+// containing the paths of a partial sync config.
+type FolderSyncEncryptedPartialPaths struct {
+	Ptr        BlockPointer
+	Buf        []byte
+	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
+}
+
+// FolderSyncConfig is the on-disk representation for a TLF sync
+// config.
+type FolderSyncConfig struct {
+	Mode  keybase1.FolderSyncMode         `codec:"mode" json:"mode"`
+	Paths FolderSyncEncryptedPartialPaths `codec:"paths" json:"paths"`
+}
+
+type syncPathList struct {
+	// Paths is a list of files and directories within a TLF that are
+	// configured to be synced to the local device.
+	Paths []string
+
+	codec.UnknownFieldSetHandler
+}
+
+func (spl syncPathList) makeBlock(codec kbfscodec.Codec) (Block, error) {
+	buf, err := codec.Encode(spl)
+	if err != nil {
+		return nil, err
+	}
+	b := NewFileBlock().(*FileBlock)
+	b.Contents = buf
+	return b, nil
+}
+
+func syncPathListFromBlock(codec kbfscodec.Codec, b *FileBlock) (
+	paths syncPathList, err error) {
+	err = codec.Decode(b.Contents, &paths)
+	if err != nil {
+		return syncPathList{}, err
+	}
+	return paths, nil
 }
