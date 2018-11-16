@@ -84,7 +84,7 @@ const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
   )
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

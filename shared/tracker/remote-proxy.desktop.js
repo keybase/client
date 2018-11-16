@@ -137,7 +137,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ].slice(0, MAX_TRACKERS),
 })
 
-export default connect(
+export default connect<any, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   mergeProps

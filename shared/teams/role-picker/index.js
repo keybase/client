@@ -256,6 +256,7 @@ const styles = styleSheetCreate({
 })
 
 // Conglomerate role displays
+// $FlowIssue
 export const RolePicker = (props: RolePickerProps) => (
   <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
 )
