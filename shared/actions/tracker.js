@@ -21,7 +21,10 @@ function* _trackerTimer(): Generator<any, void, any> {
     const state: TypedState = yield Saga.select()
     const trackers = state.tracker.userTrackers
     if (Object.keys(trackers).some(username => !trackers[username].closed)) {
-      yield Saga.call(RPCTypes.trackCheckTrackingRpcPromise)
+      try {
+        // never kill this loop on rpc errors
+        yield Saga.call(RPCTypes.trackCheckTrackingRpcPromise)
+      } catch (e) {}
     }
   }
 }
