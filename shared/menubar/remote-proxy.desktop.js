@@ -41,22 +41,15 @@ const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
-  broken: state.tracker.userTrackers,
   conversationsToSend: conversationsToSend(state),
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
+  userInfo: state.users.infoMap,
   username: state.config.username,
 })
 
 // TODO we should just send a Set like structure over, for now just extract trackerState
-const getBrokenSubset = memoize1(userTrackers =>
-  Object.keys(userTrackers).reduce((map, name) => {
-    map[name] = {
-      trackerState: userTrackers[name].trackerState,
-    }
-    return map
-  }, {})
-)
+const getBrokenSubset = memoize1(userInfo => userInfo.filter(u => u.broken).toJS())
 
 let _lastUsername
 let _lastClearCacheTrigger = 0
@@ -68,7 +61,6 @@ const mergeProps = stateProps => {
   return {
     badgeKeys: stateProps._badgeInfo,
     badgeMap: stateProps._badgeInfo,
-    broken: getBrokenSubset(stateProps.broken),
     clearCacheTrigger: _lastClearCacheTrigger,
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
@@ -79,6 +71,7 @@ const mergeProps = stateProps => {
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
     outOfDate: stateProps.outOfDate,
+    userInfo: getBrokenSubset(stateProps.userInfo),
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
