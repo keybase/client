@@ -253,6 +253,7 @@
   "resolutions": {
     "**/react-docgen/**/@babel/parser": "7.1.6",
     "**/babel-eslint/**/@babel/types": "7.1.6",
+    "**/lottie-react-web/**/minimatch": "3.0.4",
     "babel-core": "7.0.0-bridge.0"
   }
 }
