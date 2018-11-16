@@ -7,4 +7,5 @@ export {
   memoize as memoize3,
   memoize as memoize4,
   memoize as memoize5,
+  memoize as memoize6,
 }
