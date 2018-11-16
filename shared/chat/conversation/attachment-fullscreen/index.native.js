@@ -34,7 +34,7 @@ class AutoMaxSizeImage extends React.Component<any, {width: number, height: numb
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
-        <Kb.NativeImage
+        <Kb.NativeFastImage
           {...this.props}
           resizeMode="contain"
           style={{

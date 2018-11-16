@@ -20,6 +20,7 @@ const lineClamp = (lines: number) => ({
   textOverflow: 'ellipsis',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
+  wordBreak: 'break-all',
 })
 
 function fontSizeToSizeStyle(fontSize: number): ?Object {
