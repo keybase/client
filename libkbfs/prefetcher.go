@@ -458,11 +458,10 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 		return
 	}
 
-	pre := p.prefetches[blockID]
 	delete(p.prefetches, blockID)
 	pp.Close()
 
-	// Only reschedule the top-most block, which has no parents.
+	// Only reschedule the top-most blocks, which has no parents.
 	rp, ok := p.rescheduled[blockID]
 	if !ok {
 		rp = &rescheduledPrefetch{
@@ -476,7 +475,7 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 		return
 	}
 	req.ptr = BlockPointer{ID: blockID}
-	req.block = pre.req.block.NewEmpty()
+	req.block = pp.req.block.NewEmpty()
 	d := rp.off.NextBackOff()
 	if d == backoff.Stop {
 		p.log.Debug("Stopping rescheduling of %s due to stopped backoff timer",
@@ -503,7 +502,7 @@ func (p *blockPrefetcher) rescheduleIfNeeded(
 	dbc := p.config.DiskBlockCache()
 	if req.isDeepSync && dbc != nil {
 		if !dbc.DoesSyncCacheHaveSpace(ctx) {
-			// If the sync cache is close to full, cancel prefetches.
+			// If the sync cache is close to full, reschedule the prefetch.
 			p.log.CDebugf(ctx, "rescheduling prefetch for block %s due to "+
 				"full sync cache.", req.ptr.ID)
 			p.reschedulePrefetch(req)
@@ -589,8 +588,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		case reqInt := <-p.prefetchRescheduleCh.Out():
 			req := reqInt.(*prefetchRequest)
 			blockID := req.ptr.ID
-			pre, ok := p.prefetches[blockID]
-			if !ok {
+			pre, isPrefetchWaiting := p.prefetches[blockID]
+			if !isPrefetchWaiting {
+				// Create new prefetch here while rescheduling, to
+				// prevent other subsequent requests from creating
+				// one.
 				pre = p.newPrefetch(1, false, req)
 				p.prefetches[blockID] = pre
 			}
