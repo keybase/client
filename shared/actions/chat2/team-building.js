@@ -2,6 +2,7 @@
 import * as Constants from '../../constants/team-building'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
+import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
@@ -69,18 +70,21 @@ const searchResultCounts = (state: TypedState) => {
           if (!isStillInSameQuery(yield Saga.select())) {
             break
           }
-          const action = yield apiSearch(
-            teamBuildingSearchQuery,
-            service,
-            teamBuildingSearchLimit,
-            true
-          ).then(users =>
-            TeamBuildingGen.createSearchResultsLoaded({
-              users,
-              query: teamBuildingSearchQuery,
-              service,
-            })
-          )
+          const action = yield apiSearch(teamBuildingSearchQuery, service, teamBuildingSearchLimit, true)
+            .then(users =>
+              TeamBuildingGen.createSearchResultsLoaded({
+                users,
+                query: teamBuildingSearchQuery,
+                service,
+              })
+            )
+            .catch(err =>
+              ConfigGen.createGlobalError({
+                globalError: new Error(
+                  `Error in searching for ${teamBuildingSearchQuery} on ${service}: ${err.message}`
+                ),
+              })
+            )
           yield Saga.put(action)
         }
       })
@@ -96,14 +100,23 @@ const search = (state: TypedState) => {
     return
   }
 
-  return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
-    users =>
+  return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true)
+    .then(users =>
       TeamBuildingGen.createSearchResultsLoaded({
         users,
         query: teamBuildingSearchQuery,
         service: teamBuildingSelectedService,
       })
-  )
+    )
+    .catch(err =>
+      ConfigGen.createGlobalError({
+        globalError: new Error(
+          `Error in searching for ${teamBuildingSearchQuery} on ${teamBuildingSelectedService}: ${
+            err.message
+          }`
+        ),
+      })
+    )
 }
 
 const createConversation = (state: TypedState) =>
