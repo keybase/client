@@ -2555,9 +2555,9 @@ const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePr
       })
     ),
     Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-      msgID: action.payload.messageID,
-      result: action.payload.result,
+      convID: Types.keyToConversationID(conversationIDKey),
+      msgID: messageID,
+      result,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     }),
   ])
