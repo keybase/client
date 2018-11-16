@@ -6,12 +6,40 @@ import {isMobile} from '../../../styles'
 export const smallRowHeight = isMobile ? 64 : 56
 export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
+export const floatingDivider = isMobile ? 48 : 40
+export const inboxWidth = 260
+
 export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {
-    return showingButton ? 60 : 44
+    return showingButton ? 68 : 44
   } else {
-    return showingButton ? 60 : 41
+    return showingButton ? 68 : 41
   }
 }
 
-export const inboxWidth = 260
+export const getRowHeight = (type: string, filtered: boolean, showingDividerButton: boolean) => {
+  if (type === 'bigTeamsLabel') {
+    return bigHeaderHeight
+  }
+
+  if (filtered) {
+    switch (type) {
+      case 'big':
+        return smallRowHeight
+      case 'small':
+        return smallRowHeight
+    }
+  } else {
+    switch (type) {
+      case 'bigHeader':
+        return bigHeaderHeight
+      case 'big':
+        return bigRowHeight
+      case 'small':
+        return smallRowHeight
+      case 'divider':
+        return dividerHeight(showingDividerButton)
+    }
+  }
+  return 0
+}

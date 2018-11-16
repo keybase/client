@@ -6,18 +6,20 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {navigateAppend} from '../../actions/route-tree'
 import {
   connect,
   compose,
   withHandlers,
   withPropsOnChange,
+  withProps,
   withStateHandlers,
   lifecycle,
+  type RouteProps,
 } from '../../util/container'
-import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
+
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const cleanPhoneNumber: string => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
@@ -40,7 +42,7 @@ const mapStateToProps = (state, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
   openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
@@ -107,7 +109,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
 })
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
@@ -122,7 +124,7 @@ export default compose(
         _setHasPermission: () => hasPermission => ({hasPermission}),
       }
     ),
-    withPropsOnChange(['onExitSearch'], props => ({
+    withProps(props => ({
       onBack: () => props.onClose(),
       title: 'Invite contacts',
       headerStyle: {borderBottomWidth: 0},

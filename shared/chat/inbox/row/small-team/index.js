@@ -5,7 +5,7 @@ import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import * as InboxSizes from '../sizes'
+import * as RowSizes from '../sizes'
 
 export type Props = {
   backgroundColor: string,
@@ -147,7 +147,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {flexShrink: 0, height: InboxSizes.smallRowHeight},
+  container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,

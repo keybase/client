@@ -1,12 +1,15 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import DestinationPicker from './index.desktop'
+import DestinationPicker from '.'
 import {makeBreadcrumbProps} from '../header/breadcrumb-container.desktop'
 import {rowsProvider} from '../row/index.stories'
 import {commonProvider} from '../common/index.stories'
+
+import {isMobile} from '../../constants/platform'
 
 export const provider = Sb.createPropProviderWithCommon({
   ...commonProvider,
@@ -20,15 +23,18 @@ const load = () =>
     .addDecorator(provider)
     .add('DestinationPicker', () => (
       <DestinationPicker
-        path={Types.stringToPath('/keybase/team/meatball_songgao/yo')}
+        path={Types.stringToPath('/keybase/private/meatball,songgao,xinyuzhao/yo')}
+        routePath={I.List([])}
         onCancel={Sb.action('onCancel')}
-        targetName="Secret treat spot"
+        targetName="Secret treat spot blasjeiofjawiefjksadjflaj"
         targetIconSpec={
           Constants.getItemStyles(['keybase', 'private', 'meatball', 'Secret treat spot'], 'folder').iconSpec
         }
+        index={0}
         onCopyHere={Sb.action('onCopyHere')}
         onMoveHere={Sb.action('onMoveHere')}
         onNewFolder={Sb.action('onNewFolder')}
+        onBackUp={isMobile ? Sb.action('onBackUp') : null}
       />
     ))
 

@@ -1,12 +1,14 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 
 export type FolderHeaderProps = {
   path: Types.Path,
+  routePath: I.List<string>,
   title: string,
   onBack: () => void,
-  onChat: () => void,
+  onChat?: ?() => void,
 }
 
 declare export default class FolderHeader extends React.Component<FolderHeaderProps> {}

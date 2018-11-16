@@ -4,6 +4,8 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import {namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
+type OwnProps = {||}
+
 const secretNoteConnector = {
   mapStateToProps: state => {
     const recipientType = state.wallets.building.recipientType
@@ -40,14 +42,14 @@ const publicMemoConnector = {
   }),
 }
 
-export const SecretNote = namedConnect(
+export const SecretNote = namedConnect<OwnProps, _, _, _, _>(
   secretNoteConnector.mapStateToProps,
   secretNoteConnector.mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),
   'ConnectedSecretNote'
 )(SecretNoteComponent)
 
-export const PublicMemo = namedConnect(
+export const PublicMemo = namedConnect<OwnProps, _, _, _, _>(
   publicMemoConnector.mapStateToProps,
   publicMemoConnector.mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

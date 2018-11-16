@@ -136,6 +136,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PrefetchStatus",
+      "symbols": [
+        "NOT_STARTED_0",
+        "IN_PROGRESS_1",
+        "COMPLETE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "Dirent",
       "fields": [
@@ -162,6 +171,10 @@
         {
           "type": "boolean",
           "name": "writable"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
         }
       ]
     },

@@ -2,6 +2,8 @@
 import Available from '.'
 import {namedConnect} from '../../../util/container'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   amountErrMsg: state.wallets.building.isRequest
     ? state.wallets.builtRequest.amountErrMsg
@@ -10,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

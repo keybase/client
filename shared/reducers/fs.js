@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
+import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
@@ -115,10 +116,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     }
     case FsGen.downloadProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(
-        ['downloads', key, 'state'],
-        original =>
-          original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
+      return state.update('downloads', d =>
+        d.update(key, k =>
+          k.update(
+            'state',
+            original =>
+              original && original.merge({completePortion, endEstimate})
+          )
+        )
       )
     }
     case FsGen.downloadSuccess: {
@@ -136,19 +141,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.uploadWritingSuccess: {
       const {path} = action.payload
-      return state
-        .removeIn(['uploads', 'errors', path])
-        .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
+      return state.withMutations(s =>
+        s
+          .removeIn(['uploads', 'errors', path])
+          .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
+      )
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-      return (
-        state
-          // $FlowFixMe
-          .setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
-          .setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
-          .setIn(['uploads', 'endEstimate'], endEstimate || undefined)
-      )
+      return state.withMutations(s => {
+        s.setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
+        s.setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
+        if (endEstimate) {
+          s.setIn(['uploads', 'endEstimate'], endEstimate)
+        } else {
+          s.deleteIn(['uploads', 'endEstimate'])
+        }
+      })
     }
     case FsGen.fuseStatusResult:
       return state.merge({fuseStatus: action.payload.status})
@@ -175,17 +184,19 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
     case FsGen.mimeTypeLoaded:
-      return state.updateIn(
-        ['pathItems', action.payload.path],
-        pathItem =>
-          pathItem
-            ? pathItem.type === 'file'
-              ? pathItem.set('mimeType', action.payload.mimeType)
-              : pathItem
-            : Constants.makeFile({
-                mimeType: action.payload.mimeType,
-                name: Types.getPathName(action.payload.path),
-              })
+      return state.update('pathItems', pis =>
+        pis.update(
+          action.payload.path,
+          pathItem =>
+            pathItem
+              ? pathItem.type === 'file'
+                ? pathItem.set('mimeType', action.payload.mimeType)
+                : pathItem
+              : Constants.makeFile({
+                  mimeType: action.payload.mimeType,
+                  name: Types.getPathName(action.payload.path),
+                })
+        )
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload
@@ -271,13 +282,31 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.showMoveOrCopy:
+      return state.update('moveOrCopy', mc =>
+        mc.set(
+          'destinationParentPath',
+          isMobile
+            ? I.List(
+                Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
+                  (list, elem) => [
+                    ...list,
+                    list.length
+                      ? Types.pathConcat(list[list.length - 1], elem)
+                      : Types.stringToPath(`/${elem}`),
+                  ],
+                  []
+                )
+              )
+            : I.List([action.payload.initialDestinationParentPath])
+        )
+      )
     case FsGen.setMoveOrCopySource:
-      return state.setIn(['moveOrCopy', 'sourceItemPath'], action.payload.path)
-    case FsGen.setMoveOrCopyDestinationParent:
-      return state.setIn(['moveOrCopy', 'destinationParentPath'], action.payload.path)
-    case FsGen.clearMoveOrCopySource:
-      // $FlowFixMe
-      return state.setIn(['moveOrCopy', 'sourceItemPath'], null)
+      return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
+    case FsGen.setMoveOrCopyDestinationParentPath:
+      return state.update('moveOrCopy', mc =>
+        mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
@@ -307,6 +336,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.deleteFile:
     case FsGen.move:
     case FsGen.copy:
+    case FsGen.moveOrCopyOpen:
+    case FsGen.cancelMoveOrCopy:
       return state
     default:
       /*::

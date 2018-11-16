@@ -18,6 +18,7 @@ type MakeRowOptions = {
   teamname: string,
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big',
 }
+
 const makeRow = (options: MakeRowOptions) => {
   if (options.type === 'bigTeamsLabel') {
     return (

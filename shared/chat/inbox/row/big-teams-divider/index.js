@@ -1,15 +1,8 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Box, Badge} from '../../../../common-adapters'
-import {
-  platformStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  glamorous,
-  styleSheetCreate,
-  isMobile,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import * as RowSizes from '../sizes'
 import {BigTeamsLabel} from '../big-teams-label'
 
 type Props = {
@@ -17,66 +10,66 @@ type Props = {
   toggle: () => void,
 }
 
-const DividerBox = glamorous(Box)({
-  ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? {backgroundColor: globalColors.fastBlank}
+const DividerBox = Styles.glamorous(Kb.Box)({
+  ...Styles.globalStyles.flexBoxRow,
+  ...(Styles.isMobile
+    ? {backgroundColor: Styles.globalColors.fastBlank}
     : {
         ':hover': {
-          color: globalColors.black_40,
+          color: Styles.globalColors.black_40,
         },
-        color: globalColors.black_20,
+        color: Styles.globalColors.black_20,
       }),
   alignItems: 'center',
   borderStyle: 'solid',
-  borderTopColor: globalColors.black_10,
+  borderTopColor: Styles.globalColors.black_10,
   borderTopWidth: 1,
   height: '100%',
   justifyContent: 'flex-start',
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.tiny,
+  paddingRight: Styles.globalMargins.tiny,
   position: 'relative',
   width: '100%',
 })
 
 const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
-  <ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
+  <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
     <DividerBox>
       <BigTeamsLabel isFiltered={false} />
-      {badgeCount > 0 && <Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
-      <Box style={styles.icon}>
-        <Icon type="iconfont-arrow-up" inheritColor={true} fontSize={isMobile ? 20 : 16} />
-      </Box>
+      {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
+      <Kb.Box style={styles.icon}>
+        <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Styles.isMobile ? 20 : 16} />
+      </Kb.Box>
     </DividerBox>
-  </ClickableBox>
+  </Kb.ClickableBox>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   badge: {
-    marginLeft: globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
     position: 'relative',
   },
-  container: platformStyles({
+  container: Styles.platformStyles({
     isElectron: {
-      ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.blue5,
+      ...Styles.globalStyles.fillAbsolute,
+      backgroundColor: Styles.globalColors.blue5,
       flexShrink: 0,
-      height: 40,
+      height: RowSizes.floatingDivider,
       top: undefined,
     },
     isMobile: {
-      backgroundColor: globalColors.fastBlank,
+      backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
-      height: 48,
+      height: RowSizes.floatingDivider,
     },
   }),
   icon: {
-    ...globalStyles.fillAbsolute,
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.fillAbsolute,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
     justifyContent: 'center',
-    marginTop: isMobile ? globalMargins.tiny : globalMargins.xtiny,
+    marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
   },
 })
 

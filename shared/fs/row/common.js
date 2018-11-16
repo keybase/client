@@ -58,6 +58,11 @@ const leftBox = {
   flex: 1,
 }
 
+const leftBoxDisabled = {
+  ...leftBox,
+  opacity: 0.2,
+}
+
 const rightBox = {
   ...Styles.globalStyles.flexBoxRow,
   flexShrink: 1,
@@ -105,6 +110,7 @@ export const rowStyles = {
     pathItemIcon,
     pathItemIcon_30,
     leftBox,
+    leftBoxDisabled,
     rightBox,
     pathItemActionIcon,
     badgeContainer,
@@ -138,7 +144,7 @@ export type StillCommonProps = {
   name: string,
   path: Types.Path,
   inDestinationPicker?: boolean,
-  onOpen: () => void,
+  onOpen?: ?() => void,
 }
 
 export const StillCommon = (
@@ -147,7 +153,7 @@ export const StillCommon = (
   }
 ) => (
   <HoverBox style={rowStyles.rowBox}>
-    <ClickableBox onClick={props.onOpen} style={rowStyles.leftBox}>
+    <ClickableBox onClick={props.onOpen} style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}>
       <Box2 direction="vertical">
         <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
       </Box2>

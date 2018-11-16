@@ -227,7 +227,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const Connected = compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   PopupDialogHoc
 )(TeamBuilding)
 
