@@ -2141,6 +2141,18 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	}
 }
 
+type MessageUnfurlInfo struct {
+	UnfurlMessageID MessageID    `codec:"unfurlMessageID" json:"unfurlMessageID"`
+	Unfurl          UnfurlResult `codec:"unfurl" json:"unfurl"`
+}
+
+func (o MessageUnfurlInfo) DeepCopy() MessageUnfurlInfo {
+	return MessageUnfurlInfo{
+		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
+		Unfurl:          o.Unfurl.DeepCopy(),
+	}
+}
+
 type MessageUnboxedValid struct {
 	ClientHeader          MessageClientHeaderVerified `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader          MessageServerHeader         `codec:"serverHeader" json:"serverHeader"`
@@ -2158,7 +2170,7 @@ type MessageUnboxedValid struct {
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
-	Unfurls               []UnfurlResult              `codec:"unfurls" json:"unfurls"`
+	Unfurls               []MessageUnfurlInfo         `codec:"unfurls" json:"unfurls"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2232,11 +2244,11 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.ChannelNameMentions),
 		Reactions: o.Reactions.DeepCopy(),
-		Unfurls: (func(x []UnfurlResult) []UnfurlResult {
+		Unfurls: (func(x []MessageUnfurlInfo) []MessageUnfurlInfo {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UnfurlResult, len(x))
+			ret := make([]MessageUnfurlInfo, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

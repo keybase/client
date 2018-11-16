@@ -1228,11 +1228,14 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 }
 
 func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls []chat1.UnfurlResult) (res []chat1.UnfurlDisplay) {
+	unfurls []chat1.MessageUnfurlInfo) (res []chat1.UIMessageUnfurlInfo) {
 	for _, u := range unfurls {
-		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
+		ud := PresentUnfurl(ctx, g, convID, u.Unfurl.Unfurl)
 		if ud != nil {
-			res = append(res, *ud)
+			res = append(res, chat1.UIMessageUnfurlInfo{
+				Unfurl:          *ud,
+				UnfurlMessageID: u.UnfurlMessageID,
+			})
 		}
 	}
 	return res

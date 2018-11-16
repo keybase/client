@@ -132,6 +132,11 @@ protocol chatUi {
     stellar1.RequestStatus status;
   }
 
+  record UIMessageUnfurlInfo {
+    MessageID unfurlMessageID;
+    UnfurlDisplay unfurl;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -155,7 +160,7 @@ protocol chatUi {
     boolean hasPairwiseMacs;
     union { null, UIPaymentInfo } paymentInfo;
     union { null, UIRequestInfo } requestInfo;
-    array<UnfurlDisplay> unfurls;
+    array<UIMessageUnfurlInfo> unfurls;
   }
 
   record UIMessageOutbox {

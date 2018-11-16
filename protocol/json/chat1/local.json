@@ -1005,6 +1005,20 @@
     },
     {
       "type": "record",
+      "name": "MessageUnfurlInfo",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "unfurlMessageID"
+        },
+        {
+          "type": "UnfurlResult",
+          "name": "unfurl"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
         {
@@ -1092,7 +1106,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UnfurlResult"
+            "items": "MessageUnfurlInfo"
           },
           "name": "unfurls"
         }

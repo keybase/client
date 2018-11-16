@@ -318,6 +318,11 @@ protocol local {
     union { null, OutboxID } supersedesOutboxID;
   }
 
+  record MessageUnfurlInfo {
+    MessageID unfurlMessageID;
+    UnfurlResult unfurl;
+  }
+
   record MessageUnboxedValid {
     MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
@@ -355,7 +360,7 @@ protocol local {
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
-    array<UnfurlResult> unfurls;
+    array<MessageUnfurlInfo> unfurls;
   }
 
   enum MessageUnboxedErrorType {

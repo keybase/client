@@ -481,6 +481,18 @@ func (o UIRequestInfo) DeepCopy() UIRequestInfo {
 	}
 }
 
+type UIMessageUnfurlInfo struct {
+	UnfurlMessageID MessageID     `codec:"unfurlMessageID" json:"unfurlMessageID"`
+	Unfurl          UnfurlDisplay `codec:"unfurl" json:"unfurl"`
+}
+
+func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
+	return UIMessageUnfurlInfo{
+		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
+		Unfurl:          o.Unfurl.DeepCopy(),
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
@@ -503,7 +515,7 @@ type UIMessageValid struct {
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
 	PaymentInfo           *UIPaymentInfo         `codec:"paymentInfo,omitempty" json:"paymentInfo,omitempty"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
-	Unfurls               []UnfurlDisplay        `codec:"unfurls" json:"unfurls"`
+	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -585,11 +597,11 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.RequestInfo),
-		Unfurls: (func(x []UnfurlDisplay) []UnfurlDisplay {
+		Unfurls: (func(x []UIMessageUnfurlInfo) []UIMessageUnfurlInfo {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UnfurlDisplay, len(x))
+			ret := make([]UIMessageUnfurlInfo, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

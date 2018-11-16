@@ -524,6 +524,20 @@
     },
     {
       "type": "record",
+      "name": "UIMessageUnfurlInfo",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "unfurlMessageID"
+        },
+        {
+          "type": "UnfurlDisplay",
+          "name": "unfurl"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -637,7 +651,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UnfurlDisplay"
+            "items": "UIMessageUnfurlInfo"
           },
           "name": "unfurls"
         }
