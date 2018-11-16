@@ -1,8 +1,8 @@
 // @flow
+import logger from '../../logger'
 import * as Constants from '../../constants/team-building'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
-import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
@@ -25,11 +25,16 @@ const apiSearch = (
       {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
     ],
     endpoint: 'user/user_search',
-  }).then(results =>
-    JSON.parse(results.body)
-      .list.map(r => Constants.parseRawResultToUser(r, service))
-      .filter(u => !!u)
-  )
+  })
+    .then(results =>
+      JSON.parse(results.body)
+        .list.map(r => Constants.parseRawResultToUser(r, service))
+        .filter(u => !!u)
+    )
+    .catch(err => {
+      logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
+      return []
+    })
 
 const searchResultCounts = (state: TypedState) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state.chat2
@@ -70,21 +75,18 @@ const searchResultCounts = (state: TypedState) => {
           if (!isStillInSameQuery(yield Saga.select())) {
             break
           }
-          const action = yield apiSearch(teamBuildingSearchQuery, service, teamBuildingSearchLimit, true)
-            .then(users =>
-              TeamBuildingGen.createSearchResultsLoaded({
-                users,
-                query: teamBuildingSearchQuery,
-                service,
-              })
-            )
-            .catch(err =>
-              ConfigGen.createGlobalError({
-                globalError: new Error(
-                  `Error in searching for ${teamBuildingSearchQuery} on ${service}: ${err.message}`
-                ),
-              })
-            )
+          const action = yield apiSearch(
+            teamBuildingSearchQuery,
+            service,
+            teamBuildingSearchLimit,
+            true
+          ).then(users =>
+            TeamBuildingGen.createSearchResultsLoaded({
+              users,
+              query: teamBuildingSearchQuery,
+              service,
+            })
+          )
           yield Saga.put(action)
         }
       })
@@ -100,23 +102,14 @@ const search = (state: TypedState) => {
     return
   }
 
-  return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true)
-    .then(users =>
+  return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
+    users =>
       TeamBuildingGen.createSearchResultsLoaded({
         users,
         query: teamBuildingSearchQuery,
         service: teamBuildingSelectedService,
       })
-    )
-    .catch(err =>
-      ConfigGen.createGlobalError({
-        globalError: new Error(
-          `Error in searching for ${teamBuildingSearchQuery} on ${teamBuildingSelectedService}: ${
-            err.message
-          }`
-        ),
-      })
-    )
+  )
 }
 
 const createConversation = (state: TypedState) =>
