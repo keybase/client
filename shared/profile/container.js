@@ -10,7 +10,7 @@ import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
-import {noAccountID} from '../constants/types/wallets'
+import {noAccountID, type CounterpartyType} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
 import Profile from './index'
@@ -26,6 +26,7 @@ import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
+import * as ConfigGen from '../actions/config-gen'
 
 type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
@@ -68,6 +69,8 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
     youAreInTeams,
+    // TODO: use real federated stellar address
+    stellarAddress: __DEV__ ? username + '*keybase.io' : '',
   }
 }
 
@@ -114,12 +117,12 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         [peopleTab]
       )
     ),
-  _onSendOrRequestLumens: (to: string, isRequest) => {
+  _onSendOrRequestLumens: (to: string, isRequest, recipientType: CounterpartyType) => {
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: noAccountID,
         isRequest,
-        recipientType: 'keybaseUser',
+        recipientType,
         to,
       })
     )
@@ -132,6 +135,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
   updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
+  _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -161,6 +165,10 @@ const mergeProps = (stateProps, dispatchProps) => {
     }
   }
 
+  const onCopyStellarAddress = () => {
+    dispatchProps._copyStellarAddress(stateProps.stellarAddress)
+  }
+
   // TODO entirely change how this works
   const okProps = {
     ...stateProps.trackerState,
@@ -178,6 +186,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps._onChat(username),
+    onCopyStellarAddress,
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickFollowers: () => dispatchProps._onClickFollowers(username),
@@ -188,12 +197,16 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false),
-    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true),
+    onSendLumens: () => dispatchProps._onSendOrRequestLumens(username, false, 'keybaseUser'),
+    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, true, 'keybaseUser'),
+    // TODO: shouldn't there be 'stellarFederatedAddress'?
+    onSendOrRequestStellarAddress: (isRequest: boolean) =>
+      dispatchProps._onSendOrRequestLumens(stateProps.stellarAddress, isRequest, 'stellarPublicKey'),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,
     youAreInTeams: stateProps.youAreInTeams,
+    stellarAddress: stateProps.stellarAddress ? stateProps.stellarAddress : '',
   }
 
   // TODO remove this, don't do this nested thing, just make a switching component
