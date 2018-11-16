@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   },
 })
 
-const makeRes = (actionType: any, domain?: string) => {
+const makeRes = (actionType: RPCChatTypes.UnfurlPromptAction, domain?: string) => {
   return {actionType, accept: domain}
 }
 
@@ -45,24 +45,28 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
+          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.localUnfurlPromptAction.always)
         ),
       onNever: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
+          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.localUnfurlPromptAction.never)
         ),
       onNotnow: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
+          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.localUnfurlPromptAction.notnow)
         ),
       onAccept: () =>
         dispatchProps._setPolicy(
           stateProps.messageID,
           domain,
+          // $FlowIssue generated type hard to match
           makeRes(RPCChatTypes.localUnfurlPromptAction.accept, domain)
         ),
     }))
