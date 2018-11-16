@@ -188,6 +188,11 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 	for b := range pre.parents {
 		parent, ok := p.prefetches[b]
 		if !ok {
+			// Note that the parent (or some other ancestor) might be
+			// rescheduled for later and have been removed from
+			// `prefetches`.  In that case still delete it from the
+			// `parents` list as normal; the reschedule will add it
+			// back in later as needed.
 			delete(pre.parents, b)
 			continue
 		}
@@ -452,7 +457,7 @@ func (p *blockPrefetcher) handlePrefetch(pre *prefetch, isPrefetchNew,
 }
 
 func (p *blockPrefetcher) rescheduleTopBlock(
-	blockID kbfsblock.ID, pp *prefetch, req *prefetchRequest) {
+	blockID kbfsblock.ID, pp *prefetch) {
 	if len(pp.parents) > 0 {
 		p.cancelPrefetch(blockID, pp)
 		return
@@ -474,8 +479,10 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 		// Prefetch already scheduled.
 		return
 	}
-	req.ptr = BlockPointer{ID: blockID}
+	// Copy the req but use a new empty block.
+	req := *pp.req
 	req.block = pp.req.block.NewEmpty()
+	pp.req = &req
 	d := rp.off.NextBackOff()
 	if d == backoff.Stop {
 		p.log.Debug("Stopping rescheduling of %s due to stopped backoff timer",
@@ -484,7 +491,7 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 	}
 	p.log.Debug("Rescheduling prefetch of %s in %s", blockID, d)
 	rp.timer = time.AfterFunc(d, func() {
-		p.triggerPrefetch(req)
+		p.triggerPrefetch(pp.req)
 	})
 }
 
@@ -595,12 +602,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// one.
 				pre = p.newPrefetch(1, false, req)
 				p.prefetches[blockID] = pre
+			} else {
+				pre.req = req
 			}
 			p.log.Debug("rescheduling top-block prefetch for block %s", blockID)
-			p.applyToParentsRecursive(
-				func(blockID kbfsblock.ID, pp *prefetch) {
-					p.rescheduleTopBlock(blockID, pp, req)
-				}, blockID, pre)
+			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
