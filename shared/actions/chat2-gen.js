@@ -93,9 +93,8 @@ export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
-export const unfurlAddPrompt = 'chat2:unfurlAddPrompt'
-export const unfurlRemovePrompt = 'chat2:unfurlRemovePrompt'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
+export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -378,20 +377,17 @@ type _ToggleMessageReactionPayload = $ReadOnly<{|
   ordinal: Types.Ordinal,
 |}>
 type _ToggleSmallTeamsExpandedPayload = void
-type _UnfurlAddPromptPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  domain: string,
-|}>
-type _UnfurlRemovePromptPayload = $ReadOnly<{|
-  conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
-  domain: string,
-|}>
 type _UnfurlResolvePromptPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageID: RPCChatTypes.MessageID,
+  domain: string,
   result: RPCChatTypes.UnfurlPromptResult,
+|}>
+type _UnfurlTogglePromptPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  domain: string,
+  show: boolean,
 |}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
@@ -420,7 +416,7 @@ export const createCreateConversation = (payload: _CreateConversationPayload) =>
 /**
  * Add an unfurl prompt to a message
  */
-export const createUnfurlAddPrompt = (payload: _UnfurlAddPromptPayload) => ({payload, type: unfurlAddPrompt})
+export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload) => ({payload, type: unfurlTogglePrompt})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -441,10 +437,6 @@ export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingMode
  * Prime data to fulfill this message's request and navigate to the send form.
  */
 export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({payload, type: prepareFulfillRequestForm})
-/**
- * Remove an unfurl prompt to a message
- */
-export const createUnfurlRemovePrompt = (payload: _UnfurlRemovePromptPayload) => ({payload, type: unfurlRemovePrompt})
 /**
  * Response to an unfurl prompt
  */
@@ -663,9 +655,8 @@ export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
-export type UnfurlAddPromptPayload = $Call<typeof createUnfurlAddPrompt, _UnfurlAddPromptPayload>
-export type UnfurlRemovePromptPayload = $Call<typeof createUnfurlRemovePrompt, _UnfurlRemovePromptPayload>
 export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt, _UnfurlResolvePromptPayload>
+export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -757,9 +748,8 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
   | ToggleSmallTeamsExpandedPayload
-  | UnfurlAddPromptPayload
-  | UnfurlRemovePromptPayload
   | UnfurlResolvePromptPayload
+  | UnfurlTogglePromptPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload

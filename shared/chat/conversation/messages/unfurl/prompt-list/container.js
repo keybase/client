@@ -18,29 +18,30 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => {
-  const simpleResp = (actionType: any, messageID: Types.MessageID) => {
+  const simpleResp = (actionType: any, messageID: Types.MessageID, domain: string) => {
     dispatch(
       Chat2Gen.createUnfurlResolvePrompt({
         conversationIDKey,
         messageID,
+        domain,
         result: {actionType},
       })
     )
   }
   return {
-    onAlways: (messageID: Types.MessageID) =>
-      simpleResp(RPCChatTypes.localUnfurlPromptAction.always, messageID),
-    onNever: (messageID: Types.MessageID) =>
-      simpleResp(RPCChatTypes.localUnfurlPromptAction.never, messageID),
-    onNotnow: (messageID: Types.MessageID) =>
-      simpleResp(RPCChatTypes.localUnfurlPromptAction.notnow, messageID),
-    onAccept: (domain: string, messageID: Types.MessageID) => {
+    onAlways: (messageID: Types.MessageID, domain: string) =>
+      simpleResp(RPCChatTypes.localUnfurlPromptAction.always, messageID, domain),
+    onNever: (messageID: Types.MessageID, domain: string) =>
+      simpleResp(RPCChatTypes.localUnfurlPromptAction.never, messageID, domain),
+    onNotnow: (messageID: Types.MessageID, domain: string) =>
+      simpleResp(RPCChatTypes.localUnfurlPromptAction.notnow, messageID, domain),
+    onAccept: (messageID: Types.MessageID, domain: string) => {
       const actionType: any = RPCChatTypes.localUnfurlPromptAction.accept
       const result: RPCChatTypes.UnfurlPromptResult = {
         actionType,
         accept: domain,
       }
-      dispatch(Chat2Gen.createUnfurlResolvePrompt({conversationIDKey, messageID, result}))
+      dispatch(Chat2Gen.createUnfurlResolvePrompt({conversationIDKey, messageID, domain, result}))
     },
   }
 }
@@ -51,10 +52,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   for (let pd of stateProps.promptDomains) {
     prompts.push({
       domain: pd,
-      onAccept: () => dispatchProps.onAccept(pd, messageID),
-      onAlways: () => dispatchProps.onAlways(messageID),
-      onNever: () => dispatchProps.onNever(messageID),
-      onNotnow: () => dispatchProps.onNotnow(messageID),
+      onAccept: () => dispatchProps.onAccept(messageID, pd),
+      onAlways: () => dispatchProps.onAlways(messageID, pd),
+      onNever: () => dispatchProps.onNever(messageID, pd),
+      onNotnow: () => dispatchProps.onNotnow(messageID, pd),
     })
   }
   return {prompts}

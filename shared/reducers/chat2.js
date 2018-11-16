@@ -296,7 +296,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           : messageMap.clear()
       }
       return messageMap
-    case Chat2Gen.unfurlAddPrompt:
+    case Chat2Gen.unfurlTogglePrompt:
       const unfurlOrdinal = messageIDToOrdinal(
         messageMap,
         pendingOutboxToOrdinal,
@@ -310,23 +310,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         if (!message || message.type !== 'text') {
           return message
         }
-        return message.set('unfurlPrompts', message.unfurlPrompts.add(action.payload.domain))
-      })
-    case Chat2Gen.unfurlRemovePrompt:
-      const unfurlOrdinal = messageIDToOrdinal(
-        messageMap,
-        pendingOutboxToOrdinal,
-        action.payload.conversationIDKey,
-        action.payload.messageID
-      )
-      if (!unfurlOrdinal) {
-        return messageMap
-      }
-      return messageMap.updateIn([action.payload.conversationIDKey, unfurlOrdinal], message => {
-        if (!message || message.type !== 'text') {
-          return message
-        }
-        return message.set('unfurlPrompts', message.unfurlPrompts.delete(action.payload.domain))
+        return message.set(
+          'unfurlPrompts',
+          action.payload.show
+            ? message.unfurlPrompts.add(action.payload.domain)
+            : message.unfurlPrompts.delete(action.payload.domain)
+        )
       })
     case Chat2Gen.messagesExploded:
       const {conversationIDKey, messageIDs} = action.payload
@@ -937,8 +926,7 @@ const rootReducer = (
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
-    case Chat2Gen.unfurlAddPrompt:
-    case Chat2Gen.unfurlRemovePrompt:
+    case Chat2Gen.unfurlTogglePrompt:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

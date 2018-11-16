@@ -784,10 +784,11 @@ const setupEngineListeners = () => {
       const messageID = notif.msgID
       const domain = notif.domain
       return Saga.put(
-        Chat2Gen.createUnfurlAddPrompt({
+        Chat2Gen.createUnfurlTogglePrompt({
           conversationIDKey,
           messageID,
           domain,
+          show: true,
         })
       )
     },
@@ -2543,13 +2544,14 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
 }
 
 const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, domain} = action.payload
+  const {conversationIDKey, messageID, domain, result} = action.payload
   return Saga.sequentially([
     Saga.put(
-      Chat2Gen.createUnfurlRemovePrompt({
+      Chat2Gen.createUnfurlTogglePrompt({
         conversationIDKey,
         messageID,
         domain,
+        show: false,
       })
     ),
     Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {

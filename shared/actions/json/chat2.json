@@ -494,19 +494,15 @@
       "_description": "Response to an unfurl prompt",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
+      "domain": "string",
       "result": "RPCChatTypes.UnfurlPromptResult"
     },
-    "unfurlAddPrompt": {
+    "unfurlTogglePrompt": {
       "_description": "Add an unfurl prompt to a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
-      "domain": "string"
-    },
-    "unfurlRemovePrompt": {
-      "_description": "Remove an unfurl prompt to a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
-      "domain": "string"
+      "domain": "string",
+      "show": "boolean"
     }
   }
 }
