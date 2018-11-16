@@ -66,11 +66,11 @@ const iconFontSize = Styles.isMobile ? 20 : 16
 
 const styles = Styles.styleSheetCreate({
   badge: {
-    borderRadius: 6,
+    borderRadius: Styles.borderRadius,
     height: 8,
     position: 'absolute',
-    right: Styles.isMobile ? -1 : -3,
-    top: -1,
+    right: Styles.isMobile ? 4 : 3,
+    top: Styles.isMobile ? 7 : 5,
     width: 8,
   },
   showMenu: {

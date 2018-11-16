@@ -292,7 +292,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
   yield Saga.actionToPromise(ConfigGen.checkForUpdate, checkForUpdate)
-  yield Saga.fork(initializeAppSettingsState)
+  yield Saga.spawn(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 
   if (isWindows) {
@@ -300,5 +300,5 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   }
 
   // Start this immediately
-  yield Saga.fork(loadStartupDetails)
+  yield Saga.spawn(loadStartupDetails)
 }

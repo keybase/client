@@ -790,7 +790,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.showMoveOrCopy, showMoveOrCopy)
   yield Saga.actionToAction(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
 
-  yield Saga.fork(platformSpecificSaga)
+  yield Saga.spawn(platformSpecificSaga)
 }
 
 export default fsSaga
