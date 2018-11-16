@@ -20,20 +20,18 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => {
-  return {
-    _setPolicy: (messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult) => {
-      dispatch(
-        Chat2Gen.createUnfurlResolvePrompt({
-          conversationIDKey,
-          messageID,
-          domain,
-          result,
-        })
-      )
-    },
-  }
-}
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
+  _setPolicy: (messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult) => {
+    dispatch(
+      Chat2Gen.createUnfurlResolvePrompt({
+        conversationIDKey,
+        messageID,
+        domain,
+        result,
+      })
+    )
+  },
+})
 
 const makeRes = (actionType: any, domain?: string) => {
   return {actionType, accept: domain}
