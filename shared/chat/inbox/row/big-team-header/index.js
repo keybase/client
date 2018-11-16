@@ -52,7 +52,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           <Kb.Box
             style={Styles.collapseStyles([
               styles.badge,
-              {backgroundColor: Styles.globalColors.blue},
+              props.badgeSubscribe && {backgroundColor: Styles.globalColors.blue},
             ])}
           />
         </Kb.ClickableBox>
