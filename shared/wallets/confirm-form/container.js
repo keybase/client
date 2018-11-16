@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
-export default connect(
+export default connect<OwnProps, _,_,_,_>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => {
