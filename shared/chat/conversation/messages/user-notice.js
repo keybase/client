@@ -16,7 +16,7 @@ const AVATAR_SIZE = 32
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
-    {(username || teamname) && (
+    {/* sketchy */ (username || teamname) && (
       <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
         <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
       </ClickableBox>
