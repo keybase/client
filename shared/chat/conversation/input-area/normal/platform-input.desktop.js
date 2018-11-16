@@ -335,6 +335,9 @@ class PlatformInput extends React.Component<PlatformInputProps & Kb.OverlayParen
           />
         </Kb.Box>
         <Kb.Box style={styles.footerContainer}>
+          {this.props.typing.size > 0 && (
+            <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+          )}
           <Kb.Text type="BodySmall" style={styles.isTyping}>
             {isTyping(this.props.typing)}
           </Kb.Text>
@@ -530,6 +533,10 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xtiny,
     marginLeft: 58,
     textAlign: 'left',
+  },
+  isTypingAnimation: {
+    left: 24,
+    position: 'absolute',
   },
   walletsIcon: {
     alignSelf: 'flex-end',

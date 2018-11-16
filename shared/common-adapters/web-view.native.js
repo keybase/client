@@ -15,9 +15,9 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
   document.body.appendChild(style)
   style.type = 'text/css'
   style.appendChild(document.createTextNode(\`${escape(injections.css)}\`))
-})()
+})();
 
-(function() {\` ${escape(injections.javaScript)} \`})()
+(function() { ${escape(injections.javaScript)} })();
 `
 
 const KBWebView = (props: WebViewProps) => {
