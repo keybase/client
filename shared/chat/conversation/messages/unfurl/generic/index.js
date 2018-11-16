@@ -61,8 +61,8 @@ const styles = Styles.styleSheetCreate({
   innerContainer: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
-      marginLeft: 4,
-      paddingLeft: 8,
+      marginLeft: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   siteNameContainer: Styles.platformStyles({
@@ -78,12 +78,12 @@ const styles = Styles.styleSheetCreate({
   }),
   siteName: Styles.platformStyles({
     isElectron: {
-      marginLeft: 8,
+      marginLeft: Styles.globalMargins.tiny,
     },
   }),
   bottomImage: Styles.platformStyles({
     isElectron: {
-      marginTop: 8,
+      marginTop: Styles.globalMargins.tiny,
       maxWidth: 320,
       maxHeight: 180,
     },
@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate({
   }),
   publishTime: Styles.platformStyles({
     isElectron: {
-      marginLeft: 4,
+      marginLeft: Styles.globalMargins.xtiny,
     },
   }),
   favicon: Styles.platformStyles({
