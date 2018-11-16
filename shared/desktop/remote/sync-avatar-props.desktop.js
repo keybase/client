@@ -8,10 +8,18 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {compose, connect, withStateHandlers} from '../../util/container'
 import memoize from 'memoize-one'
 
+type OwnProps = {|
+  usernames: I.Set<string>,
+  setUsernames: (I.Set<string>) => void,
+  remoteWindow: ?SafeElectron.BrowserWindowType,
+  windowComponent: string,
+  windowParam: string,
+|}
+
 type Props = {
   avatars: Object,
-  followers: Array<string>,
-  following: Array<string>,
+  followers: I.Set<string>,
+  following: I.Set<string>,
   remoteWindow: ?SafeElectron.BrowserWindowType,
   setUsernames: (I.Set<string>) => void,
   usernames: I.Set<string>,
@@ -105,7 +113,7 @@ function SyncAvatarProps(ComposedComponent: any) {
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
-    connect(
+    connect<OwnProps, _, _, _, _>(
       mapStateToProps,
       () => ({}),
       (s, d, o) => ({...o, ...s, ...d})
