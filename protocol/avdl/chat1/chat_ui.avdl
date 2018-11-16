@@ -134,6 +134,7 @@ protocol chatUi {
 
   record UIMessageUnfurlInfo {
     MessageID unfurlMessageID;
+    string url;
     UnfurlDisplay unfurl;
   }
 

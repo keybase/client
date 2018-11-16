@@ -483,12 +483,14 @@ func (o UIRequestInfo) DeepCopy() UIRequestInfo {
 
 type UIMessageUnfurlInfo struct {
 	UnfurlMessageID MessageID     `codec:"unfurlMessageID" json:"unfurlMessageID"`
+	Url             string        `codec:"url" json:"url"`
 	Unfurl          UnfurlDisplay `codec:"unfurl" json:"unfurl"`
 }
 
 func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
 	return UIMessageUnfurlInfo{
 		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
+		Url:             o.Url,
 		Unfurl:          o.Unfurl.DeepCopy(),
 	}
 }

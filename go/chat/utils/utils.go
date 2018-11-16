@@ -1235,6 +1235,7 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 			res = append(res, chat1.UIMessageUnfurlInfo{
 				Unfurl:          *ud,
 				UnfurlMessageID: u.UnfurlMessageID,
+				Url:             u.Unfurl.Url,
 			})
 		}
 	}
