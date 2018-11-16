@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../../styles'
 import {Box2} from '../../../../../common-adapters/index'
 import UnfurlGeneric from '../generic/container'
 
@@ -46,11 +47,19 @@ class UnfurlList extends React.PureComponent<ListProps> {
       unfurls.push(<Unfurl unfurl={u.unfurl} onClose={u.onClose} />)
     }
     return (
-      <Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
         {unfurls}
       </Box2>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.small,
+    },
+  }),
+})
 
 export default UnfurlList
