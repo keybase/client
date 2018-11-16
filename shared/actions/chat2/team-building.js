@@ -61,7 +61,7 @@ const searchResultCounts = (state: TypedState) => {
     serviceChannel.close()
 
     for (let i = 0; i < parallelRequestsCount; i++) {
-      yield Saga.fork(function*() {
+      yield Saga.spawn(function*() {
         // The loop will exit when we run out of services
         while (true) {
           const service = yield Saga.take(serviceChannel)

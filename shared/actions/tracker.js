@@ -646,7 +646,7 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
 
   // We don't have open trackers in mobile
   if (!isMobile) {
-    yield Saga.fork(_trackerTimer)
+    yield Saga.spawn(_trackerTimer)
   }
 
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
