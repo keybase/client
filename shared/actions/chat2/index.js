@@ -781,7 +781,7 @@ const setupEngineListeners = () => {
     },
     'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
       const conversationIDKey = Types.conversationIDToKey(notif.convID)
-      const messageID = notif.msgID
+      const messageID = Types.numberToMessageID(notif.msgID)
       const domain = notif.domain
       return Saga.put(
         Chat2Gen.createUnfurlTogglePrompt({
@@ -2543,24 +2543,26 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, domain} = action.payload
+  return Saga.put(
+    Chat2Gen.createUnfurlTogglePrompt({
+      conversationIDKey,
+      messageID,
+      domain,
+      show: false,
+    })
+  )
+}
+
 const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, domain, result} = action.payload
-  return Saga.sequentially([
-    Saga.put(
-      Chat2Gen.createUnfurlTogglePrompt({
-        conversationIDKey,
-        messageID,
-        domain,
-        show: false,
-      })
-    ),
-    Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
-      convID: Types.keyToConversationID(conversationIDKey),
-      msgID: messageID,
-      result,
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    }),
-  ])
+  const {conversationIDKey, messageID, result} = action.payload
+  return Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: Types.messageIDToNumber(messageID),
+    result,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  })
 }
 
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
@@ -2739,6 +2741,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   // Unfurl
   yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

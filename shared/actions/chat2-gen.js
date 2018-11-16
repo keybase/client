@@ -379,13 +379,13 @@ type _ToggleMessageReactionPayload = $ReadOnly<{|
 type _ToggleSmallTeamsExpandedPayload = void
 type _UnfurlResolvePromptPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
+  messageID: Types.MessageID,
   domain: string,
   result: RPCChatTypes.UnfurlPromptResult,
 |}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  messageID: RPCChatTypes.MessageID,
+  messageID: Types.MessageID,
   domain: string,
   show: boolean,
 |}>
