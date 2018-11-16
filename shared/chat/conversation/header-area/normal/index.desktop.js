@@ -55,7 +55,6 @@ const UsernameHeader = (props: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <ConnectedUsernames
-        colorBroken={true}
         colorFollowing={true}
         underline={true}
         inline={false}

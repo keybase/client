@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

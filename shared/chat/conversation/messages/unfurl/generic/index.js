@@ -20,17 +20,19 @@ class UnfurlGeneric extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 style={styles.container} direction="horizontal">
-        <Kb.Box2 style={styles.innerContainer} fullWidth={true} direction="vertical">
-          <Kb.Box2 style={styles.siteNameContainer} fullWidth={true} direction="horizontal">
+        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+        <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
+          <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
             {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
-            <Kb.Text type="BodySmall" style={styles.siteName}>
+            <Kb.Text type="BodySmall">
               {this.props.siteName}
+              {!!this.props.publishTime && (
+                <Kb.Text type="BodySmall">
+                  {' '}
+                  • Published {formatTimeForMessages(this.props.publishTime)}
+                </Kb.Text>
+              )}
             </Kb.Text>
-            {!!this.props.publishTime && (
-              <Kb.Text type="BodySmall" style={styles.publishTime}>
-                • Published {formatTimeForMessages(this.props.publishTime)}
-              </Kb.Text>
-            )}
             {!!this.props.onClose && (
               <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
                 <Kb.Icon type="iconfont-close" onClick={this.props.onClose} fontSize={10} />
@@ -54,15 +56,23 @@ class UnfurlGeneric extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.lightGrey,
       maxWidth: 500,
+    },
+  }),
+  quoteContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.lightGrey,
+      paddingLeft: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      alignSelf: 'stretch',
     },
   }),
   innerContainer: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      marginLeft: Styles.globalMargins.xtiny,
+      alignSelf: 'flex-start',
       paddingLeft: Styles.globalMargins.tiny,
+      minWidth: 150,
     },
   }),
   siteNameContainer: Styles.platformStyles({
@@ -76,11 +86,6 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
     },
   }),
-  siteName: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
   bottomImage: Styles.platformStyles({
     isElectron: {
       marginTop: Styles.globalMargins.tiny,
@@ -90,23 +95,13 @@ const styles = Styles.styleSheetCreate({
   }),
   sideImage: Styles.platformStyles({
     isElectron: {
-      width: 80,
-      height: 80,
+      maxWidth: 80,
+      maxHeight: 80,
     },
   }),
-  url: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fontSemibold,
-    },
-    isElectron: {
-      marginTop: 3,
-    },
-  }),
-  publishTime: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.xtiny,
-    },
-  }),
+  url: {
+    ...Styles.globalStyles.fontSemibold,
+  },
   favicon: Styles.platformStyles({
     common: {
       width: 16,

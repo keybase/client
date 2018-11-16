@@ -31,7 +31,7 @@ import {
   View as NativeView,
 } from 'react-native'
 import NativeScrollView from './scroll-view.native'
-import NativeImage from './native-image.native'
+import {NativeImage, FastImage as NativeFastImage} from './native-image.native'
 import NativeVirtualizedList from './virtualized-list.native'
 
 // We set some useful default here
@@ -43,6 +43,7 @@ export {
   NativeDimensions,
   NativeDrawerLayoutAndroid,
   NativeEasing,
+  NativeFastImage,
   NativeFlatList,
   NativeImage,
   NativeKeyboard,

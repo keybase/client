@@ -31,8 +31,10 @@ class BigTeamChannel extends PureComponent<Props, State> {
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Kb.Box style={styles.rowContainer}>
-          <Kb.Box
+          <Kb.Box2
             className="hover_background_color_blueGrey2"
+            direction="horizontal"
+            fullWidth={true}
             style={Styles.collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
@@ -41,6 +43,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
             onMouseOver={this._onMouseOver}
           >
             <Kb.Text
+              lineClamp={1}
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
               style={
                 this.props.isError
@@ -60,7 +63,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
             )}
             {this.props.hasBadge && <UnreadIcon />}
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box>
       </Kb.ClickableBox>
     )
@@ -99,14 +102,17 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      borderBottomLeftRadius: 3,
-      borderTopLeftRadius: 3,
       marginLeft: Styles.globalMargins.large,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
-    isElectron: {width: '100%'},
-    isMobile: {...Styles.globalStyles.fillAbsolute},
+    isElectron: {
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+    },
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+    },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
   rowContainer: Styles.platformStyles({
@@ -145,7 +151,7 @@ const styles = Styles.styleSheetCreate({
   },
   unread: {
     backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
+    borderRadius: Styles.borderRadius,
     flexShrink: 0,
     height: 8,
     width: 8,
