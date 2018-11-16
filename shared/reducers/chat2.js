@@ -927,6 +927,7 @@ const rootReducer = (
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
     case Chat2Gen.unfurlTogglePrompt:
+    case Chat2Gen.updateMessages:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

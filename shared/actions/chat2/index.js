@@ -575,6 +575,37 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+const messageUnfurledToActions = (state: TypedState, info: RPCChatTypes.UnfurlUpdateNotifs) => {
+  const convMap = (info.updates || []).reduce((n, m) => {
+    const conversationIDKey = Types.conversationIDToKey(n.convID)
+    const key = Types.conversationIDKeyToString(conversationIDKey)
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, n.msg)
+    if (!uiMsg) {
+      return m
+    }
+    const id = Constants.getMessageID(n.msg)
+    if (!id) {
+      return m
+    }
+    const msgUpdate: Array<{messageID: RPCChatTypes.MessageID, message: Types.Message}> = [
+      {
+        messageID: id,
+        message: uiMsg,
+      },
+    ]
+    m[key] = (m[key] || []).concat(msgUpdate)
+    return m
+  }, {})
+  const actions = []
+  Object.keys(convMap).forEach(function(key) {
+    const messages = convMap[key] || []
+    actions.push(
+      Chat2Gen.createUpdateMessages({conversationIDKey: Types.stringToConversationIDKey(key), messages})
+    )
+  })
+  return actions
+}
+
 // Get actions to update the messagemap when reactions are updated
 const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
@@ -657,6 +688,10 @@ const setupEngineListeners = () => {
         case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
+            : null
+        case RPCChatTypes.notifyChatChatActivityType.messageUnfurled:
+          return activity.messageUnfurled
+            ? arrayOfActionsToSequentially(messageUnfurledToActions(getState(), activity.messageUnfurled))
             : null
         default:
           break
