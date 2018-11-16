@@ -9,7 +9,7 @@ const full = {
   title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
   url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
   siteName: 'WSJ',
-  publishTime: Date.now() - 86400 * 1000,
+  publishTime: 1542241021655,
   description:
     'A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors.',
   onClose: Sb.action('onClose'),
@@ -78,7 +78,6 @@ const load = () => {
     .add('No Pub/Desc/Image', () => <UnfurlGeneric {...missingPubDescImage} />)
     .add('No Pub/Desc/Image/Fav', () => <UnfurlGeneric {...missingPubDescImageFav} />)
     .add('No Image', () => <UnfurlGeneric {...missingImage} />)
-    .add('GitHub', () => <UnfurlGeneric {...fullGithub} />)
     .add('Full Side', () => <UnfurlGeneric {...fullGithub} />)
     .add('Side No Desc', () => <UnfurlGeneric {...githubMissingDesc} />)
     .add('Side No Image', () => <UnfurlGeneric {...githubMissingImage} />)

@@ -22,16 +22,16 @@ class UnfurlGeneric extends React.PureComponent<Props> {
       <Kb.Box2 style={styles.container} direction="horizontal">
         <Kb.Box2 style={styles.innerContainer} fullWidth={true} direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} fullWidth={true} direction="horizontal">
-            {this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
+            {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
             <Kb.Text type="BodySmall" style={styles.siteName}>
               {this.props.siteName}
             </Kb.Text>
-            {this.props.publishTime && (
+            {!!this.props.publishTime && (
               <Kb.Text type="BodySmall" style={styles.publishTime}>
                 • Published {formatTimeForMessages(this.props.publishTime)}
               </Kb.Text>
             )}
-            {this.props.onClose && (
+            {!!this.props.onClose && (
               <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
                 <Kb.Icon type="iconfont-close" onClick={this.props.onClose} fontSize={10} />
               </Kb.Box2>
@@ -40,11 +40,11 @@ class UnfurlGeneric extends React.PureComponent<Props> {
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
           </Kb.Text>
-          {this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
-          {this.props.imageURL &&
+          {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
+          {!!this.props.imageURL &&
             !this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />}
         </Kb.Box2>
-        {this.props.imageURL &&
+        {!!this.props.imageURL &&
           this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
       </Kb.Box2>
     )
