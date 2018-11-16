@@ -463,6 +463,8 @@ func (p *blockPrefetcher) rescheduleTopBlock(
 		return
 	}
 
+	// Effectively below we are transferring the request for the top
+	// block from `p.prefetches` to `p.rescheduled`.
 	delete(p.prefetches, blockID)
 	pp.Close()
 
