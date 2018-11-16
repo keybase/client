@@ -20,7 +20,7 @@
 <PROJECT_ROOT>/node_modules/simple-markdown
 <PROJECT_ROOT>/node_modules/immutable/type-definitions/tests
 <PROJECT_ROOT>/node_modules/react-native-fast-image/.*
-.*memoize-one.*
+#.*memoize-one.*
 .*[.]gif$
 .*[.]png$
 
