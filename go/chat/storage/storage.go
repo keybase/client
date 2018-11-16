@@ -498,6 +498,14 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 				newMsgs := []chat1.MessageUnboxed{}
 				switch msg.GetMessageType() {
+				case chat1.MessageType_UNFURL:
+					unfurl := msg.Valid().MessageBody.Unfurl()
+					mvalid.Unfurls = append(mvalid.Unfurls, chat1.MessageUnfurlInfo{
+						UnfurlMessageID: msg.GetMessageID(),
+						Unfurl:          unfurl.Unfurl,
+					})
+					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsgs = append(newMsgs, newMsg)
 				case chat1.MessageType_REACTION:
 					// If we haven't modified any reaction data, we don't want
 					// to send it up for a notification.
