@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Prompt from '../prompt'
+import {Box2} from '../../../../../common-adapters/index'
 
 export type Props = {
   prompts: Array<Prompt.Props>,
@@ -21,7 +22,11 @@ class UnfurlPromptList extends React.PureComponent<Props> {
         />
       )
     }
-    return <React.Fragment>{prompts}</React.Fragment>
+    return (
+      <Box2 direction="vertical" gap="tiny" fullWidth={true}>
+        {prompts}
+      </Box2>
+    )
   }
 }
 

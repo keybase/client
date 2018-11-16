@@ -56,6 +56,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       backgroundColor: Styles.globalColors.lightGrey,
       maxWidth: 500,
+      alignSelf: 'flex-start',
     },
   }),
   innerContainer: Styles.platformStyles({

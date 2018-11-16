@@ -55,6 +55,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 8,
       paddingBottom: 8,
       maxWidth: 600,
+      alignSelf: 'flex-start',
     },
   }),
   choiceContainer: Styles.platformStyles({
