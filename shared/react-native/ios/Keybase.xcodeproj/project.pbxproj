@@ -77,6 +77,7 @@
 		DBF65BAF219C7E99001B6ED3 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; };
 		DBF65BB0219C7E99001B6ED3 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DBF65BB3219C80A9001B6ED3 /* libLottieReactNative.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65B8F219C787D001B6ED3 /* libLottieReactNative.a */; };
+		DBFCE8BC219F8F440006F35D /* libFastImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB50CC87219DF55B00903110 /* libFastImage.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -579,6 +580,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBFCE8BC219F8F440006F35D /* libFastImage.a in Frameworks */,
 				DBF65BB3219C80A9001B6ED3 /* libLottieReactNative.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */,
