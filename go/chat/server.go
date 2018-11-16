@@ -1125,6 +1125,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
@@ -1369,6 +1371,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -1443,6 +1446,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentMessageLocalNonblock")()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	// Create non block sender
@@ -1466,6 +1470,7 @@ func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
 	defer h.Trace(ctx, func() error { return err },
 		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 
 	uid := h.getUID()
 	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
@@ -1481,6 +1486,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	defer h.suspendConvLoader(ctx)()
+	defer h.suspendInboxSource(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	// Get base of message we are going to send
