@@ -325,6 +325,9 @@ type Connection struct {
 
 	initialReconnectBackoffWindow func() time.Duration
 	randomTimer                   CancellableRandomTimer
+
+	// for tests
+	reconnectCompleteForTest chan struct{}
 }
 
 // This struct contains all the connection parameters that are optional. The
@@ -487,6 +490,12 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	return newConnectionWithTransportAndProtocolsWithLog(
 		handler, transport, errorUnwrapper,
 		newConnectionLogUnstructured(log, "CONN "+handler.HandlerName()), opts)
+}
+
+func (c *Connection) setReconnectCompleteForTest(ch chan struct{}) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.reconnectCompleteForTest = ch
 }
 
 // connect performs the actual connect() and rpc setup.
@@ -729,6 +738,10 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	c.reconnectChan = nil
 	c.cancelFunc = nil
 	c.reconnectErrPtr = nil
+	if c.reconnectCompleteForTest != nil {
+		close(c.reconnectCompleteForTest)
+		c.reconnectCompleteForTest = nil
+	}
 }
 
 // GetClient returns an RPC client that uses DoCommand() for RPC

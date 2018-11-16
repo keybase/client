@@ -44,12 +44,11 @@ func (c *gzipCompressor) Compress(data []byte) ([]byte, error) {
 func (c *gzipCompressor) Decompress(data []byte) ([]byte, error) {
 	in := bytes.NewBuffer(data)
 	if c.reader == nil {
-		var err error
-		c.reader, err = gzip.NewReader(in)
+		reader, err := gzip.NewReader(in)
 		if err != nil {
-			c.reader = nil
 			return nil, err
 		}
+		c.reader = reader
 	} else {
 		if err := c.reader.Reset(in); err != nil {
 			return nil, err
