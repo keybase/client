@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, ClickableBox, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import openURL from '../../util/open-url'
+import {Box2, ClickableBox, Divider, Icon, Text, WithTooltip, iconCastPlatformStyles} from '../../common-adapters'
+import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -103,9 +104,23 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
     </Box2>
     {props.reserves.map(reserve => (
       <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-        <Text type="Body" lineClamp={1} style={styles.leftColText}>
-          Reserve ({reserve.description})
-        </Text>
+        <Box2 direction="horizontal" style={styles.leftColText}>
+          <Text type="Body" lineClamp={1}>
+            Reserve ({reserve.description})
+          </Text>
+          {reserve.description === 'account' && (
+            <WithTooltip
+              text="Minimum balances help protect the network from the creation of spam accounts."
+              multiline={true}
+            >
+              <Icon
+                fontSize={isMobile ? 18 : 12}
+                onClick={isMobile ? openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance') : null}
+                style={styles.questionMark}
+                type="iconfont-question-mark" />
+            </WithTooltip>
+          )}
+        </Box2>
         <Text type="Body" lineClamp={1} selectable={true}>
           -{reserve.amount}
         </Text>
@@ -171,4 +186,12 @@ const styles = styleSheetCreate({
   leftColText: {
     flex: 1,
   },
+  questionMark: platformStyles({
+    common: {
+      marginLeft: 4,
+    },
+    isElectron: {
+      cursor: 'pointer',
+    },
+  }),
 })
