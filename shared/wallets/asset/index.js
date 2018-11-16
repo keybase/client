@@ -2,7 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import openURL from '../../util/open-url'
-import {Box2, ClickableBox, Divider, Icon, Text, WithTooltip, iconCastPlatformStyles} from '../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Divider,
+  Icon,
+  Text,
+  WithTooltip,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
@@ -50,17 +58,10 @@ export default class Asset extends React.Component<Props, State> {
               </Box2>
             </Box2>
             <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-              <Text
-                type="BodyExtrabold"
-                lineClamp={1}
-                style={{color: globalColors.purple2}}
-              >
+              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
                 {this.props.balance} {this.props.code}
               </Text>
-              <Text
-                type="BodySmall"
-                lineClamp={1}
-              >
+              <Text type="BodySmall" lineClamp={1}>
                 {this.props.equivBalance}
               </Text>
             </Box2>
@@ -121,9 +122,10 @@ const BalanceSummary = (props: BalanceSummaryProps) => {
               >
                 <Icon
                   fontSize={isMobile ? 18 : 12}
-                  onClick={_openStellarURL}
+                  // onClick={_openStellarURL}
                   style={styles.questionMark}
-                  type="iconfont-question-mark" />
+                  type="iconfont-question-mark"
+                />
               </WithTooltip>
             )}
           </Box2>
