@@ -27,12 +27,12 @@ export type DispatchProps = {|
   onOpenTracker?: (username: string) => void,
 |}
 
-export const connectedPropsToProps = <T>(
+export function connectedPropsToProps<T>(
   stateProps: T,
   dispatchProps: DispatchProps,
   connectedProps: ConnectedProps,
   userDataFromState: (T, Array<string>) => UserList
-): Props => {
+): Props {
   const userData = userDataFromState(stateProps, connectedProps.usernames).filter(
     u => !connectedProps.skipSelf || !u.you
   )
