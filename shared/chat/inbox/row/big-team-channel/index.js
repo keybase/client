@@ -45,7 +45,8 @@ class BigTeamChannel extends PureComponent<Props, State> {
             <Kb.Text
               lineClamp={1}
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-              style={
+              style={Styles.collapseStyles([
+                styles.channelText,
                 this.props.isError
                   ? styles.textError
                   : this.props.isSelected
@@ -54,8 +55,8 @@ class BigTeamChannel extends PureComponent<Props, State> {
                       : styles.textSelected
                     : this.props.hasUnread
                       ? styles.textPlainBold
-                      : styles.textPlain
-              }
+                      : styles.textPlain,
+              ])}
             >
               #{this.props.channelname}
             </Kb.Text>
@@ -112,6 +113,11 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
+    },
+  }),
+  channelText: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
     },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},

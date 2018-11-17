@@ -3,6 +3,8 @@ import SendRequestForm from '.'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({
   isRequest: state.wallets.building.isRequest,
 })
@@ -16,7 +18,7 @@ const mergeProps = ({isRequest}, {onClose}) => ({
   onClose,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

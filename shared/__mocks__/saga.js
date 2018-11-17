@@ -34,8 +34,6 @@ const mocks = {
   identity: () => {},
   safeTakeEvery: () => {},
   safeTakeEveryPure: () => {},
-  safeTakeLatest: () => {},
-  safeTakeLatestPure: () => {},
   sequentially: () => {},
 }
 
