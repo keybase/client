@@ -19,7 +19,7 @@ export type Props = {
 class UnfurlGeneric extends React.PureComponent<Props> {
   render() {
     return (
-      <Kb.Box2 style={styles.container} direction="horizontal">
+      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
