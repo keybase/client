@@ -22,7 +22,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -61,8 +60,6 @@ type FS struct {
 
 	inodeLock sync.Mutex
 	nextInode uint64
-
-	xattrStorage libquarantine.XattrStorage
 }
 
 func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) func(http.ResponseWriter, *http.Request) {
@@ -80,7 +77,7 @@ func makeTraceHandler(renderFn func(http.ResponseWriter, *http.Request, bool)) f
 // NewFS creates an FS. Note that this isn't the only constructor; see
 // makeFS in libfuse/mount_test.go.
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
-	platformParams PlatformParams, xattr libquarantine.XattrStorage) *FS {
+	platformParams PlatformParams) *FS {
 	log := config.MakeLogger("kbfsfuse")
 	// We need extra depth for errors, so that we can report the line
 	// number for the caller of processError, not processError itself.
@@ -125,7 +122,6 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
 		platformParams: platformParams,
 		quotaUsage:     libkbfs.NewEventuallyConsistentQuotaUsage(config, "FS"),
 		nextInode:      2, // root is 1
-		xattrStorage:   xattr,
 	}
 	fs.root.private = &FolderList{
 		fs:      fs,

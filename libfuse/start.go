@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	"github.com/keybase/kbfs/simplefs"
 	"golang.org/x/net/context"
 )
@@ -35,8 +34,7 @@ type StartOptions struct {
 
 func startMounting(ctx context.Context,
 	kbCtx libkbfs.Context, config libkbfs.Config, options StartOptions,
-	log logger.Logger, mi *libfs.MountInterrupter,
-	xattrStorage libquarantine.XattrStorage) error {
+	log logger.Logger, mi *libfs.MountInterrupter) error {
 	log.CDebugf(ctx, "Mounting: %q", options.MountPoint)
 
 	var mounter = &mounter{
@@ -51,7 +49,7 @@ func startMounting(ctx context.Context,
 
 	log.CDebugf(ctx, "Creating filesystem")
 	fs := NewFS(config, mounter.c, options.KbfsParams.Debug,
-		options.PlatformParams, xattrStorage)
+		options.PlatformParams)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
@@ -149,14 +147,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	if options.SkipMount {
 		log.Debug("Skipping mounting filesystem")
 	} else {
-		xattrStorage, err := newDiskXattrStorage(config)
-		if err != nil {
-			log.Errorf("init xattrStorage error: %v", err)
-			xattrStorage = libquarantine.NoopXattrStorage{}
-		}
-		defer xattrStorage.Shutdown()
-
-		err = startMounting(ctx, kbCtx, config, options, log, mi, xattrStorage)
+		err = startMounting(ctx, kbCtx, config, options, log, mi)
 		if err != nil {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.MountErrorIsFatal {

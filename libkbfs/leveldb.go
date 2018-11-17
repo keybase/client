@@ -195,22 +195,13 @@ func getVersionedPathForDiskCache(
 	return versionPathFromVersion(dirPath, version), nil
 }
 
-// LevelDB defines a type for libkbfs specific leveldb operations.
-type LevelDB interface {
-	Close() error
-	Get(key []byte, ro *opt.ReadOptions) (value []byte, err error)
-	GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
-		value []byte, err error)
-	Put(key, value []byte, wo *opt.WriteOptions) (err error)
-	PutWithMeter(key, value []byte, putMeter *CountMeter) (err error)
-}
-
-// OpenLevelDB opens a level DB under a versioned path on the local filesystem
+// openVersionedLevelDB opens a level DB under a versioned path on the local filesystem
 // under storageRoot. The path include dbFolderName and dbFilename. Note that
 // dbFilename is actually created as a folder; it's just where raw LevelDb
 // lives.
-func OpenLevelDB(log logger.Logger, storageRoot string, dbFolderName string,
-	currentDiskCacheVersion uint64, dbFilename string) (db LevelDB, err error) {
+func openVersionedLevelDB(log logger.Logger, storageRoot string,
+	dbFolderName string, currentDiskCacheVersion uint64, dbFilename string) (
+	db *levelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
 	versionPath, err := getVersionedPathForDiskCache(
 		log, dbPath, dbFolderName, currentDiskCacheVersion)

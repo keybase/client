@@ -363,12 +363,6 @@ def runNixTest(prefix) {
             sh './libfuse.test -test.timeout 3m'
         }
     }
-    tests[prefix+'libquarantine'] = {
-        dir('libquarantine') {
-            sh 'go test -c'
-            sh './libquarantine.test -test.timeout 1m'
-        }
-    }
     tests[prefix+'libgit'] = {
         dir('libgit') {
             sh 'go test -race -c'

@@ -99,6 +99,14 @@ type diskQuotaCacheSetter interface {
 	MakeDiskQuotaCacheIfNotExists() error
 }
 
+type diskBlockMetadataStoreGetter interface {
+	DiskBlockMetadataStore() DiskBlockMetadataStore
+}
+
+type diskBlockMetadataStoreSetter interface {
+	MakeDiskBlockMetadataStoreIfNotExists() error
+}
+
 type clockGetter interface {
 	Clock() Clock
 }
@@ -1335,6 +1343,19 @@ type DiskQuotaCache interface {
 	Shutdown(ctx context.Context)
 }
 
+// DiskBlockMetadataStore defines a type that stores xattrs.
+type DiskBlockMetadataStore interface {
+	// GetXattr looks for and returns the Xattr value of xattrType for blockID
+	// if it's found, and ldberrors.ErrNotFound if it's not found.
+	GetXattr(ctx context.Context,
+		blockID kbfsblock.ID, xattrType XattrType) ([]byte, error)
+	// SetXattr sets xattrType Xattr to xattrValue for blockID.
+	SetXattr(ctx context.Context,
+		blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) error
+	// Shutdown cleanly shuts down the disk block metadata cache.
+	Shutdown()
+}
+
 // cryptoPure contains all methods of Crypto that don't depend on
 // implicit state, i.e. they're pure functions of the input.
 type cryptoPure interface {
@@ -2197,6 +2218,8 @@ type Config interface {
 	diskMDCacheSetter
 	diskQuotaCacheGetter
 	diskQuotaCacheSetter
+	diskBlockMetadataStoreGetter
+	diskBlockMetadataStoreSetter
 	clockGetter
 	diskLimiterGetter
 	syncedTlfGetterSetter

@@ -17,7 +17,6 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	"github.com/keybase/kbfs/sysutils"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -65,7 +64,7 @@ func newFolder(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle,
 		h:              h,
 		hPreferredName: hPreferredName,
 		nodes:          map[libkbfs.NodeID]fs.Node{},
-		quarantine:     !libquarantine.IsOnlyWriterInNonTeamTlf(ctx, fl.fs.config.KBPKI(), h),
+		quarantine:     !libkbfs.IsOnlyWriterInNonTeamTlf(ctx, fl.fs.config.KBPKI(), h),
 	}
 	return f
 }

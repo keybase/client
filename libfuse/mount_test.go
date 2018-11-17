@@ -28,7 +28,6 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -48,7 +47,6 @@ func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (
 		errLog:        log,
 		notifications: libfs.NewFSNotifications(log),
 		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FSTest"),
-		xattrStorage:  libquarantine.NoopXattrStorage{},
 	}
 	filesys.root.private = &FolderList{
 		fs:      filesys,

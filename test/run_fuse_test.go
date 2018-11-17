@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	"golang.org/x/net/context"
 )
 
@@ -39,8 +38,7 @@ func createEngine(tb testing.TB) Engine {
 
 func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
-	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{},
-		libquarantine.NoopXattrStorage{})
+	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{})
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
 		return filesys

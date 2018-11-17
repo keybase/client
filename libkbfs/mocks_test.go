@@ -684,6 +684,76 @@ func (mr *MockdiskQuotaCacheSetterMockRecorder) MakeDiskQuotaCacheIfNotExists() 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskQuotaCacheIfNotExists", reflect.TypeOf((*MockdiskQuotaCacheSetter)(nil).MakeDiskQuotaCacheIfNotExists))
 }
 
+// MockdiskBlockMetadataStoreGetter is a mock of diskBlockMetadataStoreGetter interface
+type MockdiskBlockMetadataStoreGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskBlockMetadataStoreGetterMockRecorder
+}
+
+// MockdiskBlockMetadataStoreGetterMockRecorder is the mock recorder for MockdiskBlockMetadataStoreGetter
+type MockdiskBlockMetadataStoreGetterMockRecorder struct {
+	mock *MockdiskBlockMetadataStoreGetter
+}
+
+// NewMockdiskBlockMetadataStoreGetter creates a new mock instance
+func NewMockdiskBlockMetadataStoreGetter(ctrl *gomock.Controller) *MockdiskBlockMetadataStoreGetter {
+	mock := &MockdiskBlockMetadataStoreGetter{ctrl: ctrl}
+	mock.recorder = &MockdiskBlockMetadataStoreGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskBlockMetadataStoreGetter) EXPECT() *MockdiskBlockMetadataStoreGetterMockRecorder {
+	return m.recorder
+}
+
+// DiskBlockMetadataStore mocks base method
+func (m *MockdiskBlockMetadataStoreGetter) DiskBlockMetadataStore() DiskBlockMetadataStore {
+	ret := m.ctrl.Call(m, "DiskBlockMetadataStore")
+	ret0, _ := ret[0].(DiskBlockMetadataStore)
+	return ret0
+}
+
+// DiskBlockMetadataStore indicates an expected call of DiskBlockMetadataStore
+func (mr *MockdiskBlockMetadataStoreGetterMockRecorder) DiskBlockMetadataStore() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskBlockMetadataStore", reflect.TypeOf((*MockdiskBlockMetadataStoreGetter)(nil).DiskBlockMetadataStore))
+}
+
+// MockdiskBlockMetadataStoreSetter is a mock of diskBlockMetadataStoreSetter interface
+type MockdiskBlockMetadataStoreSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockdiskBlockMetadataStoreSetterMockRecorder
+}
+
+// MockdiskBlockMetadataStoreSetterMockRecorder is the mock recorder for MockdiskBlockMetadataStoreSetter
+type MockdiskBlockMetadataStoreSetterMockRecorder struct {
+	mock *MockdiskBlockMetadataStoreSetter
+}
+
+// NewMockdiskBlockMetadataStoreSetter creates a new mock instance
+func NewMockdiskBlockMetadataStoreSetter(ctrl *gomock.Controller) *MockdiskBlockMetadataStoreSetter {
+	mock := &MockdiskBlockMetadataStoreSetter{ctrl: ctrl}
+	mock.recorder = &MockdiskBlockMetadataStoreSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdiskBlockMetadataStoreSetter) EXPECT() *MockdiskBlockMetadataStoreSetterMockRecorder {
+	return m.recorder
+}
+
+// MakeDiskBlockMetadataStoreIfNotExists mocks base method
+func (m *MockdiskBlockMetadataStoreSetter) MakeDiskBlockMetadataStoreIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskBlockMetadataStoreIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskBlockMetadataStoreIfNotExists indicates an expected call of MakeDiskBlockMetadataStoreIfNotExists
+func (mr *MockdiskBlockMetadataStoreSetterMockRecorder) MakeDiskBlockMetadataStoreIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskBlockMetadataStoreIfNotExists", reflect.TypeOf((*MockdiskBlockMetadataStoreSetter)(nil).MakeDiskBlockMetadataStoreIfNotExists))
+}
+
 // MockclockGetter is a mock of clockGetter interface
 type MockclockGetter struct {
 	ctrl     *gomock.Controller
@@ -4696,6 +4766,64 @@ func (mr *MockDiskQuotaCacheMockRecorder) Shutdown(ctx interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskQuotaCache)(nil).Shutdown), ctx)
 }
 
+// MockDiskBlockMetadataStore is a mock of DiskBlockMetadataStore interface
+type MockDiskBlockMetadataStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockDiskBlockMetadataStoreMockRecorder
+}
+
+// MockDiskBlockMetadataStoreMockRecorder is the mock recorder for MockDiskBlockMetadataStore
+type MockDiskBlockMetadataStoreMockRecorder struct {
+	mock *MockDiskBlockMetadataStore
+}
+
+// NewMockDiskBlockMetadataStore creates a new mock instance
+func NewMockDiskBlockMetadataStore(ctrl *gomock.Controller) *MockDiskBlockMetadataStore {
+	mock := &MockDiskBlockMetadataStore{ctrl: ctrl}
+	mock.recorder = &MockDiskBlockMetadataStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDiskBlockMetadataStore) EXPECT() *MockDiskBlockMetadataStoreMockRecorder {
+	return m.recorder
+}
+
+// GetXattr mocks base method
+func (m *MockDiskBlockMetadataStore) GetXattr(ctx context.Context, blockID kbfsblock.ID, xattrType XattrType) ([]byte, error) {
+	ret := m.ctrl.Call(m, "GetXattr", ctx, blockID, xattrType)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetXattr indicates an expected call of GetXattr
+func (mr *MockDiskBlockMetadataStoreMockRecorder) GetXattr(ctx, blockID, xattrType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetXattr", reflect.TypeOf((*MockDiskBlockMetadataStore)(nil).GetXattr), ctx, blockID, xattrType)
+}
+
+// SetXattr mocks base method
+func (m *MockDiskBlockMetadataStore) SetXattr(ctx context.Context, blockID kbfsblock.ID, xattrType XattrType, xattrValue []byte) error {
+	ret := m.ctrl.Call(m, "SetXattr", ctx, blockID, xattrType, xattrValue)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetXattr indicates an expected call of SetXattr
+func (mr *MockDiskBlockMetadataStoreMockRecorder) SetXattr(ctx, blockID, xattrType, xattrValue interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetXattr", reflect.TypeOf((*MockDiskBlockMetadataStore)(nil).SetXattr), ctx, blockID, xattrType, xattrValue)
+}
+
+// Shutdown mocks base method
+func (m *MockDiskBlockMetadataStore) Shutdown() {
+	m.ctrl.Call(m, "Shutdown")
+}
+
+// Shutdown indicates an expected call of Shutdown
+func (mr *MockDiskBlockMetadataStoreMockRecorder) Shutdown() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockDiskBlockMetadataStore)(nil).Shutdown))
+}
+
 // MockcryptoPure is a mock of cryptoPure interface
 type MockcryptoPure struct {
 	ctrl     *gomock.Controller
@@ -7744,6 +7872,30 @@ func (m *MockConfig) MakeDiskQuotaCacheIfNotExists() error {
 // MakeDiskQuotaCacheIfNotExists indicates an expected call of MakeDiskQuotaCacheIfNotExists
 func (mr *MockConfigMockRecorder) MakeDiskQuotaCacheIfNotExists() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskQuotaCacheIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskQuotaCacheIfNotExists))
+}
+
+// DiskBlockMetadataStore mocks base method
+func (m *MockConfig) DiskBlockMetadataStore() DiskBlockMetadataStore {
+	ret := m.ctrl.Call(m, "DiskBlockMetadataStore")
+	ret0, _ := ret[0].(DiskBlockMetadataStore)
+	return ret0
+}
+
+// DiskBlockMetadataStore indicates an expected call of DiskBlockMetadataStore
+func (mr *MockConfigMockRecorder) DiskBlockMetadataStore() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DiskBlockMetadataStore", reflect.TypeOf((*MockConfig)(nil).DiskBlockMetadataStore))
+}
+
+// MakeDiskBlockMetadataStoreIfNotExists mocks base method
+func (m *MockConfig) MakeDiskBlockMetadataStoreIfNotExists() error {
+	ret := m.ctrl.Call(m, "MakeDiskBlockMetadataStoreIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakeDiskBlockMetadataStoreIfNotExists indicates an expected call of MakeDiskBlockMetadataStoreIfNotExists
+func (mr *MockConfigMockRecorder) MakeDiskBlockMetadataStoreIfNotExists() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDiskBlockMetadataStoreIfNotExists", reflect.TypeOf((*MockConfig)(nil).MakeDiskBlockMetadataStoreIfNotExists))
 }
 
 // Clock mocks base method

@@ -11,7 +11,6 @@ import (
 
 	"bazil.org/fuse"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/libquarantine"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 )
@@ -72,8 +71,8 @@ func (h *QuarantineXattrHandler) Getxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	xattr, err := h.folder.fs.xattrStorage.Get(
-		ctx, h.node.GetBlockID(), libquarantine.XattrAppleQuarantine)
+	xattr, err := h.folder.fs.config.DiskBlockMetadataStore().GetXattr(
+		ctx, h.node.GetBlockID(), libkbfs.XattrAppleQuarantine)
 	switch err {
 	case nil:
 		if len(xattr) == 0 {
@@ -125,8 +124,8 @@ func (h *QuarantineXattrHandler) Setxattr(ctx context.Context,
 		return fuse.ENOTSUP
 	}
 
-	return h.folder.fs.xattrStorage.Set(ctx,
-		h.node.GetBlockID(), libquarantine.XattrAppleQuarantine, req.Xattr)
+	return h.folder.fs.config.DiskBlockMetadataStore().SetXattr(ctx,
+		h.node.GetBlockID(), libkbfs.XattrAppleQuarantine, req.Xattr)
 }
 
 // Removexattr implements the fs.NodeRemovexattrer interface.
@@ -138,8 +137,6 @@ func (h *QuarantineXattrHandler) Removexattr(
 		return fuse.ENOTSUP
 	}
 
-	return h.folder.fs.xattrStorage.Set(ctx,
-		h.node.GetBlockID(), libquarantine.XattrAppleQuarantine, nil)
+	return h.folder.fs.config.DiskBlockMetadataStore().SetXattr(ctx,
+		h.node.GetBlockID(), libkbfs.XattrAppleQuarantine, nil)
 }
-
-var newDiskXattrStorage = libquarantine.NewDiskXattrStorage
