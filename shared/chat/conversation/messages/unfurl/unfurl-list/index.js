@@ -58,6 +58,8 @@ class UnfurlList extends React.PureComponent<ListProps> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
+      marginTop: Styles.globalMargins.xtiny,
+      marginBottom: Styles.globalMargins.xtiny,
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.small,
     },
   }),

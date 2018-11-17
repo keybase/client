@@ -194,16 +194,16 @@ func TestChatSrvUnfurl(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, libkb.NotFoundError{}, err)
 			select {
-			case mu := <-listener0.messagesUnfurled:
+			case mu := <-listener0.messagesUpdated:
 				require.Equal(t, 1, len(mu.Updates))
-				require.Equal(t, conv.Id, mu.Updates[0].ConvID)
-				require.Equal(t, origID, mu.Updates[0].Msg.GetMessageID())
-				require.True(t, mu.Updates[0].Msg.IsValid())
-				require.Equal(t, 1, len(mu.Updates[0].Msg.Valid().Unfurls))
-				typ, err := mu.Updates[0].Msg.Valid().Unfurls[0].Unfurl.UnfurlType()
+				require.Equal(t, conv.Id, mu.ConvID)
+				require.Equal(t, origID, mu.Updates[0].GetMessageID())
+				require.True(t, mu.Updates[0].IsValid())
+				require.Equal(t, 1, len(mu.Updates[0].Valid().Unfurls))
+				typ, err := mu.Updates[0].Valid().Unfurls[0].Unfurl.UnfurlType()
 				require.NoError(t, err)
 				require.Equal(t, chat1.UnfurlType_GENERIC, typ)
-				generic := mu.Updates[0].Msg.Valid().Unfurls[0].Unfurl.Generic()
+				generic := mu.Updates[0].Valid().Unfurls[0].Unfurl.Generic()
 				require.Nil(t, generic.Image)
 				require.NotNil(t, generic.Favicon)
 				require.NotZero(t, len(generic.Favicon.Url))
