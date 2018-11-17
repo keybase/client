@@ -43,26 +43,32 @@ const realCSS = (inTeam: boolean) => `
   `
 
 const Row = (props: Props) => (
-  <Kb.Box2
-    className={Styles.classNames({
-      hoverRow: !props.inTeam,
-      hoverRowinTeam: props.inTeam,
-    })}
-    direction="horizontal"
-    centerChildren={true}
-    style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
-  >
-    <Kb.DesktopStyle style={realCSS(props.inTeam)} />
-    <Kb.Avatar size={32} username={props.username} style={{}} />
-    <Username username={props.username} prettyName={props.prettyName} followingState={props.followingState} />
-    <Services services={props.services} />
-    <ActionButton
-      inTeam={props.inTeam}
-      onAdd={props.onAdd}
-      onRemove={props.onRemove}
-      highlight={props.highlight}
-    />
-  </Kb.Box2>
+  <Kb.ClickableBox onClick={props.onAdd}>
+    <Kb.Box2
+      className={Styles.classNames({
+        hoverRow: !props.inTeam,
+        hoverRowinTeam: props.inTeam,
+      })}
+      direction="horizontal"
+      centerChildren={true}
+      style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
+    >
+      <Kb.DesktopStyle style={realCSS(props.inTeam)} />
+      <Kb.Avatar size={32} username={props.username} style={{}} />
+      <Username
+        username={props.username}
+        prettyName={props.prettyName}
+        followingState={props.followingState}
+      />
+      <Services services={props.services} />
+      <ActionButton
+        inTeam={props.inTeam}
+        onAdd={props.onAdd}
+        onRemove={props.onRemove}
+        highlight={props.highlight}
+      />
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
 const Username = (props: {username: string, prettyName: string, followingState: FollowingState}) => (
