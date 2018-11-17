@@ -913,19 +913,19 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
 
 	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
-	// can pull a secretless bundle though
-	rev3AcctBundle, _, err := remote.FetchAccountBundle(context.Background(), tc.G, stellar1.AccountID(""))
+	// can pull a secretless bundle though (not specifying an accountID)
+	rev3AcctBundle, _, err := remote.FetchSecretlessBundle(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleVersion_V2, version)
 	require.Equal(t, stellar1.BundleRevision(3), rev3AcctBundle.Revision)
-	accountID_0 := rev3AcctBundle.Accounts[0].AccountID
+	accountID0 := rev3AcctBundle.Accounts[0].AccountID
 	require.Equal(t, primaryAcctName, rev3AcctBundle.Accounts[0].Name)
 	require.True(t, rev3AcctBundle.Accounts[0].IsPrimary)
-	require.Len(t, rev3AcctBundle.AccountBundles[accountID_0].Signers, 0)
-	accountID_1 := rev3AcctBundle.Accounts[1].AccountID
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID0].Signers, 0)
+	accountID1 := rev3AcctBundle.Accounts[1].AccountID
 	require.Equal(t, stellar1.AccountMode_MOBILE, rev3AcctBundle.Accounts[1].Mode)
 	require.False(t, rev3AcctBundle.Accounts[1].IsPrimary)
-	require.Len(t, rev3AcctBundle.AccountBundles[accountID_1].Signers, 0)
+	require.Len(t, rev3AcctBundle.AccountBundles[accountID1].Signers, 0)
 	require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
 
 	// try posting an old bundle we got previously

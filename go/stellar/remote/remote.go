@@ -191,16 +191,8 @@ func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *s
 	return err
 }
 
-// FetchAccountBundle gets an account bundle from the server and decrypts it.
-func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
-
-	//if no account_id is passed, then this is a request for a secretless bundle
-	var fetchArgs libkb.HTTPArgs
-	if len(accountID) > 0 {
-		fetchArgs = libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
-	}
-
+func fetchAccountBundleWithArgs(ctx context.Context, g *libkb.GlobalContext, fetchArgs libkb.HTTPArgs) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.fetchAccountBundleWithArgs", func() error { return err })()
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/acctbundle",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -214,6 +206,21 @@ func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID s
 	m := libkb.NewMetaContext(ctx, g)
 	finder := &pukFinder{}
 	return acctbundle.DecodeAndUnbox(m, finder, apiRes.BundleEncoded)
+}
+
+// FetchSecretlessAccountBundle gets an account bundle from the server and decrypts it
+// but without any specified AccountID and therefore no secrets (signers)
+func FetchSecretlessBundle(ctx context.Context, g *libkb.GlobalContext) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchSecretlessBundle", func() error { return err })()
+	return fetchAccountBundleWithArgs(ctx, g, libkb.HTTPArgs{})
+}
+
+// FetchAccountBundle gets an account bundle from the server and decrypts it.
+func FetchAccountBundle(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (acctBundle *stellar1.BundleRestricted, version stellar1.BundleVersion, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.FetchAccountBundle", func() error { return err })()
+
+	fetchArgs := libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}}
+	return fetchAccountBundleWithArgs(ctx, g, fetchArgs)
 }
 
 func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, err error) {
@@ -248,12 +255,7 @@ type fetchAcctRes struct {
 	acctbundle.BundleEncoded
 }
 
-// Fetch and unbox the latest bundle from the server.
-func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, err error) {
-	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
-
-	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
-
+func fetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, err error) {
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
@@ -282,16 +284,29 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRest
 	if err != nil {
 		return res, 0, err
 	}
-	basicBundle, _, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
+	v1Bundle, _, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
 	if err != nil {
 		return res, 0, err
 	}
-	accountBundle, err := acctbundle.NewFromBundle(basicBundle)
+	return v1Bundle, decodeRes.Enc.Gen, err
+}
+
+// Fetch and unbox the latest bundle from the server.
+func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
+
+	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
+
+	v1Bundle, pukGen, err := fetchV1Bundle(ctx, g)
+	if err != nil {
+		return res, 0, err
+	}
+	accountBundle, err := acctbundle.NewFromBundle(v1Bundle)
 	if err != nil {
 		return res, 0, err
 	}
 	res = *accountBundle
-	return res, decodeRes.Enc.Gen, err
+	return res, pukGen, nil
 }
 
 // Make the "stellar" section of an API arg.
