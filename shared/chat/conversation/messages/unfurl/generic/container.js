@@ -14,8 +14,8 @@ type OwnProps = {
   onClose?: () => void,
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {}
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {}
+const mapStateToProps = (state, ownProps: OwnProps) => ({})
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {

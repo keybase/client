@@ -194,6 +194,11 @@ func TestChatSrvUnfurl(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, libkb.NotFoundError{}, err)
 			select {
+			case <-listener0.newMessageRemote:
+				require.Fail(t, "no more messages")
+			default:
+			}
+			select {
 			case mu := <-listener0.messagesUpdated:
 				require.Equal(t, 1, len(mu.Updates))
 				require.Equal(t, conv.Id, mu.ConvID)

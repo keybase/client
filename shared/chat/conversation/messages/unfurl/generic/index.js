@@ -44,9 +44,11 @@ class UnfurlGeneric extends React.PureComponent<Props> {
           </Kb.Text>
           {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
           {!!this.props.imageURL &&
+            !Styles.isMobile &&
             !this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />}
         </Kb.Box2>
         {!!this.props.imageURL &&
+          !Styles.isMobile &&
           this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
       </Kb.Box2>
     )
@@ -55,29 +57,32 @@ class UnfurlGeneric extends React.PureComponent<Props> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+    },
     isElectron: {
       maxWidth: 500,
-      alignSelf: 'flex-start',
+    },
+    isMobile: {
+      paddingRight: 66,
     },
   }),
   quoteContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.lightGrey,
       paddingLeft: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
       alignSelf: 'stretch',
     },
   }),
   innerContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignSelf: 'flex-start',
       paddingLeft: Styles.globalMargins.tiny,
       minWidth: 150,
     },
   }),
   siteNameContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignSelf: 'flex-start',
     },
   }),
@@ -88,8 +93,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bottomImage: Styles.platformStyles({
-    isElectron: {
+    common: {
       marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
       maxWidth: 320,
       maxHeight: 180,
     },
