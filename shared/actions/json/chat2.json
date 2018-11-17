@@ -507,7 +507,7 @@
     "updateMessages": {
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messages": "Array<{messageID: RPCChatTypes.MessageID, message: Types.Message}>"
+      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     }
   }
 }

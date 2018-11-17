@@ -394,7 +394,7 @@ type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationID
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMessagesPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
-  messages: Array<{messageID: RPCChatTypes.MessageID, message: Types.Message}>,
+  messages: Array<{messageID: Types.MessageID, message: Types.Message}>,
 |}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,

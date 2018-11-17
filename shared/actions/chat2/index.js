@@ -587,7 +587,7 @@ const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: Typ
       return l
     }
     return l.concat({
-      messageID,
+      messageID: Types.numberToMessageID(messageID),
       message: uiMsg,
     })
   }, [])
