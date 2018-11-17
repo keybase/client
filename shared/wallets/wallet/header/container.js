@@ -5,6 +5,8 @@ import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
+type OwnProps = {navigateAppend: (...Array<any>) => any, navigateUp: () => any}
+
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
   const selectedAccount = Constants.getAccount(state, accountID)
@@ -69,7 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

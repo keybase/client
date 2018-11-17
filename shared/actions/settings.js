@@ -252,7 +252,7 @@ function* _sendInviteSaga(invitesSendAction: SettingsGen.InvitesSendPayload): Sa
 
 function* _refreshNotificationsSaga(): Saga.SagaGenerator<any, any> {
   // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield Saga.fork(function*(): Generator<any, void, any> {
+  const delayThenEmptyTask = yield Saga._fork(function*(): Generator<any, void, any> {
     yield Saga.call(delay, 500)
     yield Saga.put(
       // $FlowIssue this isn't type correct at all TODO
@@ -423,18 +423,18 @@ const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdown
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
-  yield Saga.safeTakeLatest(SettingsGen.invitesRefresh, _refreshInvitesSaga)
+  yield Saga.safeTakeEvery(SettingsGen.invitesRefresh, _refreshInvitesSaga)
   yield Saga.safeTakeEvery(SettingsGen.invitesSend, _sendInviteSaga)
-  yield Saga.safeTakeLatest(SettingsGen.notificationsRefresh, _refreshNotificationsSaga)
-  yield Saga.safeTakeLatest(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
-  yield Saga.safeTakeLatestPure(SettingsGen.dbNuke, _dbNukeSaga)
-  yield Saga.safeTakeLatestPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
+  yield Saga.safeTakeEvery(SettingsGen.notificationsRefresh, _refreshNotificationsSaga)
+  yield Saga.safeTakeEvery(SettingsGen.notificationsToggle, _toggleNotificationsSaga)
+  yield Saga.safeTakeEveryPure(SettingsGen.dbNuke, _dbNukeSaga)
+  yield Saga.safeTakeEveryPure(SettingsGen.deleteAccountForever, _deleteAccountForeverSaga)
   yield Saga.safeTakeEveryPure(SettingsGen.loadSettings, _loadSettings, _loadSettingsSuccess)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewEmail, _onSubmitNewEmail)
   yield Saga.safeTakeEvery(SettingsGen.onSubmitNewPassphrase, _onSubmitNewPassphrase)
   yield Saga.safeTakeEvery(SettingsGen.onUpdatePGPSettings, _onUpdatePGPSettings)
-  yield Saga.safeTakeLatestPure(SettingsGen.trace, _traceSaga)
-  yield Saga.safeTakeLatestPure(SettingsGen.processorProfile, _processorProfileSaga)
+  yield Saga.safeTakeEveryPure(SettingsGen.trace, _traceSaga)
+  yield Saga.safeTakeEveryPure(SettingsGen.processorProfile, _processorProfileSaga)
   yield Saga.safeTakeEveryPure(
     SettingsGen.loadRememberPassphrase,
     _getRememberPassphrase,

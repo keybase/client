@@ -162,9 +162,9 @@ function* _profileSaga(): Saga.SagaGenerator<any, any> {
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.fork(_profileSaga)
-  yield Saga.fork(pgpSaga)
-  yield Saga.fork(proofsSaga)
+  yield Saga.spawn(_profileSaga)
+  yield Saga.spawn(pgpSaga)
+  yield Saga.spawn(proofsSaga)
 }
 
 export default profileSaga

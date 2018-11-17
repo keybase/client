@@ -1,13 +1,16 @@
 // @flow
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Receive from '.'
 
-export type OwnProps = {
-  accountID: Types.AccountID,
-}
+export type OwnProps = RouteProps<
+  {
+    accountID: Types.AccountID,
+  },
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
@@ -40,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onRequest: dispatchProps.onRequest,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

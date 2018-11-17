@@ -5,6 +5,8 @@ import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
+type OwnProps = {accountID: AccountID}
+
 const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
   const account = getAccount(state, ownProps.accountID)
   const name = account.name
@@ -40,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   unreadPayments: stateProps.unreadPayments,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

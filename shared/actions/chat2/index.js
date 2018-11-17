@@ -2829,7 +2829,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   if (flags.newTeamBuildingForChat) {
     yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
   }
-  yield Saga.fork(chatTeamBuildingSaga)
+  yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 
