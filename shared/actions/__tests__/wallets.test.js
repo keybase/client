@@ -149,3 +149,41 @@ it('build and send payment', () => {
       expect(sendRPC).toHaveBeenCalled()
     })
 })
+
+const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
+  amountErrMsg: '',
+  banners: null,
+  displayAmountFiat: '$5.00 USD',
+  displayAmountXLM: '21.4168160 XLM',
+  readyToRequest: false,
+  secretNoteErrMsg: '',
+  sendingIntentionXLM: false,
+  toErrMsg: '',
+  worthDescription: '21.4168160 XLM',
+  worthInfo: '$1.00 = 4.2833632 XLM\nSource: coinmarketcap.com',
+}
+
+it('build and send request', () => {
+  const {dispatch, getState} = startReduxSaga()
+  const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildRequestLocalRpcPromise')
+  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildRequestRes)))
+
+  dispatch(WalletsGen.createSetBuildingIsRequest({isRequest: true}))
+  return Testing.flushPromises()
+    .then(() => {
+      const expectedBuiltRequest = Constants.buildRequestResultToBuiltRequest(buildRequestRes)
+      expect(getState().wallets.builtRequest).toEqual(expectedBuiltRequest)
+      expect(buildRPC).toHaveBeenCalled()
+
+      const requestRPC = jest.spyOn(RPCStellarTypes, 'localMakeRequestLocalRpcPromise')
+      const requestResult = 'fake request ID'
+      requestRPC.mockImplementation(() => new Promise(resolve => resolve(requestResult)))
+
+      dispatch(WalletsGen.createRequestPayment())
+      return Testing.flushPromises({requestRPC})
+    })
+    .then(({requestRPC}) => {
+      expect(getState().wallets.builtRequest).toEqual(Constants.makeBuiltRequest())
+      expect(requestRPC).toHaveBeenCalled()
+    })
+})
