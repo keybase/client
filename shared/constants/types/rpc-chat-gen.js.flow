@@ -928,9 +928,8 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
   | 4 // PLACEHOLDER_4
 
-export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls?: ?Array<MessageUnfurlInfo>}>
+export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>, reactions: ReactionMap, unfurls: {[key: string]: UnfurlResult}}>
 export type MessageUnfurl = $ReadOnly<{unfurl: UnfurlResult, messageID: MessageID}>
-export type MessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, unfurl: UnfurlResult}>
 export type MessagesUpdated = $ReadOnly<{convID: ConversationID, updates?: ?Array<UIMessage>}>
 export type MsgEphemeralMetadata = $ReadOnly<{l /* lifetime */: Gregor1.DurationSec, g /* generation */: Keybase1.EkGeneration, u /* explodedBy */?: ?String}>
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>

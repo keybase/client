@@ -226,7 +226,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	// get a map for all the URLs we have already unfurled
 	prevUnfurled := make(map[string]bool)
 	for _, u := range msg.Valid().Unfurls {
-		prevUnfurled[u.Unfurl.Url] = true
+		prevUnfurled[u.Url] = true
 	}
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {

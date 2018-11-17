@@ -1228,14 +1228,14 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 }
 
 func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls []chat1.MessageUnfurlInfo) (res []chat1.UIMessageUnfurlInfo) {
-	for _, u := range unfurls {
-		ud := PresentUnfurl(ctx, g, convID, u.Unfurl.Unfurl)
+	unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+	for unfurlMessageID, u := range unfurls {
+		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
 			res = append(res, chat1.UIMessageUnfurlInfo{
 				Unfurl:          *ud,
-				UnfurlMessageID: u.UnfurlMessageID,
-				Url:             u.Unfurl.Url,
+				UnfurlMessageID: unfurlMessageID,
+				Url:             u.Url,
 			})
 		}
 	}
@@ -1651,4 +1651,12 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 // is used for result highlighting.
 func GetQueryRe(query string) (*regexp.Regexp, error) {
 	return regexp.Compile("(?i)" + regexp.QuoteMeta(query))
+}
+
+func SetUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageID,
+	unfurl chat1.UnfurlResult) {
+	if mvalid.Unfurls == nil {
+		mvalid.Unfurls = make(map[chat1.MessageID]chat1.UnfurlResult)
+	}
+	mvalid.Unfurls[unfurlMessageID] = unfurl
 }

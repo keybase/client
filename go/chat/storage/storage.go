@@ -500,10 +500,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				switch msg.GetMessageType() {
 				case chat1.MessageType_UNFURL:
 					unfurl := msg.Valid().MessageBody.Unfurl()
-					mvalid.Unfurls = append(mvalid.Unfurls, chat1.MessageUnfurlInfo{
-						UnfurlMessageID: msg.GetMessageID(),
-						Unfurl:          unfurl.Unfurl,
-					})
+					utils.SetUnfurl(&mvalid, msg.GetMessageID(), unfurl.Unfurl)
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 					newMsgs = append(newMsgs, newMsg)
 				case chat1.MessageType_REACTION:

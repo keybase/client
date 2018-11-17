@@ -220,6 +220,11 @@ func TestChatSrvUnfurl(t *testing.T) {
 			case <-time.After(timeout):
 				require.Fail(t, "no message unfurl")
 			}
+			select {
+			case <-listener0.messagesUpdated:
+				require.Fail(t, "no more updates")
+			default:
+			}
 		}
 		httpSrv.succeed = true
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
