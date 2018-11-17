@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {compose, connect, withStateHandlers} from '../../util/container'
-import memoize from 'memoize-one'
+import {memoize2} from '../../util/memoize'
 
 type OwnProps = {|
   usernames: I.Set<string>,
@@ -107,9 +107,9 @@ function SyncAvatarProps(ComposedComponent: any) {
     following: getRemoteFollowing(state.config.following, ownProps.usernames),
   })
 
-  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
-  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
-  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
+  const getRemoteAvatars = memoize2((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
+  const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
+  const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),

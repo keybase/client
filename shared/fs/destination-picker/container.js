@@ -1,6 +1,6 @@
 // @flow
 import {namedConnect} from '../../util/container'
-import memoize from 'memoize-one'
+import {memoize1, memoize2} from '../../util/memoize'
 import DestinationPicker from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
 })
 
-const getDestinationParentPath = memoize((stateProps, ownProps) =>
+const getDestinationParentPath = memoize2((stateProps, ownProps) =>
   stateProps._moveOrCopy.destinationParentPath.get(
     ownProps.routeProps.get('index', 0),
     Types.getPathParent(stateProps._moveOrCopy.sourceItemPath)
@@ -35,21 +35,21 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onBackUp: () => dispatch(putActionIfOnPath(ownProps.routePath, navigateUp())),
 })
 
-const canWrite = memoize(
+const canWrite = memoize2(
   (stateProps, ownProps) =>
     Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 2 &&
     stateProps._pathItems.get(getDestinationParentPath(stateProps, ownProps), Constants.unknownPathItem)
       .writable
 )
 
-const canCopy = memoize(
+const canCopy = memoize2(
   (stateProps, ownProps) =>
     canWrite(stateProps, ownProps) &&
     getDestinationParentPath(stateProps, ownProps) !==
       Types.getPathParent(stateProps._moveOrCopy.sourceItemPath)
 )
 
-const canMove = memoize(
+const canMove = memoize2(
   (stateProps, ownProps) =>
     canCopy(stateProps, ownProps) &&
     Constants.pathsInSameTlf(
@@ -58,9 +58,9 @@ const canMove = memoize(
     )
 )
 
-const getIndex = memoize(ownProps => ownProps.routeProps.get('index', 0))
+const getIndex = memoize1(ownProps => ownProps.routeProps.get('index', 0))
 const canBackUp = isMobile
-  ? memoize((stateProps, ownProps) => Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1)
+  ? memoize2((stateProps, ownProps) => Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1)
   : (s, o) => false
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
