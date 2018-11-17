@@ -8,7 +8,7 @@ import type {Props} from './container'
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
-      {onBack /* sketchy */ && <BackButton style={stylesButton} onClick={onBack} />}
+      {onBack && <BackButton style={stylesButton} onClick={onBack} />}
       <div style={{...stylesInnerContainer, ...style}}>{children}</div>
     </div>
   )

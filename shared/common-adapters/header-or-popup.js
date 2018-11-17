@@ -33,7 +33,7 @@ function Popup<P: {}>(Wrapped: React.ComponentType<P>) {
 function PopupWithHeader<P: {}>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
     <PopupDialog onClose={props.onCancel} styleClipContainer={props.style}>
-      {/* sketchy */ props.onBack && <HeaderHocHeader onBack={props.onBack} headerStyle={headerStyle} />}
+      {props.onBack && <HeaderHocHeader onBack={props.onBack} headerStyle={headerStyle} />}
       <Wrapped {...(props: P)} />
     </PopupDialog>
   )

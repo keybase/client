@@ -77,7 +77,7 @@ const UsernameHeader = (props: Props) => (
         onClick={props.onToggleInfoPanel}
       />
     )}
-    {/* sketchy */ props.onCancelPending && <Icon type="iconfont-close" onClick={props.onCancelPending} />}
+    {props.onCancelPending && <Icon type="iconfont-close" onClick={props.onCancelPending} />}
   </Box>
 )
 
