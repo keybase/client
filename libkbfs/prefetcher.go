@@ -672,9 +672,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					"%s", req.ptr.ID)
 				continue
 			}
-			if p.rescheduleIfNeeded(ctx, req) {
-				continue
-			}
 			if isPrefetchWaiting {
 				if pre.subtreeTriggered {
 					p.log.CDebugf(ctx, "prefetch subtree already triggered "+
@@ -728,6 +725,16 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				p.log.CDebugf(ctx, "created new prefetch for block %s",
 					req.ptr.ID)
 			}
+
+			if p.rescheduleIfNeeded(ctx, req) {
+				// This is inefficient since it'd be better to know if
+				// `isTail` below is true before needlessly
+				// rescheduling this.  But currently that requires
+				// some complexity to figure out, so for now just do
+				// this early and revisit if it becomes a problem.
+				continue
+			}
+
 			// TODO: There is a potential optimization here that we can
 			// consider: Currently every time a prefetch is triggered, we
 			// iterate through all the block's child pointers. This is short
