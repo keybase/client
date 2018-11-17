@@ -37,6 +37,14 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (res ShouldCreate
 	return apiRes.ShouldCreateResult, err
 }
 
+func acctBundlesEnabled(m libkb.MetaContext) bool {
+	enabled := m.G().FeatureFlags.Enabled(m, libkb.FeatureStellarAcctBundles)
+	if enabled {
+		m.CDebugf("stellar account bundles enabled")
+	}
+	return enabled
+}
+
 // Post a bundle to the server with a chainlink.
 func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
@@ -243,6 +251,9 @@ type fetchAcctRes struct {
 // Fetch and unbox the latest bundle from the server.
 func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
+
+	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
+
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
