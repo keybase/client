@@ -37,6 +37,10 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.small,
     },
+    isMobile: {
+      marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.tiny,
+      paddingRight: 66,
+    },
   }),
 })
 

@@ -20,7 +20,7 @@ class UnfurlGeneric extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+        {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
             {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
@@ -79,6 +79,12 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
       paddingLeft: Styles.globalMargins.tiny,
       minWidth: 150,
+    },
+    isMobile: {
+      borderWidth: 1,
+      borderRadius: Styles.borderRadius,
+      borderColor: Styles.globalColors.lightGrey,
+      padding: Styles.globalMargins.xtiny,
     },
   }),
   siteNameContainer: Styles.platformStyles({
