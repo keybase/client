@@ -188,7 +188,6 @@ start_systemd() {
       # The autostart file sets this to "hideWindow" to prevent opening the
       # Keybase main window when the app is autostarted.
       KEYBASE_START_UI
-
       # Some older distros (e.g. Ubuntu 16.04) don't make X session variables
       # available to user units automatically. Whitelisting them is safer than
       # dumping the entire environment, even though there's a chance we might
@@ -197,16 +196,29 @@ start_systemd() {
       # (Arch Linux doesn't need it today.)
       DISPLAY
       XAUTHORITY
-      XDG_CURRENT_DESKTOP
       DBUS_SESSION_BUS_ADDRESS
+      # Arbitrary environment variables from bashrc and similar aren't
+      # automatically available in the systemd session, and users probably
+      # didn't use pam to define their XDG directories. Export them just in
+      # case.
+      XDG_CURRENT_DESKTOP
+      XDG_CACHE_HOME
+      XDG_CONFIG_HOME
+      XDG_DATA_HOME
+      XDG_DOWNLOAD_DIR
+      # Other useful GUI variables.
       CLUTTER_IM_MODULE
       GTK_IM_MODULE
       QT_IM_MODULE
       QT4_IM_MODULE
       XMODIFIERS
-      XDG_DOWNLOAD_DIR
+  )
+  forwarded_cli_env_vars=(
+      # Once again, the XDG variables are needed
+      XDG_CACHE_HOME
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
+  forward_vars "$runtime_dir/keybase.env" forwarded_cli_env_vars[@]
 
   run_redirector
 
