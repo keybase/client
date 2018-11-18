@@ -286,6 +286,7 @@ const (
 	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
 	UnfurlerTaskStatusSuccess
 	UnfurlerTaskStatusFailed
+	UnfurlerTaskStatusPermFailed
 )
 
 type DummyUnfurler struct{}

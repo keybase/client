@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"sync"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -287,6 +289,16 @@ func (u *Unfurler) doneUnfurling(outboxID chat1.OutboxID) {
 	delete(u.unfurlMap, outboxID.String())
 }
 
+func (u *Unfurler) detectPermError(err error) bool {
+	switch e := err.(type) {
+	case *net.DNSError:
+		return !e.Temporary()
+	case *url.Error:
+		return !e.Temporary()
+	}
+	return false
+}
+
 func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "unfurl(%s)", outboxID)()
 	if u.checkAndSetUnfurling(ctx, outboxID) {
@@ -301,7 +313,11 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 				u.unfurlCh <- unfurl
 			}
 			if err != nil {
-				if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusFailed); err != nil {
+				status := types.UnfurlerTaskStatusFailed
+				if u.detectPermError(err) {
+					status = types.UnfurlerTaskStatusPermFailed
+				}
+				if err := u.setStatus(ctx, outboxID, status); err != nil {
 					u.Debug(ctx, "unfurl: failed to set failed status: %s", err)
 				}
 			} else {
@@ -319,7 +335,7 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		}
 		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL)
 		if err != nil {
-			u.Debug(ctx, "unfurl: failed to scrape: %s", err)
+			u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
 			return unfurl, err
 		}
 		packaged, err := u.packager.Package(ctx, task.UID, task.ConvID, unfurlRaw)
