@@ -34,7 +34,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
           <Kb.Box2
             className="hover_background_color_blueGrey2"
             direction="horizontal"
-            fullWidth={true}
+            fullWidth={!Styles.isMobile}
             style={Styles.collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
@@ -113,6 +113,7 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
     },
   }),
   channelText: Styles.platformStyles({
