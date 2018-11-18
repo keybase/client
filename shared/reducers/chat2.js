@@ -332,6 +332,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return l.concat({ordinal, msg: msg.message.set('ordinal', ordinal)})
       }, [])
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
+        if (!messages) {
+          return messages
+        }
         return messages.withMutations(msgs => {
           updateOrdinals.forEach(r => {
             msgs.set(r.ordinal, r.msg)
