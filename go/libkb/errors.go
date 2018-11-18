@@ -1661,6 +1661,14 @@ func IsResolutionError(err error) bool {
 	return ok
 }
 
+func IsResolutionNotFoundError(err error) bool {
+	rerr, ok := err.(ResolutionError)
+	if !ok {
+		return false
+	}
+	return rerr.Kind == ResolutionErrorNotFound
+}
+
 //=============================================================================
 
 type NoUIDError struct{}
