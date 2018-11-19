@@ -22,7 +22,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 const mapDispatchToProps = dispatch => ({
   _onCancelPayment: (paymentID: Types.PaymentID) =>
     dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true})),
-  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
+  _onSelectTransaction: (
+    paymentID: Types.PaymentID,
+    accountID: Types.AccountID,
+    status: Types.StatusSimplified
+  ) =>
     dispatch(
       navigateAppend([
         {
@@ -68,7 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

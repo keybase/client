@@ -177,6 +177,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
+  unfurlPrompts: I.Set(),
 })
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
@@ -685,7 +686,9 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.leave:
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
-      return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions) : null
+      return m.messageBody.system
+        ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
+        : null
     case RPCChatTypes.commonMessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({

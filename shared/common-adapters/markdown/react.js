@@ -17,9 +17,6 @@ const wrapStyle = Styles.platformStyles({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
-  isMobile: {
-    color: undefined,
-  },
 })
 
 const bigTextBlockStyle = Styles.platformStyles({

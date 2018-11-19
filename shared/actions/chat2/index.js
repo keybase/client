@@ -779,6 +779,19 @@ const setupEngineListeners = () => {
         })
       )
     },
+    'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const messageID = Types.numberToMessageID(notif.msgID)
+      const domain = notif.domain
+      return Saga.put(
+        Chat2Gen.createUnfurlTogglePrompt({
+          conversationIDKey,
+          messageID,
+          domain,
+          show: true,
+        })
+      )
+    },
   })
 }
 
@@ -2530,6 +2543,28 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, domain} = action.payload
+  return Saga.put(
+    Chat2Gen.createUnfurlTogglePrompt({
+      conversationIDKey,
+      messageID,
+      domain,
+      show: false,
+    })
+  )
+}
+
+const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, result} = action.payload
+  return Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: Types.messageIDToNumber(messageID),
+    result,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  })
+}
+
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
   if (action.payload.pendingMode === 'newChat') {
     return Saga.put(
@@ -2704,6 +2739,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
+  // Unfurl
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
+
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],
     previewConversationFindExisting,
@@ -2790,7 +2829,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   if (flags.newTeamBuildingForChat) {
     yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
   }
-  yield Saga.fork(chatTeamBuildingSaga)
+  yield Saga.spawn(chatTeamBuildingSaga)
   yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 

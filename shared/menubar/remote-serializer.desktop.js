@@ -19,7 +19,6 @@ export const serialize = {
         }
         return map
       }, {}),
-  broken: v => v,
   clearCacheTrigger: v => undefined,
   conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
   conversationMap: (v, o) =>
@@ -48,6 +47,7 @@ export const serialize = {
   loggedIn: v => v,
   totalSyncingBytes: v => v,
   outOfDate: v => v,
+  userInfo: v => v,
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,

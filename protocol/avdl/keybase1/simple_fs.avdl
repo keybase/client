@@ -70,6 +70,12 @@ protocol SimpleFS {
     SYM_2,
     EXEC_3
   }
+
+  enum PrefetchStatus {
+    NOT_STARTED_0,
+    IN_PROGRESS_1,
+    COMPLETE_2
+  }
   
   record Dirent {
     Time time;
@@ -81,6 +87,7 @@ protocol SimpleFS {
     // in theory spoof the last writer if they modify their client.
     User lastWriterUnverified;
     boolean writable;
+    PrefetchStatus prefetchStatus;
   }
 
   record DirentWithRevision {

@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {amIBeingFollowed, amIFollowing} from '../../../constants/selectors'
 import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {connect} from '../../../util/container'
+import {connect, type RouteProps} from '../../../util/container'
 import {compose} from 'recompose'
 import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -11,6 +11,8 @@ import {TeamMember} from '.'
 import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+
+type OwnProps = RouteProps<{username: string, teamname: string}, {}>
 
 type StateProps = {
   teamname: string,
@@ -108,7 +110,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   // $FlowIssue this type is messed up, TODO cleanup
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

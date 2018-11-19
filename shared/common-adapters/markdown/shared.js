@@ -112,7 +112,7 @@ function parseMarkdown(
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
   exec: source => {
-    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@]|[.?]+[\w/=])*)?)/i
+    const r = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+(:\d+)?((?:\/|\?[\w=])(?:\/|[\w=#%~\-_~&(),:@+]|[.?]+[\w/=])*)?)/i
     const result = r.exec(source)
     if (result) {
       result.groups = {tld: result[4]}
@@ -232,7 +232,7 @@ const rules = {
     // original:
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
     // ours: only allow a single backtick
-    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*([\s\S]*?[^`\n])\s*\1(?!`)/),
+    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
   },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,

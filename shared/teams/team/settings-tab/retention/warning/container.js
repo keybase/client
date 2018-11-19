@@ -1,6 +1,12 @@
 // @flow
-import {connect, compose, withStateHandlers} from '../../../../../util/container'
+import {connect, compose, withStateHandlers, type RouteProps} from '../../../../../util/container'
 import RetentionWarning from '.'
+import type {RetentionEntityType} from '..'
+
+type OwnProps = RouteProps<
+  {days: number, entityType: RetentionEntityType, onCancel: ?() => void, onConfirm: ?() => void},
+  {}
+>
 
 const mapStateToProps = (state, {routeProps}) => {
   return {
@@ -25,7 +31,7 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateUp}) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})

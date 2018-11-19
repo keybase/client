@@ -514,7 +514,6 @@ export type _StylesMobile = {|
   textDecorationStyle?: 'solid' | 'double' | 'dotted' | 'dashed',
   textDecorationColor?: Color,
   writingDirection?: 'auto' | 'ltr' | 'rtl',
-  resizeMode?: 'contain' | 'cover' | 'stretch' | 'center' | 'repeat',
   tintColor?: Color,
   overlayColor?: string,
 |}

@@ -5,6 +5,8 @@ import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
+type OwnProps = {||}
+
 const windowOpts = {height: 300, width: 500}
 
 const unlockFolderMapPropsToState = state => {
@@ -35,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 // Actions are handled by remote-container
 const UnlockFolder = compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     unlockFolderMapPropsToState,
     () => ({}),
     mergeProps
@@ -57,7 +59,7 @@ const mapStateToProps = state => ({
   show: state.unlockFolders.popupOpen,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d})
