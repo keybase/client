@@ -169,7 +169,7 @@ var attrRankMap = map[string]attrRanker{
 	},
 	"pubdate": attrRanker{
 		content: getContentAttr,
-		score:   getOpenGraphScore,
+		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
 	"og:pubdate": attrRanker{
