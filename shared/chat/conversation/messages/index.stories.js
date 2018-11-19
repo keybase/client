@@ -22,8 +22,18 @@ const load = () => {
         {story()}
       </Box2>
     ))
-    .add('UserNotice', () => (
+    .add('UserNotice blank', () => (
       <UserNotice bgColor={globalColors.blue4}>
+        <Text type="BodySmall">Some generic notice</Text>
+      </UserNotice>
+    ))
+    .add('UserNotice blank team', () => (
+      <UserNotice bgColor={globalColors.blue4} teamname="">
+        <Text type="BodySmall">Some team notice</Text>
+      </UserNotice>
+    ))
+    .add('UserNotice blank user', () => (
+      <UserNotice bgColor={globalColors.blue4} username="">
         <Text type="BodySmall">Some user notice</Text>
       </UserNotice>
     ))
