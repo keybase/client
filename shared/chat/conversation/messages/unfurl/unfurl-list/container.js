@@ -5,7 +5,7 @@ import * as I from 'immutable'
 import {namedConnect} from '../../../../../util/container'
 import UnfurlList from '.'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}
+type OwnProps = {|conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal|}
 
 const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
