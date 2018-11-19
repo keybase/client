@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import openURL from '../../util/open-url'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -15,6 +14,7 @@ export type Props = {
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Array<Types.Reserve>, // non-empty only if native currency
+  openStellarURL: () => void,
 }
 
 type State = {
@@ -67,6 +67,7 @@ export default class Asset extends React.Component<Props, State> {
                 equivAvailableToSend={this.props.equivAvailableToSend}
                 reserves={this.props.reserves}
                 total={this.props.balance}
+                openStellarURL={this.props.openStellarURL}
               />
             )}
             {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
@@ -82,67 +83,61 @@ type BalanceSummaryProps = {
   equivAvailableToSend: string,
   reserves: Array<Types.Reserve>,
   total: string,
+  openStellarURL: () => void,
 }
 
-const BalanceSummary = (props: BalanceSummaryProps) => {
-  const _openStellarURL = () => {
-    if (!Styles.isMobile) return
-    openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance')
-  }
-
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-      <Kb.Divider style={styles.dividerTop} />
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text type="BodySemibold" style={styles.leftColText}>
-          Total
-        </Kb.Text>
-        <Kb.Text type="BodyExtrabold" selectable={true}>
-          {props.total}
+const BalanceSummary = (props: BalanceSummaryProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+    <Kb.Divider style={styles.dividerTop} />
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="BodySemibold" style={styles.leftColText}>
+        Total
+      </Kb.Text>
+      <Kb.Text type="BodyExtrabold" selectable={true}>
+        {props.total}
+      </Kb.Text>
+    </Kb.Box2>
+    {props.reserves.map(reserve => (
+      <Kb.Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
+        <Kb.Box2 direction="horizontal" style={styles.leftColText}>
+          <Kb.Text type="Body" lineClamp={1}>
+            Reserve ({reserve.description})
+          </Kb.Text>
+          {reserve.description === 'account' && (
+            <Kb.WithTooltip
+              text="Minimum balances help protect the network from the creation of spam accounts."
+              multiline={true}
+            >
+              <Kb.Icon
+                fontSize={Styles.isMobile ? 18 : 12}
+                onClick={Styles.isMobile ? props.openStellarURL : null}
+                style={styles.questionMark}
+                type="iconfont-question-mark"
+              />
+            </Kb.WithTooltip>
+          )}
+        </Kb.Box2>
+        <Kb.Text type="Body" lineClamp={1} selectable={true}>
+          -{reserve.amount}
         </Kb.Text>
       </Kb.Box2>
-      {props.reserves.map(reserve => (
-        <Kb.Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-          <Kb.Box2 direction="horizontal" style={styles.leftColText}>
-            <Kb.Text type="Body" lineClamp={1}>
-              Reserve ({reserve.description})
-            </Kb.Text>
-            {reserve.description === 'account' && (
-              <Kb.WithTooltip
-                text="Minimum balances help protect the network from the creation of spam accounts."
-                multiline={true}
-              >
-                <Kb.Icon
-                  fontSize={Styles.isMobile ? 18 : 12}
-                  onClick={_openStellarURL}
-                  style={styles.questionMark}
-                  type="iconfont-question-mark"
-                />
-              </Kb.WithTooltip>
-            )}
-          </Kb.Box2>
-          <Kb.Text type="Body" lineClamp={1} selectable={true}>
-            -{reserve.amount}
-          </Kb.Text>
-        </Kb.Box2>
-      ))}
-      <Kb.Divider style={styles.divider} />
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
-        <Kb.Text type="BodySemibold" style={styles.leftColText}>
-          Available to send
+    ))}
+    <Kb.Divider style={styles.divider} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
+      <Kb.Text type="BodySemibold" style={styles.leftColText}>
+        Available to send
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.balanceContainer}>
+        <Kb.Text type="Body" selectable={true} style={{fontWeight: '800'}}>
+          {props.availableToSend}
         </Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.balanceContainer}>
-          <Kb.Text type="Body" selectable={true} style={{fontWeight: '800'}}>
-            {props.availableToSend}
-          </Kb.Text>
-          <Kb.Text type="BodySmall" selectable={true}>
-            {props.equivAvailableToSend}
-          </Kb.Text>
-        </Kb.Box2>
+        <Kb.Text type="BodySmall" selectable={true}>
+          {props.equivAvailableToSend}
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-  )
-}
+  </Kb.Box2>
+)
 
 type IssuerAccountIDProps = {
   issuerAccountID: string,

@@ -3,6 +3,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import {connect} from '../../util/container'
 import Asset from '.'
+import openURL from '../../util/open-url'
 
 type OwnProps = {
   accountID: Types.AccountID,
@@ -25,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
     reserves: asset.reserves.toArray(),
+    openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
   }
 }
 
