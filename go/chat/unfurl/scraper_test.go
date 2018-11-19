@@ -132,7 +132,7 @@ func TestScraper(t *testing.T) {
 		Url:         "https://www.nytimes.com/2018/10/31/us/politics/democrats-midterm-elections.html",
 		SiteName:    "0.1", // the default for these tests (from the localhost domain)
 		Description: strPtr("House Democratic leaders, for the first time, laid out an ambitious opening salvo of bills for a majority, including an overhaul of campaign and ethics laws."),
-		PublishTime: intPtr(1540944000),
+		PublishTime: intPtr(1540990881),
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
 		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/apple-touch-icon-319373aaf4524d94d38aa599c56b8655.png"),
 	}))
