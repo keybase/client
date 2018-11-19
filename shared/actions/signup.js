@@ -135,7 +135,8 @@ const reallySignupOnNoErrors = (state: TypedState) => {
     throw new Error('Missing data for signup')
   }
 
-  return Saga.call<_, () => Generator<any, any, any>>(function*() {
+  type Fn = () => Generator<any, any, any>
+  return Saga.call<_, Fn>(function*() {
     try {
       yield RPCTypes.signupSignupRpcSaga({
         customResponseIncomingCallMap: {
