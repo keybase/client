@@ -131,24 +131,12 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
-func (h *Server) suspendComponent(ctx context.Context, suspendable types.Suspendable) func() {
-	if canceled := suspendable.Suspend(ctx); canceled {
-		h.Debug(ctx, "suspendComponent: canceled background task")
-	}
-	return func() {
-		suspendable.Resume(ctx)
-	}
-}
-
-// suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
-// a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
-// conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().ConvLoader)
+	return utils.SuspendComponent(ctx, h.G(), h.G().ConvLoader)
 }
 
 func (h *Server) suspendInboxSource(ctx context.Context) func() {
-	return h.suspendComponent(ctx, h.G().InboxSource)
+	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
 func (h *Server) getUID() gregor1.UID {

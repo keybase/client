@@ -1660,3 +1660,16 @@ func SetUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageI
 	}
 	mvalid.Unfurls[unfurlMessageID] = unfurl
 }
+
+// SuspendComponent will suspend the global ConvLoader until the return
+// function is called. This allows a succinct call like defer
+// SuspendComponent(ctx, g, g.ConvLoader)() in RPC handlers wishing to lock out
+// the conv loader.
+func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types.Suspendable) func() {
+	if canceled := suspendable.Suspend(ctx); canceled {
+		g.Log.CDebugf(ctx, "SuspendComponent: canceled background task")
+	}
+	return func() {
+		suspendable.Resume(ctx)
+	}
+}
