@@ -57,6 +57,26 @@ func TestExtractor(t *testing.T) {
 			},
 		},
 		testCase{
+			message: "check out this lame post: `http://www.twitter.com/mike/383878473873`",
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result:  nil,
+		},
+		testCase{
+			message: "check out this lame post: ```http://www.twitter.com/mike/383878473873````",
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result:  nil,
+		},
+		testCase{
+			message: "check out this lame post: `http://www.twitter.com/mike/383878473873` http://www.twitter.com/mike/MIKE",
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result: []ExtractorHit{
+				ExtractorHit{
+					URL: "http://www.twitter.com/mike/MIKE",
+					Typ: ExtractorHitUnfurl,
+				},
+			},
+		},
+		testCase{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_WHITELISTED,
 			result: []ExtractorHit{

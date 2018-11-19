@@ -27,14 +27,16 @@ type ExtractorHit struct {
 type Extractor struct {
 	utils.DebugLabeler
 
-	urlRegexp *regexp.Regexp
-	maxHits   int
+	urlRegexp   *regexp.Regexp
+	quoteRegexp *regexp.Regexp
+	maxHits     int
 }
 
 func NewExtractor(log logger.Logger) *Extractor {
 	return &Extractor{
 		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
 		urlRegexp:    xurls.Strict(),
+		quoteRegexp:  regexp.MustCompile("`.*`"),
 		maxHits:      5,
 	}
 }
@@ -57,6 +59,7 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, u
 	if settings.Mode == chat1.UnfurlMode_NEVER {
 		return res, nil
 	}
+	body = e.quoteRegexp.ReplaceAllString(body, "")
 	hits := e.urlRegexp.FindAllString(body, -1)
 	for _, h := range hits {
 		ehit := ExtractorHit{
