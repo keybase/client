@@ -1120,6 +1120,7 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		updatedMsgs[body.Unfurl().MessageID] = true
 	}
 	if len(updatedMsgs) == 0 {
+		s.Debug(ctx, "notifyUnfurls: nothing to do")
 		return
 	}
 	s.Debug(ctx, "notifyUnfurls: fetching %d messages", len(updatedMsgs))
