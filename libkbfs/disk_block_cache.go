@@ -933,6 +933,12 @@ func (cache *DiskBlockCacheLocal) deleteNextBatchFromClearedTlf(
 		return 0, err
 	}
 
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
 	_, _, err = cache.evictFromTLFLocked(ctx, tlfID, numBlocksToEvictOnClear)
 	if err != nil {
 		return 0, err
