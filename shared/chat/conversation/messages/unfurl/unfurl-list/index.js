@@ -25,15 +25,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
     switch (this.props.unfurl.unfurlType) {
       case RPCChatTypes.unfurlUnfurlType.generic:
         return this.props.unfurl.generic ? (
-          <UnfurlGeneric
-            title={this.props.unfurl.generic.title}
-            url={this.props.unfurl.generic.url}
-            siteName={this.props.unfurl.generic.siteName}
-            description={this.props.unfurl.generic.description || undefined}
-            publishTime={this.props.unfurl.generic.publishTime || undefined}
-            image={this.props.unfurl.generic.image || undefined}
-            faviconURL={this.props.unfurl.generic.favicon ? this.props.unfurl.generic.favicon.url : undefined}
-          />
+          <UnfurlGeneric unfurl={this.props.unfurl.generic} onClose={this.props.onClose} />
         ) : null
       default:
         return null
