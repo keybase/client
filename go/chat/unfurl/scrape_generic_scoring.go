@@ -169,6 +169,21 @@ var attrRankMap = map[string]attrRanker{
 		score:   getOpenGraphScore,
 		setter:  setPublishTime,
 	},
+	"pdate": attrRanker{
+		content: getContentAttr,
+		score:   getOpenGraphScore,
+		setter:  setPublishTime,
+	},
+	"article.published": attrRanker{
+		content: getContentAttr,
+		score:   getOpenGraphScore,
+		setter:  setPublishTime,
+	},
+	"datePublished": attrRanker{
+		content: getContentAttr,
+		score:   getOpenGraphScore,
+		setter:  setPublishTime,
+	},
 
 	// description
 	"description": attrRanker{

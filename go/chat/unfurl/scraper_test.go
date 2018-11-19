@@ -52,6 +52,10 @@ func strPtr(s string) *string {
 	return &s
 }
 
+func intPtr(i int) *int {
+	return &i
+}
+
 func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 	return newDummyHTTPSrv(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
@@ -87,6 +91,10 @@ func TestScraper(t *testing.T) {
 			if e.Description != nil {
 				require.Equal(t, *e.Description, *r.Description)
 			}
+			require.True(t, (e.PublishTime == nil && r.PublishTime == nil) || (e.PublishTime != nil && r.PublishTime != nil))
+			if e.PublishTime != nil {
+				require.Equal(t, *e.PublishTime, *r.PublishTime)
+			}
 
 			require.True(t, (e.ImageUrl == nil && r.ImageUrl == nil) || (e.ImageUrl != nil && r.ImageUrl != nil))
 			if e.ImageUrl != nil {
@@ -106,6 +114,7 @@ func TestScraper(t *testing.T) {
 		Url:         "https://www.cnn.com/2018/10/30/entertainment/kanye-west-politics/index.html",
 		SiteName:    "CNN",
 		Description: strPtr("Just weeks after visiting the White House, Kanye West appears to be a little tired of politics."),
+		PublishTime: intPtr(1540941044),
 		ImageUrl:    strPtr("https://cdn.cnn.com/cnnnext/dam/assets/181011162312-11-week-in-photos-1011-super-tease.jpg"),
 		FaviconUrl:  strPtr("http://cdn.cnn.com/cnn/.e/img/3.0/global/misc/apple-touch-icon.png"),
 	}))
@@ -114,6 +123,7 @@ func TestScraper(t *testing.T) {
 		Url:         "https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261",
 		SiteName:    "WSJ",
 		Description: strPtr("A surge in technology shares following Facebook’s latest earnings lifted U.S. stocks, helping major indexes trim some of their October declines following a punishing period for global investors."),
+		PublishTime: intPtr(1541004540),
 		ImageUrl:    strPtr("https://images.wsj.net/im-33925/social"),
 		FaviconUrl:  strPtr("https://s.wsj.net/media/wsj_apple-touch-icon-180x180.png"),
 	}))
@@ -122,6 +132,7 @@ func TestScraper(t *testing.T) {
 		Url:         "https://www.nytimes.com/2018/10/31/us/politics/democrats-midterm-elections.html",
 		SiteName:    "0.1", // the default for these tests (from the localhost domain)
 		Description: strPtr("House Democratic leaders, for the first time, laid out an ambitious opening salvo of bills for a majority, including an overhaul of campaign and ethics laws."),
+		PublishTime: intPtr(1540944000),
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
 		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/apple-touch-icon-319373aaf4524d94d38aa599c56b8655.png"),
 	}))
