@@ -35,6 +35,7 @@ const Input = (props: Props) => (
       placeholder={'Find people by name, email, or phone'}
       onChangeText={props.onChangeText}
       value={props.searchString}
+      maxLength={50}
       onEnterKeyDown={props.onEnterKeyDown}
       onKeyDown={e => {
         handleKeyDown(e, e.key, props)

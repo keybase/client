@@ -73,11 +73,11 @@ func TestFormatAmount(t *testing.T) {
 		default:
 			t.Fatalf("%v: invalid rounding '%v'", i, test.rounding)
 		}
-		for _, rounding := range []FmtRounding{FMT_ROUND, FMT_TRUNCATE} {
-			if test.rounding == "round" && rounding == FMT_TRUNCATE {
+		for _, rounding := range []FmtRounding{FmtRound, FmtTruncate} {
+			if test.rounding == "round" && rounding == FmtTruncate {
 				continue
 			}
-			if test.rounding == "truncate" && rounding == FMT_ROUND {
+			if test.rounding == "truncate" && rounding == FmtRound {
 				continue
 			}
 			desc := fmt.Sprintf("amount: %v (2pt prec %v) (rounding %v)", test.amount, test.precTwo, rounding)
@@ -86,7 +86,7 @@ func TestFormatAmount(t *testing.T) {
 				require.NoError(t, err, "%v => error: %v", desc, err)
 				require.Equal(t, test.out, x, "%v => %q, expected: %q", desc, x, test.out)
 			} else {
-				require.Error(t, err, "%v is supposed to be invalid input", desc)
+				require.Errorf(t, err, "%v is supposed to be invalid input", desc)
 				require.Equal(t, test.out, x)
 			}
 		}
