@@ -30,7 +30,7 @@ const AccountNameMaxRunes = 24
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
 // Safe (but wasteful) to call even if the user has a bundle already.
-func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
+func CreateWallet(ctx context.Context, g *libkb.GlobalContext, v2Link bool) (created bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
 	loggedInUsername := g.ActiveDevice.Username(libkb.NewMetaContext(ctx, g))
 	if !loggedInUsername.IsValid() {
@@ -45,7 +45,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	if err != nil {
 		return false, err
 	}
-	err = remote.PostWithChainlink(ctx, g, *clearBundle)
+	err = remote.PostWithChainlink(ctx, g, *clearBundle, v2Link)
 	switch e := err.(type) {
 	case nil:
 		// ok
@@ -107,7 +107,7 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (res CreateW
 		g.Log.CDebugf(ctx, "CreateWalletGated: server did not recommend wallet creation")
 		return res, nil
 	}
-	justCreated, err := CreateWallet(ctx, g)
+	justCreated, err := CreateWallet(ctx, g, false)
 	if err != nil {
 		return res, nil
 	}
@@ -168,7 +168,7 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if makePrimary {
 		// primary account changes need sigchain link
 		// (so other users can find user's primary account id)
-		err = remote.PostWithChainlink(ctx, g, nextBundle)
+		err = remote.PostWithChainlink(ctx, g, nextBundle, false)
 	} else {
 		err = remote.Post(ctx, g, nextBundle)
 	}
@@ -205,6 +205,24 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return nil
 }
 
+func EnableMigrationFeatureFlag(ctx context.Context, g *libkb.GlobalContext) error {
+	if g.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("this doesn't work in production")
+	}
+	m := libkb.NewMetaContext(ctx, g)
+	_, err := g.API.Post(libkb.APIArg{
+		Endpoint:    "test/feature",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
+			"value":     libkb.I{Val: 1},
+			"cache_sec": libkb.I{Val: 100},
+		},
+		MetaContext: m,
+	})
+	return err
+}
+
 // ImportSecretKeyAccountBundle is a temporary function.
 // This is just to check PostBundleRestricted.
 // It does not attempt to do a full migration from V1 to V2.
@@ -224,17 +242,10 @@ func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, s
 	}
 
 	// turn on the feature flag for the v2 stellar account bundles
-	m := libkb.NewMetaContext(ctx, g)
-	_, err = g.API.Post(libkb.APIArg{
-		Endpoint:    "test/feature",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
-			"value":     libkb.I{Val: 1},
-			"cache_sec": libkb.I{Val: 100},
-		},
-		MetaContext: m,
-	})
+	err = EnableMigrationFeatureFlag(ctx, g)
+	if err != nil {
+		return err
+	}
 
 	if err := remote.PostBundleRestricted(ctx, g, &nextBundle); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
@@ -1261,7 +1272,7 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if err != nil {
 		return err
 	}
-	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle)
+	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, false)
 }
 
 func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {

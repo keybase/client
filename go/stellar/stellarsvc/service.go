@@ -291,7 +291,7 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 		return err
 	}
 
-	_, err = stellar.CreateWallet(ctx, s.G())
+	_, err = stellar.CreateWallet(ctx, s.G(), false)
 	return err
 }
 

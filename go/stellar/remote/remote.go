@@ -45,17 +45,120 @@ func acctBundlesEnabled(m libkb.MetaContext) bool {
 	return enabled
 }
 
+func buildV2ChainLinkPayload(m libkb.MetaContext, bundle stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, sigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+	err := bundle.CheckInvariants()
+	if err != nil {
+		return nil, err
+	}
+	if len(bundle.Accounts) < 1 {
+		return nil, errors.New("stellar bundle has no accounts")
+	}
+	// Find the new primary account for the chain link.
+	stellarAccount, err := bundle.PrimaryAccount()
+	if err != nil {
+		return nil, err
+	}
+	stellarAccountBundle, ok := bundle.AccountBundles[stellarAccount.AccountID]
+	if !ok {
+		return nil, errors.New("stellar primary account has no account bundle")
+	}
+	if len(stellarAccountBundle.Signers) < 1 {
+		return nil, errors.New("stellar bundle has no signers")
+	}
+	if !stellarAccount.IsPrimary {
+		return nil, errors.New("initial stellar account is not primary")
+	}
+	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", bundle.Revision, stellarAccount.AccountID, pukGen)
+
+	boxed, err := acctbundle.BoxAndEncode(&bundle, pukGen, pukSeed)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	m.CDebugf("Stellar.PostWithChainLink: make sigs")
+
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccountBundle.Signers[0], sigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var sigsList []libkb.JSONPayload
+	sigsList = append(sigsList, sig)
+
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = sigsList
+	section := make(libkb.JSONPayload)
+	section["encrypted_parent"] = boxed.EncParentB64
+	section["visible_parent"] = boxed.VisParentB64
+	section["version_parent"] = boxed.FormatVersionParent
+	section["account_bundles"] = boxed.AcctBundles
+	payload["stellar"] = section
+
+	return &payload, nil
+}
+
+func buildV1ChainLinkPayload(m libkb.MetaContext, bundleRestricted stellar1.BundleRestricted, me *libkb.User, pukGen keybase1.PerUserKeyGeneration, pukSeed libkb.PerUserKeySeed, sigKey libkb.GenericKey) (*libkb.JSONPayload, error) {
+	v1Bundle, err := acctbundle.BundleFromBundleRestricted(bundleRestricted)
+	if err != nil {
+		return nil, err
+	}
+
+	err = v1Bundle.CheckInvariants()
+	if err != nil {
+		return nil, err
+	}
+	// Find the new primary account for the chain link.
+	if len(v1Bundle.Accounts) < 1 {
+		return nil, errors.New("stellar bundle has no accounts")
+	}
+	stellarAccount, err := v1Bundle.PrimaryAccount()
+	if err != nil {
+		return nil, err
+	}
+	if len(stellarAccount.Signers) < 1 {
+		return nil, errors.New("stellar bundle has no signers")
+	}
+	if !stellarAccount.IsPrimary {
+		return nil, errors.New("initial stellar account is not primary")
+	}
+	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", v1Bundle.Revision, stellarAccount.AccountID, pukGen)
+	boxed, err := bundle.Box(*v1Bundle, pukGen, pukSeed)
+	if err != nil {
+		return nil, err
+	}
+
+	m.CDebugf("Stellar.PostWithChainLink: make sigs")
+
+	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var sigsList []libkb.JSONPayload
+	sigsList = append(sigsList, sig)
+
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = sigsList
+	section := make(libkb.JSONPayload)
+	section["encrypted"] = boxed.EncB64
+	section["visible"] = boxed.VisB64
+	section["version"] = int(boxed.FormatVersion)
+	section["miniversion"] = 2
+	payload["stellar"] = section
+
+	return &payload, nil
+}
+
 // Post a bundle to the server with a chainlink.
-func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted) (err error) {
+func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.BundleRestricted, v2Link bool) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
 
-	v1Bundle, err := acctbundle.BundleFromBundleRestricted(clearBundle)
-	if err != nil {
-		return err
-	}
 	m := libkb.NewMetaContext(ctx, g)
-
-	uid := g.ActiveDevice.UID()
+	uid := m.G().ActiveDevice.UID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
@@ -79,57 +182,31 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 		return err
 	}
 
-	err = v1Bundle.CheckInvariants()
-	if err != nil {
-		return err
+	var payload *libkb.JSONPayload
+	if v2Link {
+		payload, err = buildV2ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, sigKey)
+		if err != nil {
+			return err
+		}
+	} else {
+		payload, err = buildV1ChainLinkPayload(m, clearBundle, me, pukGen, pukSeed, sigKey)
+		if err != nil {
+			return err
+		}
 	}
-	// Find the new primary account for the chain link.
-	if len(v1Bundle.Accounts) < 1 {
-		return errors.New("stellar bundle has no accounts")
-	}
-	stellarAccount, err := v1Bundle.PrimaryAccount()
-	if err != nil {
-		return err
-	}
-	if len(stellarAccount.Signers) < 1 {
-		return errors.New("stellar bundle has no signers")
-	}
-	if !stellarAccount.IsPrimary {
-		return errors.New("initial stellar account is not primary")
-	}
-	m.CDebugf("Stellar.PostWithChainLink: revision:%v accountID:%v pukGen:%v", v1Bundle.Revision, stellarAccount.AccountID, pukGen)
-	boxed, err := bundle.Box(*v1Bundle, pukGen, pukSeed)
-	if err != nil {
-		return err
-	}
-
-	m.CDebugf("Stellar.PostWithChainLink: make sigs")
-
-	sig, err := libkb.StellarProofReverseSigned(m, me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
-	if err != nil {
-		return err
-	}
-
-	var sigsList []libkb.JSONPayload
-	sigsList = append(sigsList, sig)
-
-	payload := make(libkb.JSONPayload)
-	payload["sigs"] = sigsList
-
-	addWalletServerArg(payload, boxed.EncB64, boxed.VisB64, int(boxed.FormatVersion))
 
 	m.CDebugf("Stellar.PostWithChainLink: post")
 	_, err = m.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
+		JSONPayload: *payload,
 		MetaContext: m,
 	})
 	if err != nil {
 		return err
 	}
 
-	g.UserChanged(uid)
+	m.G().UserChanged(uid)
 	return nil
 }
 

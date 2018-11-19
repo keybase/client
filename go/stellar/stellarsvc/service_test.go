@@ -56,7 +56,7 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Create an initial wallet")
 	acceptDisclaimer(tcs[0])
 
-	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -848,6 +848,96 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
+func TestAccountBundleFlows(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.Background()
+	g := tcs[0].G
+
+	err := remote.SetAcceptedDisclaimer(ctx, g)
+	require.NoError(t, err)
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+
+	_, err = stellar.CreateWallet(ctx, g, true)
+	require.NoError(t, err)
+
+	bundle, version, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	accounts := bundle.Accounts
+	secretsMap := bundle.AccountBundles
+	var accountIDs []stellar1.AccountID
+	for _, acct := range accounts {
+		signers := secretsMap[acct.AccountID].Signers
+		require.Equal(t, len(signers), 0)
+		accountIDs = append(accountIDs, acct.AccountID)
+	}
+	// add a new account and post it as the new primary
+	primaryAccountID, masterKey := randomStellarKeypair()
+	accountIDs = append(accountIDs, primaryAccountID)
+	name := "newprimary"
+	err = acctbundle.AddAccount(bundle, masterKey, name, true)
+	require.NoError(t, err)
+	newBundle, err := acctbundle.AdvanceAccounts(*bundle, accountIDs)
+	require.NoError(t, err)
+	err = remote.PostWithChainlink(ctx, g, newBundle, true /* v2link */)
+	require.NoError(t, err)
+
+	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+}
+
+func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID stellar1.AccountID) {
+	// fetch a secretless bundle to get all of the accountIDs
+	ctx := context.Background()
+	g := tc.G
+	secretlessBundle, version, err := remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+	require.Equal(t, version, stellar1.BundleVersion_V2)
+	err = secretlessBundle.CheckInvariants()
+	require.NoError(t, err)
+	var accountIDs []stellar1.AccountID
+	var foundPrimary bool
+	for _, acct := range secretlessBundle.Accounts {
+		accountIDs = append(accountIDs, acct.AccountID)
+		if acct.AccountID == primaryAccountID {
+			foundPrimary = true
+		}
+	}
+	require.True(t, foundPrimary)
+
+	// fetch the account bundle for each account and validate that it looks correct
+	// for each account in the bundle including the ones not explicitly fetched
+	for _, accountID := range accountIDs {
+		fetchedBundle, version, err := remote.FetchAccountBundle(ctx, g, accountID)
+		require.NoError(t, err)
+		require.Equal(t, version, stellar1.BundleVersion_V2)
+		err = fetchedBundle.CheckInvariants()
+		require.NoError(t, err)
+		ab := fetchedBundle.AccountBundles
+		for _, acct := range fetchedBundle.Accounts {
+			if acct.AccountID == primaryAccountID {
+				require.True(t, acct.IsPrimary)
+			} else {
+				require.False(t, acct.IsPrimary)
+			}
+			if acct.AccountID == accountID {
+				// this is the account we were explicitly fetching, so it should have signers
+				signers := ab[accountID].Signers
+				require.Equal(t, len(signers), 1)
+				_, parsedAccountID, _, err := libkb.ParseStellarSecretKey(string(signers[0]))
+				require.NoError(t, err)
+				require.Equal(t, parsedAccountID, accountID)
+			} else {
+				// this is not an account we were explicitly fetching
+				// so it should not be in the account bundle map
+				_, accountInAccountBundle := ab[acct.AccountID]
+				require.False(t, accountInAccountBundle)
+			}
+		}
+	}
+}
+
 // TestImportMakesAccountBundle checks that importing a secret key makes a stellar account
 // bundle (i.e. the new version where there is a bundle per account) and that we
 // can retrieve it from the server.
@@ -856,7 +946,7 @@ func TestImportMakesAccountBundle(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
-	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.NoError(t, err)
 
 	a1, s1 := randomStellarKeypair()
@@ -879,7 +969,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tc)
-	_, err := stellar.CreateWallet(context.Background(), tc.G)
+	_, err := stellar.CreateWallet(context.Background(), tc.G, false)
 	require.NoError(t, err)
 
 	a1, s1 := randomStellarKeypair()
@@ -946,7 +1036,7 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tc)
-	_, err := stellar.CreateWallet(context.Background(), tc.G)
+	_, err := stellar.CreateWallet(context.Background(), tc.G, false)
 	require.NoError(t, err)
 
 	a1, s1 := randomStellarKeypair()

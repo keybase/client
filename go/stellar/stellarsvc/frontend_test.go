@@ -19,6 +19,7 @@ import (
 )
 
 func acceptDisclaimer(tc *TestContext) {
+	// NOTE: this also creates a v1 wallet
 	err := tc.Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(tc.T, err)
 }
@@ -545,7 +546,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 	require.Equal(t, false, accepted)
 
 	t.Logf("can't create wallet before disclaimer")
-	_, err = stellar.CreateWallet(context.Background(), tcs[0].G)
+	_, err = stellar.CreateWallet(context.Background(), tcs[0].G, false)
 	require.Error(t, err)
 	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
