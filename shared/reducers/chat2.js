@@ -362,6 +362,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 .set('text', new HiddenString(''))
                 .set('mentionsAt', I.Set())
                 .set('reactions', I.Map())
+                .set('unfurls', I.Map())
             )
           )
         })
