@@ -53,11 +53,13 @@ const explodingSoonText = makeMessageText({
   explodingTime: 2000000100000,
 })
 
-const explodingLaterText = makeMessageText({
-  author: 'cjb',
-  deviceName: 'device',
-  explodingTime: 2000009000000,
-})
+const explodingLaterText = deviceRevokedAt =>
+  makeMessageText({
+    author: 'cjb',
+    deviceName: 'device',
+    deviceRevokedAt: deviceRevokedAt,
+    explodingTime: 2000009000000,
+  })
 
 const explodingSoonAttachment = makeMessageAttachment({
   author: 'cjb',
@@ -109,13 +111,13 @@ const load = () => {
     ))
     .add('Attachment', () => <AttachmentPopupMenu {...defaultProps} {...attachmentMessage.toJS()} />)
     .add('Exploding later', () => (
-      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText} />
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText()} />
     ))
     .add('Exploding w/ revoked device at 0', () => (
-      <ExplodingPopupMenu {...commonExplodingProps} deviceRevokedAt={0} message={explodingLaterText} />
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText(0)} />
     ))
     .add('Exploding w/ revoked device', () => (
-      <ExplodingPopupMenu {...commonExplodingProps} deviceRevokedAt={5} message={explodingLaterText} />
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText(5)} />
     ))
     .add('Exploding soon', () => <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonText} />)
     .add('Exploding attachment', () => (
