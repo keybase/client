@@ -19,7 +19,7 @@ export default function(
     case ProvisionGen.startProvision:
       return state.merge({error: initialState.error})
     case LoginGen.loginError:
-      return state.set('error', action.payload.error || initialState.error)
+      return state.merge({'error': action.payload.error || initialState.error})
     // Saga only actions
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.launchForgotPasswordWebPage:

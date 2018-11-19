@@ -12,22 +12,23 @@ export default function(state: Types.State = initialState, action: UnlockFolders
     case UnlockFoldersGen.resetStore:
       return initialState
     case UnlockFoldersGen.closeDone:
-      return state.set('popupOpen', false)
-    case UnlockFoldersGen.waiting: {
-      const {waiting} = action.payload
-      return state.set('waiting', waiting)
-    }
+      return state.merge({popupOpen: false})
+    case UnlockFoldersGen.waiting:
+      return state.merge({waiting: action.payload.waiting})
     case UnlockFoldersGen.onBackFromPaperKey:
-      return state.set('paperkeyError', '').set('phase', 'promptOtherDevice')
+      return state.merge({
+        paperkeyError: '',
+        phase: 'promptOtherDevice',
+      })
     case UnlockFoldersGen.toPaperKeyInput:
-      return state.set('phase', 'paperKeyInput')
+      return state.merge({phase: 'paperKeyInput'})
     case UnlockFoldersGen.checkPaperKeyDone:
       if (action.error) {
-        return state.set('paperkeyError', action.payload.error)
+        return state.merge({paperkeyError: action.payload.error})
       }
-      return state.set('phase', 'success')
+      return state.merge({phase: 'success'})
     case UnlockFoldersGen.finish:
-      return state.set('popupOpen', false).set('phase', 'dead')
+      return state.merge({popupOpen: false}).set('phase', 'dead')
     case UnlockFoldersGen.newRekeyPopup: {
       const devices = I.List(
         action.payload.devices.map(({name, type, deviceID}) =>

@@ -43,6 +43,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
+  // FlowIssue on 86
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
