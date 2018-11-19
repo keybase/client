@@ -36,7 +36,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
 class UnfurlList extends React.PureComponent<ListProps> {
   render() {
     return (
-      <Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.container}>
+      <Box2 direction="vertical" gap="tiny" style={styles.container}>
         {this.props.unfurls.map(u => (
           <Unfurl key={u.url} unfurl={u.unfurl} onClose={u.onClose} />
         ))}
@@ -48,15 +48,18 @@ class UnfurlList extends React.PureComponent<ListProps> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
+      flex: 1,
       marginTop: Styles.globalMargins.xtiny,
       marginBottom: Styles.globalMargins.xtiny,
     },
     // See ReactionRow for where this calculation comes from
     isElectron: {
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.tiny,
+      width: '100%',
     },
   }),
 })
