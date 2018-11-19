@@ -8,7 +8,7 @@ import UnfurlGeneric from '../generic/container'
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay,
   url: string,
-  onClose: () => void,
+  onClose?: () => void,
 }
 
 export type ListProps = {
@@ -17,7 +17,7 @@ export type ListProps = {
 
 export type UnfurlProps = {
   unfurl: RPCChatTypes.UnfurlDisplay,
-  onClose: () => void,
+  onClose?: () => void,
 }
 
 class Unfurl extends React.PureComponent<UnfurlProps> {
