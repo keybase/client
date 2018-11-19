@@ -25,8 +25,7 @@ const mapDispatchToProps = dispatch => ({
 
 const userDatafromState = (stateProps, usernames) =>
   usernames.map(username => ({
-    // $FlowIssue optional chain is needed
-    broken: stateProps._userInfo[username]?.broken || false,
+    broken: (stateProps._userInfo[username] && stateProps._userInfo[username].broken) || false,
     following: stateProps._following.has(username),
     username,
     you: stateProps._you === username,
