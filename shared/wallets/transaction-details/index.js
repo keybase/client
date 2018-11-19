@@ -100,7 +100,7 @@ const Counterparty = (props: CounterpartyProps) => {
       )
     case 'stellarPublicKey':
       return (
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Icon type="icon-placeholder-secret-user-32" style={styles.icon32} />
           <Kb.Text
             type="BodySemibold"
@@ -353,7 +353,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Transaction ID:</Kb.Text>
-          <Kb.Text selectable={true} type="Body">
+          <Kb.Text selectable={true} style={styles.transactionID} type="Body">
             {props.transactionID}
           </Kb.Text>
           {props.onViewTransaction && (
@@ -449,15 +449,20 @@ const styles = Styles.styleSheetCreate({
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
-  stellarPublicKey: {
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.tiny,
-  },
+  stellarPublicKey: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      marginLeft: Styles.globalMargins.tiny,
+      flex: 1,
+    },
+    isElectron: {wordBreak: 'break-all'},
+  }),
   tooltipText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-work',
     },
   }),
+  transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
     borderRadius: 4,
