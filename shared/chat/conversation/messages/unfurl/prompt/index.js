@@ -54,6 +54,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       paddingTop: 8,
       paddingBottom: 8,
+      maxWidth: 600,
     },
   }),
   choiceContainer: Styles.platformStyles({
