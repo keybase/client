@@ -2,16 +2,8 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import openURL from '../../util/open-url'
-import {
-  Box2,
-  ClickableBox,
-  Divider,
-  Icon,
-  Text,
-  WithTooltip,
-  iconCastPlatformStyles,
-} from '../../common-adapters'
-import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -40,35 +32,35 @@ export default class Asset extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true}>
-        <ClickableBox onClick={this._toggleExpanded}>
-          <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-            <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-              <Icon
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={this._toggleExpanded}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+              <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                style={iconCastPlatformStyles(styles.caret)}
+                style={Kb.iconCastPlatformStyles(styles.caret)}
               />
-              <Box2 direction="vertical">
-                <Text type="BodySemibold" lineClamp={1}>
+              <Kb.Box2 direction="vertical">
+                <Kb.Text type="BodySemibold" lineClamp={1}>
                   {this.props.name}
-                </Text>
-                <Text type="BodySmall" lineClamp={1}>
+                </Kb.Text>
+                <Kb.Text type="BodySmall" lineClamp={1}>
                   {this.props.issuerName}
-                </Text>
-              </Box2>
-            </Box2>
-            <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
+              <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
-              </Text>
-              <Text type="BodySmall" lineClamp={1}>
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
                 {this.props.equivBalance}
-              </Text>
-            </Box2>
-          </Box2>
-        </ClickableBox>
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.ClickableBox>
         {this.state.expanded && (
-          <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
             {this.props.code === 'XLM' && (
               <BalanceSummary
                 availableToSend={this.props.availableToSend}
@@ -78,9 +70,9 @@ export default class Asset extends React.Component<Props, State> {
               />
             )}
             {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
-          </Box2>
+          </Kb.Box2>
         )}
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
@@ -94,61 +86,61 @@ type BalanceSummaryProps = {
 
 const BalanceSummary = (props: BalanceSummaryProps) => {
   const _openStellarURL = () => {
-    if (!isMobile) return
+    if (!Styles.isMobile) return
     openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance')
   }
 
   return (
-    <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-      <Divider style={{marginBottom: globalMargins.tiny}} />
-      <Box2 direction="horizontal" fullWidth={true}>
-        <Text type="BodySemibold" style={styles.leftColText}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+      <Kb.Divider style={styles.dividerTop} />
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Text type="BodySemibold" style={styles.leftColText}>
           Total
-        </Text>
-        <Text type="BodyExtrabold" selectable={true}>
+        </Kb.Text>
+        <Kb.Text type="BodyExtrabold" selectable={true}>
           {props.total}
-        </Text>
-      </Box2>
+        </Kb.Text>
+      </Kb.Box2>
       {props.reserves.map(reserve => (
-        <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-          <Box2 direction="horizontal" style={styles.leftColText}>
-            <Text type="Body" lineClamp={1}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
+          <Kb.Box2 direction="horizontal" style={styles.leftColText}>
+            <Kb.Text type="Body" lineClamp={1}>
               Reserve ({reserve.description})
-            </Text>
+            </Kb.Text>
             {reserve.description === 'account' && (
-              <WithTooltip
+              <Kb.WithTooltip
                 text="Minimum balances help protect the network from the creation of spam accounts."
                 multiline={true}
               >
-                <Icon
-                  fontSize={isMobile ? 18 : 12}
+                <Kb.Icon
+                  fontSize={Styles.isMobile ? 18 : 12}
                   onClick={_openStellarURL}
                   style={styles.questionMark}
                   type="iconfont-question-mark"
                 />
-              </WithTooltip>
+              </Kb.WithTooltip>
             )}
-          </Box2>
-          <Text type="Body" lineClamp={1} selectable={true}>
+          </Kb.Box2>
+          <Kb.Text type="Body" lineClamp={1} selectable={true}>
             -{reserve.amount}
-          </Text>
-        </Box2>
+          </Kb.Text>
+        </Kb.Box2>
       ))}
-      <Divider style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}} />
-      <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
-        <Text type="BodySemibold" style={styles.leftColText}>
+      <Kb.Divider style={styles.divider} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
+        <Kb.Text type="BodySemibold" style={styles.leftColText}>
           Available to send
-        </Text>
-        <Box2 direction="vertical" style={styles.balanceContainer}>
-          <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.balanceContainer}>
+          <Kb.Text type="Body" selectable={true} style={{fontWeight: '800'}}>
             {props.availableToSend}
-          </Text>
-          <Text type="BodySmall" selectable={true}>
+          </Kb.Text>
+          <Kb.Text type="BodySmall" selectable={true}>
             {props.equivAvailableToSend}
-          </Text>
-        </Box2>
-      </Box2>
-    </Box2>
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
@@ -157,15 +149,16 @@ type IssuerAccountIDProps = {
 }
 
 const IssuerAccountID = (props: IssuerAccountIDProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-    <Text type="Body">Issuer:</Text>
-    <Text type="Body" selectable={true}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+    <Kb.Text type="Body">Issuer:</Kb.Text>
+    <Kb.Text type="Body" selectable={true}>
       {props.issuerAccountID}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  balance: {color: Styles.globalColors.purple2},
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
@@ -174,20 +167,25 @@ const styles = styleSheetCreate({
     flexBasis: 355,
     flexShrink: 1,
   },
-  caret: platformStyles({
+  caret: Styles.platformStyles({
     isElectron: {lineHeight: '2'},
     isMobile: {marginTop: 6},
   }),
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  dividerTop: {marginBottom: Styles.globalMargins.tiny},
   expandedRowContainer: {
     justifyContent: 'flex-end',
-    paddingBottom: globalMargins.tiny,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.small,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.small,
   },
   headerContainer: {
     height: 48,
-    padding: globalMargins.tiny,
-    paddingRight: globalMargins.small,
+    padding: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.small,
   },
   labelContainer: {
     flex: 1,
@@ -195,7 +193,7 @@ const styles = styleSheetCreate({
   leftColText: {
     flex: 1,
   },
-  questionMark: platformStyles({
+  questionMark: Styles.platformStyles({
     common: {
       marginLeft: 4,
     },
