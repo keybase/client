@@ -24,7 +24,17 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) => {
+const buildPayment = (
+  state: TypedState,
+  action:
+    | WalletsGen.BuildPaymentPayload
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+) => {
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
     // didn't change state.building; no need to call build
     return
