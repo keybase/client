@@ -111,6 +111,9 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         s.set('teamNameToResetUsers', action.payload.teamNameToResetUsers)
       })
 
+    case TeamsGen.setTeamProfileAddList:
+      return state.set('teamProfileAddList', action.payload.teamlist)
+
     case TeamsGen.setTeamSawChatBanner:
       return state.set('sawChatBanner', true)
 
@@ -173,6 +176,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getDetails:
     case TeamsGen.getDetailsForAllTeams:
     case TeamsGen.getTeamOperations:
+    case TeamsGen.getTeamProfileAddList:
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:

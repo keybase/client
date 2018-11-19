@@ -7,21 +7,17 @@ import {type StylesCrossPlatform} from '../../styles'
 export type RowProps = {
   canAddThem: boolean,
   checked: boolean,
+  disabledReason: string,
   name: Types.Teamname,
   isOpen: boolean,
-  memberIsInTeam: boolean,
   onCheck: () => void,
   them: string,
-  youCanAddPeople: boolean,
-  waiting: boolean,
 }
 
 export type Props = {
-  canAddThem: {[string]: boolean},
   customComponent?: ?React.Node,
   headerStyle?: StylesCrossPlatform,
   loaded: {[string]: boolean},
-  memberIsInTeam: {[string]: boolean},
   onBack: () => void,
   onCancel?: () => void,
   onOpenRolePicker: (role: string, selectedRole: (Types.TeamRoleType) => void, styleCover?: Object) => void,
@@ -31,10 +27,9 @@ export type Props = {
   role: Types.TeamRoleType,
   selectedTeams: {[string]: boolean},
   setSelectedTeams: ({[string]: boolean}) => void,
+  teamProfileAddList: Array<Types.TeamProfileAddList>,
   teamnames: Array<Types.Teamname>,
-  teamNameToIsOpen: {[string]: boolean},
   them: string,
-  youCanAddPeople: {[string]: boolean},
 }
 
 export default class AddToTeam extends Component<Props> {}

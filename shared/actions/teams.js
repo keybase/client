@@ -99,6 +99,22 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
   }
 }
 
+const _getTeamProfileAddList = function(state: TypedState, action: TeamsGen.GetTeamProfileAddListPayload) {
+  const {username} = action.payload
+  return RPCTypes.teamsTeamProfileAddListRpcPromise({username}, Constants.teamProfileAddListWaitingKey
+  ).then(res => {
+    const teamlist = res.map(team => ({
+      disabledReason: team.disabledReason,
+      open: team.open,
+      teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+    }))
+    if (teamlist) {
+      teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+    }
+    return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist)})
+  })
+}
+
 const _leaveTeam = function(state: TypedState, action: TeamsGen.LeaveTeamPayload) {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
@@ -1387,6 +1403,7 @@ const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToPromise(TeamsGen.getTeamProfileAddList, _getTeamProfileAddList)
   yield Saga.actionToAction(TeamsGen.leftTeam, _leftTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)

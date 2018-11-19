@@ -9,7 +9,6 @@ import {
   withStateHandlers,
   type RouteProps,
 } from '../../util/container'
-import {mapValues, zipObject} from 'lodash-es'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderOnMobile} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
@@ -20,22 +19,22 @@ type OwnProps = RouteProps<{username: string}, {}>
 
 const mapStateToProps = (state, {routeProps}) => {
   return {
-    _teamNameToIsOpen: state.teams.get('teamNameToIsOpen', I.Map()),
-    _teamNameToCanPerform: state.teams.get('teamNameToCanPerform', I.Map()),
-    _teamNameToMembers: state.teams.get('teamNameToMembers', I.Map()),
     _them: routeProps.get('username'),
     teamnames: getSortedTeamnames(state),
+    teamProfileAddList: state.teams.get('teamProfileAddList'),
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
-  loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+  loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
     dispatch(navigateUp())
   },
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => {
+    dispatch(navigateUp())
+    dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
+  },
   onOpenRolePicker: (role: TeamRoleType, onComplete: (string, boolean) => void, styleCover?: Object) => {
     dispatch(
       navigateAppend([
@@ -56,36 +55,18 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
-  const teamnames = stateProps.teamnames
-  const them = stateProps._them
-
-  const teamNameToIsOpen = stateProps._teamNameToIsOpen.toObject()
-  const teamNameToCanPerform = stateProps._teamNameToCanPerform.toObject()
-  const youCanAddPeople = mapValues(teamNameToCanPerform, team => team.manageMembers)
-  const teamNameToMembers = stateProps._teamNameToMembers.toObject()
-  const memberIsInTeam = mapValues(teamNameToMembers, team => !!team.get(them))
-  const canAddThem = teamnames.reduce((teams, team) => {
-    teams[team] = youCanAddPeople[team] && !memberIsInTeam[team]
-    return teams
-  }, {})
-  const loaded =
-    teamnames &&
-    zipObject(teamnames, teamnames.map(team => teamNameToMembers[team] && teamNameToCanPerform[team]))
-  const title = `Add ${them} to...`
+  const {teamProfileAddList, _them} = stateProps
+  const title = `Add ${_them} to...`
 
   return {
     ...stateProps,
     ...dispatchProps,
-    canAddThem,
-    loaded,
-    memberIsInTeam,
     onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
       dispatchProps._onAddToTeams(role, teams, stateProps._them),
     onBack: dispatchProps.onBack,
-    teamNameToIsOpen,
-    them,
+    teamProfileAddList: teamProfileAddList.toArray(),
+    them: _them,
     title,
-    youCanAddPeople,
   }
 }
 
@@ -98,7 +79,6 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props.loadTeamList()
-      this.props.loadAllTeams()
     },
   }),
   withStateHandlers(
