@@ -1,8 +1,7 @@
 package stellar
 
 import (
-	"golang.org/x/net/context"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/stellar/go/xdr"
@@ -11,15 +10,15 @@ import (
 // SeqnoProvider implements build.SequenceProvider.  It is intended as a one-shot
 // wrapper and shouldn't be reused after the transaction is built.
 type SeqnoProvider struct {
-	ctx       context.Context
+	mctx      libkb.MetaContext
 	remoter   remote.Remoter
 	overrides map[string]xdr.SequenceNumber
 }
 
 // NewSeqnoProvider creates a SeqnoProvider.
-func NewSeqnoProvider(ctx context.Context, remoter remote.Remoter) *SeqnoProvider {
+func NewSeqnoProvider(mctx libkb.MetaContext, remoter remote.Remoter) *SeqnoProvider {
 	return &SeqnoProvider{
-		ctx:       ctx,
+		mctx:      mctx,
 		remoter:   remoter,
 		overrides: make(map[string]xdr.SequenceNumber),
 	}
@@ -28,12 +27,14 @@ func NewSeqnoProvider(ctx context.Context, remoter remote.Remoter) *SeqnoProvide
 // SequenceForAccount implements build.SequenceProvider.
 func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
 	if seqno, ok := s.overrides[aid]; ok {
+		s.mctx.CDebugf("SeqnoProvider.SequenceForAccount(%v) -> override %v", aid, seqno)
 		return seqno, nil
 	}
-	seqno, err := s.remoter.AccountSeqno(s.ctx, stellar1.AccountID(aid))
+	seqno, err := s.remoter.AccountSeqno(s.mctx.Ctx(), stellar1.AccountID(aid))
 	if err != nil {
 		return 0, err
 	}
+	s.mctx.CDebugf("SeqnoProvider.SequenceForAccount(%v) -> live %v", aid, seqno)
 	return xdr.SequenceNumber(seqno), nil
 }
 
