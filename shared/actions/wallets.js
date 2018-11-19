@@ -648,11 +648,7 @@ const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimer
 
 const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
-  Saga.put(Route.navigateTo(
-    isMobile
-      ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
-      : [Tabs.walletsTab, 'wallet', 'linkExisting']
-  ))
+  Saga.put(Route.navigateTo([...Constants.rootWalletPath, 'linkExisting']))
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -718,6 +714,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
 
+  // We don't call this for publicMemo/secretNote so the button doesn't
+  // spinner as you type
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,
