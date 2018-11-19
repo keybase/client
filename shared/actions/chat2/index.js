@@ -37,8 +37,8 @@ import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
-  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
-  state: TypedState
+  state: TypedState,
+  action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -156,8 +156,8 @@ const rpcMetaRequestConversationIDKeys = (
 
 // We want to unbox rows that have scroll into view
 const unboxRows = (
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
-  state: TypedState
+  state: TypedState,
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
 ) => {
   if (!state.config.loggedIn) {
     return
@@ -234,21 +234,22 @@ const unboxRows = (
     }
   }
 
-  const getRows = RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {
-      'chat.1.chatUi.chatInboxConversation': onUnboxed,
-      'chat.1.chatUi.chatInboxFailed': onFailed,
-      'chat.1.chatUi.chatInboxUnverified': () => {},
-    },
-    params: {
-      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-      query: Constants.makeInboxQuery(conversationIDKeys),
-      skipUnverified: true,
-    },
-    waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+  return Saga.call(function*() {
+    yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
+    yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatInboxConversation': onUnboxed,
+        'chat.1.chatUi.chatInboxFailed': onFailed,
+        'chat.1.chatUi.chatInboxUnverified': () => {},
+      },
+      params: {
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        query: Constants.makeInboxQuery(conversationIDKeys),
+        skipUnverified: true,
+      },
+      waitingKey: Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+    })
   })
-
-  return Saga.sequentially([Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})), getRows])
 }
 
 // We get an incoming message streamed to us
@@ -2669,7 +2670,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changeSelectedConversation
   )
   // Refresh the inbox
-  yield Saga.safeTakeEveryPure(Chat2Gen.inboxRefresh, inboxRefresh)
+  yield Saga.actionToAction(Chat2Gen.inboxRefresh, inboxRefresh)
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
@@ -2678,7 +2679,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield Saga.safeTakeEveryPure([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
+  yield Saga.actionToAction([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows)
 
   // Load the selected thread
   yield Saga.actionToAction(
