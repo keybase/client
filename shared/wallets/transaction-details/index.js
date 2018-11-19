@@ -86,6 +86,7 @@ const Counterparty = (props: CounterpartyProps) => {
             onClick={() => props.onShowProfile(props.counterparty)}
             username={props.counterparty}
             metaOne={<AccountMeta counterpartyMeta={props.counterpartyMeta} accountID={props.accountID} />}
+            metaStyle={styles.flexOne}
             containerStyle={styles.alignItemsFlexStart}
             underline={true}
           />
@@ -156,6 +157,7 @@ const YourAccount = (props: YourAccountProps) => {
       underline={true}
       username={props.you}
       metaOne={<AccountMeta counterpartyMeta="You" accountID={props.accountID} />}
+      metaStyle={styles.flexOne}
       containerStyle={styles.alignItemsFlexStart}
     />
   )
@@ -438,6 +440,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
+  flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
   partyAccountContainer: {
     alignSelf: 'flex-start',
