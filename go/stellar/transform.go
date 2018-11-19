@@ -268,7 +268,16 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 			if p.Claim.TxErrMsg != "" {
 				loc.StatusDetail = p.Claim.TxErrMsg
 			} else {
-				loc.StatusDetail = fmt.Sprintf("funded. Claim by %v is: %v", claimantUsername, loc.StatusSimplified.String())
+				words := "is in the works"
+				switch p.Claim.TxStatus {
+				case stellar1.TransactionStatus_PENDING:
+					words = "is pending"
+				case stellar1.TransactionStatus_SUCCESS:
+					words = "has succeeded"
+				case stellar1.TransactionStatus_ERROR_TRANSIENT, stellar1.TransactionStatus_ERROR_PERMANENT:
+					words = "has failed"
+				}
+				loc.StatusDetail = fmt.Sprintf("Funded. %v's claim %v.", claimantUsername, words)
 			}
 		}
 	}
