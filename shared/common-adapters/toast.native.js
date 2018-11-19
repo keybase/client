@@ -39,7 +39,7 @@ class _Toast extends React.Component<PropsWithTimer<Props>, State> {
       return null
     }
     return (
-      <FloatingBox position={this.props.position}>
+      <FloatingBox>
         <Box pointerEvents="none" style={styles.wrapper}>
           <NativeAnimated.View
             style={collapseStyles([
