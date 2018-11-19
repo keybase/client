@@ -652,6 +652,11 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSFolderSyncMode = {
+  disabled: 0,
+  enabled: 1,
+}
+
 export const simpleFSKBFSArchivedType = {
   revision: 0,
   time: 1,
