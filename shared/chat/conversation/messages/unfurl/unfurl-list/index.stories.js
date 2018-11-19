@@ -7,15 +7,15 @@ import UnfurlList from '.'
 
 const provider = Sb.createPropProviderWithCommon({
   UnfurlGeneric: p => ({
-    title: p.title,
-    url: p.url,
-    siteName: p.siteName,
-    description: p.description,
-    publishTime: p.publishTime,
-    faviconURL: p.faviconURL,
-    imageURL: p.image ? p.image.url : undefined,
+    title: p.unfurl.title,
+    url: p.unfurl.url,
+    siteName: p.unfurl.siteName,
+    description: p.unfurl.description,
+    publishTime: p.unfurl.publishTime,
+    faviconURL: p.unfurl.faviconURL,
+    imageURL: p.unfurl.image ? p.unfurl.image.url : undefined,
     onClose: p.onClose,
-    showImageOnSide: p.image ? p.image.height >= p.image.width : false,
+    showImageOnSide: p.unfurl.image ? p.unfurl.image.height >= p.unfurl.image.width : false,
   }),
 })
 
