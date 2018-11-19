@@ -36,7 +36,7 @@ func NewExtractor(log logger.Logger) *Extractor {
 	return &Extractor{
 		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
 		urlRegexp:    xurls.Strict(),
-		quoteRegexp:  regexp.MustCompile("`.*`"),
+		quoteRegexp:  regexp.MustCompile("`[^`]*`"),
 		maxHits:      5,
 	}
 }

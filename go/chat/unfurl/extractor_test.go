@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/logger"
@@ -9,6 +10,8 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
+
+const codeBlock = "```"
 
 func TestExtractor(t *testing.T) {
 	uid := gregor1.UID([]byte{0, 1})
@@ -62,9 +65,22 @@ func TestExtractor(t *testing.T) {
 			result:  nil,
 		},
 		testCase{
-			message: "check out this lame post: ```http://www.twitter.com/mike/383878473873````",
-			mode:    chat1.UnfurlMode_ALWAYS,
-			result:  nil,
+			message: fmt.Sprintf(`%s
+			[mike@lisa-keybase]-[~/go/src/github.com/keybase/client/go] (mike/markdown)$ scraper https://www.wsj.com/articles/a-silicon-valley-tech-leader-walks-a-high-wire-between-the-u-s-and-china-1542650707?mod=hp_lead_pos4
+			2018/11/19 16:33:52 ++Chat: + Scraper: Scrape
+			2018/11/19 16:33:53 ++Chat: | Scraper: scrapeGeneric: pubdate: 2018-11-19T18:05:00.000Z
+			2018/11/19 16:33:53 ++Chat: | Scraper: scrapeGeneric: success: 1542650700
+			2018/11/19 16:33:53 ++Chat: - Scraper: Scrape -> ok [time=893.809968ms]
+			Title: A Silicon Valley Tech Leader Walks a High Wire Between the U.S. and China
+			Url: https://www.wsj.com/articles/a-silicon-valley-tech-leader-walks-a-high-wire-between-the-u-s-and-china-1542650707
+			SiteName: WSJ
+			PublishTime: 2018-11-19 13:05:00 -0500 EST
+			Description: Nvidia sells lots of artificial-intelligence chips in China. That creates a dilemma as the company tries to navigate political and trade tensions.
+			ImageUrl: https://images.wsj.net/im-37707/social,
+			FaviconUrl: https://s.wsj.net/media/wsj_apple-touch-icon-180x180.png
+			%s`, codeBlock, codeBlock),
+			mode:   chat1.UnfurlMode_ALWAYS,
+			result: nil,
 		},
 		testCase{
 			message: "check out this lame post: `http://www.twitter.com/mike/383878473873` http://www.twitter.com/mike/MIKE",
@@ -75,6 +91,11 @@ func TestExtractor(t *testing.T) {
 					Typ: ExtractorHitUnfurl,
 				},
 			},
+		},
+		testCase{
+			message: "check out this lame post: ```http://www.twitter.com/mike/383878473873````",
+			mode:    chat1.UnfurlMode_ALWAYS,
+			result:  nil,
 		},
 		testCase{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
