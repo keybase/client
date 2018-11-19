@@ -14,6 +14,18 @@ type Props = {
 
 const handleKeyDown = (e: any, key: string, props: Props) => {
   switch (key) {
+    case 'p':
+      if (e.ctrlKey) {
+        e.preventDefault()
+        props.onUpArrowKeyDown()
+      }
+      break
+    case 'n':
+      if (e.ctrlKey) {
+        e.preventDefault()
+        props.onDownArrowKeyDown()
+      }
+      break
     case 'ArrowDown':
       e.preventDefault()
       props.onDownArrowKeyDown()
