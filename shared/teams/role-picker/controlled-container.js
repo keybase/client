@@ -88,11 +88,9 @@ export default compose(
       setSendNotification: () => sendNotification => ({sendNotification}),
     }
   ),
-  // $FlowIssue
   withHandlers({
     setConfirm: ({_onComplete, onCancel, selectedRole, sendNotification}) => (confirm: boolean) => {
       _onComplete(selectedRole, sendNotification)
-      // $FlowIssue
       onCancel()
     },
   })

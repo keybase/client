@@ -460,14 +460,14 @@ const paymentToYourInfoAndCounterparty = (
 const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentDetail: Types.PaymentDetail
-) => {
+): I.Map<Types.PaymentID, Types.Payment> => {
   return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 
 const updatePaymentsReceived = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentResults: Array<Types.PaymentResult>
-) => {
+): I.Map<Types.PaymentID, Types.Payment> => {
   return map.withMutations(mapMutable =>
     paymentResults.forEach(paymentResult =>
       mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))

@@ -31,6 +31,7 @@ const backButtonTypeToFcnHandle = {
   close: 'onCancel',
 }
 
+// $FlowIssue
 const WalletPopup = (props: WalletPopupProps) => (
   <Kb.Box2 direction="vertical" style={styles.outerContainer}>
     <Kb.ScrollView

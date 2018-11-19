@@ -111,14 +111,26 @@ function SyncAvatarProps(ComposedComponent: any) {
   const getRemoteFollowers = memoize2((followers, usernames) => followers.intersect(usernames))
   const getRemoteFollowing = memoize2((following, usernames) => following.intersect(usernames))
 
-  return compose(
-    withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
-    connect<OwnProps, _, _, _, _>(
-      mapStateToProps,
-      () => ({}),
-      (s, d, o) => ({...o, ...s, ...d})
-    )
+  const Connected = connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    () => ({}),
+    (s, d, o) => ({...o, ...s, ...d})
   )(RemoteAvatarConnected)
+
+  type WrapperProps = {
+    remoteWindow: ?SafeElectron.BrowserWindowType,
+    windowComponent: string,
+    windowParam: string,
+  }
+  class Wrapper extends React.Component<WrapperProps, {usernames: I.Set<string>}> {
+    state = {usernames: I.Set()}
+    setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
+    render() {
+      return <Connected {...this.props} usernames={this.state.usernames} setUsernames={this.setUsernames} />
+    }
+  }
+
+  return Wrapper
 }
 
 export default SyncAvatarProps
