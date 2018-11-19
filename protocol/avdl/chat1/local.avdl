@@ -355,7 +355,7 @@ protocol local {
     array<ChannelNameMention> channelNameMentions;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
-    array<UnfurlResult> unfurls;
+    map<MessageID, UnfurlResult> unfurls;
   }
 
   enum MessageUnboxedErrorType {

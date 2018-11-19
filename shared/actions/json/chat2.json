@@ -503,6 +503,11 @@
       "messageID": "Types.MessageID",
       "domain": "string",
       "show": "boolean"
+    },
+    "updateMessages": {
+      "_description": "Update messages that we might have in the store",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     }
   }
 }

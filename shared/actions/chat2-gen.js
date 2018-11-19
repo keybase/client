@@ -97,6 +97,7 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
@@ -391,6 +392,10 @@ type _UnfurlTogglePromptPayload = $ReadOnly<{|
 |}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
+type _UpdateMessagesPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messages: Array<{messageID: Types.MessageID, message: Types.Message}>,
+|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   moreToLoad: boolean,
@@ -493,6 +498,10 @@ export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) 
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) => ({payload, type: toggleLocalReaction})
+/**
+ * Update messages that we might have in the store
+ */
+export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -659,6 +668,7 @@ export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt,
 export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
+export type UpdateMessagesPayload = $Call<typeof createUpdateMessages, _UpdateMessagesPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
 export type UpdateNotificationSettingsPayload = $Call<typeof createUpdateNotificationSettings, _UpdateNotificationSettingsPayload>
 export type UpdateReactionsPayload = $Call<typeof createUpdateReactions, _UpdateReactionsPayload>
@@ -752,6 +762,7 @@ export type Actions =
   | UnfurlTogglePromptPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload

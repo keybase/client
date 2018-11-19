@@ -575,6 +575,25 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: TypedState) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  const messages = (info.updates || []).reduce((l, msg) => {
+    const messageID = Constants.getMessageID(msg)
+    if (!messageID) {
+      return l
+    }
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, msg)
+    if (!uiMsg) {
+      return l
+    }
+    return l.concat({
+      messageID: Types.numberToMessageID(messageID),
+      message: uiMsg,
+    })
+  }, [])
+  return [Chat2Gen.createUpdateMessages({conversationIDKey, messages})]
+}
+
 // Get actions to update the messagemap when reactions are updated
 const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
@@ -657,6 +676,10 @@ const setupEngineListeners = () => {
         case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
+            : null
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
+          return activity.messagesUpdated
+            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
             : null
         default:
           break
@@ -802,6 +825,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
     case 'delete':
     case 'attachmentuploaded':
     case 'reaction':
+    case 'unfurl':
       break
     default:
       arr.push(RPCChatTypes.commonMessageType[key])

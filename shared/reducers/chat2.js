@@ -317,6 +317,30 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             : message.unfurlPrompts.delete(action.payload.domain)
         )
       })
+    case Chat2Gen.updateMessages:
+      const updateOrdinals = action.payload.messages.reduce((l, msg) => {
+        const ordinal = messageIDToOrdinal(
+          messageMap,
+          pendingOutboxToOrdinal,
+          action.payload.conversationIDKey,
+          msg.messageID
+        )
+        if (!ordinal) {
+          return l
+        }
+        // $FlowIssue it's not really possible to do anything to a message in general
+        return l.concat({ordinal, msg: msg.message.set('ordinal', ordinal)})
+      }, [])
+      return messageMap.updateIn([action.payload.conversationIDKey], messages => {
+        if (!messages) {
+          return messages
+        }
+        return messages.withMutations(msgs => {
+          updateOrdinals.forEach(r => {
+            msgs.set(r.ordinal, r.msg)
+          })
+        })
+      })
     case Chat2Gen.messagesExploded:
       const {conversationIDKey, messageIDs} = action.payload
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
@@ -927,6 +951,7 @@ const rootReducer = (
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
     case Chat2Gen.unfurlTogglePrompt:
+    case Chat2Gen.updateMessages:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

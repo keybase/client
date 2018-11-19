@@ -178,6 +178,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   text: new HiddenString(''),
   type: 'text',
   unfurlPrompts: I.Set(),
+  unfurls: I.Map(),
 })
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
@@ -615,6 +616,7 @@ const validUIMessagetoMessage = (
         mentionsChannelName: I.Map(
           (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
         ),
+        unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
         text: new HiddenString(rawText),
       })
     case RPCChatTypes.commonMessageType.attachmentuploaded: // fallthrough

@@ -523,6 +523,12 @@
 			"revisionTime": "2018-01-18T23:10:18Z"
 		},
 		{
+			"checksumSHA1": "6siKrD8lFPCe0S3OF9E4wuRgUAo=",
+			"path": "github.com/keybase/golang-ico",
+			"revision": "819cbeb217c98329a900ee4f6a22917b63768d4b",
+			"revisionTime": "2018-11-17T02:20:08Z"
+		},
+		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "260b815592d65ec410ecf2e1d6351d8ef0e2db54",
@@ -975,6 +981,12 @@
 			"path": "golang.org/x/crypto/twofish",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",
 			"revisionTime": "2017-04-09T18:29:52Z"
+		},
+		{
+			"checksumSHA1": "cXokCvyFg5J/JpxYNKB5JSqJH7g=",
+			"path": "golang.org/x/image/bmp",
+			"revision": "cd38e8056d9b27bb2f265effa37fb0ea6b8a7f0f",
+			"revisionTime": "2018-11-15T22:27:58Z"
 		},
 		{
 			"checksumSHA1": "7E3Y1HU/UbsQF/dxMRdjFmx9QDQ=",

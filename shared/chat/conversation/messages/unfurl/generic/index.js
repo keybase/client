@@ -19,8 +19,8 @@ export type Props = {
 class UnfurlGeneric extends React.PureComponent<Props> {
   render() {
     return (
-      <Kb.Box2 style={styles.container} direction="horizontal">
-        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
+        {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
             {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
@@ -44,9 +44,11 @@ class UnfurlGeneric extends React.PureComponent<Props> {
           </Kb.Text>
           {!!this.props.description && <Kb.Text type="Body">{this.props.description}</Kb.Text>}
           {!!this.props.imageURL &&
+            !Styles.isMobile &&
             !this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.bottomImage} />}
         </Kb.Box2>
         {!!this.props.imageURL &&
+          !Styles.isMobile &&
           this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
       </Kb.Box2>
     )
@@ -55,28 +57,38 @@ class UnfurlGeneric extends React.PureComponent<Props> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+    },
     isElectron: {
       maxWidth: 500,
+    },
+    isMobile: {
+      paddingRight: 66,
     },
   }),
   quoteContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.lightGrey,
       paddingLeft: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
       alignSelf: 'stretch',
     },
   }),
   innerContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignSelf: 'flex-start',
       paddingLeft: Styles.globalMargins.tiny,
       minWidth: 150,
     },
+    isMobile: {
+      borderWidth: 1,
+      borderRadius: Styles.borderRadius,
+      borderColor: Styles.globalColors.lightGrey,
+      padding: Styles.globalMargins.xtiny,
+    },
   }),
   siteNameContainer: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignSelf: 'flex-start',
     },
   }),
@@ -87,8 +99,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bottomImage: Styles.platformStyles({
-    isElectron: {
+    common: {
       marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
       maxWidth: 320,
       maxHeight: 180,
     },

@@ -94,7 +94,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		timeout := 20 * time.Second
+		timeout := 2 * time.Second
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
@@ -176,7 +176,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.Nil(t, recvUnfurl())
 
 		t.Logf("now work")
-		recvAndCheckUnfurlMsg := func() {
+		recvAndCheckUnfurlMsg := func(msgID chat1.MessageID) {
 			var outboxID chat1.OutboxID
 			select {
 			case m := <-listener0.newMessageRemote:
@@ -194,31 +194,45 @@ func TestChatSrvUnfurl(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, libkb.NotFoundError{}, err)
 			select {
-			case mu := <-listener0.messagesUnfurled:
-				require.Equal(t, 1, len(mu.Updates))
-				require.Equal(t, conv.Id, mu.Updates[0].ConvID)
-				require.Equal(t, origID, mu.Updates[0].Msg.GetMessageID())
-				require.True(t, mu.Updates[0].Msg.IsValid())
-				require.Equal(t, 1, len(mu.Updates[0].Msg.Valid().Unfurls))
-				typ, err := mu.Updates[0].Msg.Valid().Unfurls[0].UnfurlType()
-				require.NoError(t, err)
-				require.Equal(t, chat1.UnfurlType_GENERIC, typ)
-				generic := mu.Updates[0].Msg.Valid().Unfurls[0].Generic()
-				require.Nil(t, generic.Image)
-				require.NotNil(t, generic.Favicon)
-				require.NotZero(t, len(generic.Favicon.Url))
-				resp, err := http.Get(generic.Favicon.Url)
-				require.NoError(t, err)
-				defer resp.Body.Close()
-				var buf bytes.Buffer
-				_, err = io.Copy(&buf, resp.Body)
-				require.NoError(t, err)
-				refBytes, err := ioutil.ReadFile(filepath.Join("unfurl", "testcases", "nytimes_sol.ico"))
-				require.NoError(t, err)
-				require.True(t, bytes.Equal(refBytes, buf.Bytes()))
-				require.Equal(t, "MIKE", generic.Title)
-			case <-time.After(timeout):
-				require.Fail(t, "no message unfurl")
+			case <-listener0.newMessageRemote:
+				require.Fail(t, "no more messages")
+			default:
+			}
+			// We get two of these, one for local and remote, but its hard to know where they
+			// come from at the source, so just check twice.
+			for i := 0; i < 2; i++ {
+				select {
+				case mu := <-listener0.messagesUpdated:
+					require.Equal(t, 1, len(mu.Updates))
+					require.Equal(t, conv.Id, mu.ConvID)
+					require.Equal(t, msgID, mu.Updates[0].GetMessageID())
+					require.True(t, mu.Updates[0].IsValid())
+					require.Equal(t, 1, len(mu.Updates[0].Valid().Unfurls))
+					typ, err := mu.Updates[0].Valid().Unfurls[0].Unfurl.UnfurlType()
+					require.NoError(t, err)
+					require.Equal(t, chat1.UnfurlType_GENERIC, typ)
+					generic := mu.Updates[0].Valid().Unfurls[0].Unfurl.Generic()
+					require.Nil(t, generic.Image)
+					require.NotNil(t, generic.Favicon)
+					require.NotZero(t, len(generic.Favicon.Url))
+					resp, err := http.Get(generic.Favicon.Url)
+					require.NoError(t, err)
+					defer resp.Body.Close()
+					var buf bytes.Buffer
+					_, err = io.Copy(&buf, resp.Body)
+					require.NoError(t, err)
+					refBytes, err := ioutil.ReadFile(filepath.Join("unfurl", "testcases", "nytimes_sol.ico"))
+					require.NoError(t, err)
+					require.True(t, bytes.Equal(refBytes, buf.Bytes()))
+					require.Equal(t, "MIKE", generic.Title)
+				case <-time.After(timeout):
+					require.Fail(t, "no message unfurl")
+				}
+			}
+			select {
+			case <-listener0.messagesUpdated:
+				require.Fail(t, "no more updates")
+			default:
 			}
 		}
 		httpSrv.succeed = true
@@ -230,7 +244,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlType_GENERIC, typ)
 		require.Equal(t, "MIKE", u.Generic().Title)
-		recvAndCheckUnfurlMsg()
+		recvAndCheckUnfurlMsg(origID)
 
 		t.Logf("make sure we don't unfurl twice")
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
@@ -247,10 +261,11 @@ func TestChatSrvUnfurl(t *testing.T) {
 		default:
 		}
 
-		t.Logf("exploding unfurl")
-		dur := gregor1.ToDurationSec(60 * time.Second)
-		mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
+		t.Logf("exploding unfurl: %v", ctc.world.Fc.Now())
+		dur := gregor1.ToDurationSec(120 * time.Minute)
+		ctc.as(t, users[0]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
+		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		recvAndCheckUnfurlMsg()
+		recvAndCheckUnfurlMsg(origExplodeID)
 	})
 }
