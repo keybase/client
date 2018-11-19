@@ -18,7 +18,7 @@ type Props = {
   routePath: I.List<string>,
   targetName: string,
   targetIconSpec: Types.PathItemIconSpec,
-  onCancel: () => void,
+  onCancel: (() => void) | null,
   onCopyHere?: ?() => void,
   onMoveHere?: ?() => void,
   onNewFolder?: ?() => void,
@@ -55,6 +55,7 @@ const DesktopHeaders = (props: Props) => (
   </>
 )
 
+// $FlowIssue
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     {!isMobile && <DesktopHeaders {...props} />}
@@ -135,7 +136,6 @@ export default (isMobile
           </Kb.Box2>
         </Kb.Box2>
       ),
-      // $FlowFixMe
     }))(Kb.HeaderHoc(DestinationPicker))
   : Kb.HeaderOrPopup(DestinationPicker))
 

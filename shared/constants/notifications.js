@@ -6,7 +6,10 @@ import * as Tabs from './tabs'
 import {isMobile} from './platform'
 import type {TypedState} from './reducer'
 
-export const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState, state: TypedState) => {
+export const badgeStateToBadgeCounts = (
+  bs: RPCTypes.BadgeState,
+  state: TypedState
+): ?{|counts: I.Map<Tabs.Tab, number>|} => {
   const {
     homeTodoItems,
     conversations,

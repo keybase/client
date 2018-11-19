@@ -7,7 +7,7 @@ import type {Props} from './index.types'
 import logger from '../../logger'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />
-const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
+const RelativeFloatingBox = ModalPositionRelative<any>(StyleOnlyBox)
 
 type State = {
   targetRect: ?ClientRect,
