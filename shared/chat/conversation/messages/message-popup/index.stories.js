@@ -111,6 +111,12 @@ const load = () => {
     .add('Exploding later', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText} />
     ))
+    .add('Exploding w/ revoked device at 0', () => (
+      <ExplodingPopupMenu {...commonExplodingProps} deviceRevokedAt={0} message={explodingLaterText} />
+    ))
+    .add('Exploding w/ revoked device', () => (
+      <ExplodingPopupMenu {...commonExplodingProps} deviceRevokedAt={5} message={explodingLaterText} />
+    ))
     .add('Exploding soon', () => <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonText} />)
     .add('Exploding attachment', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonAttachment} />
