@@ -53,7 +53,7 @@ const hudStyle = {
 
 // TODO share this connector with user-mention-hud?
 const MentionHud = compose(
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {selectedIndex: 0},
     {
       setSelectedIndex: () => (selectedIndex: number) => ({selectedIndex}),

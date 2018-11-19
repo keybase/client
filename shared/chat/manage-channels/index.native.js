@@ -178,10 +178,9 @@ const _createIcon = {
   marginRight: globalMargins.xtiny,
 }
 
-export default compose(
-  renameProp('onClose', 'onBack'),
-  withProps(props => ({
-    customComponent: <Header {...props} />,
-  })),
-  HeaderHoc
-)(ManageChannels)
+const Wrapper = (p: Props) => (
+  // $FlowIssue
+  <ManageChannels onClose={undefined} onBack={p.onClose} customComponent={<Header {...p} />} />
+)
+
+export default HeaderHoc(Wrapper)
