@@ -24,16 +24,16 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>
           <Kb.Text type="Body">Your Keybase app will visit the link and post a preview of it.</Kb.Text>
           <Kb.Text onClick={this.props.onAlways} type="BodyPrimaryLink">
-            Always for any site.
+            Always, for any site
           </Kb.Text>
           <Kb.Text onClick={this.props.onAccept} type="BodyPrimaryLink">
-            Always, for {this.props.domain}.
+            Always, for {this.props.domain}
           </Kb.Text>
           <Kb.Text onClick={this.props.onNotnow} type="BodyPrimaryLink">
-            Not now.
+            Not now
           </Kb.Text>
           <Kb.Text onClick={this.props.onNever} type="BodyPrimaryLink">
-            Never, for any site.
+            Never, for any site
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
