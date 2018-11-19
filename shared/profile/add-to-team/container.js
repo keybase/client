@@ -10,8 +10,9 @@ import {
   type RouteProps,
 } from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Constants from '../../constants/teams'
+import * as WaitingConstants from '../../constants/waiting'
 import {HeaderOnMobile} from '../../common-adapters'
-import {getSortedTeamnames} from '../../constants/teams'
 import {navigateAppend} from '../../actions/route-tree'
 import type {TeamRoleType} from '../../constants/types/teams'
 
@@ -20,8 +21,9 @@ type OwnProps = RouteProps<{username: string}, {}>
 const mapStateToProps = (state, {routeProps}) => {
   return {
     _them: routeProps.get('username'),
-    teamnames: getSortedTeamnames(state),
     teamProfileAddList: state.teams.get('teamProfileAddList'),
+    teamnames: Constants.getSortedTeamnames(state),
+    waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
   }
 }
 

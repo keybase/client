@@ -103,7 +103,7 @@ const _getTeamProfileAddList = function(state: TypedState, action: TeamsGen.GetT
   const {username} = action.payload
   return RPCTypes.teamsTeamProfileAddListRpcPromise({username}, Constants.teamProfileAddListWaitingKey
   ).then(res => {
-    const teamlist = res.map(team => ({
+    const teamlist = res && res.map(team => ({
       disabledReason: team.disabledReason,
       open: team.open,
       teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
@@ -111,7 +111,7 @@ const _getTeamProfileAddList = function(state: TypedState, action: TeamsGen.GetT
     if (teamlist) {
       teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
     }
-    return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist)})
+    return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist || [])})
   })
 }
 

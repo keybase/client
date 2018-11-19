@@ -44,7 +44,7 @@ const TeamRow = (props: RowProps) => (
           </Text>
           {props.isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
         </Box2>
-        <Box2 direction="horizontal">
+        <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
           <Text type="BodySmall">{props.disabledReason}</Text>
         </Box2>
       </Box2>
@@ -88,7 +88,7 @@ const AddToTeam = (props: Props) => {
 
       <ScrollView style={{width: '100%'}}>
         <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-          {props.teamProfileAddList.length > 0 ? (
+          {!props.waiting ? (
             props.teamProfileAddList.map(team => (
               <TeamRow
                 canAddThem={!team.disabledReason}

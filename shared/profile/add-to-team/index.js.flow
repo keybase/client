@@ -30,6 +30,7 @@ export type Props = {
   teamProfileAddList: Array<Types.TeamProfileAddList>,
   teamnames: Array<Types.Teamname>,
   them: string,
+  waiting: boolean,
 }
 
 export default class AddToTeam extends Component<Props> {}
