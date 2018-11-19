@@ -101,8 +101,11 @@ const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup', module)
     .addDecorator(provider)
     .add('Text', () => <TextPopupMenu {...defaultProps} {...textMessage.toJS()} />)
-    .add('Text w/ revoked device', () => (
+    .add('Text w/ revoked device at 0', () => (
       <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={0} />
+    ))
+    .add('Text w/ revoked device', () => (
+      <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={5} />
     ))
     .add('Attachment', () => <AttachmentPopupMenu {...defaultProps} {...attachmentMessage.toJS()} />)
     .add('Exploding later', () => (
