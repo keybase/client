@@ -4,6 +4,8 @@ import {connect} from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => {
   const build = state.wallets.building
   const built = state.wallets.builtPayment
@@ -43,7 +45,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({})
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

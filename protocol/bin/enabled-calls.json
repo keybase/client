@@ -41,6 +41,7 @@
   "chat.1.local.unboxMobilePushNotification": {"promise": true},
   "chat.1.local.updateTyping": {"promise": true},
   "chat.1.local.profileChatSearch": {"promise": true},
+  "chat.1.local.resolveUnfurlPrompt": {"promise": true},
   "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancel": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCheck": {"promise": true},

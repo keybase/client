@@ -29,7 +29,6 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
-		4376CBD1EC5D403894CED5FE /* libFastImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8D7DD7B2FB54BADB1EBADA2 /* libFastImage.a */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -78,6 +77,7 @@
 		DBF65BAF219C7E99001B6ED3 /* Lottie.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; };
 		DBF65BB0219C7E99001B6ED3 /* Lottie.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65BA8219C7E8E001B6ED3 /* Lottie.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DBF65BB3219C80A9001B6ED3 /* libLottieReactNative.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF65B8F219C787D001B6ED3 /* libLottieReactNative.a */; };
+		DBFCE8BC219F8F440006F35D /* libFastImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB50CC87219DF55B00903110 /* libFastImage.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -571,7 +571,6 @@
 		DBEE307D1FE8511F0020EBA5 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDFileLogger.m; sourceTree = "<group>"; };
 		DBEE307E1FE8511F0020EBA5 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
 		DBEE307F1FE8511F0020EBA5 /* DDASLLogCapture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogCapture.m; sourceTree = "<group>"; };
-		E8D7DD7B2FB54BADB1EBADA2 /* libFastImage.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libFastImage.a; sourceTree = "<group>"; };
 		DBF65BA0219C7E8D001B6ED3 /* Lottie.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Lottie.xcodeproj; path = "../../node_modules/lottie-ios/Lottie.xcodeproj"; sourceTree = "<group>"; };
 		FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNImagePicker.xcodeproj; path = "../../node_modules/react-native-image-picker/ios/RNImagePicker.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -581,6 +580,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBFCE8BC219F8F440006F35D /* libFastImage.a in Frameworks */,
 				DBF65BB3219C80A9001B6ED3 /* libLottieReactNative.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */,
@@ -601,7 +601,6 @@
 				DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */,
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
-				4376CBD1EC5D403894CED5FE /* libFastImage.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -779,7 +778,6 @@
 		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				E8D7DD7B2FB54BADB1EBADA2 /* libFastImage.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";

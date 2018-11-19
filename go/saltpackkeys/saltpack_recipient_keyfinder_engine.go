@@ -155,7 +155,7 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 		// nothing to do here
 	case libkb.IsIdentifyProofError(err):
 		return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
-	case libkb.IsNotFoundError(err) || libkb.IsResolutionError(err):
+	case libkb.IsNotFoundError(err) || libkb.IsResolutionNotFoundError(err):
 		// recipient is not a keybase user
 
 		expr, err := externals.AssertionParse(m.G(), u)
@@ -178,7 +178,7 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove `--no-self-encrypt` for users not yet on keybase)", u))
 		}
 
-		m.CDebugf("%v is not an existing user, trying to create an implicit team")
+		m.CDebugf("%q is not an existing user, trying to create an implicit team", u)
 		err = e.lookupAndAddImplicitTeamKeys(m, u)
 		return err
 	case libkb.IsNoKeyError(err):

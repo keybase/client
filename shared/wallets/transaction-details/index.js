@@ -280,7 +280,12 @@ const TransactionDetails = (props: NotLoadingProps) => {
         />
       </Kb.Box2>
       <Kb.Divider />
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        gap="small"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.container, styles.flexOne])}
+      >
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -424,6 +429,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
+  flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
   partyAccountContainer: {
     alignSelf: 'flex-start',
@@ -439,6 +445,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
   },
   statusBox: {

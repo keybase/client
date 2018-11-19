@@ -12,6 +12,8 @@ import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
 import {namedConnect, isMobile} from '../../../util/container'
 
+type OwnProps = {||}
+
 const mapStateToPropsKeybaseUser = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
@@ -48,7 +50,7 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
   }
 }
 
-const ConnectedParticipantsKeybaseUser = namedConnect(
+const ConnectedParticipantsKeybaseUser = namedConnect<OwnProps, _, _, _, _>(
   mapStateToPropsKeybaseUser,
   mapDispatchToPropsKeybaseUser,
   mergePropsKeybaseUser,
@@ -90,7 +92,7 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   },
 })
 
-const ConnectedParticipantsStellarPublicKey = namedConnect(
+const ConnectedParticipantsStellarPublicKey = namedConnect<OwnProps, _, _, _, _>(
   mapStateToPropsStellarPublicKey,
   mapDispatchToPropsStellarPublicKey,
   (s, d, o) => ({...o, ...s, ...d}),
@@ -150,7 +152,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
     ),
 })
 
-const ConnectedParticipantsOtherAccount = namedConnect(
+const ConnectedParticipantsOtherAccount = namedConnect<OwnProps, _, _, _, _>(
   mapStateToPropsOtherAccount,
   mapDispatchToPropsOtherAccount,
   (s, d, o) => ({...o, ...s, ...d}),
@@ -181,7 +183,7 @@ const ParticipantsChooser = props => {
   }
 }
 
-const ConnectedParticipantsChooser = namedConnect(
+const ConnectedParticipantsChooser = namedConnect<OwnProps, _, _, _, _>(
   mapStateToPropsChooser,
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),

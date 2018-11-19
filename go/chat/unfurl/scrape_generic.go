@@ -20,12 +20,25 @@ func fullURL(hostname, path string) string {
 }
 
 func (s *Scraper) setAndParsePubTime(ctx context.Context, content string, generic *scoredGenericRaw, score int) {
-	s.Debug(ctx, "pubdate: %s", content)
-	t, err := time.Parse("2006-01-02T15:04:05Z", content)
+	s.Debug(ctx, "scrapeGeneric: pubdate: %s", content)
+	formats := []string{
+		"2006-01-02T15:04:05Z",
+		"20060102",
+	}
+	var t time.Time
+	var err error
+	for _, f := range formats {
+		if t, err = time.Parse(f, content); err != nil {
+			s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: format: %s err: %s", f, err)
+		} else {
+			break
+		}
+	}
 	if err != nil {
-		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate: %s", err)
+		s.Debug(ctx, "scrapeGeneric: failed to parse pubdate with any format")
 	} else {
 		publishTime := int(t.Unix())
+		s.Debug(ctx, "scrapeGeneric: success: %d", publishTime)
 		generic.setPublishTime(&publishTime, score)
 	}
 }

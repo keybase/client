@@ -31,10 +31,10 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         displayAmountXLM={props.displayAmountXLM}
         displayAmountFiat={props.displayAmountFiat}
       />
+      {(props.banners || []).map(banner => (
+        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+      ))}
       <Kb.ScrollView style={styles.scrollView}>
-        {(props.banners || []).map(banner => (
-          <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-        ))}
         <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />

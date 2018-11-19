@@ -1,0 +1,37 @@
+// @flow
+declare export function memoize1<F, A1>(func: F, equalityCheck?: (a: A1, b: A1) => boolean): F
+declare export function memoize2<F, A1, A2>(
+  func: F,
+  equalityCheck?: (a: A1, b: A1) => boolean,
+  equalityCheck?: (a: A2, b: A2) => boolean
+): F
+declare export function memoize3<F, A1, A2, A3>(
+  func: F,
+  equalityCheck?: (a: A1, b: A1) => boolean,
+  equalityCheck?: (a: A2, b: A2) => boolean,
+  equalityCheck?: (a: A3, b: A3) => boolean
+): F
+declare export function memoize4<F, A1, A2, A3, A4>(
+  func: F,
+  equalityCheck?: (a: A1, b: A1) => boolean,
+  equalityCheck?: (a: A2, b: A2) => boolean,
+  equalityCheck?: (a: A3, b: A3) => boolean,
+  equalityCheck?: (a: A4, b: A4) => boolean
+): F
+declare export function memoize5<F, A1, A2, A3, A4, A5>(
+  func: F,
+  equalityCheck?: (a: A1, b: A1) => boolean,
+  equalityCheck?: (a: A2, b: A2) => boolean,
+  equalityCheck?: (a: A3, b: A3) => boolean,
+  equalityCheck?: (a: A4, b: A4) => boolean,
+  equalityCheck?: (a: A5, b: A5) => boolean
+): F
+declare export function memoize6<F, A1, A2, A3, A4, A5, A6>(
+  func: F,
+  equalityCheck?: (a: A1, b: A1) => boolean,
+  equalityCheck?: (a: A2, b: A2) => boolean,
+  equalityCheck?: (a: A3, b: A3) => boolean,
+  equalityCheck?: (a: A4, b: A4) => boolean,
+  equalityCheck?: (a: A5, b: A5) => boolean,
+  equalityCheck?: (a: A6, b: A6) => boolean
+): F

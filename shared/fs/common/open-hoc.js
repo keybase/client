@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import memoize from 'memoize-one'
+import {memoize2} from '../../util/memoize'
 import {namedConnect} from '../../util/container'
 
 type OwnProps = {
@@ -33,7 +33,7 @@ const isFolder = (stateProps, ownProps) =>
   Types.getPathLevel(ownProps.path) <= 3 ||
   stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
 
-const canOpenInDestinationPicker = memoize(
+const canOpenInDestinationPicker = memoize2(
   (stateProps, ownProps) =>
     !isFolder(stateProps, ownProps) || stateProps._moveOrCopy.sourceItemPath === ownProps.path
 )

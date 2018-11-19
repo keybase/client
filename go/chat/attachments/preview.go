@@ -17,9 +17,10 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
-	"golang.org/x/net/context"
-
+	_ "github.com/keybase/golang-ico" // for image decoding
 	"github.com/nfnt/resize"
+	_ "golang.org/x/image/bmp" // for image decoding
+	"golang.org/x/net/context"
 
 	"camlistore.org/pkg/images"
 )
@@ -45,7 +46,7 @@ type PreviewRes struct {
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
 	basename string, nvh types.NativeVideoHelper) (*PreviewRes, error) {
 	switch contentType {
-	case "image/jpeg", "image/png":
+	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
 		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
 		return previewGIF(ctx, log, src, basename)
@@ -115,12 +116,13 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 	var buf bytes.Buffer
 
 	var encodeContentType string
-	if contentType == "image/png" {
+	switch contentType {
+	case "image/vnd.microsoft.icon", "image/x-icon", "image/png":
 		encodeContentType = "image/png"
 		if err := png.Encode(&buf, preview); err != nil {
 			return nil, err
 		}
-	} else {
+	default:
 		encodeContentType = "image/jpeg"
 		if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: 90}); err != nil {
 			return nil, err

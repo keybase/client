@@ -177,10 +177,11 @@ export const updateMetaWithNotificationSettings = (
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
   } = parseNotificationSettings(notifications)
-  return old
-    .set('notificationsDesktop', notificationsDesktop)
-    .set('notificationsGlobalIgnoreMentions', notificationsGlobalIgnoreMentions)
-    .set('notificationsMobile', notificationsMobile)
+  return (old.merge({
+    notificationsDesktop: notificationsDesktop,
+    notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
+    notificationsMobile: notificationsMobile,
+  }): Types.ConversationMeta)
 }
 
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {

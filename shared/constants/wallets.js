@@ -4,6 +4,7 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
+import * as SettingsConstants from './settings'
 import {isMobile} from './platform'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
@@ -460,14 +461,14 @@ const paymentToYourInfoAndCounterparty = (
 const updatePaymentDetail = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentDetail: Types.PaymentDetail
-) => {
+): I.Map<Types.PaymentID, Types.Payment> => {
   return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
 }
 
 const updatePaymentsReceived = (
   map: I.Map<Types.PaymentID, Types.Payment>,
   paymentResults: Array<Types.PaymentResult>
-) => {
+): I.Map<Types.PaymentID, Types.Payment> => {
   return map.withMutations(mapMutable =>
     paymentResults.forEach(paymentResult =>
       mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))
@@ -580,7 +581,8 @@ const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = ''
   return sign + balanceChange
 }
 
-const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab]
+const rootWalletTab = isMobile ? [Tabs.settingsTab] : [Tabs.walletsTab] // tab for wallets
+const rootWalletPath = [...rootWalletTab, ...(isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 
 const isLookingAtWallet = (routeState: ?RouteStateNode) =>
   getPath(routeState, rootWalletTab).get(isMobile ? 2 : 1) === 'wallet'
@@ -644,6 +646,7 @@ export {
   paymentToYourInfoAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
+  rootWalletPath,
   rootWalletTab,
   rpcPaymentDetailToPaymentDetail,
   rpcPaymentResultToPaymentResult,

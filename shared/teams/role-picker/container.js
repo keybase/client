@@ -86,7 +86,6 @@ export default compose(
     mapDispatchToProps,
     mergeProps
   ),
-  // $FlowIssue fix this up
   withStateHandlers(
     ({currentType}: {currentType: Types.TeamRoleType}) => ({
       selectedRole: currentType,
