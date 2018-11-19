@@ -37,6 +37,7 @@ export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const pushLoaded = 'config:pushLoaded'
+export const requestContactPermissions = 'config:requestContactPermissions'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
 export const setDeletedSelf = 'config:setDeletedSelf'
@@ -98,6 +99,7 @@ type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
+type _RequestContactPermissionsPayload = $ReadOnly<{|actionOnComplete: any|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|
   defaultUsername: string,
@@ -196,6 +198,7 @@ export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: lo
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
+export const createRequestContactPermissions = (payload: _RequestContactPermissionsPayload) => ({payload, type: requestContactPermissions})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({payload, type: setDeletedSelf})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({payload, type: setNotifySound})
@@ -233,6 +236,7 @@ export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
 export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
 export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
 export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
+export type RequestContactPermissionsPayload = $Call<typeof createRequestContactPermissions, _RequestContactPermissionsPayload>
 export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
 export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
 export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
@@ -275,6 +279,7 @@ export type Actions =
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | PushLoadedPayload
+  | RequestContactPermissionsPayload
   | RestartHandshakePayload
   | SetAccountsPayload
   | SetDeletedSelfPayload

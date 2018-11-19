@@ -21,6 +21,7 @@ import {
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
+import * as Contacts from 'react-native-contacts'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
@@ -301,6 +302,42 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
+const checkContactPermissionWrapped = () =>
+  new Promise((resolve, reject) =>
+    Contacts.checkPermission((err, permission) => (err ? reject(err) : resolve(permission)))
+  )
+
+// second param is supposed to be permission result, but buggy so we ignore it
+const requestContactPermissionWrapped = () =>
+  new Promise((resolve, reject) => Contacts.requestPermission((err, _) => (err ? reject(err) : resolve())))
+
+function* requestContactPermissions(action: ConfigGen.RequestContactPermissionsPayload) {
+  const {actionOnComplete} = action.payload
+  try {
+    if (isAndroid) {
+      // tiptoe around the sea of crashes here
+      // check permissions first
+      logger.info('requestContactPermissions: checking permissions')
+      const permission = yield checkContactPermissionWrapped()
+      if (permission === 'authorized') {
+        logger.info('requestContactPermissions: granted')
+        // permission granted; return (to finally)
+        return
+      }
+      logger.info('requestContactPermissions: denied. requesting permissions...')
+      // no perms, request
+      yield requestContactPermissionWrapped()
+    } else {
+      // on iOS the system will automatically ask for permissions when we try
+      // to access the contacts, and throw an error if we don't have them.
+    }
+  } catch (err) {
+    throw err
+  } finally {
+    yield Saga.sequentially(actionOnComplete.map(a => Saga.put(a)))
+  }
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
@@ -308,6 +345,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield Saga.safeTakeEvery(ConfigGen.requestContactPermissions, requestContactPermissions)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel

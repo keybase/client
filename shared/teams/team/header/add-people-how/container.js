@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as ConfigGen from '../../../../actions/config-gen'
 import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
 import {navigateTo, switchTo} from '../../../../actions/route-tree'
@@ -25,12 +26,16 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
     },
     onInvite: () => {
       dispatch(
-        navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
-          [teamsTab]
-        )
+        ConfigGen.createRequestContactPermissions({
+          actionOnComplete: [
+            navigateTo(
+              [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
+              [teamsTab]
+            ),
+            switchTo([teamsTab]),
+          ],
+        })
       )
-      dispatch(switchTo([teamsTab]))
     },
   }
 }

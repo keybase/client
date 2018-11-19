@@ -102,6 +102,7 @@
     "copyToClipboard": {"text": "string"},
     "_avatarQueue": {},
     "checkForUpdate": {},
+    "requestContactPermissions": {"actionOnComplete": "any"},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
     "updateNow": {}
   }

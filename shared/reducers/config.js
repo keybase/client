@@ -209,6 +209,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.copyToClipboard:
     case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
+    case ConfigGen.requestContactPermissions:
       return state
     default:
       /*::

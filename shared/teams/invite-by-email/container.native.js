@@ -135,7 +135,7 @@ export default compose(
         // TODO test this permission flow on a real build
         getContacts().then(
           val => {
-            this.props._setHasPermission(val.hasPermission)
+            this.props._setHasPermission(true)
             this.props._setContacts(val.contacts)
           },
           err => {

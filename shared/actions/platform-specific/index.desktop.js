@@ -281,6 +281,9 @@ const updateNow = () =>
     ConfigGen.createCheckForUpdate()
   )
 
+const requestContactPermissions = (_, action: ConfigGen.RequestContactPermissionsPayload) =>
+  Saga.sequentially([action.payload.actionOnComplete.map(a => Saga.put(a))])
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -294,6 +297,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(ConfigGen.checkForUpdate, checkForUpdate)
   yield Saga.spawn(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield Saga.actionToAction(ConfigGen.requestContactPermissions, requestContactPermissions)
 
   if (isWindows) {
     yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)
