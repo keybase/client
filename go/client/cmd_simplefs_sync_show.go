@@ -53,6 +53,10 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 		ui.Printf("Syncing disabled\n")
 	case keybase1.FolderSyncMode_ENABLED:
 		ui.Printf("Syncing enabled\n")
+		a := res.Status.LocalDiskBytesAvailable
+		t := res.Status.LocalDiskBytesTotal
+		ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
+			humanizeBytes(a, false), float64(a)/float64(t)*100)
 	default:
 		return fmt.Errorf("Unknown sync mode: %s", res.Config.Mode)
 	}

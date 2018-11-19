@@ -625,7 +625,16 @@
     {
       "type": "record",
       "name": "FolderSyncStatus",
-      "fields": []
+      "fields": [
+        {
+          "type": "int64",
+          "name": "localDiskBytesAvailable"
+        },
+        {
+          "type": "int64",
+          "name": "localDiskBytesTotal"
+        }
+      ]
     },
     {
       "type": "record",
