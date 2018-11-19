@@ -58,7 +58,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     amountXLM: tx.amountDescription,
     memo,
     onCancelPayment:
-      tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+      tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),

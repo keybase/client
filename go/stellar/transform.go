@@ -105,9 +105,20 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
 func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, p.From, p.To, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, exchRate)
 	if err != nil {
 		return nil, err
+	}
+
+	isSender := p.From.Eq(acctID)
+	isRecipient := p.To.Eq(acctID)
+	switch {
+	case isSender && isRecipient:
+		loc.Delta = stellar1.BalanceDelta_NONE
+	case isSender:
+		loc.Delta = stellar1.BalanceDelta_DECREASE
+	case isRecipient:
+		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
 	loc.FromAccountID = p.From
@@ -125,9 +136,20 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, p.FromStellar, p.ToStellar, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset, exchRate)
 	if err != nil {
 		return nil, err
+	}
+
+	isSender := p.FromStellar.Eq(acctID)
+	isRecipient := p.ToStellar.Eq(acctID)
+	switch {
+	case isSender && isRecipient:
+		loc.Delta = stellar1.BalanceDelta_NONE
+	case isSender:
+		loc.Delta = stellar1.BalanceDelta_DECREASE
+	case isRecipient:
+		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
 	loc.Worth, loc.WorthCurrency, err = formatWorth(mctx, p.DisplayAmount, p.DisplayCurrency)
@@ -164,17 +186,15 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 
 // transformPaymentRelay converts a stellar1.PaymentSummaryRelay into a stellar1.PaymentLocal.
 func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	var toStellar stellar1.AccountID
-	if p.Claim != nil {
-		toStellar = p.Claim.ToStellar
-	}
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative(), p.FromStellar, toStellar, acctID, exchRate)
+	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative(), exchRate)
 	if err != nil {
 		return nil, err
 	}
-	// Hack: newPaymentLocal doesn't calculate delta right for relays and gui kills wallet tab when it sees NONE for relays.
+
+	// isSender compares uid but not eldest-seqno because relays can survive resets.
+	isSender := p.From.Uid.Equal(mctx.G().GetMyUID())
 	loc.Delta = stellar1.BalanceDelta_INCREASE
-	if p.From.Uid.Equal(mctx.G().GetMyUID()) {
+	if isSender {
 		loc.Delta = stellar1.BalanceDelta_DECREASE
 	}
 
@@ -184,14 +204,16 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	}
 
 	loc.FromAccountID = p.FromStellar
-	loc.FromType = stellar1.ParticipantType_STELLAR
-	if username, err := lookupUsername(mctx, p.From.Uid); err == nil {
-		loc.FromUsername = username
-		loc.FromType = stellar1.ParticipantType_KEYBASE
+	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
+	if err != nil {
+		mctx.CDebugf("sender lookup failed: %s", err)
+		return nil, errors.New("sender lookup failed")
 	}
+	loc.FromType = stellar1.ParticipantType_KEYBASE
 
 	loc.ToAssertion = p.ToAssertion
 	loc.ToType = stellar1.ParticipantType_SBS
+	toName := loc.ToAssertion
 	if p.To != nil {
 		username, err := lookupUsername(mctx, p.To.Uid)
 		if err != nil {
@@ -200,16 +222,19 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		}
 		loc.ToUsername = username
 		loc.ToType = stellar1.ParticipantType_KEYBASE
+		toName = username
 	}
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
-		// If the funding tx is not complete
+		// The funding tx is not complete.
 		loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 		loc.StatusDetail = p.TxErrMsg
 	} else {
 		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
-		loc.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
-		loc.ShowCancel = true
+		if isSender {
+			loc.StatusDetail = fmt.Sprintf("%v can claim this when they set up their wallet.", toName)
+			loc.ShowCancel = true
+		}
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.ToPaymentStatus()
@@ -338,21 +363,8 @@ func newPaymentLocal(mctx libkb.MetaContext,
 	ctime stellar1.TimeMs,
 	amount string,
 	asset stellar1.Asset,
-	from, to, requester stellar1.AccountID,
 	exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
-
-	isSender := from == requester
-	isRecipient := to == requester
-	switch {
-	case isSender && isRecipient:
-		// sent to self
-		loc.Delta = stellar1.BalanceDelta_NONE
-	case isSender:
-		loc.Delta = stellar1.BalanceDelta_DECREASE
-	case isRecipient:
-		loc.Delta = stellar1.BalanceDelta_INCREASE
-	}
 
 	formatted, err := FormatAmountDescriptionAsset(amount, asset)
 	if err != nil {

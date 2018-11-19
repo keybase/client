@@ -147,6 +147,7 @@ export type _PaymentCommon = {|
   statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
+  showCancel: boolean,
   target: string,
   targetAccountID: ?string,
   targetType: string,

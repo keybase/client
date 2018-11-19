@@ -383,9 +383,7 @@ export const Transaction = (props: Props) => {
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
                 <Box2 direction="vertical" gap="tiny">
-                  <Text type="BodySmall">
-                    {props.counterparty} can claim this when they set up their wallet.
-                  </Text>
+                  <Text type="BodySmall">{props.statusDetail}</Text>
                   <WaitingButton
                     type="Danger"
                     label="Cancel"
