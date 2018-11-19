@@ -1598,6 +1598,7 @@ export const simpleFSDirentType = {
 export const simpleFSFolderSyncMode = {
   disabled: 0,
   enabled: 1,
+  partial: 2,
 }
 
 export const simpleFSKBFSArchivedType = {
@@ -1952,11 +1953,12 @@ export type FileType =
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
 export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID}>
-export type FolderSyncConfig = $ReadOnly<{mode: FolderSyncMode}>
+export type FolderSyncConfig = $ReadOnly<{mode: FolderSyncMode, paths?: ?Array<String>}>
 export type FolderSyncConfigAndStatus = $ReadOnly<{config: FolderSyncConfig, status: FolderSyncStatus}>
 export type FolderSyncMode =
   | 0 // DISABLED_0
   | 1 // ENABLED_1
+  | 2 // PARTIAL_2
 
 export type FolderSyncStatus = $ReadOnly<{localDiskBytesAvailable: Int64, localDiskBytesTotal: Int64}>
 export type FolderType =

@@ -609,7 +609,8 @@
       "name": "FolderSyncMode",
       "symbols": [
         "DISABLED_0",
-        "ENABLED_1"
+        "ENABLED_1",
+        "PARTIAL_2"
       ]
     },
     {
@@ -619,6 +620,13 @@
         {
           "type": "FolderSyncMode",
           "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "paths"
         }
       ]
     },

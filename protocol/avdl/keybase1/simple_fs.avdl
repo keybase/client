@@ -428,13 +428,14 @@ protocol SimpleFS {
 
   enum FolderSyncMode {
     DISABLED_0,
-    ENABLED_1
-    // TODO(KBFS-3522): add partial mode.
+    ENABLED_1,
+    PARTIAL_2
   }
 
   record FolderSyncConfig {
     FolderSyncMode mode;
-    // TODO(KBFS-3522): add specific paths to sync in partial mode.
+    // paths is only used when the mode is PARTIAL
+    array<string> paths;
   }
 
   record FolderSyncStatus {
