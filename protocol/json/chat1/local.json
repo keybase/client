@@ -1091,8 +1091,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "UnfurlResult"
+            "type": "map",
+            "values": "UnfurlResult",
+            "keys": "MessageID"
           },
           "name": "unfurls"
         }

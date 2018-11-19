@@ -576,6 +576,25 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
+const messagesUpdatedToActions = (info: RPCChatTypes.MessagesUpdated, state: TypedState) => {
+  const conversationIDKey = Types.conversationIDToKey(info.convID)
+  const messages = (info.updates || []).reduce((l, msg) => {
+    const messageID = Constants.getMessageID(msg)
+    if (!messageID) {
+      return l
+    }
+    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, msg)
+    if (!uiMsg) {
+      return l
+    }
+    return l.concat({
+      messageID: Types.numberToMessageID(messageID),
+      message: uiMsg,
+    })
+  }, [])
+  return [Chat2Gen.createUpdateMessages({conversationIDKey, messages})]
+}
+
 // Get actions to update the messagemap when reactions are updated
 const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
@@ -658,6 +677,10 @@ const setupEngineListeners = () => {
         case RPCChatTypes.notifyChatChatActivityType.reactionUpdate:
           return activity.reactionUpdate
             ? arrayOfActionsToSequentially(reactionUpdateToActions(activity.reactionUpdate))
+            : null
+        case RPCChatTypes.notifyChatChatActivityType.messagesUpdated:
+          return activity.messagesUpdated
+            ? arrayOfActionsToSequentially(messagesUpdatedToActions(activity.messagesUpdated, getState()))
             : null
         default:
           break
@@ -780,6 +803,19 @@ const setupEngineListeners = () => {
         })
       )
     },
+    'chat.1.NotifyChat.ChatPromptUnfurl': notif => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const messageID = Types.numberToMessageID(notif.msgID)
+      const domain = notif.domain
+      return Saga.put(
+        Chat2Gen.createUnfurlTogglePrompt({
+          conversationIDKey,
+          messageID,
+          domain,
+          show: true,
+        })
+      )
+    },
   })
 }
 
@@ -790,6 +826,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
     case 'delete':
     case 'attachmentuploaded':
     case 'reaction':
+    case 'unfurl':
       break
     default:
       arr.push(RPCChatTypes.commonMessageType[key])
@@ -2531,6 +2568,28 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const unfurlDismissPrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, domain} = action.payload
+  return Saga.put(
+    Chat2Gen.createUnfurlTogglePrompt({
+      conversationIDKey,
+      messageID,
+      domain,
+      show: false,
+    })
+  )
+}
+
+const unfurlResolvePrompt = (state: TypedState, action: Chat2Gen.UnfurlResolvePromptPayload) => {
+  const {conversationIDKey, messageID, result} = action.payload
+  return Saga.call(RPCChatTypes.localResolveUnfurlPromptRpcPromise, {
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: Types.messageIDToNumber(messageID),
+    result,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+  })
+}
+
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
   if (action.payload.pendingMode === 'newChat') {
     return Saga.put(
@@ -2704,6 +2763,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.messageSend], clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
+
+  // Unfurl
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
+  yield Saga.actionToAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
 
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],

@@ -13,7 +13,6 @@ import {
   WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {renameProp, compose, withProps} from 'recompose'
 import type {Props, RowProps} from './index.types'
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (

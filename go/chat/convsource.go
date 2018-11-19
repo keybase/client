@@ -1120,6 +1120,7 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		updatedMsgs[body.Unfurl().MessageID] = true
 	}
 	if len(updatedMsgs) == 0 {
+		s.Debug(ctx, "notifyUnfurls: nothing to do")
 		return
 	}
 	s.Debug(ctx, "notifyUnfurls: fetching %d messages", len(updatedMsgs))
@@ -1141,14 +1142,13 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
 		return
 	}
-	var notif chat1.UnfurlUpdateNotifs
-	for _, msg := range unfurledMsgs {
-		notif.Updates = append(notif.Updates, chat1.UnfurlUpdateNotif{
-			ConvID: convID,
-			Msg:    utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID),
-		})
+	notif := chat1.MessagesUpdated{
+		ConvID: convID,
 	}
-	act := chat1.NewChatActivityWithMessageUnfurled(notif)
+	for _, msg := range unfurledMsgs {
+		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
+	}
+	act := chat1.NewChatActivityWithMessagesUpdated(notif)
 	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
 		&act, chat1.ChatActivitySource_LOCAL)
 }

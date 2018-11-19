@@ -5,7 +5,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {compose, connect, withStateHandlers} from '../../util/container'
+import {connect} from '../../util/container'
 import {memoize2} from '../../util/memoize'
 
 type OwnProps = {|
