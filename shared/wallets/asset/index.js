@@ -122,7 +122,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => {
               >
                 <Icon
                   fontSize={isMobile ? 18 : 12}
-                  // onClick={_openStellarURL}
+                  onClick={_openStellarURL}
                   style={styles.questionMark}
                   type="iconfont-question-mark"
                 />
