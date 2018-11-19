@@ -984,8 +984,8 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
 			return "", nil
 		}
-		if _, ok := err.(libkb.ResolutionError); ok {
-			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
+		if libkb.IsResolutionNotFoundError(err) {
+			m.CDebugf("identifyRecipient: resolution not found error %s: %s", assertion, err)
 			return "", nil
 		}
 		return "", err
