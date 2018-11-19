@@ -71,7 +71,6 @@ const _makeDropdownItems = () => teamRoleTypes.map(item => <DropdownItem key={it
 
 const AddToTeam = (props: Props) => {
   const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
-  console.warn('in addtoteam', props)
   return (
     <Box2 direction="vertical" style={styleContainer}>
       {!isMobile && (
@@ -104,7 +103,7 @@ const AddToTeam = (props: Props) => {
             ))
           ) : (
             <Box2 direction="vertical" centerChildren={true}>
-              <ProgressIndicator style={{width: 48}} />
+              <ProgressIndicator style={{width: 64}} />
             </Box2>
           )}
         </Box2>
