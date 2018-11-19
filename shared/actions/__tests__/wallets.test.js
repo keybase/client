@@ -64,7 +64,7 @@ it('disclaimer', () => {
   assertRedirectToDisclaimer()
 
   const checkRPC = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
-  checkRPC.mockImplementation(() => new Promise(resolve => resolve(false)))
+  checkRPC.mockImplementation(() => Promise.resolve(false))
 
   dispatch(WalletsGen.createLoadWalletDisclaimer())
   return Testing.flushPromises()
@@ -81,10 +81,10 @@ it('disclaimer', () => {
       assertRedirectToDisclaimer()
 
       const acceptRPC = jest.spyOn(RPCStellarTypes, 'localAcceptDisclaimerLocalRpcPromise')
-      acceptRPC.mockImplementation(() => new Promise(resolve => resolve()))
+      acceptRPC.mockImplementation(() => Promise.resolve())
 
       const checkRPC2 = jest.spyOn(RPCStellarTypes, 'localHasAcceptedDisclaimerLocalRpcPromise')
-      checkRPC2.mockImplementation(() => new Promise(resolve => resolve(true)))
+      checkRPC2.mockImplementation(() => Promise.resolve(true))
 
       dispatch(WalletsGen.createAcceptDisclaimer({nextScreen: 'openWallet'}))
       return Testing.flushPromises({acceptRPC, checkRPC2})
@@ -101,11 +101,11 @@ it('disclaimer', () => {
         symbol: 'fake symbol',
         name: 'fake name',
       }
-      getCurrencyRPC.mockImplementation(() => new Promise(resolve => resolve(currencyLocal)))
+      getCurrencyRPC.mockImplementation(() => Promise.resolve(currencyLocal))
       const getCurrenciesRPC = jest.spyOn(RPCStellarTypes, 'localGetDisplayCurrenciesLocalRpcPromise')
-      getCurrenciesRPC.mockImplementation(() => new Promise(resolve => resolve(null)))
+      getCurrenciesRPC.mockImplementation(() => Promise.resolve(null))
       const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-      buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRes)))
+      buildRPC.mockImplementation(() => Promise.resolve(buildPaymentRes))
 
       // Finally accepted disclaimer.
       dispatch(WalletsGen.createOpenSendRequestForm({to: 'fake recipient'}))
@@ -125,7 +125,7 @@ it('disclaimer', () => {
 it('build and send payment', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildPaymentLocalRpcPromise')
-  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildPaymentRes)))
+  buildRPC.mockImplementation(() => Promise.resolve(buildPaymentRes))
 
   dispatch(WalletsGen.createBuildPayment())
   return Testing.flushPromises()
@@ -139,7 +139,7 @@ it('build and send payment', () => {
         kbTxID: 'fake transaction id',
         pending: false,
       }
-      sendRPC.mockImplementation(() => new Promise(resolve => resolve(sendPaymentResult)))
+      sendRPC.mockImplementation(() => Promise.resolve(sendPaymentResult))
 
       dispatch(WalletsGen.createSendPayment())
       return Testing.flushPromises({sendRPC})
@@ -166,7 +166,7 @@ const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
 it('build and send request', () => {
   const {dispatch, getState} = startReduxSaga()
   const buildRPC = jest.spyOn(RPCStellarTypes, 'localBuildRequestLocalRpcPromise')
-  buildRPC.mockImplementation(() => new Promise(resolve => resolve(buildRequestRes)))
+  buildRPC.mockImplementation(() => Promise.resolve(buildRequestRes))
 
   dispatch(WalletsGen.createSetBuildingIsRequest({isRequest: true}))
   return Testing.flushPromises()
@@ -177,7 +177,7 @@ it('build and send request', () => {
 
       const requestRPC = jest.spyOn(RPCStellarTypes, 'localMakeRequestLocalRpcPromise')
       const requestResult = 'fake request ID'
-      requestRPC.mockImplementation(() => new Promise(resolve => resolve(requestResult)))
+      requestRPC.mockImplementation(() => Promise.resolve(requestResult))
 
       dispatch(WalletsGen.createRequestPayment())
       return Testing.flushPromises({requestRPC})
