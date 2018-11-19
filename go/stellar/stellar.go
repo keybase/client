@@ -1229,10 +1229,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if !found {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle, err := acctbundle.AdvanceAccounts(bundle, []stellar1.AccountID{accountID})
-	if err != nil {
-		return err
-	}
+	nextBundle := acctbundle.AdvanceAccounts(bundle, []stellar1.AccountID{accountID})
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
@@ -1268,10 +1265,7 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if !foundAccID {
 		return fmt.Errorf("account not found: %v", accountID)
 	}
-	nextBundle, err := acctbundle.AdvanceAccounts(bundle, accountsToAdvance)
-	if err != nil {
-		return err
-	}
+	nextBundle := acctbundle.AdvanceAccounts(bundle, accountsToAdvance)
 	return remote.PostWithChainlink(m.Ctx(), m.G(), nextBundle, false)
 }
 

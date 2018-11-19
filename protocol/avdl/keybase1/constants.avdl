@@ -175,6 +175,7 @@ protocol constants {
     SCStellarNeedDisclaimer_3109,
     SCStellarDeviceNotMobile_3110,
     SCStellarMobileOnlyPurgatory_3111,
+    SCStellarIncompatibleVersion_3112,
     SCNISTWrongSize_3201,
     SCNISTBadMode_3202,
     SCNISTHashWrongSize_3203,

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/acctbundle"
+	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
@@ -862,7 +863,7 @@ func TestAccountBundleFlows(t *testing.T) {
 	_, err = stellar.CreateWallet(ctx, g, true)
 	require.NoError(t, err)
 
-	bundle, version, err := remote.FetchSecretlessBundle(context.Background(), tcs[0].G)
+	bundle, version, err := remote.FetchSecretlessBundle(ctx, g)
 	require.NoError(t, err)
 	require.Equal(t, version, stellar1.BundleVersion_V2)
 	accounts := bundle.Accounts
@@ -874,17 +875,19 @@ func TestAccountBundleFlows(t *testing.T) {
 		accountIDs = append(accountIDs, acct.AccountID)
 	}
 	// add a new account and post it as the new primary
-	primaryAccountID, masterKey := randomStellarKeypair()
-	accountIDs = append(accountIDs, primaryAccountID)
+	require.True(t, bundle.Accounts[0].IsPrimary)
+	prevPrimary := bundle.Accounts[0].AccountID
+	accountsToAdvance := []stellar1.AccountID{prevPrimary}
+	newPrimaryAccountID, primarySecretKey := randomStellarKeypair()
 	name := "newprimary"
-	err = acctbundle.AddAccount(bundle, masterKey, name, true)
+	err = acctbundle.AddAccount(bundle, primarySecretKey, name, true)
 	require.NoError(t, err)
-	newBundle, err := acctbundle.AdvanceAccounts(*bundle, accountIDs)
-	require.NoError(t, err)
+
+	newBundle := acctbundle.AdvanceAccounts(*bundle, accountsToAdvance)
 	err = remote.PostWithChainlink(ctx, g, newBundle, true /* v2link */)
 	require.NoError(t, err)
 
-	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+	assertFetchAccountBundles(t, tcs[0], newPrimaryAccountID)
 }
 
 func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID stellar1.AccountID) {
@@ -1260,4 +1263,101 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 
 func (t *testUISource) IdentifyUI(g *libkb.GlobalContext, sessionID int) libkb.IdentifyUI {
 	return t.identifyUI
+}
+
+func TestMigrateBundleToAccountBundles(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	ctx := context.TODO()
+	g := tcs[0].G
+	m := libkb.NewMetaContextTODO(g)
+
+	acceptDisclaimer(tcs[0])
+	// create a v1 bundle with two accounts
+	_, err := stellar.CreateWallet(ctx, g, false)
+	require.NoError(t, err)
+	v1Bundle0, _, err := remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	primaryAccount, err := v1Bundle0.PrimaryAccount()
+	require.NoError(t, err)
+	primaryAccountID := primaryAccount.AccountID
+	_, err = bundle.CreateNewAccount(&v1Bundle0, "pettycash", false)
+	require.NoError(t, err)
+	v1Bundle := bundle.Advance(v1Bundle0)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle)
+	require.NoError(t, err)
+
+	// assert cannot use v2 endpoints before migrating
+	// fetch
+	_, _, err = remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	aerr := err.(libkb.AppStatusError)
+	actualStatus := keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	require.Error(t, err, "cannot fetch v2 before migrating")
+	v1Bundle, _, err = remote.FetchV1Bundle(ctx, g)
+	require.NoError(t, err)
+	v2Bundle, err := acctbundle.NewFromBundle(v1Bundle)
+	require.NoError(t, err)
+	// post
+	throwawayV2Bundle0 := v2Bundle.DeepCopy()
+	throwawayV2Bundle1 := acctbundle.AdvanceAccounts(throwawayV2Bundle0, []stellar1.AccountID{primaryAccountID})
+	err = remote.PostBundleRestricted(ctx, g, &throwawayV2Bundle1)
+	require.Error(t, err, "cannot post v2 before migrating")
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, keybase1.StatusCode_SCStellarIncompatibleVersion, actualStatus)
+
+	// cannot migrate without the feature flag
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.Error(t, err)
+	_, correctErrorType := err.(remote.MissingFeatureFlagMigrationError)
+	require.True(t, correctErrorType)
+
+	// flip feature flag and migrate
+	err = stellar.EnableMigrationFeatureFlag(ctx, g)
+	require.NoError(t, err)
+	m.G().FeatureFlags.InvalidateCache(m, libkb.FeatureStellarAcctBundles)
+	enabled, err := m.G().FeatureFlags.EnabledWithError(m, libkb.FeatureStellarAcctBundles)
+	require.True(t, enabled)
+	require.NoError(t, err)
+	err = remote.MigrateBundleToAccountBundles(m)
+	require.NoError(t, err)
+	v2Bundle, _, err = remote.FetchSecretlessBundle(ctx, g)
+	require.NoError(t, err)
+
+	// cannot use v1 endpoints after migration
+	_, _, err = remote.FetchV1Bundle(ctx, g)
+	require.Error(t, err, "cannot fetch v1 after migrating")
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	v1BundlePrev, err := acctbundle.BundleFromBundleRestricted(*v2Bundle)
+	require.NoError(t, err)
+	v1Bundle = bundle.Advance(*v1BundlePrev)
+	err = remote.PostV1Bundle(ctx, g, v1Bundle)
+	aerr = err.(libkb.AppStatusError)
+	actualStatus = keybase1.StatusCode(aerr.Code)
+	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
+	require.Error(t, err, "cannot post v1 after migrating")
+
+	// can use v2 endpoints after migration
+	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+	// add a non-primary account
+	_, secretKey := randomStellarKeypair()
+	err = acctbundle.AddAccount(v2Bundle, secretKey, "shenanigans", false /* make primary */)
+	require.NoError(t, err)
+	v2BundleNext := acctbundle.AdvanceBundle(*v2Bundle)
+	require.NoError(t, err)
+	err = remote.PostBundleRestricted(ctx, g, &v2BundleNext)
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
+	// add a primary account
+	fetchedBundle, _, err := remote.FetchAccountBundle(ctx, g, primaryAccountID)
+	newPrimaryAccountID, newPrimarySecretKey := randomStellarKeypair()
+	err = acctbundle.AddAccount(fetchedBundle, newPrimarySecretKey, "newprimary", true /* make primary */)
+	require.NoError(t, err)
+	newBundle := acctbundle.AdvanceAccounts(*fetchedBundle, []stellar1.AccountID{primaryAccountID}) // advance the old primary account
+	err = remote.PostWithChainlink(ctx, g, newBundle, true /* v2link */)
+	require.NoError(t, err)
+	assertFetchAccountBundles(t, tcs[0], newPrimaryAccountID)
 }

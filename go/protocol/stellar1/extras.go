@@ -120,7 +120,8 @@ func (s SecretKey) SecureNoLogString() string {
 
 // CheckInvariants checks that the bundle satisfies
 // 1. No duplicate account IDs
-// 2. At most one primary account
+// 2. Exactly one primary account
+// 3. Non-negative revision numbers
 func (s Bundle) CheckInvariants() error {
 	accountIDs := make(map[AccountID]bool)
 	var foundPrimary bool
@@ -140,6 +141,9 @@ func (s Bundle) CheckInvariants() error {
 			return errors.New("account missing mode")
 		}
 	}
+	if !foundPrimary && len(s.Accounts) > 0 {
+		return errors.New("missing primary account")
+	}
 	if s.Revision < 1 {
 		return fmt.Errorf("revision %v < 1", s.Revision)
 	}
@@ -148,8 +152,9 @@ func (s Bundle) CheckInvariants() error {
 
 // CheckInvariants checks that the BundleRestricted satisfies
 // 1. No duplicate account IDs
-// 2. At most one primary account
+// 2. Exactly one primary account
 // 3. Non-negative revision numbers
+// 4. Account Bundle maps to Accounts
 func (r BundleRestricted) CheckInvariants() error {
 	accountIDs := make(map[AccountID]bool)
 	var foundPrimary bool
@@ -168,6 +173,9 @@ func (r BundleRestricted) CheckInvariants() error {
 		if entry.Mode == AccountMode_NONE {
 			return errors.New("account missing mode")
 		}
+	}
+	if !foundPrimary && len(r.Accounts) > 0 {
+		return errors.New("missing primary account")
 	}
 	if r.Revision < 1 {
 		return fmt.Errorf("revision %v < 1", r.Revision)

@@ -719,39 +719,47 @@ func AdvanceBundle(prevBundle stellar1.BundleRestricted) stellar1.BundleRestrict
 	return nextBundle
 }
 
-// advanceOneAccount mutates the passed in bundleRestricted in place
-func advanceOneAccount(b *stellar1.BundleRestricted, accountID stellar1.AccountID) error {
-	for _, account := range b.Accounts {
-		if account.AccountID.Eq(accountID) {
-			account.AcctBundleRevision++
-			return nil
-		}
-	}
-	return fmt.Errorf("account not found: %v", accountID)
-}
-
 // AdvanceAccounts advances the revisions and hashes on the BundleRestricted
 // as well as on the specified Accounts. This is useful for mutating one or more
 // of the accounts in the bundle, e.g. changing which one is Primary.
-func AdvanceAccounts(prevBundle stellar1.BundleRestricted, accountIDs []stellar1.AccountID) (stellar1.BundleRestricted, error) {
-	nextBundle := AdvanceBundle(prevBundle)
-	for _, accountID := range accountIDs {
-		err := advanceOneAccount(&nextBundle, accountID)
-		if err != nil {
-			return stellar1.BundleRestricted{}, err
+func AdvanceAccounts(prevBundle stellar1.BundleRestricted, accountIDs []stellar1.AccountID) stellar1.BundleRestricted {
+	nextBundle := prevBundle.DeepCopy()
+	nextBundle.Prev = nextBundle.OwnHash
+	nextBundle.OwnHash = nil
+	nextBundle.Revision++
+
+	var nextAccounts []stellar1.BundleEntryRestricted
+	for _, acct := range nextBundle.Accounts {
+		copiedAcct := acct.DeepCopy()
+		for _, accountID := range accountIDs {
+			if copiedAcct.AccountID == accountID {
+				copiedAcct.AcctBundleRevision++
+			}
 		}
+		nextAccounts = append(nextAccounts, copiedAcct)
 	}
-	return nextBundle, nil
+	nextBundle.Accounts = nextAccounts
+
+	return nextBundle
 }
 
 // AdvanceAll advances the revisions and hashes on the BundleRestricted
 // as well as on all of the Accounts. This is useful for reencryption of
 // everything, e.g. Upkeep.
 func AdvanceAll(prevBundle stellar1.BundleRestricted) stellar1.BundleRestricted {
-	nextBundle := AdvanceBundle(prevBundle)
-	for _, account := range nextBundle.Accounts {
-		account.AcctBundleRevision++
+	nextBundle := prevBundle.DeepCopy()
+	nextBundle.Prev = nextBundle.OwnHash
+	nextBundle.OwnHash = nil
+	nextBundle.Revision++
+
+	var nextAccounts []stellar1.BundleEntryRestricted
+	for _, acct := range nextBundle.Accounts {
+		copiedAcct := acct.DeepCopy()
+		copiedAcct.AcctBundleRevision++
+		nextAccounts = append(nextAccounts, copiedAcct)
 	}
+	nextBundle.Accounts = nextAccounts
+
 	return nextBundle
 }
 
