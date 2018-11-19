@@ -14,22 +14,22 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => {
-  return {
-    onClose: (messageID: Types.MessageID) => {}, // TODO
-  }
-}
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
+  onClose: (messageID: Types.MessageID) => {}, // TODO
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const unfurls = stateProps.unfurls.map(u => {
-    return {
-      unfurl: u.unfurl,
-      url: u.url,
-      onClose: () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID)),
-    }
-  })
+  const unfurls = stateProps.unfurls
+    .map(u => {
+      return {
+        unfurl: u.unfurl,
+        url: u.url,
+        onClose: () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID)),
+      }
+    })
+    .toArray()
   return {
-    unfurls: unfurls.toArray(),
+    unfurls,
   }
 }
 
