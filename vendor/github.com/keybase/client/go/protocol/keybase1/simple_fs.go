@@ -1141,10 +1141,15 @@ func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
 }
 
 type FolderSyncStatus struct {
+	LocalDiskBytesAvailable int64 `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
+	LocalDiskBytesTotal     int64 `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
 }
 
 func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
-	return FolderSyncStatus{}
+	return FolderSyncStatus{
+		LocalDiskBytesAvailable: o.LocalDiskBytesAvailable,
+		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
+	}
 }
 
 type FolderSyncConfigAndStatus struct {
