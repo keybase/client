@@ -97,10 +97,11 @@ func (c *CmdSimpleFSStat) Run() (err error) {
 
 		for _, r := range res.Revisions {
 			e := r.Entry
-			ui.Printf("%d)\t%s\t%s\t%d\t%s\t%s\n",
+			ui.Printf("%d)\t%s\t%s\t%d\t%s\t%s\t%s\n",
 				r.Revision, keybase1.FormatTime(e.Time),
 				keybase1.DirentTypeRevMap[e.DirentType],
-				e.Size, e.Name, e.LastWriterUnverified.Username)
+				e.Size, e.Name, e.LastWriterUnverified.Username,
+				e.PrefetchStatus)
 		}
 	} else {
 		e, err := cli.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: c.path})
@@ -108,10 +109,11 @@ func (c *CmdSimpleFSStat) Run() (err error) {
 			return err
 		}
 
-		ui.Printf("%s\t%s\t%d\t%s\t%s\n",
+		ui.Printf("%s\t%s\t%d\t%s\t%s\t%s\n",
 			keybase1.FormatTime(e.Time),
 			keybase1.DirentTypeRevMap[e.DirentType],
-			e.Size, e.Name, e.LastWriterUnverified.Username)
+			e.Size, e.Name, e.LastWriterUnverified.Username,
+			e.PrefetchStatus)
 	}
 
 	return nil

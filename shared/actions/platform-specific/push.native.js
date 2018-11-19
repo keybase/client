@@ -298,10 +298,10 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
   const hasPermissions = yield checkPermissions(null, null)
   if (hasPermissions) {
     // Get the token
-    yield Saga.fork(requestPermissionsFromNative)
+    yield Saga.spawn(requestPermissionsFromNative)
   } else {
-    const shownNativePushPromptTask = yield Saga.fork(askNativeIfSystemPushPromptHasBeenShown)
-    const shownMonsterPushPromptTask = yield Saga.fork(() =>
+    const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
+    const shownMonsterPushPromptTask = yield Saga._fork(() =>
       RPCTypes.configGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
         .then(v => !!v.b)
         .catch(() => false)
@@ -390,7 +390,7 @@ function* pushSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield Saga.actionToAction(PushGen.notification, handlePush)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, setupPushEventLoop)
-  yield Saga.fork(initialPermissionsCheck)
+  yield Saga.spawn(initialPermissionsCheck)
 }
 
 export default pushSaga

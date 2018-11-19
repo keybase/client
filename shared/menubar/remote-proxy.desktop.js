@@ -7,7 +7,7 @@ import {NullComponent, connect, compose, renderNothing, branch} from '../util/co
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
-import memoize from 'memoize-one'
+import {memoize1} from '../util/memoize'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
@@ -49,7 +49,7 @@ const mapStateToProps = state => ({
 })
 
 // TODO we should just send a Set like structure over, for now just extract trackerState
-const getBrokenSubset = memoize(userTrackers =>
+const getBrokenSubset = memoize1(userTrackers =>
   Object.keys(userTrackers).reduce((map, name) => {
     map[name] = {
       trackerState: userTrackers[name].trackerState,

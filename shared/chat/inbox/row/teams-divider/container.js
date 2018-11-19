@@ -4,7 +4,7 @@ import {connect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import type {RowItem} from '../../index.types'
-import memoize from 'memoize-one'
+import {memoize2} from '../../../../util/memoize'
 
 type OwnProps = {
   rows: Array<RowItem>,
@@ -15,7 +15,7 @@ type OwnProps = {
 
 const mapStateToProps = state => ({_badges: state.chat2.badgeMap, _metaMap: state.chat2.metaMap})
 
-const getMetaCounts = memoize((badges, metaMap) => {
+const getMetaCounts = memoize2((badges, metaMap) => {
   let badgeCount = 0
   let hiddenCount = 0
   metaMap.forEach(meta => {
@@ -36,7 +36,7 @@ const getMetaCounts = memoize((badges, metaMap) => {
   }
 })
 
-const getRowCounts = memoize((badges, rows) => {
+const getRowCounts = memoize2((badges, rows) => {
   let badgeCount = 0
   let hiddenCount = 0
 

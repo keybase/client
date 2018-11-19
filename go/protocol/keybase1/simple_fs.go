@@ -370,13 +370,43 @@ func (e DirentType) String() string {
 	return ""
 }
 
+type PrefetchStatus int
+
+const (
+	PrefetchStatus_NOT_STARTED PrefetchStatus = 0
+	PrefetchStatus_IN_PROGRESS PrefetchStatus = 1
+	PrefetchStatus_COMPLETE    PrefetchStatus = 2
+)
+
+func (o PrefetchStatus) DeepCopy() PrefetchStatus { return o }
+
+var PrefetchStatusMap = map[string]PrefetchStatus{
+	"NOT_STARTED": 0,
+	"IN_PROGRESS": 1,
+	"COMPLETE":    2,
+}
+
+var PrefetchStatusRevMap = map[PrefetchStatus]string{
+	0: "NOT_STARTED",
+	1: "IN_PROGRESS",
+	2: "COMPLETE",
+}
+
+func (e PrefetchStatus) String() string {
+	if v, ok := PrefetchStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type Dirent struct {
-	Time                 Time       `codec:"time" json:"time"`
-	Size                 int        `codec:"size" json:"size"`
-	Name                 string     `codec:"name" json:"name"`
-	DirentType           DirentType `codec:"direntType" json:"direntType"`
-	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
-	Writable             bool       `codec:"writable" json:"writable"`
+	Time                 Time           `codec:"time" json:"time"`
+	Size                 int            `codec:"size" json:"size"`
+	Name                 string         `codec:"name" json:"name"`
+	DirentType           DirentType     `codec:"direntType" json:"direntType"`
+	LastWriterUnverified User           `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
+	Writable             bool           `codec:"writable" json:"writable"`
+	PrefetchStatus       PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
@@ -387,6 +417,7 @@ func (o Dirent) DeepCopy() Dirent {
 		DirentType:           o.DirentType.DeepCopy(),
 		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
 		Writable:             o.Writable,
+		PrefetchStatus:       o.PrefetchStatus.DeepCopy(),
 	}
 }
 
