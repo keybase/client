@@ -178,8 +178,7 @@ const _createIcon = {
 }
 
 const Wrapper = (p: Props) => (
-  // $FlowIssue
-  <ManageChannels onClose={undefined} onBack={p.onClose} customComponent={<Header {...p} />} />
+  <ManageChannels {...p} onClose={undefined} onBack={p.onClose} customComponent={<Header {...p} />} />
 )
 
 export default HeaderHoc(Wrapper)
