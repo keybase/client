@@ -672,6 +672,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					"%s", req.ptr.ID)
 				continue
 			}
+
+			// Bail out early if we know the sync cache is already
+			// full, to avoid enqueuing the child blocks when they
+			// aren't able to be cached.
+			if p.rescheduleIfNeeded(ctx, req) {
+				// This is inefficient since it'd be better to know if
+				// the `subtreeBlockCount` below is 0, or if `isTail`
+				// below is true before needlessly rescheduling this.
+				// But currently that requires some complexity to
+				// figure out, so for now just do this early and
+				// revisit if it becomes a problem.
+				continue
+			}
+
 			if isPrefetchWaiting {
 				if pre.subtreeTriggered {
 					p.log.CDebugf(ctx, "prefetch subtree already triggered "+
@@ -724,15 +738,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				ctx = pre.ctx
 				p.log.CDebugf(ctx, "created new prefetch for block %s",
 					req.ptr.ID)
-			}
-
-			if p.rescheduleIfNeeded(ctx, req) {
-				// This is inefficient since it'd be better to know if
-				// `isTail` below is true before needlessly
-				// rescheduling this.  But currently that requires
-				// some complexity to figure out, so for now just do
-				// this early and revisit if it becomes a problem.
-				continue
 			}
 
 			// TODO: There is a potential optimization here that we can
