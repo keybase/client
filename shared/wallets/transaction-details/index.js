@@ -85,9 +85,9 @@ const Counterparty = (props: CounterpartyProps) => {
             horizontal={true}
             onClick={() => props.onShowProfile(props.counterparty)}
             username={props.counterparty}
-            metaOne={props.counterpartyMeta}
+            metaOne={<AccountMeta counterpartyMeta={props.counterpartyMeta} accountID={props.accountID} />}
+            containerStyle={styles.alignItemsFlexStart}
             underline={true}
-            metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
           />
           <Kb.Button
             type="Secondary"
@@ -124,6 +124,19 @@ const Counterparty = (props: CounterpartyProps) => {
   return null
 }
 
+const AccountMeta = ({counterpartyMeta, accountID}) => (
+  <Kb.Box2 direction="horizontal" style={{flexWrap: 'wrap'}}>
+    {!!counterpartyMeta && (
+      <Kb.Text type="BodySmall">
+        {counterpartyMeta}
+        {!!accountID && ' ·'}
+        &nbsp;
+      </Kb.Text>
+    )}
+    {accountID ? <SmallAccountID accountID={accountID} /> : null}
+  </Kb.Box2>
+)
+
 type YourAccountProps = {|
   accountID: ?Types.AccountID,
   accountName: ?string,
@@ -142,8 +155,8 @@ const YourAccount = (props: YourAccountProps) => {
       onClick={() => props.onShowProfile(props.you)}
       underline={true}
       username={props.you}
-      metaOne="You"
-      metaTwo={props.accountID ? <SmallAccountID accountID={props.accountID} /> : null}
+      metaOne={<AccountMeta counterpartyMeta="You" accountID={props.accountID} />}
+      containerStyle={styles.alignItemsFlexStart}
     />
   )
 }
@@ -399,6 +412,7 @@ class LoadTransactionDetails extends React.Component<Props> {
 export default LoadTransactionDetails
 
 const styles = Styles.styleSheetCreate({
+  alignItemsFlexStart: {alignItems: 'flex-start'},
   button: {
     alignSelf: 'center',
   },
