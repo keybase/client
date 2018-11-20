@@ -21,7 +21,16 @@ export function missingProofs(
   userProofs: Array<Proof>,
   onClick: (missingProof: MissingProof) => void
 ): Array<MissingProof> {
-  let availableProofTypes = without(PlatformsExpanded, 'http', 'https', 'web', 'dnsOrGenericWebSite', 'dns')
+  let availableProofTypes = without(
+    PlatformsExpanded,
+    'http',
+    'https',
+    'web',
+    'dnsOrGenericWebSite',
+    'dns',
+    // FB removed on purpose
+    'facebook'
+  )
   const userProofTypes = uniq((userProofs || []).map(p => p.type))
 
   // $FlowIssue thinks its just a string
