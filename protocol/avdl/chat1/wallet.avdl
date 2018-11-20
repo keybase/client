@@ -1,8 +1,0 @@
-@namespace("chat.1") protocol wallet {
-
-  record ChatTxCandidate {
-      string currencyCode;
-      string amount;
-      union { null, string } username;
-  }
-}

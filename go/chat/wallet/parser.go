@@ -3,8 +3,6 @@ package wallet
 import (
 	"regexp"
 	"strings"
-
-	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
 var txPattern = regexp.MustCompile(
@@ -23,13 +21,19 @@ var maxAmountLength = 100
 var maxUsernameLength = 16
 var maxTxsPerMessage = -1
 
-func findChatTxCandidates(xs string) []chat1.ChatTxCandidate {
+type ChatTxCandidate struct {
+	Amount       string
+	CurrencyCode string
+	Username     *string
+}
+
+func findChatTxCandidates(xs string) []ChatTxCandidate {
 	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
 	replacer := "$"
 	replaced := replaceQuotedSubstrings(xs, replacer)
 
 	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
-	matches := make([]chat1.ChatTxCandidate, 0, len(rawMatches))
+	matches := make([]ChatTxCandidate, 0, len(rawMatches))
 	for _, rawMatch := range rawMatches {
 		amount := rawMatch[1]
 		currencyCode := rawMatch[2]
@@ -41,7 +45,7 @@ func findChatTxCandidates(xs string) []chat1.ChatTxCandidate {
 			} else {
 				txUsername = &username
 			}
-			matches = append(matches, chat1.ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
+			matches = append(matches, ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
 		}
 	}
 	return matches
