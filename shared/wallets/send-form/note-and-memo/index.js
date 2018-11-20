@@ -21,6 +21,8 @@ type PublicMemoProps = {
 // TODO use wallet staticConfig to keep in sync with the service
 const secretNoteMaxLength = 500
 const publicMemoMaxLength = 28
+const encoder = new TextEncoder('utf-8')
+const getByteLength = s => encoder.encode(s).length
 
 type SecretNoteState = {
   emojiPickerOpen: boolean,
@@ -120,7 +122,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
               {!!this.state.secretNote && (
                 <Kb.Text type="BodySmall">
-                  {secretNoteMaxLength - this.state.secretNote.length} characters left
+                  {secretNoteMaxLength - getByteLength(this.state.secretNote)} characters left
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -171,7 +173,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodySmall">
-              {publicMemoMaxLength - this.state.publicMemo.length} characters left
+              {publicMemoMaxLength - getByteLength(this.state.publicMemo)} characters left
             </Kb.Text>
           )}
           {!!this.props.publicMemoError && (
