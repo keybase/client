@@ -202,7 +202,7 @@ const roleToColor = (role: Types.Role): string => {
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
-      return globalColors.black
+      return globalColors.black_75
     default:
       /*::
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
