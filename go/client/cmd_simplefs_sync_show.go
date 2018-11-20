@@ -53,6 +53,7 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 		ui.Printf("Syncing disabled\n")
 	case keybase1.FolderSyncMode_ENABLED:
 		ui.Printf("Syncing enabled\n")
+		ui.Printf("Prefetch Status: %s\n", res.Status.PrefetchStatus)
 		a := res.Status.LocalDiskBytesAvailable
 		t := res.Status.LocalDiskBytesTotal
 		ui.Printf("%s (%.2f%%) of the local disk available for caching.\n",
