@@ -35,12 +35,12 @@ var supportedContentTypes = map[string]bool{
 	"image/svg+xml":      false,
 }
 
-// displayInlineDefault decides on the Content-Disposition value (inline vs attachment) for
+// getDisposition decides on the Content-Disposition value (inline vs attachment) for
 // the given mimeType by consulting the supportedContentTypes map and using the defaultValue
 // parameter.
-func displayInlineDefault(defaultValue bool, mimeType string) string {
+func getDisposition(defaultInlineValue bool, mimeType string) string {
 	res, found := supportedContentTypes[mimeType]
-	if (found && res) || (!found && defaultValue) {
+	if (found && res) || (!found && defaultInlineValue) {
 		return "inline"
 	}
 	return "attachment"
@@ -65,7 +65,7 @@ func (w *contentTypeOverridingResponseWriter) calculateOverride(
 		strings.HasPrefix(ty, "image/") ||
 		strings.HasPrefix(ty, "video/") ||
 		ty == "application/pdf":
-		return ty, displayInlineDefault(true, ty)
+		return ty, getDisposition(true, ty)
 	// Otherwise default to text + attachment.
 	// This is safe for all files.
 	default:
