@@ -99,5 +99,5 @@ func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofA
 
 // Prove handles the `keybase.1.listProofServices` RPC.
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
-	return ph.G().GetProofServices().ListProofCheckers(), nil
+	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(), nil
 }

@@ -73,6 +73,7 @@ Include:
   keybase.io/~user/cool
   http://keybase.io/blah/../up-one/index.html
   keybase.io/)(,)?=56,78,910@123
+  abc subdomain.domain.com
 These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,

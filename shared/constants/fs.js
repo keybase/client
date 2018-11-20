@@ -690,7 +690,7 @@ export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
 
-export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => {
+export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
   switch (tlfType) {
     case 'private':
       return tlfs.private

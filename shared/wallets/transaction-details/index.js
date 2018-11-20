@@ -57,7 +57,7 @@ const PartyAccount = (props: PartyAccountProps) => {
       <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
       <Kb.Box2 direction="vertical" style={styles.flexOne}>
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
-        {props.accountID && <SmallAccountID accountID={props.accountID} />}
+        {!!props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -295,7 +295,12 @@ const TransactionDetails = (props: NotLoadingProps) => {
         />
       </Kb.Box2>
       <Kb.Divider />
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        gap="small"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.container, styles.flexOne])}
+      >
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
           {sender}
@@ -456,6 +461,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
   },
   statusBox: {

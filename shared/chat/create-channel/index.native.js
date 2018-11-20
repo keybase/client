@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {renameProp, compose, withProps} from 'recompose'
 import type {Props} from './index.types'
 
 const errorHeader = (errorText: string) => {
@@ -89,10 +88,13 @@ const _inputStyle = {
   marginTop: globalMargins.large,
 }
 
-export default compose(
-  renameProp('onBack', 'onCancel'),
-  withProps(props => ({
-    customComponent: <Header {...props} />,
-  })),
-  Kb.HeaderHoc
-)(CreateChannel)
+const Wrapper = (props: Props) => (
+  <CreateChannel
+    {...props}
+    onBack={undefined}
+    onCancel={props.onBack}
+    customComponent={<Header {...props} />}
+  />
+)
+
+export default Kb.HeaderHoc(Wrapper)

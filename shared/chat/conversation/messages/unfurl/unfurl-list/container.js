@@ -24,7 +24,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       return {
         unfurl: u.unfurl,
         url: u.url,
-        onClose: () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID)),
+        // TODO
+        onClose: undefined,
+        // onClose: () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID)),
       }
     })
     .toArray()

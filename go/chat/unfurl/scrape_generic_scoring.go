@@ -12,6 +12,7 @@ import (
 // always loose.
 const (
 	defaultScore          = 1
+	defaultArticleScore   = 8
 	defaultTwitterScore   = 10
 	defaultOpenGraphScore = 11
 )
@@ -42,6 +43,13 @@ func getTwitterScore(domain string, e *colly.HTMLElement) int {
 	}
 }
 
+func getArticleScore(domain string, e *colly.HTMLElement) int {
+	switch domain {
+	default:
+		return defaultArticleScore
+	}
+}
+
 func getDefaultScore(domain string, e *colly.HTMLElement) int {
 	return defaultScore
 }
@@ -64,6 +72,10 @@ func getFaviconMultiplier(e *colly.HTMLElement) int {
 // resolution.
 func getAppleTouchFaviconScore(domain string, e *colly.HTMLElement) int {
 	return (getDefaultScore(domain, e) + 1) * getFaviconMultiplier(e)
+}
+
+func getAppleTouchFaviconScoreFromPath() int {
+	return defaultScore * 384
 }
 
 // Metadata to describe how to extra and score content and which field this
@@ -161,12 +173,32 @@ var attrRankMap = map[string]attrRanker{
 	},
 	"pubdate": attrRanker{
 		content: getContentAttr,
-		score:   getOpenGraphScore,
+		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
 	"og:pubdate": attrRanker{
 		content: getContentAttr,
 		score:   getOpenGraphScore,
+		setter:  setPublishTime,
+	},
+	"pdate": attrRanker{
+		content: getContentAttr,
+		score:   getDefaultScore,
+		setter:  setPublishTime,
+	},
+	"article.published": attrRanker{
+		content: getContentAttr,
+		score:   getArticleScore,
+		setter:  setPublishTime,
+	},
+	"article:published": attrRanker{
+		content: getContentAttr,
+		score:   getArticleScore,
+		setter:  setPublishTime,
+	},
+	"datePublished": attrRanker{
+		content: getContentAttr,
+		score:   getArticleScore,
 		setter:  setPublishTime,
 	},
 

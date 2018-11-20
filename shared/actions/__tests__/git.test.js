@@ -180,7 +180,7 @@ describe('load', () => {
   it('load leads to loaded', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'gitGetAllGitMetadataRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve(gitReposRpc)))
+    rpc.mockImplementation(() => Promise.resolve(gitReposRpc))
 
     dispatch(GitGen.createLoadGit())
     return Testing.flushPromises().then(() => {
@@ -196,7 +196,7 @@ describe('load', () => {
   it('loaded handles null', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'gitGetAllGitMetadataRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
     dispatch(GitGen.createLoadGit())
     return Testing.flushPromises().then(() => {
       expect(getState().git.idToInfo).toEqual(I.Map())
