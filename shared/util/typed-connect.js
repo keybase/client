@@ -9,7 +9,7 @@ export const namedConnect = (
   mapDispatchToProps: any,
   mergeProps: any,
   displayName: string
-) =>
+): any =>
   compose(
     connect(
       mapStateToProps,

@@ -14,7 +14,7 @@ type OwnProps = {|
   routePath: I.List<string>,
 |}
 
-let KeyHandler = c => c
+let KeyHandler: any = c => c
 if (!isMobile) {
   KeyHandler = require('../../util/key-handler.desktop').default
 }

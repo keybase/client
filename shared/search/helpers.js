@@ -32,7 +32,7 @@ type OutProps = {
   onClearSearch: () => void,
 }
 */
-const clearSearchHoc = withHandlers({
+const clearSearchHoc: any = withHandlers({
   // use existing onClearSearch if exists. TODO change how this whole thing works. so confusing
   onClearSearch: ({onExitSearch, onClearSearch}) =>
     onClearSearch ? () => onClearSearch() : () => onExitSearch(),
@@ -40,7 +40,7 @@ const clearSearchHoc = withHandlers({
 
 type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
 
-const onChangeSelectedSearchResultHoc = compose(
+const onChangeSelectedSearchResultHoc: any = compose(
   withHandlers({
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
@@ -57,7 +57,6 @@ const onChangeSelectedSearchResultHoc = compose(
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
-  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),
@@ -99,7 +98,7 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedService}) => ({
+const placeholderServiceHoc: any = withPropsOnChange(['selectedService'], ({selectedService}) => ({
   placeholder: `Search ${selectedService}`,
 }))
 
