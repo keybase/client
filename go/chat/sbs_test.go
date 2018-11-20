@@ -243,6 +243,8 @@ func TestChatSrvRooter(t *testing.T) {
 }
 
 func TestChatSrvPhone(t *testing.T) {
+	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
+
 	var phone string
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
@@ -256,6 +258,8 @@ func TestChatSrvPhone(t *testing.T) {
 }
 
 func TestChatSrvEmail(t *testing.T) {
+	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
+
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
 			return fmt.Sprintf("[%s]@email", user.Email)
