@@ -8,18 +8,15 @@ import (
 )
 
 var txPattern = regexp.MustCompile(
-	// Prevent two txs directly next to each other
-	`\B` +
-		// Must explicitly have a + in front
-		`\+` +
+	// Must explicitly have a + in front
+	`\+` +
 		// Stellar decimal amount
 		`(\d+\.?\d*|\d*\.?\d+)` +
 		// Currency code
 		`([A-Za-z]{2,6})` +
-		// At sign
-		`@` +
-		// Username (optional in direct messages)
-		`([a-zA-Z0-9]+_?)+`,
+		// At sign and username, optional for direct messages
+		// If not used, must be followed by a non-tx-character or end of string
+		`(?:(?:@((?:[a-zA-Z0-9]+_?)+))|(?:[^A-Za-z@]|\z))`,
 )
 
 var maxAmountLength = 100
@@ -38,7 +35,13 @@ func findChatTxCandidates(xs string) []chat1.ChatTxCandidate {
 		currencyCode := rawMatch[2]
 		username := rawMatch[3]
 		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
-			matches = append(matches, chat1.ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: &username})
+			var txUsername *string
+			if username == "" {
+				txUsername = nil
+			} else {
+				txUsername = &username
+			}
+			matches = append(matches, chat1.ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
 		}
 	}
 	return matches
