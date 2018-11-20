@@ -915,6 +915,14 @@ func (e BadServiceError) Error() string {
 	return e.Service + ": unsupported service"
 }
 
+type ServiceDoesNotSupportNewProofsError struct {
+	Service string
+}
+
+func (e ServiceDoesNotSupportNewProofsError) Error() string {
+	return "New '" + e.Service + "' proofs are no longer supported"
+}
+
 //=============================================================================
 
 type NotConfirmedError struct{}

@@ -54,6 +54,16 @@ func (p *staticProofServices) ListProofCheckers() []string {
 	return ret
 }
 
+func (p *staticProofServices) ListServicesThatAcceptNewProofs() []string {
+	var ret []string
+	for k, v := range p.externalServices {
+		if v.CanMakeNewProofs() {
+			ret = append(ret, k)
+		}
+	}
+	return ret
+}
+
 func (p *staticProofServices) GetDisplayPriority(s string) int {
 	return 0
 }
@@ -111,6 +121,19 @@ func (p *proofServices) ListProofCheckers() []string {
 	var ret []string
 	for k := range p.externalServices {
 		ret = append(ret, k)
+	}
+	return ret
+}
+
+func (p *proofServices) ListServicesThatAcceptNewProofs() []string {
+	p.Lock()
+	defer p.Unlock()
+	p.loadServiceConfigs()
+	var ret []string
+	for k, v := range p.externalServices {
+		if v.CanMakeNewProofs() {
+			ret = append(ret, k)
+		}
 	}
 	return ret
 }
