@@ -134,7 +134,7 @@ const AccountMeta = ({counterpartyMeta, accountID}) => (
         &nbsp;
       </Kb.Text>
     )}
-    {accountID ? <SmallAccountID accountID={accountID} /> : null}
+    {!!accountID && <SmallAccountID accountID={accountID} />}
   </Kb.Box2>
 )
 
