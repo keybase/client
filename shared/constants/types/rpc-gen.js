@@ -271,6 +271,8 @@ export const constantsStatusCode = {
   scstellarwrongprimary: 3107,
   scstellarunsupportedcurrency: 3108,
   scstellarneeddisclaimer: 3109,
+  scstellardevicenotmobile: 3110,
+  scstellarmobileonlypurgatory: 3111,
   scnistwrongsize: 3201,
   scnistbadmode: 3202,
   scnisthashwrongsize: 3203,
@@ -650,6 +652,11 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSFolderSyncMode = {
+  disabled: 0,
+  enabled: 1,
+}
+
 export const simpleFSKBFSArchivedType = {
   revision: 0,
   time: 1,
@@ -676,6 +683,12 @@ export const simpleFSPathType = {
   local: 0,
   kbfs: 1,
   kbfsArchived: 2,
+}
+
+export const simpleFSPrefetchStatus = {
+  notStarted: 0,
+  inProgress: 1,
+  complete: 2,
 }
 
 export const simpleFSRevisionSpanType = {

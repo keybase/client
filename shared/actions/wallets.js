@@ -24,7 +24,17 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
-const buildPayment = (state: TypedState, action: any) => {
+const buildPayment = (
+  state: TypedState,
+  action:
+    | WalletsGen.BuildPaymentPayload
+    | WalletsGen.SetBuildingAmountPayload
+    | WalletsGen.SetBuildingCurrencyPayload
+    | WalletsGen.SetBuildingFromPayload
+    | WalletsGen.SetBuildingIsRequestPayload
+    | WalletsGen.SetBuildingToPayload
+    | WalletsGen.DisplayCurrencyReceivedPayload
+) => {
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
     // didn't change state.building; no need to call build
     return
@@ -83,8 +93,14 @@ const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendReque
             ? WalletsGen.createClearBuiltRequest()
             : WalletsGen.createClearBuiltPayment(),
           WalletsGen.createSetBuildingAmount({amount: action.payload.amount || ''}),
-          WalletsGen.createSetBuildingCurrency({currency: action.payload.currency || 'XLM'}),
+          WalletsGen.createSetBuildingCurrency({
+            currency:
+              action.payload.currency ||
+              (action.payload.from && Constants.getDisplayCurrency(state, action.payload.from).code) ||
+              'XLM',
+          }),
           WalletsGen.createLoadDisplayCurrency({
+            // in case from account differs
             accountID: action.payload.from || Types.noAccountID,
             setBuildingCurrency: !action.payload.currency,
           }),
@@ -229,11 +245,11 @@ const loadAccounts = (
     | ConfigGen.LoggedInPayload
 ) =>
   !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
-    WalletsGen.createAccountsReceived({
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
+    return WalletsGen.createAccountsReceived({
       accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
     })
-  )
+  })
 
 const loadAssets = (
   state: TypedState,
@@ -244,7 +260,8 @@ const loadAssets = (
     | WalletsGen.RefreshPaymentsPayload
 ) =>
   !actionHasError(action) &&
-  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
+  (action.type === WalletsGen.selectAccount ||
+    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
   RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
     WalletsGen.createAssetsReceived({
       accountID: action.payload.accountID,
@@ -275,7 +292,8 @@ const loadPayments = (
     | WalletsGen.LinkedExistingAccountPayload
 ) =>
   !actionHasError(action) &&
-  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
+  (action.type === WalletsGen.selectAccount ||
+    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -515,6 +533,12 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
     })
   )
 
+const loadDisplayCurrencyForAccounts = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
+  // load the display currency of each wallet, now that we have the IDs
+  action.payload.accounts.map(account =>
+    Saga.put(WalletsGen.createLoadDisplayCurrency({accountID: account.accountID}))
+  )
+
 const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
   RPCStellarTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
     .then(request => WalletsGen.createRequestDetailReceived({request}))
@@ -625,23 +649,16 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
   Saga.put(WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []}))
 
 const acceptDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
-    .then(res =>
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).then(
+    res =>
       RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
         WalletsGen.createWalletDisclaimerReceived({accepted})
       )
-    )
-    .then(
-      action.payload.nextScreen === 'linkExisting'
-        ? Saga.put(
-            Route.navigateTo(
-              isMobile
-                ? [Tabs.settingsTab, SettingsConstants.walletsTab, 'linkExisting']
-                : [Tabs.walletsTab, 'wallet', 'linkExisting']
-            )
-          )
-        : undefined
-    )
+  )
+
+const maybeNavToLinkExisting = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
+  action.payload.nextScreen === 'linkExisting' &&
+  Saga.put(Route.navigateTo([...Constants.rootWalletPath, 'linkExisting']))
 
 const rejectDisclaimer = (state: TypedState, action: WalletsGen.AcceptDisclaimerPayload) =>
   Saga.put(
@@ -705,6 +722,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     createdOrLinkedAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
+
+  // We don't call this for publicMemo/secretNote so the button doesn't
+  // spinner as you type
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,
@@ -757,6 +778,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     loadWalletDisclaimer
   )
   yield Saga.actionToPromise(WalletsGen.acceptDisclaimer, acceptDisclaimer)
+  yield Saga.actionToAction(WalletsGen.acceptDisclaimer, maybeNavToLinkExisting)
   yield Saga.actionToAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 }
 

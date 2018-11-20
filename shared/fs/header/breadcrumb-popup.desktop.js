@@ -37,7 +37,7 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
         title: name,
         view: (
           <Box style={stylesRow}>
-            <PathItemIcon spec={iconSpec} style={pathItemIconStyle} small={true} />
+            <PathItemIcon spec={iconSpec} style={pathItemIconStyle} size={16} />
             <Text type="Body" lineClamp={1}>
               {name}
             </Text>

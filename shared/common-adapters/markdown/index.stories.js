@@ -8,10 +8,9 @@ import {simpleMarkdownParser} from './shared'
 import OriginalParser from '../../markdown/parser'
 
 const cases = {
-  debugging: `> outside code
-
-  
-  foo`,
+  debugging: `\` \` hi \` \``,
+  inlineCodeWeirdness: `\` \` hi \` \``,
+  inlineCodeWeirdness2: `\` \` hi \n\` \``,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   underscoreweirdness: `under_score the first, \`under_score the second\``,
   boldweirdness: `How are you *today*?`,

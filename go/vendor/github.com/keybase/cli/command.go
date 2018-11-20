@@ -202,7 +202,7 @@ func (c Command) startApp(ctx *Context) error {
 
 	var newCmds []Command
 	for _, cc := range app.Commands {
-		cc.commandNamePath = []string{c.Name, cc.Name}
+		cc.commandNamePath = []string{c.FullName(), cc.Name}
 		newCmds = append(newCmds, cc)
 	}
 	app.Commands = newCmds

@@ -88,7 +88,7 @@ function* handleAvatarQueue() {
 function* avatarSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
   yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
-  yield Saga.fork(handleAvatarQueue)
+  yield Saga.spawn(handleAvatarQueue)
 }
 
 export default avatarSaga

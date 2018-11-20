@@ -38,9 +38,9 @@ const ServiceIcon = (props: IconProps) => (
         ])}
       />
       {!!props.showCount &&
-        (props.count ? (
+        (Number.isInteger(props.count) ? (
           <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-            {props.count > 10 ? '10+' : props.count}
+            {props.count && props.count > 10 ? '10+' : props.count}
           </Kb.Text>
         ) : (
           <Kb.Icon

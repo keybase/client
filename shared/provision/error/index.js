@@ -22,7 +22,7 @@ const List = p => (
   </Box2>
 )
 
-const Wrapper = p => (
+const Wrapper = (p: {onBack: () => void, children: React.Node}) => (
   <Container onBack={p.onBack}>
     <Text type="Header" style={styles.header}>
       There was an error provisioning

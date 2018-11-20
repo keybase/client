@@ -67,8 +67,11 @@ export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet())
-export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-  state.chat2.messageMap.getIn([id, ordinal])
+export const getMessage = (
+  state: TypedState,
+  id: Types.ConversationIDKey,
+  ordinal: Types.Ordinal
+): ?Types.Message => state.chat2.messageMap.getIn([id, ordinal])
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -173,12 +176,12 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
  */
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
   let mode = state.chat2.getIn(['explodingModeLocks', c], null)
   if (mode === null) {
     mode = state.chat2.getIn(['explodingModes', c], 0)
   }
-  return mode
+  return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null

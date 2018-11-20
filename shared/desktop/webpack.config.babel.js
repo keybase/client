@@ -68,6 +68,10 @@ const config = (_, {mode}) => {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
+      {
+        test: /\.node$/,
+        use: 'node-loader',
+      },
     ]
   }
 
@@ -114,7 +118,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.node'],
       },
       stats: {
         ...(isDev

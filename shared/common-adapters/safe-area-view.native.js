@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {SafeAreaView, View} from 'react-native'
+import {SafeAreaView, View, StatusBar} from 'react-native'
 import * as Styles from '../styles'
 
 // Android doesn't have an implementation for SafeAreaView, so add a special case for handling the top of the screen
@@ -19,8 +19,8 @@ const styles = Styles.styleSheetCreate({
   androidTopSafeArea: {
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
-    minHeight: 25,
-    paddingTop: 25,
+    minHeight: StatusBar.currentHeight,
+    paddingTop: StatusBar.currentHeight,
   },
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 })

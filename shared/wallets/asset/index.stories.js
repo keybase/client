@@ -2,8 +2,10 @@
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
 import {Box, Divider} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import Asset from '.'
+
+const openStellarURL = Sb.action('openStellarURL')
 
 const native = {
   availableToSend: '122.0000000',
@@ -14,6 +16,7 @@ const native = {
   issuerName: 'Stellar network',
   issuerAccountID: '',
   name: 'Lumens',
+  openStellarURL,
   reserves: [
     Constants.makeReserve({amount: '1', description: 'account'}),
     Constants.makeReserve({amount: '0.5', description: 'KEYZ/keybase.io trust line'}),
@@ -29,6 +32,7 @@ const keyz = {
   issuerName: 'keybase.io',
   issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   name: 'KEYZ',
+  openStellarURL,
   reserves: [],
 }
 
@@ -41,6 +45,7 @@ const btc = {
   issuerName: 'FarcicalBTCAnchor.eg',
   issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   name: 'BTC',
+  openStellarURL,
   reserves: [],
 }
 
@@ -53,11 +58,12 @@ const btexcadv = {
   issuerName: 'Unknown',
   issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   name: 'BTEXCADV',
+  openStellarURL,
   reserves: [],
 }
 
 const load = () => {
-  storiesOf('Wallets/Assets', module)
+  Sb.storiesOf('Wallets/Assets', module)
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Native currency', () => <Asset {...native} />)
     .add('Non-native currency', () => <Asset {...keyz} />)

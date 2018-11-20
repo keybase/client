@@ -136,31 +136,35 @@ class GitPush extends React.PureComponent<Props> {
 
     switch (gitType) {
       case 'default':
-        return refs.map(ref => {
-          let branchName = ref.refName
-          if (branchName.startsWith(branchRefPrefix)) {
-            branchName = branchName.substring(branchRefPrefix.length)
-          } // else show full ref
-          return (
-            <GitPushCommon
-              key={branchName}
-              timestamp={timestamp}
-              pusher={pusher}
-              onClickUserAvatar={this.props.onClickUserAvatar}
-            >
-              <GitPushDefault
-                commitRef={ref}
-                branchName={branchName}
-                pusher={pusher}
-                timestamp={timestamp}
-                repo={repo}
-                repoID={repoID}
-                team={team}
-                onViewGitRepo={this.props.onViewGitRepo}
-              />
-            </GitPushCommon>
-          )
-        })
+        return (
+          <>
+            {refs.map(ref => {
+              let branchName = ref.refName
+              if (branchName.startsWith(branchRefPrefix)) {
+                branchName = branchName.substring(branchRefPrefix.length)
+              } // else show full ref
+              return (
+                <GitPushCommon
+                  key={branchName}
+                  timestamp={timestamp}
+                  pusher={pusher}
+                  onClickUserAvatar={this.props.onClickUserAvatar}
+                >
+                  <GitPushDefault
+                    commitRef={ref}
+                    branchName={branchName}
+                    pusher={pusher}
+                    timestamp={timestamp}
+                    repo={repo}
+                    repoID={repoID}
+                    team={team}
+                    onViewGitRepo={this.props.onViewGitRepo}
+                  />
+                </GitPushCommon>
+              )
+            })}
+          </>
+        )
       case 'createrepo':
         return (
           <GitPushCommon

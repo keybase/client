@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"sync"
 
 	"github.com/keybase/client/go/chat/attachments"
@@ -99,7 +101,7 @@ func (u *Unfurler) taskKey(outboxID chat1.OutboxID) libkb.DbKey {
 	}
 }
 
-func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.Unfurl, err error) {
+func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.UnfurlerTaskStatus, res *chat1.UnfurlResult, err error) {
 	defer u.Trace(ctx, func() error { return nil }, "Status(%s)", outboxID)()
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
@@ -114,7 +116,13 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 		u.Debug(ctx, "Status: failed to find status, using unfurling: outboxID: %s", outboxID)
 		status = types.UnfurlerTaskStatusUnfurling
 	}
-	return status, task.Result, nil
+	if task.Result != nil {
+		return status, &chat1.UnfurlResult{
+			Unfurl: *task.Result,
+			Url:    task.URL,
+		}, nil
+	}
+	return status, nil, nil
 }
 
 func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
@@ -200,16 +208,35 @@ func (u *Unfurler) makeBaseUnfurlMessage(ctx context.Context, fromMsg chat1.Mess
 	return msg, nil
 }
 
+func (u *Unfurler) getOutboxIDFromURL(url string, convID chat1.ConversationID, msg chat1.MessageUnboxed) chat1.OutboxID {
+	seed := fmt.Sprintf("%s:%s:%d", url, convID, msg.GetMessageID())
+	return storage.DeriveOutboxID([]byte(seed))
+}
+
 func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 	defer u.Trace(ctx, func() error { return nil }, "UnfurlAndSend")()
+	// early out for errors
+	if !msg.IsValid() {
+		return
+	}
 	// get URL hits
 	hits := u.extractURLs(ctx, uid, msg)
 	if len(hits) == 0 {
 		return
 	}
+	// get a map for all the URLs we have already unfurled
+	prevUnfurled := make(map[string]bool)
+	for _, u := range msg.Valid().Unfurls {
+		prevUnfurled[u.Url] = true
+	}
 	// for each hit, either prompt the user for action, or generate a new message
 	for _, hit := range hits {
+		if prevUnfurled[hit.URL] {
+			u.Debug(ctx, "UnfurlAndSend: skipping prev unfurled")
+			continue
+		}
+		prevUnfurled[hit.URL] = true // only one action per unique URL
 		switch hit.Typ {
 		case ExtractorHitPrompt:
 			domain, err := GetDomain(hit.URL)
@@ -219,9 +246,9 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 			}
 			u.G().ActivityNotifier.PromptUnfurl(ctx, uid, convID, msg.GetMessageID(), domain)
 		case ExtractorHitUnfurl:
-			outboxID, err := storage.NewOutboxID()
-			if err != nil {
-				u.Debug(ctx, "UnfurlAndSend: failed to generate outboxID: skipping: %s", err)
+			outboxID := u.getOutboxIDFromURL(hit.URL, convID, msg)
+			if _, err := u.getTask(ctx, outboxID); err == nil {
+				u.Debug(ctx, "UnfurlAndSend: skipping URL hit, task exists: outboxID: %s", outboxID)
 				continue
 			}
 			unfurlMsg, err := u.makeBaseUnfurlMessage(ctx, msg, outboxID)
@@ -262,6 +289,16 @@ func (u *Unfurler) doneUnfurling(outboxID chat1.OutboxID) {
 	delete(u.unfurlMap, outboxID.String())
 }
 
+func (u *Unfurler) detectPermError(err error) bool {
+	switch e := err.(type) {
+	case *net.DNSError:
+		return !e.Temporary()
+	case *url.Error:
+		return !e.Temporary()
+	}
+	return false
+}
+
 func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "unfurl(%s)", outboxID)()
 	if u.checkAndSetUnfurling(ctx, outboxID) {
@@ -276,7 +313,11 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 				u.unfurlCh <- unfurl
 			}
 			if err != nil {
-				if err := u.setStatus(ctx, outboxID, types.UnfurlerTaskStatusFailed); err != nil {
+				status := types.UnfurlerTaskStatusFailed
+				if u.detectPermError(err) {
+					status = types.UnfurlerTaskStatusPermFailed
+				}
+				if err := u.setStatus(ctx, outboxID, status); err != nil {
 					u.Debug(ctx, "unfurl: failed to set failed status: %s", err)
 				}
 			} else {
@@ -294,7 +335,7 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		}
 		unfurlRaw, err := u.scraper.Scrape(ctx, task.URL)
 		if err != nil {
-			u.Debug(ctx, "unfurl: failed to scrape: %s", err)
+			u.Debug(ctx, "unfurl: failed to scrape: %s(%T)", err, err)
 			return unfurl, err
 		}
 		packaged, err := u.packager.Package(ctx, task.UID, task.ConvID, unfurlRaw)
@@ -314,4 +355,24 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		}
 		return unfurl, nil
 	}(ctx)
+}
+
+func (u *Unfurler) GetSettings(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
+	defer u.Trace(ctx, func() error { return nil }, "GetSettings")()
+	return u.settings.Get(ctx, uid)
+}
+
+func (u *Unfurler) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "WhitelistAdd")()
+	return u.settings.WhitelistAdd(ctx, uid, domain)
+}
+
+func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "WhitelistRemove")()
+	return u.settings.WhitelistRemove(ctx, uid, domain)
+}
+
+func (u *Unfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "SetMode")()
+	return u.settings.SetMode(ctx, uid, mode)
 }

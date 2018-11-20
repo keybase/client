@@ -4,18 +4,22 @@ import * as Route from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
 import {namedConnect} from '../../../util/container'
+import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
   onConfirm?: () => void, // if showing confirm form directly (not through routing)
 }
 
 const mapStateToProps = state => {
+  const accountID = state.wallets.selectedAccount
   const {isRequest} = state.wallets.building
+  const isReady = isRequest
+    ? state.wallets.builtRequest.readyToRequest
+    : state.wallets.builtPayment.readyToSend
+  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   return {
     calculating: !!state.wallets.building.amount,
-    disabled: !(isRequest
-      ? state.wallets.builtRequest.readyToRequest
-      : state.wallets.builtPayment.readyToSend),
+    disabled: !isReady || currencyWaiting,
     isRequest,
     waitingKey: Constants.buildPaymentWaitingKey,
     worthDescription: isRequest
@@ -50,4 +54,6 @@ const mergeProps = (s, d, o) => ({
   worthDescription: s.worthDescription,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(Footer)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Footer')(
+  Footer
+)

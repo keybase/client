@@ -1,5 +1,5 @@
 // @flow
-import {connect, compose} from '../../util/container'
+import {connect, compose, type RouteProps} from '../../util/container'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
@@ -8,6 +8,8 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
 import TransactionDetails from '.'
+
+type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
 
 const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''
@@ -45,7 +47,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   const tx = stateProps._transaction
   if (!tx.txID || !tx.sourceAccountID) {
     return {
@@ -82,7 +84,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps

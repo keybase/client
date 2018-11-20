@@ -4,7 +4,7 @@ import * as React from 'react'
 import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
-import NativeImage from './native-image.native'
+import {NativeImage} from './native-image.native'
 import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {

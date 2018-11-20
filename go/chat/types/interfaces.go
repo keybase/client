@@ -365,7 +365,12 @@ type ConversationBackedStorage interface {
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
-	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.Unfurl, error)
+	Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error)
 	Retry(ctx context.Context, outboxID chat1.OutboxID)
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+
+	GetSettings(ctx context.Context, uid gregor1.UID) (chat1.UnfurlSettings, error)
+	WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error
+	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
+	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
 }

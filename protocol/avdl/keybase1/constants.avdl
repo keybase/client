@@ -172,6 +172,8 @@ protocol constants {
     SCStellarWrongPrimary_3107,
     SCStellarUnsupportedCurrency_3108,
     SCStellarNeedDisclaimer_3109,
+    SCStellarDeviceNotMobile_3110,
+    SCStellarMobileOnlyPurgatory_3111,
     SCNISTWrongSize_3201,
     SCNISTBadMode_3202,
     SCNISTHashWrongSize_3203,

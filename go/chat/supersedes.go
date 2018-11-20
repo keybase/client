@@ -138,7 +138,7 @@ func (t *basicSupersedesTransform) transformUnfurl(msg chat1.MessageUnboxed, sup
 		return &msg
 	}
 	mvalid := msg.Valid()
-	mvalid.Unfurls = append(mvalid.Unfurls, superMsg.Valid().MessageBody.Unfurl().Unfurl)
+	utils.SetUnfurl(&mvalid, superMsg.GetMessageID(), superMsg.Valid().MessageBody.Unfurl().Unfurl)
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }

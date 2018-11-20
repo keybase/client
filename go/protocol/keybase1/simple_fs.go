@@ -370,13 +370,43 @@ func (e DirentType) String() string {
 	return ""
 }
 
+type PrefetchStatus int
+
+const (
+	PrefetchStatus_NOT_STARTED PrefetchStatus = 0
+	PrefetchStatus_IN_PROGRESS PrefetchStatus = 1
+	PrefetchStatus_COMPLETE    PrefetchStatus = 2
+)
+
+func (o PrefetchStatus) DeepCopy() PrefetchStatus { return o }
+
+var PrefetchStatusMap = map[string]PrefetchStatus{
+	"NOT_STARTED": 0,
+	"IN_PROGRESS": 1,
+	"COMPLETE":    2,
+}
+
+var PrefetchStatusRevMap = map[PrefetchStatus]string{
+	0: "NOT_STARTED",
+	1: "IN_PROGRESS",
+	2: "COMPLETE",
+}
+
+func (e PrefetchStatus) String() string {
+	if v, ok := PrefetchStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type Dirent struct {
-	Time                 Time       `codec:"time" json:"time"`
-	Size                 int        `codec:"size" json:"size"`
-	Name                 string     `codec:"name" json:"name"`
-	DirentType           DirentType `codec:"direntType" json:"direntType"`
-	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
-	Writable             bool       `codec:"writable" json:"writable"`
+	Time                 Time           `codec:"time" json:"time"`
+	Size                 int            `codec:"size" json:"size"`
+	Name                 string         `codec:"name" json:"name"`
+	DirentType           DirentType     `codec:"direntType" json:"direntType"`
+	LastWriterUnverified User           `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
+	Writable             bool           `codec:"writable" json:"writable"`
+	PrefetchStatus       PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
@@ -387,6 +417,7 @@ func (o Dirent) DeepCopy() Dirent {
 		DirentType:           o.DirentType.DeepCopy(),
 		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
 		Writable:             o.Writable,
+		PrefetchStatus:       o.PrefetchStatus.DeepCopy(),
 	}
 }
 
@@ -1073,6 +1104,66 @@ func (o SimpleFSQuotaUsage) DeepCopy() SimpleFSQuotaUsage {
 	}
 }
 
+type FolderSyncMode int
+
+const (
+	FolderSyncMode_DISABLED FolderSyncMode = 0
+	FolderSyncMode_ENABLED  FolderSyncMode = 1
+)
+
+func (o FolderSyncMode) DeepCopy() FolderSyncMode { return o }
+
+var FolderSyncModeMap = map[string]FolderSyncMode{
+	"DISABLED": 0,
+	"ENABLED":  1,
+}
+
+var FolderSyncModeRevMap = map[FolderSyncMode]string{
+	0: "DISABLED",
+	1: "ENABLED",
+}
+
+func (e FolderSyncMode) String() string {
+	if v, ok := FolderSyncModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type FolderSyncConfig struct {
+	Mode FolderSyncMode `codec:"mode" json:"mode"`
+}
+
+func (o FolderSyncConfig) DeepCopy() FolderSyncConfig {
+	return FolderSyncConfig{
+		Mode: o.Mode.DeepCopy(),
+	}
+}
+
+type FolderSyncStatus struct {
+	LocalDiskBytesAvailable int64 `codec:"localDiskBytesAvailable" json:"localDiskBytesAvailable"`
+	LocalDiskBytesTotal     int64 `codec:"localDiskBytesTotal" json:"localDiskBytesTotal"`
+}
+
+func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
+	return FolderSyncStatus{
+		LocalDiskBytesAvailable: o.LocalDiskBytesAvailable,
+		LocalDiskBytesTotal:     o.LocalDiskBytesTotal,
+	}
+}
+
+type FolderSyncConfigAndStatus struct {
+	Config FolderSyncConfig `codec:"config" json:"config"`
+	Status FolderSyncStatus `codec:"status" json:"status"`
+}
+
+func (o FolderSyncConfigAndStatus) DeepCopy() FolderSyncConfigAndStatus {
+	return FolderSyncConfigAndStatus{
+		Config: o.Config.DeepCopy(),
+		Status: o.Status.DeepCopy(),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1216,6 +1307,15 @@ type SimpleFSResetArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSFolderSyncConfigAndStatusArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
+type SimpleFSSetFolderSyncConfigArg struct {
+	Path   Path             `codec:"path" json:"path"`
+	Config FolderSyncConfig `codec:"config" json:"config"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1314,6 +1414,8 @@ type SimpleFSInterface interface {
 	// simpleFSReset completely resets the KBFS folder referenced in `path`.
 	// It should only be called after explicit user confirmation.
 	SimpleFSReset(context.Context, Path) error
+	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
+	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1770,6 +1872,38 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSFolderSyncConfigAndStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSFolderSyncConfigAndStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSFolderSyncConfigAndStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSFolderSyncConfigAndStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSFolderSyncConfigAndStatus(ctx, typedArgs[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"simpleFSSetFolderSyncConfig": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSetFolderSyncConfigArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSetFolderSyncConfigArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSetFolderSyncConfigArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetFolderSyncConfig(ctx, typedArgs[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2001,5 +2135,16 @@ func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res Simp
 func (c SimpleFSClient) SimpleFSReset(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSResetArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, path Path) (res FolderSyncConfigAndStatus, err error) {
+	__arg := SimpleFSFolderSyncConfigAndStatusArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg SimpleFSSetFolderSyncConfigArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil)
 	return
 }

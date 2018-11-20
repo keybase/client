@@ -30,6 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
+  // FlowIssue on 86 TODO remove recompose
   withStateHandlers(
     {deviceName: ''},
     {

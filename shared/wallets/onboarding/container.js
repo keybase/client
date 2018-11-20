@@ -4,6 +4,8 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as Types from '../../constants/types/wallets'
 import Onboarding from '.'
 
+type OwnProps = {||}
+
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
@@ -17,7 +19,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
 })
 
-export default connect(
+export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

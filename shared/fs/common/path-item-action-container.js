@@ -4,7 +4,6 @@ import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
 import {compose, namedConnect, lifecycle, type TypedState, type Dispatch} from '../../util/container'
-import {navigateAppend} from '../../actions/route-tree'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
@@ -33,7 +32,11 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
   moveOrCopy: () => {
     dispatch(FsGen.createSetMoveOrCopySource({path}))
-    dispatch(navigateAppend(['destinationPicker']))
+    dispatch(
+      FsGen.createShowMoveOrCopy({
+        initialDestinationParentPath: Types.getPathParent(path),
+      })
+    )
   },
   ...(isMobile
     ? {

@@ -281,9 +281,8 @@ func (idx *Indexer) searchHitsFromMsgIDs(ctx context.Context, conv types.RemoteC
 	hits := []chat1.ChatSearchHit{}
 	for i, msg := range msgs {
 		if idSet.Contains(msg.GetMessageID()) && msg.IsValidFull() && opts.Matches(msg) {
-			msgText := msg.SearchableText()
-			matches := queryRe.FindAllString(msgText, -1)
-			if matches == nil {
+			matches := searchMatches(msg, queryRe)
+			if len(matches) == 0 {
 				continue
 			}
 			afterLimit := i - opts.AfterContext

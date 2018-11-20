@@ -9,7 +9,7 @@ import {compose, namedConnect} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
-import memoizeOne from 'memoize-one'
+import {memoize1, memoize2, memoize3, memoize4, memoize6} from '../util/memoize'
 import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 
 // TODO
@@ -39,7 +39,7 @@ const initialState: LocalState = {
   highlightedIndex: 0,
 }
 
-const deriveSearchResults = memoizeOne(
+const deriveSearchResults = memoize4(
   (
     searchResults: ?Array<User>,
     teamSoFar: I.Set<User>,
@@ -57,7 +57,7 @@ const deriveSearchResults = memoizeOne(
   }
 )
 
-const deriveTeamSoFar = memoizeOne((teamSoFar: I.Set<User>) =>
+const deriveTeamSoFar = memoize1((teamSoFar: I.Set<User>) =>
   teamSoFar.toArray().map(userInfo => {
     const {username, serviceId} = parseUserId(userInfo.id)
     return {
@@ -72,7 +72,7 @@ const deriveTeamSoFar = memoizeOne((teamSoFar: I.Set<User>) =>
 const deriveServiceResultCount: (
   searchResults: SearchResults,
   query: string
-) => {[key: ServiceIdWithContact]: ?number} = memoizeOne((searchResults: SearchResults, query) =>
+) => {[key: ServiceIdWithContact]: ?number} = memoize1((searchResults: SearchResults, query) =>
   // $FlowIssue toObject looses typing
   searchResults
     .get(trim(query), I.Map())
@@ -80,9 +80,9 @@ const deriveServiceResultCount: (
     .toObject()
 )
 
-const deriveShowServiceResultCount = memoizeOne(searchString => !!searchString)
+const deriveShowServiceResultCount = memoize1(searchString => !!searchString)
 
-const deriveUserFromUserIdFn = memoizeOne((searchResults: ?Array<User>) => (userId: string): ?User =>
+const deriveUserFromUserIdFn = memoize1((searchResults: ?Array<User>) => (userId: string): ?User =>
   (searchResults || []).filter(u => u.id === userId)[0] || null
 )
 
@@ -119,26 +119,13 @@ const mapDispatchToProps = dispatch => ({
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
 })
 
-const deriveOnBackspace = memoizeOne(
-  <X>(
-    searchString: ?string,
-    teamSoFar: Array<{+userId: string} & X>,
-    onRemove: (userId: string) => void
-  ) => () => {
-    // Check if empty and we have a team so far
-    !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
-  }
-)
+const deriveOnBackspace = memoize3((searchString, teamSoFar, onRemove) => () => {
+  // Check if empty and we have a team so far
+  !searchString && teamSoFar.length && onRemove(teamSoFar[teamSoFar.length - 1].userId)
+})
 
-const deriveOnEnterKeyDown = memoizeOne(
-  <X, Y>(
-    searchResults: Array<{+userId: string} & X>,
-    teamSoFar: Array<{+userId: string} & Y>,
-    highlightedIndex: ?number,
-    onAdd: (userId: string) => void,
-    onRemove: (userId: string) => void,
-    changeText: (newText: string) => void
-  ) => () => {
+const deriveOnEnterKeyDown = memoize6(
+  (searchResults, teamSoFar, highlightedIndex, onAdd, onRemove, changeText) => () => {
     if (searchResults.length) {
       const selectedResult = searchResults[highlightedIndex || 0]
       if (selectedResult) {
@@ -153,24 +140,18 @@ const deriveOnEnterKeyDown = memoizeOne(
   }
 )
 
-const deriveOnAdd = memoizeOne(
-  (
-    userFromUserId: (userId: string) => ?User,
-    dispatchOnAdd: (user: User) => void,
-    changeText: string => void
-  ) => (userId: string) => {
-    const user = userFromUserId(userId)
-    if (!user) {
-      logger.error(`Couldn't find User to add for ${userId}`)
-      changeText('')
-      return
-    }
+const deriveOnAdd = memoize3((userFromUserId, dispatchOnAdd, changeText) => (userId: string) => {
+  const user = userFromUserId(userId)
+  if (!user) {
+    logger.error(`Couldn't find User to add for ${userId}`)
     changeText('')
-    dispatchOnAdd(user)
+    return
   }
-)
+  changeText('')
+  dispatchOnAdd(user)
+})
 
-const deriveOnChangeText = memoizeOne(
+const deriveOnChangeText = memoize3(
   (
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
@@ -181,7 +162,7 @@ const deriveOnChangeText = memoizeOne(
   }
 )
 
-const deriveOnDownArrowKeyDown = memoizeOne(
+const deriveOnDownArrowKeyDown = memoize2(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
@@ -227,7 +208,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const Connected = compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   PopupDialogHoc
 )(TeamBuilding)
 

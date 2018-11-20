@@ -1,4 +1,5 @@
 // @flow
+import logger from '../../logger'
 import * as Constants from '../../constants/team-building'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
@@ -24,11 +25,16 @@ const apiSearch = (
       {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
     ],
     endpoint: 'user/user_search',
-  }).then(results =>
-    JSON.parse(results.body)
-      .list.map(r => Constants.parseRawResultToUser(r, service))
-      .filter(u => !!u)
-  )
+  })
+    .then(results =>
+      JSON.parse(results.body)
+        .list.map(r => Constants.parseRawResultToUser(r, service))
+        .filter(u => !!u)
+    )
+    .catch(err => {
+      logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
+      return []
+    })
 
 const searchResultCounts = (state: TypedState) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state.chat2
@@ -61,7 +67,7 @@ const searchResultCounts = (state: TypedState) => {
     serviceChannel.close()
 
     for (let i = 0; i < parallelRequestsCount; i++) {
-      yield Saga.fork(function*() {
+      yield Saga.spawn(function*() {
         // The loop will exit when we run out of services
         while (true) {
           const service = yield Saga.take(serviceChannel)

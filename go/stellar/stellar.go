@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/acctbundle"
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
@@ -200,6 +201,50 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	if err = remote.MarkAsRead(ctx, g, accountID, mostRecentID); err != nil {
 		g.Log.CDebugf(ctx, "ImportSecretKey, markAsRead error: %s", err)
 		return nil
+	}
+
+	return nil
+}
+
+// ImportSecretKeyAccountBundle is a temporary function.
+// This is just to check PostBundleRestricted.
+// It does not attempt to do a full migration from V1 to V2.
+func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) error {
+	if g.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("this doesn't work in production")
+	}
+
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	err = bundle.AddAccount(&nextBundle, secretKey, accountName, makePrimary)
+	if err != nil {
+		return err
+	}
+
+	acctBundle, err := acctbundle.NewFromBundle(nextBundle)
+	if err != nil {
+		return err
+	}
+
+	// turn on the feature flag for the v2 stellar account bundles
+	m := libkb.NewMetaContext(ctx, g)
+	_, err = g.API.Post(libkb.APIArg{
+		Endpoint:    "test/feature",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"feature":   libkb.S{Val: string(libkb.FeatureStellarAcctBundles)},
+			"value":     libkb.I{Val: 1},
+			"cache_sec": libkb.I{Val: 100},
+		},
+		MetaContext: m,
+	})
+
+	if err := remote.PostBundleRestricted(ctx, g, acctBundle); err != nil {
+		g.Log.CDebugf(ctx, "ImportSecretKey PostAccountBundle error: %s", err)
+		return err
 	}
 
 	return nil
@@ -491,7 +536,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		post.To = &recipient.User.UV
 	}
 
-	sp := NewSeqnoProvider(m.Ctx(), remoter)
+	sp := NewSeqnoProvider(m, remoter)
 	if sendArg.FromSeqno != nil {
 		sp.Override(senderEntry.AccountID.String(), xdr.SequenceNumber(*sendArg.FromSeqno))
 	}
@@ -569,7 +614,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if err != nil {
 		return res, err
 	}
-	sp := NewSeqnoProvider(m.Ctx(), remoter)
+	sp := NewSeqnoProvider(m, remoter)
 	if fromSeqno != nil {
 		fromAccountID, err := accountIDFromSecretKey(from)
 		if err != nil {
@@ -688,7 +733,7 @@ func claimPaymentWithDetail(ctx context.Context, g *libkb.GlobalContext, remoter
 		// Direction from caller
 		useDir = *dir
 	}
-	sp := NewSeqnoProvider(ctx, remoter)
+	sp := NewSeqnoProvider(libkb.NewMetaContext(ctx, g), remoter)
 	// Throw a random ID into the transaction memo so that we get a new txID each time.
 	// This makes it easy to resubmit without hitting a txID collision on the server.
 	memoID, err := randMemoID()
@@ -939,8 +984,8 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 			m.CDebugf("identifyRecipient: not found %s: %s", assertion, err)
 			return "", nil
 		}
-		if _, ok := err.(libkb.ResolutionError); ok {
-			m.CDebugf("identifyRecipient: resolution error %s: %s", assertion, err)
+		if libkb.IsResolutionNotFoundError(err) {
+			m.CDebugf("identifyRecipient: resolution not found error %s: %s", assertion, err)
 			return "", nil
 		}
 		return "", err
@@ -968,8 +1013,8 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 
 type FmtRounding bool
 
-const FMT_ROUND = false
-const FMT_TRUNCATE = true
+const FmtRound = false
+const FmtTruncate = true
 
 func FormatCurrency(ctx context.Context, g *libkb.GlobalContext,
 	amount string, code stellar1.OutsideCurrencyCode, rounding FmtRounding) (string, error) {
@@ -1065,7 +1110,7 @@ func FormatAmountDescriptionXLM(amount string) (string, error) {
 }
 
 func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(amount, precisionTwo, FMT_ROUND)
+	formatted, err := FormatAmount(amount, precisionTwo, FmtRound)
 	if err != nil {
 		return "", err
 	}
@@ -1088,7 +1133,7 @@ func FormatAmount(amount string, precisionTwo bool, rounding FmtRounding) (strin
 		precision = 2
 	}
 	var s string
-	if rounding == FMT_ROUND {
+	if rounding == FmtRound {
 		s = x.FloatString(precision)
 	} else {
 		s = x.FloatString(precision + 1)

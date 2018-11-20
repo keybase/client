@@ -6,6 +6,8 @@ import {dismiss as dismissKeyboard} from '../../../../../util/keyboard'
 import * as Styles from '../../../../../styles'
 import WrapperAuthor from '../wrapper-author/container'
 import ReactionsRow from '../../reactions-row/container'
+import UnfurlPromptList from '../../unfurl/prompt-list/container'
+import UnfurlList from '../../unfurl/unfurl-list/container'
 import ReactButton from '../../react-button/container'
 import MessagePopup from '../../message-popup'
 import ExplodingMeta from '../exploding-meta/container'
@@ -115,6 +117,16 @@ class _WrapperMessage extends React.Component<Props & OverlayParentProps, State>
                   toggleShowingMenu: props.toggleShowingMenu,
                 })}
             </Box2>
+            {// $FlowIssue doesn't like us not reducing the type here, but its faster
+            props.message.unfurlPrompts &&
+              !props.message.unfurlPrompts.isEmpty() && (
+                <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+              )}
+            {// $FlowIssue doesn't like us not reducing the type here, but its faster
+            props.message.unfurls &&
+              !props.message.unfurls.isEmpty() && (
+                <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+              )}
             {// $FlowIssue doesn't like us not reducing the type here, but its faster
             props.message.reactions &&
               !props.message.reactions.isEmpty() && (

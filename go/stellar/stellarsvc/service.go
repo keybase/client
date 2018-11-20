@@ -437,7 +437,7 @@ func (s *Server) FormatLocalCurrencyString(ctx context.Context, arg stellar1.For
 		return res, err
 	}
 
-	return stellar.FormatCurrency(ctx, s.G(), arg.Amount, arg.Code, stellar.FMT_ROUND)
+	return stellar.FormatCurrency(ctx, s.G(), arg.Amount, arg.Code, stellar.FmtRound)
 }
 
 // check that the display amount is within 1% of current exchange rates

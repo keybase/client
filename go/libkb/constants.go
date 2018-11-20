@@ -309,6 +309,8 @@ const (
 	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
 	SCStellarNeedDisclaimer            = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
+	SCStellarDeviceNotMobile           = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
+	SCStellarMobileOnlyPurgatory       = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 )
 
 const (
@@ -564,9 +566,10 @@ const (
 	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
 	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
 	// Context used for chaining generations of PerUserKeys.
-	DeriveReasonPUKPrev            DeriveReason = "Derived-User-NaCl-SecretBox-1"
-	DeriveReasonPUKStellarBundle   DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
-	DeriveReasonPUKStellarNoteSelf DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
+	DeriveReasonPUKPrev              DeriveReason = "Derived-User-NaCl-SecretBox-1"
+	DeriveReasonPUKStellarBundle     DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
+	DeriveReasonPUKStellarNoteSelf   DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
+	DeriveReasonPUKStellarAcctBundle DeriveReason = "Derived-User-NaCl-SecretBox-StellarAcctBundle-1"
 
 	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
