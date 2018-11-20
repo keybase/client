@@ -206,6 +206,7 @@ start_systemd() {
       XDG_CONFIG_HOME
       XDG_DATA_HOME
       XDG_DOWNLOAD_DIR
+      XDG_RUNTIME_DIR
       # Other useful GUI variables.
       CLUTTER_IM_MODULE
       GTK_IM_MODULE
@@ -213,12 +214,16 @@ start_systemd() {
       QT4_IM_MODULE
       XMODIFIERS
   )
-  forwarded_cli_env_vars=(
+  forwarded_service_env_vars=(
       # Once again, the XDG variables are needed
       XDG_CACHE_HOME
+      XDG_DATA_HOME
+      XDG_CONFIG_HOME
+      XDG_RUNTIME_DIR
   )
   forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
-  forward_vars "$runtime_dir/keybase.env" forwarded_cli_env_vars[@]
+  forward_vars "$runtime_dir/keybase.env" forwarded_service_env_vars[@]
+  forward_vars "$runtime_dir/keybase.kbfs.env" forwarded_service_env_vars[@]
 
   run_redirector
 
