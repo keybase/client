@@ -24,12 +24,12 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         usernameError: '',
       })
     case SignupGen.requestedAutoInvite:
-      return state.set('inviteCode', action.error ? '' : action.payload.inviteCode)
+      return state.merge({inviteCode: action.error ? '' : action.payload.inviteCode})
     case SignupGen.checkInviteCode:
-      return state.set('inviteCode', action.payload.inviteCode)
+      return state.merge({inviteCode: action.payload.inviteCode})
     case SignupGen.checkedInviteCode:
       return action.payload.inviteCode === state.inviteCode
-        ? state.set('inviteCodeError', (action.error && action.payload.error) || '')
+        ? state.merge({inviteCodeError: (action.error && action.payload.error) || ''})
         : state
     case SignupGen.checkUsernameEmail: {
       const {email, username} = action.payload
@@ -86,10 +86,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     }
     case SignupGen.checkedDevicename:
       return action.payload.devicename === state.devicename
-        ? state.set('devicenameError', (action.error && action.payload.error) || '')
+        ? state.merge({devicenameError: (action.error && action.payload.error) || ''})
         : state
     case SignupGen.signedup:
-      return state.set('signupError', (action.error && action.payload.error) || new HiddenString(''))
+      return state.merge({signupError: (action.error && action.payload.error) || new HiddenString('')})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state
