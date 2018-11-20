@@ -424,6 +424,7 @@ func NewConfigLocal(mode InitMode,
 		kbCtx:           kbCtx,
 		tlfClearCancels: make(map[tlf.ID]context.CancelFunc),
 	}
+	config.SetCodec(kbfscodec.NewMsgpack())
 	if diskCacheMode == DiskCacheModeLocal {
 		config.loadSyncedTlfsLocked()
 	}
@@ -431,7 +432,6 @@ func NewConfigLocal(mode InitMode,
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
-	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 	config.SetUserHistory(kbfsedits.NewUserHistory())
