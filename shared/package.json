@@ -232,7 +232,6 @@
     "minimist": "1.2.0",
     "msgpack": "git://github.com/keybase/nullModule",
     "net": "git://github.com/keybase/nullModule",
-    "node-loader": "^0.6.0",
     "null-loader": "0.1.1",
     "pegjs": "0.10.0",
     "prettier": "1.14.3",

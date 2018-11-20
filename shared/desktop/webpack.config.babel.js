@@ -68,10 +68,6 @@ const config = (_, {mode}) => {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
-      {
-        test: /\.node$/,
-        use: 'node-loader',
-      },
     ]
   }
 
@@ -105,6 +101,7 @@ const config = (_, {mode}) => {
       context: path.resolve(__dirname, '..'),
       devServer,
       devtool: isDev ? 'eval' : 'source-map',
+      externals: /^electron-spellchecker$/i,
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {
@@ -118,7 +115,7 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow', '.node'],
+        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },
       stats: {
         ...(isDev
