@@ -33,6 +33,7 @@ type ChatServiceHandler interface {
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
+	UpdateTypingV1(context.Context, updateTypingOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -182,6 +183,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
 				TopicName:   utils.GetTopicName(conv),
 			},
+			ConvID: conv.GetConvID().String(),
 			Sender: MsgSender{
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
@@ -877,6 +879,36 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	return Reply{Result: res}
 }
 
+// UpdateTypingV1 implements ChatServiceHandler.UpdateTypingV1.
+func (c *chatServiceHandler) UpdateTypingV1(ctx context.Context, opts updateTypingOptionsV1) Reply {
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.UpdateTypingArg{
+		ConversationID: convID,
+		Typing:         opts.Typing,
+	}
+
+	err = client.UpdateTyping(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(rlimits),
+		},
+	}
+	return Reply{Result: cres}
+}
+
 type postHeader struct {
 	conversationID chat1.ConversationID
 	clientHeader   chat1.MessageClientHeader
@@ -1145,6 +1177,7 @@ type MsgContent struct {
 type MsgSummary struct {
 	ID                  chat1.MessageID                `json:"id"`
 	Channel             ChatChannel                    `json:"channel"`
+	ConvID              string                         `json:"conv_id"`
 	Sender              MsgSender                      `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`
 	SentAtMs            int64                          `json:"sent_at_ms"`
