@@ -102,6 +102,7 @@ const config = (_, {mode}) => {
       devServer,
       devtool: isDev ? 'eval' : 'source-map',
       externals: [
+        // tell webpack to treat electron-spellchecker as a require that it itself doesn't resolve (electron has access cause its a native module)
         function(context, request, callback) {
           if (/^electron-spellchecker$/.test(request)) {
             return callback(null, 'commonjs ' + request)
