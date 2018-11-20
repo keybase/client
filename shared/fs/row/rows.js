@@ -19,17 +19,6 @@ type Props = {
   destinationPickerIndex?: number,
 }
 
-// can't just do `Types.RowItem & {key: string}` because flow doesn't like it.
-// TODO: maybe someday flow can figure it out?
-type RowItemWithKey =
-  | ({key: string} & Types.TlfTypeRowItem)
-  | ({key: string} & Types.TlfRowItem)
-  | ({key: string} & Types.StillRowItem)
-  | ({key: string} & Types.EditingRowItem)
-  | ({key: string} & Types.UploadingRowItem)
-  | ({key: string} & Types.PlaceholderRowItem)
-  | ({key: string} & Types.EmptyRowItem)
-
 export const WrapRow = ({children}: {children: React.Node}) => (
   <Kb.Box style={styles.rowContainer}>
     {children}
@@ -39,25 +28,18 @@ export const WrapRow = ({children}: {children: React.Node}) => (
 
 export const EmptyRow = () => <Kb.Box style={styles.rowContainer} />
 
-// We need to make sure not only rendered items, but also prop items have `key`
-// on each item. The latter is used by RN's List and former is used by react.js
-// list.
-const insertKeys = (items: Array<Types.RowItem>): Array<RowItemWithKey> =>
-  // $FlowIssue
-  items.map(item => ({...item, key: `${item.rowType}:${item.name}`}))
-
 class Rows extends React.PureComponent<Props> {
-  _rowRenderer = (index: number, item: RowItemWithKey) => {
+  _rowRenderer = (index: number, item: Types.RowItem) => {
     switch (item.rowType) {
       case 'placeholder':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`placeholder:${item.name}`}>
             <Placeholder type={item.type} />
           </WrapRow>
         )
       case 'tlf-type':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`still:${item.name}`}>
             <TlfType
               name={item.name}
               destinationPickerIndex={this.props.destinationPickerIndex}
@@ -67,7 +49,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'tlf':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`still:${item.name}`}>
             <Tlf
               name={item.name}
               tlfType={item.tlfType}
@@ -78,7 +60,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'still':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`still:${item.name}`}>
             <Still
               name={item.name}
               path={item.path}
@@ -89,18 +71,18 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'uploading':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`uploading:${item.name}`}>
             <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
       case 'empty':
-        return <EmptyRow key={item.key} />
+        return <EmptyRow key={`empty:${item.name}`} />
       default:
         /*::
       let rowType = item.rowType
@@ -108,7 +90,7 @@ class Rows extends React.PureComponent<Props> {
       ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
       */
         return (
-          <WrapRow key={item.key}>
+          <WrapRow key="">
             <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
           </WrapRow>
         )
@@ -118,14 +100,14 @@ class Rows extends React.PureComponent<Props> {
     return this.props.items && this.props.items.length ? (
       <Kb.List
         fixedHeight={rowHeight}
-        items={insertKeys(
+        items={
           // If we are in the destination picker, inject two empty rows so when
           // user scrolls to the bottom nothing is blocked by the
           // semi-transparent footer.
           !isMobile && this.props.destinationPickerIndex
             ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
             : this.props.items
-        )}
+        }
         renderItem={this._rowRenderer}
       />
     ) : (
