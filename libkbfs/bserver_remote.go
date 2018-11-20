@@ -376,8 +376,15 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	ctx = rpc.WithFireNow(ctx)
+	var res keybase1.GetBlockRes
 	b.log.LazyTrace(ctx, "BServer: Get %s", id)
+
+	// Once the block has been retrieved, cache it.
 	defer func() {
+		// But don't cache it if it's archived data.
+		if res.Status == keybase1.BlockStatus_ARCHIVED {
+			return
+		}
 		b.log.LazyTrace(ctx, "BServer: Get %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
@@ -398,7 +405,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	}()
 
 	arg := kbfsblock.MakeGetBlockArg(tlfID, id, context)
-	res, err := b.getConn.getClient().GetBlock(ctx, arg)
+	res, err = b.getConn.getClient().GetBlock(ctx, arg)
 	return kbfsblock.ParseGetBlockRes(res, err)
 }
 
