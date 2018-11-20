@@ -296,27 +296,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           : messageMap.clear()
       }
       return messageMap
-    case Chat2Gen.unfurlTogglePrompt:
-      const unfurlOrdinal = messageIDToOrdinal(
-        messageMap,
-        pendingOutboxToOrdinal,
-        action.payload.conversationIDKey,
-        action.payload.messageID
-      )
-      if (!unfurlOrdinal) {
-        return messageMap
-      }
-      return messageMap.updateIn([action.payload.conversationIDKey, unfurlOrdinal], message => {
-        if (!message || message.type !== 'text') {
-          return message
-        }
-        return message.set(
-          'unfurlPrompts',
-          action.payload.show
-            ? message.unfurlPrompts.add(action.payload.domain)
-            : message.unfurlPrompts.delete(action.payload.domain)
-        )
-      })
     case Chat2Gen.updateMessages:
       const updateOrdinals = action.payload.messages.reduce((l, msg) => {
         const ordinal = messageIDToOrdinal(
@@ -429,6 +408,15 @@ const rootReducer = (
 
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
+    case Chat2Gen.unfurlTogglePrompt:
+      return state.updateIn(
+        ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
+        prompts => {
+          return action.payload.show
+            ? (prompts || I.Set()).add(action.payload.domain)
+            : (prompts || I.Set()).delete(action.payload.domain)
+        }
+      )
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
@@ -951,7 +939,6 @@ const rootReducer = (
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
-    case Chat2Gen.unfurlTogglePrompt:
     case Chat2Gen.updateMessages:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
