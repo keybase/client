@@ -12,6 +12,11 @@ import {navigateAppend} from '../../actions/route-tree'
 // spamming the user.  We have a link in the Settings page so if the user wants
 // they can still find the instructions.
 
+type OwnProps = {
+  shouldPromptSecurityPrefs: boolean,
+  showSecurityPrefsOnce: () => void,
+}
+
 const mapStateToProps = state => {
   const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
@@ -44,11 +49,12 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
 }
 
 const DesktopSecurityPrefsPromptingHoc = compose(
-  connect(
+  connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
+  // $FlowIssue
   branch(displayOnce, renderNothing)
 )
 
