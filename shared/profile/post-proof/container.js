@@ -42,8 +42,7 @@ const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
-export default compose(
-  // FlowIssue on 86
+export default (compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
@@ -60,4 +59,4 @@ export default compose(
       }
     },
   })
-)(PostProof)
+): any)(PostProof)

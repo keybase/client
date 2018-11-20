@@ -32,6 +32,17 @@ func (c *RemoteClient) Call(ctx context.Context, method string, arg interface{},
 	return err
 }
 
+func (c *RemoteClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) (err error) {
+	defer c.Trace(ctx, func() error { return err }, method)()
+	err = c.cli.CallCompressed(ctx, method, arg, res, ctype)
+	if err == nil {
+		if rlRes, ok := res.(types.RateLimitedResult); ok {
+			CtxAddRateLimit(ctx, rlRes.GetRateLimit())
+		}
+	}
+	return err
+}
+
 func (c *RemoteClient) Notify(ctx context.Context, method string, arg interface{}) (err error) {
 	defer c.Trace(ctx, func() error { return err }, method)()
 	return c.cli.Notify(ctx, method, arg)

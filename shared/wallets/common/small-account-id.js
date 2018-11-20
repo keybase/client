@@ -7,6 +7,7 @@ import * as Types from '../../constants/types/wallets'
 
 type SmallAccountIDProps = {
   accountID: Types.AccountID,
+  style?: Styles.StylesCrossPlatform,
 }
 
 class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boolean}> {
@@ -27,7 +28,7 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
         type="BodySmall"
         className={Styles.classNames({'hover-underline': !this.state.expanded})}
         selectable={this.state.expanded}
-        style={styles.text}
+        style={Styles.collapseStyles([styles.text, this.props.style])}
         onClick={this._expand}
       >
         {this.state.expanded ? this.props.accountID : Constants.shortenAccountID(this.props.accountID)}
@@ -37,9 +38,12 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
 }
 
 const styles = Styles.styleSheetCreate({
-  text: {
-    maxWidth: '100%',
-  },
+  text: Styles.platformStyles({
+    common: {
+      maxWidth: '100%',
+    },
+    isElectron: {wordBreak: 'break-all'},
+  }),
 })
 
 export default SmallAccountID
