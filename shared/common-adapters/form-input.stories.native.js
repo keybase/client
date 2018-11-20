@@ -12,6 +12,9 @@ const load = () => {
     .add('Basic', () => {
       return <FormInput label="Label" onChangeText={onChangeText} />
     })
+    .add('Blank label', () => {
+      return <FormInput label="" onChangeText={onChangeText} />
+    })
     .add('Pre-populated', () => {
       return <FormInput label="Label" value="Hello" onChangeText={onChangeText} />
     })

@@ -57,7 +57,7 @@ const PartyAccount = (props: PartyAccountProps) => {
       <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
       <Kb.Box2 direction="vertical">
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
-        {props.accountID && <SmallAccountID accountID={props.accountID} />}
+        {!!props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Kb.Box2>
     </Kb.Box2>
   )

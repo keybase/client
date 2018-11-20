@@ -21,7 +21,7 @@ const coalesceFolderUpdate = (
     ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
     : updated
 
-export default function(state: Types.State = initialState, action: FsGen.Actions) {
+export default function(state: Types.State = initialState, action: FsGen.Actions): Types.State {
   switch (action.type) {
     case FsGen.resetStore:
       return initialState

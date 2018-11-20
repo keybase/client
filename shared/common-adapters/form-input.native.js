@@ -101,7 +101,7 @@ class FormInput extends React.Component<Props, State> {
             {this.props.label}
           </Text>
         )}
-        {this.props.label && this.props.multiline && <Box style={{...headerBlockStyle, backgroundColor}} />}
+        {!!this.props.label && this.props.multiline && <Box style={{...headerBlockStyle, backgroundColor}} />}
         <NativeTextInput
           autoCorrect={this.props.autoCorrect}
           autoFocus={this.props.autoFocus}

@@ -60,6 +60,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       marginLeft: 32 + Styles.globalMargins.tiny + Styles.globalMargins.tiny,
       width: '100%',
+      alignSelf: 'flex-start',
     },
   }),
 })

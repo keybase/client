@@ -115,7 +115,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
         <Box2 direction="horizontal">
           <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
         </Box2>
-        {deviceRevokedAt && (
+        {!!deviceRevokedAt && (
           <PopupHeaderText
             color={globalColors.white}
             backgroundColor={globalColors.blue}
