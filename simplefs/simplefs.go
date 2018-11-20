@@ -2013,22 +2013,28 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	}
 	res := keybase1.FolderSyncConfigAndStatus{Config: config}
 
-	fs, finalElem, err := k.getFS(ctx, path)
-	if err != nil {
-		return res, err
-	}
-	// Use LStat so we don't follow symlinks.
-	fi, err := fs.Lstat(finalElem)
-	if err != nil {
-		return res, err
-	} // TODO: should this just silently ignore no prefetch status?
-
-	if lwg, ok := fi.Sys().(libfs.KBFSMetadataForSimpleFSGetter); ok {
-		metadata, err := lwg.KBFSMetadataForSimpleFS()
+	if config.Mode != keybase1.FolderSyncMode_DISABLED {
+		fs, finalElem, err := k.getFS(ctx, path)
 		if err != nil {
-			res.Status.PrefetchStatus = metadata.PrefetchStatus
+			return res, err
 		}
-	} // TODO: should this just silently ignore no prefetch status?
+		// Use LStat so we don't follow symlinks.
+		fi, err := fs.Lstat(finalElem)
+		if err != nil {
+			return res, err
+		}
+
+		if kmg, ok := fi.Sys().(libfs.KBFSMetadataForSimpleFSGetter); ok {
+			metadata, err := kmg.KBFSMetadataForSimpleFS()
+			if err != nil {
+				return keybase1.FolderSyncConfigAndStatus{}, err
+			}
+			res.Status.PrefetchStatus = metadata.PrefetchStatus
+		} else {
+			k.log.CDebugf(ctx,
+				"Could not get prefetch status from filesys: %T", fi.Sys())
+		}
+	}
 
 	dbc := k.config.DiskBlockCache()
 	if dbc != nil {
