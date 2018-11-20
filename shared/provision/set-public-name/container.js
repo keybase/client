@@ -30,8 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  // FlowIssue on 86 TODO remove recompose
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {deviceName: ''},
     {
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
