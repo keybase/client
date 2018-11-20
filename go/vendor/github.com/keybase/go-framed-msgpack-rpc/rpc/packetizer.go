@@ -23,23 +23,25 @@ func (r *lastErrReader) Read(buf []byte) (int, error) {
 }
 
 type packetizer struct {
-	maxFrameLength int32
-	lengthDecoder  *codec.Decoder
-	reader         *lastErrReader
-	protocols      *protocolHandler
-	calls          *callContainer
-	log            LogInterface
+	maxFrameLength   int32
+	lengthDecoder    *codec.Decoder
+	reader           *lastErrReader
+	protocols        *protocolHandler
+	calls            *callContainer
+	compressorCacher *compressorCacher
+	log              LogInterface
 }
 
 func newPacketizer(maxFrameLength int32, reader io.Reader, protocols *protocolHandler, calls *callContainer, log LogInterface) *packetizer {
 	wrappedReader := &lastErrReader{bufio.NewReader(reader), nil}
 	return &packetizer{
-		maxFrameLength: maxFrameLength,
-		lengthDecoder:  codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
-		reader:         wrappedReader,
-		protocols:      protocols,
-		calls:          calls,
-		log:            log,
+		maxFrameLength:   maxFrameLength,
+		lengthDecoder:    codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
+		reader:           wrappedReader,
+		protocols:        protocols,
+		calls:            calls,
+		compressorCacher: newCompressorCacher(),
+		log:              log,
 	}
 }
 
@@ -167,5 +169,5 @@ func (p *packetizer) NextFrame() (msg rpcMessage, err error) {
 		return nil, NewPacketizerError("wrong message structure prefix (0x%x)", nb)
 	}
 
-	return decodeRPC(int(nb-0x90), &r, p.protocols, p.calls)
+	return decodeRPC(int(nb-0x90), &r, p.protocols, p.calls, p.compressorCacher)
 }

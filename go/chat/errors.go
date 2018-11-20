@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -383,6 +384,10 @@ type OfflineClient struct {
 }
 
 func (e OfflineClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return OfflineError{}
+}
+
+func (e OfflineClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
 	return OfflineError{}
 }
 
