@@ -22,27 +22,52 @@ func newContentTypeOverridingResponseWriter(
 	}
 }
 
+// supportedContentTypes has exceptions to the libmime stuff because some types
+// need special handling or are unsupported by frontend. The boolean value
+// decides on whether this will be shown inline or as an attachment.
+// We don't want to render SVG unless that has been audited, even if
+// the file lacks a .svg extension.
+var supportedContentTypes = map[string]bool{
+	// Media
+	"image/tiff":         false,
+	"image/x-jng":        false,
+	"image/vnd.wap.wbmp": false,
+	"image/svg+xml":      false,
+}
+
+// getDisposition decides on the Content-Disposition value (inline vs attachment) for
+// the given mimeType by consulting the supportedContentTypes map and using the defaultValue
+// parameter.
+func getDisposition(defaultInlineValue bool, mimeType string) string {
+	res, found := supportedContentTypes[mimeType]
+	if (found && res) || (!found && defaultInlineValue) {
+		return "inline"
+	}
+	return "attachment"
+}
+
 func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	mimeType string) (newMimeType, disposition string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
 	// by the frontend WebView.
 	ty := strings.ToLower(mimeType)
 	switch {
-	// First anything textual as text/plain, also javascript.
-	case strings.HasPrefix(ty, "text/") ||
-		ty == "application/javascript":
+	// First anything textual as text/plain.
+	// Javascript is set to plain text by additionalMimeTypes map.
+	// If text/something-dangerous would get here, we set it to plaintext.
+	// If application/javascript somehow gets here it would be handled safely
+	// by the default handler below.
+	case strings.HasPrefix(ty, "text/"):
 		return "text/plain", "inline"
-	// Rest of html, xml. (note that the type may be e.g. application/xhtml+xml)
-	case strings.Contains(ty, "xml") ||
-		strings.Contains(ty, "html"):
-		return "text/plain", "attachment"
 	// Pass multimedia types through, and pdf too.
+	// Some types get special handling here and are not shown inline (e.g. SVG).
 	case strings.HasPrefix(ty, "audio/") ||
 		strings.HasPrefix(ty, "image/") ||
 		strings.HasPrefix(ty, "video/") ||
 		ty == "application/pdf":
-		return ty, "inline"
+		return ty, getDisposition(true, ty)
 	// Otherwise default to text + attachment.
+	// This is safe for all files.
 	default:
 		return "text/plain", "attachment"
 	}
@@ -85,6 +110,7 @@ var additionalMimeTypes = map[string]string{
 	".flow":  "text/plain",
 	".php":   "text/plain",
 	".pl":    "text/plain",
+	".pm":    "text/plain",
 	".sh":    "text/plain",
 	".js":    "text/plain",
 	".json":  "text/plain",
@@ -93,4 +119,9 @@ var additionalMimeTypes = map[string]string{
 	".xml":   "text/plain",
 	".tex":   "text/plain",
 	".pub":   "text/plain",
+	".atom":  "text/plain",
+	".xhtml": "text/plain",
+	".rss":   "text/plain",
+	".tcl":   "text/plain",
+	".tk":    "text/plain",
 }
