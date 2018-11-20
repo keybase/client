@@ -13,10 +13,10 @@ import {navigateAppend} from '../../actions/route-tree'
 // they can still find the instructions.
 
 const mapStateToProps = state => {
-  const {securityPrefsPropmted, kextPermissionError} = state.fs.flags
+  const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
-    shouldPromptSecurityPrefs: !securityPrefsPropmted && !kbfsEnabled && kextPermissionError,
+    shouldPromptSecurityPrefs: !securityPrefsPrompted && !kbfsEnabled && kextPermissionError,
   }
 }
 
@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch) => ({
   showSecurityPrefsOnce: () => {
     dispatch(
       FsGen.createSetFlags({
-        securityPrefsPropmted: true,
+        securityPrefsPrompted: true,
       })
     )
     dispatch(
