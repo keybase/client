@@ -409,12 +409,12 @@ const rootReducer = (
         s.set('selectedConversation', action.payload.conversationIDKey)
       })
     case Chat2Gen.unfurlTogglePrompt:
+      const {show, domain} = action.payload
       return state.updateIn(
         ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
+        I.Set(),
         prompts => {
-          return action.payload.show
-            ? (prompts || I.Set()).add(action.payload.domain)
-            : (prompts || I.Set()).delete(action.payload.domain)
+          return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
     case Chat2Gen.setInboxFilter:
