@@ -442,6 +442,7 @@ protocol SimpleFS {
     // Bytes available and total on the partition hosting the sync cache.
     int64 localDiskBytesAvailable;
     int64 localDiskBytesTotal;
+    // TODO: fill in percentage synced, etc.
     PrefetchStatus prefetchStatus;
   }
 
