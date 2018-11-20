@@ -8,6 +8,8 @@ set -e -u -o pipefail
 
 runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
 mkdir -p "$runtime_dir"
+logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+mkdir -p "$logdir"
 startup_token="$runtime_dir/startup_mode"
 
 set_autostart_vars() {
@@ -167,7 +169,7 @@ run_redirector() {
 
   # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disable" != "true" ]; then
-    log="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.redirector.log"
+    log="$logdir/keybase.redirector.log"
     # An older version of post_install.sh could have made a redirector log
     # here that's owned by root.  If we can't write to it, then just nuke it
     # and overwrite.
@@ -238,8 +240,6 @@ start_systemd() {
 start_background() {
   export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
   export KEYBASE_DEBUG=1
-  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-  mkdir -p "$logdir"
 
   echo Launching keybase service...
   # We set the --auto-forked flag here so that updated clients that try to
