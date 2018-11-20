@@ -11,11 +11,7 @@ export default function(state: Types.State = initialState, action: DevGen.Action
       return initialState
     case DevGen.updateDebugConfig: {
       const {dumbFilter, dumbFullscreen, dumbIndex} = action.payload
-      return state.merge({
-        dumbFilter: dumbFilter,
-        dumbFullscreen: dumbFullscreen,
-        dumbIndex: dumbIndex,
-      })
+      return state.merge({dumbFilter, dumbFullscreen, dumbIndex})
     }
     case DevGen.debugCount:
       return state.merge({debugCount: state.debugCount + 1})

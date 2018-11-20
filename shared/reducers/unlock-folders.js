@@ -28,7 +28,7 @@ export default function(state: Types.State = initialState, action: UnlockFolders
       }
       return state.merge({phase: 'success'})
     case UnlockFoldersGen.finish:
-      return state.merge({popupOpen: false}).set('phase', 'dead')
+      return state.merge({phase: 'dead', popupOpen: false})
     case UnlockFoldersGen.newRekeyPopup: {
       const devices = I.List(
         action.payload.devices.map(({name, type, deviceID}) =>
