@@ -532,7 +532,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
-	if uberr, ok := err.(UnboxingError); ok {
+	if uberr, ok := err.(types.UnboxingError); ok {
 		return uberr.IsPermanent()
 	}
 	return false
@@ -898,7 +898,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	var rekeyInfo *chat1.ConversationErrorRekey
 
 	switch fromErr := fromErr.(type) {
-	case UnboxingError:
+	case types.UnboxingError:
 		switch conversationRemote.GetMembersType() {
 		case chat1.ConversationMembersType_KBFS:
 			switch fromErr := fromErr.Inner().(type) {

@@ -248,9 +248,13 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 	}
 	msgIDSlice := msgIDsFromSet(idSetWithContext)
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice, true /* resolveSupersedes*/, &reason)
+	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice,
+		true /* resolveSupersedes*/, &reason)
 	if err != nil {
-		return nil, nil, err
+		if utils.IsPermanentErr(err) {
+			return nil, nil, err
+		}
+		return nil, nil, nil
 	}
 	res := []chat1.MessageUnboxed{}
 	for _, msg := range msgs {
@@ -363,7 +367,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 		postHook := func(ctx context.Context) error {
 			msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, missingIDs, &reason)
 			if err != nil {
-				return err
+				if utils.IsPermanentErr(err) {
+					return err
+				}
+				return nil
 			}
 			return idx.Add(ctx, convID, uid, msgs)
 		}
@@ -397,7 +404,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 			if opts.forceReindex { // block on gathering results
 				tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 				if err != nil {
-					return 0, nil, err
+					if utils.IsPermanentErr(err) {
+						return 0, nil, err
+					}
+					continue
 				}
 				if err := idx.Add(ctx, convID, uid, tv.Messages); err != nil {
 					return 0, nil, err

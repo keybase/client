@@ -374,3 +374,21 @@ type Unfurler interface {
 	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
 	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
 }
+
+type InternalError interface {
+	// verbose error info for debugging but not user display
+	InternalError() string
+}
+
+type UnboxingError interface {
+	InternalError
+	Error() string
+	Inner() error
+	IsPermanent() bool
+	ExportType() chat1.MessageUnboxedErrorType
+	VersionKind() chat1.VersionKind
+	VersionNumber() int
+	IsCritical() bool
+}
+
+var _ error = (UnboxingError)(nil)
