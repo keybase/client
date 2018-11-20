@@ -66,6 +66,10 @@ func getAppleTouchFaviconScore(domain string, e *colly.HTMLElement) int {
 	return (getDefaultScore(domain, e) + 1) * getFaviconMultiplier(e)
 }
 
+func getAppleTouchFaviconScoreFromPath() int {
+	return defaultScore * 384
+}
+
 // Metadata to describe how to extra and score content and which field this
 // attribute describes
 type attrRanker struct {
