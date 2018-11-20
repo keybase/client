@@ -92,12 +92,6 @@ const badgeContainerRekey = {
   left: Styles.isMobile ? -40 : 16,
 }
 
-const downloadContainer = {
-  ...badgeContainer,
-  top: Styles.isMobile ? 2 : 22,
-  left: Styles.isMobile ? -28 : 20,
-}
-
 const badgeCount = {
   marginLeft: 0,
   marginRight: 0,
@@ -116,7 +110,6 @@ export const rowStyles = {
     badgeContainer,
     badgeContainerNew,
     badgeContainerRekey,
-    downloadContainer,
     badgeCount,
   }),
   // We need to annotate color but I can't figure out how to annotate on stuff
