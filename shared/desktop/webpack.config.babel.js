@@ -101,7 +101,14 @@ const config = (_, {mode}) => {
       context: path.resolve(__dirname, '..'),
       devServer,
       devtool: isDev ? 'eval' : 'source-map',
-      externals: /^electron-spellchecker$/i,
+      externals: [
+        function(context, request, callback) {
+          if (/^electron-spellchecker$/.test(request)) {
+            return callback(null, 'commonjs ' + request)
+          }
+          return callback()
+        },
+      ],
       mode: isDev ? 'development' : 'production',
       node: false,
       output: {

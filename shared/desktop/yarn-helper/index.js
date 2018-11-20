@@ -25,7 +25,7 @@ const commands = {
   },
   postinstall: {
     code: () => {
-      // Nothing right now
+      exec('yarn electron-rebuild -w electron-spellchecker')
     },
     help: '',
   },
