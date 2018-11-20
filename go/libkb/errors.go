@@ -920,7 +920,7 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	return "New '" + e.Service + "' proofs are no longer supported"
+	return fmt.Sprintf("New %q proofs are no longer supported", e.Service)
 }
 
 //=============================================================================
