@@ -14,20 +14,6 @@ type StillProps = StillCommonProps & {
   type: Types.PathType,
 }
 
-const RowMeta = ({intentIfDownloading}) => {
-  if (!intentIfDownloading) {
-    return null
-  }
-
-  return (
-    <Box style={{width: 0, display: 'flex'}}>
-      <Box style={rowStyles.downloadContainer}>
-        <Icon type="icon-addon-file-downloading" />
-      </Box>
-    </Box>
-  )
-}
-
 const getDownloadingText = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case 'none':
@@ -53,7 +39,11 @@ const Still = (props: StillProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
   >
-    <RowMeta intentIfDownloading={props.intentIfDownloading} />
+    {!!props.intentIfDownloading && (
+      <Box style={styles.downloadBadgeContainer}>
+        <Icon type="icon-addon-file-downloading" />
+      </Box>
+    )}
     <Box style={rowStyles.itemBox}>
       <Box2 direction="horizontal" fullWidth={true}>
         <Text
@@ -81,5 +71,18 @@ const Still = (props: StillProps) => (
     </Box>
   </StillCommon>
 )
+
+const downloadBadgeXOffset = -28
+const downloadBadgeYOffset = Styles.isMobile ? 24 : 20
+const styles = Styles.styleSheetCreate({
+  downloadBadgeContainer: {
+    marginLeft: downloadBadgeXOffset,
+    marginRight: -downloadBadgeXOffset,
+    marginTop: downloadBadgeYOffset,
+    width: 0,
+    height: 0,
+    zIndex: 100,
+  },
+})
 
 export default Still
