@@ -4713,7 +4713,7 @@ electron-remote@^1.1.1:
     rxjs "^5.0.0-beta.12"
     xmlhttprequest "^1.8.0"
 
-"electron-spellchecker@git://github.com/keybase/electron-spellchecker#39a93785fb11e69e3d633532929e4129334c5a8e":
+"electron-spellchecker@git://github.com/keybase/electron-spellchecker#keybase-fixes-off-1-1-2":
   version "1.1.2"
   resolved "git://github.com/keybase/electron-spellchecker#39a93785fb11e69e3d633532929e4129334c5a8e"
   dependencies:
