@@ -1020,6 +1020,14 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 		FinishedPrefetch, TransientEntry)
 }
 
+func setLimiterLimits(
+	limiter *backpressureDiskLimiter, syncLimit, workingLimit int64) {
+	limiter.lock.Lock()
+	defer limiter.lock.Unlock()
+	limiter.syncCacheByteTracker.limit = syncLimit
+	limiter.diskCacheByteTracker.limit = workingLimit
+}
+
 func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	t.Log("Test synced TLF prefetching with the disk cache.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
@@ -1092,8 +1100,7 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	syncBytes := int64(syncCache.currBytes)
 	workingBytes := int64(workingCache.currBytes)
 	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
-	limiter.syncCacheByteTracker.limit = syncBytes
-	limiter.diskCacheByteTracker.limit = workingBytes
+	setLimiterLimits(limiter, syncBytes, workingBytes)
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
@@ -1586,8 +1593,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	syncBytes := int64(syncCache.currBytes)
 	workingBytes := int64(workingCache.currBytes)
 	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
-	limiter.syncCacheByteTracker.limit = syncBytes
-	limiter.diskCacheByteTracker.limit = workingBytes
+	setLimiterLimits(limiter, syncBytes, workingBytes)
 
 	t.Log("Fetch dir root.")
 	block := &DirBlock{}
@@ -1605,8 +1611,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 		TriggeredPrefetch, TransientEntry)
 
 	t.Log("Make room in the cache.")
-	limiter.syncCacheByteTracker.limit = math.MaxInt64
-	limiter.diskCacheByteTracker.limit = math.MaxInt64
+	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
 
 	t.Log("Release reschedule request of root.")
 	notifySyncCh(t, prefetchSyncCh)
@@ -1639,16 +1644,14 @@ func TestPrefetcherReschedules(t *testing.T) {
 	t.Log("Set the cache maximum bytes to the current total again.")
 	syncBytes = int64(syncCache.currBytes)
 	workingBytes = int64(workingCache.currBytes)
-	limiter.syncCacheByteTracker.limit = syncBytes
-	limiter.diskCacheByteTracker.limit = workingBytes
+	setLimiterLimits(limiter, syncBytes, workingBytes)
 
 	t.Log("Release reschedule requests of two more children.")
 	notifySyncCh(t, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Make room in the cache again.")
-	limiter.syncCacheByteTracker.limit = math.MaxInt64
-	limiter.diskCacheByteTracker.limit = math.MaxInt64
+	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
 
 	updateCh := make(chan kbfsblock.ID, 5)
 	config.cache = &cacheWithUpdateCh{cache, updateCh}
