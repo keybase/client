@@ -74,6 +74,7 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 	resp, err := http.Get(path)
 	if err != nil {
 		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
