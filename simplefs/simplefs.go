@@ -2013,6 +2013,23 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 	}
 	res := keybase1.FolderSyncConfigAndStatus{Config: config}
 
+	fs, finalElem, err := k.getFS(ctx, path)
+	if err != nil {
+		return res, err
+	}
+	// Use LStat so we don't follow symlinks.
+	fi, err := fs.Lstat(finalElem)
+	if err != nil {
+		return res, err
+	} // TODO: should this just silently ignore no prefetch status?
+
+	if lwg, ok := fi.Sys().(libfs.KBFSMetadataForSimpleFSGetter); ok {
+		metadata, err := lwg.KBFSMetadataForSimpleFS()
+		if err != nil {
+			res.Status.PrefetchStatus = metadata.PrefetchStatus
+		}
+	} // TODO: should this just silently ignore no prefetch status?
+
 	dbc := k.config.DiskBlockCache()
 	if dbc != nil {
 		dbcStatus := dbc.Status(ctx)
