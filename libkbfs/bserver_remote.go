@@ -381,16 +381,17 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 
 	// Once the block has been retrieved, cache it.
 	defer func() {
-		// But don't cache it if it's archived data.
-		if res.Status == keybase1.BlockStatus_ARCHIVED {
-			return
-		}
 		b.log.LazyTrace(ctx, "BServer: Get %s done (err=%v)", id, err)
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
 				id, tlfID, context, len(buf), err)
 		} else {
+			// But don't cache it if it's archived data.
+			if res.Status == keybase1.BlockStatus_ARCHIVED {
+				return
+			}
+
 			b.deferLog.CDebugf(
 				ctx, "Get id=%s tlf=%s context=%s sz=%d",
 				id, tlfID, context, len(buf))
