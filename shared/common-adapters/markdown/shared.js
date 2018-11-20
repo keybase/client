@@ -134,7 +134,7 @@ const textMatch = SimpleMarkdown.anyScopeRegex(
     //   | \w+:\S // OR there's letters before a : so stop here.
     //   | $ // OR we reach the end of the line
     // )
-    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|\\w+\\.(${commonTlds.join(
+    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|(\\w+\\.)+(${commonTlds.join(
       '|'
     )})|\\n|\\w+:\\S|$)`
   )
