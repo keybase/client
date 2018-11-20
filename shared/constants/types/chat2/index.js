@@ -10,6 +10,7 @@ export type PendingMode =
   | 'none' // no pending
   | 'searchingForUsers' // doing a search
   | 'newChat' // doing a search
+  | 'newTeamBuilding' // Users picked via team-building, waiting now.
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
