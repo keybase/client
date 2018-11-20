@@ -1856,7 +1856,6 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					ret, err = i.SimpleFSFolderSyncConfigAndStatus(ctx, typedArgs[0].Path)
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 			"simpleFSSetFolderSyncConfig": {
 				MakeArg: func() interface{} {
@@ -1872,7 +1871,6 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					err = i.SimpleFSSetFolderSyncConfig(ctx, typedArgs[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
 			},
 		},
 	}
