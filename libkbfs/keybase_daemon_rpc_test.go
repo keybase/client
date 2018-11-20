@@ -66,8 +66,15 @@ type fakeKeybaseClient struct {
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
-func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
-	res interface{}) error {
+func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+	return c.call(ctx, s, args, res)
+}
+
+func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{}, res interface{}, _ rpc.CompressionType) error {
+	return c.call(ctx, s, args, res)
+}
+
+func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.session.currentSession":
 		*res.(*keybase1.Session) = keybase1.Session{

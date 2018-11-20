@@ -27,22 +27,24 @@ type writeBundle struct {
 }
 
 type framedMsgpackEncoder struct {
-	maxFrameLength int32
-	handle         codec.Handle
-	writer         io.Writer
-	writeCh        chan writeBundle
-	doneCh         chan struct{}
-	closedCh       chan struct{}
+	maxFrameLength   int32
+	handle           codec.Handle
+	writer           io.Writer
+	writeCh          chan writeBundle
+	doneCh           chan struct{}
+	closedCh         chan struct{}
+	compressorCacher *compressorCacher
 }
 
 func newFramedMsgpackEncoder(maxFrameLength int32, writer io.Writer) *framedMsgpackEncoder {
 	e := &framedMsgpackEncoder{
-		maxFrameLength: maxFrameLength,
-		handle:         newCodecMsgpackHandle(),
-		writer:         writer,
-		writeCh:        make(chan writeBundle),
-		doneCh:         make(chan struct{}),
-		closedCh:       make(chan struct{}),
+		maxFrameLength:   maxFrameLength,
+		handle:           newCodecMsgpackHandle(),
+		writer:           writer,
+		writeCh:          make(chan writeBundle),
+		doneCh:           make(chan struct{}),
+		closedCh:         make(chan struct{}),
+		compressorCacher: newCompressorCacher(),
 	}
 	go e.writerLoop()
 	return e
@@ -52,6 +54,24 @@ func encodeToBytes(enc *codec.Encoder, i interface{}) (v []byte, err error) {
 	enc.ResetBytes(&v)
 	err = enc.Encode(i)
 	return v, err
+}
+
+func (e *framedMsgpackEncoder) compressData(ctype CompressionType, i interface{}) (interface{}, error) {
+	c := e.compressorCacher.getCompressor(ctype)
+	if c == nil {
+		return i, nil
+	}
+	enc := codec.NewEncoderBytes(nil, e.handle)
+	content, err := encodeToBytes(enc, i)
+	if err != nil {
+		return nil, err
+	}
+	compressedContent, err := c.Compress(content)
+	if err != nil {
+		return nil, err
+	}
+	compressedI := interface{}(compressedContent)
+	return compressedI, nil
 }
 
 func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {

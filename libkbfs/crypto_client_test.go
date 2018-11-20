@@ -57,6 +57,14 @@ func (fc FakeCryptoClient) maybeWaitOnChannel(ctx context.Context) error {
 }
 
 func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+	return fc.call(ctx, s, args, res)
+}
+
+func (fc FakeCryptoClient) CallCompressed(ctx context.Context, s string, args interface{}, res interface{}, _ rpc.CompressionType) error {
+	return fc.call(ctx, s, args, res)
+}
+
+func (fc FakeCryptoClient) call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.crypto.signED25519":
 		if err := fc.maybeWaitOnChannel(ctx); err != nil {

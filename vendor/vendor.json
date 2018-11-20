@@ -334,28 +334,28 @@
 			"revisionTime": "2018-10-12T20:20:19Z"
 		},
 		{
-			"checksumSHA1": "LFek4o2K8rqXVxM6uUbzJBXahgI=",
+			"checksumSHA1": "Ar8S9ZX/JyC94d17VSvG2GOXtxg=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "e64e97d9887355f21abf2a62ced0ff5e45b66897",
-			"revisionTime": "2018-11-11T03:19:20Z"
+			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
+			"revisionTime": "2018-11-20T20:41:27Z"
 		},
 		{
-			"checksumSHA1": "4E1elcDjvoBWsIqrg2O3yPXziZw=",
+			"checksumSHA1": "+nD1gYj/g2jKBbWSsVf5IufQeME=",
 			"path": "github.com/keybase/client/go/protocol/gregor1",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
+			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
+			"revisionTime": "2018-11-20T20:41:27Z"
 		},
 		{
-			"checksumSHA1": "gmY4DP4Vnif1IBWmI/TcjtOKhDM=",
+			"checksumSHA1": "BoyesXyRV+uc6dig+V/cwai/qeo=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "7694a578a43660821c8040fd4337e1404d88a365",
-			"revisionTime": "2018-11-19T23:01:39Z"
+			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
+			"revisionTime": "2018-11-20T20:41:27Z"
 		},
 		{
-			"checksumSHA1": "jlxTK07TEsCuy7DdIbB1bJu8Afw=",
+			"checksumSHA1": "jvFWbgb5/iEJfgJBUJDBpBuAR5Y=",
 			"path": "github.com/keybase/client/go/protocol/stellar1",
-			"revision": "4ef453254ae5ec8e4dad7fbb2eea80efebc2ca30",
-			"revisionTime": "2018-10-12T20:20:19Z"
+			"revision": "b2310d56f1a1de6003b0fa74e0dc204315fb84f3",
+			"revisionTime": "2018-11-20T20:41:27Z"
 		},
 		{
 			"checksumSHA1": "8+9jMCvjuPw9tqnUtZuqHkbGEKk=",
@@ -472,10 +472,10 @@
 			"revisionTime": "2018-08-07T16:30:25Z"
 		},
 		{
-			"checksumSHA1": "1aTSo342nWo/nSgpe2tabJRDuII=",
+			"checksumSHA1": "rxjT4gs+KIr42YjnAMGg5xzZZz8=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "700a58ee3cc50885922b956ab7a2146a49ed37d6",
-			"revisionTime": "2018-09-27T18:36:17Z"
+			"revision": "f1eb18b61f69f869921b8a2ad6d0642098238074",
+			"revisionTime": "2018-11-20T20:14:34Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
