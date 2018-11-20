@@ -1964,7 +1964,7 @@ export type FolderSyncMode =
   | 1 // ENABLED_1
   | 2 // PARTIAL_2
 
-export type FolderSyncStatus = $ReadOnly<{localDiskBytesAvailable: Int64, localDiskBytesTotal: Int64}>
+export type FolderSyncStatus = $ReadOnly<{localDiskBytesAvailable: Int64, localDiskBytesTotal: Int64, prefetchStatus: PrefetchStatus}>
 export type FolderType =
   | 0 // UNKNOWN_0
   | 1 // PRIVATE_1
