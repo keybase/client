@@ -3,14 +3,14 @@ import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 
-type OwnProps = {
+type OwnProps = {|
   trackingPath: Types.Path,
   trackingIntent: Types.DownloadIntent,
   onFinish?: () => void,
   cancelOnUnmount?: boolean,
-}
+|}
 
 const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
@@ -60,7 +60,7 @@ const DownloadTrackingHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloadTrackingHoc'),
-  DownloadTrackingHoc
-)
+export default (ComposedComponent: React.ComponentType<any>) =>
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloadTrackingHoc')(
+    DownloadTrackingHoc(ComposedComponent)
+  )
