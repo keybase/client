@@ -144,6 +144,7 @@ const styles = Styles.styleSheetCreate({
       height: 150,
       width: '100%',
       paddingLeft: 3,
+      paddingRight: 3,
     },
   }),
   whitelistRemove: {
