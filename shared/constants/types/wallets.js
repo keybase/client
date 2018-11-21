@@ -168,6 +168,7 @@ export type _PaymentResult = {|
 
 export type _PaymentDetail = {|
   ..._PaymentCommon,
+  externalTxURL: string,
   publicMemo: HiddenString,
   publicMemoType: string,
   txID: string,

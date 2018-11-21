@@ -1373,7 +1373,7 @@ func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
 		require.Equal(t, canned.SenderDeviceID(t), did)
 		return canned.senderUsername, canned.senderDeviceName, canned.senderDeviceType
 	}
-	boxer.testingValidSenderKey = func(ctx context.Context, uid gregor1.UID, verifyKey []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError) {
+	boxer.testingValidSenderKey = func(ctx context.Context, uid gregor1.UID, verifyKey []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr types.UnboxingError) {
 		require.Equal(t, canned.SenderUID(t), uid)
 		require.Equal(t, canned.VerifyKey(t), verifyKey)
 		// ignore ctime, always report the key as still valid
@@ -1769,7 +1769,7 @@ func TestVersionError(t *testing.T) {
 	// chat1/extras.go#MessageUnboxedError.ParseableVersion to stay up to date
 	// for it's max accepted versions. Vx__ will also have to be updated in the
 	// checks below
-	assertErr := func(err UnboxingError) {
+	assertErr := func(err types.UnboxingError) {
 		require.Error(t, err)
 		typ := err.ExportType()
 		switch typ {
