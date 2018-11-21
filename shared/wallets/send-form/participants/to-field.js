@@ -65,7 +65,6 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   return (
     <Search
       onClickResult={props.onChangeRecipient}
-      onClose={() => {}}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
       onScanQRCode={props.onScanQRCode}
