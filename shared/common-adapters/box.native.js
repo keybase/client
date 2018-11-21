@@ -23,47 +23,45 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
+const box2 = (props: Box2Props) => {
+  let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
+  let directionStyle
+  switch (props.direction) {
+    case 'horizontal':
+      directionStyle = styles.hbox
+      break
+    case 'horizontalReverse':
+      directionStyle = styles.hrbox
+      break
+    case 'verticalReverse':
+      directionStyle = styles.vrbox
+      break
+    case 'vertical':
+    default:
+      directionStyle = styles.vbox
+      break
+  }
+
+  const style = collapseStyles([
+    directionStyle,
+    props.fullHeight && styles.fullHeight,
+    props.fullWidth && styles.fullWidth,
+    !props.fullHeight && !props.fullWidth && styles.centered,
+    props.centerChildren && styles.centeredChildren,
+    // uncomment this to get debugging colors
+    // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
+    props.style,
+  ])
+  return (
+    <View style={style} onLayout={props.onLayout}>
+      {injectGaps(horizontal ? HBoxGap : VBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
+    </View>
+  )
+}
+
 class Box2 extends React.Component<Box2Props> {
   render() {
-    let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
-    let directionStyle
-    switch (this.props.direction) {
-      case 'horizontal':
-        directionStyle = styles.hbox
-        break
-      case 'horizontalReverse':
-        directionStyle = styles.hrbox
-        break
-      case 'verticalReverse':
-        directionStyle = styles.vrbox
-        break
-      case 'vertical':
-      default:
-        directionStyle = styles.vbox
-        break
-    }
-
-    const style = collapseStyles([
-      directionStyle,
-      this.props.fullHeight && styles.fullHeight,
-      this.props.fullWidth && styles.fullWidth,
-      !this.props.fullHeight && !this.props.fullWidth && styles.centered,
-      this.props.centerChildren && styles.centeredChildren,
-      // uncomment this to get debugging colors
-      // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
-      this.props.style,
-    ])
-    return (
-      <View style={style} onLayout={this.props.onLayout}>
-        {injectGaps(
-          horizontal ? HBoxGap : VBoxGap,
-          this.props.children,
-          this.props.gap,
-          this.props.gapStart,
-          this.props.gapEnd
-        )}
-      </View>
-    )
+    return box2(this.props)
   }
 }
 const VBoxGap = ({gap}) => <View style={{height: globalMargins[gap]}} />
@@ -100,4 +98,4 @@ const styles = {
 }
 
 export default Box
-export {Box, Box2}
+export {Box, Box2, box2}

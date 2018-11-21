@@ -24,36 +24,34 @@ const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
+const box2 = (props: Box2Props) => {
+  let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
+
+  const className = [
+    `box2_${props.direction}`,
+    props.fullHeight && 'box2_fullHeight',
+    props.fullWidth && 'box2_fullWidth',
+    !props.fullHeight && !props.fullWidth && 'box2_centered',
+    props.centerChildren && 'box2_centeredChildren',
+    props.className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+  return (
+    <div
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      className={className}
+      style={props.style}
+    >
+      {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
+    </div>
+  )
+}
+
 class Box2 extends React.Component<Box2Props> {
   render() {
-    let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
-
-    const className = [
-      `box2_${this.props.direction}`,
-      this.props.fullHeight && 'box2_fullHeight',
-      this.props.fullWidth && 'box2_fullWidth',
-      !this.props.fullHeight && !this.props.fullWidth && 'box2_centered',
-      this.props.centerChildren && 'box2_centeredChildren',
-      this.props.className,
-    ]
-      .filter(Boolean)
-      .join(' ')
-    return (
-      <div
-        onMouseLeave={this.props.onMouseLeave}
-        onMouseOver={this.props.onMouseOver}
-        className={className}
-        style={this.props.style}
-      >
-        {injectGaps(
-          horizontal ? hBoxGap : vBoxGap,
-          this.props.children,
-          this.props.gap,
-          this.props.gapStart,
-          this.props.gapEnd
-        )}
-      </div>
-    )
+    return box2(this.props)
   }
 }
 
@@ -61,4 +59,4 @@ const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap
 const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
 
 export default Box
-export {Box, Box2}
+export {Box, Box2, box2}
