@@ -1,8 +1,8 @@
 // @flow strict
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
-import typeimport Chat from '../../settings/chat';
- {SimpleProofState} from './tracker'
+import type {SimpleProofState} from './tracker'
 
 type InviteBase = {
   id: string,
@@ -76,10 +76,9 @@ export type EmailState = {
 }
 
 export type ChatUnfurlState = {
-  mode: RPCChatTypes.UnfurlMode,
-  whitelist: Array<string>,
+  unfurlMode: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist: Array<string>,
 }
-
 export type ChatState = {
   unfurl: ChatUnfurlState,
 }

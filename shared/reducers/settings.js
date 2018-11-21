@@ -202,6 +202,18 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         ...state,
         waitingForResponse: waiting,
       }
+    case SettingsGen.unfurlSettingsSaved:
+      const {mode, whitelist} = action.payload
+      return {
+        ...state,
+        chat: {
+          ...state.chat,
+          unfurl: {
+            unfurlMode: mode,
+            unfurlWhitelist: whitelist,
+          },
+        },
+      }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

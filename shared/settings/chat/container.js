@@ -1,18 +1,23 @@
 // @flow
-import * as Constants from '../../../../../constants/chat2'
-import * as Types from '../../../../../constants/types/chat2'
-import * as I from 'immutable'
-import {namedConnect} from '../../../../../util/container'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import {namedConnect} from '../../util/container'
 import Chat from '.'
-import {stat} from 'fs'
 
 type OwnProps = {||}
 
 const mapStateToProps = (state, ownProps: {}) => ({
-  ...state.notifications.chat.unfurl,
+  ...state.settings.chat.unfurl,
 })
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
-    onUnfurlSave: () =>
-
+  onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) =>
+    dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist})),
 })
+
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Chat'
+)(Chat)

@@ -38,8 +38,8 @@ const initialState: Types.State = {
   },
   chat: {
     unfurl: {
-      mode: RPCChatTypes.unfurlUnfurlMode.whitelisted,
-      whitelist: [],
+      unfurlMode: RPCChatTypes.unfurlUnfurlMode.whitelisted,
+      unfurlWhitelist: [],
     },
   },
   waitingForResponse: false,

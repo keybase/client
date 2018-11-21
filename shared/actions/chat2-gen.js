@@ -94,7 +94,6 @@ export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
-export const unfurlSettingsSaved = 'chat2:unfurlSettingsSaved'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
@@ -385,10 +384,6 @@ type _UnfurlResolvePromptPayload = $ReadOnly<{|
   domain: string,
   result: RPCChatTypes.UnfurlPromptResult,
 |}>
-type _UnfurlSettingsSavedPayload = $ReadOnly<{|
-  mode: RPCChatTypes.UnfurlMode,
-  whitelist: Array<string>,
-|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageID: Types.MessageID,
@@ -511,10 +506,6 @@ export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({paylo
  * Update the minWriterRole stored with the conversation metadata.
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({payload, type: saveMinWriterRole})
-/**
- * Update unfurl settings from settings screen
- */
-export const createUnfurlSettingsSaved = (payload: _UnfurlSettingsSavedPayload) => ({payload, type: unfurlSettingsSaved})
 /**
  * We received payment info for a sendPayment message
  */
@@ -674,7 +665,6 @@ export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction,
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
 export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
 export type UnfurlResolvePromptPayload = $Call<typeof createUnfurlResolvePrompt, _UnfurlResolvePromptPayload>
-export type UnfurlSettingsSavedPayload = $Call<typeof createUnfurlSettingsSaved, _UnfurlSettingsSavedPayload>
 export type UnfurlTogglePromptPayload = $Call<typeof createUnfurlTogglePrompt, _UnfurlTogglePromptPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
@@ -769,7 +759,6 @@ export type Actions =
   | ToggleMessageReactionPayload
   | ToggleSmallTeamsExpandedPayload
   | UnfurlResolvePromptPayload
-  | UnfurlSettingsSavedPayload
   | UnfurlTogglePromptPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
