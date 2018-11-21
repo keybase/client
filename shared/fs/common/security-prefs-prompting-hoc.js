@@ -1,7 +1,8 @@
 // @flow
+import * as React from 'react'
+import * as FsGen from '../../actions/fs-gen'
 import {branch, compose, connect, renderNothing} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
-import * as FsGen from '../../actions/fs-gen'
 import {navigateAppend} from '../../actions/route-tree'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
@@ -12,10 +13,10 @@ import {navigateAppend} from '../../actions/route-tree'
 // spamming the user.  We have a link in the Settings page so if the user wants
 // they can still find the instructions.
 
-type OwnProps = {
+type MergedProps = {|
   shouldPromptSecurityPrefs: boolean,
   showSecurityPrefsOnce: () => void,
-}
+|}
 
 const mapStateToProps = state => {
   const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
@@ -25,7 +26,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   showSecurityPrefsOnce: () => {
     dispatch(
       FsGen.createSetFlags({
@@ -48,15 +49,21 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
   return shouldPromptSecurityPrefs
 }
 
-const DesktopSecurityPrefsPromptingHoc = compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  // $FlowIssue
-  branch(displayOnce, renderNothing)
+const ConnectedDesktopSecurityPrefs = connect<{||}, _, React.ComponentType<MergedProps>, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
 )
+
+const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<MergedProps> {
+    render = () => displayOnce(this.props) ? <ComposedComponent {...this.props} /> : renderNothing
+  }
+
+const DesktopSecurityPrefsPromptingHoc = (ComposedComponent: React.ComponentType<any>) =>
+  ConnectedDesktopSecurityPrefs(
+    DesktopSecurityPrefsBranch(ComposedComponent)
+  )
 
 const SecurityPrefsPromptingHoc = isMobile ? (i: any) => i : DesktopSecurityPrefsPromptingHoc
 
