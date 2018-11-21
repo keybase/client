@@ -38,15 +38,12 @@ export type Props = {|
   hasUnfurlPrompts: boolean,
 |}
 
-// TODO flow gets confused since the props are ambiguous
-const HoverBox: any = Styles.isMobile ? LongPressable : Kb.box2
-
 type State = {
   showingPicker: boolean,
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
-  state = {showingPicker: false, showMenuButton: false}
+  state = {showMenuButton: false, showingPicker: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && this.props.orangeLineAbove !== prevProps.orangeLineAbove) {
       this.props.measure()
@@ -62,95 +59,110 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _dismissKeyboard = () => dismissKeyboard()
 
-  _getHoverBoxProps = () => ({
-    className: Styles.classNames('WrapperMessage-hoverBox', {
-      'WrapperMessage-decorated': this.props.decorate,
-      active: this.props.showingMenu || this.state.showingPicker,
-    }),
-    direction: 'vertical',
-    fullWidth: true,
-    onMouseOver: this._onMouseOver,
-    ...(Styles.isMobile && this.props.decorate
-      ? {
-          onLongPress: this.props.toggleShowingMenu,
-          onPress: this._dismissKeyboard,
-          underlayColor: Styles.globalColors.blue5,
-        }
-      : {}),
-  })
-
   render() {
     const props = this.props
+    const orangeLine = props.orangeLineAbove && Kb.box2({direction: 'vertical', style: styles.orangeLine})
+    const children = props.type === 'children' && props.children
+
+    // Additional checks on props.message.type to appease flow
+    const wrapperAuthor = props.type === 'wrapper-author' &&
+      (props.message.type === 'attachment' ||
+        props.message.type === 'text' ||
+        props.message.type === 'sendPayment' ||
+        props.message.type === 'requestPayment') && (
+        <WrapperAuthor
+          message={props.message}
+          previous={props.previous}
+          isEditing={props.isEditing}
+          measure={props.measure}
+          toggleMessageMenu={props.toggleShowingMenu}
+        />
+      )
+
+    const buttons =
+      props.decorate &&
+      menuButtons({
+        conversationIDKey: props.conversationIDKey,
+        exploded: props.exploded,
+        isRevoked: props.isRevoked,
+        isShowingUsername: props.isShowingUsername,
+        message: props.message,
+        ordinal: props.ordinal,
+        setAttachmentRef: props.setAttachmentRef,
+        setShowingPicker: this._setShowingPicker,
+        shouldShowPopup: props.shouldShowPopup,
+        showMenuButton: this.state.showMenuButton,
+        toggleShowingMenu: props.toggleShowingMenu,
+      })
+
+    const unfurlPrompts = props.hasUnfurlPrompts && (
+      <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+    )
+
+    // $ForceType
+    const unfurls = props.message.unfurls
+    const unfurlList = unfurls &&
+      !unfurls.isEmpty() && <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+
+    // $ForceType
+    const reactions = props.message.reactions
+    const reactionsRow = reactions &&
+      !reactions.isEmpty() && (
+        <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
+      )
+
+    const popup = (props.message.type === 'text' ||
+      props.message.type === 'attachment' ||
+      props.message.type === 'sendPayment' ||
+      props.message.type === 'requestPayment') &&
+      props.shouldShowPopup && (
+        <MessagePopup
+          attachTo={props.getAttachmentRef}
+          message={props.message}
+          onHidden={props.toggleShowingMenu}
+          position="top center"
+          visible={props.showingMenu}
+        />
+      )
+
+    const longPressProps = {
+      className: Styles.classNames('WrapperMessage-hoverBox', {
+        'WrapperMessage-decorated': this.props.decorate,
+        active: this.props.showingMenu || this.state.showingPicker,
+      }),
+      ...(Styles.isMobile && this.props.decorate
+        ? {
+            onLongPress: this.props.toggleShowingMenu,
+            onPress: this._dismissKeyboard,
+            underlayColor: Styles.globalColors.blue5,
+          }
+        : {}),
+    }
 
     return (
-      <Kb.Box style={styles.container}>
-        {props.orangeLineAbove && <Kb.Box style={styles.orangeLine} />}
-        <HoverBox {...this._getHoverBoxProps()}>
-          {/* Additional Kb.Box here because NativeTouchableHighlight only supports one child */}
-          <Kb.Box>
-            <Kb.box2 direction="horizontal" fullWidth={true}>
-              {props.type === 'children' && props.children}
-              {/* Additional checks on props.message.type to appease flow */}
-              {props.type === 'wrapper-author' &&
-                (props.message.type === 'attachment' ||
-                  props.message.type === 'text' ||
-                  props.message.type === 'sendPayment' ||
-                  props.message.type === 'requestPayment') && (
-                  <WrapperAuthor
-                    message={props.message}
-                    previous={props.previous}
-                    isEditing={props.isEditing}
-                    measure={props.measure}
-                    toggleMessageMenu={props.toggleShowingMenu}
-                  />
-                )}
-              {props.decorate &&
-                menuButtons({
-                  shouldShowPopup: props.shouldShowPopup,
-                  conversationIDKey: props.conversationIDKey,
-                  exploded: props.exploded,
-                  isRevoked: props.isRevoked,
-                  isShowingUsername: props.isShowingUsername,
-                  message: props.message,
-                  ordinal: props.ordinal,
-                  setAttachmentRef: props.setAttachmentRef,
-                  setShowingPicker: this._setShowingPicker,
-                  showMenuButton: this.state.showMenuButton,
-                  toggleShowingMenu: props.toggleShowingMenu,
-                })}
-            </Kb.box2>
-            {props.hasUnfurlPrompts && (
-              <UnfurlPromptList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-            )}
-            {// $FlowIssue doesn't like us not reducing the type here, but its faster
-            props.message.unfurls &&
-              !props.message.unfurls.isEmpty() && (
-                <UnfurlList conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-              )}
-            {// $FlowIssue doesn't like us not reducing the type here, but its faster
-            props.message.reactions &&
-              !props.message.reactions.isEmpty() && (
-                <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
-              )}
-          </Kb.Box>
-        </HoverBox>
-        {(props.message.type === 'text' ||
-          props.message.type === 'attachment' ||
-          props.message.type === 'sendPayment' ||
-          props.message.type === 'requestPayment') &&
-          props.shouldShowPopup && (
-            <MessagePopup
-              attachTo={props.getAttachmentRef}
-              message={props.message}
-              onHidden={props.toggleShowingMenu}
-              position="top center"
-              visible={props.showingMenu}
-            />
-          )}
-      </Kb.Box>
+      <React.Fragment>
+        {orangeLine}
+        <LongPressable
+          direction="vertical"
+          fullWidth={true}
+          onMouseOver={this._onMouseOver}
+          {...longPressProps}
+        >
+          {Kb.box2({
+            children: [children, wrapperAuthor, buttons],
+            direction: 'horizontal',
+            fullWidth: true,
+          })}
+          {unfurlPrompts}
+          {unfurlList}
+          {reactionsRow}
+        </LongPressable>
+        {popup}
+      </React.Fragment>
     )
   }
 }
+
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 type MenuButtonsProps = {
@@ -253,16 +265,21 @@ const styles = Styles.styleSheetCreate({
   menuButtons: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxRow,
-      position: 'absolute',
-      top: 0,
-      right: 0,
       alignItems: 'center',
+      position: 'absolute',
+      right: 0,
+      top: 0,
     },
   }),
   // This contains the menu buttons. The buttons aren't mounted / visible unless you mouse over. Because we don't want their appearance
   // to resize the text and push things around with DOM flow we make this a fixed width and ensure the children (inside .menuButtons) are
   // absolutely positioned. The height is 0 so it never pushes a line of text down
-  menuButtonsContainer: {flexShrink: 0, height: 0, width: 53, position: 'relative'},
+  menuButtonsContainer: {
+    flexShrink: 0,
+    height: 0,
+    position: 'relative',
+    width: 53,
+  },
   menuButtonsPosition: {
     left: Styles.globalMargins.tiny,
     position: 'relative',
