@@ -65,7 +65,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
     let lastSearchTerm
     return {
       // onAddSelectedUser happens on desktop when tab, enter or comma
-      // is typed, or on mobile when 'Enter' is tapped, so we expedite
+      // is typed, or on mobile when 'Next' is tapped, so we expedite
       // the current search, if any
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
@@ -80,7 +80,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
               props.onChangeSearchText && props.onChangeSearchText('')
             } else if (isMobile) {
               // On mobile, this function is called if the user taps
-              // enter, which means the keyboard is going away.
+              // 'Next', which means the keyboard is going away.
               props.onExitSearch()
             }
           } else {
