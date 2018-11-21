@@ -89,18 +89,25 @@ const AddToTeam = (props: Props) => {
       <ScrollView style={{width: '100%'}}>
         <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
           {!props.waiting ? (
-            props.teamProfileAddList.map(team => (
-              <TeamRow
-                canAddThem={!team.disabledReason}
-                checked={props.selectedTeams[team.teamName]}
-                disabledReason={team.disabledReason}
-                key={team.teamName}
-                name={team.teamName}
-                isOpen={team.open}
-                onCheck={() => props.onToggle(team.teamName)}
-                them={props.them}
-              />
-            ))
+            props.teamProfileAddList.length > 0 ? (
+              props.teamProfileAddList.map(team => (
+                <TeamRow
+                  canAddThem={!team.disabledReason}
+                  checked={props.selectedTeams[team.teamName]}
+                  disabledReason={team.disabledReason}
+                  key={team.teamName}
+                  name={team.teamName}
+                  isOpen={team.open}
+                  onCheck={() => props.onToggle(team.teamName)}
+                  them={props.them}
+                />
+              ))
+            ) : (
+              <Box2 direction="vertical" centerChildren={true}>
+                <Text type="Body">Looks like you haven't joined any teams yet yourself!</Text>
+                <Text type="Body">You can join teams over in the Teams tab.</Text>
+              </Box2>
+            )
           ) : (
             <Box2 direction="vertical" centerChildren={true}>
               <ProgressIndicator style={{width: 64}} />
