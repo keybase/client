@@ -41,17 +41,12 @@ const ToastContainer = HOCTimers(_ToastContainer)
 type OwnProps = {|
   buttonType?: $PropertyType<ButtonProps, 'type'>,
   containerStyle?: Styles.StylesCrossPlatform,
+  multiline?: boolean,
   withReveal?: boolean,
   text: string,
 |}
 
-export type Props = PropsWithTimer<{
-  buttonType?: $PropertyType<ButtonProps, 'type'>,
-  containerStyle?: Styles.StylesCrossPlatform,
-  withReveal?: boolean,
-  text: string,
-  copyToClipboard: string => void,
-}>
+export type Props = PropsWithTimer<{|...OwnProps, copyToClipboard: string => void|}>
 
 type State = {
   revealed: boolean,

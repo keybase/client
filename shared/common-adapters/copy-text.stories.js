@@ -12,10 +12,19 @@ const load = () => {
       </Box>
     ))
     .add('Basic', () => <CopyText text="hi" />)
+    .add('Basic (multiline)', () => <CopyText multiline={true} text="hi" />)
     .add('With reveal', () => <CopyText text="surprise!" withReveal={true} />)
+    .add('With reveal (multiline)', () => <CopyText multiline={true} text="surprise!" withReveal={true} />)
     .add('With long text', () => (
       <CopyText
         text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        withReveal={true}
+      />
+    ))
+    .add('With long text (multiline)', () => (
+      <CopyText
+        text="A9IOP56321387YRTPIQSDTAEA9IOP56321A9IOP56321387YRTPIQSDTAEA9IOP56321"
+        multiline={true}
         withReveal={true}
       />
     ))
