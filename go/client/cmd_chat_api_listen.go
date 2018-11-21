@@ -27,7 +27,8 @@ type CmdChatAPIListen struct {
 	// of chat participants.
 	showExploding bool
 
-	showLocal bool
+	showLocal    bool
+	subscribeDev bool
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -51,6 +52,10 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "local",
 				Usage: "Show local messages (skipped by default)",
 			},
+			cli.BoolFlag{
+				Name:  "dev",
+				Usage: "Also subscribe to notifications from dev channel",
+			},
 		},
 	}
 }
@@ -58,6 +63,7 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
 	c.showExploding = ctx.Bool("exploding")
 	c.showLocal = ctx.Bool("local")
+	c.subscribeDev = ctx.Bool("dev")
 	return nil
 }
 
@@ -77,6 +83,9 @@ func (c *CmdChatAPIListen) Run() error {
 	}
 	channels := keybase1.NotificationChannels{
 		Chat: true,
+	}
+	if c.subscribeDev {
+		channels.Chatdev = true
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
