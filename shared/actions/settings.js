@@ -421,6 +421,35 @@ const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdown
       return SettingsGen.createLoadLockdownMode()
     })
 
+const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+  state.config.loggedIn &&
+  ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.waitingKey)
+    .then((result: ChatTypes.UnfurlSettingsDisplay) => {
+      return SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
+    })
+    .catch(() => {
+      return SettingsGen.createUnfurlSettingsRefreshed({
+        mode: ChatTypes.unfurlUnfurlMode.whitelisted,
+        whitelist: [],
+      })
+    })
+
+const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettingsSavedPayload) =>
+  state.config.loggedIn &&
+  ChatTypes.localSaveUnfurlSettingsRpcPromise(
+    {
+      mode: action.payload.mode || ChatTypes.unfurlUnfurlMode.whitelisted,
+      whitelist: action.payload.whitelist || [],
+    },
+    Constants.waitingKey
+  )
+    .then(() => {
+      return SettingsGen.createUnfurlSettingsRefresh()
+    })
+    .catch(() => {
+      return SettingsGen.createUnfurlSettingsRefresh()
+    })
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)
   yield Saga.safeTakeEvery(SettingsGen.invitesRefresh, _refreshInvitesSaga)
@@ -443,6 +472,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(SettingsGen.onChangeRememberPassphrase, _rememberPassphraseSaga)
   yield Saga.actionToPromise(SettingsGen.loadLockdownMode, loadLockdownMode)
   yield Saga.actionToPromise(SettingsGen.onChangeLockdownMode, setLockdownMode)
+  yield Saga.actionToPromise(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
+  yield Saga.actionToPromise(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
 }
 
 export default settingsSaga

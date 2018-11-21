@@ -11,6 +11,7 @@ const props = {
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     Sb.action('onUnfurlSave')(mode, whitelist)
   },
+  onRefresh: Sb.action('onRefresh'),
 }
 
 const load = () => {

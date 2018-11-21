@@ -94,6 +94,14 @@
       "_description": "Update unfurl settings from settings screen",
       "mode": "RPCChatTypes.UnfurlMode",
       "whitelist": "Array<string>"
+    },
+    "unfurlSettingsRefresh": {
+      "_description": "Refresh unfurl settings"
+    },
+    "unfurlSettingsRefreshed": {
+      "_description": "Refreshed unfurl settings available",
+      "mode": "RPCChatTypes.UnfurlMode",
+      "whitelist": "Array<string>"
     }
   }
 }

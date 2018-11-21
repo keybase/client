@@ -45,6 +45,8 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const trace = 'settings:trace'
+export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
+export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
@@ -91,6 +93,11 @@ type _OnUpdatedPGPSettingsPayload = $ReadOnly<{|hasKeys: boolean|}>
 type _ProcessorProfilePayload = $ReadOnly<{|durationSeconds: number|}>
 type _SetAllowDeleteAccountPayload = $ReadOnly<{|allow: boolean|}>
 type _TracePayload = $ReadOnly<{|durationSeconds: number|}>
+type _UnfurlSettingsRefreshPayload = void
+type _UnfurlSettingsRefreshedPayload = $ReadOnly<{|
+  mode: RPCChatTypes.UnfurlMode,
+  whitelist: Array<string>,
+|}>
 type _UnfurlSettingsSavedPayload = $ReadOnly<{|
   mode: RPCChatTypes.UnfurlMode,
   whitelist: Array<string>,
@@ -98,6 +105,14 @@ type _UnfurlSettingsSavedPayload = $ReadOnly<{|
 type _WaitingForResponsePayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
+/**
+ * Refresh unfurl settings
+ */
+export const createUnfurlSettingsRefresh = (payload: _UnfurlSettingsRefreshPayload) => ({payload, type: unfurlSettingsRefresh})
+/**
+ * Refreshed unfurl settings available
+ */
+export const createUnfurlSettingsRefreshed = (payload: _UnfurlSettingsRefreshedPayload) => ({payload, type: unfurlSettingsRefreshed})
 /**
  * Update unfurl settings from settings screen
  */
@@ -177,6 +192,8 @@ export type OnUpdatedPGPSettingsPayload = $Call<typeof createOnUpdatedPGPSetting
 export type ProcessorProfilePayload = $Call<typeof createProcessorProfile, _ProcessorProfilePayload>
 export type SetAllowDeleteAccountPayload = $Call<typeof createSetAllowDeleteAccount, _SetAllowDeleteAccountPayload>
 export type TracePayload = $Call<typeof createTrace, _TracePayload>
+export type UnfurlSettingsRefreshPayload = $Call<typeof createUnfurlSettingsRefresh, _UnfurlSettingsRefreshPayload>
+export type UnfurlSettingsRefreshedPayload = $Call<typeof createUnfurlSettingsRefreshed, _UnfurlSettingsRefreshedPayload>
 export type UnfurlSettingsSavedPayload = $Call<typeof createUnfurlSettingsSaved, _UnfurlSettingsSavedPayload>
 export type WaitingForResponsePayload = $Call<typeof createWaitingForResponse, _WaitingForResponsePayload>
 
@@ -219,6 +236,8 @@ export type Actions =
   | ProcessorProfilePayload
   | SetAllowDeleteAccountPayload
   | TracePayload
+  | UnfurlSettingsRefreshPayload
+  | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: void}

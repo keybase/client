@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as Constants from '../../constants/settings'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -8,6 +9,7 @@ export type Props = {
   unfurlMode: RPCChatTypes.UnfurlMode,
   unfurlWhitelist: Array<string>,
   onUnfurlSave: (RPCChatTypes.UnfurlMode, Array<string>) => void,
+  onRefresh: () => void,
 }
 
 type State = {
@@ -36,9 +38,13 @@ class Chat extends React.Component<Props, State> {
     this.setState({unfurlWhitelist: this._getUnfurlWhitelist().filter(e => e !== domain)})
   }
 
+  componentDidMount() {
+    this.props.onRefresh()
+  }
+
   render() {
     return (
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodyBig">Post Link Previews?</Kb.Text>
           <Kb.Text type="Body">
@@ -85,12 +91,13 @@ class Chat extends React.Component<Props, State> {
           />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
-        <Kb.Button
+        <Kb.WaitingButton
           onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist())}
           label="Save"
           type="Primary"
           style={styles.save}
           disabled={!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged()}
+          waitingKey={Constants.waitingKey}
         />
       </Kb.Box2>
     )
@@ -101,6 +108,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       marginLeft: 28,
+      paddingTop: 20,
     },
   }),
   divider: {
@@ -119,7 +127,7 @@ const styles = Styles.styleSheetCreate({
       borderColor: Styles.globalColors.lightGrey,
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
-      height: 95,
+      height: 150,
       minWidth: 305,
       paddingTop: 3,
       paddingLeft: 9,

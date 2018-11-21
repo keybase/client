@@ -72,6 +72,7 @@ export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs:walletsTab'
 export const waitingKey = 'settings:settingsPage'
+export const chatTab = 'settingsTabs:chatTab'
 export {
   initialState,
   traceInProgressKey,

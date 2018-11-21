@@ -202,6 +202,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         ...state,
         waitingForResponse: waiting,
       }
+    case SettingsGen.unfurlSettingsRefreshed:
     case SettingsGen.unfurlSettingsSaved:
       const {mode, whitelist} = action.payload
       return {
@@ -232,6 +233,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.onChangeLockdownMode:
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
+    case SettingsGen.unfurlSettingsRefresh:
       return state
     default:
       /*::
