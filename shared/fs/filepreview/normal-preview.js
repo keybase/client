@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {mapProps} from '../../util/container'
+import {mapProps, type RouteProps} from '../../util/container'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -90,8 +90,9 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default mapProps(
-  ({routePath, routeProps}): NormalPreviewProps => ({
+// TODO: figure out typing here
+export default mapProps<any, any>(
+  ({routePath, routeProps}) => ({
     path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
     routePath,
   })
