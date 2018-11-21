@@ -4804,6 +4804,14 @@ type ResolveUnfurlPromptArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetUnfurlSettingsArg struct {
+}
+
+type SaveUnfurlSettingsArg struct {
+	Mode      UnfurlMode `codec:"mode" json:"mode"`
+	Whitelist []string   `codec:"whitelist" json:"whitelist"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -4865,6 +4873,8 @@ type LocalInterface interface {
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
+	GetUnfurlSettings(context.Context) (UnfurlSettings, error)
+	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5756,6 +5766,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getUnfurlSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUnfurlSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetUnfurlSettings(ctx)
+					return
+				},
+			},
+			"saveUnfurlSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]SaveUnfurlSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaveUnfurlSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaveUnfurlSettingsArg)(nil), args)
+						return
+					}
+					err = i.SaveUnfurlSettings(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6071,5 +6106,15 @@ func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err
 
 func (c LocalClient) ResolveUnfurlPrompt(ctx context.Context, __arg ResolveUnfurlPromptArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.resolveUnfurlPrompt", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettings, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getUnfurlSettings", []interface{}{GetUnfurlSettingsArg{}}, &res)
+	return
+}
+
+func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []interface{}{__arg}, nil)
 	return
 }

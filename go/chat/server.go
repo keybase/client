@@ -2346,3 +2346,11 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 	}
 	return nil
 }
+
+func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSettings, err error) {
+	return res, err
+}
+
+func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
+	return err
+}
