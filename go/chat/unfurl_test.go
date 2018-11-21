@@ -45,6 +45,7 @@ func (d *dummyHTTPSrv) Start() string {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", d.handle)
 	mux.HandleFunc("/favicon.ico", d.handleFavicon)
+	mux.HandleFunc("/apple-touch-icon.png", d.handleApple)
 	d.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
@@ -55,6 +56,10 @@ func (d *dummyHTTPSrv) Start() string {
 
 func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
+}
+
+func (d *dummyHTTPSrv) handleApple(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
 }
 
 func (d *dummyHTTPSrv) handleFavicon(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +99,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		timeout := 2 * time.Second
+		timeout := 20 * time.Second
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
@@ -267,5 +272,12 @@ func TestChatSrvUnfurl(t *testing.T) {
 		origExplodeID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv, msg, &dur)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		recvAndCheckUnfurlMsg(origExplodeID)
+
+		t.Logf("set get/set settings")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
+			chat1.SaveUnfurlSettingsArg{
+				Mode:      chat1.UnfurlMode_NEVER,
+				Whitelist: []string{"cnn.com", "nytimes.com"},
+			}))
 	})
 }
