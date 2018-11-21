@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
-import {branch, compose, connect, renderNothing} from '../../util/container'
+import {connect, renderNothing} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 
