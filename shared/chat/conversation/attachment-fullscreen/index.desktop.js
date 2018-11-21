@@ -125,7 +125,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen = KeyHandler(OverlayParentHOC(_Fullscreen))
+const Fullscreen: any = KeyHandler(OverlayParentHOC((_Fullscreen: any)))
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_60, cursor: 'pointer'},

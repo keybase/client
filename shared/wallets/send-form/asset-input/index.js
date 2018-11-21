@@ -4,6 +4,8 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import Available from '../available/container'
 
+const commasToPeriods = s => s.replace(/,/, '.')
+
 const isValidAmount = (amt, numDecimalsAllowed) => {
   if (!isNaN(Number(amt)) || amt === '.') {
     // This is a valid number. Now check the number of decimal places
@@ -55,8 +57,11 @@ class AssetInput extends React.Component<Props> {
   }
 
   _onChangeAmount = t => {
-    if (isValidAmount(t, this.props.numDecimalsAllowed)) {
-      this.props.onChangeAmount(t)
+    // we treat commas and periods as the decimal separator, converted to
+    // periods throughout the send form
+    const tNormalized = commasToPeriods(t)
+    if (isValidAmount(tNormalized, this.props.numDecimalsAllowed)) {
+      this.props.onChangeAmount(tNormalized)
     }
   }
 

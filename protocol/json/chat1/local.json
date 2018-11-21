@@ -3999,6 +3999,26 @@
         }
       ],
       "response": null
+    },
+    "getUnfurlSettings": {
+      "request": [],
+      "response": "UnfurlSettingsDisplay"
+    },
+    "saveUnfurlSettings": {
+      "request": [
+        {
+          "name": "mode",
+          "type": "UnfurlMode"
+        },
+        {
+          "name": "whitelist",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

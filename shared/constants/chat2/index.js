@@ -44,6 +44,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
+  unfurlPromptMap: I.Map(),
   attachmentFullscreenMessage: null,
 
   // Team Building

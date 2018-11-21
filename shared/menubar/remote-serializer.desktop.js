@@ -6,7 +6,7 @@ import {
 } from '../chat/inbox/container/remote'
 import GetRowsFromTlfUpdate from '../fs/remote-container'
 
-export const serialize = {
+export const serialize: any = {
   ...Avatar.serialize,
   badgeKeys: v => v.keySeq().toArray(),
   badgeMap: (v, o) =>

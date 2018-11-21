@@ -6,17 +6,19 @@ import * as GitGen from '../actions/git-gen'
 
 const initialState: Types.State = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: GitGen.Actions) {
+export default function(state: Types.State = initialState, action: GitGen.Actions): Types.State {
   switch (action.type) {
     case GitGen.resetStore:
       return initialState
     case GitGen.loaded:
-      return state.set('idToInfo', I.Map(action.payload.repos)).set('lastLoad', Date.now())
+      return state.merge({
+        idToInfo: I.Map(action.payload.repos),
+        lastLoad: Date.now(),
+      })
     case GitGen.setError:
-      return state.set('error', action.payload.error)
+      return state.merge({error: action.payload.error})
     case GitGen.badgeAppForGit:
-      return state.set('isNew', I.Set(action.payload.ids))
-
+      return state.merge({isNew: I.Set(action.payload.ids)})
     // Clear errors
     case GitGen.loadGit:
     case GitGen.loadGitRepo:
@@ -24,8 +26,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.createTeamRepo:
     case GitGen.deletePersonalRepo:
     case GitGen.deleteTeamRepo:
-      return state.set('error', null)
-
+      return state.merge({error: null})
     // Saga only actions
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:

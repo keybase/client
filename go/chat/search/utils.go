@@ -82,6 +82,18 @@ func msgIDsFromSet(set mapset.Set) []chat1.MessageID {
 	return msgIDSlice
 }
 
+func searchMatches(msg chat1.MessageUnboxed, queryRe *regexp.Regexp) []string {
+	msgText := msg.SearchableText()
+	matches := queryRe.FindAllString(msgText, -1)
+	validMatches := []string{}
+	for _, m := range matches {
+		if m != "" {
+			validMatches = append(validMatches, m)
+		}
+	}
+	return validMatches
+}
+
 // Order messages ascending by ID for presentation
 func getUIMsgs(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {

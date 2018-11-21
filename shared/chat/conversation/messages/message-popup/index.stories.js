@@ -32,6 +32,19 @@ const defaultProps = {
   visible: true,
   yourMessage: true,
   isDeleteable: true,
+  onCopy: Sb.action('onCopy'),
+  onDelete: Sb.action('onDelete'),
+  onDeleteMessageHistory: Sb.action('onDeleteMessageHistory'),
+  onDownload: Sb.action('onDownload'),
+  onEdit: Sb.action('onEdit'),
+  onQuote: Sb.action('onQuote'),
+  onReplyPrivately: Sb.action('onReplyPrivately'),
+  onShowInFinder: Sb.action('onShowInFinder'),
+  onSaveAttachment: Sb.action('onSaveAttachment'),
+  onShareAttachment: Sb.action('onShareAttachment'),
+  onViewProfile: Sb.action('onViewProfile'),
+  position: 'top left',
+  showDivider: true,
 }
 
 const explodingSoonText = makeMessageText({
@@ -40,11 +53,13 @@ const explodingSoonText = makeMessageText({
   explodingTime: 2000000100000,
 })
 
-const explodingLaterText = makeMessageText({
-  author: 'cjb',
-  deviceName: 'device',
-  explodingTime: 2000009000000,
-})
+const explodingLaterText = deviceRevokedAt =>
+  makeMessageText({
+    author: 'cjb',
+    deviceName: 'device',
+    deviceRevokedAt: deviceRevokedAt,
+    explodingTime: 2000009000000,
+  })
 
 const explodingSoonAttachment = makeMessageAttachment({
   author: 'cjb',
@@ -87,36 +102,22 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup', module)
     .addDecorator(provider)
-    .add('Text', () => (
-      <TextPopupMenu
-        {...defaultProps}
-        {...textMessage.toJS()}
-        onCopy={Sb.action('onCopy')}
-        onDelete={Sb.action('onDelete')}
-        onDeleteMessageHistory={Sb.action('onDeleteMessageHistory')}
-        onEdit={Sb.action('onEdit')}
-        onQuote={Sb.action('onQuote')}
-        onReplyPrivately={Sb.action('onReplyPrivately')}
-        onViewProfile={Sb.action('onViewProfile')}
-        position={'top left'}
-        showDivider={true}
-      />
+    .add('Text', () => <TextPopupMenu {...defaultProps} {...textMessage.toJS()} />)
+    .add('Text w/ revoked device at 0', () => (
+      <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={0} />
     ))
-    .add('Attachment', () => (
-      <AttachmentPopupMenu
-        {...defaultProps}
-        {...attachmentMessage.toJS()}
-        onDelete={Sb.action('onDelete')}
-        onDeleteMessageHistory={Sb.action('onDeleteMessageHistory')}
-        onDownload={Sb.action('onDownload')}
-        onShowInFinder={Sb.action('onShowInFinder')}
-        onSaveAttachment={Sb.action('onSaveAttachment')}
-        onShareAttachment={Sb.action('onShareAttachment')}
-        position={'top left'}
-      />
+    .add('Text w/ revoked device', () => (
+      <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={5} />
     ))
+    .add('Attachment', () => <AttachmentPopupMenu {...defaultProps} {...attachmentMessage.toJS()} />)
     .add('Exploding later', () => (
-      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText} />
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText()} />
+    ))
+    .add('Exploding w/ revoked device at 0', () => (
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText(0)} />
+    ))
+    .add('Exploding w/ revoked device', () => (
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText(5)} />
     ))
     .add('Exploding soon', () => <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonText} />)
     .add('Exploding attachment', () => (

@@ -17,9 +17,10 @@ import (
 )
 
 type dummyHTTPSrv struct {
-	t       *testing.T
-	srv     *http.Server
-	handler func(w http.ResponseWriter, r *http.Request)
+	t                         *testing.T
+	srv                       *http.Server
+	shouldServeAppleTouchIcon bool
+	handler                   func(w http.ResponseWriter, r *http.Request)
 }
 
 func newDummyHTTPSrv(t *testing.T, handler func(w http.ResponseWriter, r *http.Request)) *dummyHTTPSrv {
@@ -36,6 +37,7 @@ func (d *dummyHTTPSrv) Start() string {
 	port := listener.Addr().(*net.TCPAddr).Port
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", d.handler)
+	mux.HandleFunc("/apple-touch-icon.png", d.serveAppleTouchIcon)
 	d.srv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
@@ -46,6 +48,14 @@ func (d *dummyHTTPSrv) Start() string {
 
 func (d *dummyHTTPSrv) Stop() {
 	require.NoError(d.t, d.srv.Close())
+}
+
+func (d *dummyHTTPSrv) serveAppleTouchIcon(w http.ResponseWriter, r *http.Request) {
+	if d.shouldServeAppleTouchIcon {
+		w.WriteHeader(200)
+		return
+	}
+	w.WriteHeader(404)
 }
 
 func strPtr(s string) *string {
@@ -136,14 +146,16 @@ func TestScraper(t *testing.T) {
 		ImageUrl:    strPtr("https://static01.nyt.com/images/2018/10/31/us/politics/31dc-dems/31dc-dems-facebookJumbo.jpg"),
 		FaviconUrl:  strPtr("http://127.0.0.1/vi-assets/static-assets/apple-touch-icon-319373aaf4524d94d38aa599c56b8655.png"),
 	}))
+	srv.shouldServeAppleTouchIcon = true
 	testCase("github0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "keybase/client",
 		Url:         "https://github.com/keybase/client",
 		SiteName:    "GitHub",
 		Description: strPtr("Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client"),
 		ImageUrl:    strPtr("https://avatars1.githubusercontent.com/u/5400834?s=400&v=4"),
-		FaviconUrl:  strPtr("https://assets-cdn.github.com/favicon.ico"),
+		FaviconUrl:  strPtr(fmt.Sprintf("http://%s/apple-touch-icon.png", addr)),
 	}))
+	srv.shouldServeAppleTouchIcon = false
 	testCase("youtube0", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 		Title:       "Mario Kart Wii: The History of the Ultra Shortcut",
 		Url:         "https://www.youtube.com/watch?v=mmJ_LT8bUj0",
