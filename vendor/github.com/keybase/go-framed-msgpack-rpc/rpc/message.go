@@ -129,8 +129,7 @@ func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *prot
 				r.err = err
 				return r.err
 			}
-			d = newUncompressedDecoder(uncompressed, d.fieldNumber)
-			if r.err = d.Decode(r.arg); r.err != nil {
+			if r.err = newUncompressedDecoder(uncompressed, d.fieldNumber).Decode(r.arg); r.err != nil {
 				return r.err
 			}
 		}
