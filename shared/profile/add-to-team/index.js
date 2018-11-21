@@ -8,7 +8,7 @@ import {
   ButtonBar,
   Checkbox,
   ClickableBox,
-  Dropdown,
+  DropdownButton,
   Divider,
   Meta,
   PopupDialog,
@@ -16,10 +16,7 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
-import {teamRoleTypes} from '../../constants/teams'
-import {capitalize} from 'lodash-es'
 import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
-import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
 const TeamRow = (props: RowProps) => (
@@ -53,7 +50,7 @@ const TeamRow = (props: RowProps) => (
   </ClickableBox>
 )
 
-const DropdownItem = ({item}: {item: string}) => (
+const DropdownItem = (item: string) => (
   <Box2
     direction="horizontal"
     key={item}
@@ -63,11 +60,9 @@ const DropdownItem = ({item}: {item: string}) => (
       paddingRight: globalMargins.small,
     }}
   >
-    <Text type="BodyBig">{capitalize(item)}</Text>
+    <Text type="BodySmallSemibold">{item}</Text>
   </Box2>
 )
-
-const _makeDropdownItems = () => teamRoleTypes.map(item => <DropdownItem key={item} item={item} />)
 
 const AddToTeam = (props: Props) => {
   const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
@@ -119,27 +114,13 @@ const AddToTeam = (props: Props) => {
         <Text style={addToTeamTitle} type="BodySmall">
           {props.them} will be added as a
         </Text>
-        <ClickableBox
-          onClick={() =>
-            props.onOpenRolePicker(
-              props.role,
-              (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
-              {zIndex: ROLE_PICKER_ZINDEX}
-            )
+        <DropdownButton
+          toggleOpen={() =>
+            props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
           }
-          underlayColor="rgba(0, 0, 0, 0)"
-        >
-          <Dropdown
-            items={_makeDropdownItems()}
-            selected={<DropdownItem item={props.role} />}
-            onChanged={(node: React.Node) => {
-              // $FlowIssue doesn't understand key will be string
-              const selectedRole: TeamRoleType = (node && node.key) || null
-              props.onRoleChange(selectedRole)
-            }}
-            style={{width: isMobile ? '100%' : 100}}
-          />
-        </ClickableBox>
+          selected={DropdownItem(props.role)}
+          style={{width: isMobile ? '100%' : 100}}
+        />
       </Box2>
       <ButtonBar fullWidth={true} style={buttonBar}>
         {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
