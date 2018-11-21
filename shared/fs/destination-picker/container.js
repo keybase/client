@@ -10,7 +10,7 @@ import {navigateUp, putActionIfOnPath} from '../../actions/route-tree'
 
 type OwnProps = RouteProps<{|
   index: number,
-|}, {}>
+|}, {||}>
 
 const mapStateToProps = state => ({
   _moveOrCopy: state.fs.moveOrCopy,
