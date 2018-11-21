@@ -12,7 +12,9 @@ import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner from '.'
 
-const mapStateToProps = (state, {path}) => ({
+type OwnProps = {|path: Types.Path|}
+
+const mapStateToProps = (state, {path}: OwnProps) => ({
   _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
   _username: state.config.username,
 })
@@ -33,7 +35,7 @@ const mapDispatchToProps = dispatch => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}) => {
+const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}: OwnProps) => {
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
@@ -53,4 +55,4 @@ const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onVie
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ResetBanner')(Banner)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ResetBanner')(Banner)
