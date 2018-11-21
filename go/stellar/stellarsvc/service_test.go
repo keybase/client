@@ -62,7 +62,7 @@ func TestCreateWallet(t *testing.T) {
 	require.False(t, created)
 
 	t.Logf("Fetch the bundle")
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
@@ -122,7 +122,7 @@ func TestUpkeep(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 
-	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	originalID := bundle.OwnHash
 	require.NotNil(t, originalID)
@@ -131,7 +131,7 @@ func TestUpkeep(t *testing.T) {
 	err = stellar.Upkeep(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Equal(t, bundle.OwnHash, originalID, "bundle should be unchanged by no-op upkeep")
 	require.Equal(t, originalPukGen, pukGen)
@@ -147,7 +147,7 @@ func TestUpkeep(t *testing.T) {
 	err = stellar.Upkeep(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.NotEqual(t, bundle.OwnHash, originalID, "bundle should be new")
 	require.NotEqual(t, originalPukGen, pukGen, "bundle should be for new puk")
@@ -175,7 +175,7 @@ func TestImportExport(t *testing.T) {
 		require.Error(t, err, "export empty specifier")
 	})
 
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	mustAskForPassphrase(func() {
@@ -260,7 +260,7 @@ func TestImportExport(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, own)
 
-	bundle, _, err = remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, _, err = remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Len(t, bundle.Accounts, 3)
 }
@@ -1276,7 +1276,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	// create a v1 bundle with two accounts
 	_, err := stellar.CreateWallet(ctx, g, false)
 	require.NoError(t, err)
-	v1Bundle0, _, err := remote.FetchV1Bundle(ctx, g)
+	v1Bundle0, _, _, err := remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	primaryAccount, err := v1Bundle0.PrimaryAccount()
 	require.NoError(t, err)
@@ -1294,7 +1294,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	actualStatus := keybase1.StatusCode(aerr.Code)
 	require.Equal(t, actualStatus, keybase1.StatusCode_SCStellarIncompatibleVersion)
 	require.Error(t, err, "cannot fetch v2 before migrating")
-	v1Bundle, _, err = remote.FetchV1Bundle(ctx, g)
+	v1Bundle, _, _, err = remote.FetchV1Bundle(ctx, g)
 	require.NoError(t, err)
 	v2Bundle, err := acctbundle.NewFromBundle(v1Bundle)
 	require.NoError(t, err)
@@ -1326,7 +1326,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.NoError(t, err)
 
 	// cannot use v1 endpoints after migration
-	_, _, err = remote.FetchV1Bundle(ctx, g)
+	_, _, _, err = remote.FetchV1Bundle(ctx, g)
 	require.Error(t, err, "cannot fetch v1 after migrating")
 	aerr = err.(libkb.AppStatusError)
 	actualStatus = keybase1.StatusCode(aerr.Code)

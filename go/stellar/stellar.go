@@ -133,7 +133,7 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
 func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
-	prevBundle, prevPukGen, err := remote.Fetch(ctx, g)
+	prevBundle, _, prevPukGen, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 }
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool, accountName string) (err error) {
-	prevBundle, _, err := remote.Fetch(ctx, g)
+	prevBundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, s
 		return errors.New("this doesn't work in production")
 	}
 
-	prevBundle, _, err := remote.Fetch(ctx, g)
+	prevBundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func ImportSecretKeyAccountBundle(ctx context.Context, g *libkb.GlobalContext, s
 }
 
 func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
-	prevBundle, _, err := remote.Fetch(ctx, g)
+	prevBundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return res, err
 	}
@@ -281,7 +281,7 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 }
 
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
-	bundle, _, err := remote.Fetch(ctx, g)
+	bundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return false, false, err
 	}
@@ -294,7 +294,7 @@ func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 }
 
 func lookupSenderEntry(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.BundleEntryRestricted, stellar1.AccountBundle, error) {
-	bundle, _, err := remote.Fetch(ctx, g)
+	bundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return stellar1.BundleEntryRestricted{}, stellar1.AccountBundle{}, err
 	}
@@ -798,7 +798,7 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
-	activeBundle, _, err := remote.Fetch(ctx, g)
+	activeBundle, _, _, err := remote.Fetch(ctx, g)
 	if err != nil {
 		return res, err
 	}
@@ -1212,7 +1212,7 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
 	}
-	bundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	bundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
@@ -1237,7 +1237,7 @@ func SetAccountAsPrimary(m libkb.MetaContext, accountID stellar1.AccountID) (err
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
-	bundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	bundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
@@ -1273,7 +1273,7 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	if accountID.IsNil() {
 		return errors.New("passed empty AccountID")
 	}
-	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	prevBundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
 	}
@@ -1340,7 +1340,7 @@ func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error)
 }
 
 func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
-	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
+	prevBundle, _, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return ret, err
 	}

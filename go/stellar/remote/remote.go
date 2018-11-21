@@ -337,7 +337,7 @@ func postMigrationChecks(m libkb.MetaContext, preMigrationBundle stellar1.Bundle
 	}
 
 	// verify that fetching a v1 bundle raises an incompatibility error
-	_, _, err = FetchV1Bundle(m.Ctx(), m.G())
+	_, _, _, err = FetchV1Bundle(m.Ctx(), m.G())
 	expectedErrorStatus := keybase1.StatusCode_SCStellarIncompatibleVersion
 	if err == nil {
 		err = fmt.Errorf("expected v1 endpoints to be inaccessible")
@@ -367,7 +367,7 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 		return err
 	}
 	// fetch the v1 bundle
-	v1Bundle, _, err := FetchV1Bundle(m.Ctx(), m.G())
+	v1Bundle, _, _, err := FetchV1Bundle(m.Ctx(), m.G())
 	if err != nil {
 		m.CErrorf("MIGRATION FAILED: failed to fetch v1Bundle", err)
 		return err
@@ -531,7 +531,7 @@ type fetchAcctRes struct {
 	acctbundle.BundleEncoded
 }
 
-func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, err error) {
+func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
@@ -542,49 +542,49 @@ func FetchV1Bundle(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bu
 		switch keybase1.StatusCode(err.Code) {
 		case keybase1.StatusCode_SCNotFound:
 			g.Log.CDebugf(ctx, "replacing error: %v", err)
-			return res, 0, UserHasNoAccountsError{}
+			return res, 0, 0, UserHasNoAccountsError{}
 		default:
-			return res, 0, err
+			return res, 0, 0, err
 		}
 	default:
-		return res, 0, err
+		return res, 0, 0, err
 	}
 	decodeRes, err := bundle.Decode(apiRes.EncryptedB64)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
 	pukring, err := g.GetPerUserKeyring(ctx)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
 	m := libkb.NewMetaContext(ctx, g)
 	puk, err := pukring.GetSeedByGenerationOrSync(m, decodeRes.Enc.Gen)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
-	v1Bundle, _, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
+	v1Bundle, version, err := bundle.Unbox(g, decodeRes, apiRes.VisibleB64, puk)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
-	return v1Bundle, decodeRes.Enc.Gen, err
+	return v1Bundle, version, decodeRes.Enc.Gen, err
 }
 
 // Fetch and unbox the latest bundle from the server.
-func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, pukGen keybase1.PerUserKeyGeneration, err error) {
+func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.BundleRestricted, version stellar1.BundleVersion, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
 
 	_ = acctBundlesEnabled(libkb.NewMetaContext(ctx, g))
 
-	v1Bundle, pukGen, err := FetchV1Bundle(ctx, g)
+	v1Bundle, version, pukGen, err := FetchV1Bundle(ctx, g)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
 	accountBundle, err := acctbundle.NewFromBundle(v1Bundle)
 	if err != nil {
-		return res, 0, err
+		return res, 0, 0, err
 	}
 	res = *accountBundle
-	return res, pukGen, nil
+	return res, version, pukGen, nil
 }
 
 type seqnoResult struct {
