@@ -177,7 +177,6 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
-  unfurlPrompts: I.Set(),
   unfurls: I.Map(),
 })
 

@@ -47,7 +47,7 @@ const Header = (props: Props) => (
       )}
       {!!props.walletName && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <SmallAccountID accountID={props.accountID} />
+          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -181,6 +181,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   noShrink: {flexShrink: 0},
+  smallAccountID: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    textAlign: 'center',
+  },
   spinner: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,

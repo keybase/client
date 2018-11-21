@@ -108,7 +108,6 @@ export type _MessageText = {
   outboxID: ?OutboxID,
   text: HiddenString,
   timestamp: number,
-  unfurlPrompts: I.Set<string>,
   unfurls: UnfurlMap,
   type: 'text',
 }

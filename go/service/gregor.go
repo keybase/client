@@ -1899,6 +1899,17 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}
 	return err
 }
 
+func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+	var timeoutCancel context.CancelFunc
+	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
+	err := t.inner.CallCompressed(ctx, method, arg, res, ctype)
+	if err == context.DeadlineExceeded {
+		return t.timeoutErr
+	}
+	return err
+}
+
 func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
 	var timeoutCancel context.CancelFunc
 	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)

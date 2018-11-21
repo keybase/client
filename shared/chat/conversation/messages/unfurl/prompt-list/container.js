@@ -14,9 +14,11 @@ const noMessageID = Types.numberToMessageID(0)
 
 const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const messageID = message && message.type === 'text' ? message.id : noMessageID
+  const promptDomains = state.chat2.unfurlPromptMap.getIn([conversationIDKey, messageID]) || noPrompts
   return {
-    promptDomains: message && message.type === 'text' ? message.unfurlPrompts : noPrompts,
-    messageID: message && message.type === 'text' ? message.id : noMessageID,
+    promptDomains,
+    messageID,
   }
 }
 

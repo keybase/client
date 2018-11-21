@@ -8,19 +8,19 @@ import (
 )
 
 type ServeHandlerDescription struct {
-	MakeArg    func() interface{}
-	Handler    func(ctx context.Context, arg interface{}) (ret interface{}, err error)
-	MethodType MethodType
+	MakeArg func() interface{}
+	Handler func(ctx context.Context, arg interface{}) (ret interface{}, err error)
 }
 
 type MethodType int
 
 const (
-	MethodInvalid  MethodType = -1
-	MethodCall     MethodType = 0
-	MethodResponse MethodType = 1
-	MethodNotify   MethodType = 2
-	MethodCancel   MethodType = 3
+	MethodInvalid        MethodType = -1
+	MethodCall           MethodType = 0
+	MethodResponse       MethodType = 1
+	MethodNotify         MethodType = 2
+	MethodCancel         MethodType = 3
+	MethodCallCompressed MethodType = 4
 )
 
 func (t MethodType) String() string {
@@ -35,8 +35,37 @@ func (t MethodType) String() string {
 		return "Notify"
 	case MethodCancel:
 		return "Cancel"
+	case MethodCallCompressed:
+		return "CallCompressed"
 	default:
 		return fmt.Sprintf("Method(%d)", t)
+	}
+}
+
+type CompressionType int
+
+const (
+	CompressionNone CompressionType = 0
+	CompressionGzip CompressionType = 1
+)
+
+func (t CompressionType) String() string {
+	switch t {
+	case CompressionNone:
+		return "none"
+	case CompressionGzip:
+		return "gzip"
+	default:
+		return fmt.Sprintf("Compression(%d)", t)
+	}
+}
+
+func (t CompressionType) NewCompressor() compressor {
+	switch t {
+	case CompressionGzip:
+		return newGzipCompressor()
+	default:
+		return nil
 	}
 }
 

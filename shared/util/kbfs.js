@@ -77,7 +77,7 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
 // helper for making chat calls
 export const tlfToParticipantsOrTeamname = (tlf: string) => {
   const parts = tlf.split('/')
-  let participants
+  let participants: Array<string>
   let teamname
   if (parts.length >= 4) {
     const [, , type, names] = parts
