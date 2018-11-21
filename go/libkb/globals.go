@@ -347,12 +347,13 @@ func (g *GlobalContext) ConfigureLogging() error {
 			logFile = filePrefix + ".log"
 		}
 	}
-	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
-	} else {
-		g.Log.Configure(style, debug, logFile)
+	if logFile == "" && g.Env.GetUseDefaultLogFile() {
+		logFile = g.Env.GetDefaultLogFile()
 	}
-	g.Log.RotateLogFile()
+	if logFile != "" {
+		g.Log.Configure(style, debug, logFile)
+		g.Log.RotateLogFile()
+	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 	return nil

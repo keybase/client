@@ -7,7 +7,7 @@ Type=notify
 Environment=KEYBASE_SERVICE_TYPE=systemd
 # import keybase environment variables
 EnvironmentFile=-%t/keybase/keybase.env
-ExecStart=/usr/bin/keybase --debug service
+ExecStart=/usr/bin/keybase --use-default-log-file --debug service
 Restart=on-failure
 
 [Install]
