@@ -5,6 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import {type Props as HeaderHocProps} from '../../common-adapters/header-hoc.types'
 import {withProps} from 'recompose'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
@@ -55,7 +56,6 @@ const DesktopHeaders = (props: Props) => (
   </>
 )
 
-// $FlowIssue
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     {!isMobile && <DesktopHeaders {...props} />}
@@ -115,7 +115,7 @@ const DestinationPicker = (props: Props) => (
 )
 
 export default (isMobile
-  ? withProps(props => ({
+  ? withProps<_, any>(props => ({
       onCancel: null, // unset this to avoid onCancel button from HeaderHoc
       headerStyle: {paddingRight: 0},
       customComponent: (
