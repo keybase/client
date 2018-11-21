@@ -653,6 +653,8 @@ func (md *MDServerRemote) GetForTLFByTime(
 	block, err := md.getClient().GetMetadataByTimestamp(ctx, arg)
 	if err != nil {
 		return nil, err
+	} else if len(block.Block) == 0 {
+		return nil, errors.Errorf("No revision available at %s", serverTime)
 	}
 
 	ver, max := kbfsmd.MetadataVer(block.Version), md.config.MetadataVersion()
