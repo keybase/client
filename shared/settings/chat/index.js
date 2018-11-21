@@ -64,7 +64,7 @@ class Chat extends React.Component<Props, State> {
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.whitelisted)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.whitelisted}
           />
-          <Kb.Box2 direction="vertical" style={styles.whitelist}>
+          <Kb.ScrollView style={styles.whitelist}>
             {this._getUnfurlWhitelist().map(w => {
               return (
                 <React.Fragment key={w}>
@@ -82,7 +82,7 @@ class Chat extends React.Component<Props, State> {
                 </React.Fragment>
               )
             })}
-          </Kb.Box2>
+          </Kb.ScrollView>
           <Kb.RadioButton
             key="rbnever"
             label="Never"
@@ -110,6 +110,9 @@ const styles = Styles.styleSheetCreate({
       marginLeft: 28,
       paddingTop: 20,
     },
+    isMobile: {
+      padding: 10,
+    },
   }),
   divider: {
     height: 2,
@@ -121,12 +124,14 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   whitelist: Styles.platformStyles({
-    isElectron: {
+    common: {
       alignSelf: 'flex-start',
       borderWidth: 1,
       borderColor: Styles.globalColors.lightGrey,
       borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
+    },
+    isElectron: {
       height: 150,
       minWidth: 305,
       paddingTop: 3,
@@ -134,25 +139,23 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: 3,
       paddingRight: 8,
       marginLeft: 26,
-      overflow: 'auto',
+    },
+    isMobile: {
+      height: 150,
+      width: '100%',
+      paddingLeft: 3,
     },
   }),
-  whitelistRemove: Styles.platformStyles({
-    isElectron: {
-      marginLeft: 'auto',
-    },
-  }),
-  whitelistContainer: Styles.platformStyles({
-    isElectron: {
-      flexShrink: 0,
-    },
-  }),
-  whitelistDivider: Styles.platformStyles({
-    isElectron: {
-      marginTop: 3,
-      marginBottom: 4,
-    },
-  }),
+  whitelistRemove: {
+    marginLeft: 'auto',
+  },
+  whitelistContainer: {
+    flexShrink: 0,
+  },
+  whitelistDivider: {
+    marginTop: 3,
+    marginBottom: 4,
+  },
 })
 
 export default Chat
