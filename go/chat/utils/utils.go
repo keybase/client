@@ -1672,3 +1672,10 @@ func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types
 		suspendable.Resume(ctx)
 	}
 }
+
+func IsPermanentErr(err error) bool {
+	if uberr, ok := err.(types.UnboxingError); ok {
+		return uberr.IsPermanent()
+	}
+	return err != nil
+}
