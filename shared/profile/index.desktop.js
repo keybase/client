@@ -131,7 +131,7 @@ class _StellarFederatedAddress extends React.PureComponent<
   render() {
     const stellarAddressNameStyle = {
       ...styles.stellarAddressName,
-      color: this.props.isYouOrFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
+      color: this.props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
     }
     return (
       <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
@@ -519,7 +519,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 {this.props.stellarAddress &&
                   !loading && (
                     <StellarFederatedAddress
-                      isYouOrFollowing={this.props.isYou || this.props.currentlyFollowing}
+                      currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
                       stellarAddress={this.props.stellarAddress}
                       onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                       onCopyAddress={this.props.onCopyStellarAddress}

@@ -91,7 +91,7 @@ const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.OverlayParentProps) => {
   const _menuItems = MakeStellarAddressMenuItems(props)
   const stellarAddressNameStyle = {
-    color: props.isYouOrFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
+    color: props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
   }
   return (
     <Kb.Box style={styles.styleRow}>
@@ -393,7 +393,7 @@ class Profile extends Component<Props, State> {
           {this.props.stellarAddress &&
             !this.props.loading && (
               <StellarFederatedAddress
-                isYouOrFollowing={this.props.isYou || this.props.currentlyFollowing}
+                currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
                 stellarAddress={this.props.stellarAddress}
                 onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                 onCopyAddress={this.props.onCopyStellarAddress}

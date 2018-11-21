@@ -201,7 +201,7 @@ const _DropdownButton = (props: DropdownProps & Kb.OverlayParentProps) => (
 )
 
 export type StellarFederatedAddressProps = {|
-  isYouOrFollowing?: boolean,
+  currentlyFollowing?: boolean,
   stellarAddress: string,
   onSendOrRequest: (isRequest: boolean) => void,
   onCopyAddress: () => void,
