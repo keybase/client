@@ -97,11 +97,11 @@ class Contents extends React.Component<Props> {
             <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
               <Kb.Input
                 autoFocus={true}
+                editable={!pending}
                 hintText="Name your team"
                 value={name}
                 onChangeText={onNameChange}
                 onEnterKeyDown={this._onSubmit}
-                disabled={pending}
               />
             </Kb.Box>
 
