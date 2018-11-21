@@ -88,5 +88,6 @@ func GetListenerFromEnvironment() (net.Listener, error) {
 }
 
 func NotifyStartupFinished() {
-	sdDaemon.SdNotify(false /* unsetEnv */, "READY=1")
+	ppid := os.Getppid()
+	sdDaemon.SdNotify(false /* unsetEnv */, fmt.Sprintf("READY=1\nMAINPID=%d", ppid))
 }
