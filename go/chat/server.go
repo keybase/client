@@ -2370,7 +2370,7 @@ func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSetting
 
 func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetUnfurlSettings")()
+	defer h.Trace(ctx, func() error { return err }, "SaveUnfurlSettings")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
