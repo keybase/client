@@ -79,6 +79,8 @@ const onChangeSelectedSearchResultHoc: any = compose(
               props.onSelectUser(props.selectedSearchId)
               props.onChangeSearchText && props.onChangeSearchText('')
             } else if (isMobile) {
+              // On mobile, this function is called if the user taps
+              // enter, which means the keyboard is going away.
               props.onExitSearch()
             }
           } else {
