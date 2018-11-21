@@ -30,12 +30,11 @@ import type {TypedState} from '../constants/reducer'
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
   const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamCreationWaitingKey}))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       joinSubteam,
       name: teamname,
-    })
+    }, Constants.teamCreationWaitingKey)
 
     // Dismiss the create team dialog.
     yield Saga.put(
@@ -67,8 +66,6 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-  } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamCreationWaitingKey}))
   }
 }
 
