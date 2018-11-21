@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}:
   _open: () => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
-const isFolder = (stateProps, ownProps) =>
+const isFolder = (stateProps, ownProps: OwnProps) =>
   Types.getPathLevel(ownProps.path) <= 3 ||
   stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === 'folder'
 
@@ -38,14 +39,20 @@ const canOpenInDestinationPicker = memoize2(
     !isFolder(stateProps, ownProps) || stateProps._moveOrCopy.sourceItemPath === ownProps.path
 )
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onOpen:
     typeof ownProps.destinationPickerIndex === 'number'
       ? canOpenInDestinationPicker(stateProps, ownProps)
         ? null
         : dispatchProps._destinationPickerGoTo
       : dispatchProps._open,
-  ...ownProps,
+  routePath: ownProps.routePath,
+  path: ownProps.path,
+  destinationPickerIndex: ownProps.destinationPickerIndex,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
+type MergedProps = OwnProps & {
+  onOpen: ?() => void,
+}
+
+export default namedConnect<OwnProps, _, React.ComponentType<MergedProps>, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
