@@ -33,7 +33,7 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
   }: DownloadProps)
 
 export default
-  namedConnect(
+  namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,
