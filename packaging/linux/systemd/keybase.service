@@ -11,7 +11,7 @@ EnvironmentFile=-%t/keybase/keybase.env
 # but if it is set after the user service manager is started, that will just
 # default to ~/.config, and not everyone uses .pam_environment so we start a
 # shell in order to expand it ourself.
-ExecStart=/bin/sh -c 'keybase --debug --log-file="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.service.log" service'
+ExecStart=/usr/bin/keybase --debug --log-file=%h/.cache/keybase/keybase.service.log service
 Restart=on-failure
 
 [Install]
