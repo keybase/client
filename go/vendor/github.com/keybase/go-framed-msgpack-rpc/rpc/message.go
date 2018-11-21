@@ -104,7 +104,7 @@ func (rpcCallCompressedMessage) MinLength() int {
 	return 4
 }
 
-func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, _ *compressorCacher) error {
+func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, compressorCacher *compressorCacher) error {
 	if r.err = d.Decode(&r.seqno); r.err != nil {
 		return r.err
 	}
@@ -117,9 +117,29 @@ func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *prot
 	if r.arg, r.err = p.getArg(r.name); r.err != nil {
 		return r.err
 	}
-	if r.err = d.Decode(r.arg); r.err != nil {
-		return r.err
+
+	if compressor := compressorCacher.getCompressor(r.ctype); compressor != nil {
+		var compressed []byte
+		if r.err = d.Decode(&compressed); r.err != nil {
+			return r.err
+		}
+		if len(compressed) > 0 {
+			uncompressed, err := compressor.Decompress(compressed)
+			if err != nil {
+				r.err = err
+				return r.err
+			}
+			d = newUncompressedDecoder(uncompressed, d.fieldNumber)
+			if r.err = d.Decode(r.arg); r.err != nil {
+				return r.err
+			}
+		}
+	} else {
+		if r.err = d.Decode(r.arg); r.err != nil {
+			return r.err
+		}
 	}
+
 	r.err = r.loadContext(l-r.MinLength(), d)
 	return r.err
 }
@@ -189,18 +209,19 @@ func (r *rpcResponseMessage) DecodeMessage(l int, d *fieldDecoder, _ *protocolHa
 		return nil
 	}
 
-	compressor := compressorCacher.getCompressor(r.c.ctype)
-	if compressor != nil {
+	if compressor := compressorCacher.getCompressor(r.c.ctype); compressor != nil {
 		var compressed []byte
 		if r.err = d.Decode(&compressed); r.err != nil {
 			return r.err
 		}
-		uncompressed, err := compressor.Decompress(compressed)
-		if err != nil {
-			r.err = err
-			return r.err
+		if len(compressed) > 0 {
+			uncompressed, err := compressor.Decompress(compressed)
+			if err != nil {
+				r.err = err
+				return r.err
+			}
+			d = newUncompressedDecoder(uncompressed, d.fieldNumber)
 		}
-		d = newUncompressedDecoder(uncompressed, d.fieldNumber)
 	}
 
 	r.err = d.Decode(r.c.res)
