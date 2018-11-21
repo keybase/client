@@ -1,0 +1,238 @@
+package safedecoding
+
+import (
+	"bytes"
+	"encoding/binary"
+	"errors"
+	"io"
+)
+
+var ExtUnsupported = errors.New("ext types not supported")
+
+type count uint64
+
+func MsgpackEnsureMaxDepth(r io.Reader, params Params) (b []byte, err error) {
+	var buf bytes.Buffer
+	tee := io.TeeReader(r, &buf)
+	err = msgpackDecode(tee, params)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func readIgnore(r io.Reader, params Params, n AllocationSize) error {
+	if n > params.MaxStringSize {
+		return StringTooBigError
+	}
+	buf := make([]byte, n)
+	_, err := io.ReadFull(r, buf)
+	return err
+}
+
+func msgpackDecodeArray(r io.Reader, params Params, n AllocationSize) (err error) {
+	params.descend()
+	if n > params.MaxContainerSize {
+		return ContainerTooBigError
+	}
+	for i := 0; i < int(n) && err == nil; i++ {
+		err = msgpackDecode(r, params)
+	}
+	return err
+}
+
+func msgpackDecodeMap(r io.Reader, params Params, n AllocationSize) (err error) {
+	params.descend()
+	if n > params.MaxContainerSize {
+		return ContainerTooBigError
+	}
+	for i := 0; i < int(n) && err == nil; i++ {
+		err = msgpackDecode(r, params)
+		if err == nil {
+			err = msgpackDecode(r, params)
+		}
+	}
+	return err
+}
+
+func readUint16(r io.Reader) (AllocationSize, error) {
+	var ret uint16
+	err := binary.Read(r, binary.BigEndian, &ret)
+	return AllocationSize(ret), err
+}
+
+func readUint32(r io.Reader) (AllocationSize, error) {
+	var ret uint32
+	err := binary.Read(r, binary.BigEndian, &ret)
+	return AllocationSize(ret), err
+}
+
+func msgpackDecode(r io.Reader, params Params) (err error) {
+
+	if params.MaxDepth < 0 {
+		return MaxDepthError
+	}
+
+	b, err := readByte(r)
+	if err != nil {
+		return err
+	}
+
+	switch {
+
+	// positive or negative fix bytes
+	case b <= 0x7f || b >= 0xe0:
+		return nil
+
+	// fix length string
+	case b >= 0xa0 && b <= 0xbf:
+		return readIgnore(r, params, AllocationSize(b&byte(0x1f)))
+
+	// fix length array
+	case b >= 0x90 && b <= 0x9f:
+		return msgpackDecodeArray(r, params, AllocationSize(b&byte(0x0f)))
+
+	// fix length map
+	case b >= 0x80 && b <= 0x8f:
+		return msgpackDecodeMap(r, params, AllocationSize(b&byte(0x0f)))
+
+	// nil, false and true
+	case b >= 0xc0 && b <= 0xc3:
+		return nil
+
+	// bin8 and str8 types
+	case b == 0xc4 || b == 0xd9:
+		s, err := readByte(r)
+		if err != nil {
+			return err
+		}
+		return readIgnore(r, params, AllocationSize(s))
+
+	// bin16 and str16 types
+	case b == 0xc5 || b == 0xda:
+		s, err := readUint16(r)
+		if err != nil {
+			return err
+		}
+		return readIgnore(r, params, s)
+
+	// bin32 and str32 types
+	case b == 0xc6 || b == 0xdb:
+		s, err := readUint32(r)
+		if err != nil {
+			return err
+		}
+		return readIgnore(r, params, s)
+
+	// ext types
+	case (b >= 0xc7 && b <= 0xc9) || (b >= 0xd4 && b <= 0xd8):
+		return ExtUnsupported
+
+		// int8 or uint8
+	case b == 0xcc || b == 0xd0:
+		return readIgnore(r, params, AllocationSize(1))
+
+	// int16 or uint16
+	case b == 0xcd || b == 0xd1:
+		return readIgnore(r, params, AllocationSize(2))
+
+	// int32 or float
+	case b == 0xce || b == 0xd2 || b == 0xca:
+		return readIgnore(r, params, AllocationSize(4))
+
+	// int64 or float
+	case b == 0xcf || b == 0xd3 || b == 0xcb:
+		return readIgnore(r, params, AllocationSize(8))
+
+	// array16
+	case b == 0xdc:
+		s, err := readUint16(r)
+		if err != nil {
+			return err
+		}
+		return msgpackDecodeArray(r, params, s)
+
+	// array32
+	case b == 0xdd:
+		s, err := readUint32(r)
+		if err != nil {
+			return err
+		}
+		return msgpackDecodeArray(r, params, s)
+
+	// map16
+	case b == 0xde:
+		s, err := readUint16(r)
+		if err != nil {
+			return err
+		}
+		return msgpackDecodeMap(r, params, s)
+
+	// map32
+	case b == 0xdf:
+		s, err := readUint32(r)
+		if err != nil {
+			return err
+		}
+		return msgpackDecodeMap(r, params, s)
+
+	}
+	return nil
+}
+
+func MsgpackEnsureMaxDepth(r io.Reader, params Params) (b []byte, err error) {
+	var buf bytes.Buffer
+	tee := io.TeeReader(r, &buf)
+	err = msgpackDecode(tee, params)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func readIgnore(r io.Reader, params Params, n AllocationSize) error {
+	if n > params.MaxStringSize {
+		return StringTooBigError
+	}
+	buf := make([]byte, n)
+	_, err := io.ReadFull(r, buf)
+	return err
+}
+
+func msgpackDecodeArray(r io.Reader, params Params, n AllocationSize) (err error) {
+	params.descend()
+	if n > params.MaxContainerSize {
+		return ContainerTooBigError
+	}
+	for i := 0; i < int(n) && err == nil; i++ {
+		err = msgpackDecode(r, params)
+	}
+	return err
+}
+
+func msgpackDecodeMap(r io.Reader, params Params, n AllocationSize) (err error) {
+	params.descend()
+	if n > params.MaxContainerSize {
+		return ContainerTooBigError
+	}
+	for i := 0; i < int(n) && err == nil; i++ {
+		err = msgpackDecode(r, params)
+		if err == nil {
+			err = msgpackDecode(r, params)
+		}
+	}
+	return err
+}
+
+func readUint16(r io.Reader) (AllocationSize, error) {
+	var ret uint16
+	err := binary.Read(r, binary.BigEndian, &ret)
+	return AllocationSize(ret), err
+}
+
+func readUint32(r io.Reader) (AllocationSize, error) {
+	var ret uint32
+	err := binary.Read(r, binary.BigEndian, &ret)
+	return AllocationSize(ret), err
+}
+
