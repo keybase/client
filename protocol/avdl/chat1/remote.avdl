@@ -1,4 +1,5 @@
 @namespace("chat.1")
+@compression_type("gzip")
 protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;

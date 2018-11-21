@@ -1158,5 +1158,6 @@
       "response": null
     }
   },
-  "namespace": "chat.1"
+  "namespace": "chat.1",
+  "compression_type": "gzip"
 }
