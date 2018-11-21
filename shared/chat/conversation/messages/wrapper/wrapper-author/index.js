@@ -203,14 +203,16 @@ class WrapperAuthor extends React.PureComponent<Props> {
   }
 
   render() {
-    return <Kb.Box2
-      direction='horizontal'
-      fullWidth={true}
-      style={this.props.includeHeader ? styles.hasHeader : null}
-    >
-      {leftSide(this.props)}
-      {rightSide(this.props)}
-    </Kb.Box2>
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={this.props.includeHeader ? styles.hasHeader : null}
+      >
+        {leftSide(this.props)}
+        {rightSide(this.props)}
+      </Kb.Box2>
+    )
   }
 }
 
@@ -262,7 +264,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   textContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxColumn,
     borderRadius: 4,
     flex: 1,
   },
