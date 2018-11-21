@@ -273,11 +273,15 @@ func TestChatSrvUnfurl(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		recvAndCheckUnfurlMsg(origExplodeID)
 
-		t.Logf("set get/set settings")
+		t.Logf("try get/set settings")
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SaveUnfurlSettings(ctx,
 			chat1.SaveUnfurlSettingsArg{
 				Mode:      chat1.UnfurlMode_NEVER,
-				Whitelist: []string{"cnn.com", "nytimes.com"},
+				Whitelist: []string{"nytimes.com", "cnn.com"},
 			}))
+		settings, err := ctc.as(t, users[0]).chatLocalHandler().GetUnfurlSettings(ctx)
+		require.NoError(t, err)
+		require.Equal(t, chat1.UnfurlMode_NEVER, settings.Mode)
+		require.Equal(t, []string{"cnn.com", "nytimes.com"}, settings.Whitelist)
 	})
 }

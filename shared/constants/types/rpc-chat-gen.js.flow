@@ -1096,6 +1096,7 @@ export type UnfurlPromptResult = {actionType: 0} | {actionType: 1} | {actionType
 export type UnfurlRaw = {unfurlType: 0, generic: ?UnfurlGenericRaw} | {unfurlType: 1, youtube: ?UnfurlYoutubeRaw}
 export type UnfurlResult = $ReadOnly<{unfurl: Unfurl, url: String}>
 export type UnfurlSettings = $ReadOnly<{mode: UnfurlMode, whitelist: {[key: string]: Boolean}}>
+export type UnfurlSettingsDisplay = $ReadOnly<{mode: UnfurlMode, whitelist?: ?Array<String>}>
 export type UnfurlType =
   | 0 // GENERIC_0
   | 1 // YOUTUBE_1

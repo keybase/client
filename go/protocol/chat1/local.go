@@ -4873,7 +4873,7 @@ type LocalInterface interface {
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
-	GetUnfurlSettings(context.Context) (UnfurlSettings, error)
+	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 }
 
@@ -6109,7 +6109,7 @@ func (c LocalClient) ResolveUnfurlPrompt(ctx context.Context, __arg ResolveUnfur
 	return
 }
 
-func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettings, err error) {
+func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsDisplay, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getUnfurlSettings", []interface{}{GetUnfurlSettingsArg{}}, &res)
 	return
 }

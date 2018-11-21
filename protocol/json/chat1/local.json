@@ -4002,7 +4002,7 @@
     },
     "getUnfurlSettings": {
       "request": [],
-      "response": "UnfurlSettings"
+      "response": "UnfurlSettingsDisplay"
     },
     "saveUnfurlSettings": {
       "request": [
