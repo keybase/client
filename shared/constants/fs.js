@@ -766,7 +766,7 @@ export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Type
 export const kbfsEnabled = (state: TypedState) =>
   !isMobile &&
   (isLinux ||
-    (state.fs.fuseStatus &&
+    (!!state.fs.fuseStatus &&
       state.fs.fuseStatus.kextStarted &&
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
