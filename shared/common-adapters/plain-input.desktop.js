@@ -9,11 +9,15 @@ import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
+const encoder = new window.TextEncoder()
+const decoder = new window.TextDecoder('utf-8')
+
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
+  _lastOnChangeValue: string = this.props.value || ''
 
   static defaultProps = {
     textType: 'Body',
@@ -26,7 +30,23 @@ class PlainInput extends React.PureComponent<InternalProps> {
   // This is controlled if a value prop is passed
   _controlled = () => typeof this.props.value === 'string'
 
-  _onChange = ({target: {value = ''}}) => {
+  _onChange = ({target: {value: _value = ''}}) => {
+    let value = _value
+    if (this.props.maxBytes) {
+      // check we haven't exceeded max bytes
+      const {maxBytes} = this.props
+      const encoded = encoder.encode(value)
+      if (encoded.length > maxBytes) {
+        // truncate value, check against past onChangeValue, bail if unchanged
+        const truncated = decoder.decode(encoded.slice(0, maxBytes))
+        if (truncated === this._lastOnChangeValue) {
+          return
+        }
+        value = truncated
+      }
+    }
+
+    this._lastOnChangeValue = value
     this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
   }

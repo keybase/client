@@ -21,8 +21,7 @@ type PublicMemoProps = {
 // TODO use wallet staticConfig to keep in sync with the service
 const secretNoteMaxLength = 500
 const publicMemoMaxLength = 28
-const encoder = new TextEncoder('utf-8')
-const getByteLength = s => encoder.encode(s).length
+const getByteLength = s => Buffer.byteLength(s)
 
 type SecretNoteState = {
   emojiPickerOpen: boolean,
@@ -58,6 +57,9 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
       }
       const secretNote =
         this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
+      if (getByteLength(secretNote) > secretNoteMaxLength) {
+        return
+      }
       const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
       this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
@@ -100,7 +102,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               ref={!Styles.isMobile ? this._note : undefined}
               onChangeText={this._onChangeSecretNote}
               value={this.state.secretNote}
-              maxLength={secretNoteMaxLength}
+              maxBytes={secretNoteMaxLength}
             />
             {this.state.emojiPickerOpen && !Styles.isMobile && (
               <Kb.Overlay
@@ -169,7 +171,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
             value={this.state.publicMemo}
-            maxLength={publicMemoMaxLength}
+            maxBytes={publicMemoMaxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodySmall">
@@ -209,6 +211,7 @@ const styles = Styles.styleSheetCreate({
   },
   emojiIcon: {
     alignSelf: 'flex-end',
+    marginTop: 1, // otherwise top is cut off w/ long note
   },
   flexOne: {
     flex: 1,
