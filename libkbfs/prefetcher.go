@@ -295,9 +295,9 @@ top:
 
 // calculatePriority returns either a base priority for an unsynced TLF or a
 // high priority for a synced TLF.
-func (p *blockPrefetcher) calculatePriority(basePriority int,
-	tlfID tlf.ID) int {
-	if p.config.IsSyncedTlf(tlfID) {
+func (p *blockPrefetcher) calculatePriority(
+	basePriority int, isDeepSync bool) int {
+	if isDeepSync {
 		return defaultOnDemandRequestPriority - 1
 	}
 	return basePriority
@@ -319,7 +319,11 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 			NoPrefetch, isDeepSync, nil}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
-		ch := p.retriever.Request(pre.ctx, priority, kmd, ptr, block, lifetime)
+		requester := p.retriever.Request
+		if isDeepSync {
+			requester = p.retriever.RequestAndSync
+		}
+		ch := requester(pre.ctx, priority, kmd, ptr, block, lifetime)
 		p.inFlightFetches.In() <- ch
 	}
 	_, isParentWaiting := p.prefetches[parentBlockID]
@@ -350,7 +354,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 	isTail bool) {
 	// Prefetch indirect block pointers.
 	startingPriority :=
-		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, isDeepSync)
 	for i, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, startingPriority-i, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
@@ -365,7 +369,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 	isTail bool) {
 	// Prefetch indirect block pointers.
 	startingPriority :=
-		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, isDeepSync)
 	for i, ptr := range b.IPtrs {
 		numBlocks += p.request(ctx, startingPriority-i, kmd,
 			ptr.BlockPointer, b.NewEmpty(), lifetime,
@@ -382,7 +386,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
 	startingPriority :=
-		p.calculatePriority(dirEntryPrefetchPriority, kmd.TlfID())
+		p.calculatePriority(dirEntryPrefetchPriority, isDeepSync)
 	totalChildEntries := 0
 	for i, entry := range dirEntries.dirEntries {
 		// Prioritize small files
@@ -844,8 +848,8 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 // ProcessBlockForPrefetch triggers a prefetch if appropriate.
 func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
-	isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
+	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
+	isDeepSync bool) {
 	req := &prefetchRequest{ptr, block.NewEmpty(), kmd, priority, lifetime,
 		prefetchStatus, isDeepSync, nil}
 	if prefetchStatus == FinishedPrefetch {

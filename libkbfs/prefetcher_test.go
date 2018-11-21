@@ -474,19 +474,10 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 		FinishedPrefetch, TransientEntry)
 }
 
-func TestPrefetcherForSyncedTLF(t *testing.T) {
-	t.Log("Test synced TLF prefetching.")
-	q, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q)
-	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
-	notifySyncCh(t, prefetchSyncCh)
-
-	kmd := makeKMD()
-	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
-		Mode: keybase1.FolderSyncMode_ENABLED,
-	})
-
+func testPrefetcherForSyncedTLF(
+	t *testing.T, q *blockRetrievalQueue, bg *fakeBlockGetter,
+	config *testBlockRetrievalConfig, prefetchSyncCh chan struct{},
+	kmd KeyMetadata, explicitSync bool) {
 	t.Log("Initialize a direct dir block with entries pointing to 2 files " +
 		"and 1 directory. The directory has an entry pointing to another " +
 		"file, which has 2 indirect blocks.")
@@ -526,7 +517,11 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		bg.setBlockToReturn(dirBfileDptrs[1].BlockPointer, dirBfileDblock2)
 
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(),
+	requester := q.Request
+	if explicitSync {
+		requester = q.RequestAndSync
+	}
+	ch := requester(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry)
 	continueChRootDir <- nil
 	err := <-ch
@@ -626,6 +621,33 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
 		FinishedPrefetch, TransientEntry)
+}
+
+func TestPrefetcherForSyncedTLF(t *testing.T) {
+	t.Log("Test synced TLF prefetching.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	kmd := makeKMD()
+	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
+		Mode: keybase1.FolderSyncMode_ENABLED,
+	})
+	testPrefetcherForSyncedTLF(t, q, bg, config, prefetchSyncCh, kmd, false)
+}
+
+func TestPrefetcherForRequestedSync(t *testing.T) {
+	t.Log("Test explicitly-requested synced prefetching.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	kmd := makeKMD()
+	testPrefetcherForSyncedTLF(t, q, bg, config, prefetchSyncCh, kmd, true)
 }
 
 func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {

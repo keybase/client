@@ -5587,13 +5587,13 @@ func (m *MockPrefetcher) EXPECT() *MockPrefetcherMockRecorder {
 }
 
 // ProcessBlockForPrefetch mocks base method
-func (m *MockPrefetcher) ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
-	m.ctrl.Call(m, "ProcessBlockForPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
+func (m *MockPrefetcher) ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, isDeepSync bool) {
+	m.ctrl.Call(m, "ProcessBlockForPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, isDeepSync)
 }
 
 // ProcessBlockForPrefetch indicates an expected call of ProcessBlockForPrefetch
-func (mr *MockPrefetcherMockRecorder) ProcessBlockForPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBlockForPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).ProcessBlockForPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
+func (mr *MockPrefetcherMockRecorder) ProcessBlockForPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, isDeepSync interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBlockForPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).ProcessBlockForPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, isDeepSync)
 }
 
 // WaitChannelForBlockPrefetch mocks base method
@@ -9234,6 +9234,18 @@ func (m *MockBlockRetriever) RequestNoPrefetch(ctx context.Context, priority int
 // RequestNoPrefetch indicates an expected call of RequestNoPrefetch
 func (mr *MockBlockRetrieverMockRecorder) RequestNoPrefetch(ctx, priority, kmd, ptr, block, lifetime interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestNoPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).RequestNoPrefetch), ctx, priority, kmd, ptr, block, lifetime)
+}
+
+// RequestAndSync mocks base method
+func (m *MockBlockRetriever) RequestAndSync(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
+	ret := m.ctrl.Call(m, "RequestAndSync", ctx, priority, kmd, ptr, block, lifetime)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+// RequestAndSync indicates an expected call of RequestAndSync
+func (mr *MockBlockRetrieverMockRecorder) RequestAndSync(ctx, priority, kmd, ptr, block, lifetime interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestAndSync", reflect.TypeOf((*MockBlockRetriever)(nil).RequestAndSync), ctx, priority, kmd, ptr, block, lifetime)
 }
 
 // PutInCaches mocks base method
