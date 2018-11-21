@@ -1258,14 +1258,6 @@ func (e *Env) GetUseDefaultLogFile() bool {
 	)
 }
 
-// func (e *Env) GetDisplayRawUntrustedOutput() bool {
-// 	return e.GetBool(false,
-// 		func() (bool, bool) { return e.cmd.GetDisplayRawUntrustedOutput() },
-// 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISPLAY_RAW_UNTRUSTED_OUTPUT") },
-// 		func() (bool, bool) { return e.GetConfig().GetDisplayRawUntrustedOutput() },
-// 	)
-// }
-
 func (e *Env) GetLogPrefix() string {
 	return e.cmd.GetLogPrefix()
 }
