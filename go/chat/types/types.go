@@ -315,3 +315,7 @@ func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, dom
 func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error {
 	return nil
 }
+
+func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
+	return nil
+}
