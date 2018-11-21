@@ -376,3 +376,8 @@ func (u *Unfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.Unfu
 	defer u.Trace(ctx, func() error { return nil }, "SetMode")()
 	return u.settings.SetMode(ctx, uid, mode)
 }
+
+func (u *Unfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
+	defer u.Trace(ctx, func() error { return nil }, "SetSettings")()
+	return u.settings.Set(ctx, uid, settings)
+}

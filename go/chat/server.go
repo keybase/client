@@ -2348,9 +2348,28 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 }
 
 func (h *Server) GetUnfurlSettings(ctx context.Context) (res chat1.UnfurlSettings, err error) {
-	return res, err
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	return h.G().Unfurler.GetSettings(ctx, uid)
 }
 
 func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSettingsArg) (err error) {
-	return err
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetUnfurlSettings")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	wm := make(map[string]bool)
+	for _, w := range arg.Whitelist {
+		wm[w] = true
+	}
+	return h.G().Unfurler.SetSettings(ctx, uid, chat1.UnfurlSettings{
+		Mode:      arg.Mode,
+		Whitelist: wm,
+	})
 }
