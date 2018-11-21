@@ -295,7 +295,7 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 		}
 		if diskBCache := fbo.config.DiskBlockCache(); diskBCache != nil {
 			if buf, _, _, err := diskBCache.Get(
-				ctx, fbo.id(), ptr.ID); err != nil {
+				ctx, fbo.id(), ptr.ID); err == nil {
 				return uint32(len(buf)), keybase1.BlockStatus_LIVE, nil
 			}
 		}
