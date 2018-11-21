@@ -158,4 +158,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Chat
+export default Kb.HeaderHoc(Chat)
