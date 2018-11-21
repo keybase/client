@@ -1,16 +1,41 @@
 // @flow
 import * as React from 'react'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {resetChatWithoutThem} from '../../actions/chat2-gen'
 
 export type Props = {
-  whitelist: Array<string>,
-  onSave: () => void,
-  onWhitelistRemove: string => void,
+  unfurlMode: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist: Array<string>,
+  onUnfurlSave: (RPCChatTypes.UnfurlMode, Array<string>) => void,
 }
 
-class Chat extends React.PureComponent<Props> {
+type State = {
+  unfurlSelected?: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist?: Array<string>,
+}
+
+class Chat extends React.Component<Props, State> {
+  state = {}
+  _isUnfurlModeSelected() {
+    return this.state.unfurlSelected !== undefined
+  }
+  _isUnfurlWhitelistChanged() {
+    return this.state.unfurlWhitelist !== undefined
+  }
+  _getUnfurlMode(): RPCChatTypes.UnfurlMode {
+    return this.state.unfurlSelected !== undefined ? this.state.unfurlSelected : this.props.unfurlMode
+  }
+  _getUnfurlWhitelist() {
+    return this.state.unfurlWhitelist !== undefined ? this.state.unfurlWhitelist : this.props.unfurlWhitelist
+  }
+  _setUnfurlMode(mode: RPCChatTypes.UnfurlMode) {
+    this.setState({unfurlSelected: mode})
+  }
+  _removeUnfurlWhitelist(domain: string) {
+    this.setState({unfurlWhitelist: this._getUnfurlWhitelist().filter(e => e !== domain)})
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
@@ -21,15 +46,29 @@ class Chat extends React.PureComponent<Props> {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Kb.RadioButton label="Always" />
-          <Kb.RadioButton label="Yes, but only for these sites:" />
+          <Kb.RadioButton
+            key="rbalways"
+            label="Always"
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.always)}
+            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.always}
+          />
+          <Kb.RadioButton
+            key="rbwhitelist"
+            label="Yes, but only for these sites:"
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.whitelisted)}
+            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.whitelisted}
+          />
           <Kb.Box2 direction="vertical" style={styles.whitelist}>
-            {this.props.whitelist.map(w => {
+            {this._getUnfurlWhitelist().map(w => {
               return (
-                <React.Fragment>
+                <React.Fragment key={w}>
                   <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.whitelistContainer}>
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    <Kb.Text type="BodyPrimaryLink" style={styles.whitelistRemove}>
+                    <Kb.Text
+                      type="BodyPrimaryLink"
+                      style={styles.whitelistRemove}
+                      onClick={() => this._removeUnfurlWhitelist(w)}
+                    >
                       Remove
                     </Kb.Text>
                   </Kb.Box2>
@@ -38,10 +77,21 @@ class Chat extends React.PureComponent<Props> {
               )
             })}
           </Kb.Box2>
-          <Kb.RadioButton label="Never" />
+          <Kb.RadioButton
+            key="rbnever"
+            label="Never"
+            onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.never)}
+            selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.never}
+          />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
-        <Kb.Button onClick={this.props.onSave} label="Save" type="Primary" style={styles.save} />
+        <Kb.Button
+          onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist())}
+          label="Save"
+          type="Primary"
+          style={styles.save}
+          disabled={!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged()}
+        />
       </Kb.Box2>
     )
   }
