@@ -148,7 +148,6 @@ const props = {
   reason: '',
   refresh: Sb.action('refresh'),
   serverActive: false,
-  stellarAddress: 'coyne*keybase.io',
   trackerState: normal,
   waiting: false,
   youAreInTeams: false,
@@ -251,6 +250,9 @@ const load = () => {
     ))
     .add('Followed - Changed - Scrolled', () => (
       <Profile {...props} proofs={proofsDeleted} trackerState={error} currentlyFollowing={true} />
+    ))
+    .add('Your Profile - Stellar Address', () => (
+      <Profile {...props} stellarAddress={'coyne*keybase.io'} bioEditFns={bioEditFns} isYou={true} />
     ))
 }
 export default load

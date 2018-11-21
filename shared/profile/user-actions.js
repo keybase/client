@@ -1,22 +1,11 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  Button,
-  ClickableBox,
-  FloatingMenu,
-  FollowButton,
-  ButtonBar,
-  Icon,
-  Meta,
-  Text,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../common-adapters'
+import * as Kb from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
-import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
+import * as Styles from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
 import flags from '../util/feature-flags'
+import openUrl from '../util/open-url'
 
 type Props = {|
   trackerState: SimpleProofState,
@@ -54,11 +43,11 @@ function UserActions({
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
-        <ButtonBar style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
-          <Button type="Primary" label="Chat" onClick={onChat}>
-            <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
-          </Button>
+        <Kb.ButtonBar style={style}>
+          <Kb.FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
+          <Kb.Button type="Primary" label="Chat" onClick={onChat}>
+            <Kb.Icon type="iconfont-chat" style={{marginRight: 8}} color={Styles.globalColors.white} />
+          </Kb.Button>
           <DropdownButton
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
@@ -66,13 +55,13 @@ function UserActions({
             onSendLumens={onSendLumens}
             onRequestLumens={onRequestLumens}
           />
-        </ButtonBar>
+        </Kb.ButtonBar>
       )
     } else {
       return (
-        <ButtonBar style={style}>
-          <Button type="Secondary" label="Refresh" onClick={onRefresh} />
-          <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} />
+        <Kb.ButtonBar style={style}>
+          <Kb.Button type="Secondary" label="Refresh" onClick={onRefresh} />
+          <Kb.Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} />
           <DropdownButton
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
@@ -81,16 +70,16 @@ function UserActions({
             onSendLumens={onSendLumens}
             onRequestLumens={onRequestLumens}
           />
-        </ButtonBar>
+        </Kb.ButtonBar>
       )
     }
   } else {
     return (
-      <ButtonBar style={style}>
-        <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
-        <Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
-          <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
-        </Button>
+      <Kb.ButtonBar style={style}>
+        <Kb.FollowButton following={false} onFollow={onFollow} waiting={waiting} />
+        <Kb.Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
+          <Kb.Icon type="iconfont-chat" style={{marginRight: 8}} color={Styles.globalColors.white} />
+        </Kb.Button>
         <DropdownButton
           onAddToTeam={onAddToTeam}
           onOpenPrivateFolder={onOpenPrivateFolder}
@@ -98,7 +87,7 @@ function UserActions({
           onSendLumens={onSendLumens}
           onRequestLumens={onRequestLumens}
         />
-      </ButtonBar>
+      </Kb.ButtonBar>
     )
   }
 }
@@ -124,26 +113,40 @@ const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
           onClick: props.onSendLumens,
           title: 'Send Lumens (XLM)',
           view: (
-            <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Text type="Body">Send Lumens (XLM)</Text>
-              <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
-            </Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+              <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+                Send Lumens (XLM)
+              </Kb.Text>
+              <Kb.Meta
+                title="New"
+                size="Small"
+                backgroundColor={Styles.globalColors.blue}
+                style={styles.badge}
+              />
+            </Kb.Box2>
           ),
         },
         {
           onClick: props.onRequestLumens,
           title: 'Request Lumens (XLM)',
           view: (
-            <Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Text type="Body">Request Lumens (XLM)</Text>
-              <Meta title="New" size="Small" backgroundColor={globalColors.blue} style={styles.badge} />
-            </Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+              <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+                Request Lumens (XLM)
+              </Kb.Text>
+              <Kb.Meta
+                title="New"
+                size="Small"
+                backgroundColor={Styles.globalColors.blue}
+                style={styles.badge}
+              />
+            </Kb.Box2>
           ),
         },
       ]
     : []),
 
-  ...(!isMobile
+  ...(!Styles.isMobile
     ? [
         {
           onClick: props.onOpenPrivateFolder,
@@ -169,23 +172,23 @@ const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
     : []),
 ]
 
-const _DropdownButton = (props: DropdownProps & OverlayParentProps) => (
-  <ClickableBox
+const _DropdownButton = (props: DropdownProps & Kb.OverlayParentProps) => (
+  <Kb.ClickableBox
     onClick={props.toggleShowingMenu}
-    style={{backgroundColor: globalColors.white}}
+    style={{backgroundColor: Styles.globalColors.white}}
     ref={props.setAttachmentRef}
   >
-    <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-      <Button onClick={null} type="Secondary" style={iconButton}>
-        <Icon
-          color={globalColors.black_75}
-          fontSize={isMobile ? 21 : 16}
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
+      <Kb.Button onClick={null} type="Secondary" style={iconButton}>
+        <Kb.Icon
+          color={Styles.globalColors.black_75}
+          fontSize={Styles.isMobile ? 21 : 16}
           style={ellipsisIcon}
           type="iconfont-ellipsis"
         />
-      </Button>
-    </Box2>
-    <FloatingMenu
+      </Kb.Button>
+    </Kb.Box2>
+    <Kb.FloatingMenu
       closeOnSelect={true}
       attachTo={props.getAttachmentRef}
       containerStyle={styles.floatingMenu}
@@ -194,17 +197,93 @@ const _DropdownButton = (props: DropdownProps & OverlayParentProps) => (
       position="bottom right"
       visible={props.showingMenu}
     />
-  </ClickableBox>
+  </Kb.ClickableBox>
 )
 
-const ellipsisIcon = platformStyles({
+export type StellarFederatedAddressProps = {|
+  isYouOrFollowing?: boolean,
+  stellarAddress: string,
+  onSendOrRequest: (isRequest: boolean) => void,
+  onCopyAddress: () => void,
+|}
+
+export const MakeStellarAddressMenuItems = (props: StellarFederatedAddressProps) => [
+  ...(Styles.isMobile
+    ? [
+        {
+          title: 'Stellar Federated Address',
+          view: (
+            // eslint-disable-next-line no-use-before-define
+            <Kb.Box2 direction="vertical" style={styles.menuItemBox}>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+                <Kb.Box style={styles.iconContainer}>
+                  <Kb.Icon
+                    style={styles.styleService}
+                    color={styles.styleServiceContainer.color}
+                    fontSize={20}
+                    textAlign="center"
+                    type={'iconfont-identity-stellar'}
+                  />
+                </Kb.Box>
+                <Kb.Text type="BodySemibold" style={styles.styleServiceContainer}>
+                  {props.stellarAddress}
+                </Kb.Text>
+              </Kb.Box2>
+              <Kb.Text type="BodySmall" style={styles.styleServiceSubscript}>
+                Stellar federated address
+              </Kb.Text>
+            </Kb.Box2>
+          ),
+        },
+        'Divider',
+      ]
+    : []),
+  {
+    onClick: () => props.onSendOrRequest(false),
+    title: 'Send Lumens (XLM)',
+    view: (
+      // eslint-disable-next-line no-use-before-define
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+          Send Lumens (XLM)
+        </Kb.Text>
+        <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+      </Kb.Box2>
+    ),
+  },
+  {
+    onClick: () => props.onSendOrRequest(true),
+    title: 'Request Lumens (XLM)',
+    view: (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
+        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+          Request Lumens (XLM)
+        </Kb.Text>
+        <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+      </Kb.Box2>
+    ),
+  },
+  {
+    onClick: () => {
+      props.onCopyAddress()
+    },
+    title: 'Copy address',
+  },
+  'Divider',
+  {
+    onClick: () => openUrl('https://keybase.io/what-is-stellar'),
+    title: 'What is Stellar?',
+  },
+]
+
+const ellipsisIcon = Styles.platformStyles({
   common: {
     position: 'relative',
     top: 1,
   },
 })
 
-const iconButton = platformStyles({
+const iconButton = Styles.platformStyles({
   isElectron: {
     paddingLeft: 16,
     paddingRight: 16,
@@ -215,19 +294,55 @@ const iconButton = platformStyles({
   },
 })
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  badge: Styles.platformStyles({
+    isMobile: {
+      alignSelf: 'flex-end',
+    },
+    isElectron: {
+      alignSelf: 'center',
+    },
+  }),
   floatingMenu: {
     marginTop: 4,
     width: 250,
   },
-  menuItemBox: {
-    justifyContent: 'space-between',
+  iconContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: 32,
+    minHeight: 32,
+    minWidth: 28,
   },
-  badge: {
-    alignSelf: 'center',
+  menuItemBox: Styles.platformStyles({
+    isMobile: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    isElectron: {
+      justifyContent: 'space-between',
+    },
+  }),
+  menuItemText: Styles.platformStyles({
+    isMobile: {
+      ...Styles.globalStyles.flexGrow,
+      color: Styles.globalColors.blue,
+      textAlign: 'center',
+    },
+  }),
+  styleService: {
+    marginRight: Styles.globalMargins.xtiny,
+    marginTop: 2,
+    padding: 5,
+  },
+  styleServiceContainer: {
+    color: Styles.globalColors.black_75,
+  },
+  styleServiceSubscript: {
+    color: Styles.globalColors.black_40,
   },
 })
 
-const DropdownButton = OverlayParentHOC(_DropdownButton)
+const DropdownButton = Kb.OverlayParentHOC(_DropdownButton)
 
 export default UserActions

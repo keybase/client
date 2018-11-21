@@ -5,7 +5,7 @@ import Friendships from './friendships.desktop'
 import * as React from 'react'
 import moment from 'moment'
 import * as Kb from '../common-adapters'
-import UserActions from './user-actions'
+import UserActions, {MakeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -15,7 +15,6 @@ import Folders from './folders/container'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
-import openUrl from '../util/open-url'
 import HOCTimers, {type PropsWithTimer} from '../common-adapters/hoc-timers'
 
 const HEADER_TOP_SPACE = 48
@@ -112,74 +111,28 @@ class _ToastContainer extends React.Component<TProps, TState> {
 }
 const ToastContainer = HOCTimers(_ToastContainer)
 
-type StellarAddressProps = {|
-  stellarAddress: string,
-  onSendOrRequest: (isRequest: boolean) => void,
-  onCopyAddress: () => void,
-|}
-
-class _StellarFederatedAddress extends React.PureComponent<StellarAddressProps & Kb.OverlayParentProps> {
+class _StellarFederatedAddress extends React.PureComponent<
+  StellarFederatedAddressProps & Kb.OverlayParentProps
+> {
   _attachmentRef = null
   _toastRef: ?_ToastContainer = null
-
-  _styles = Styles.styleSheetCreate({
-    menuItemBox: {
-      justifyContent: 'space-between',
-    },
-    badge: {
-      alignSelf: 'center',
-    },
+  _onCopyAddress = () => {
+    this._toastRef && this._toastRef.copy()
+    this.props.onCopyAddress()
+  }
+  _menuItems = MakeStellarAddressMenuItems({
+    stellarAddress: this.props.stellarAddress,
+    onSendOrRequest: this.props.onSendOrRequest,
+    onCopyAddress: this._onCopyAddress,
   })
-
-  _menuItems = [
-    {
-      onClick: () => this.props.onSendOrRequest(false),
-      title: 'Send Lumens (XLM)',
-      view: (
-        // eslint-disable-next-line no-use-before-define
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={this._styles.menuItemBox}>
-          <Kb.Text type="Body">Send Lumens (XLM)</Kb.Text>
-          <Kb.Meta
-            title="New"
-            size="Small"
-            backgroundColor={Styles.globalColors.blue}
-            style={this._styles.badge}
-          />
-        </Kb.Box2>
-      ),
-    },
-    {
-      onClick: () => this.props.onSendOrRequest(true),
-      title: 'Request Lumens (XLM)',
-      view: (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={this._styles.menuItemBox}>
-          <Kb.Text type="Body">Request Lumens (XLM)</Kb.Text>
-          <Kb.Meta
-            title="New"
-            size="Small"
-            backgroundColor={Styles.globalColors.blue}
-            style={this._styles.badge}
-          />
-        </Kb.Box2>
-      ),
-    },
-    {
-      onClick: () => {
-        this.props.onCopyAddress()
-        this._toastRef && this._toastRef.copy()
-      },
-      title: 'Copy address',
-    },
-    'Divider',
-    {
-      onClick: () => openUrl('https://keybase.io/what-is-stellar'),
-      title: 'What is Stellar?',
-    },
-  ]
 
   _getAttachmentRef = () => this._attachmentRef
 
   render() {
+    const stellarAddressNameStyle = {
+      ...styles.stellarAddressName,
+      color: this.props.isYouOrFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
+    }
     return (
       <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
         {/* $FlowIssue innerRef not typed yet */}
@@ -202,14 +155,16 @@ class _StellarFederatedAddress extends React.PureComponent<StellarAddressProps &
               style={styles.proofName}
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text
-                inline={true}
-                type="Body"
-                className="hover-underline"
-                style={styles.stellarAddressName}
-              >
-                {this.props.stellarAddress}
-              </Kb.Text>
+              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federated Address'}>
+                <Kb.Text
+                  inline={true}
+                  type="Body"
+                  className="hover-underline"
+                  style={stellarAddressNameStyle}
+                >
+                  {this.props.stellarAddress}
+                </Kb.Text>
+              </Kb.WithTooltip>
               <Kb.FloatingMenu
                 attachTo={this.props.getAttachmentRef}
                 closeOnSelect={true}
@@ -561,13 +516,15 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     {...proofMenuContent}
                   />
                 )}
-                {this.props.stellarAddress && (
-                  <StellarFederatedAddress
-                    stellarAddress={this.props.stellarAddress}
-                    onSendOrRequest={this.props.onSendOrRequestStellarAddress}
-                    onCopyAddress={this.props.onCopyStellarAddress}
-                  />
-                )}
+                {this.props.stellarAddress &&
+                  !loading && (
+                    <StellarFederatedAddress
+                      isYouOrFollowing={this.props.isYou || this.props.currentlyFollowing}
+                      stellarAddress={this.props.stellarAddress}
+                      onSendOrRequest={this.props.onSendOrRequestStellarAddress}
+                      onCopyAddress={this.props.onCopyStellarAddress}
+                    />
+                  )}
                 {!loading && <Folders profileUsername={this.props.username} />}
               </Kb.Box>
             </Kb.Box>
