@@ -28,7 +28,7 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
   }: DownloadsProps)
 }
 
-export default namedConnect(
+export default namedConnect<{||}, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,
