@@ -72,6 +72,7 @@ class _CopyText extends React.Component<Props, State> {
   _getAttachmentRef = () => this._attachmentRef
 
   render() {
+    const lineClamp = !this.props.multiline && this._isRevealed() ? 1 : null
     return (
       <Box2
         ref={r => (this._attachmentRef = r)}
@@ -81,7 +82,7 @@ class _CopyText extends React.Component<Props, State> {
         {/* $FlowIssue innerRef not typed yet */}
         <ToastContainer innerRef={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
         <Text
-          lineClamp={this._isRevealed() ? 1 : null}
+          lineClamp={lineClamp}
           type="Body"
           selectable={true}
           style={styles.text}
@@ -143,7 +144,6 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.blue4,
       borderRadius: Styles.borderRadius,
       flexGrow: 1,
-      paddingLeft: Styles.globalMargins.xsmall,
       position: 'relative',
     },
     isElectron: {
@@ -166,6 +166,10 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
       minWidth: 0,
+      marginLeft: Styles.globalMargins.xsmall,
+      marginRight: Styles.globalMargins.xsmall,
+      marginTop: Styles.globalMargins.xsmall / 2,
+      marginBottom: Styles.globalMargins.xsmall / 2,
       textAlign: 'left',
     },
     isAndroid: {
