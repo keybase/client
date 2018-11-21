@@ -1,6 +1,7 @@
 // @flow
 import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
+import {isMobile} from '../constants/platform'
 import {debounce} from 'lodash-es'
 
 const debounceTimeout = 1e3
@@ -77,7 +78,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
             if (props.onSelectUser && props.selectedSearchId) {
               props.onSelectUser(props.selectedSearchId)
               props.onChangeSearchText && props.onChangeSearchText('')
-            } else {
+            } else if (isMobile) {
               props.onExitSearch()
             }
           } else {
