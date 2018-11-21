@@ -64,7 +64,8 @@ const onChangeSelectedSearchResultHoc: any = compose(
     let lastSearchTerm
     return {
       // onAddSelectedUser happens on desktop when tab, enter or comma
-      // is typed, so we expedite the current search, if any
+      // is typed, or on mobile when 'Enter' is tapped, so we expedite
+      // the current search, if any
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
@@ -72,13 +73,17 @@ const onChangeSelectedSearchResultHoc: any = compose(
         // $FlowIssue
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
           // $FlowIssue
-          if (props.selectedSearchId && props.disableListBuilding) {
-            props.onSelectUser(props.selectedSearchId)
+          if (props.disableListBuilding) {
+            if (props.selectedSearchId) {
+              props.onSelectUser(props.selectedSearchId)
+              props.onChangeSearchText && props.onChangeSearchText('')
+            } else {
+              props.onExitSearch()
+            }
           } else {
-            // $FlowIssue
             props.onAddUser(props.selectedSearchId)
+            props.onChangeSearchText && props.onChangeSearchText('')
           }
-          props.onChangeSearchText && props.onChangeSearchText('')
         }
       },
       onMoveSelectUp: ({onMove}) => () => onMove('up'),
