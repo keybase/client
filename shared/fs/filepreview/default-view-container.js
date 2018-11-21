@@ -1,11 +1,16 @@
 // @flow
-import {namedConnect} from '../../util/container'
+import {namedConnect, type RouteProps} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
-const mapStateToProps = (state, {path}) => {
+type OwnProps = RouteProps<{|
+|}, {||}> & {|
+  path: Types.Path,
+|}
+
+const mapStateToProps = (state, {path}: OwnProps) => {
   const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _username = state.config.username || undefined
   return {
@@ -16,7 +21,7 @@ const mapStateToProps = (state, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {path, routePath}) => ({
+const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
   download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
   saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
   shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
@@ -38,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps,
