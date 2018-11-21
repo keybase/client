@@ -73,13 +73,14 @@ const Intro = (props: IntroProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.small, textAlign: 'center'},
+  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny, textAlign: 'center'},
   buttonLabelStyle: {color: Styles.globalColors.purple},
   buttonStyle: {width: '100%'},
   container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
   headerText: {
     color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.medium,
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
     textAlign: 'center',
   },
   icon: {
@@ -87,7 +88,7 @@ const styles = Styles.styleSheetCreate({
     top: -10,
   },
   illustration: {
-    paddingBottom: Styles.globalMargins.medium,
+    paddingBottom: Styles.globalMargins.mediumLarge,
   },
 })
 
