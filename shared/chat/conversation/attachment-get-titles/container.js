@@ -36,11 +36,11 @@ const mapDispatchToProps = dispatch => ({
     )
     dispatch(navigateUp())
   },
-  onClose: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onClose: dispatchProps.onClose,
+  onCancel: dispatchProps.onCancel,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
   pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {
     const filename = FsTypes.getLocalPathName(path)
