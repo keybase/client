@@ -23,7 +23,6 @@ import {anyWaiting} from '../constants/waiting'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
-import {debounce} from 'lodash-es'
 
 const buildPayment = (
   state: TypedState,
@@ -83,8 +82,6 @@ const buildPayment = (
     }
   })
 }
-
-const buildPaymentDebounced = debounce(buildPayment, 1000)
 
 const openSendRequestForm = (state: TypedState, action: WalletsGen.OpenSendRequestFormPayload) =>
   state.wallets.acceptedDisclaimer
@@ -730,6 +727,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, loadDisplayCurrencyForAccounts)
 
+  // We don't call this for publicMemo/secretNote so the button doesn't
+  // spinner as you type
   yield Saga.actionToPromise(
     [
       WalletsGen.buildPayment,
@@ -741,10 +740,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.displayCurrencyReceived,
     ],
     buildPayment
-  )
-  yield Saga.actionToPromise(
-    [WalletsGen.setBuildingPublicMemo, WalletsGen.setBuildingSecretNote],
-    buildPaymentDebounced
   )
   yield Saga.actionToAction(WalletsGen.openSendRequestForm, openSendRequestForm)
 
