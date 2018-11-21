@@ -1125,11 +1125,15 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	_, _ = bg.setBlockToReturn(rootPtr, root)
 	_, _ = bg.setBlockToReturn(aPtr, a)
 	_, _ = bg.setBlockToReturn(bPtr, b)
-	err := cache.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	err := cache.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	err = cache.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	err = cache.Put(
+		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root.")
@@ -1312,9 +1316,12 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 
 	_, _ = bg.setBlockToReturn(rootPtr, root)
 	_, _ = bg.setBlockToReturn(aPtr, a)
-	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	err := dbc.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	err = dbc.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root.")
@@ -1404,11 +1411,15 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	_, _ = bg.setBlockToReturn(rootPtr, root)
 	_, _ = bg.setBlockToReturn(aPtr, a)
 	_, _ = bg.setBlockToReturn(bPtr, b)
-	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	err := dbc.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	err = dbc.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = dbc.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	err = dbc.Put(
+		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root.")
@@ -1514,11 +1525,15 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	_, _ = bg.setBlockToReturn(rootPtr, root)
 	_, _ = bg.setBlockToReturn(aPtr, a)
 	_, _ = bg.setBlockToReturn(bPtr, b)
-	err := dbc.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	err := dbc.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = dbc.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	err = dbc.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = dbc.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	err = dbc.Put(
+		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Fetch dir root.")
@@ -1649,15 +1664,21 @@ func TestPrefetcherReschedules(t *testing.T) {
 	_, _ = bg.setBlockToReturn(aaPtr, aa)
 	_, _ = bg.setBlockToReturn(abPtr, ab)
 	_, _ = bg.setBlockToReturn(bPtr, b)
-	err := cache.Put(ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot)
+	err := cache.Put(
+		ctx, kmd.TlfID(), rootPtr.ID, encRoot, serverHalfRoot,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA)
+	err = cache.Put(
+		ctx, kmd.TlfID(), aPtr.ID, encA, serverHalfA, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), aaPtr.ID, encAA, serverHalfAA)
+	err = cache.Put(
+		ctx, kmd.TlfID(), aaPtr.ID, encAA, serverHalfAA, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), abPtr.ID, encAB, serverHalfAB)
+	err = cache.Put(
+		ctx, kmd.TlfID(), abPtr.ID, encAB, serverHalfAB, DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB)
+	err = cache.Put(
+		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{

@@ -71,13 +71,21 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	default:
 	}
 
+	var action BlockRequestAction
 	func() {
 		retrieval.reqMtx.RLock()
 		defer retrieval.reqMtx.RUnlock()
 		block = retrieval.requests[0].block.NewEmpty()
+		action = retrieval.action
 	}()
 
-	return brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
+	cacheType := DiskBlockAnyCache
+	if action.Sync() {
+		cacheType = DiskBlockSyncCache
+	}
+
+	return brw.getBlock(
+		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.

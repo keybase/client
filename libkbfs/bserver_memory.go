@@ -48,8 +48,9 @@ func NewBlockServerMemory(log logger.Logger) *BlockServerMemory {
 var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 
 // Get implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context) (
+func (b *BlockServerMemory) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, _ DiskBlockCacheType) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -214,9 +215,11 @@ func (b *BlockServerMemory) doPut(isRegularPut bool, tlfID tlf.ID, id kbfsblock.
 }
 
 // Put implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+func (b *BlockServerMemory) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -227,9 +230,11 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 // PutAgain implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) PutAgain(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+func (b *BlockServerMemory) PutAgain(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}

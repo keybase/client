@@ -1595,10 +1595,14 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 			fbo.fbm.cleanUpBlockState(md.ReadOnly(), bps, blockDeleteOnMDFail)
 		}
 	}()
-
-	ptrsToDelete, err := doBlockPuts(ctx, fbo.config.BlockServer(),
-		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps)
+	cacheType := DiskBlockAnyCache
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		cacheType = DiskBlockSyncCache
+	}
+	ptrsToDelete, err := doBlockPuts(
+		ctx, fbo.config.BlockServer(), fbo.config.BlockCache(),
+		fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
 	if err != nil {
 		return nil, err
 	}
@@ -1735,9 +1739,14 @@ func (fbo *folderBranchOps) initMDLocked(
 		return nil
 	}
 
-	if err = PutBlockCheckLimitErrs(ctx, fbo.config.BlockServer(),
-		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,
-		md.GetTlfHandle().GetCanonicalName()); err != nil {
+	cacheType := DiskBlockAnyCache
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		cacheType = DiskBlockSyncCache
+	}
+	if err = PutBlockCheckLimitErrs(
+		ctx, fbo.config.BlockServer(), fbo.config.Reporter(), md.TlfID(),
+		info.BlockPointer, readyBlockData,
+		md.GetTlfHandle().GetCanonicalName(), cacheType); err != nil {
 		return err
 	}
 	err = fbo.config.BlockCache().Put(
@@ -4910,9 +4919,14 @@ func (fbo *folderBranchOps) syncAllLocked(
 	}()
 
 	// Put all the blocks.
-	blocksToRemove, err = doBlockPuts(ctx, fbo.config.BlockServer(),
-		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps)
+	cacheType := DiskBlockAnyCache
+	if fbo.config.IsSyncedTlf(fbo.id()) {
+		cacheType = DiskBlockSyncCache
+	}
+	blocksToRemove, err = doBlockPuts(
+		ctx, fbo.config.BlockServer(), fbo.config.BlockCache(),
+		fbo.config.Reporter(), fbo.log, fbo.deferLog, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
 	if err != nil {
 		return err
 	}

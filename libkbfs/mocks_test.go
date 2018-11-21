@@ -4454,8 +4454,8 @@ func (m *MockDiskBlockCache) EXPECT() *MockDiskBlockCacheMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, PrefetchStatus, error) {
-	ret := m.ctrl.Call(m, "Get", ctx, tlfID, blockID)
+func (m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, preferredCacheType DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, PrefetchStatus, error) {
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID, blockID, preferredCacheType)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(PrefetchStatus)
@@ -4464,20 +4464,20 @@ func (m *MockDiskBlockCache) Get(ctx context.Context, tlfID tlf.ID, blockID kbfs
 }
 
 // Get indicates an expected call of Get
-func (mr *MockDiskBlockCacheMockRecorder) Get(ctx, tlfID, blockID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDiskBlockCache)(nil).Get), ctx, tlfID, blockID)
+func (mr *MockDiskBlockCacheMockRecorder) Get(ctx, tlfID, blockID, preferredCacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDiskBlockCache)(nil).Get), ctx, tlfID, blockID, preferredCacheType)
 }
 
 // Put mocks base method
-func (m *MockDiskBlockCache) Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	ret := m.ctrl.Call(m, "Put", ctx, tlfID, blockID, buf, serverHalf)
+func (m *MockDiskBlockCache) Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "Put", ctx, tlfID, blockID, buf, serverHalf, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockDiskBlockCacheMockRecorder) Put(ctx, tlfID, blockID, buf, serverHalf interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDiskBlockCache)(nil).Put), ctx, tlfID, blockID, buf, serverHalf)
+func (mr *MockDiskBlockCacheMockRecorder) Put(ctx, tlfID, blockID, buf, serverHalf, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockDiskBlockCache)(nil).Put), ctx, tlfID, blockID, buf, serverHalf, cacheType)
 }
 
 // Delete mocks base method
@@ -6556,8 +6556,8 @@ func (mr *MockBlockServerMockRecorder) RefreshAuthToken(arg0 interface{}) *gomoc
 }
 
 // Get mocks base method
-func (m *MockBlockServer) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	ret := m.ctrl.Call(m, "Get", ctx, tlfID, id, context)
+func (m *MockBlockServer) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, cacheType DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID, id, context, cacheType)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(error)
@@ -6565,8 +6565,8 @@ func (m *MockBlockServer) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 }
 
 // Get indicates an expected call of Get
-func (mr *MockBlockServerMockRecorder) Get(ctx, tlfID, id, context interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockServer)(nil).Get), ctx, tlfID, id, context)
+func (mr *MockBlockServerMockRecorder) Get(ctx, tlfID, id, context, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockServer)(nil).Get), ctx, tlfID, id, context, cacheType)
 }
 
 // GetEncodedSize mocks base method
@@ -6584,27 +6584,27 @@ func (mr *MockBlockServerMockRecorder) GetEncodedSize(ctx, tlfID, id, context in
 }
 
 // Put mocks base method
-func (m *MockBlockServer) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	ret := m.ctrl.Call(m, "Put", ctx, tlfID, id, context, buf, serverHalf)
+func (m *MockBlockServer) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "Put", ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockBlockServerMockRecorder) Put(ctx, tlfID, id, context, buf, serverHalf interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockServer)(nil).Put), ctx, tlfID, id, context, buf, serverHalf)
+func (mr *MockBlockServerMockRecorder) Put(ctx, tlfID, id, context, buf, serverHalf, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockBlockServer)(nil).Put), ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 // PutAgain mocks base method
-func (m *MockBlockServer) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	ret := m.ctrl.Call(m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf)
+func (m *MockBlockServer) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutAgain indicates an expected call of PutAgain
-func (mr *MockBlockServerMockRecorder) PutAgain(ctx, tlfID, id, context, buf, serverHalf interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutAgain", reflect.TypeOf((*MockBlockServer)(nil).PutAgain), ctx, tlfID, id, context, buf, serverHalf)
+func (mr *MockBlockServerMockRecorder) PutAgain(ctx, tlfID, id, context, buf, serverHalf, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutAgain", reflect.TypeOf((*MockBlockServer)(nil).PutAgain), ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 // AddBlockReference mocks base method
@@ -6727,8 +6727,8 @@ func (mr *MockblockServerLocalMockRecorder) RefreshAuthToken(arg0 interface{}) *
 }
 
 // Get mocks base method
-func (m *MockblockServerLocal) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	ret := m.ctrl.Call(m, "Get", ctx, tlfID, id, context)
+func (m *MockblockServerLocal) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, cacheType DiskBlockCacheType) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	ret := m.ctrl.Call(m, "Get", ctx, tlfID, id, context, cacheType)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(error)
@@ -6736,8 +6736,8 @@ func (m *MockblockServerLocal) Get(ctx context.Context, tlfID tlf.ID, id kbfsblo
 }
 
 // Get indicates an expected call of Get
-func (mr *MockblockServerLocalMockRecorder) Get(ctx, tlfID, id, context interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockblockServerLocal)(nil).Get), ctx, tlfID, id, context)
+func (mr *MockblockServerLocalMockRecorder) Get(ctx, tlfID, id, context, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockblockServerLocal)(nil).Get), ctx, tlfID, id, context, cacheType)
 }
 
 // GetEncodedSize mocks base method
@@ -6755,27 +6755,27 @@ func (mr *MockblockServerLocalMockRecorder) GetEncodedSize(ctx, tlfID, id, conte
 }
 
 // Put mocks base method
-func (m *MockblockServerLocal) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	ret := m.ctrl.Call(m, "Put", ctx, tlfID, id, context, buf, serverHalf)
+func (m *MockblockServerLocal) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "Put", ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockblockServerLocalMockRecorder) Put(ctx, tlfID, id, context, buf, serverHalf interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockblockServerLocal)(nil).Put), ctx, tlfID, id, context, buf, serverHalf)
+func (mr *MockblockServerLocalMockRecorder) Put(ctx, tlfID, id, context, buf, serverHalf, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockblockServerLocal)(nil).Put), ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 // PutAgain mocks base method
-func (m *MockblockServerLocal) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	ret := m.ctrl.Call(m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf)
+func (m *MockblockServerLocal) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
+	ret := m.ctrl.Call(m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutAgain indicates an expected call of PutAgain
-func (mr *MockblockServerLocalMockRecorder) PutAgain(ctx, tlfID, id, context, buf, serverHalf interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutAgain", reflect.TypeOf((*MockblockServerLocal)(nil).PutAgain), ctx, tlfID, id, context, buf, serverHalf)
+func (mr *MockblockServerLocalMockRecorder) PutAgain(ctx, tlfID, id, context, buf, serverHalf, cacheType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutAgain", reflect.TypeOf((*MockblockServerLocal)(nil).PutAgain), ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 // AddBlockReference mocks base method

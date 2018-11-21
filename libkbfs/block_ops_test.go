@@ -330,8 +330,9 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	err = config.bserver.Put(ctx, tlfID, id, bCtx,
-		readyBlockData.buf, readyBlockData.serverHalf)
+	err = config.bserver.Put(
+		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	kmd2 := makeFakeKeyMetadata(tlfID, keyGen+3)
@@ -376,9 +377,10 @@ type badGetBlockServer struct {
 
 func (bserver badGetBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	buf, serverHalf, err := bserver.BlockServer.Get(ctx, tlfID, id, context)
+	buf, serverHalf, err := bserver.BlockServer.Get(
+		ctx, tlfID, id, context, cacheType)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, nil
 	}
@@ -405,8 +407,9 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	err = config.bserver.Put(ctx, tlfID, id, bCtx,
-		readyBlockData.buf, readyBlockData.serverHalf)
+	err = config.bserver.Put(
+		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	var decryptedBlock FileBlock
@@ -435,8 +438,9 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	err = config.bserver.Put(ctx, tlfID, id, bCtx,
-		readyBlockData.buf, readyBlockData.serverHalf)
+	err = config.bserver.Put(
+		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	var decryptedBlock FileBlock
@@ -506,8 +510,9 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	err = config.bserver.Put(ctx, tlfID, id, bCtx,
-		readyBlockData.buf, readyBlockData.serverHalf)
+	err = config.bserver.Put(
+		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	var decryptedBlock FileBlock
@@ -547,8 +552,9 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 
 	bCtx := kbfsblock.MakeFirstContext(
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
-	err = config.bserver.Put(ctx, tlfID, id, bCtx,
-		readyBlockData.buf, readyBlockData.serverHalf)
+	err = config.bserver.Put(
+		ctx, tlfID, id, bCtx, readyBlockData.buf, readyBlockData.serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	var decryptedBlock FileBlock

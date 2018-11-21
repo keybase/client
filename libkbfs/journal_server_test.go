@@ -205,7 +205,8 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	expectedQuotaError := kbfsblock.ServerErrorOverQuota{
 		Usage:     1014,
 		Limit:     1000,
@@ -214,26 +215,31 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	require.Equal(t, expectedQuotaError, err)
 
 	// Teams shouldn't get an error.
-	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID2, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Subteams shouldn't get an error.
-	err = blockServer.Put(ctx, tlfID3, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID3, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Putting it again shouldn't encounter an error.
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Advancing the time by overQuotaDuration should make it
 	// return another quota error.
 	clock.Add(time.Minute)
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.Equal(t, expectedQuotaError, err)
 
 	// Putting it again shouldn't encounter an error.
 	clock.Add(30 * time.Second)
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Now up the team usage, so teams (and their subteams) should get
@@ -242,7 +248,8 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	_, _, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 	clock.Add(time.Minute)
-	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID2, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	expectedQuotaError = kbfsblock.ServerErrorOverQuota{
 		Usage:     1014,
 		Limit:     1000,
@@ -252,7 +259,8 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 
 	// Check that the subteam gets an error too.
 	clock.Add(time.Minute)
-	err = blockServer.Put(ctx, tlfID3, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID3, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.Equal(t, expectedQuotaError, err)
 }
 
@@ -318,7 +326,8 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	require.NoError(t, err)
 	usageBytes, limitBytes, usageFiles, limitFiles :=
 		tj.diskLimiter.getDiskLimitInfo()
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 
 	compare := func(reportable bool, err error) {
 		expectedError := ErrDiskLimitTimeout{
@@ -339,18 +348,21 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 
 	// Putting it again should encounter a regular deadline exceeded
 	// error.
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(false, err)
 
 	// Advancing the time by overDiskLimitDuration should make it
 	// return another quota error.
 	clock.Add(time.Minute)
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(true, err)
 
 	// Putting it again should encounter a deadline error again.
 	clock.Add(30 * time.Second)
-	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(false, err)
 }
 
@@ -382,7 +394,8 @@ func TestJournalServerRestart(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Put an MD.
@@ -415,7 +428,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Get the block.
 
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -455,7 +468,8 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Put an MD.
@@ -479,7 +493,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Get the block, which should fail.
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	// Get the head, which should be empty.
@@ -494,7 +508,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Get the block.
 
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -566,7 +580,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf1, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID1, bCtx1, data1, serverHalf1)
+	err = blockServer.Put(
+		ctx, tlfID, bID1, bCtx1, data1, serverHalf1, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Put an MD under user 1.
@@ -604,7 +619,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// None of user 1's changes should be visible.
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
+	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
@@ -620,7 +635,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf2, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID2, bCtx2, data2, serverHalf2)
+	err = blockServer.Put(
+		ctx, tlfID, bID2, bCtx2, data2, serverHalf2, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Put an MD under user 2.
@@ -642,10 +658,10 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// No block or MD should be visible.
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
+	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
+	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
@@ -665,12 +681,12 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Only user 1's block and MD should be visible.
 
-	buf, key, err := blockServer.Get(ctx, tlfID, bID1, bCtx1)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data1, buf)
 	require.Equal(t, serverHalf1, key)
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
+	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
@@ -692,10 +708,10 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Only user 2's block and MD should be visible.
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
+	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID2, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data2, buf)
 	require.Equal(t, serverHalf2, key)
@@ -732,7 +748,8 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -851,7 +868,8 @@ func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	status, tlfIDs = jServer.Status(ctx)
@@ -920,7 +938,8 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Put an MD.
@@ -954,7 +973,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 
 	// Get the block.
 
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)

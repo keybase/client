@@ -24,12 +24,14 @@ func isRecoverableBlockError(err error) bool {
 
 // putBlockToServer either puts the full block to the block server, or
 // just adds a reference, depending on the refnonce in blockPtr.
-func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+func putBlockToServer(
+	ctx context.Context, bserv BlockServer, tlfID tlf.ID,
+	blockPtr BlockPointer, readyBlockData ReadyBlockData,
+	cacheType DiskBlockCacheType) error {
 	var err error
 	if blockPtr.RefNonce == kbfsblock.ZeroRefNonce {
 		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.Context,
-			readyBlockData.buf, readyBlockData.serverHalf)
+			readyBlockData.buf, readyBlockData.serverHalf, cacheType)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
@@ -44,8 +46,10 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 // quota and disk limit errors.
 func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
-	readyBlockData ReadyBlockData, tlfName tlf.CanonicalName) error {
-	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
+	readyBlockData ReadyBlockData, tlfName tlf.CanonicalName,
+	cacheType DiskBlockCacheType) error {
+	err := putBlockToServer(
+		ctx, bserv, tlfID, blockPtr, readyBlockData, cacheType)
 	switch typedErr := errors.Cause(err).(type) {
 	case kbfsblock.ServerErrorOverQuota:
 		if !typedErr.Throttled {
@@ -71,9 +75,10 @@ func PutBlockCheckLimitErrs(ctx context.Context, bserv BlockServer,
 
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 	tlfID tlf.ID, tlfName tlf.CanonicalName, blockState blockState,
-	blocksToRemoveChan chan *FileBlock) error {
-	err := PutBlockCheckLimitErrs(ctx, bserv, reporter, tlfID, blockState.blockPtr,
-		blockState.readyBlockData, tlfName)
+	blocksToRemoveChan chan *FileBlock, cacheType DiskBlockCacheType) error {
+	err := PutBlockCheckLimitErrs(
+		ctx, bserv, reporter, tlfID, blockState.blockPtr,
+		blockState.readyBlockData, tlfName, cacheType)
 	if err == nil && blockState.syncedCb != nil {
 		err = blockState.syncedCb()
 	}
@@ -95,8 +100,9 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 // Returns a slice of block pointers that resulted in recoverable
 // errors and should be removed by the caller from any saved state.
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
-	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID, tlfName tlf.CanonicalName,
-	bps blockPutState) (blocksToRemove []BlockPointer, err error) {
+	reporter Reporter, log, deferLog traceLogger, tlfID tlf.ID,
+	tlfName tlf.CanonicalName, bps blockPutState,
+	cacheType DiskBlockCacheType) (blocksToRemove []BlockPointer, err error) {
 	blockCount := len(bps.blockStates)
 	log.LazyTrace(ctx, "doBlockPuts with %d blocks", blockCount)
 	defer func() {
@@ -119,7 +125,7 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	worker := func() error {
 		for blockState := range blocks {
 			err := doOneBlockPut(groupCtx, bserv, reporter, tlfID,
-				tlfName, blockState, blocksToRemoveChan)
+				tlfName, blockState, blocksToRemoveChan, cacheType)
 			if err != nil {
 				return err
 			}

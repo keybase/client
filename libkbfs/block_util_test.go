@@ -41,9 +41,10 @@ func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
 	}
 
 	bserver.EXPECT().Put(ctx, tlfID, id, blockPtr.Context,
-		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
+		readyBlockData.buf, readyBlockData.serverHalf, gomock.Any()).Return(nil)
 
-	err := putBlockToServer(ctx, bserver, tlfID, blockPtr, readyBlockData)
+	err := putBlockToServer(
+		ctx, bserver, tlfID, blockPtr, readyBlockData, DiskBlockAnyCache)
 	require.NoError(t, err)
 }
 
@@ -71,7 +72,8 @@ func TestBlockUtilPutIncRefSuccess(t *testing.T) {
 	bserver.EXPECT().AddBlockReference(ctx, tlfID, id,
 		blockPtr.Context).Return(nil)
 
-	err := putBlockToServer(ctx, bserver, tlfID, blockPtr, readyBlockData)
+	err := putBlockToServer(
+		ctx, bserver, tlfID, blockPtr, readyBlockData, DiskBlockAnyCache)
 	require.NoError(t, err)
 }
 
@@ -92,10 +94,11 @@ func TestBlockUtilPutFail(t *testing.T) {
 		buf: encData,
 	}
 
-	bserver.EXPECT().Put(ctx, tlfID, id, blockPtr.Context,
-		readyBlockData.buf, readyBlockData.serverHalf).Return(
-		expectedErr)
+	bserver.EXPECT().Put(
+		ctx, tlfID, id, blockPtr.Context, readyBlockData.buf,
+		readyBlockData.serverHalf, gomock.Any()).Return(expectedErr)
 
-	err := putBlockToServer(ctx, bserver, tlfID, blockPtr, readyBlockData)
+	err := putBlockToServer(
+		ctx, bserver, tlfID, blockPtr, readyBlockData, DiskBlockAnyCache)
 	require.Equal(t, expectedErr, err)
 }

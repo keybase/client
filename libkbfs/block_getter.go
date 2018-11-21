@@ -14,7 +14,9 @@ import (
 
 // blockGetter provides the API for the block retrieval worker to obtain blocks.
 type blockGetter interface {
-	getBlock(context.Context, KeyMetadata, BlockPointer, Block) error
+	getBlock(
+		context.Context, KeyMetadata, BlockPointer, Block,
+		DiskBlockCacheType) error
 	assembleBlock(context.Context, KeyMetadata, BlockPointer, Block, []byte,
 		kbfscrypto.BlockCryptKeyServerHalf) error
 }
@@ -25,10 +27,12 @@ type realBlockGetter struct {
 }
 
 // getBlock implements the interface for realBlockGetter.
-func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
+func (bg *realBlockGetter) getBlock(
+	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	block Block, cacheType DiskBlockCacheType) error {
 	bserv := bg.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(
-		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context)
+		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context, cacheType)
 	if err != nil {
 		// Temporary code to track down bad block
 		// requests. Remove when not needed anymore.

@@ -58,8 +58,9 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer,
 }
 
 // getBlock implements the interface for realBlockGetter.
-func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata,
-	blockPtr BlockPointer, block Block) error {
+func (bg *fakeBlockGetter) getBlock(
+	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
+	block Block, _ DiskBlockCacheType) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[blockPtr]

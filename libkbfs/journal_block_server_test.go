@@ -105,11 +105,12 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	// Put a block.
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
-	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = blockServer.Put(
+		ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Now get the same block back.
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -125,7 +126,7 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now get the same block back.
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)

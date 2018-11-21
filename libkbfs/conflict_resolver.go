@@ -3118,9 +3118,14 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	}
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
-	_, err = doBlockPuts(ctx, cr.config.BlockServer(), cr.config.BlockCache(),
+	cacheType := DiskBlockAnyCache
+	if cr.config.IsSyncedTlf(md.TlfID()) {
+		cacheType = DiskBlockSyncCache
+	}
+	_, err = doBlockPuts(
+		ctx, cr.config.BlockServer(), cr.config.BlockCache(),
 		cr.config.Reporter(), cr.log, cr.deferLog, md.TlfID(),
-		md.GetTlfHandle().GetCanonicalName(), *bps)
+		md.GetTlfHandle().GetCanonicalName(), *bps, cacheType)
 	if err != nil {
 		return err
 	}

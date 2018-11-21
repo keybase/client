@@ -247,7 +247,8 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	kmd KeyMetadata, ptr BlockPointer, block Block) (PrefetchStatus, error) {
+	kmd KeyMetadata, ptr BlockPointer, block Block, doSync bool) (
+	PrefetchStatus, error) {
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
 	// Set correctly. The cache will never have CommonBlocks.
@@ -263,8 +264,12 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if dbc == nil {
 		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
-	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(ctx, kmd.TlfID(),
-		ptr.ID)
+	preferredCacheType := DiskBlockAnyCache
+	if doSync {
+		preferredCacheType = DiskBlockSyncCache
+	}
+	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
+		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {
 		return NoPrefetch, err
 	}
@@ -309,7 +314,7 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	}
 
 	// Check caches before locking the mutex.
-	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
+	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block, action.Sync())
 	if err == nil {
 		brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
 		if action.PrefetchTracked() {

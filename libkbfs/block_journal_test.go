@@ -467,7 +467,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 		err = flushBlockEntries(
 			ctx, j.log, j.deferLog, blockServer, bcache, reporter,
-			tlfID, tlf.CanonicalName("fake TLF"), entries)
+			tlfID, tlf.CanonicalName("fake TLF"), entries, DiskBlockAnyCache)
 		require.NoError(t, err)
 
 		flushedBytes, err = j.removeFlushedEntries(
@@ -487,19 +487,19 @@ func TestBlockJournalFlush(t *testing.T) {
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
 
 	// Check the Put.
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
 	// Check the AddReference.
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
 	// Check the archiving.
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -518,11 +518,11 @@ func TestBlockJournalFlush(t *testing.T) {
 	require.Equal(t, int64(0), removedFiles)
 
 	// Check they're all gone.
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	length := j.length()
@@ -544,7 +544,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	require.Equal(t, 1, entries.length())
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
-		entries)
+		entries, DiskBlockAnyCache)
 	require.NoError(t, err)
 	flushedBytes, err = j.removeFlushedEntries(
 		ctx, entries, tlfID, reporter)
@@ -593,7 +593,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	require.Equal(t, int64(0), removedBytes)
 	require.Equal(t, int64(0), removedFiles)
 
-	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -618,7 +618,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	flushOneZero()
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -630,7 +630,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	require.Equal(t, int64(len(data)), removedBytes)
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -647,13 +647,13 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	flushOneZero()
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -671,7 +671,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	flushOneZero()
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -680,7 +680,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	flushOneZero()
 
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3, DiskBlockAnyCache)
 	require.IsType(t, kbfsblock.ServerErrorBlockNonExistent{}, err)
 
 	end, err := j.end()
@@ -725,7 +725,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.Equal(t, 2, entries.length())
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
-		entries)
+		entries, DiskBlockAnyCache)
 	require.NoError(t, err)
 	flushedBytes, err := j.removeFlushedEntries(
 		ctx, entries, tlfID, reporter)
@@ -792,7 +792,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
-		entries)
+		entries, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	flushedBytes, err := j.removeFlushedEntries(
@@ -867,7 +867,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, bID4, entries.puts.blockStates[1].blockPtr.ID)
 	err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 		bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
-		entries)
+		entries, DiskBlockAnyCache)
 	require.NoError(t, err)
 	flushedBytes, err := j.removeFlushedEntries(
 		ctx, entries, tlfID, reporter)
@@ -927,7 +927,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 		require.NoError(t, err)
 		err = flushBlockEntries(ctx, j.log, j.deferLog, blockServer,
 			bcache, reporter, tlfID, tlf.CanonicalName("fake TLF"),
-			entries)
+			entries, DiskBlockAnyCache)
 		require.NoError(t, err)
 		flushedBytes, err := j.removeFlushedEntries(
 			ctx, entries, tlfID, reporter)
@@ -1118,7 +1118,8 @@ func TestBlockJournalByteCounters(t *testing.T) {
 	require.NoError(t, err)
 
 	err = blockServer.Put(
-		context.Background(), tlfID, bID3, bCtx3, data3, serverHalf3)
+		context.Background(), tlfID, bID3, bCtx3, data3, serverHalf3,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	flushOneZero()

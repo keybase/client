@@ -776,7 +776,8 @@ func flushNonBPSBlockJournalEntry(
 
 func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID tlf.ID,
-	tlfName tlf.CanonicalName, entries blockEntriesToFlush) error {
+	tlfName tlf.CanonicalName, entries blockEntriesToFlush,
+	cacheType DiskBlockCacheType) error {
 	if !entries.flushNeeded() {
 		// Avoid logging anything when there's nothing to flush.
 		return nil
@@ -787,7 +788,7 @@ func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	// reference the former.
 	log.CDebugf(ctx, "Putting %d blocks", len(entries.puts.blockStates))
 	blocksToRemove, err := doBlockPuts(ctx, bserver, bcache, reporter,
-		log, deferLog, tlfID, tlfName, *entries.puts)
+		log, deferLog, tlfID, tlfName, *entries.puts, cacheType)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,
@@ -801,7 +802,7 @@ func flushBlockEntries(ctx context.Context, log, deferLog traceLogger,
 	log.CDebugf(ctx, "Adding %d block references",
 		len(entries.adds.blockStates))
 	blocksToRemove, err = doBlockPuts(ctx, bserver, bcache, reporter,
-		log, deferLog, tlfID, tlfName, *entries.adds)
+		log, deferLog, tlfID, tlfName, *entries.adds, cacheType)
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			log.CWarningf(ctx,

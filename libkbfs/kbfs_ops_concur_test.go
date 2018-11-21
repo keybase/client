@@ -1188,7 +1188,7 @@ func (fc *stallingBServer) maybeFinishOnChannel(ctx context.Context) error {
 
 func (fc *stallingBServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	err error) {
 	err = fc.maybeWaitOnChannel(ctx)
@@ -1202,13 +1202,14 @@ func (fc *stallingBServer) Get(
 		}
 	}()
 
-	return fc.BlockServerMemory.Get(ctx, tlfID, id, context)
+	return fc.BlockServerMemory.Get(ctx, tlfID, id, context, cacheType)
 }
 
 func (fc *stallingBServer) Put(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	err = fc.maybeWaitOnChannel(ctx)
 	if err != nil {
 		return err
@@ -1220,7 +1221,8 @@ func (fc *stallingBServer) Put(
 		}
 	}()
 
-	return fc.BlockServerMemory.Put(ctx, tlfID, id, context, buf, serverHalf)
+	return fc.BlockServerMemory.Put(
+		ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 // Test that a write consisting of multiple blocks can be canceled
@@ -1387,7 +1389,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 
 	// from the folder creation, then 2 for file creation
 	c := b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).Times(3).Return(nil)
+		gomock.Any(), gomock.Any(), gomock.Any()).Times(3).Return(nil)
 	b.EXPECT().ArchiveBlockReferences(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 
@@ -1419,14 +1421,15 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 
 	// let two blocks through and fail the third:
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
+		gomock.Any(), gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
 	putErr := errors.New("This is a forced error on put")
 	errPtrChan := make(chan BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).
+		gomock.Any(), gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
-			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
+			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+			_ DiskBlockCacheType) {
 			errPtrChan <- BlockPointer{
 				ID:      id,
 				Context: context,
@@ -1435,10 +1438,11 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// let the rest through
 	proceedChan := make(chan struct{})
 	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).AnyTimes().
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
-			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
+			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+			_ DiskBlockCacheType) {
 			<-proceedChan
 		}).After(c).Return(nil)
 	b.EXPECT().RemoveBlockReferences(gomock.Any(), gomock.Any(), gomock.Any()).

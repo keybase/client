@@ -2839,7 +2839,7 @@ func expectSyncDirtyBlock(config *ConfigMock, kmd KeyMetadata,
 	}
 
 	config.mockBserv.EXPECT().Put(gomock.Any(), kmd.TlfID(), newID,
-		gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	return c2
 }
 
@@ -3173,9 +3173,11 @@ type corruptBlockServer struct {
 }
 
 func (cbs corruptBlockServer) Get(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	data, keyServerHalf, err := cbs.BlockServer.Get(ctx, tlfID, id, context)
+	data, keyServerHalf, err := cbs.BlockServer.Get(
+		ctx, tlfID, id, context, cacheType)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -4070,26 +4072,29 @@ type bserverPutToDiskCache struct {
 
 func (b bserverPutToDiskCache) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
-	buf, serverHalf, err = b.BlockServer.Get(ctx, tlfID, id, context)
+	buf, serverHalf, err = b.BlockServer.Get(
+		ctx, tlfID, id, context, cacheType)
 	if err != nil {
 		return buf, serverHalf, err
 	}
 
-	b.dbc.Put(ctx, tlfID, id, buf, serverHalf)
+	b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	return buf, serverHalf, nil
 }
 
-func (b bserverPutToDiskCache) Put(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	err = b.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf)
+func (b bserverPutToDiskCache) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
+	err = b.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	if err != nil {
 		return err
 	}
 
-	b.dbc.Put(ctx, tlfID, id, buf, serverHalf)
+	b.dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	return nil
 }
 

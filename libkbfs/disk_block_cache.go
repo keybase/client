@@ -522,7 +522,7 @@ func (cache *DiskBlockCacheLocal) checkCacheLocked(method string) error {
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Get(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID) (buf []byte,
+	blockID kbfsblock.ID, _ DiskBlockCacheType) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	prefetchStatus PrefetchStatus, err error) {
 	cache.lock.RLock()
@@ -591,7 +591,8 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailable(
 // Put implements the DiskBlockCache interface for DiskBlockCacheLocal.
 func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked("Block(Put)")
@@ -618,11 +619,6 @@ func (cache *DiskBlockCacheLocal) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	if !hasKey {
 		if cache.cacheType == syncCacheLimitTrackerType {
-			if !cache.config.IsSyncedTlf(tlfID) {
-				// TODO: Make better error type
-				return errors.New("Attempted to add a block of an unsynced " +
-					"TLF to the sync disk cache.")
-			}
 			bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
 				ctx, cache.cacheType, encodedLen)
 			if err != nil {

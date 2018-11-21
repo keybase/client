@@ -368,24 +368,29 @@ func (f *stallingBlockServer) maybeStall(ctx context.Context, opName StallableBl
 		f.stallKey, f.staller)
 }
 
-func (f *stallingBlockServer) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	bctx kbfsblock.Context) (
+func (f *stallingBlockServer) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	bctx kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	f.maybeStall(ctx, StallableBlockGet)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGet error
-		buf, serverHalf, errGet = f.BlockServer.Get(ctx, tlfID, id, bctx)
+		buf, serverHalf, errGet = f.BlockServer.Get(
+			ctx, tlfID, id, bctx, cacheType)
 		return errGet
 	})
 	return buf, serverHalf, err
 }
 
-func (f *stallingBlockServer) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (f *stallingBlockServer) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bctx kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.BlockServer.Put(ctx, tlfID, id, bctx, buf, serverHalf)
+		return f.BlockServer.Put(
+			ctx, tlfID, id, bctx, buf, serverHalf, cacheType)
 	})
 }
 

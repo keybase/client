@@ -1259,16 +1259,36 @@ type DirtyBlockCache interface {
 	Shutdown() error
 }
 
+// DiskBlockCacheType specifies a type of an on-disk block cache.
+type DiskBlockCacheType int
+
+const (
+	// DiskBlockAnyCache indicates that any disk block cache is fine.
+	DiskBlockAnyCache DiskBlockCacheType = iota
+	// DiskBlockWorkingSetCache indicates that the working set cache
+	// should be used.
+	DiskBlockWorkingSetCache
+	// DiskBlockSyncCache indicates that the working set cache should
+	// be used.
+	DiskBlockSyncCache
+)
+
 // DiskBlockCache caches blocks to the disk.
 type DiskBlockCache interface {
-	// Get gets a block from the disk cache.
-	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
+	// Get gets a block from the disk cache.  If a specific preferred
+	// cache type is given, the block and its metadata are moved to
+	// that cache if they're not yet in it.
+	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
-	// Put puts a block to the disk cache. Returns after it has updated the
-	// metadata but before it has finished writing the block.
+	// Put puts a block to the disk cache. Returns after it has
+	// updated the metadata but before it has finished writing the
+	// block.  If cacheType is specified, the block is put into that
+	// cache; by default, block are put into the working set cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
-		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
+		serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+		cacheType DiskBlockCacheType) error
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
@@ -1895,7 +1915,8 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
+	Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+		context kbfsblock.Context, cacheType DiskBlockCacheType) (
 		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
 
 	// GetEncodedSize gets the encoded size of the block associated
@@ -1918,13 +1939,17 @@ type BlockServer interface {
 	// If this returns a kbfsblock.ServerErrorOverQuota, with
 	// Throttled=false, the caller can treat it as informational
 	// and otherwise ignore the error.
-	Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
+	Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+		context kbfsblock.Context, buf []byte,
+		serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+		cacheType DiskBlockCacheType) error
 
 	// PutAgain re-stores a previously deleted block under the same ID
 	// with the same data.
-	PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
+	PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+		context kbfsblock.Context, buf []byte,
+		serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+		cacheType DiskBlockCacheType) error
 
 	// AddBlockReference adds a new reference to the given block,
 	// defined by the given context (which should contain a

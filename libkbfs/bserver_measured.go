@@ -53,11 +53,13 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 }
 
 // Get implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+func (b BlockServerMeasured) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
-		buf, serverHalf, err = b.delegate.Get(ctx, tlfID, id, context)
+		buf, serverHalf, err = b.delegate.Get(
+			ctx, tlfID, id, context, cacheType)
 	})
 	return buf, serverHalf, err
 }
@@ -74,21 +76,27 @@ func (b BlockServerMeasured) GetEncodedSize(
 }
 
 // Put implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (b BlockServerMeasured) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	b.putTimer.Time(func() {
-		err = b.delegate.Put(ctx, tlfID, id, context, buf, serverHalf)
+		err = b.delegate.Put(
+			ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	})
 	return err
 }
 
 // PutAgain implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (b BlockServerMeasured) PutAgain(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	b.putAgainTimer.Time(func() {
-		err = b.delegate.PutAgain(ctx, tlfID, id, context, buf, serverHalf)
+		err = b.delegate.PutAgain(
+			ctx, tlfID, id, context, buf, serverHalf, cacheType)
 	})
 	return err
 }

@@ -70,7 +70,8 @@ func (j journalBlockServer) getBlockSizeFromJournal(
 }
 
 func (j journalBlockServer) Get(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	j.jServer.log.LazyTrace(ctx, "jBServer: Get %s", id)
 	defer func() {
@@ -85,12 +86,14 @@ func (j journalBlockServer) Get(
 		return data, serverHalf, nil
 	}
 
-	return j.BlockServer.Get(ctx, tlfID, id, context)
+	return j.BlockServer.Get(ctx, tlfID, id, context, cacheType)
 }
 
 func (j journalBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	// Don't trace this function, as it gets too verbose and is
 	// called in parallel anyway. Rely on caller (usually
 	// doBlockPuts) to do the tracing.
@@ -114,7 +117,8 @@ func (j journalBlockServer) Put(
 		}
 	}
 
-	return j.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf)
+	return j.BlockServer.Put(
+		ctx, tlfID, id, context, buf, serverHalf, cacheType)
 }
 
 func (j journalBlockServer) AddBlockReference(

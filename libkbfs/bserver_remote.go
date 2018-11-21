@@ -372,8 +372,9 @@ func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+func (b *BlockServerRemote) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, cacheType DiskBlockCacheType) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	var res keybase1.GetBlockRes
@@ -400,7 +401,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 				// This used to be called in a goroutine to prevent blocking
 				// the `Get`. But we need this cached synchronously so prefetch
 				// operations can work correctly.
-				dbc.Put(ctx, tlfID, id, buf, serverHalf)
+				dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 			}
 		}
 	}()
@@ -441,13 +442,15 @@ func (b *BlockServerRemote) GetEncodedSize(
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (b *BlockServerRemote) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf)
+		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
@@ -470,12 +473,15 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 }
 
 // PutAgain implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	bContext kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+func (b *BlockServerRemote) PutAgain(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	bContext kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	cacheType DiskBlockCacheType) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		dbc.Put(ctx, tlfID, id, buf, serverHalf)
+		dbc.Put(ctx, tlfID, id, buf, serverHalf, cacheType)
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)

@@ -15,6 +15,7 @@ import (
 
 type diskBlockCacheServiceConfig interface {
 	diskBlockCacheGetter
+	syncedTlfGetterSetter
 }
 
 // DiskBlockCacheService delegates requests for blocks to this KBFS
@@ -52,7 +53,8 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	if err != nil {
 		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
 	}
-	buf, serverHalf, prefetchStatus, err := dbc.Get(ctx, tlfID, blockID)
+	buf, serverHalf, prefetchStatus, err := dbc.Get(
+		ctx, tlfID, blockID, DiskBlockAnyCache)
 	if err != nil {
 		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
 	}
@@ -88,7 +90,11 @@ func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
-	err = dbc.Put(ctx, tlfID, blockID, arg.Buf, serverHalf)
+	cacheType := DiskBlockAnyCache
+	if cache.config.IsSyncedTlf(tlfID) {
+		cacheType = DiskBlockSyncCache
+	}
+	err = dbc.Put(ctx, tlfID, blockID, arg.Buf, serverHalf, cacheType)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}

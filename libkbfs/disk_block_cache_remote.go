@@ -51,7 +51,7 @@ func NewDiskBlockCacheRemote(kbCtx Context, config diskBlockCacheRemoteConfig) (
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID) (buf []byte,
+	blockID kbfsblock.ID, _ DiskBlockCacheType) (buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	prefetchStatus PrefetchStatus, err error) {
 	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Get %s", blockID)
@@ -79,7 +79,8 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 // Put implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Put %s", blockID)
 	defer func() {
 		dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Put %s done (err=%+v)", blockID, err)

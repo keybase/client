@@ -60,6 +60,7 @@ func (eu KBFSErrorUnwrapper) UnwrapError(arg interface{}) (appError error,
 type kbfsServiceConfig interface {
 	diskBlockCacheGetter
 	logMaker
+	syncedTlfGetterSetter
 }
 
 // KBFSService represents a running KBFS service.

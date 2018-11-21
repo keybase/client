@@ -122,8 +122,9 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 }
 
 // Get implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context) (
+func (b *BlockServerDisk) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, _ DiskBlockCacheType) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -197,9 +198,11 @@ func (b *BlockServerDisk) GetEncodedSize(
 }
 
 // Put implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (b *BlockServerDisk) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -234,9 +237,11 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 }
 
 // PutAgain implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+func (b *BlockServerDisk) PutAgain(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) (err error) {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}

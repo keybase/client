@@ -90,7 +90,7 @@ func mdResetOne(
 	err = libkbfs.PutBlockCheckLimitErrs(
 		ctx, config.BlockServer(), config.Reporter(),
 		rmdNext.TlfID(), info.BlockPointer, readyBlockData,
-		irmd.GetTlfHandle().GetCanonicalName())
+		irmd.GetTlfHandle().GetCanonicalName(), libkbfs.DiskBlockAnyCache)
 	if err != nil {
 		return err
 	}

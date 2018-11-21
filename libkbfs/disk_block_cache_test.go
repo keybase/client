@@ -174,14 +174,17 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	ctx := context.Background()
 
 	t.Log("Put a block into the cache.")
-	err := cache.Put(ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf)
+	err := cache.Put(
+		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 	putMd, err := cache.GetMetadata(ctx, block1Ptr.ID)
 	require.NoError(t, err)
 	config.TestClock().Add(time.Second)
 
 	t.Log("Get that block from the cache. Verify that it's the same.")
-	buf, serverHalf, _, err := cache.Get(ctx, tlf1, block1Ptr.ID)
+	buf, serverHalf, _, err := cache.Get(
+		ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, block1ServerHalf, serverHalf)
 	require.Equal(t, block1Encoded, buf)
@@ -196,7 +199,8 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Attempt to Get a block from the cache that isn't there." +
 		" Verify that it fails.")
 	ptr2 := makeRandomBlockPointer(t)
-	buf, serverHalf, _, err = cache.Get(ctx, tlf1, ptr2.ID)
+	buf, serverHalf, _, err = cache.Get(
+		ctx, tlf1, ptr2.ID, DiskBlockAnyCache)
 	require.EqualError(t, err, NoSuchBlockError{ptr2.ID}.Error())
 	require.Equal(t, kbfscrypto.BlockCryptKeyServerHalf{}, serverHalf)
 	require.Nil(t, buf)
@@ -219,7 +223,8 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 		tlf := tlf.FakeID(f, tlf.Private)
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
-		err := cache.Put(ctx, tlf, blockPtr.ID, blockEncoded, serverHalf)
+		err := cache.Put(
+			ctx, tlf, blockPtr.ID, blockEncoded, serverHalf, DiskBlockAnyCache)
 		require.NoError(t, err)
 	}
 	tlf1 := tlf.FakeID(3, tlf.Private)
@@ -231,11 +236,17 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 		config)
 
 	t.Log("Put three blocks into the cache.")
-	err := cache.Put(ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf)
+	err := cache.Put(
+		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, tlf1, block2Ptr.ID, block2Encoded, block2ServerHalf)
+	err = cache.Put(
+		ctx, tlf1, block2Ptr.ID, block2Encoded, block2ServerHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.Put(ctx, tlf1, block3Ptr.ID, block3Encoded, block3ServerHalf)
+	err = cache.Put(
+		ctx, tlf1, block3Ptr.ID, block3Encoded, block3ServerHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Delete two of the blocks from the cache.")
@@ -243,11 +254,11 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Verify that only the non-deleted block is still in the cache.")
-	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
 	require.EqualError(t, err, NoSuchBlockError{block1Ptr.ID}.Error())
-	_, _, _, err = cache.Get(ctx, tlf1, block2Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block2Ptr.ID, DiskBlockAnyCache)
 	require.EqualError(t, err, NoSuchBlockError{block2Ptr.ID}.Error())
-	_, _, _, err = cache.Get(ctx, tlf1, block3Ptr.ID)
+	_, _, _, err = cache.Get(ctx, tlf1, block3Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Verify that the cache returns no LRU time for the missing blocks.")
@@ -274,7 +285,8 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 		tlf := tlf.FakeID(f, tlf.Private)
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
-		err := standardCache.Put(ctx, tlf, blockPtr.ID, blockEncoded, serverHalf)
+		err := standardCache.Put(
+			ctx, tlf, blockPtr.ID, blockEncoded, serverHalf, DiskBlockAnyCache)
 		require.NoError(t, err)
 		clock.Add(time.Second)
 	}
@@ -283,7 +295,8 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	for i := 0; i < tlf1NumBlocks; i++ {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
-		err := standardCache.Put(ctx, tlf1, blockPtr.ID, blockEncoded, serverHalf)
+		err := standardCache.Put(
+			ctx, tlf1, blockPtr.ID, blockEncoded, serverHalf, DiskBlockAnyCache)
 		require.NoError(t, err)
 		clock.Add(time.Second)
 	}
@@ -361,7 +374,9 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
-			err := standardCache.Put(ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
+			err := standardCache.Put(
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
+				DiskBlockAnyCache)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -437,7 +452,9 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
-			err := standardCache.Put(ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
+			err := standardCache.Put(
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
+				DiskBlockAnyCache)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -452,7 +469,8 @@ func TestDiskBlockCacheStaticLimit(t *testing.T) {
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
 	err := standardCache.Put(
-		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
+		ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded, serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	require.True(t, int64(standardCache.currBytes) < currBytes)
@@ -479,7 +497,9 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
-			err := standardCache.Put(ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf)
+			err := standardCache.Put(
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
+				DiskBlockAnyCache)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -507,7 +527,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			t, config)
 		err := standardCache.Put(
 			ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded,
-			serverHalf)
+			serverHalf, DiskBlockAnyCache)
 		require.NoError(t, err)
 		require.Equal(t, start+(i%defaultNumBlocksToEvict), standardCache.numBlocks)
 	}
@@ -533,7 +553,9 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	kmd := makeKMD()
 	ptr1, block1, block1Encoded, serverHalf1 := setupBlockForDiskCache(
 		t, dbcConfig)
-	err := cache.Put(ctx, kmd.TlfID(), ptr1.ID, block1Encoded, serverHalf1)
+	err := cache.Put(
+		ctx, kmd.TlfID(), ptr1.ID, block1Encoded, serverHalf1,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 	_, _ = bg.setBlockToReturn(ptr1, block1)
 
@@ -569,15 +591,12 @@ func seedDiskBlockCacheForTest(
 	clock := config.Clock().(*TestClock)
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, tlf.Private)
-		_, err := config.SetTlfSyncState(currTlf, FolderSyncConfig{
-			Mode: keybase1.FolderSyncMode_ENABLED,
-		})
-		require.NoError(t, err)
 		for j := 0; j < numBlocksPerTlf; j++ {
 			blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 				t, config)
-			err := cache.Put(ctx, currTlf, blockPtr.ID, blockEncoded,
-				serverHalf)
+			err := cache.Put(
+				ctx, currTlf, blockPtr.ID, blockEncoded, serverHalf,
+				DiskBlockSyncCache)
 			require.NoError(t, err)
 			clock.Add(time.Second)
 		}
@@ -608,7 +627,8 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
 	err := cache.Put(
-		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
+		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf,
+		DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	require.Equal(t, int64(standardCache.currBytes), currBytes)
@@ -703,4 +723,38 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, numBlocks-numBlocksPerTlf, standardCache.numBlocks)
+}
+
+func TestDiskBlockCacheMoveBlock(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that blocks can be moved between caches.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+	tlf1 := tlf.FakeID(0, tlf.Private)
+	block1Ptr, _, block1Encoded, block1ServerHalf := setupBlockForDiskCache(
+		t, config)
+
+	t.Log("Put a block into the default cache.")
+	err := cache.Put(
+		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
+		DiskBlockAnyCache)
+	require.NoError(t, err)
+	err = cache.UpdateMetadata(ctx, block1Ptr.ID, TriggeredPrefetch)
+	require.NoError(t, err)
+	require.Equal(t, 1, cache.workingSetCache.numBlocks)
+	require.Equal(t, 0, cache.syncCache.numBlocks)
+
+	t.Log("Move the block by getting it with a different preferred cache.")
+	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID, DiskBlockSyncCache)
+	require.NoError(t, err)
+	require.Equal(t, 1, cache.syncCache.numBlocks)
+
+	t.Log("After the move, make sure the prefetch status is right.")
+	_, _, prefetchStatus, err := cache.Get(
+		ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
+	require.NoError(t, err)
+	require.Equal(t, 1, cache.syncCache.numBlocks)
+	require.Equal(t, TriggeredPrefetch, prefetchStatus)
 }

@@ -74,6 +74,7 @@ func (d testBWDelegate) requireNextState(
 type testTLFJournalConfig struct {
 	codecGetter
 	logMaker
+	*testSyncedTlfGetterSetter
 	t            *testing.T
 	tlfID        tlf.ID
 	splitter     BlockSplitter
@@ -236,7 +237,8 @@ func setupTLFJournalTest(
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
-		newTestCodecGetter(), newTestLogMaker(t), t,
+		newTestCodecGetter(), newTestLogMaker(t),
+		newTestSyncedTlfGetterSetter(), t,
 		tlf.FakeID(1, tlf.Private), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
 		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil,
@@ -396,8 +398,10 @@ type hangingBlockServer struct {
 }
 
 func (bs hangingBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -1029,8 +1033,10 @@ type orderedBlockServer struct {
 }
 
 func (s *orderedBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
-	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	_ DiskBlockCacheType) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, id)

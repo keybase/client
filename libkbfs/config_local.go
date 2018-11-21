@@ -1660,7 +1660,8 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 		prefetchStatus = NoPrefetch
 		dbc := c.DiskBlockCache()
 		if dbc != nil {
-			_, _, prefetchStatus, err = dbc.Get(ctx, tlfID, ptr.ID)
+			_, _, prefetchStatus, err = dbc.Get(
+				ctx, tlfID, ptr.ID, DiskBlockAnyCache)
 			if err != nil {
 				prefetchStatus = NoPrefetch
 			}

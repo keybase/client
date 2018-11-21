@@ -107,11 +107,11 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	ctx := context.Background()
-	err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	// Now get the same block back.
-	buf, sh, err := b.Get(ctx, tlfID, bID, bCtx)
+	buf, sh, err := b.Get(ctx, tlfID, bID, bCtx, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, sh)
@@ -126,7 +126,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now get the same block back.
-	buf, sh, err = b.Get(ctx, tlfID, bID, bCtx2)
+	buf, sh, err = b.Get(ctx, tlfID, bID, bCtx2, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, sh)
@@ -149,7 +149,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		data := []byte{1, 2, 3, 4}
 		serverHalf := kbfscrypto.MakeBlockCryptKeyServerHalf(
 			[32]byte{0x1})
-		return b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+		return b.Put(ctx, tlfID, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
 }
