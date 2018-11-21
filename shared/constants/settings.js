@@ -1,5 +1,6 @@
 // @flow
 import * as Types from './types/settings'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import HiddenString from '../util/hidden-string'
 import type {TypedState} from './reducer'
 import * as WaitingConstants from './waiting'
@@ -34,6 +35,12 @@ const initialState: Types.State = {
     newPassphraseConfirmError: null,
     newPassphraseError: null,
     rememberPassphrase: true,
+  },
+  chat: {
+    unfurl: {
+      mode: RPCChatTypes.unfurlUnfurlMode.whitelisted,
+      whitelist: [],
+    },
   },
   waitingForResponse: false,
 }

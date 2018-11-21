@@ -1,7 +1,8 @@
 // @flow strict
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
-import type {SimpleProofState} from './tracker'
+import typeimport Chat from '../../settings/chat';
+ {SimpleProofState} from './tracker'
 
 type InviteBase = {
   id: string,
@@ -74,6 +75,15 @@ export type EmailState = {
   error: ?Error,
 }
 
+export type ChatUnfurlState = {
+  mode: RPCChatTypes.UnfurlMode,
+  whitelist: Array<string>,
+}
+
+export type ChatState = {
+  unfurl: ChatUnfurlState,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
@@ -82,6 +92,7 @@ export type State = {
   email: EmailState,
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
+  chat: ChatState,
 }
 
 type AboutTab = 'settingsTabs:aboutTab'
@@ -100,6 +111,7 @@ type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
 type WalletsTab = 'settingsTabs:walletsTab'
+type ChatTab = 'settingsTabs:chatTab'
 
 export type Tab =
   | LandingTab
@@ -118,5 +130,6 @@ export type Tab =
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab
+  | ChatTab
 
 export type PlanLevel = string
