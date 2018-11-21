@@ -9,8 +9,11 @@ import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
-const encoder = new window.TextEncoder()
-const decoder = new window.TextDecoder('utf-8')
+let encoder, decoder
+if (!__STORYSHOT__) {
+  encoder = new window.TextEncoder()
+  decoder = new window.TextDecoder('utf-8')
+}
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
