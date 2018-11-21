@@ -351,8 +351,8 @@ func (g *GlobalContext) ConfigureLogging() error {
 		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
 	} else {
 		g.Log.Configure(style, debug, logFile)
-		g.Log.RotateLogFile()
 	}
+	g.Log.RotateLogFile()
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 	return nil
