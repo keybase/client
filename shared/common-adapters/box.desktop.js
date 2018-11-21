@@ -59,4 +59,4 @@ const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap
 const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
 
 export default Box
-export {Box, Box2, box2}
+export {Box, Box2}

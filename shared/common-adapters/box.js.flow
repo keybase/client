@@ -21,5 +21,4 @@ export type Box2Props = {|
 
 declare export class Box extends React.Component<Props> {}
 declare export class Box2 extends React.Component<Box2Props> {}
-declare export function box2(props: Box2Props): React.Node
 export default Box

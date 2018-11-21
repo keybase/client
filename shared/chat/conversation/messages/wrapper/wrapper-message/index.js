@@ -61,7 +61,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   render() {
     const props = this.props
-    const orangeLine = props.orangeLineAbove && Kb.box2({direction: 'vertical', style: styles.orangeLine})
+    const orangeLine = props.orangeLineAbove && <Kb.Box2 direction="vertical" style={styles.orangeLine} />
     const children = props.type === 'children' && props.children
 
     // Additional checks on props.message.type to appease flow
@@ -148,11 +148,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           onMouseOver={this._onMouseOver}
           {...longPressProps}
         >
-          {Kb.box2({
-            children: [children, wrapperAuthor, buttons],
-            direction: 'horizontal',
-            fullWidth: true,
-          })}
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {children}
+            {wrapperAuthor}
+            {buttons}
+          </Kb.Box2>
           {unfurlPrompts}
           {unfurlList}
           {reactionsRow}
@@ -183,21 +183,21 @@ const menuButtons = (props: MenuButtonsProps) => {
   const exploding: boolean = props.message.exploding
 
   return (
-    <Kb.box2
+    <Kb.Box2
       direction={Styles.isMobile ? 'vertical' : 'horizontal'}
       gap={!Styles.isMobile ? 'tiny' : undefined}
       gapEnd={!Styles.isMobile}
       style={styles.controls}
     >
       {!props.exploded && (
-        <Kb.box2 direction="horizontal" centerChildren={true}>
+        <Kb.Box2 direction="horizontal" centerChildren={true}>
           {props.isRevoked && (
             <Kb.Box style={styles.revokedIconWrapper}>
               <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
             </Kb.Box>
           )}
           {!Styles.isMobile && (
-            <Kb.box2 style={styles.menuButtonsContainer}>
+            <Kb.Box2 direction="horizontal" style={styles.menuButtonsContainer}>
               {props.showMenuButton && (
                 <Kb.Box
                   className="menu-button"
@@ -220,9 +220,9 @@ const menuButtons = (props: MenuButtonsProps) => {
                   </Kb.Box>
                 </Kb.Box>
               )}
-            </Kb.box2>
+            </Kb.Box2>
           )}
-        </Kb.box2>
+        </Kb.Box2>
       )}
       {exploding && (
         <ExplodingMeta
@@ -232,7 +232,7 @@ const menuButtons = (props: MenuButtonsProps) => {
           style={props.isShowingUsername ? styles.explodingMetaPosition : undefined}
         />
       )}
-    </Kb.box2>
+    </Kb.Box2>
   )
 }
 

@@ -203,12 +203,14 @@ class WrapperAuthor extends React.PureComponent<Props> {
   }
 
   render() {
-    return Kb.box2({
-      children: [leftSide(this.props), rightSide(this.props)],
-      direction: 'horizontal',
-      fullWidth: true,
-      style: this.props.includeHeader ? styles.hasHeader : null,
-    })
+    return <Kb.Box2
+      direction='horizontal'
+      fullWidth={true}
+      style={this.props.includeHeader ? styles.hasHeader : null}
+    >
+      {leftSide(this.props)}
+      {rightSide(this.props)}
+    </Kb.Box2>
   }
 }
 

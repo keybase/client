@@ -98,4 +98,4 @@ const styles = {
 }
 
 export default Box
-export {Box, Box2, box2}
+export {Box, Box2}
