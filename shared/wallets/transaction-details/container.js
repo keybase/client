@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
+import openURL from '../../util/open-url'
 import TransactionDetails from '.'
 
 type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
@@ -26,6 +27,7 @@ const mapStateToProps = (state, ownProps) => {
             yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
+    transactionURL: _transaction.externalTxURL,
     you,
     yourInfoAndCounterparty,
   }
@@ -70,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onChat: dispatchProps.onChat,
     onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
     onShowProfile: dispatchProps.onShowProfile,
+    onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
     selectableText: true,
