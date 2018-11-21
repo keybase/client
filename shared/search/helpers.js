@@ -74,7 +74,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
         if (lastSearchTerm === props.searchResultTerm || props.showingSearchSuggestions) {
           // $FlowIssue
           if (props.disableListBuilding) {
-            if (props.selectedSearchId) {
+            if (props.onSelectUser && props.selectedSearchId) {
               props.onSelectUser(props.selectedSearchId)
               props.onChangeSearchText && props.onChangeSearchText('')
             } else {
