@@ -26,22 +26,15 @@ class Chat extends React.PureComponent<Props> {
           <Kb.Box2 direction="vertical" style={styles.whitelist}>
             {this.props.whitelist.map(w => {
               return (
-                <Kb.Box2 direction="vertical" fullWidth={true}>
-                  <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <React.Fragment>
+                  <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.whitelistContainer}>
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    <Kb.Text
-                      type="BodyPrimaryLink"
-                      onClick={this.props.onWhitelistRemove}
-                      style={styles.whitelistRemove}
-                    >
+                    <Kb.Text type="BodyPrimaryLink" style={styles.whitelistRemove}>
                       Remove
                     </Kb.Text>
                   </Kb.Box2>
-                  <Kb.Divider
-                    style={Styles.collapseStyles([{marginTop: 4, marginBottom: 4}, styles.divider])}
-                    fullWidth={true}
-                  />
-                </Kb.Box2>
+                  <Kb.Divider style={styles.whitelistDivider} fullWidth={true} />
+                </React.Fragment>
               )
             })}
           </Kb.Box2>
@@ -89,6 +82,17 @@ const styles = Styles.styleSheetCreate({
   whitelistRemove: Styles.platformStyles({
     isElectron: {
       marginLeft: 'auto',
+    },
+  }),
+  whitelistContainer: Styles.platformStyles({
+    isElectron: {
+      flexShrink: 0,
+    },
+  }),
+  whitelistDivider: Styles.platformStyles({
+    isElectron: {
+      marginTop: 3,
+      marginBottom: 4,
     },
   }),
 })
