@@ -1,13 +1,14 @@
 // @flow
-import {namedConnect, type RouteProps} from '../../util/container'
+import {namedConnect} from '../../util/container'
+import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import DefaultView from './default-view'
 
-type OwnProps = RouteProps<{|
-|}, {||}> & {|
+type OwnProps = {|
   path: Types.Path,
+  routePath: I.List<string>,
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => {
@@ -21,7 +22,7 @@ const mapStateToProps = (state, {path}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
   saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
   shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
