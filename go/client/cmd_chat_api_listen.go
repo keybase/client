@@ -82,10 +82,8 @@ func (c *CmdChatAPIListen) Run() error {
 		chat1.NotifyChatProtocol(display),
 	}
 	channels := keybase1.NotificationChannels{
-		Chat: true,
-	}
-	if c.subscribeDev {
-		channels.Chatdev = true
+		Chat:    true,
+		Chatdev: c.subscribeDev,
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
