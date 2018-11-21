@@ -14,8 +14,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({channelCreationError: action.payload.error})
     case TeamsGen.setTeamCreationError:
       return state.merge({teamCreationError: action.payload.error})
-    case TeamsGen.setTeamCreationPending:
-      return state.merge({teamCreationPending: action.payload.pending})
     case TeamsGen.setAddUserToTeamsResults:
       return state.merge({addUserToTeamsResults: action.payload.results})
     case TeamsGen.setTeamInviteError:

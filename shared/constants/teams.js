@@ -19,6 +19,8 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 // Waiting keys
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamCreationWaitingKey = 'teamCreate'
+
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
@@ -102,7 +104,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   sawSubteamsBanner: false,
   teamAccessRequestsPending: I.Set(),
   teamCreationError: '',
-  teamCreationPending: false,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,

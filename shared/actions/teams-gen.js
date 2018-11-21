@@ -56,7 +56,6 @@ export const setTeamCanPerform = 'teams:setTeamCanPerform'
 export const setTeamChannelInfo = 'teams:setTeamChannelInfo'
 export const setTeamChannels = 'teams:setTeamChannels'
 export const setTeamCreationError = 'teams:setTeamCreationError'
-export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
@@ -237,7 +236,6 @@ type _SetTeamChannelsPayload = $ReadOnly<{|
   channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
 |}>
 type _SetTeamCreationErrorPayload = $ReadOnly<{|error: string|}>
-type _SetTeamCreationPendingPayload = $ReadOnly<{|pending: boolean|}>
 type _SetTeamDetailsPayload = $ReadOnly<{|
   teamname: string,
   members: I.Map<string, Types.MemberInfo>,
@@ -365,7 +363,6 @@ export const createSetTeamCanPerform = (payload: _SetTeamCanPerformPayload) => (
 export const createSetTeamChannelInfo = (payload: _SetTeamChannelInfoPayload) => ({payload, type: setTeamChannelInfo})
 export const createSetTeamChannels = (payload: _SetTeamChannelsPayload) => ({payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: _SetTeamCreationErrorPayload) => ({payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: _SetTeamCreationPendingPayload) => ({payload, type: setTeamCreationPending})
 export const createSetTeamDetails = (payload: _SetTeamDetailsPayload) => ({payload, type: setTeamDetails})
 export const createSetTeamInfo = (payload: _SetTeamInfoPayload) => ({payload, type: setTeamInfo})
 export const createSetTeamInviteError = (payload: _SetTeamInviteErrorPayload) => ({payload, type: setTeamInviteError})
@@ -429,7 +426,6 @@ export type SetTeamCanPerformPayload = $Call<typeof createSetTeamCanPerform, _Se
 export type SetTeamChannelInfoPayload = $Call<typeof createSetTeamChannelInfo, _SetTeamChannelInfoPayload>
 export type SetTeamChannelsPayload = $Call<typeof createSetTeamChannels, _SetTeamChannelsPayload>
 export type SetTeamCreationErrorPayload = $Call<typeof createSetTeamCreationError, _SetTeamCreationErrorPayload>
-export type SetTeamCreationPendingPayload = $Call<typeof createSetTeamCreationPending, _SetTeamCreationPendingPayload>
 export type SetTeamDetailsPayload = $Call<typeof createSetTeamDetails, _SetTeamDetailsPayload>
 export type SetTeamInfoPayload = $Call<typeof createSetTeamInfo, _SetTeamInfoPayload>
 export type SetTeamInviteErrorPayload = $Call<typeof createSetTeamInviteError, _SetTeamInviteErrorPayload>
@@ -495,7 +491,6 @@ export type Actions =
   | SetTeamChannelInfoPayload
   | SetTeamChannelsPayload
   | SetTeamCreationErrorPayload
-  | SetTeamCreationPendingPayload
   | SetTeamDetailsPayload
   | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
