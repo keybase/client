@@ -1,8 +1,9 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Tlf from './tlf'
 
@@ -34,7 +35,8 @@ const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath, destin
   }
 }
 
-export default compose(
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedTlfRow'),
-  OpenHOC
+export default ((ComposedComponent: React.ComponentType<any>) =>
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedTlfRow')(
+    OpenHOC(ComposedComponent)
+  )
 )(Tlf)
