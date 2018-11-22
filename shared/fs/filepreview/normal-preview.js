@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {mapProps, type RouteProps} from '../../util/container'
+import {mapProps} from '../../util/container'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
