@@ -15,32 +15,45 @@ export type Props = {
 
 type State = {
   unfurlSelected?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist?: Array<string>,
+  unfurlWhitelistRemoved: Map<string, boolean>,
 }
 
 class Chat extends React.Component<Props, State> {
-  state = {}
+  state = {unfurlWhitelistRemoved: {}}
   _isUnfurlModeSelected() {
     return this.state.unfurlSelected !== undefined
   }
   _isUnfurlWhitelistChanged() {
-    return this.state.unfurlWhitelist !== undefined
+    return (
+      Object.keys(this.state.unfurlWhitelistRemoved).filter(d => this.state.unfurlWhitelistRemoved[d])
+        .length > 0
+    )
   }
   _getUnfurlMode() {
     return this.state.unfurlSelected !== undefined
       ? this.state.unfurlSelected
-      : this.props.unfurlMode || RPCChatTypes.unfurlUnfurlMode.whitelisted
+      : this.props.unfurlMode !== undefined
+        ? this.props.unfurlMode
+        : RPCChatTypes.unfurlUnfurlMode.whitelisted
   }
-  _getUnfurlWhitelist() {
-    return this.state.unfurlWhitelist !== undefined
-      ? this.state.unfurlWhitelist
+  _getUnfurlWhitelist(filtered: boolean) {
+    return filtered
+      ? (this.props.unfurlWhitelist || []).filter(w => !this.state.unfurlWhitelistRemoved[w])
       : this.props.unfurlWhitelist || []
   }
   _setUnfurlMode(mode: RPCChatTypes.UnfurlMode) {
     this.setState({unfurlSelected: mode})
   }
-  _removeUnfurlWhitelist(domain: string) {
-    this.setState({unfurlWhitelist: this._getUnfurlWhitelist().filter(e => e !== domain)})
+  _toggleUnfurlWhitelist(domain: string) {
+    this.setState({
+      unfurlWhitelistRemoved: {
+        ...this.state.unfurlWhitelistRemoved,
+        [domain]: !this.state.unfurlWhitelistRemoved[domain],
+      },
+    })
+  }
+  _isUnfurlWhitelistRemoved(domain: string) {
+    return this.state.unfurlWhitelistRemoved[domain]
   }
   _isSaveDisabled() {
     return !this.props.unfurlMode || (!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged())
@@ -75,16 +88,28 @@ class Chat extends React.Component<Props, State> {
             disabled={!this.props.unfurlMode}
           />
           <Kb.ScrollView style={styles.whitelist}>
-            {this._getUnfurlWhitelist().map(w => {
+            {this._getUnfurlWhitelist(false).map(w => {
+              const wlremoved = this._isUnfurlWhitelistRemoved(w)
               return (
                 <React.Fragment key={w}>
-                  <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.whitelistRowContainer}>
+                  <Kb.Box2
+                    fullWidth={true}
+                    direction="horizontal"
+                    style={Styles.collapseStyles([
+                      wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                      styles.whitelistRowContainer,
+                    ])}
+                  >
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    <Kb.Text type="BodyPrimaryLink" onClick={() => this._removeUnfurlWhitelist(w)}>
-                      Remove
+                    <Kb.Text
+                      type="BodyPrimaryLink"
+                      style={wlremoved && {color: Styles.globalColors.white}}
+                      onClick={() => this._toggleUnfurlWhitelist(w)}
+                    >
+                      {wlremoved ? 'Restore' : 'Remove'}
                     </Kb.Text>
                   </Kb.Box2>
-                  <Kb.Divider style={styles.whitelistDivider} fullWidth={true} />
+                  <Kb.Divider fullWidth={true} />
                 </React.Fragment>
               )
             })}
@@ -100,7 +125,7 @@ class Chat extends React.Component<Props, State> {
         <Kb.Divider style={styles.divider} />
         <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.WaitingButton
-            onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist())}
+            onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
             label="Save"
             type="Primary"
             style={styles.save}
@@ -147,26 +172,20 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 150,
       minWidth: 305,
-      paddingTop: 3,
-      paddingLeft: 9,
-      paddingBottom: 3,
-      paddingRight: 8,
       marginLeft: 26,
     },
     isMobile: {
       height: 150,
       width: '100%',
-      paddingLeft: 5,
-      paddingRight: 5,
     },
   }),
   whitelistRowContainer: {
     flexShrink: 0,
     justifyContent: 'space-between',
-  },
-  whitelistDivider: {
-    marginTop: 3,
-    marginBottom: 4,
+    paddingTop: 3,
+    paddingBottom: 4,
+    paddingLeft: 9,
+    paddingRight: 8,
   },
   error: {
     color: Styles.globalColors.red,
