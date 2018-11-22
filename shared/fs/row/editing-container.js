@@ -41,4 +41,9 @@ const mergeProps = ({_edit, _username}, {onSubmit, onCancel, onUpdate}) => ({
   onUpdate,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'EditingRow')(Editing)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'EditingRow'
+)(Editing)
