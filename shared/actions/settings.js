@@ -429,7 +429,7 @@ const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSett
     })
     .catch(() => {
       return SettingsGen.createUnfurlSettingsError({
-        error: 'Unable to read link preview settings, please try again.',
+        error: 'Unable to load link preview settings, please try again.',
       })
     })
 
@@ -437,8 +437,8 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
   state.config.loggedIn &&
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
-      mode: action.payload.mode || ChatTypes.unfurlUnfurlMode.whitelisted,
-      whitelist: action.payload.whitelist || [],
+      mode: action.payload.mode,
+      whitelist: action.payload.whitelist,
     },
     Constants.waitingKey
   )

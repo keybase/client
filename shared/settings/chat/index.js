@@ -15,11 +15,11 @@ export type Props = {
 
 type State = {
   unfurlSelected?: RPCChatTypes.UnfurlMode,
-  unfurlWhitelistRemoved: Map<string, boolean>,
+  unfurlWhitelistRemoved: {[string]: boolean},
 }
 
 class Chat extends React.Component<Props, State> {
-  state = {unfurlWhitelistRemoved: {}}
+  state = {unfurlSelected: undefined, unfurlWhitelistRemoved: {}}
   _isUnfurlModeSelected() {
     return this.state.unfurlSelected !== undefined
   }
@@ -56,7 +56,10 @@ class Chat extends React.Component<Props, State> {
     return this.state.unfurlWhitelistRemoved[domain]
   }
   _isSaveDisabled() {
-    return !this.props.unfurlMode || (!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged())
+    return (
+      this.props.unfurlMode === undefined ||
+      (!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged())
+    )
   }
 
   componentDidMount() {
@@ -78,14 +81,14 @@ class Chat extends React.Component<Props, State> {
             label="Always"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.always)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.always}
-            disabled={!this.props.unfurlMode}
+            disabled={this.props.unfurlMode === undefined}
           />
           <Kb.RadioButton
             key="rbwhitelist"
             label="Yes, but only for these sites:"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.whitelisted)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.whitelisted}
-            disabled={!this.props.unfurlMode}
+            disabled={this.props.unfurlMode === undefined}
           />
           <Kb.ScrollView style={styles.whitelist}>
             {this._getUnfurlWhitelist(false).map(w => {
@@ -103,7 +106,7 @@ class Chat extends React.Component<Props, State> {
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
                     <Kb.Text
                       type="BodyPrimaryLink"
-                      style={wlremoved && {color: Styles.globalColors.white}}
+                      style={wlremoved ? {color: Styles.globalColors.white} : null}
                       onClick={() => this._toggleUnfurlWhitelist(w)}
                     >
                       {wlremoved ? 'Restore' : 'Remove'}
@@ -119,7 +122,7 @@ class Chat extends React.Component<Props, State> {
             label="Never"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.never)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.never}
-            disabled={!this.props.unfurlMode}
+            disabled={this.props.unfurlMode === undefined}
           />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
