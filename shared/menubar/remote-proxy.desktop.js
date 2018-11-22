@@ -3,7 +3,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect, compose, renderNothing, branch} from '../util/container'
+import {NullComponent, connect, renderNothing} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
@@ -81,17 +81,14 @@ const mergeProps = stateProps => {
   }
 }
 
+const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing)
+  }
+
 // Actions are handled by remote-container
-export default compose(
-  connect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  ),
-  // flow correctly complains this shouldn't be true. We really want this to never be null before it hits RemoteMenubarWindow but we can't do that with branch. TODO use a wrapper to fix this
-  // $FlowIssue
-  branch(props => !props.externalRemoteWindow, renderNothing),
-  RemoteMenubarWindow,
-  SyncAvatarProps,
-  SyncProps(serialize)
-)(NullComponent)
+export default connect<Props | {}, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

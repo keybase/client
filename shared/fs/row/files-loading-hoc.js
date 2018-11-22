@@ -1,9 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
+
+type OwnProps = {
+  path: Types.Path,
+}
 
 const mapStateToProps = state => ({
   syncingPaths: state.fs.uploads.syncingPaths,
@@ -18,6 +22,7 @@ const mergeProps = ({syncingPaths}, {loadFolderList, loadFavorites}, o) => ({
   syncingPaths,
   loadFolderList,
   loadFavorites,
+  // $FlowFixMe it's a HOC so we need to pass through inexact properties.
   ...o,
 })
 
@@ -53,7 +58,10 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFilesLoadingHoc'),
-  FilesLoadingHoc
-)
+export default (ComposedComponent: React.ComponentType<any>) =>
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'ConnectedFilesLoadingHoc'
+  )(FilesLoadingHoc(ComposedComponent))

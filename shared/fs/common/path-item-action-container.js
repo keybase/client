@@ -181,9 +181,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   const type = pathElements.length <= 3 ? 'folder' : pathItem.type
   const {childrenFolders, childrenFiles} =
-    !pathItem || type !== 'folder' || !pathItem.children
-      ? {childrenFolders: 0, childrenFiles: 0}
-      : pathItem.children.reduce(
+    pathItem && pathItem.type === 'folder' && pathItem.children
+      ? pathItem.children.reduce(
           ({childrenFolders, childrenFiles}, p) => {
             const isFolder =
               _pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem).type === 'folder'
@@ -194,6 +193,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           },
           {childrenFolders: 0, childrenFiles: 0}
         )
+      : {childrenFolders: 0, childrenFiles: 0}
   const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
     showInSystemFileManager,
@@ -239,7 +239,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedPathItemAction'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'ConnectedPathItemAction'
+  ),
   OverlayParentHOC,
   lifecycle({
     componentDidUpdate(prevProps) {

@@ -106,7 +106,7 @@ func (r *callCompressedRequest) LogCompletion(res interface{}, err error) {
 }
 
 func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg interface{}) (err error) {
-	res, err = enc.compressResponse(r.Compression(), res)
+	res, err = enc.compressData(r.Compression(), res)
 	if err != nil {
 		return err
 	}

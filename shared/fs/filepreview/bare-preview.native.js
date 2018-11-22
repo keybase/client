@@ -11,8 +11,9 @@ import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
 import PathItemAction from '../common/path-item-action-container'
 
-const mapStateToProps = (state, {routeProps}: BarePreviewProps) => {
-  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+const mapStateToProps = (state, ownProps: BarePreviewProps) => {
+  // $FlowIssue Flow is confused here for no reason.
+  const path = Types.stringToPath(ownProps.routeProps.get('path'))
   return {
     path,
     _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
@@ -116,7 +117,7 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default connect(
+export default connect<BarePreviewProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

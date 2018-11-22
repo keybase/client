@@ -48,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
+      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
       lifecycle({
         componentDidMount() {
           this.props.getFuseStatus()
