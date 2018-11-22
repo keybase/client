@@ -29,4 +29,4 @@ const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}:
   sortSettingToAction,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(SortBar)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(SortBar)
