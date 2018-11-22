@@ -68,6 +68,9 @@ const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps
 const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>
   makeBreadcrumbProps(_username, _navigateToPath, path)
 
-export default namedConnect<OwnProps, BreadcrumbProps, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedBreadcrumb')(
-  Breadcrumb
-)
+export default namedConnect<OwnProps, BreadcrumbProps, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedBreadcrumb'
+)(Breadcrumb)

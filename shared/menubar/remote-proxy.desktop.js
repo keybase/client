@@ -83,23 +83,12 @@ const mergeProps = stateProps => {
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
-    render = () => this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing)
   }
 
 // Actions are handled by remote-container
-export default
-  connect<Props | {}, _, _, _, _>(
-    mapStateToProps,
-    () => ({}),
-    mergeProps
-  )(
-    RenderExternalWindowBranch(
-      RemoteMenubarWindow(
-        SyncAvatarProps(
-          SyncProps(serialize)(
-            NullComponent
-          )
-        )
-      )
-    )
-  )
+export default connect<Props | {}, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

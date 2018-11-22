@@ -39,5 +39,4 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinati
 export default ((ComposedComponent: React.ComponentType<any>) =>
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow')(
     OpenHOC(ComposedComponent)
-  )
-)(Still)
+  ))(Still)

@@ -34,4 +34,9 @@ const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: Own
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedUploadingRow')(Uploading)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ConnectedUploadingRow'
+)(Uploading)

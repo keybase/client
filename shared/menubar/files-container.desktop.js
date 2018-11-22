@@ -74,8 +74,5 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
 
 export default ((ComposedComponent: React.ComponentType<any>) =>
   remoteConnect<{||}, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(
-    setDisplayName('FilesPreview')(
-      TlfUpdateHoc(ComposedComponent)
-    )
-  )
-)(FilesPreview)
+    setDisplayName('FilesPreview')(TlfUpdateHoc(ComposedComponent))
+  ))(FilesPreview)

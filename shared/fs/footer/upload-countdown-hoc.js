@@ -172,6 +172,4 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   }
 
 export default (ComposedComponent: React.ComponentType<any>) =>
-  HOCTimers(
-    UploadCountdownHOC(ComposedComponent)
-  )
+  HOCTimers(UploadCountdownHOC(ComposedComponent))

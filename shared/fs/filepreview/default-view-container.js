@@ -46,8 +46,8 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default namedConnect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
   'FilePreviewDefaultView'
 )(DefaultView)

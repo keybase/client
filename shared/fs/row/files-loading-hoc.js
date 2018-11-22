@@ -59,6 +59,9 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   }
 
 export default (ComposedComponent: React.ComponentType<any>) =>
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFilesLoadingHoc')(
-    FilesLoadingHoc(ComposedComponent)
-  )
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'ConnectedFilesLoadingHoc'
+  )(FilesLoadingHoc(ComposedComponent))

@@ -14,7 +14,7 @@ const mapStateToProps = (state, {downloadKey}: OwnProps) => ({
   _download: state.fs.downloads.get(downloadKey, Constants.makeDownload()),
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
   _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
   _canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),
@@ -32,10 +32,9 @@ const mergeProps = ({_download}, {_opener, _dismisser, _canceler}, {downloadKey}
     cancel: () => _canceler(downloadKey),
   }: DownloadProps)
 
-export default
-  namedConnect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedDownload'
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedDownload'
 )(Download)

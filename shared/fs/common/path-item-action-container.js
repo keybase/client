@@ -239,7 +239,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedPathItemAction'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'ConnectedPathItemAction'
+  ),
   OverlayParentHOC,
   lifecycle({
     componentDidUpdate(prevProps) {

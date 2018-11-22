@@ -36,4 +36,6 @@ const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader')(FolderHeader)
+export default namedConnect<OwnProps, _, _, _, _>(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader')(
+  FolderHeader
+)

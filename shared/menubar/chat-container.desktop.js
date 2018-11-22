@@ -32,4 +32,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     })),
 })
 
-export default remoteConnect<OwnProps, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(ChatPreview)
+export default remoteConnect<OwnProps, State, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps)(
+  ChatPreview
+)

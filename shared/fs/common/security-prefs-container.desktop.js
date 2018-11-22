@@ -25,7 +25,7 @@ export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d}),
+    (s, d, o) => ({...o, ...s, ...d})
   ),
   lifecycle({
     componentDidUpdate(prevProps) {

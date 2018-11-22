@@ -61,6 +61,9 @@ const DownloadTrackingHoc = (ComposedComponent: React.ComponentType<any>) =>
   }
 
 export default (ComposedComponent: React.ComponentType<any>) =>
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDownloadTrackingHoc')(
-    DownloadTrackingHoc(ComposedComponent)
-  )
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'ConnectedDownloadTrackingHoc'
+  )(DownloadTrackingHoc(ComposedComponent))

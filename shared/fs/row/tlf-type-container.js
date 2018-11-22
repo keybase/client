@@ -30,12 +30,6 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath, destinationPick
 }
 
 export default ((ComposedComponent: React.ComponentType<any>) =>
-  namedConnect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    () => ({}),
-    mergeProps,
-  'ConnectedTlfTypeRow'
-  )(
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedTlfTypeRow')(
     OpenHOC(ComposedComponent)
-  )
-)(TlfType)
+  ))(TlfType)

@@ -11,4 +11,9 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   shouldShowReset: Constants.getTlfFromPath(state.fs.tlfs, path).resetParticipants.size > 0,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}), 'Banner')(Banner)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'Banner'
+)(Banner)

@@ -55,4 +55,9 @@ type MergedProps = OwnProps & {
   onOpen: ?() => void,
 }
 
-export default namedConnect<OwnProps, _, React.ComponentType<MergedProps>, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
+export default namedConnect<OwnProps, _, React.ComponentType<MergedProps>, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedOpenHOC'
+)

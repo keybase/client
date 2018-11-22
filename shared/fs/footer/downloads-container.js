@@ -9,7 +9,7 @@ const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   openDownloadFolder: isMobile
     ? undefined
     : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: downloadFolder})),
@@ -29,8 +29,8 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
 }
 
 export default namedConnect<{||}, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedDownloads'
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedDownloads'
 )(Downloads)

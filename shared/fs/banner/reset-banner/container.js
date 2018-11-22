@@ -35,7 +35,11 @@ const mapDispatchToProps = dispatch => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}: OwnProps) => {
+const mergeProps = (
+  stateProps,
+  {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile},
+  {path}: OwnProps
+) => {
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
     isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
@@ -55,4 +59,9 @@ const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onVie
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ResetBanner')(Banner)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ResetBanner'
+)(Banner)

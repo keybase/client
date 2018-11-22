@@ -8,9 +8,12 @@ import * as FsGen from '../../actions/fs-gen'
 import {isMobile} from '../../constants/platform'
 import {navigateUp, putActionIfOnPath} from '../../actions/route-tree'
 
-type OwnProps = RouteProps<{|
-  index: number,
-|}, {||}>
+type OwnProps = RouteProps<
+  {|
+    index: number,
+  |},
+  {||}
+>
 
 const mapStateToProps = state => ({
   _moveOrCopy: state.fs.moveOrCopy,
@@ -64,7 +67,10 @@ const canMove = memoize2(
 
 const getIndex = memoize1((ownProps: OwnProps) => ownProps.routeProps.get('index', 0))
 const canBackUp = isMobile
-  ? memoize2((stateProps, ownProps: OwnProps) => Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1)
+  ? memoize2(
+      (stateProps, ownProps: OwnProps) =>
+        Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1
+    )
   : (s, o) => false
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -89,6 +95,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ).iconSpec,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
-  DestinationPicker
-)
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedDestinationPicker'
+)(DestinationPicker)
