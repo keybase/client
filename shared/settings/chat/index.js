@@ -21,7 +21,7 @@ type State = {
 class Chat extends React.Component<Props, State> {
   state = {unfurlSelected: undefined, unfurlWhitelistRemoved: {}}
   _isUnfurlModeSelected() {
-    return this.state.unfurlSelected !== undefined
+    return this.state.unfurlSelected !== undefined && this.state.unfurlSelected !== this.props.unfurlMode
   }
   _isUnfurlWhitelistChanged() {
     return (
@@ -133,7 +133,7 @@ class Chat extends React.Component<Props, State> {
             type="Primary"
             style={styles.save}
             disabled={this._isSaveDisabled()}
-            waitingKey={Constants.waitingKey}
+            waitingKey={Constants.chatUnfurlWaitingKey}
           />
           {this.props.unfurlError && (
             <Kb.Text type="BodySmall" style={styles.error}>
@@ -157,13 +157,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   divider: {
-    height: 2,
+    height: Styles.globalMargins.xxtiny,
   },
-  save: Styles.platformStyles({
-    common: {
-      marginTop: 8,
-    },
-  }),
+  save: {
+    marginTop: Styles.globalMargins.tiny,
+  },
   whitelist: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -175,7 +173,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 150,
       minWidth: 305,
-      marginLeft: 26,
+      marginLeft: 22,
     },
     isMobile: {
       height: 150,
@@ -185,10 +183,10 @@ const styles = Styles.styleSheetCreate({
   whitelistRowContainer: {
     flexShrink: 0,
     justifyContent: 'space-between',
-    paddingTop: 3,
-    paddingBottom: 4,
-    paddingLeft: 9,
-    paddingRight: 8,
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   error: {
     color: Styles.globalColors.red,

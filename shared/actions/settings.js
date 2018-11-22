@@ -423,15 +423,15 @@ const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdown
 
 const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
   state.config.loggedIn &&
-  ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.waitingKey)
-    .then((result: ChatTypes.UnfurlSettingsDisplay) => {
-      return SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
-    })
-    .catch(() => {
-      return SettingsGen.createUnfurlSettingsError({
+  ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
+    .then((result: ChatTypes.UnfurlSettingsDisplay) =>
+      SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
+    )
+    .catch(() =>
+      SettingsGen.createUnfurlSettingsError({
         error: 'Unable to load link preview settings, please try again.',
       })
-    })
+    )
 
 const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettingsSavedPayload) =>
   state.config.loggedIn &&
@@ -440,16 +440,14 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
       mode: action.payload.mode,
       whitelist: action.payload.whitelist,
     },
-    Constants.waitingKey
+    Constants.chatUnfurlWaitingKey
   )
-    .then(() => {
-      return SettingsGen.createUnfurlSettingsRefresh()
-    })
-    .catch(() => {
-      return SettingsGen.createUnfurlSettingsError({
+    .then(() => SettingsGen.createUnfurlSettingsRefresh())
+    .catch(() =>
+      SettingsGen.createUnfurlSettingsError({
         error: 'Unable to save link preview settings, please try again.',
       })
-    })
+    )
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(SettingsGen.invitesReclaim, _reclaimInviteSaga)

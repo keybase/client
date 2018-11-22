@@ -97,6 +97,7 @@ export type State = {
 
 type AboutTab = 'settingsTabs:aboutTab'
 type AdvancedTab = 'settingsTabs:advancedTab'
+type ChatTab = 'settingsTabs:chatTab'
 type DeleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
@@ -111,7 +112,6 @@ type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
 type WalletsTab = 'settingsTabs:walletsTab'
-type ChatTab = 'settingsTabs:chatTab'
 
 export type Tab =
   | LandingTab
