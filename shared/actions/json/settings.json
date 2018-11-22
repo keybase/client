@@ -102,6 +102,10 @@
       "_description": "Refreshed unfurl settings available",
       "mode": "RPCChatTypes.UnfurlMode",
       "whitelist": "Array<string>"
+    },
+    "unfurlSettingsError": {
+      "_description": "An error occurred on the unfurl settings screen",
+      "error": "string"
     }
   }
 }

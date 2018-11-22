@@ -428,9 +428,8 @@ const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSett
       return SettingsGen.createUnfurlSettingsRefreshed({mode: result.mode, whitelist: result.whitelist || []})
     })
     .catch(() => {
-      return SettingsGen.createUnfurlSettingsRefreshed({
-        mode: ChatTypes.unfurlUnfurlMode.whitelisted,
-        whitelist: [],
+      return SettingsGen.createUnfurlSettingsError({
+        error: 'Unable to read link preview settings, please try again.',
       })
     })
 
@@ -447,7 +446,9 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
       return SettingsGen.createUnfurlSettingsRefresh()
     })
     .catch(() => {
-      return SettingsGen.createUnfurlSettingsRefresh()
+      return SettingsGen.createUnfurlSettingsError({
+        error: 'Unable to save link preview settings, please try again.',
+      })
     })
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {

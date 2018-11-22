@@ -212,6 +212,18 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
           unfurl: {
             unfurlMode: mode,
             unfurlWhitelist: whitelist,
+            unfurlError: undefined,
+          },
+        },
+      }
+    case SettingsGen.unfurlSettingsError:
+      return {
+        ...state,
+        chat: {
+          ...state.chat,
+          unfurl: {
+            ...state.chat.unfurl,
+            unfurlError: action.payload.error,
           },
         },
       }

@@ -6,8 +6,9 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  unfurlMode: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist: Array<string>,
+  unfurlMode?: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist?: Array<string>,
+  unfurlError?: string,
   onUnfurlSave: (RPCChatTypes.UnfurlMode, Array<string>) => void,
   onRefresh: () => void,
 }
@@ -25,17 +26,24 @@ class Chat extends React.Component<Props, State> {
   _isUnfurlWhitelistChanged() {
     return this.state.unfurlWhitelist !== undefined
   }
-  _getUnfurlMode(): RPCChatTypes.UnfurlMode {
-    return this.state.unfurlSelected !== undefined ? this.state.unfurlSelected : this.props.unfurlMode
+  _getUnfurlMode() {
+    return this.state.unfurlSelected !== undefined
+      ? this.state.unfurlSelected
+      : this.props.unfurlMode || RPCChatTypes.unfurlUnfurlMode.whitelisted
   }
   _getUnfurlWhitelist() {
-    return this.state.unfurlWhitelist !== undefined ? this.state.unfurlWhitelist : this.props.unfurlWhitelist
+    return this.state.unfurlWhitelist !== undefined
+      ? this.state.unfurlWhitelist
+      : this.props.unfurlWhitelist || []
   }
   _setUnfurlMode(mode: RPCChatTypes.UnfurlMode) {
     this.setState({unfurlSelected: mode})
   }
   _removeUnfurlWhitelist(domain: string) {
     this.setState({unfurlWhitelist: this._getUnfurlWhitelist().filter(e => e !== domain)})
+  }
+  _isSaveDisabled() {
+    return !this.props.unfurlMode || (!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged())
   }
 
   componentDidMount() {
@@ -57,24 +65,22 @@ class Chat extends React.Component<Props, State> {
             label="Always"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.always)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.always}
+            disabled={!this.props.unfurlMode}
           />
           <Kb.RadioButton
             key="rbwhitelist"
             label="Yes, but only for these sites:"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.whitelisted)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.whitelisted}
+            disabled={!this.props.unfurlMode}
           />
           <Kb.ScrollView style={styles.whitelist}>
             {this._getUnfurlWhitelist().map(w => {
               return (
                 <React.Fragment key={w}>
-                  <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.whitelistContainer}>
+                  <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.whitelistRowContainer}>
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
-                    <Kb.Text
-                      type="BodyPrimaryLink"
-                      style={styles.whitelistRemove}
-                      onClick={() => this._removeUnfurlWhitelist(w)}
-                    >
+                    <Kb.Text type="BodyPrimaryLink" onClick={() => this._removeUnfurlWhitelist(w)}>
                       Remove
                     </Kb.Text>
                   </Kb.Box2>
@@ -88,17 +94,25 @@ class Chat extends React.Component<Props, State> {
             label="Never"
             onSelect={() => this._setUnfurlMode(RPCChatTypes.unfurlUnfurlMode.never)}
             selected={this._getUnfurlMode() === RPCChatTypes.unfurlUnfurlMode.never}
+            disabled={!this.props.unfurlMode}
           />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
-        <Kb.WaitingButton
-          onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist())}
-          label="Save"
-          type="Primary"
-          style={styles.save}
-          disabled={!this._isUnfurlModeSelected() && !this._isUnfurlWhitelistChanged()}
-          waitingKey={Constants.waitingKey}
-        />
+        <Kb.Box2 direction="vertical" gap="tiny">
+          <Kb.WaitingButton
+            onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist())}
+            label="Save"
+            type="Primary"
+            style={styles.save}
+            disabled={this._isSaveDisabled()}
+            waitingKey={Constants.waitingKey}
+          />
+          {this.props.unfurlError && (
+            <Kb.Text type="BodySmall" style={styles.error}>
+              {this.props.unfurlError}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -111,16 +125,15 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 20,
     },
     isMobile: {
-      padding: 10,
+      padding: 20,
     },
   }),
   divider: {
     height: 2,
   },
   save: Styles.platformStyles({
-    isElectron: {
+    common: {
       marginTop: 8,
-      alignSelf: 'flex-start',
     },
   }),
   whitelist: Styles.platformStyles({
@@ -143,19 +156,20 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       height: 150,
       width: '100%',
-      paddingLeft: 3,
-      paddingRight: 3,
+      paddingLeft: 5,
+      paddingRight: 5,
     },
   }),
-  whitelistRemove: {
-    marginLeft: 'auto',
-  },
-  whitelistContainer: {
+  whitelistRowContainer: {
     flexShrink: 0,
+    justifyContent: 'space-between',
   },
   whitelistDivider: {
     marginTop: 3,
     marginBottom: 4,
+  },
+  error: {
+    color: Styles.globalColors.red,
   },
 })
 

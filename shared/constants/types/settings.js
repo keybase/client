@@ -76,8 +76,9 @@ export type EmailState = {
 }
 
 export type ChatUnfurlState = {
-  unfurlMode: RPCChatTypes.UnfurlMode,
-  unfurlWhitelist: Array<string>,
+  unfurlMode?: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist?: Array<string>,
+  unfurlError?: string,
 }
 export type ChatState = {
   unfurl: ChatUnfurlState,
