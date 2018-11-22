@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {compose} from '../../util/container'
 import {formatDuration} from '../../util/timestamp'
 import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {type UploadProps} from './upload'
@@ -172,7 +171,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
   }
 
-export default compose(
-  HOCTimers,
-  UploadCountdownHOC
-)
+export default (ComposedComponent: React.ComponentType<any>) =>
+  HOCTimers(
+    UploadCountdownHOC(ComposedComponent)
+  )
