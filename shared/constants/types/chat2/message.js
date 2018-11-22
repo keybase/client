@@ -198,6 +198,8 @@ export type _ChatPaymentInfo = {
   paymentID: WalletTypes.PaymentID,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  statusDetail: string,
+  showCancel: boolean,
   type: 'paymentInfo',
   worth: string,
 }
