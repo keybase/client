@@ -169,8 +169,8 @@ const IgnoreAccessRequests = (props: SettingProps) =>
         checked={props.newIgnoreAccessRequests}
         labelComponent={
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-            <Text type="Body">Ignore requests to join this team</Text>
-            <Text type="BodySmall">Admins won't be bothered by hordes of fans.</Text>
+            <Text type="Body">Don't allow requests to join this team</Text>
+            <Text type="BodySmall">Requests to join this team will be silently ignored by all admins.</Text>
           </Box>
         }
         onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
