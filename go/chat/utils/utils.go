@@ -1661,6 +1661,13 @@ func SetUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageI
 	mvalid.Unfurls[unfurlMessageID] = unfurl
 }
 
+func RemoveUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageID) {
+	if mvalid.Unfurls == nil {
+		return
+	}
+	delete(mvalid.Unfurls, unfurlMessageID)
+}
+
 // SuspendComponent will suspend a Suspendable type until the return function
 // is called. This allows a succinct call like defer SuspendComponent(ctx, g,
 // g.ConvLoader)() in RPC handlers wishing to lock out the conv loader.
