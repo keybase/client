@@ -223,6 +223,7 @@ export const localUnfurlPromptAction = {
   never: 1,
   accept: 2,
   notnow: 3,
+  onetime: 4,
 }
 
 export const notifyChatChatActivitySource = {

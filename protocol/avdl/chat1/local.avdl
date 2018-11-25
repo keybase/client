@@ -915,13 +915,15 @@ protocol local {
     ALWAYS_0,
     NEVER_1,
     ACCEPT_2,
-    NOTNOW_3
+    NOTNOW_3,
+    ONETIME_4
   }
   variant UnfurlPromptResult switch (UnfurlPromptAction actionType) {
     case ALWAYS: void;
     case NEVER: void;
     case NOTNOW: void;
     case ACCEPT: string;
+    case ONETIME: string;
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();

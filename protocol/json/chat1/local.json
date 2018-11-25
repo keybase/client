@@ -2626,7 +2626,8 @@
         "ALWAYS_0",
         "NEVER_1",
         "ACCEPT_2",
-        "NOTNOW_3"
+        "NOTNOW_3",
+        "ONETIME_4"
       ]
     },
     {
@@ -2661,6 +2662,13 @@
         {
           "label": {
             "name": "ACCEPT",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "ONETIME",
             "def": false
           },
           "body": "string"

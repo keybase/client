@@ -7,6 +7,7 @@ export type Props = {
   domain: string,
   onAlways: () => void,
   onAccept: () => void,
+  onOnetime: () => void,
   onNotnow: () => void,
   onNever: () => void,
 }
@@ -28,6 +29,9 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           </Kb.Text>
           <Kb.Text onClick={this.props.onAccept} type="BodyPrimaryLink">
             Always, for {this.props.domain}
+          </Kb.Text>
+          <Kb.Text onClick={this.props.onOnetime} type="BodyPrimaryLink">
+            Yes, but ask me again for {this.props.domain}
           </Kb.Text>
           <Kb.Text onClick={this.props.onNotnow} type="BodyPrimaryLink">
             Not now

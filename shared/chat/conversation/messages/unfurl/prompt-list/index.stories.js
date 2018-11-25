@@ -9,6 +9,7 @@ const common = {
   onAccept: Sb.action('onAccept'),
   onNotnow: Sb.action('onNotnow'),
   onNever: Sb.action('onNever'),
+  onOnetime: Sb.action('onOnetime'),
 }
 
 const props = {prompts: ['cnn.com', 'github.com', 'wsj.com'].map(domain => ({domain, ...common}))}
