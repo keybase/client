@@ -146,3 +146,38 @@ func TestExtractor(t *testing.T) {
 		require.Equal(t, tcase.result, res)
 	}
 }
+
+func TestExtractorExemptions(t *testing.T) {
+	uid := gregor1.UID([]byte{0, 1})
+	log := logger.NewTestLogger(t)
+	extractor := NewExtractor(log)
+	settings := chat1.NewUnfurlSettings()
+	settings.Mode = chat1.UnfurlMode_WHITELISTED
+	settings.Whitelist["amazon.com"] = true
+	settingsMod := NewSettings(log, newMemConversationBackedStorage())
+
+	extractor.AddWhitelistExemption(context.TODO(), uid, NewOneTimeWhitelistExemption("amazon.com"))
+	res, err := extractor.Extract(context.TODO(), uid, "http://amazon.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+	extractor.AddWhitelistExemption(context.TODO(), uid, NewOneTimeWhitelistExemption("cnn.com"))
+	res, err = extractor.Extract(context.TODO(), uid, "http://amazon.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitPrompt, res[0].Typ)
+	res, err = extractor.Extract(context.TODO(), uid, "http://cnn.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+	res, err = extractor.Extract(context.TODO(), uid, "http://cnn.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitPrompt, res[0].Typ)
+
+	require.NoError(t, settingsMod.Set(context.TODO(), uid, settings))
+	res, err = extractor.Extract(context.TODO(), uid, "http://amazon.com", settingsMod)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, ExtractorHitUnfurl, res[0].Typ)
+}
