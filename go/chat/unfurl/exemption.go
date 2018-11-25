@@ -53,7 +53,7 @@ func (l *WhitelistExemptionList) Use(domain string) bool {
 	l.Lock()
 	defer l.Unlock()
 	var nextlist []types.WhitelistExemption
-	exempted := true
+	exempted := false
 	for _, e := range l.exemptions {
 		if exempted || e.Domain() != domain {
 			nextlist = append(nextlist, e)

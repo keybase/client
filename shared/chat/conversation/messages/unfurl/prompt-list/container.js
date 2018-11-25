@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
 })
 
 const makeRes = (actionType: RPCChatTypes.UnfurlPromptAction, domain?: string) => {
-  return {actionType, accept: domain}
+  return {actionType, accept: domain, onetime: domain}
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
