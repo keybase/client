@@ -299,6 +299,12 @@ func (u *Unfurler) detectPermError(err error) bool {
 	return false
 }
 
+func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {
+	if u.unfurlCh != nil {
+		u.unfurlCh <- unfurl
+	}
+}
+
 func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	defer u.Trace(ctx, func() error { return nil }, "unfurl(%s)", outboxID)()
 	if u.checkAndSetUnfurling(ctx, outboxID) {
@@ -307,11 +313,9 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 	}
 	ctx = libkb.CopyTagsToBackground(ctx)
 	go func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
+		defer func() { u.testingSendUnfurl(unfurl) }()
 		defer u.doneUnfurling(outboxID)
 		defer func() {
-			if u.unfurlCh != nil {
-				u.unfurlCh <- unfurl
-			}
 			if err != nil {
 				status := types.UnfurlerTaskStatusFailed
 				if u.detectPermError(err) {
