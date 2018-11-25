@@ -534,7 +534,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 						if err != nil {
 							s.Debug(ctx, "updateSupersededBy: failed to update unfurl target: %s", err)
 						} else {
-							updatedReactionTargets[updatedTarget.GetMessageID()] = updatedTarget
+							updatedUnfurlTargets[updatedTarget.GetMessageID()] = updatedTarget
 							newMsgs = append(newMsgs, updatedTarget)
 						}
 					case chat1.MessageType_REACTION:

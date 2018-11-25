@@ -266,6 +266,57 @@ func TestChatSrvUnfurl(t *testing.T) {
 		default:
 		}
 
+		t.Logf("delete an unfurl")
+		threadRes, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: conv.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(threadRes.Thread.Messages))
+		unfurlMsg := threadRes.Thread.Messages[0]
+		require.True(t, unfurlMsg.IsValid())
+		require.Equal(t, 1, len(unfurlMsg.Valid().Unfurls))
+		unfurlMsgID := func() chat1.MessageID {
+			for k := range unfurlMsg.Valid().Unfurls {
+				return k
+			}
+			return chat1.MessageID(0)
+		}()
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(ctx, chat1.PostDeleteNonblockArg{
+			ConversationID:   conv.Id,
+			TlfName:          conv.TlfName,
+			Supersedes:       unfurlMsgID,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+		})
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
+		threadRes, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: conv.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+		})
+		require.NoError(t, err)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(threadRes.Thread.Messages))
+		unfurlMsg = threadRes.Thread.Messages[0]
+		require.True(t, unfurlMsg.IsValid())
+		require.Zero(t, len(unfurlMsg.Valid().Unfurls))
+		for i := 0; i < 2; i++ {
+			select {
+			case mu := <-listener0.messagesUpdated:
+				require.Equal(t, 1, len(mu.Updates))
+				require.True(t, mu.Updates[0].IsValid())
+				require.Zero(t, len(mu.Updates[0].Valid().Unfurls))
+			case <-time.After(timeout):
+				require.Fail(t, "no update")
+			}
+		}
+
 		t.Logf("exploding unfurl: %v", ctc.world.Fc.Now())
 		dur := gregor1.ToDurationSec(120 * time.Minute)
 		ctc.as(t, users[0]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
@@ -283,5 +334,6 @@ func TestChatSrvUnfurl(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.UnfurlMode_NEVER, settings.Mode)
 		require.Equal(t, []string{"cnn.com", "nytimes.com"}, settings.Whitelist)
+
 	})
 }
