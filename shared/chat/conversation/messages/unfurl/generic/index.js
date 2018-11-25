@@ -33,11 +33,6 @@ class UnfurlGeneric extends React.PureComponent<Props> {
                 </Kb.Text>
               )}
             </Kb.Text>
-            {!!this.props.onClose && (
-              <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-                <Kb.Icon type="iconfont-close" onClick={this.props.onClose} fontSize={10} />
-              </Kb.Box2>
-            )}
           </Kb.Box2>
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
@@ -50,6 +45,11 @@ class UnfurlGeneric extends React.PureComponent<Props> {
         {!!this.props.imageURL &&
           !Styles.isMobile &&
           this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
+        {!!this.props.onClose && (
+          <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
+            <Kb.Icon type="iconfont-close" onClick={this.props.onClose} fontSize={12} />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     )
   }

@@ -1066,9 +1066,11 @@ func (s *Storage) updateUnfurlTargetOnDelete(ctx context.Context, convID chat1.C
 	targetMsgID := unfurlMsg.Valid().MessageBody.Unfurl().MessageID
 	targetMsg, err := s.getMessage(ctx, convID, uid, targetMsgID)
 	if err != nil || targetMsg == nil {
+		s.Debug(ctx, "updateUnfurlTargetOnDelete: no target message found: err: %s", err)
 		return unfurlMsg, err
 	}
 	if !targetMsg.IsValid() {
+		s.Debug(ctx, "updateUnfurlTargetOnDelete: target message is unvalid")
 		return unfurlMsg, nil
 	}
 	mvalid := targetMsg.Valid()
