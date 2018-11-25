@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
-import {connect, renderNothing} from '../../util/container'
+import {connect} from '../../util/container'
 import {isLinux, isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 
@@ -57,7 +57,7 @@ const ConnectedDesktopSecurityPrefs = connect<{||}, _, React.ComponentType<Merge
 
 const DesktopSecurityPrefsBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<MergedProps> {
-    render = () => (displayOnce(this.props) ? <ComposedComponent {...this.props} /> : renderNothing)
+    render = () => !displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null
   }
 
 const DesktopSecurityPrefsPromptingHoc = (ComposedComponent: React.ComponentType<any>) =>

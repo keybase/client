@@ -155,6 +155,7 @@
   "keybase.1.teams.teamAddEmailsBulk": {"promise": true},
   "keybase.1.teams.teamAddMember": {"promise": true},
   "keybase.1.teams.teamAddMembers": {"promise": true},
+  "keybase.1.teams.teamProfileAddList": {"promise": true},
   "keybase.1.teams.teamCreate": {"promise": true},
   "keybase.1.teams.teamCreateSeitanTokenV2": {"promise": true},
   "keybase.1.teams.teamEditMember": {"promise": true},

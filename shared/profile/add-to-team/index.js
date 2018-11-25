@@ -8,7 +8,7 @@ import {
   ButtonBar,
   Checkbox,
   ClickableBox,
-  Dropdown,
+  DropdownButton,
   Divider,
   Meta,
   PopupDialog,
@@ -16,57 +16,41 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
-import {teamRoleTypes} from '../../constants/teams'
-import {capitalize} from 'lodash-es'
 import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
-import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
-const TeamRow = (props: RowProps) => {
-  const memberStatus = props.memberIsInTeam
-    ? `${props.them} is already a member.`
-    : props.youCanAddPeople
-      ? ''
-      : 'Only admins can add people.'
-  return (
-    <ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
-      <Box2 direction="horizontal" style={styleTeamRow}>
-        <Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-        <Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
-          <Avatar
-            isTeam={true}
-            size={isMobile ? 48 : 32}
-            style={{marginRight: globalMargins.tiny}}
-            teamname={props.name}
-          />
-        </Box2>
-        {props.waiting ? (
-          <Box2 direction="vertical">
-            <ProgressIndicator style={{width: 16}} white={false} />
-          </Box2>
-        ) : (
-          <Box2 direction="vertical">
-            <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-              <Text
-                style={{color: props.canAddThem ? globalColors.black_75 : globalColors.black_40}}
-                type="BodySemibold"
-              >
-                {props.name}
-              </Text>
-              {props.isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
-            </Box2>
-            <Box2 direction="horizontal" style={{alignItems: 'center'}}>
-              <Text type="BodySmall">{memberStatus}</Text>
-            </Box2>
-          </Box2>
-        )}
+const TeamRow = (props: RowProps) => (
+  <ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
+    <Box2 direction="horizontal" style={styleTeamRow}>
+      <Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
+      <Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
+        <Avatar
+          isTeam={true}
+          size={isMobile ? 48 : 32}
+          style={{marginRight: globalMargins.tiny}}
+          teamname={props.name}
+        />
       </Box2>
-      {!isMobile && <Divider style={styles.divider} />}
-    </ClickableBox>
-  )
-}
+      <Box2 direction="vertical">
+        <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <Text
+            style={{color: props.canAddThem ? globalColors.black_75 : globalColors.black_40}}
+            type="BodySemibold"
+          >
+            {props.name}
+          </Text>
+          {props.isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+        </Box2>
+        <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <Text type="BodySmall">{props.disabledReason}</Text>
+        </Box2>
+      </Box2>
+    </Box2>
+    {!isMobile && <Divider style={styles.divider} />}
+  </ClickableBox>
+)
 
-const DropdownItem = ({item}: {item: string}) => (
+const DropdownItem = (item: string) => (
   <Box2
     direction="horizontal"
     key={item}
@@ -76,15 +60,12 @@ const DropdownItem = ({item}: {item: string}) => (
       paddingRight: globalMargins.small,
     }}
   >
-    <Text type="BodyBig">{capitalize(item)}</Text>
+    <Text type="BodySmallSemibold">{item}</Text>
   </Box2>
 )
 
-const _makeDropdownItems = () => teamRoleTypes.map(item => <DropdownItem key={item} item={item} />)
-
 const AddToTeam = (props: Props) => {
   const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
-
   return (
     <Box2 direction="vertical" style={styleContainer}>
       {!isMobile && (
@@ -102,50 +83,48 @@ const AddToTeam = (props: Props) => {
 
       <ScrollView style={{width: '100%'}}>
         <Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
-          {props.teamnames &&
-            props.teamnames.map(team => {
-              return (
+          {!props.waiting ? (
+            props.teamProfileAddList.length > 0 ? (
+              props.teamProfileAddList.map(team => (
                 <TeamRow
-                  canAddThem={props.canAddThem[team]}
-                  checked={props.selectedTeams[team]}
-                  key={team}
-                  name={team}
-                  isOpen={props.teamNameToIsOpen[team]}
-                  memberIsInTeam={props.memberIsInTeam[team]}
-                  onCheck={() => props.onToggle(team)}
+                  canAddThem={!team.disabledReason}
+                  checked={props.selectedTeams[team.teamName]}
+                  disabledReason={team.disabledReason}
+                  key={team.teamName}
+                  name={team.teamName}
+                  isOpen={team.open}
+                  onCheck={() => props.onToggle(team.teamName)}
                   them={props.them}
-                  youCanAddPeople={props.youCanAddPeople[team]}
-                  waiting={!props.loaded[team]}
                 />
-              )
-            })}
+              ))
+            ) : (
+              <Box2 direction="vertical" centerChildren={true}>
+                <Text style={{textAlign: 'center'}} type="Body">
+                  Looks like you haven't joined any teams yet yourself!
+                </Text>
+                <Text style={{textAlign: 'center'}} type="Body">
+                  You can join teams over in the Teams tab.
+                </Text>
+              </Box2>
+            )
+          ) : (
+            <Box2 direction="vertical" centerChildren={true}>
+              <ProgressIndicator style={{width: 64}} />
+            </Box2>
+          )}
         </Box2>
       </ScrollView>
       <Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={addToTeam}>
         <Text style={addToTeamTitle} type="BodySmall">
           {props.them} will be added as a
         </Text>
-        <ClickableBox
-          onClick={() =>
-            props.onOpenRolePicker(
-              props.role,
-              (selectedRole: TeamRoleType) => props.onRoleChange(selectedRole),
-              {zIndex: ROLE_PICKER_ZINDEX}
-            )
+        <DropdownButton
+          toggleOpen={() =>
+            props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
           }
-          underlayColor="rgba(0, 0, 0, 0)"
-        >
-          <Dropdown
-            items={_makeDropdownItems()}
-            selected={<DropdownItem item={props.role} />}
-            onChanged={(node: React.Node) => {
-              // $FlowIssue doesn't understand key will be string
-              const selectedRole: TeamRoleType = (node && node.key) || null
-              props.onRoleChange(selectedRole)
-            }}
-            style={{width: isMobile ? '100%' : 100}}
-          />
-        </ClickableBox>
+          selected={DropdownItem(props.role)}
+          style={{width: isMobile ? '100%' : 100}}
+        />
       </Box2>
       <ButtonBar fullWidth={true} style={buttonBar}>
         {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}

@@ -143,7 +143,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 			case u := <-unfurlCh:
 				return u
 			case <-time.After(timeout):
-				require.Fail(t, "no retry")
+				require.Fail(t, "no unfurl")
 			}
 			return nil
 		}
