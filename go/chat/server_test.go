@@ -2381,9 +2381,15 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
-			require.Equal(t, num, len(res.Thread.Messages))
-			require.True(t, res.Thread.Messages[0].IsValid())
-			require.Equal(t, intended, res.Thread.Messages[0].Valid().MessageBody.Text().Body)
+			var thread []chat1.MessageUnboxed
+			for _, m := range res.Thread.Messages {
+				if !m.IsOutbox() {
+					thread = append(thread, m)
+				}
+			}
+			require.Equal(t, num, len(thread))
+			require.True(t, thread[0].IsValid())
+			require.Equal(t, intended, thread[0].Valid().MessageBody.Text().Body)
 		}
 
 		outboxID, err := storage.NewOutboxID()

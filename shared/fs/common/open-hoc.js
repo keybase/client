@@ -39,21 +39,23 @@ const canOpenInDestinationPicker = memoize2(
     !isFolder(stateProps, ownProps) || stateProps._moveOrCopy.sourceItemPath === ownProps.path
 )
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+type MergedProps = OwnProps & {
+  onOpen: ?() => void,
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps => ({
   onOpen:
     typeof ownProps.destinationPickerIndex === 'number'
       ? canOpenInDestinationPicker(stateProps, ownProps)
         ? null
         : dispatchProps._destinationPickerGoTo
       : dispatchProps._open,
-  routePath: ownProps.routePath,
-  path: ownProps.path,
-  destinationPickerIndex: ownProps.destinationPickerIndex,
+  // We need the inexact spread here because this is a HOC. As such, it must
+  // pass down any OwnProps to composed components, even if the HOC typing
+  // itself doesn't know about them.
+  // $FlowIssue thus, ignore the warning here.
+  ...ownProps,
 })
-
-type MergedProps = OwnProps & {
-  onOpen: ?() => void,
-}
 
 export default namedConnect<OwnProps, _, React.ComponentType<MergedProps>, _, _>(
   mapStateToProps,
