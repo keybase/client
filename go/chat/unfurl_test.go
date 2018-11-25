@@ -303,9 +303,9 @@ func TestChatSrvUnfurl(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
 		})
 		require.NoError(t, err)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(threadRes.Thread.Messages))
-		unfurlMsg = threadRes.Thread.Messages[0]
+		thread := filterOutboxMessages(threadRes.Thread)
+		require.Equal(t, 1, len(thread))
+		unfurlMsg = thread[0]
 		require.True(t, unfurlMsg.IsValid())
 		require.Zero(t, len(unfurlMsg.Valid().Unfurls))
 		select {
