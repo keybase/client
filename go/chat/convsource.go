@@ -1120,6 +1120,7 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
 		return
 	}
+	s.Debug(ctx, "notifyUnfurls: %d messages after transform", len(unfurledMsgs))
 	notif := chat1.MessagesUpdated{
 		ConvID: convID,
 	}

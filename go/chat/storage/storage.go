@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -1057,11 +1058,11 @@ func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, u
 }
 
 func (s *Storage) updateUnfurlTargetOnDelete(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, unfurlMsg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err Error) {
+	uid gregor1.UID, unfurlMsg chat1.MessageUnboxed) (res chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "updateUnfurlTargetOnDelete(%d)",
 		unfurlMsg.GetMessageID())()
 	if unfurlMsg.Valid().MessageBody.IsNil() {
-		return unfurlMsg, nil
+		return unfurlMsg, errors.New("unfurl already deleted")
 	}
 	targetMsgID := unfurlMsg.Valid().MessageBody.Unfurl().MessageID
 	targetMsg, err := s.getMessage(ctx, convID, uid, targetMsgID)
