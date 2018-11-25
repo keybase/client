@@ -12,6 +12,7 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   return {
     unfurls: message && message.type === 'text' ? message.unfurls.toList() : I.List(),
+    showClose: message ? message.author === state.config.username : false,
   }
 }
 
@@ -27,7 +28,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       return {
         unfurl: u.unfurl,
         url: u.url,
-        onClose: () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID)),
+        onClose: stateProps.showClose
+          ? () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID))
+          : undefined,
       }
     })
     .toArray()

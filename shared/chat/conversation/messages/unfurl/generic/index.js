@@ -16,23 +16,52 @@ export type Props = {
   showImageOnSide: boolean,
 }
 
-class UnfurlGeneric extends React.PureComponent<Props> {
+type State = {
+  showClose: boolean,
+}
+
+class UnfurlGeneric extends React.Component<Props, State> {
+  state = {showClose: false}
+  _onMouseOver = () => {
+    this.setState({showClose: true})
+  }
+  _onMouseLeave = () => {
+    this.setState({showClose: false})
+  }
   render() {
     return (
-      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
+      <Kb.Box2
+        style={styles.container}
+        onMouseOver={this._onMouseOver}
+        onMouseLeave={this._onMouseLeave}
+        gap="tiny"
+        direction="horizontal"
+      >
         {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
         <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
           <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-            {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
-            <Kb.Text type="BodySmall">
-              {this.props.siteName}
-              {!!this.props.publishTime && (
-                <Kb.Text type="BodySmall">
-                  {' '}
-                  • Published {formatTimeForMessages(this.props.publishTime)}
-                </Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="tiny">
+              {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
+              <Kb.Text type="BodySmall">
+                {this.props.siteName}
+                {!!this.props.publishTime && (
+                  <Kb.Text type="BodySmall">
+                    {' '}
+                    • Published {formatTimeForMessages(this.props.publishTime)}
+                  </Kb.Text>
+                )}
+              </Kb.Text>
+            </Kb.Box2>
+            {!!this.props.onClose &&
+              this.state.showClose &&
+              !Styles.isMobile && (
+                <Kb.Icon
+                  type="iconfont-close"
+                  onClick={this.props.onClose}
+                  style={styles.closeBox}
+                  fontSize={12}
+                />
               )}
-            </Kb.Text>
           </Kb.Box2>
           <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
             {this.props.title}
@@ -45,11 +74,6 @@ class UnfurlGeneric extends React.PureComponent<Props> {
         {!!this.props.imageURL &&
           !Styles.isMobile &&
           this.props.showImageOnSide && <Kb.Image src={this.props.imageURL} style={styles.sideImage} />}
-        {!!this.props.onClose && (
-          <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-            <Kb.Icon type="iconfont-close" onClick={this.props.onClose} fontSize={12} />
-          </Kb.Box2>
-        )}
       </Kb.Box2>
     )
   }
@@ -90,9 +114,10 @@ const styles = Styles.styleSheetCreate({
   siteNameContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
+      justifyContent: 'space-between',
     },
   }),
-  closeContainer: Styles.platformStyles({
+  closeBox: Styles.platformStyles({
     isElectron: {
       marginLeft: 'auto',
       alignSelf: 'flex-start',
