@@ -53,8 +53,7 @@ class UnfurlGeneric extends React.Component<Props, State> {
               </Kb.Text>
             </Kb.Box2>
             {!!this.props.onClose &&
-              this.state.showClose &&
-              !Styles.isMobile && (
+              (this.state.showClose || Styles.isMobile) && (
                 <Kb.Icon
                   type="iconfont-close"
                   onClick={this.props.onClose}
