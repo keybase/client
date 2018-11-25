@@ -362,6 +362,11 @@ type ConversationBackedStorage interface {
 	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
 }
 
+type WhitelistExemption interface {
+	Use() bool
+	Domain() string
+}
+
 type Unfurler interface {
 	UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msg chat1.MessageUnboxed)
@@ -373,6 +378,7 @@ type Unfurler interface {
 	SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error
 	WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error
 	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
+	WhitelistAddExemption(ctx context.Context, uid gregor1.UID, exemption WhitelistExemption)
 	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
 }
 

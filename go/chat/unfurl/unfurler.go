@@ -372,6 +372,12 @@ func (u *Unfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 	return u.settings.WhitelistRemove(ctx, uid, domain)
 }
 
+func (u *Unfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
+	exemption types.WhitelistExemption) {
+	defer u.Trace(ctx, func() error { return nil }, "WhitelistAddExemption")()
+	u.extractor.AddWhitelistExemption(ctx, uid, exemption)
+}
+
 func (u *Unfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer u.Trace(ctx, func() error { return nil }, "SetMode")()
 	return u.settings.SetMode(ctx, uid, mode)
