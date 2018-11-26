@@ -251,7 +251,7 @@ func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bund
 		}
 		return PostV1Bundle(ctx, g, *v1Bundle)
 	}
-	return PostBundleRestricted(ctx, g, &clearBundle)
+	return postV2Bundle(ctx, g, &clearBundle)
 }
 
 type AlreadyMigratedError struct{}
@@ -427,7 +427,7 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	}
 	m.CInfof("Passed all premigration checks. Posting the migrated bundle...")
 
-	err = PostBundleRestricted(m.Ctx(), m.G(), &v2Bundle)
+	err = postV2Bundle(m.Ctx(), m.G(), &v2Bundle)
 	if err != nil {
 		m.CErrorf("MIGRATION FAILED: posting v2 bundle %v\n", err)
 		return err
@@ -444,9 +444,9 @@ func MigrateBundleToAccountBundles(m libkb.MetaContext) (err error) {
 	return nil
 }
 
-// PostBundleRestricted encrypts and uploads a restricted bundle to the server.
-func PostBundleRestricted(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.BundleRestricted) (err error) {
-	defer g.CTraceTimed(ctx, "Stellar.PostBundleRestricted", func() error { return err })()
+// postV2Bundle encrypts and uploads a restricted bundle to the server.
+func postV2Bundle(ctx context.Context, g *libkb.GlobalContext, bundle *stellar1.BundleRestricted) (err error) {
+	defer g.CTraceTimed(ctx, "Stellar.postV2Bundle", func() error { return err })()
 
 	pukGen, pukSeed, err := getLatestPuk(ctx, g)
 	if err != nil {
@@ -1113,8 +1113,8 @@ func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID
 	if err != nil {
 		return err
 	}
-	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
-		g.Log.CDebugf(ctx, "SetAccountMobileOnly PostBundleRestricted error: %s", err)
+	if err := postV2Bundle(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "SetAccountMobileOnly postV2Bundle error: %s", err)
 		return err
 	}
 
@@ -1138,8 +1138,8 @@ func MakeAccountAllDevices(ctx context.Context, g *libkb.GlobalContext, accountI
 	if err != nil {
 		return err
 	}
-	if err := PostBundleRestricted(ctx, g, bundle); err != nil {
-		g.Log.CDebugf(ctx, "MakeAccountAllDevices PostBundleRestricted error: %s", err)
+	if err := postV2Bundle(ctx, g, bundle); err != nil {
+		g.Log.CDebugf(ctx, "MakeAccountAllDevices postV2Bundle error: %s", err)
 		return err
 	}
 

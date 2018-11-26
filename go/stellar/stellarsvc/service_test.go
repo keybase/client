@@ -1142,12 +1142,12 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, "vault", rev3AcctBundle.Accounts[1].Name)
 
 	// try posting an old bundle we got previously
-	err = remote.PostBundleRestricted(ctx, g, rev2AcctBundle)
+	err = remote.Post(ctx, g, *rev2AcctBundle, version)
 	require.Error(t, err)
 
 	// tinker with it
 	rev2AcctBundle.Revision = 4
-	err = remote.PostBundleRestricted(ctx, g, rev2AcctBundle)
+	err = remote.Post(ctx, g, *rev2AcctBundle, version)
 	require.Error(t, err)
 }
 
@@ -1512,7 +1512,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	// post
 	throwawayV2Bundle0 := v2Bundle.DeepCopy()
 	throwawayV2Bundle1 := acctbundle.AdvanceAccounts(throwawayV2Bundle0, []stellar1.AccountID{primaryAccountID})
-	err = remote.PostBundleRestricted(ctx, g, &throwawayV2Bundle1)
+	err = remote.Post(ctx, g, throwawayV2Bundle1, stellar1.BundleVersion_V2)
 	require.Error(t, err, "cannot post v2 before migrating")
 	aerr = err.(libkb.AppStatusError)
 	actualStatus = keybase1.StatusCode(aerr.Code)
@@ -1559,7 +1559,7 @@ func TestMigrateBundleToAccountBundles(t *testing.T) {
 	require.NoError(t, err)
 	v2BundleNext := acctbundle.AdvanceBundle(*v2Bundle)
 	require.NoError(t, err)
-	err = remote.PostBundleRestricted(ctx, g, &v2BundleNext)
+	err = remote.Post(ctx, g, v2BundleNext, stellar1.BundleVersion_V2)
 	require.NoError(t, err)
 	assertFetchAccountBundles(t, tcs[0], primaryAccountID)
 	// add a primary account
