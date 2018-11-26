@@ -160,9 +160,6 @@
     "setTeamCreationError": {
       "error": "string"
     },
-    "setTeamCreationPending": {
-      "pending": "boolean"
-    },
     "setTeamInviteError": {
       "error": "string"
     },

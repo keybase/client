@@ -30,12 +30,11 @@ import type {TypedState} from '../constants/reducer'
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
   const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-  yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
   try {
     yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
       joinSubteam,
       name: teamname,
-    })
+    }, Constants.teamCreationWaitingKey)
 
     // Dismiss the create team dialog.
     yield Saga.put(
@@ -67,8 +66,6 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
     ])
   } catch (error) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-  } finally {
-    yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: false}))
   }
 }
 
@@ -454,12 +451,11 @@ const _createNewTeamFromConversation = function*(
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
-    yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
         joinSubteam: false,
         name: teamname,
-      })
+      }, Constants.teamCreationWaitingKey)
       for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
           yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
@@ -468,14 +464,12 @@ const _createNewTeamFromConversation = function*(
             role: username === me ? RPCTypes.teamsTeamRole.admin : RPCTypes.teamsTeamRole.writer,
             sendChatNotification: true,
             username,
-          })
+          }, Constants.teamCreationWaitingKey)
         }
       }
       yield Saga.put(Chat2Gen.createPreviewConversation({teamname, reason: 'convertAdHoc'}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-    } finally {
-      yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: false}))
     }
   }
 }
