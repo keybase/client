@@ -10,7 +10,6 @@ import {searchKey} from '../../../constants/wallets'
 export type SearchProps = {|
   heading: 'To' | 'From',
   onClickResult: (username: string) => void,
-  onClose: () => void,
   onShowSuggestions: () => void,
   onShowTracker: (username: string) => void,
   onScanQRCode: ?() => void,
