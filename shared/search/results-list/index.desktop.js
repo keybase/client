@@ -29,18 +29,6 @@ class SearchResultsList extends Component<Props> {
   _list = null
   _setRef = r => (this._list = r)
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.selectedId !== prevProps.selectedId) {
-      const list = this._list
-      if (list && this.props.selectedId) {
-        const idx = this.props.items.indexOf(this.props.selectedId)
-        if (idx !== -1) {
-          list.scrollAround(idx)
-        }
-      }
-    }
-  }
-
   render() {
     const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
