@@ -259,7 +259,7 @@ const styles = Styles.styleSheetCreate({
       top: -1,
     },
     isMobile: {
-      right: -14,
+      right: 0,
       top: 2,
     },
   }),
