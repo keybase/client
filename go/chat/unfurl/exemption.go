@@ -4,18 +4,23 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 type OneTimeWhitelistExemption struct {
 	sync.Mutex
 	used   bool
+	convID chat1.ConversationID
+	msgID  chat1.MessageID
 	domain string
 }
 
 var _ (types.WhitelistExemption) = (*OneTimeWhitelistExemption)(nil)
 
-func NewOneTimeWhitelistExemption(domain string) *OneTimeWhitelistExemption {
+func NewOneTimeWhitelistExemption(convID chat1.ConversationID, msgID chat1.MessageID, domain string) *OneTimeWhitelistExemption {
 	return &OneTimeWhitelistExemption{
+		convID: convID,
+		msgID:  msgID,
 		domain: domain,
 	}
 }
@@ -26,6 +31,11 @@ func (o *OneTimeWhitelistExemption) Use() bool {
 	res := !o.used
 	o.used = true
 	return res
+}
+
+func (o *OneTimeWhitelistExemption) Matches(convID chat1.ConversationID, msgID chat1.MessageID,
+	domain string) bool {
+	return o.convID.Eq(convID) && o.msgID == msgID && o.domain == domain
 }
 
 func (o *OneTimeWhitelistExemption) Domain() string {
@@ -49,13 +59,13 @@ func (l *WhitelistExemptionList) Add(e types.WhitelistExemption) {
 	l.exemptions = append(l.exemptions, e)
 }
 
-func (l *WhitelistExemptionList) Use(domain string) bool {
+func (l *WhitelistExemptionList) Use(convID chat1.ConversationID, msgID chat1.MessageID, domain string) bool {
 	l.Lock()
 	defer l.Unlock()
 	var nextlist []types.WhitelistExemption
 	exempted := false
 	for _, e := range l.exemptions {
-		if exempted || e.Domain() != domain {
+		if exempted || !e.Matches(convID, msgID, domain) {
 			nextlist = append(nextlist, e)
 			continue
 		}

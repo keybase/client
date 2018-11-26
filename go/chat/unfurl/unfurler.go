@@ -133,7 +133,8 @@ func (u *Unfurler) Retry(ctx context.Context, outboxID chat1.OutboxID) {
 	}
 }
 
-func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxed) (res []ExtractorHit) {
+func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) (res []ExtractorHit) {
 	if !msg.IsValid() {
 		return nil
 	}
@@ -144,7 +145,7 @@ func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, msg chat1.M
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
-		hits, err := u.extractor.Extract(ctx, uid, body.Text().Body, u.settings)
+		hits, err := u.extractor.Extract(ctx, uid, convID, msg.GetMessageID(), body.Text().Body, u.settings)
 		if err != nil {
 			u.Debug(ctx, "extractURLs: failed to extract: %s", err)
 			return nil
@@ -221,7 +222,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 		return
 	}
 	// get URL hits
-	hits := u.extractURLs(ctx, uid, msg)
+	hits := u.extractURLs(ctx, uid, convID, msg)
 	if len(hits) == 0 {
 		return
 	}

@@ -2323,7 +2323,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		}
 	case chat1.UnfurlPromptAction_ONETIME:
 		h.G().Unfurler.WhitelistAddExemption(ctx, uid,
-			unfurl.NewOneTimeWhitelistExemption(arg.Result.Onetime()))
+			unfurl.NewOneTimeWhitelistExemption(arg.ConvID, arg.MsgID, arg.Result.Onetime()))
 		if err = fetchAndUnfurl(); err != nil {
 			return fmt.Errorf("failed to fetch and unfurl: %s", err)
 		}

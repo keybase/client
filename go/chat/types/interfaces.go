@@ -364,6 +364,7 @@ type ConversationBackedStorage interface {
 
 type WhitelistExemption interface {
 	Use() bool
+	Matches(convID chat1.ConversationID, msgID chat1.MessageID, domain string) bool
 	Domain() string
 }
 

@@ -58,8 +58,8 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 	return res
 }
 
-func (e *Extractor) isWhitelistHit(ctx context.Context, hit string, whitelist map[string]bool,
-	exemptions *WhitelistExemptionList) bool {
+func (e *Extractor) isWhitelistHit(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	hit string, whitelist map[string]bool, exemptions *WhitelistExemptionList) bool {
 	domain, err := GetDomain(hit)
 	if err != nil {
 		e.Debug(ctx, "isWhitelistHit: failed to get domain: %s", err)
@@ -69,14 +69,15 @@ func (e *Extractor) isWhitelistHit(ctx context.Context, hit string, whitelist ma
 		return true
 	}
 	// Check exemptions
-	if exemptions.Use(domain) {
+	if exemptions.Use(convID, msgID, domain) {
 		e.Debug(ctx, "isWhitelistHit: hit exemption for domain, letting through")
 		return true
 	}
 	return false
 }
 
-func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
+func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, body string, userSettings *Settings) (res []ExtractorHit, err error) {
 	defer e.Trace(ctx, func() error { return err }, "Extract")()
 	settings, err := userSettings.Get(ctx, uid)
 	if err != nil {
@@ -96,7 +97,7 @@ func (e *Extractor) Extract(ctx context.Context, uid gregor1.UID, body string, u
 		case chat1.UnfurlMode_ALWAYS:
 			ehit.Typ = ExtractorHitUnfurl
 		case chat1.UnfurlMode_WHITELISTED:
-			if e.isWhitelistHit(ctx, h, settings.Whitelist, e.getExemptionList(uid)) {
+			if e.isWhitelistHit(ctx, convID, msgID, h, settings.Whitelist, e.getExemptionList(uid)) {
 				ehit.Typ = ExtractorHitUnfurl
 			}
 		}
