@@ -121,7 +121,7 @@ const linkRegex: RegExp = {
     return null
   },
 }
-// don't allow regular characters before a url
+// Only allow a small set of characters before a url
 const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
