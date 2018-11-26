@@ -192,7 +192,7 @@ func (c *compressor) sortFrequencies(freqs map[interface{}]int) (ret []Frequency
 	return ret, nil
 }
 
-// frequenciesToMao converts a sorted vectors of frequencies to a map (key -> uint),
+// frequenciesToMap converts a sorted vectors of frequencies to a map (key -> uint),
 // where the RHS values are ordered 0 to N. The idea is that the most frequent
 // keys get ths smallest values, which take of the least space when msgpack encoded.
 // This function returns the "keyMap" refered to later.
@@ -208,7 +208,7 @@ func (c *compressor) frequenciesToMap(freqs []Frequency) (keys map[interface{}]u
 // encodeded compressed output.
 func (c *compressor) output(freqsSorted []Frequency, keys map[interface{}]uint) (output []byte, err error) {
 
-	version := 1
+	version := Version(1)
 	data, err := c.outputData(keys)
 	if err != nil {
 		return nil, err
@@ -327,12 +327,16 @@ func (c *compressor) outputCompressedKeymap(freqsSorted []Frequency) (output []b
 	return compressedKeymap, nil
 }
 
+type Version int
+
 // outputFinalProduct is the final pass output routine. It outputs the wrapper
 // 3-value array, the version prefix, the encoded data, and the compressed, encoded
 // keyMap.
-func (c *compressor) outputFinalProduct(version int, data []byte, compressedKeymap []byte) (output []byte, err error) {
+func (c *compressor) outputFinalProduct(version Version, data []byte, compressedKeymap []byte) (output []byte, err error) {
 
 	var ret outputter
+
+	// 3 elements in the array, so output '3'
 	err = ret.outputArrayPrefix(msgpackIntFromUint(uint(3)))
 	if err != nil {
 		return nil, err
