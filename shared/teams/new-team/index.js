@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
-import {Box, Button, Checkbox, HeaderOrPopup, Input, Text, ScrollView} from '../../common-adapters/index'
+import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/teams'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {validTeamnamePart} from '../../constants/teamname'
 
@@ -43,30 +44,30 @@ class Contents extends React.Component<Props> {
     const {isSubteam, joinSubteam, name, onJoinSubteamChange, onNameChange, pending} = this.props
     const errorText = this.props.errorText
     return (
-      <ScrollView>
-        <Box style={globalStyles.flexBoxColumn}>
-          <Box
+      <Kb.ScrollView>
+        <Kb.Box style={globalStyles.flexBoxColumn}>
+          <Kb.Box
             style={{
               ...styleContainer,
               backgroundColor: globalColors.blue,
             }}
           >
-            <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+            <Kb.Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
               {this._headerText()}
               {this.props.isSubteam && (
-                <Text
+                <Kb.Text
                   type="BodySmallSemiboldPrimaryLink"
                   style={{...globalStyles.fontSemibold}}
                   backgroundMode="Announcements"
                   onClickURL="https://keybase.io/docs/teams/design"
                 >
                   Learn more
-                </Text>
+                </Kb.Text>
               )}
-            </Text>
-          </Box>
+            </Kb.Text>
+          </Kb.Box>
           {!!errorText && (
-            <Box
+            <Kb.Box
               style={{
                 ...styleContainer,
                 backgroundColor: globalColors.red,
@@ -74,17 +75,17 @@ class Contents extends React.Component<Props> {
                 borderTopRightRadius: 0,
               }}
             >
-              <Text
+              <Kb.Text
                 style={{textAlign: 'center', width: '100%'}}
                 type="BodySmallSemibold"
                 backgroundMode="HighRisk"
               >
                 {errorText}
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
 
-          <Box
+          <Kb.Box
             style={{
               ...globalStyles.flexBoxColumn,
               ...stylePadding,
@@ -93,49 +94,49 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.white,
             }}
           >
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-              <Input
+            <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
+              <Kb.Input
                 autoFocus={true}
+                editable={!pending}
                 hintText="Name your team"
                 value={name}
                 onChangeText={onNameChange}
                 onEnterKeyDown={this._onSubmit}
-                disabled={pending}
               />
-            </Box>
+            </Kb.Box>
 
             {isSubteam && (
-              <Box
+              <Kb.Box
                 style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium, opacity: name ? 1 : 0}}
               >
-                <Text type="Body">
-                  This team will be named <Text type="BodySemibold">{this._fullName()}</Text>
-                </Text>
-              </Box>
+                <Kb.Text type="Body">
+                  This team will be named <Kb.Text type="BodySemibold">{this._fullName()}</Kb.Text>
+                </Kb.Text>
+              </Kb.Box>
             )}
 
             {isSubteam && (
-              <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-                <Checkbox
+              <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
+                <Kb.Checkbox
                   checked={joinSubteam}
                   label="Join this subteam after creating it"
                   onCheck={onJoinSubteamChange}
                 />
-              </Box>
+              </Kb.Box>
             )}
 
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
-              <Button
+            <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
+              <Kb.WaitingButton
                 type="Primary"
                 style={{marginLeft: globalMargins.tiny}}
                 onClick={this._onSubmit}
                 label="Create team"
-                disabled={pending}
+                waitingKey={Constants.teamCreationWaitingKey}
               />
-            </Box>
-          </Box>
-        </Box>
-      </ScrollView>
+            </Kb.Box>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ScrollView>
     )
   }
 }
@@ -164,4 +165,4 @@ const stylePadding = isMobile
       marginTop: 90,
     }
 
-export default HeaderOrPopup(Contents)
+export default Kb.HeaderOrPopup(Contents)

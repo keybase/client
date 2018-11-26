@@ -2,6 +2,8 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
 import {upperFirst} from 'lodash-es'
+import * as WaitingConstants from '../../constants/waiting'
+import * as Constants from '../../constants/teams'
 import {
   connect,
   compose,
@@ -15,7 +17,7 @@ type OwnProps = RouteProps<{makeSubteam: boolean, name: string}, {}>
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
-  pending: state.teams.teamCreationPending,
+  pending: WaitingConstants.anyWaiting(state, Constants.teamCreationWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
